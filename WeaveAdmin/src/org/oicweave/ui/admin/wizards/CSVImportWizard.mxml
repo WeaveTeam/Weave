@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:WizardViewStack
+			xmlns:mx="http://www.adobe.com/2006/mxml"
+			xmlns:ui="org.oicweave.ui.*"
+			xmlns:admin="org.oicweave.ui.admin.*"
+			xmlns="org.oicweave.ui.admin.wizards.*" 
+			label="Import CSV data to Weave"
+			width="640" height="300"
+			creationComplete="handleCreationComplete()"
+			>
+	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
+	<mx:VBox id="csvUploadPage">
+		<mx:HBox>
+			<mx:Label text="CSV file" width="{indent}" />
+			<mx:TextInput id="csvFileNameInput" text="Select a CSV file." focusIn="csvFileNameInput.setSelection(0, int.MAX_VALUE)" change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/><!-- editable because user may want to type the name of a file already on the server -->
+			<mx:Button label="Upload File" click="browseAndUpload();"/>
+			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
+			<mx:Text text = "{fileStatus.text}" id="fileStatus"/>
+		</mx:HBox>
+		<admin:SQLTableSelectorDialog id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableOverwriteCheck.toolTip = StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP"/>
+		<mx:HBox id="box1" enabled="false">
+			<mx:TextArea text="Name of key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true" />
+			<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
+		</mx:HBox>
+	</mx:VBox>
+	<mx:VBox id="optionalSettingsPage">
+		<mx:HBox id="nullReplacement" enabled="false" toolTip="Specify flag values to treat as missing data, separated by commas">
+			<mx:Label enabled="true" text="Null flag values" width="{indent}"/>
+			<mx:TextInput enabled="true" id="nullFlagInput" editable="true"/>
+		</mx:HBox>
+		<mx:HBox id="box2" enabled="false">
+			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}" width="{indent}"/>
+			<mx:TextInput id="dataTableNameInput" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
+			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
+		</mx:HBox>
+		<admin:GeometryCollectionDialog id="geometrySelector" enabled="false" keyType="{tableSelector.activeTable}"/>
+	</mx:VBox>
+	<mx:VBox id="dublinCorePage" width="100%" >
+		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the metadata tab of the data table view."/>
+		<mx:LinkButton label="Click for Dublin Core Reference" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
+		<mx:Form>
+			<mx:FormItem label="Title">
+				<mx:TextInput id="dcTitleTextInput" toolTip="The name given to the resource. Typically, a Title will be a name by which the resource is formally known."/>
+			</mx:FormItem>
+			<mx:FormItem label="Subject">
+				<mx:TextInput id="dcSubjectTextInput" toolTip="The topic of the content of the resource. Typically, a Subject will be expressed as keywords or key phrases or classification codes that describe the topic of the resource. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme."/>
+			</mx:FormItem>
+			<mx:FormItem label="Description">
+				<mx:TextArea id="dcDescriptionTextInput"  toolTip="An account of the content of the resource. Description may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content."/>
+			</mx:FormItem>
+		</mx:Form>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.Container;
+			import mx.core.mx_internal;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncResponder;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.oicweave.StringDefinition;
+			import org.oicweave.api.WeaveAPI;
+			import org.oicweave.services.AdminInterface;
+			import org.oicweave.services.DelayedAsyncInvocation;
+			import org.oicweave.services.WeaveAdminService;
+			import org.oicweave.ui.admin.ServerCSVFileViewer;
+			
+			private static const indent:int = 145;
+			
+			private var _csvFileReference:FileReference = new FileReference();
+			private var _serverFileBrowser:ServerCSVFileViewer = null;
+			
+			private function handleCreationComplete():void
+			{
+				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
+				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
+				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					
+				backEnabled = false;
+				nextEnabled = false;
+				finishEnabled = false;
+			}
+			
+			private function csvFileSelectedHandler(event:Event):void
+			{
+				_csvFileReference.load();
+			}
+			
+			private function csvFileLoadCompleteHandler(event:Event):void
+			{
+				if (_csvFileReference.data == null)
+					return;
+				
+				AdminInterface.instance.uploadFile(_csvFileReference);
+				
+				csvFileNameInput.text = _csvFileReference.name;
+				
+				// when file is loaded locally, get csv column names
+				var csvData:String = _csvFileReference.data.toString();
+				var firstRow:Array = WeaveAPI.CSVParser.parseCSV(csvData)[0];
+				csvKeyColumnCombo.dataProvider = firstRow;
+				
+				var tableName:String = _csvFileReference.name;
+				
+				//clip the ".csv"
+				tableName = tableName.substring(0,tableName.lastIndexOf("."));
+				
+				tableSelector.activeTable = tableName;
+				enableAllWidgets();
+				
+			}
+			
+			private function fileErrorHandler(event:IOErrorEvent):void
+			{
+				var fileRef:FileReference = event.target as FileReference;
+				WeaveAdminService.messageDisplay(
+					"File upload failed",
+					"File: " + fileRef.name + "\n" + "Size: " + fileRef.size + "\n" + event.text,
+					true
+				);
+			}
+
+			private function browseAndUpload():void
+			{
+				try
+				{
+					var fileTypes:Array = [new FileFilter("CSV Files", "*.csv")];
+					_csvFileReference.browse(fileTypes);
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
+			}
+			private function openServerBrowser():void
+			{
+				_serverFileBrowser = ServerCSVFileViewer.createServerFileViewer(this);
+				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
+			}
+			private function serverFileBrowserSelectFile(e:MouseEvent):void
+			{
+				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
+				
+				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames);
+				
+				csvFileNameInput.text = tableName;
+				tableName = tableName.substring(0,tableName.lastIndexOf("."));
+				tableSelector.activeTable = tableName;
+				
+				PopUpManager.removePopUp(_serverFileBrowser);
+				enableAllWidgets();
+			}
+			private function handleGetCSVColumnNames(e:ResultEvent, token:Object = null):void
+			{
+				csvKeyColumnCombo.dataProvider = e.result;
+			}
+			
+			
+			/**
+			 * Adds the new CSV file to the server configuration, then adds the Dublin Core metadata (if any).
+			 */
+			override public function finish():void
+			{
+				var query:DelayedAsyncInvocation = AdminInterface.instance.importCSV(
+						csvFileNameInput.text,
+						csvKeyColumnCombo.text,
+						tableSelector.activeSchema,
+						tableSelector.activeTable,
+						tableSelector.tableOverwriteCheck.selected,
+						dataTableNameInput.text,
+						dataTableOverwriteCheck.selected,
+						geometrySelector.selectedGeometryCollection,
+						geometrySelector.selectedKeyType,
+						nullFlagInput.text
+					);
+				query.addAsyncResponder(
+						function(event:ResultEvent, token:Object = null):void
+						{
+							selectedChild = dublinCorePage;
+							commitDublinCoreElements();
+						}
+					);
+			}
+			
+			private function commitDublinCoreElements():void{
+				var elements:Object = new Object();
+				if(dcTitleTextInput.text.length != 0)
+					elements["title"] = dcTitleTextInput.text;
+				if(dcSubjectTextInput.text.length != 0)
+					elements["subject"] = dcSubjectTextInput.text;
+				if(dcDescriptionTextInput.text.length != 0)
+					elements["description"] = dcDescriptionTextInput.text;
+				
+				//An assumtion is made that this text (dataTableNameInput.text) will not change,
+				//and still represents the correct dataset name at the time this code is run. -Curran
+				var datasetName:String = dataTableNameInput.text;
+				
+				AdminInterface.instance.addDCElements(datasetName,elements,
+					function(event:ResultEvent, token:Object = null):void
+					{
+						//show nothing, as another "success" popup comes at the same time from another piece of code 
+//						Alert.show("CSV file successfully imported!");
+						//close the outer wizard
+						
+					}
+				);
+			}
+			
+			private function enableAllWidgets(enable:Boolean = true):void
+			{
+				tableSelector.enabled = enable;
+				box1.enabled = enable;
+				box2.enabled = enable;
+				nullReplacement.enabled = enable;
+				geometrySelector.enabled = enable;
+				backEnabled = enable;
+				nextEnabled = enable;
+				finishEnabled = enable;
+			}
+		]]>
+	</mx:Script>
+</ui:WizardViewStack>

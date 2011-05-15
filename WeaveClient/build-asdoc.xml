@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="asdoc" default="main" basedir=".">
+	<property name="title" value="Weave AS3 documentation"/>
+	<property name="workspace.dir" location=".."/>
+	<property name="output.dir" location="bin-debug/asdoc"/>
+	<property name="proj0.dir" location="${workspace.dir}/WeaveAPI"/>
+	<property name="proj1.dir" location="${workspace.dir}/WeaveCore"/>
+	<property name="proj2.dir" location="${workspace.dir}/WeaveData"/>
+	<property name="proj3.dir" location="${workspace.dir}/WeaveUI"/>
+	<property name="proj4.dir" location="${workspace.dir}/WeaveClient"/>
+	<property name="proj5.dir" location="${workspace.dir}/WeaveAdmin"/>
+	
+	<property environment="env"/>
+	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
+
+	<target name="main" depends="clean,compile" description="full build of asdocs"/>
+	<target name="clean">
+		<delete dir="${output.dir}" failOnError="false" includeEmptyDirs="true"/>
+		<mkdir dir="${output.dir}"/>
+	</target>
+	<target name="compile" depends="clean">
+		<exec executable='"${FLEX_HOME}/bin/asdoc.exe"' failonerror="true">
+			<arg line='-show-actionscript-warnings=false'/>
+			<arg line='-external-library-path="${proj2.dir}/libs"'/>
+			<arg line='-external-library-path="${proj3.dir}/libs"'/>
+			<arg line='-strict=false'/>
+			<arg line='-source-path="${proj0.dir}/src"'/>
+			<arg line='-source-path="${proj1.dir}/src"'/>
+			<arg line='-source-path="${proj2.dir}/src"'/>
+			<arg line='-source-path="${proj3.dir}/src"'/>
+			<arg line='-source-path="${proj4.dir}/src"'/>
+			<arg line='-source-path="${proj5.dir}/src"'/>
+			<arg line='-doc-sources="${proj0.dir}/src/org","${proj1.dir}/src/org","${proj2.dir}/src/org","${proj3.dir}/src/org","${proj4.dir}/src/org","${proj5.dir}/src/org"'/>
+			<arg line='-target-player=10.0.0'/>
+			<arg line='-output="${output.dir}"'/>
+			<arg line='-main-title="${title}"'/>
+			<arg line='-window-title="${title}"'/>
+		</exec>
+	</target>
+</project>

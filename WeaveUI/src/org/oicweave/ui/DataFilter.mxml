@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="org.oicweave.ui.*" 
+				xmlns:mx="http://www.adobe.com/2006/mxml" 
+				xmlns:ui="org.oicweave.ui.*"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				title="Data Filter"
+				>
+	
+	<mx:Canvas  width="100%" height="100%" >
+		<mx:HSlider id="filterSlider" thumbCount="2" liveDragging="true"
+					change="sliderChangeTwo(event);"/>
+		<mx:Script>
+			<![CDATA[
+				import org.oicweave.api.WeaveAPI;
+				import mx.controls.sliderClasses.Slider;
+				import mx.events.FlexEvent;
+				import mx.events.SliderEvent;
+				
+				import org.oicweave.Weave;
+				import org.oicweave.core.LinkableDynamicObject;
+				import org.oicweave.api.newLinkableChild;
+				import org.oicweave.api.registerLinkableChild;
+				import org.oicweave.data.AttributeColumns.DynamicColumn;
+				import org.oicweave.data.KeySets.NumericDataFilter;
+				import org.oicweave.data.StatisticsCache;
+				
+				private function getNumericDataFilter():NumericDataFilter
+				{
+					if (dynamicNumericDataFilter.internalObject == null)
+						dynamicNumericDataFilter.requestGlobalObject(this.name + " NumericDataFilter", NumericDataFilter, false);
+					return dynamicNumericDataFilter.internalObject as NumericDataFilter;
+				}
+				
+				public const dynamicNumericDataFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(NumericDataFilter), columnUpdateSlider);
+				
+				private function columnUpdateSlider():void
+				{
+					var numericDataFilter:NumericDataFilter = getNumericDataFilter();
+					if (!numericDataFilter)
+						return;
+					//numericDataFilter.column.internalColumn=Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as DynamicColumn;
+					filterSlider.minimum = WeaveAPI.StatisticsCache.getMin(numericDataFilter.column);
+					filterSlider.maximum = WeaveAPI.StatisticsCache.getMax(numericDataFilter.column);		
+					filterSlider.values[0] = numericDataFilter.min.value;
+					filterSlider.values[1] = numericDataFilter.max.value ;
+				}
+				
+				private function sliderChangeTwo(event:SliderEvent):void {
+					var numericDataFilter:NumericDataFilter = getNumericDataFilter();
+					if (!numericDataFilter)
+						return;
+					var ct:Slider = Slider(event.currentTarget);
+					numericDataFilter.min.value = ct.values[0];
+					numericDataFilter.max.value = ct.values[1];
+				}
+			]]>
+		</mx:Script>
+	</mx:Canvas>
+</DraggablePanel>

@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="org.oicweave.visualization.tools.*" 
+			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:ui="org.oicweave.ui.*"
+			   layout="absolute">
+	<mx:Script>
+		<![CDATA[
+			import org.oicweave.api.copySessionState;
+			import org.oicweave.utils.ColumnUtils;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.core.LinkableDynamicObject;
+			import org.oicweave.api.registerLinkableChild;
+			import org.oicweave.data.AttributeColumns.DynamicColumn;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.primitives.ColorRamp;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.ui.AttributeSelectorPanel;
+			import org.oicweave.api.ui.IPlotLayer;
+			import org.oicweave.visualization.layers.SelectablePlotLayer;
+			import org.oicweave.visualization.plotters.ColorBinLegendPlotter;
+			import org.oicweave.visualization.plotters.SizeBinLegendPlotter;
+			
+			private var _sizeBinLegendPlotter:SizeBinLegendPlotter;
+			private var _sizeBinLegendLayerName:String;
+			private const _colorLegendLayerName:String = "color legend";
+			private var _colorLegendLayer:SelectablePlotLayer;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				// lock dynamic objects into place
+				
+				// create size bin legend
+				_sizeBinLegendPlotter = initDefaultPlotter(SizeBinLegendPlotter);
+				_sizeBinLegendLayerName = visualization.layers.getName(plotLayer);
+				plotLayer.useTextBitmapFilters.value = true;
+				
+				// create global color ramp legend
+				_colorLegendLayer = visualization.layers.requestObject(_colorLegendLayerName, SelectablePlotLayer, true);
+				_colorLegendLayer.getDynamicPlotter().requestLocalObject(ColorBinLegendPlotter, true);
+				_colorLegendLayer.useTextBitmapFilters.value = true;
+				
+				visualization.enableAutoZoomToExtent.value = true;
+				visualization.enableZoomAndPan.value = false;
+				
+				visualization.marginBottom.value = 5;
+				visualization.marginTop.value    = 25;
+				visualization.marginLeft.value   = 5;
+				visualization.marginRight.value  = 5;
+
+				visualization.topMarginClickCallbacks.addImmediateCallback(this, handleMarginLabelClick);
+				colorColumn.addImmediateCallback(this, updateMarginLabel, null, true);
+				
+				panelWidth.value = "20%";
+				panelHeight.value = "50%";
+				panelX.value = "40%";
+				panelY.value = "25%";
+			}
+			
+			public const dynamicScatterPlotTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ScatterPlotTool), handleScatterPlotChange, true);
+			private function get scatterPlot():ScatterPlotTool
+			{
+				return dynamicScatterPlotTool.internalObject as ScatterPlotTool;
+			}
+			
+			private function handleScatterPlotChange():void
+			{
+				// update the legend properties to reflect the new ScatterPlot properties.
+				
+				if (scatterPlot != null)
+				{
+					copySessionState(scatterPlot._plotter.radiusColumn, _sizeBinLegendPlotter.radiusColumn);
+					copySessionState(scatterPlot._plotter.minScreenRadius, _sizeBinLegendPlotter.minScreenRadius);
+					copySessionState(scatterPlot._plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
+				}
+				
+				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
+				{
+					// show global color ramp legend
+					_colorLegendLayer.layerIsVisible.value = true;
+					plotLayer.layerIsVisible.value = false;
+				}
+				else
+				{
+					// show size bin legend
+					_colorLegendLayer.layerIsVisible.value = false;
+					plotLayer.layerIsVisible.value = true;
+				}
+				
+				updateMarginLabel();
+			}
+			
+			private function handleMarginLabelClick():void
+			{
+				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
+					AttributeSelectorPanel.openDefaultSelector(colorColumn);
+				else
+					AttributeSelectorPanel.openDefaultSelector(scatterPlot._plotter.radiusColumn);
+			}
+			
+			[Bindable]
+			private var marginLabelText:String = "";
+			
+			private function updateMarginLabel():void
+			{
+				if (!parent)
+					return callLater(updateMarginLabel);
+				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
+					marginLabelText = ColumnUtils.getTitle(colorColumn);
+				else
+					marginLabelText = "Size Legend";
+			}
+			
+			private function get colorColumn():DynamicColumn
+			{
+				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				return fc.internalDynamicColumn;
+			}
+			
+			private function handleLookAndFeelChangeEvent(event:Event):void
+			{
+				panelStyleList.value = "";
+				panelStyleList.value += "\n backgroundColor: " + backgroundColorPicker.selectedColor + ";";
+				panelStyleList.value += "\n borderColor: " + borderColorPicker.selectedColor + ";";
+				windowBorderToggle.selected == true? panelStyleList.value += "" : panelStyleList.value += "\n borderStyle: none;";
+				windowMinimizeCheckBox.selected == true? minimizable.value = true : minimizable.value = false;
+				windowCloseCheckBox.selected == true? closeable.value = true : closeable.value = false;
+				windowMaximizeCheckBox.selected == true? maximizable.value = true : maximizable.value = false;
+				resizeCheckBox.selected == true? resizeable.value = true : resizeable.value = false;
+				draggableCheckBox.selected == true? draggable.value = true : draggable.value = false;
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Label x="5" y="5" id="marginLabel" fontWeight="bold" click="handleMarginLabelClick()" 
+			  text="{marginLabelText}"
+			  toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute used for colors."/>
+	
+	<ui:ControlPanel>
+			<mx:Panel id="attributesPanel" 
+					  label="Attributes for Size Bin Legend" 
+					  headerHeight="2"
+					  borderColor="0x000000" 
+					  backgroundColor="0xCCCCCC" 
+					  backgroundAlpha="0.0" 
+					  borderThickness="0.0" 
+					  height="100%" 
+					  width="100%" 
+					  borderAlpha="0.2" 
+					  borderStyle="none">
+				
+			</mx:Panel>
+			<mx:Panel id="lookAndFeel"
+					  label="Display Preferences"
+					  borderColor="0x000000" 
+					  backgroundColor="0xCCCCCC" 
+					  backgroundAlpha="0.0" 
+					  borderThickness="0.0" 
+					  height="100%"
+					  width="100%" 
+					  borderAlpha="0.2"
+					  borderStyle="none" headerHeight="2"
+					  >
+				<mx:Accordion height="100%" 
+							  width="100%"
+							  backgroundAlpha="0.0" 
+							  borderThickness="5.0" 
+							  borderStyle="outset"  borderColor="0xFFFFFF"
+							  creationPolicy="all">
+					<mx:Panel label="Window Controls"
+							  id="w_controls"
+							  width="100%"
+							  height="100%"
+							  backgroundAlpha="0.0" 
+							  borderAlpha="0.0" borderStyle="none" headerHeight="0">
+						<mx:HBox>
+							<mx:VBox>
+								<mx:CheckBox id="windowBorderToggle" 
+											 change="handleLookAndFeelChangeEvent(event)" 
+											 label="Show Tool Borders" 
+											 fontWeight="bold" 
+											 fontSize="12" 
+											 selected="true"
+											 toolTip="Selecting this option will turn the borders of this tool on or off"/>	
+								<mx:CheckBox label="Allow Window Resizing" 
+											 fontWeight="bold"
+											 fontSize="12" 
+											 selected="true"
+											 toolTip="Selecting will enable the user to resize this tool" 
+											 id="resizeCheckBox" 
+											 change="handleLookAndFeelChangeEvent(event)"/>	
+								<mx:CheckBox label="Enable Window Closing" 
+											 fontWeight="bold"
+											 fontSize="12" 
+											 id="windowCloseCheckBox" 
+											 selected="true"
+											 change="handleLookAndFeelChangeEvent(event)"
+											 toolTip="Selecting or deselecting this option will enable or disable the user to close this tool"/>	
+								<mx:CheckBox label="Allow Window Minimization" 
+											 fontWeight="bold"
+											 fontSize="12"
+											 selected="true" 
+											 id="windowMinimizeCheckBox" 
+											 change="handleLookAndFeelChangeEvent(event)"
+											 toolTip="Selecting or deselecting this option will enable of disable the user to minimize this tool"/>	
+								<mx:CheckBox label="Allow Window Maximization" 
+											 fontWeight="bold"
+											 fontSize="12"
+											 selected="true" 
+											 id="windowMaximizeCheckBox" 
+											 change="handleLookAndFeelChangeEvent(event)"
+											 toolTip="Selecting this option will enable the user to maximize this tool"/>	
+								<mx:CheckBox label="Enable Window Dragging" 
+											 fontWeight="bold"
+											 fontSize="12"
+											 selected="true" 
+											 id="draggableCheckBox" 
+											 change="handleLookAndFeelChangeEvent(event);"
+											 toolTip="Selecting this option will enable the user to move the tool by clicking on the header and dragging"/>
+							</mx:VBox>				
+						</mx:HBox>
+					</mx:Panel>
+					<mx:Panel label="Look And Feel" 
+							  id="LFPanel" 
+							  width="100%"
+							  height="100%"
+							  backgroundAlpha="0.0" 
+							  borderAlpha="0.0" borderStyle="none" headerHeight="0">
+						<mx:HBox>
+							<mx:VBox width="100%" height="100%">
+								<mx:Spacer height="5"/>
+								<mx:HBox>
+									<mx:ColorPicker toolTip="Select a color for the background of only this visualization." 
+													change="handleLookAndFeelChangeEvent(event)" 
+													id="backgroundColorPicker"
+													selectedColor="{this.getStyle('backgroundColor')}"/>
+									<mx:Label text="Visualization Background Color"
+											  fontWeight="bold" 
+											  fontSize="12"/>
+								</mx:HBox>	
+								<mx:Spacer height="5"/>
+								<mx:HBox>
+									<mx:ColorPicker id="borderColorPicker"
+													change="handleLookAndFeelChangeEvent(event)" 
+													toolTip="Select a color for the border of this visualization - this will have no effect if the border is not enabled"
+													selectedColor="{this.getStyle('borderColor')}"/>
+									<mx:Label text="Visualization Border Color"
+											  fontWeight="bold" 
+											  fontSize="12"/>
+								</mx:HBox>
+								<mx:Spacer height="5"/>
+								<!--<mx:HBox>
+								<mx:ColorPicker id="axisColorPicker"
+								change="handleLookAndFeelChangeEvent(event)" 
+								toolTip="Select a color for the axis of this visualization."/>
+								<mx:Label text="Axis Color"
+								fontWeight="bold" 
+								fontSize="12"/>
+								</mx:HBox>	
+								<mx:HBox horizontalAlign="center" 
+								width="100%">
+								<mx:Label text="Title Font" fontWeight="bold" fontSize="12" />
+								</mx:HBox>
+								<settings:FontControl id="toolTitleFont"/> -->
+							</mx:VBox>	
+							
+						</mx:HBox>	
+						
+						
+					</mx:Panel>
+					<!--<mx:Panel label="Interaction Controls" 
+					id="Ipanel" 
+					width="100%"
+					backgroundAlpha="0.0" 
+					borderAlpha="0.0" borderStyle="none" headerHeight="0">
+					<mx:HBox>
+					<mx:VBox>
+					<mx:CheckBox label="Enable Selection" 
+					fontWeight="bold" 
+					fontSize="12" 
+					toolTip="Enabling this setting will allow the user to perform selection operations on this visualizations"/>	
+					<mx:CheckBox label="Enable Subset Creation" 
+					fontWeight="bold" 
+					fontSize="12" 
+					toolTip="Enabling this feature will allow the user to create subsets of data"/>	
+					<mx:CheckBox label="Enable Panning" 
+					fontWeight="bold" 
+					fontSize="12" 
+					toolTip="Enabling this feature will allow the user to pan over/through this visualization"/>	
+					<mx:CheckBox label="Enable Zooming" 
+					fontWeight="bold" 
+					fontSize="12" 
+					toolTip="Enabling this feature will allow the user to zoom in and out on this visualization"/>
+					<mx:CheckBox label="Enable Interaction" 
+					fontWeight="bold" 
+					fontSize="12" 
+					toolTip="Enabling this feature will cause the users interactions with this visualization (selection, subset creation, etc) to effect other visualizations on the platform "/>																		
+					
+					</mx:VBox>				
+					</mx:HBox>
+					</mx:Panel>-->
+				</mx:Accordion>
+			</mx:Panel>
+	</ui:ControlPanel>
+</SimpleVisTool>

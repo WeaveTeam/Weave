@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="org.oicweave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="672" height="410"
+	            horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	            visible="true" title="Load a new dataset">
+	<mx:VBox width="100%" height="100%">
+		<mx:HBox verticalAlign="middle">
+			<mx:Label text="Unique Record Identifier Column:"/>
+			<CustomComboBox id="columnsCombo" dataProvider="{columnNames}" valueCommit="showUniquenessWarning()"/>
+		</mx:HBox>
+		<mx:HBox verticalAlign="middle">
+			<mx:Label text="Select or Enter Key Type:"/>
+			<CustomComboBox id="keyTypeCombo" editable="true" change="showUniquenessWarning()"/>
+		</mx:HBox>
+
+		<mx:Label color="red" id="errorMessage" text="" visible="false"/>
+		<mx:Button label="Load Data into Weave" id="commitButton" click="handleLoadDataIntoWeave(event)"/>
+		<mx:DataGrid id="dataGrid"
+					 width="100%" height="100%"
+					 dataProvider="{dataRows}" 
+			         horizontalScrollPolicy="auto" verticalScrollPolicy="auto"/>
+	</mx:VBox>
+
+	<mx:ControlBar>
+		<mx:Label text="Data Downloaded:" color="0xffffff"/>
+		<mx:Canvas width="110" height="20" alpha="1.0" borderColor="#000000" backgroundColor="#FFFFFF" borderStyle="solid" horizontalScrollPolicy="off">
+			<mx:TextArea id="downloadProgress" width="1%" height="100%" backgroundColor="#FF0000" minWidth="0" minHeight="0"/>
+			<mx:TextArea id="downloadProgressText" text="0%" width="100%" height="100%"  minWidth="0" minHeight="0" textAlign="center" backgroundAlpha="0.0"/>
+		</mx:Canvas>
+	</mx:ControlBar>
+
+	<mx:Script>
+		<![CDATA[
+			import org.oicweave.api.WeaveAPI;
+			import com.as3xls.xls.ExcelFile;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.IndexChangedEvent;
+			import mx.events.MetadataEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.api.data.IAttributeColumn;
+			import org.oicweave.data.AttributeColumns.NumberColumn;
+			import org.oicweave.data.AttributeColumns.ProxyColumn;
+			import org.oicweave.data.AttributeColumns.StringColumn;
+			import org.oicweave.data.DataSources.CSVDataSource;
+			import org.oicweave.api.data.IDataSource;
+			import org.oicweave.data.KeySets.KeySet;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.utils.PopUpUtils;
+			import org.oicweave.utils.VectorUtils;
+			
+			[Bindable]
+			private var dataRows:Array = [];
+			[Bindable]
+			private var columnNames:Array = [];
+			
+			
+			private var _fileLoader:FileReference = null;
+			
+			private static var _thisInstance:DatasetLoader = null;
+			
+			public static function createContextMenuItems(destination:DisplayObject):Boolean
+			{
+				if(!destination.hasOwnProperty("contextMenu") )
+					return false;
+				
+				var destinationContextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
+				
+				var menuItem:ContextMenuItem = new ContextMenuItem("Load New Dataset...");
+				menuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function (e:ContextMenuEvent):void {
+					_thisInstance = PopUpUtils.createDisplayObjectAsPopUp(destination, DatasetLoader) as DatasetLoader;
+					
+					_thisInstance.browseForFiles();	
+				});
+					
+				CustomContextMenuManager.addMenuItemsToDestination([menuItem], destination, "1 dataMenuItems");
+				
+				return true;
+			}
+			
+			public function browseForFiles():void
+			{
+				if(_fileLoader == null)
+				{
+					_fileLoader = new FileReference();
+					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
+					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					_fileLoader.addEventListener(Event.CANCEL, handleCancel);
+					_fileLoader.addEventListener(ProgressEvent.PROGRESS, handleDatasetDownloadProgress);
+				}
+				
+				_fileLoader.browse([new FileFilter("CSV/XLS", "*.csv;*.xls")]);
+			}
+
+			private function handleDatasetSelected(event:Event):void
+			{
+				_fileLoader.load();
+			}
+			
+			private function handleDatasetLoaded(event:Event):void
+			{
+				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
+				var extensionPosition:int = _fileLoader.name.length - 4;
+				
+					//ASsign filename to keytype				
+					keyTypeCombo.text = _fileLoader.name.substring(0,extensionPosition);
+					
+					if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
+					{
+						parseCSVToDataGrid(_fileLoader.data);
+					}
+					else if(_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition)
+					{
+						var xls:ExcelFile = new ExcelFile();
+						xls.loadFromByteArray(event.target.data);
+						if(xls.sheets.length != 0)
+						{
+						parseXLSToDataGrid(xls.sheets);
+						}else
+						{
+							Alert.show("No data was imported from the XLS file. Either the file is empty or the file format is corrupted or not supported.", "Import failed");
+							return;
+						}
+					}
+			}
+			
+			private function handleCancel(event:Event):void
+			{
+				removePanel();
+			}
+			
+			/**
+			* parseCSVToDataGrid : parses CSV data and loads it into grid
+			*/
+			private function parseCSVToDataGrid(data:ByteArray):void
+			{
+				var rows:Array = WeaveAPI.CSVParser.parseCSV(data.toString());
+				
+				columnNames = rows[0];
+				columnNames.forEach(removeLeadingAndTrailingQuotes);
+				
+				var dataGridColumns:Array = [];
+				
+				for (var i:int = 1; i < rows.length; i++)
+				{
+					var columns:Array = rows[i];
+					columns.forEach(removeLeadingAndTrailingQuotes);
+					
+					for (var c:int = 0; c < columnNames.length; c++)
+					{
+						if(dataRows[i-1] == undefined)
+							dataRows[i-1] = new Object();
+						
+						// create a property with a code (C# where # is the number of the column) and set it to the value from this column
+						(dataRows[i-1] as Object)[ "C"+c ] = columns[c];
+						
+						var dgcolumn:DataGridColumn = new DataGridColumn(columnNames[c]);
+						dgcolumn.dataField = "C"+c;
+						
+						dataGridColumns[c] = dgcolumn;
+					}
+				}
+				
+				dataGrid.columns = dataGridColumns;	
+				dataGrid.invalidateDisplayList();
+			}
+
+			/**
+			* parseXLSToDataGrid : parses XLS data and loads it into grid
+			*/
+			private function parseXLSToDataGrid(xlsSheetsArray:ArrayCollection):void
+			{
+				columnNames = xlsSheetsArray[0].values[0];
+				columnNames.forEach(removeLeadingAndTrailingQuotes);
+				
+				var dataGridColumns:Array = [];
+				
+				for (var i:int = 1; i < xlsSheetsArray[0].values.length; i++)
+				{
+					var columns:Array = xlsSheetsArray[0].values[i];
+					columns.forEach(removeLeadingAndTrailingQuotes);
+					
+					for (var c:int = 0; c < columnNames.length; c++)
+					{
+						if(dataRows[i-1] == undefined)
+							dataRows[i-1] = new Object();
+						
+						// create a property with a code (C# where # is the number of the column) and set it to the value from this column
+						(dataRows[i-1] as Object)[ "C"+c ] = columns[c];
+						
+						var dgcolumn:DataGridColumn = new DataGridColumn(columnNames[c]);
+						dgcolumn.dataField = "C"+c;
+						
+						dataGridColumns[c] = dgcolumn;
+					}
+				}
+				
+				dataGrid.columns = dataGridColumns;
+				dataGrid.invalidateDisplayList();
+			
+			}
+			
+			/**
+			* getColumnValues : returns the array of values in a column
+			*/
+			
+			private function getColumnValues(columnIndex:int):Vector.<String>
+			{
+				var values:Vector.<String> = new Vector.<String>();
+				for (var i:int = 0; i < dataRows.length; i++)
+					values[i] = (dataRows[i] as Object)["C"+columnIndex];
+				return values;
+			}
+
+			/**
+			* showUniquenessWarning : Shows a warning if selected keycolumn is not unique and disables "Load Data Into Weave" button
+			* If values are unique but contains key values not contained in GlobalKeySet displays a warning message
+			*/
+			
+			private function showUniquenessWarning():Boolean
+			{
+				if (!errorMessage)
+					return true;
+				
+				errorMessage.visible = false;
+				var values:Vector.<String> = getColumnValues(columnsCombo.selectedIndex);
+
+				//check if selected Column Idetifier is unique. If not, display warning message
+				var testUniquenessObject:Object = new Object();
+				for each (var keyValue:String in values)
+				{
+					if (testUniquenessObject[keyValue] == undefined)
+					{
+						testUniquenessObject[keyValue] = true;
+						continue;
+					}
+					errorMessage.visible = true;
+					break;
+				}
+				if ( errorMessage.visible)
+				{
+					errorMessage.text = "Selected column's values are not unique!";
+					commitButton.enabled = false;
+					return true;
+				}
+				
+//				var keySet:KeySet = DataRepository.getGlobalKeySet(keyTypeCombo.text, false);
+//				if (keySet != null)
+//				{
+//					for each (var value:String in values)
+//					{
+//						if (keySet.containsKey(value))
+//							continue;
+//						else
+//						{
+//							errorMessage.text = "Warning: Selected Column may have incompatible record identifiers.";
+//							errorMessage.visible =  true;
+//							break;
+//						} 
+//					}
+//				}
+				commitButton.enabled = true;				
+				return false; // no uniqueness warning
+			}
+			
+			private function handleKeyTypeSelect():void
+			{
+				
+			}
+			
+			
+			/**
+			*handleLoadDataIntoWeave : loads the data from uploaded file file into Weave
+			*/
+			private function handleLoadDataIntoWeave(event:Event):void
+			{
+				// stop if key values are not unique
+				if (showUniquenessWarning())
+					return;
+				
+				var dataSource:CSVDataSource = Weave.root.requestObject(_fileLoader.name, CSVDataSource, false);
+				dataSource.keyColName.value = columnNames[columnsCombo.selectedIndex];
+				var dataArray:Array = new Array();
+				dataArray[0] = columnNames;
+				for (var i:int = 1; i <= dataRows.length; i++)
+				{
+					dataArray[i] = [""];
+					for (var j:int =0;j<columnNames.length;j++)
+					{
+						dataArray[i][j] = (dataRows[i-1] as Object)["C"+j];	
+					}
+				}
+				
+				dataSource.csvDataString.value = WeaveAPI.CSVParser.createCSVFromArrays(dataArray);
+				dataSource.keyType.value = keyTypeCombo.text;
+				//Weave.initObject(Weave.generateUniqueName(_fileLoader.name), dataSource);
+
+				// columns have been added to the dataTable, so we close the datatable
+				removePanel();
+			}
+			
+			private function removeLeadingAndTrailingQuotes(element:*, index:int, arr:Array):void
+			{
+				var string:String = String(element);
+				
+				// if the first character is a quote and last character is a quote
+				if(string.charAt(0) == "\"" && string.charAt(string.length-1) == "\"")
+				{
+					// set this value in the array to be the string with the first character and last character removed
+					arr[index] = string.substr(1, string.length-2);
+				}
+			}
+			
+			private function trimCommas(value:String):String
+			{
+				if (value == null || value == "\\N" || value == "NaN" )
+					return "";
+				var trimmedString:String = "";
+				var temp:Array = value.split(",");
+				for(var i:int; i <temp.length; i++)
+				{
+					trimmedString += temp[i];
+				}
+				return trimmedString;
+			}
+			
+			
+			private function handleDatasetDownloadProgress(event:ProgressEvent):void
+			{
+				var downloaded:int = Math.min(100, 100 * event.bytesLoaded / event.bytesLoaded);
+				
+				downloadProgress.percentWidth = downloaded;
+				downloadProgressText.text = downloaded + "%";
+				
+				if(downloaded == 100)
+					downloadProgress.setStyle("backgroundColor", 0x00FF00);
+			}
+										
+		]]>
+	</mx:Script>
+</DraggablePanel>

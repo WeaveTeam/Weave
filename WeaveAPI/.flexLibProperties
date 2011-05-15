@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" version="3">
+  <includeClasses>
+    <classEntry path="org.oicweave.api.WeaveAPI"/>
+    <classEntry path="org.oicweave.api.compiler.ICompiledObject"/>
+    <classEntry path="org.oicweave.api.copySessionState"/>
+    <classEntry path="org.oicweave.api.core.ICallbackCollection"/>
+    <classEntry path="org.oicweave.api.core.ICallbackInterface"/>
+    <classEntry path="org.oicweave.api.core.IChildListCallbackInterface"/>
+    <classEntry path="org.oicweave.api.core.IDisposableObject"/>
+    <classEntry path="org.oicweave.api.core.IExternalSessionStateInterface"/>
+    <classEntry path="org.oicweave.api.core.ILinkableCompositeObject"/>
+    <classEntry path="org.oicweave.api.core.ILinkableContainer"/>
+    <classEntry path="org.oicweave.api.core.ILinkableDisplayObject"/>
+    <classEntry path="org.oicweave.api.core.ILinkableDynamicObject"/>
+    <classEntry path="org.oicweave.api.core.ILinkableHashMap"/>
+    <classEntry path="org.oicweave.api.core.ILinkableObject"/>
+    <classEntry path="org.oicweave.api.core.ILinkableVariable"/>
+    <classEntry path="org.oicweave.api.core.ISessionManager"/>
+    <classEntry path="org.oicweave.api.data.AttributeColumnMetadata"/>
+    <classEntry path="org.oicweave.api.data.DataTypes"/>
+    <classEntry path="org.oicweave.api.data.IAttributeColumn"/>
+    <classEntry path="org.oicweave.api.data.IAttributeColumnCache"/>
+    <classEntry path="org.oicweave.api.data.IAttributeHierarchy"/>
+    <classEntry path="org.oicweave.api.data.IBinClassifier"/>
+    <classEntry path="org.oicweave.api.data.IBinningDefinition"/>
+    <classEntry path="org.oicweave.api.data.ICSVParser"/>
+    <classEntry path="org.oicweave.api.data.IColumnReference"/>
+    <classEntry path="org.oicweave.api.data.IColumnWrapper"/>
+    <classEntry path="org.oicweave.api.data.IDataRowSource"/>
+    <classEntry path="org.oicweave.api.data.IDataSource"/>
+    <classEntry path="org.oicweave.api.data.IDynamicKeyFilter"/>
+    <classEntry path="org.oicweave.api.data.IFilteredKeySet"/>
+    <classEntry path="org.oicweave.api.data.IKeyFilter"/>
+    <classEntry path="org.oicweave.api.data.IKeySet"/>
+    <classEntry path="org.oicweave.api.data.IPrimitiveColumn"/>
+    <classEntry path="org.oicweave.api.data.IProjectionManager"/>
+    <classEntry path="org.oicweave.api.data.IProjector"/>
+    <classEntry path="org.oicweave.api.data.IQualifiedKey"/>
+    <classEntry path="org.oicweave.api.data.IQualifiedKeyManager"/>
+    <classEntry path="org.oicweave.api.data.IStatisticsCache"/>
+    <classEntry path="org.oicweave.api.data.IStreamedColumn"/>
+    <classEntry path="org.oicweave.api.disposeObjects"/>
+    <classEntry path="org.oicweave.api.getCallbackCollection"/>
+    <classEntry path="org.oicweave.api.getSessionState"/>
+    <classEntry path="org.oicweave.api.linkBindableProperty"/>
+    <classEntry path="org.oicweave.api.linkSessionState"/>
+    <classEntry path="org.oicweave.api.newDisposableChild"/>
+    <classEntry path="org.oicweave.api.newLinkableChild"/>
+    <classEntry path="org.oicweave.api.primitives.IBounds2D"/>
+    <classEntry path="org.oicweave.api.registerDisposableChild"/>
+    <classEntry path="org.oicweave.api.registerLinkableChild"/>
+    <classEntry path="org.oicweave.api.services.IAsyncService"/>
+    <classEntry path="org.oicweave.api.services.IURLRequestToken"/>
+    <classEntry path="org.oicweave.api.services.IWMSService"/>
+    <classEntry path="org.oicweave.api.services.IWeaveDataService"/>
+    <classEntry path="org.oicweave.api.services.IWeaveGeometryTileService"/>
+    <classEntry path="org.oicweave.api.services.IWeaveStatisticsService"/>
+    <classEntry path="org.oicweave.api.setSessionState"/>
+    <classEntry path="org.oicweave.api.ui.IFillStyle"/>
+    <classEntry path="org.oicweave.api.ui.ILineStyle"/>
+    <classEntry path="org.oicweave.api.ui.ILinkableObjectEditor"/>
+    <classEntry path="org.oicweave.api.ui.IPlotLayer"/>
+    <classEntry path="org.oicweave.api.ui.IPlotter"/>
+    <classEntry path="org.oicweave.api.ui.IProbeDisplay"/>
+    <classEntry path="org.oicweave.api.ui.ISpatialIndex"/>
+    <classEntry path="org.oicweave.api.ui.IZoomView"/>
+    <classEntry path="org.oicweave.api.unlinkBindableProperty"/>
+    <classEntry path="org.oicweave.api.unlinkSessionState"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

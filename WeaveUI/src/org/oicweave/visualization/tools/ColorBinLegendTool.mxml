@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="org.oicweave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="org.oicweave.ui.*"
+	     layout="absolute" xmlns:userControls="org.oicweave.ui.userControls.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.api.WeaveAPI;
+			import org.oicweave.api.linkBindableProperty;
+			import org.oicweave.api.linkSessionState;
+			import org.oicweave.api.unlinkSessionState;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.core.weave_internal;
+			import org.oicweave.data.AttributeColumns.BinnedColumn;
+			import org.oicweave.data.AttributeColumns.ColorColumn;
+			import org.oicweave.data.AttributeColumns.DynamicColumn;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.data.AttributeColumns.ReferencedColumn;
+			import org.oicweave.ui.AttributeSelectorPanel;
+			import org.oicweave.utils.ColumnUtils;
+			import org.oicweave.utils.CustomCursorManager;
+			import org.oicweave.visualization.plotters.ColorBinLegendPlotter;
+
+			use namespace weave_internal;
+
+			private var _plotter:ColorBinLegendPlotter = null;
+			public function get plotter():ColorBinLegendPlotter
+			{
+				return _plotter;
+			}
+			override protected function constructor():void
+			{
+				super.constructor();
+				// lock dynamic objects into place
+				_plotter = initDefaultPlotter(ColorBinLegendPlotter) as ColorBinLegendPlotter;
+				plotLayer.useTextBitmapFilters.value = true;
+				
+				visualization.enableAutoZoomToExtent.value = true;
+				visualization.enableZoomAndPan.value = false;
+				
+				visualization.topMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
+				
+				Weave.properties.axisFontFamily.addGroupedCallback(this,updateMarginLabel);
+				Weave.properties.axisFontColor.addGroupedCallback(this,updateMarginLabel);
+				Weave.properties.axisFontSize.addGroupedCallback(this,updateMarginLabel);
+				Weave.properties.axisFontUnderline.addGroupedCallback(this, updateMarginLabel);
+				_plotter.dynamicColorColumn.addGroupedCallback(this, updateMarginLabel, true);
+
+				panelWidth.value = "20%";
+				panelHeight.value = "50%";
+				panelX.value = "40%";
+				panelY.value = "25%";
+				
+				toolTitle.addImmediateCallback(this, updateTitle, null, true);
+
+				visualization.marginBottom.value = 5;
+				visualization.marginTop.value    = 25;
+				visualization.marginLeft.value   = 5;
+				visualization.marginRight.value  = 5;
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				dataColumnComponent.dynamicObject = _plotter.dynamicColorColumn;
+				_plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, null, true);
+			}
+			
+			private var _prevBinnedColumn:BinnedColumn;
+			private function colorColumnCallback():void
+			{
+				if (!parent)
+					callLater(colorColumnCallback);
+				
+				if (_prevBinnedColumn != internalBinnedColumn)
+				{
+					if (_prevBinnedColumn)
+						unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
+
+					_prevBinnedColumn = internalBinnedColumn;
+
+					if (_prevBinnedColumn)
+						linkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
+				}
+
+				cRampEditor.colorRamp = _plotter.internalColorColumn.ramp;
+			}
+			
+			private function get internalBinnedColumn():BinnedColumn
+			{
+				var cc:ColorColumn = _plotter.internalColorColumn;
+				if (cc)
+					return cc.internalColumn as BinnedColumn
+				return null;
+			}
+
+			private function get internalDataColumn():DynamicColumn
+			{
+				try
+				{
+					return (internalBinnedColumn.internalColumn as FilteredColumn).internalDynamicColumn;
+				}
+				catch (e:Error) { } // do nothing if there is no data column
+				return null;
+			}
+
+			override public function getSelectableAttributeNames():Array
+			{
+				return ["Color"];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				return [_plotter.dynamicColorColumn];
+			}
+			
+			private function handleMarginLabelClick():void
+			{
+				AttributeSelectorPanel.openToolSelector(this,_plotter.dynamicColorColumn);
+			}
+			
+			[Bindable]
+			private var marginLabelText:String = "";
+
+			private function updateMarginLabel():void
+			{
+				if (!parent)
+					return callLater(updateMarginLabel);
+				
+				visualization.additionalProbeColumns = (WeaveAPI.SessionManager as SessionManager).getDescendants(_plotter.dynamicColorColumn, ReferencedColumn);
+				
+				marginLabelText = ColumnUtils.getTitle(_plotter.dynamicColorColumn);
+				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
+				marginLabel.setStyle("color", Weave.properties.axisFontColor.value);
+				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
+				if (Weave.properties.axisFontUnderline.value)
+					marginLabel.setStyle("textDecoration", "underline");
+				else
+					marginLabel.setStyle("textDecoration", "none");
+			}
+			
+			private function updateTitle():void
+			{
+				if (toolTitle.value == null)
+					title = "Color Legend";
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Label x="5" y="5" id="marginLabel" fontWeight="bold" click="handleMarginLabelClick()" 
+			  		text="{marginLabelText}"
+			  		mouseOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
+			  		mouseOut="CustomCursorManager.removeCurrentCursor()"
+			  		toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute used for colors."/>
+
+	<ui:ControlPanel>
+		<mx:VBox label="Visualization Controls">
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="color data"/>
+			<ui:BinningDefinitionEditor id="binEditor"/>
+		</mx:VBox>
+		<mx:VBox label="Advanced">
+			<userControls:ControlsSubsetBox>
+				<mx:Label text="Max bubble size"/>
+				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" initialize="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
+			</userControls:ControlsSubsetBox>
+			<mx:Spacer/>
+			<ui:ColorRampEditor id="cRampEditor"/>
+		</mx:VBox>
+	</ui:ControlPanel>
+
+</SimpleVisTool>

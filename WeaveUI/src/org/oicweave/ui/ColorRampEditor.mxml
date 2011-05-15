@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!--
+* Institute for Visualization and Perception Research
+* Indicator Visualization Platform Framework
+*
+* Web-based data visualization and mapping framework.
+*
+*
+*
+* Copyright (c) 2009-10 Institute for Visualization and Perception Research
+* Department of Computer Science
+* University of Massachusetts Lowell
+* One University Ave.
+* Lowell, Massachusetts  01854
+* U.S.A.
+* All rights reserved.
+*
+* Warning: This computer software program, including all text, graphics, the
+* selection and arrangement thereof, the algorithms, the process, and all
+* other materials in this file, including its compilation are protected by
+* copyright law and international treaties. Unauthorized copying or altering
+* thereof, in hard or soft copy, or distribution of this program or any
+* portion thereof, is expressly forbidden without prior written consent and
+* may result in severe civil and criminal penalties, and will be prosecuted
+* to the maximum extent possible under the law. Additionally, all software
+* packages, compilations, and derivatives thereof, which include this file,
+* are protected as well. Use is subject to license terms.
+-->
+
+<!--
+ColorRampEditor
+
+@sanbalagan
+-->
+<mx:HBox xmlns:ui ="org.oicweave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns="org.oicweave.ui.*"
+	implements="org.oicweave.api.core.ILinkableObject"
+	width="{NaN}" height="{NaN}"
+	>
+	<mx:VBox verticalGap="3">
+		<mx:DataGrid id="colorRampGrid"
+					 useRollOver="false"
+					 minWidth="200" width="100%" height="100%"
+					 color="black"
+					 rollOverColor="0xCCFEFF"
+					 fontWeight="normal"
+					 paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
+					 horizontalScrollPolicy="off" verticalScrollPolicy="on"
+					 allowMultipleSelection="false"  
+					 dataProvider="{ColorRamp.allColorRamps.colorRamp}"
+					 change="handleColorRampSelected()"
+					 headerHeight="22">
+			<mx:columns>												
+				<mx:DataGridColumn dataField="@name"  headerText="Color Scale"  itemRenderer="org.oicweave.ui.colormap.ColorRampPresetItemRenderer"/>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:CheckBox id="reverseCheckBox"
+					 label="Reverse Color Scale"
+					 toolTip="Click to reverse the colors in the color scale."
+					 change="saveReverseSetting()"
+					 color="0x000000"/>
+	</mx:VBox>
+	<mx:VBox verticalGap="1">
+		<mx:Label text="Filter by:" fontWeight="bold"/>
+		<mx:CheckBox id="colorblindSafeCheckbox"
+					 label="Colorblind-Safe"
+					 toolTip="Click to only show choices that are colorblind safe."
+					 click="handleFilterOptionSet(event)"/>
+		<mx:CheckBox id="singleHueCheckbox"
+					 label="Single Hue"
+					 toolTip="Click to only show choices that usea single hue (base color)."
+					 click="handleFilterOptionSet(event)"/>
+		<mx:CheckBox id="printFriendlyCheckbox"
+					 label="Printer Friendly"
+					 toolTip="Click to only show choices that are printer friendly."
+					 click="handleFilterOptionSet(event)"/>
+		<mx:CheckBox id="photocopyableCheckbox"
+					 label="Photocopy-able"
+					 toolTip="Click to only show choices that can be photocopied."
+					 click="handleFilterOptionSet(event)"/>
+		<mx:HBox>
+			<mx:Label text="Color Scale Style:" width="130"/>
+			<ui:CustomComboBox id="typeCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
+		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:Label text="Color Scale Category:" width="130"/>
+			<ui:CustomComboBox id="categoriesCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.core.Application;
+			import mx.managers.PopUpManager;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.api.core.ILinkableDynamicObject;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.api.linkSessionState;
+			import org.oicweave.data.AttributeColumns.BinnedColumn;
+			import org.oicweave.data.AttributeColumns.ColorColumn;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.primitives.ColorRamp;
+			
+			private var _colorRamp:ColorRamp = null;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				var colorRampList:XMLList = new XMLList(ColorRamp.allColorRamps.colorRamp);
+				var sources:ArrayCollection     = new ArrayCollection(["All"]);
+				var categories:ArrayCollection  = new ArrayCollection(["Any"]);
+				var dataFormats:ArrayCollection = new ArrayCollection(["All"]);
+				
+				
+				for (var i:int = 0; i < colorRampList.length(); i++)
+				{
+					var colorRamp:XML = colorRampList[i] as XML;
+					
+					/*if(colorRamp.@name == multiLayerColormap.getColormap().colorRamp.name)
+					colormapGrid.selectedIndex = i;*/
+					
+					var sourceName:String = colorRamp.@source;
+					if(colorRamp.hasOwnProperty("@source") && !sources.contains(sourceName) )
+						sources.addItem(sourceName);
+					
+					var category:String = colorRamp.@category;
+					if(colorRamp.hasOwnProperty("@category") && !categories.contains(category) )
+						categories.addItem(category);
+					
+					var dataFormat:String = colorRamp.@dataFormat;
+					if(colorRamp.hasOwnProperty("@dataFormat") && !dataFormats.contains(dataFormat) )
+						dataFormats.addItem(dataFormat);
+				}
+				
+				typeCombo.dataProvider = dataFormats;
+				categoriesCombo.dataProvider = categories;
+				
+			}
+			
+			
+			private function colorRampCallback():void
+			{
+				if (!parent)
+					return callLater(colorRampCallback);
+				// update gui
+				var rampXML:XML = _colorRamp.value;
+				if (!rampXML)
+					return;
+				
+				// update selected ramp by name
+				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampXML.@name);
+				if (xmlList.length() > 0)
+					colorRampGrid.selectedItem = xmlList[0];
+				else
+					colorRampGrid.selectedItem = null;
+				
+				// update reverse setting
+				reverseCheckBox.selected = String(rampXML.@reverse) == "true";
+			}
+			
+			private function handleColorRampSelected():void
+			{
+				if (colorRampGrid.selectedItem is XML)
+					_colorRamp.value = ColorRamp.getColorRampXMLByName(colorRampGrid.selectedItem.@name);
+			}
+			
+			private function saveReverseSetting():void
+			{
+				if (_colorRamp.value == null)
+					return;
+				_colorRamp.value.@reverse = reverseCheckBox.selected;
+				_colorRamp.detectChanges();
+			}
+			public function set colorRamp(cRamp:ColorRamp):void
+			{
+				if (_colorRamp == cRamp)
+					return;
+				
+				if (_colorRamp != null)
+					_colorRamp.removeCallback(colorRampCallback);
+				
+				_colorRamp = cRamp;
+				
+				if (_colorRamp != null)
+					_colorRamp.addGroupedCallback(this, colorRampCallback, true);
+			}
+			
+			public function get colorRamp():ColorRamp
+			{
+				return _colorRamp;
+			}
+			
+			private var previousSelectedItem:Object = null;
+			private function handleFilterOptionSet(event:Event):void
+			{	
+				if(colorRampGrid.selectedItem != null)
+					previousSelectedItem = colorRampGrid.selectedItem;
+				
+				
+				(colorRampGrid.dataProvider as XMLListCollection).filterFunction = filterColormaps;
+				(colorRampGrid.dataProvider as XMLListCollection).refresh();
+				
+				// disable the presetSelector if there are no colormaps that can be selected
+				colorRampGrid.enabled = true;
+				if( (colorRampGrid.dataProvider as XMLListCollection).length == 0)
+					colorRampGrid.enabled = false;
+				
+				// if the selected item is null, set it to the previous one (should never be null)
+				if(colorRampGrid.selectedItem == null)
+					colorRampGrid.selectedItem = previousSelectedItem;
+			}
+			
+			private function filterColormaps(item:Object):Boolean {
+				var meetsCriteria:Boolean = true;
+				
+				if(colorblindSafeCheckbox.selected)
+					meetsCriteria &&= (item.@colorblindSafe == true);
+				if(printFriendlyCheckbox.selected)
+					meetsCriteria &&= (item.@printFriendly == true);
+				if(photocopyableCheckbox.selected)
+					meetsCriteria &&= (item.@photocopyable == true);
+				if(singleHueCheckbox.selected)
+					meetsCriteria &&= (item.@singlehue == true);
+				
+				/*if(sourceCombo.selectedIndex != 0)	
+				meetsCriteria &&= (item.@source == sourceCombo.selectedItem);*/
+				
+				if(typeCombo.selectedIndex != 0)	
+					meetsCriteria &&= (item.@dataFormat == typeCombo.selectedItem);
+				
+				if(categoriesCombo.selectedIndex != 0)	
+					meetsCriteria &&= (item.@category == categoriesCombo.selectedItem);
+				
+				return meetsCriteria;
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+</mx:HBox>
+

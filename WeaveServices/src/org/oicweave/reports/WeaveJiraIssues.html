@@ -1,0 +1,26 @@
+<html>
+<h1 align='center'>Weave Jira Issues Report </h1>
+<p> This is an example template for a Category Report.  
+This file is in the docroot/WeaveReports folder of the server and is called WeaveJiraIssues.html. 
+To change the layout and content of this report, edit the WeaveJiraIssues.html file. 
+The software places the table with the data inside the body tags. </p>
+
+<weavedata>
+	<report name="Weave Jira Issues" type="CATEGORYREPORT">
+		<hierarchy>
+			<category name="Weave Jira Issues">
+				<attribute name="FIXFOR" type="category"/>
+				<attribute name="ComponentName" type="category"/>
+				<attribute name="pkey"/>
+				<attribute name="SUMMARY"/>
+				<attribute name="DESCRIPTION"/>
+				<attribute name="Rank"/>
+				<attribute name="issuestatus"/>
+				<attribute name="FIXFOR"/>
+				<attribute name="ComponentName"/>
+			</category>
+		</hierarchy>
+	</report>
+</weavedata>
+
+</html>

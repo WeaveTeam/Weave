@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!--	HelpComponent
+*  @author skolman
+*  
+-->
+
+<mx:Image
+	xmlns:ui ="org.oicweave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	source="@Embed(source='/org/oicweave/resources/images/menu_help.png')"
+	width="12"
+	height="12"
+	buttonMode="true"
+	mouseDown="toggleHelpPanel();"
+	filters="{_helpWindow || mouseOver ? [new GlowFilter()] : []}"
+	rollOver="mouseOver = true; ToolTipManager.showDelay = 0;"
+	rollOut="mouseOver = false; ToolTipManager.showDelay = _tipDelay;"
+	>
+	<mx:Script>
+		<![CDATA[
+			import mx.containers.TitleWindow;
+			import mx.controls.TextArea;
+			import mx.controls.ToolTip;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.ToolTipEvent;
+			import mx.managers.PopUpManager;
+			import mx.managers.ToolTipManager;
+			import mx.skins.halo.TitleBackground;
+			
+			
+			[Bindable] private var mouseOver:Boolean = false;
+			
+			
+			private var _helpText:Object = new Object();
+			[Inspectable]
+			public function set helpText(value:*):void
+			{
+				if (value == null)
+					return;
+				
+				
+				if (value is String)
+				{
+					_helpText = value;
+					setToolTip(_helpText as String);
+					return;
+				}
+				else if (value is Class)
+				{
+					_helpText = new value();
+				}
+				else if (value is DisplayObject)
+				{
+					var par:DisplayObjectContainer = (value as DisplayObject).parent;
+					if(par && par.contains(value))
+						par.removeChild(value);
+					_helpText = value;
+				}
+				toolTip = "Click for help";
+			}
+			
+			/**
+			 * function setToolTip: sets a tool tip on the help image.
+			 * @param helpText The text you want to show in the tool tip. 
+			 * If the text is too large create a help file and use the setHelpFile function.
+			 * */
+			private function setToolTip(helpText:String):void
+			{
+				this.toolTip = helpText;
+			}
+			
+			private var _tipDelay:Number = ToolTipManager.showDelay; 
+
+			[Bindable] private var _helpWindow:TitleWindow;
+			//TODO:Define a text area package and call components from there.
+			private function toggleHelpPanel():void
+			{
+				if (_helpWindow && _helpWindow.parent)
+				{
+					PopUpManager.removePopUp(_helpWindow);
+					_helpWindow = null;
+					return;
+				}
+				_helpWindow = PopUpManager.createPopUp(this,TitleWindow) as TitleWindow;
+				
+				_helpWindow.title = "Help";
+				
+				var component:UIComponent = _helpText as UIComponent;
+				if (_helpText is String)
+				{
+					component = new TextArea();
+					(component as TextArea).text = _helpText as String;
+				}
+				if (component)
+				{
+					component.percentWidth = 100;
+					component.percentHeight = 100;
+				}
+				if (component is TextArea)
+					(component as TextArea).editable = false;
+				
+				_helpWindow.addChild(component);
+				_helpWindow.showCloseButton = true;
+				_helpWindow.height = 400;
+				_helpWindow.width = 400;
+				_helpWindow.setStyle("borderAlpha", 0.7);
+				
+				_helpWindow.addEventListener(CloseEvent.CLOSE,function():void{PopUpManager.removePopUp(_helpWindow);});
+			
+				PopUpManager.centerPopUp(_helpWindow);
+				
+				var helpWindowCoord:Point = _helpWindow.localToGlobal(new Point(width,height));
+				
+				
+				//adjust positon if help panel goes beyond the browser borders
+				var moveX:Number = helpWindowCoord.x;
+				var moveY:Number = helpWindowCoord.y;
+				
+				if((stage.width - helpWindowCoord.x)< 410)
+				{
+					moveX = stage.width - 800;
+				}
+				
+				if((helpWindowCoord.y + 500 )> stage.height)
+				{
+					moveY = stage.height - 800;
+				}
+
+				_helpWindow.move(moveX,moveY);
+				_helpWindow.addEventListener(CloseEvent.CLOSE, handleHelpPanelClose);
+			}
+			private function handleHelpPanelClose(e:Event):void
+			{
+				_helpWindow = null;
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Image>

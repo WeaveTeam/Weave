@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:Button xmlns:mx="http://www.adobe.com/2006/mxml" click="handleClick(event)">
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.ObjectUtil;
+			import mx.core.IUIComponent;
+			import mx.managers.PopUpManager;
+			import mx.controls.Menu;
+			private var _menu:Menu = new Menu();
+		
+			private var _dataProvider:Object = null;
+			
+		    [Bindable("collectionChange")]
+		    [Inspectable(category="Data", defaultValue="null")]
+		    public function get dataProvider():Object
+		    {
+		        return _dataProvider;
+		    }
+
+		    public function set dataProvider(value:Object):void
+		    {
+		        _dataProvider = value;
+		        
+		        _menu.dataProvider = _dataProvider;
+		    }
+		    
+		    private var _popupShown:Boolean = false;
+		    private function handleClick(event:MouseEvent):void
+		    {
+		    	if(!_popupShown)
+		    	{
+		    		_popupShown = true;
+			    	PopUpManager.addPopUp(_menu, this, false);
+			    	PopUpManager.centerPopUp(_menu);
+			    	return;
+			    	var buttonPoint:Point = localToGlobal(new Point(0,0));
+			    	_menu.x = buttonPoint.x;
+			    	_menu.y = buttonPoint.y;
+			    }
+			    else
+			    {
+			    	_popupShown = false;
+			    	PopUpManager.removePopUp(_menu);
+			    }
+		    }
+		]]>
+	</mx:Script>
+</mx:Button>

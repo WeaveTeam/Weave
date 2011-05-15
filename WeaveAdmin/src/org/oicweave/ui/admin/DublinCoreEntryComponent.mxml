@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox 	xmlns:mx="http://www.adobe.com/2006/mxml"
+			xmlns:ui="org.oicweave.ui.*"
+			label="Metadata entry"
+			xmlns="org.oicweave.ui.admin.*" 
+			width="100%" height="100%" 
+			paddingTop="5"
+			paddingLeft="5"
+			>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.oicweave.services.AdminInterface;
+			import org.oicweave.ui.PopupDialog;
+			
+			private var elementName:String = null;
+			private var datasetName:String = null;
+			private var successCallback:Function = null;
+			
+			public function setElement(elementName:String):void{
+				this.elementName = elementName;
+				elementLabel.text = "Please enter the "+elementName+" value below:";
+			}
+			public function setDataset(datasetName:String):void{
+				this.datasetName = datasetName;
+			}
+			/**
+			 * Sets the callback which is invoked when the dialog closes upon successful
+			 * writing of the new element to the server.
+			 */ 
+			public function setSuccessCallback(successCallback:Function):void{
+				this.successCallback = successCallback;
+			}
+			/**
+			 * This function is called to generate the buttons at the bottom of the wizard.
+			 * It returns a map of button labels to their callbacks.
+			 * Callbacks take a single argument, which is a function which will close the outer popup when called.
+			 * See PopupDialog.mxml
+			 */
+			public function getWizardButtons():Object{
+				return {"Ok":function(closePopupFunction:Function):void{
+					elementLabel.text = "Submitting data to server...";
+					
+					var elements:Object = new Object();
+					elements[elementName] = textArea.text;
+					AdminInterface.instance.addDCElements(datasetName,elements,
+						function(event:ResultEvent, token:Object = null):void
+						{
+							successCallback();
+							closePopupFunction();
+						}
+					);
+					
+				}};
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Label id="elementLabel" />
+	<mx:LinkButton label="Click for Dublin Core Reference" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
+	<mx:TextArea id="textArea" height="100%" width = "100%"/>
+</mx:VBox>

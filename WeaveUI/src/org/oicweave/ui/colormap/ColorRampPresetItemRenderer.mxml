@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 horizontalScrollPolicy="off" 
+		 verticalScrollPolicy="off" 
+		 width="100%">
+	<mx:Label id="colorRampName" maxWidth="{width - colorRampCanvas.width}" left="0"/>
+	<mx:Canvas id="colorRampCanvas" 
+			   borderStyle="solid" borderColor="0x000000" 
+			   width="75" height="15" right="2"/>
+	
+	<mx:Script>
+		<![CDATA[
+			import org.oicweave.primitives.ColorRamp;
+			
+			private const colorRamp:ColorRamp = new ColorRamp();
+			
+			override public function set data(value:Object):void
+			{
+				var xml:XML = value as XML;
+				super.data = xml;
+				try {
+					colorRampName.text = xml.@name;
+					colorRamp.value = xml;
+					
+					var numColorDivisions:int = colorRampCanvas.width/2;
+					for(var i:int = 0; i < numColorDivisions; i++)
+					{
+						var normVal:Number = i / numColorDivisions;
+						
+						colorRampCanvas.graphics.beginFill( colorRamp.getColorFromNorm( normVal ) );
+						colorRampCanvas.graphics.drawRect(i*colorRampCanvas.width/numColorDivisions,0, 
+														  colorRampCanvas.width/numColorDivisions, colorRampCanvas.height);
+					}
+				}
+				catch(error:Error)
+				{
+					colorRampName.text = "Error";
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

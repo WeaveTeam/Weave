@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!--
+	This is a ViewStack whose children are to be used as different steps in a WizardPanel.
+	@author adufilie
+-->
+<mx:ViewStack 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="org.oicweave.ui.*"
+	creationPolicy="all"
+	paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8"
+	width="100%" height="100%"
+	>
+	<mx:Script>
+		<![CDATA[
+			import mx.managers.PopUpManager;
+			
+			[Event(name="close", type="mx.events.CloseEvent")]
+			
+			// This tells the WizardPanel when to enable the "Back" button.
+			[Bindable] public var backEnabled:Boolean = true;
+			// This tells the WizardPanel when to enable the "Next" button.
+			[Bindable] public var nextEnabled:Boolean = true;
+			// This tells the WizardPanel when to enable the "Finish" button.
+			[Bindable] public var finishEnabled:Boolean = true;
+			
+			// This function gets called when the "Back" button is clicked.
+			public function back():void
+			{
+				if (selectedIndex > 0)
+					selectedIndex--;
+			}
+			
+			// This function gets called when the "Next" button is clicked.
+			public function next():void
+			{
+				if (selectedIndex >= 0 && selectedIndex < numChildren - 1)
+					selectedIndex++;
+			}
+			
+			// This function gets called when the "Finish" button is clicked.
+			public function finish():void
+			{
+				// to be implemented by subclasses
+			}
+			
+			// This function gets called when the "Cancel" button is clicked.
+			public function cancel():void
+			{
+				// to be implemented by subclasses
+			}
+		]]>
+	</mx:Script>
+</mx:ViewStack>

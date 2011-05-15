@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="GeometryStreamConverter/GeometryStreamConverter.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/GeometryStreamConverter/GeometryStreamConverter.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" manifestLocation="/GeometryStreamConverter/src/META-INF/MANIFEST.MF" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
+        <sealing sealJar="true">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="false" exportJavaFiles="false" exportOutputFolder="true">
+        <folder path="/GeometryStreamConverter/src/META-INF"/>
+        <javaElement handleIdentifier="=GeometryStreamConverter/src&lt;org.oicweave.utils"/>
+        <javaElement handleIdentifier="=GeometryStreamConverter/src&lt;org.oicweave.geometrystream"/>
+    </selectedElements>
+</jardesc>

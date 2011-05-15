@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<mx:Button 	xmlns:mx="http://www.adobe.com/2006/mxml" 
+			label="(C) {(new Date()).getFullYear()} Open Indicators Consortium Weave"
+			
+			skin="{null}"
+			
+			fontSize="8"
+			color="#000000" 
+			useHandCursor="true"			
+	       	
+	       	click="handleLogoClicked(event)"  
+	       	fillAlphas="[0.8, 1.0, 1.0, 1.0]" 
+	       	paddingLeft="1" paddingRight="1" paddingTop="0" 
+	       	repeatDelay="0" 
+	       	fontStyle="normal" textDecoration="none" 
+	       	cornerRadius="0" 
+	       	height="{this.getStyle('font-size') + 2}" 
+	       	textAlign="center"
+	       	styleName="application"
+>
+			       	<!--creationCompleteEffect="{logoGlow}"-->
+
+   <mx:Script>
+   	<![CDATA[
+   		import mx.events.ChildExistenceChangedEvent;
+   		import mx.events.IndexChangedEvent;
+   		import flash.net.navigateToURL;
+   		
+   		[Bindable]
+   		private var linkText:String = "<a href='http://www.openindicators.org/'>(C) 2010 Open Indicators Consortium Weave</a>";
+   		private var oicRequest:URLRequest = new URLRequest("http://www.openindicators.org/");
+   		private function handleLogoClicked(event:Event):void
+   		{
+   			navigateToURL(oicRequest, "_blank");
+   		}
+   	]]>
+   </mx:Script>
+</mx:Button>

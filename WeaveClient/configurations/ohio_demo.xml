@@ -1,0 +1,428 @@
+<Weave encoding="dynamic">
+	<LinkableObjectMap name="savedSelections" encoding="dynamic"/>
+	<LinkableObjectMap name="savedSubsets" encoding="dynamic"/>
+	<WeaveProperties name="WeaveProperties">
+		<backgroundColor>13421772</backgroundColor>
+		<cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+		<dataInfoURL/>
+		<enableAboutMenu>true</enableAboutMenu>
+		<enableAdd2DHistogram>true</enableAdd2DHistogram>
+		<enableAddBarChart>true</enableAddBarChart>
+		<enableAddColormapHistogram>true</enableAddColormapHistogram>
+		<enableAddDataTable>true</enableAddDataTable>
+		<enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
+		<enableAddGaugeTool>true</enableAddGaugeTool>
+		<enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+		<enableAddHistogram>true</enableAddHistogram>
+		<enableAddLineChart>true</enableAddLineChart>
+		<enableAddMap>true</enableAddMap>
+		<enableAddOpenIndicatorsDataSource>true</enableAddOpenIndicatorsDataSource>
+		<enableAddPieChart>true</enableAddPieChart>
+		<enableAddRadViz>true</enableAddRadViz>
+		<enableAddRadViz2>false</enableAddRadViz2>
+		<enableAddScatterplot>true</enableAddScatterplot>
+		<enableAddSP2>true</enableAddSP2>
+		<enableAddStickFigurePlot>true</enableAddStickFigurePlot>
+		<enableAddThermometerTool>true</enableAddThermometerTool>
+		<enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+		<enableDataImport>true</enableDataImport>
+		<enableDebugAlert>false</enableDebugAlert>
+		<enableDynamicTools>true</enableDynamicTools>
+		<enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+		<enableExportDataTable>true</enableExportDataTable>
+		<enableExportSessionState>true</enableExportSessionState>
+		<enableExportToolImage>true</enableExportToolImage>
+		<enableFullscreen>true</enableFullscreen>
+		<enableMapLayerAddRemove>true</enableMapLayerAddRemove>
+		<enableMapLayerEdit>true</enableMapLayerEdit>
+		<enableMenuBar>true</enableMenuBar>
+		<enableMenuBarOnTop>true</enableMenuBarOnTop>
+		<enableNewDataset>true</enableNewDataset>
+		<enableRightClick>true</enableRightClick>
+		<enableSearchForRecord>true</enableSearchForRecord>
+		<enableSelectionsMenu>true</enableSelectionsMenu>
+		<enableSession>true</enableSession>
+		<enableSessionEdit>true</enableSessionEdit>
+		<enableSessionImport>true</enableSessionImport>
+		<enableSessionLoad>true</enableSessionLoad>
+		<enableSessionSave>true</enableSessionSave>
+		<enableSubsetControls>true</enableSubsetControls>
+		<enableSubsetsMenu>true</enableSubsetsMenu>
+		<enableTaskbar>true</enableTaskbar>
+		<enableToolAttributeEditing>true</enableToolAttributeEditing>
+		<enableToolAutoResizeAndPosition>true</enableToolAutoResizeAndPosition>
+		<enableToolBorders>true</enableToolBorders>
+		<enableToolClickDebug>false</enableToolClickDebug>
+		<enableToolClose>true</enableToolClose>
+		<enableToolDrag>true</enableToolDrag>
+		<enableToolMaximize>true</enableToolMaximize>
+		<enableToolMinimize>true</enableToolMinimize>
+		<enableToolProbe>true</enableToolProbe>
+		<enableToolResize>true</enableToolResize>
+		<enableToolSelection>true</enableToolSelection>
+		<enableUserPreferences>true</enableUserPreferences>
+		<enableWindowMenu>true</enableWindowMenu>
+		<fontBold>false</fontBold>
+		<fontColor>NaN</fontColor>
+		<fontFamily>Verdana</fontFamily>
+		<fontItalic>false</fontItalic>
+		<fontSize>10</fontSize>
+		<fontUnderline>false</fontUnderline>
+		<pageTitle>Open Indicators Weave</pageTitle>
+		<probeBevelAngle>45</probeBevelAngle>
+		<probeBevelBlur>1</probeBevelBlur>
+		<probeBevelDistance>1</probeBevelDistance>
+		<probeBevelHighlightAlpha>1</probeBevelHighlightAlpha>
+		<probeBevelHighlightColor>16777215</probeBevelHighlightColor>
+		<probeBevelShadowAlpha>1</probeBevelShadowAlpha>
+		<probeBevelShadowColor>16777215</probeBevelShadowColor>
+		<probeBevelType>outer</probeBevelType>
+		<probeInnerGlowAlpha>0.9</probeInnerGlowAlpha>
+		<probeInnerGlowBlur>5</probeInnerGlowBlur>
+		<probeInnerGlowColor>16777215</probeInnerGlowColor>
+		<probeInnerGlowStrength>10</probeInnerGlowStrength>
+		<probeOuterGlowAlpha>1</probeOuterGlowAlpha>
+		<probeOuterGlowBlur>3</probeOuterGlowBlur>
+		<probeOuterGlowColor>0</probeOuterGlowColor>
+		<probeOuterGlowStrength>3</probeOuterGlowStrength>
+		<probeToolTipAlpha>0.95</probeToolTipAlpha>
+		<probeToolTipBackgroundColor>15725756</probeToolTipBackgroundColor>
+		<probeToolTipFontColor>NaN</probeToolTipFontColor>
+		<rServicesURL>/WeaveServices</rServicesURL>
+		<selectionAlphaAmount>0.5</selectionAlphaAmount>
+		<selectionBlurringAmount>4</selectionBlurringAmount>
+		<shadowAlpha>0.5</shadowAlpha>
+		<shadowAngle>45</shadowAngle>
+		<shadowBlur>4</shadowBlur>
+		<shadowColor>0</shadowColor>
+		<shadowDistance>2</shadowDistance>
+		<showAttributeSelector>true</showAttributeSelector>
+		<showColorController>true</showColorController>
+		<showCopyright>true</showCopyright>
+		<showEquationEditor>true</showEquationEditor>
+		<showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+		<showProbeColumnEditor>true</showProbeColumnEditor>
+		<showViewBar>false</showViewBar>
+		<showVisToolCloseDialog>false</showVisToolCloseDialog>
+		<version>Beta 0.9.3 dev</version>
+		<windowSnapGridSize>4</windowSnapGridSize>
+	</WeaveProperties>
+	<ColorColumn name="defaultColorColumn">
+		<internalDynamicColumn encoding="dynamic">
+			<StaticObjectReference name="defaultColorBinColumn"/>
+		</internalDynamicColumn>
+		<ramp encoding="xml">
+			<colorRamp printFriendly="true" photocopyable="true" name="Spectral" source="ColorBrewer" category="basic" singlehue="false" dataFormat="diverging">
+				<node color="0xD7191C" position="0"/>
+				<node color="0xFDAE61" position="0.25"/>
+				<node color="0xFFFFBF" position="0.5"/>
+				<node color="0xABDDA4" position="0.75"/>
+				<node color="0x2B83BA" position="1.0"/>
+			</colorRamp>
+		</ramp>
+		<reverse>false</reverse>
+	</ColorColumn>
+	<BinnedColumn name="defaultColorBinColumn">
+		<binningDefinition encoding="dynamic">
+			<SimpleBinningDefinition>
+				<numberOfBins>10</numberOfBins>
+			</SimpleBinningDefinition>
+		</binningDefinition>
+		<internalDynamicColumn encoding="dynamic">
+			<StaticObjectReference name="defaultColorDataColumn"/>
+		</internalDynamicColumn>
+	</BinnedColumn>
+	<FilteredColumn name="defaultColorDataColumn">
+		<filter encoding="dynamic">
+			<StaticObjectReference name="defaultSubsetKeyFilter"/>
+		</filter>
+		<internalDynamicColumn encoding="dynamic"/>
+	</FilteredColumn>
+	<KeyFilter name="defaultSubsetKeyFilter">
+		<excludedKeys/>
+		<includedKeys/>
+		<includeMissingKeys>true</includeMissingKeys>
+		<sessionedKeyType/>
+	</KeyFilter>
+	<KeySet name="defaultSelectionKeySet">
+		<sessionedKeys/>
+		<sessionedKeyType>tiger:poly_landmarks</sessionedKeyType>
+	</KeySet>
+	<KeySet name="defaultProbeKeySet">
+		<sessionedKeys/>
+		<sessionedKeyType>topp:states</sessionedKeyType>
+	</KeySet>
+	<LinkableObjectMap name="Probe Header Columns" encoding="dynamic"/>
+	<LinkableObjectMap name="Probed Columns" encoding="dynamic"/>
+	<WFSDataSource name="WFSDataSource">
+		<attributeHierarchy encoding="xml">
+			<hierarchy name="The ancient geographes INC">
+				<category title="Manhattan (NY) landmarks" name="tiger:poly_landmarks">
+					<attribute keyType="tiger:poly_landmarks" name="the_geom" title="the_geom" featureTypeName="tiger:poly_landmarks" dataType="Geometry"/>
+					<attribute keyType="tiger:poly_landmarks" name="LAND" title="LAND" featureTypeName="tiger:poly_landmarks" dataType="Number"/>
+					<attribute keyType="tiger:poly_landmarks" name="CFCC" title="CFCC" featureTypeName="tiger:poly_landmarks" dataType="String"/>
+					<attribute keyType="tiger:poly_landmarks" name="LANAME" title="LANAME" featureTypeName="tiger:poly_landmarks" dataType="String"/>
+				</category>
+				<category title="Manhattan (NY) points of interest" name="tiger:poi"/>
+				<category title="Manhattan (NY) roads" name="tiger:tiger_roads"/>
+				<category title="Spearfish archeological sites" name="sf:archsites"/>
+				<category title="Spearfish bug locations" name="sf:bugsites"/>
+				<category title="Spearfish restricted areas" name="sf:restricted"/>
+				<category title="Spearfish roads" name="sf:roads"/>
+				<category title="Spearfish streams" name="sf:streams"/>
+				<category title="Tasmania cities" name="topp:tasmania_cities"/>
+				<category title="Tasmania roads" name="topp:tasmania_roads"/>
+				<category title="Tasmania state boundaries" name="topp:tasmania_state_boundaries"/>
+				<category title="Tasmania water bodies" name="topp:tasmania_water_bodies"/>
+				<category title="USA Population" name="topp:states">
+					<attribute dataType="Geometry" name="the_geom" title="the_geom" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="String" name="STATE_NAME" title="STATE_NAME" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="String" name="STATE_FIPS" title="STATE_FIPS" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="String" name="SUB_REGION" title="SUB_REGION" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="String" name="STATE_ABBR" title="STATE_ABBR" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="LAND_KM" title="LAND_KM" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="WATER_KM" title="WATER_KM" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="PERSONS" title="PERSONS" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="FAMILIES" title="FAMILIES" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="HOUSHOLD" title="HOUSHOLD" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="MALE" title="MALE" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="FEMALE" title="FEMALE" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="WORKERS" title="WORKERS" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="DRVALONE" title="DRVALONE" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="CARPOOL" title="CARPOOL" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="PUBTRANS" title="PUBTRANS" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="EMPLOYED" title="EMPLOYED" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="UNEMPLOY" title="UNEMPLOY" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="SERVICE" title="SERVICE" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="MANUAL" title="MANUAL" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="P_MALE" title="P_MALE" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="P_FEMALE" title="P_FEMALE" featureTypeName="topp:states" keyType="topp:states"/>
+					<attribute dataType="Number" name="SAMP_POP" title="SAMP_POP" featureTypeName="topp:states" keyType="topp:states"/>
+				</category>
+				<category title="World rectangle" name="tiger:giant_polygon"/>
+				<category title="ign_geopla_region_Type" name="pg:ign_geopla_region"/>
+				<category title="simplif_dept_Type" name="pg:ign_geopla_dep"/>
+				<category title="simplif_dept_Type" name="pg:simplif_dept"/>
+				<category title="simplif_france_Type" name="pg:simplif_france"/>
+				<category title="simplif_france_Type" name="pg:ign_geopla_france"/>
+				<category title="velov_Type" name="topp:velov"/>
+			</hierarchy>
+		</attributeHierarchy>
+		<url>http://openscales.org/geoserver/wfs</url>
+	</WFSDataSource>
+	<WFSDataSource name="WFSDataSource2">
+		<attributeHierarchy encoding="xml">
+			<hierarchy name="MORPC">
+				<category title="Ohio_County_Boundary" name="morpc_Counties:Ohio_County_Boundary">
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="OBJECTID" title="OBJECTID" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="GlobalID" title="GlobalID" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="FIPS_StateCode" title="FIPS_StateCode" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="StateAbbr" title="StateAbbr" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="CountyAbbr" title="CountyAbbr" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="FIPS_CountyCode" title="FIPS_CountyCode" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="FIPS_CountyCodeInteger" title="FIPS_CountyCodeInteger" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="FIPS_StateCountyCode" title="FIPS_StateCountyCode" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="CountyName" title="CountyName" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="CountySeat" title="CountySeat" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="ODOT_Distr" title="ODOT_Distr" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="StatePlane" title="StatePlane" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="Region" title="Region" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="POP_2000" title="POP_2000" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="POP_1990" title="POP_1990" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="ElevMax" title="ElevMax" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="ElevMin" title="ElevMin" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="SHAPE" title="SHAPE" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Geometry"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="SQMI" title="SQMI" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="SHAPE.area" title="SHAPE.area" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+					<attribute keyType="morpc_Counties:Ohio_County_Boundary" name="SHAPE.len" title="SHAPE.len" featureTypeName="morpc_Counties:Ohio_County_Boundary" dataType="Number"/>
+				</category>
+			</hierarchy>
+		</attributeHierarchy>
+		<url>http://arcserver.morpc.org/arcgis/services/morpc/Counties/MapServer/WFSServer</url>
+	</WFSDataSource>
+	<OpenIndicatorsDataSource name="OpenIndicatorsDataSource">
+		<alertEnabled>true</alertEnabled>
+		<attributeHierarchy encoding="xml">
+			<hierarchy name="Open Indicators Server">
+				<category name="DataTables">
+					<category name="Places"/>
+					<category name="Population_Places"/>
+					<category name="Population_Historic_Counties"/>
+					<category name="Population_Counties"/>
+					<category name="Counties"/>
+					<category name="Age_Counties"/>
+					<category name="Area_Places"/>
+					<category name="Area_Counties"/>
+				</category>
+				<category name="GeometryCollections">
+					<attribute dataType="Geometry" name="Places"/>
+					<attribute dataType="Geometry" name="Counties"/>
+				</category>
+			</hierarchy>
+		</attributeHierarchy>
+		<hierarchyURL/>
+		<url>/WeaveServices</url>
+	</OpenIndicatorsDataSource>
+	<MapTool name="MapTool2">
+		<buttonRadius>3</buttonRadius>
+		<children encoding="dynamic">
+			<SimpleInteractiveVisualization name="visualization">
+				<activeLayerName>plot</activeLayerName>
+				<axisFont>Arial</axisFont>
+				<axisFontBold>true</axisFontBold>
+				<axisFontColor>0</axisFontColor>
+				<axisFontItalic>false</axisFontItalic>
+				<axisFontSize>10</axisFontSize>
+				<axisFontUnderline>false</axisFontUnderline>
+				<axisLineAlpha>1</axisLineAlpha>
+				<axisLineColor>0</axisLineColor>
+				<axisLineThickness>2</axisLineThickness>
+				<axisTickAlpha>1</axisTickAlpha>
+				<axisTickColor>0</axisTickColor>
+				<axisTickLength>10</axisTickLength>
+				<axisTickThickness>2</axisTickThickness>
+				<dataBounds>
+					<xMax>1811917.0116181432</xMax>
+					<xMin>-209935.19584009645</xMin>
+					<yMax>2588209.747009619</yMax>
+					<yMin>1240308.2753707925</yMin>
+				</dataBounds>
+				<enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+				<enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+				<enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+				<enableFixedAspectRatio>true</enableFixedAspectRatio>
+				<enableZoomAndPan>true</enableZoomAndPan>
+				<includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+				<layers encoding="dynamic">
+					<SelectablePlotLayer name="plot">
+						<enableBitmapFilters>true</enableBitmapFilters>
+						<layerIsVisible>true</layerIsVisible>
+						<plotter encoding="dynamic">
+							<GeometryPlotter>
+								<fillStyle encoding="dynamic">
+									<SolidFillStyle>
+										<alpha>
+											<defaultValue>1</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</alpha>
+										<color>
+											<defaultValue>NaN</defaultValue>
+											<internalDynamicColumn encoding="dynamic">
+												<StaticObjectReference name="defaultColorColumn"/>
+											</internalDynamicColumn>
+										</color>
+										<enabled>
+											<defaultValue>true</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</enabled>
+									</SolidFillStyle>
+								</fillStyle>
+								<geometry encoding="dynamic">
+									<ReferencedColumn>
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>WFSDataSource2</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy name="MORPC">
+														<category title="Ohio_County_Boundary" name="morpc_Counties:Ohio_County_Boundary">
+															<attribute dataType="Geometry" featureType="morpc_Counties:Ohio_County_Boundary" name="SHAPE" title="SHAPE" keyType="morpc_Counties:Ohio_County_Boundary"/>
+														</category>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</geometry>
+								<keySet>
+									<keyFilter encoding="dynamic">
+										<StaticObjectReference name="defaultSubsetKeyFilter"/>
+									</keyFilter>
+								</keySet>
+								<lineStyle encoding="dynamic">
+									<SolidLineStyle>
+										<alpha>
+											<defaultValue>0.5</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</alpha>
+										<caps>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</caps>
+										<color>
+											<defaultValue>0</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</color>
+										<enabled>
+											<defaultValue>true</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</enabled>
+										<joints>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</joints>
+										<miterLimit>
+											<defaultValue>3</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</miterLimit>
+										<pixelHinting>
+											<defaultValue>false</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</pixelHinting>
+										<scaleMode>
+											<defaultValue>none</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</scaleMode>
+										<weight>
+											<defaultValue>1</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</weight>
+									</SolidLineStyle>
+								</lineStyle>
+								<pointShapeSize>5</pointShapeSize>
+							</GeometryPlotter>
+						</plotter>
+						<probeFilter encoding="dynamic">
+							<StaticObjectReference name="defaultProbeKeySet"/>
+						</probeFilter>
+						<selectionBlurringAmount>4</selectionBlurringAmount>
+						<selectionFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSelectionKeySet"/>
+						</selectionFilter>
+						<subsetFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSubsetKeyFilter"/>
+						</subsetFilter>
+					</SelectablePlotLayer>
+				</layers>
+				<marginBottom>0</marginBottom>
+				<marginLeft>0</marginLeft>
+				<marginRight>0</marginRight>
+				<marginTop>0</marginTop>
+				<maxZoomLevel>16</maxZoomLevel>
+				<minScreenSize>128</minScreenSize>
+				<minZoomLevel>0</minZoomLevel>
+				<shadowAmount>0</shadowAmount>
+			</SimpleInteractiveVisualization>
+		</children>
+		<closeable>true</closeable>
+		<draggable>true</draggable>
+		<enableBackground>true</enableBackground>
+		<helpAvailable>true</helpAvailable>
+		<hideBorders>false</hideBorders>
+		<linkColormap>false</linkColormap>
+		<linkProbing>true</linkProbing>
+		<linkSelection>true</linkSelection>
+		<linkSubset>true</linkSubset>
+		<lockPanel>false</lockPanel>
+		<maximizable>true</maximizable>
+		<minimizable>true</minimizable>
+		<panelHeight>50.096%</panelHeight>
+		<panelStyleList/>
+		<panelWidth>50%</panelWidth>
+		<panelX>50%</panelX>
+		<panelY>25.434%</panelY>
+		<resizeable>true</resizeable>
+		<showCloseDialog>false</showCloseDialog>
+		<toolTitle/>
+		<userControlsAvailable>true</userControlsAvailable>
+	</MapTool>
+</Weave>

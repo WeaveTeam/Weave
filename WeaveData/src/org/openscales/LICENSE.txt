@@ -1,0 +1,15 @@
+Copied from http://openscales.org/license/index.html
+
+
+OpenScales is released under version 3 of the GNU Lesser Public License (LGPL, available at http://www.gnu.org/copyleft/lgpl.html), with an exeption related to static linking exception (see below). This basically means that you can get the full source code for nothing, so long as you adhere to a few rules.
+
+Under the LGPL you may use OpenScales for any purpose you wish, and modify it if you require, as long as you:
+
+    Pass on the (modified) OpenScales source code with your software, with original copyrights intact
+    Make it clear where you have customised it.
+
+The above is a precis, please do read the full license agreement.
+
+In addition to the LGPL license text, the exception to the LGPL conditions apply to OpenScales:
+
+As a special exception to the GNU Lesser General Public License version 3, you may convey to a third party an executable file from a Combined Work that links, statically or dynamically, portions of this Library in the executable file, conveying the Minimal Corresponding Source but without the need to convey the Corresponding Application Code under section 4d0 of the GNU Lesser General Public License, so long as you are using an unmodified publicly distributed version of the Library. This exception does not invalidate any other reasons why the executable file might be covered by the GNU Lesser General Public License or the GNU General Public License.

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="org.oicweave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="org.oicweave.ui.*" 
+		 xmlns:userControls="org.oicweave.ui.userControls.*"
+		 layout="absolute">
+	<mx:Script>
+		<![CDATA[
+			import org.oicweave.api.registerLinkableChild;
+			import org.oicweave.api.linkBindableProperty;
+			import org.oicweave.utils.ColumnUtils;
+			import mx.events.FlexEvent;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.core.LinkableBoolean;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.api.core.ILinkableDynamicObject;
+			import org.oicweave.api.getCallbackCollection;
+			import org.oicweave.api.linkSessionState;
+			import org.oicweave.api.newLinkableChild;
+			import org.oicweave.api.unlinkSessionState;
+			import org.oicweave.data.AttributeColumns.BinnedColumn;
+			import org.oicweave.data.AttributeColumns.ColorColumn;
+			import org.oicweave.data.AttributeColumns.DynamicColumn;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.data.AttributeColumns.StringLookup;
+			import org.oicweave.data.BinningDefinitions.EqualIntervalBinningDefinition;
+			import org.oicweave.api.data.IBinningDefinition;
+			import org.oicweave.data.BinningDefinitions.SimpleBinningDefinition;
+			import org.oicweave.api.data.IKeySet;
+			import org.oicweave.ui.AttributeSelectorPanel;
+			import org.oicweave.ui.DraggablePanel;
+			import org.oicweave.utils.BitmapText;
+			import org.oicweave.visualization.plotters.HistogramPlotter;
+			import org.oicweave.visualization.plotters.ProbeLinePlotter;
+			import org.oicweave.primitives.ColorRamp;
+		
+			public var plotter:HistogramPlotter = null;
+
+			public function get histogramPlotter():HistogramPlotter
+			{
+				return plotter;
+			}
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				// lock dynamic objects into place
+				plotter = initDefaultPlotter(HistogramPlotter) as HistogramPlotter;
+				visualization.enableProbeLine(false);
+
+				xAxisEnabled = true;
+				yAxisEnabled = true;
+				
+				xAxisLayer.axisPlotter.forceTickCount.value = true;
+				visualization.enableZoomAndPan.value = false;
+
+				visualization.marginBottom.value = 80;
+				visualization.marginTop.value    = 10;
+				visualization.marginLeft.value   = 80;
+				visualization.marginRight.value  = 10;
+				
+				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange);
+				
+
+				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
+				
+				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, openAttributeSelector);
+				
+				var fc:FilteredColumn = plotter.internalBinnedColumn.internalColumn as FilteredColumn;
+				initColumnDefaults(fc.internalDynamicColumn);
+				
+				toolTitle.addGroupedCallback(this, updateTitle);
+				plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
+			}
+			
+			override public function getSelectableAttributeNames():Array
+			{
+				return ["Bins"];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				return [internalDataColumn];
+			}
+			
+			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+
+			private function openAttributeSelector():void
+			{
+				AttributeSelectorPanel.openToolSelector(this,internalDataColumn);
+			}
+			
+			private function updateProbeColumns():void
+			{
+				visualization.additionalProbeColumns = [];
+				if (includeToolAttributesInProbe.value)
+				{
+					if (plotter.internalBinnedColumn && plotter.internalBinnedColumn.internalColumn)
+						visualization.additionalProbeColumns.push(plotter.internalBinnedColumn.internalColumn);
+				}
+			}
+			
+			private function updateTitle():void
+			{
+				if (toolTitle.value == null)
+					title = "Histogram of " + ColumnUtils.getTitle(plotter.dynamicColorColumn);
+			}
+
+			private var _prevBinnedColumn:BinnedColumn = null;
+			private function handleDynamicColorColumnChange():void
+			{
+				if (!parent)
+					return callLater(handleDynamicColorColumnChange);
+				
+				cRampEditor.colorRamp = plotter.internalColorColumn.ramp;
+				if (_prevBinnedColumn)
+					unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
+				
+				if (plotter.internalBinnedColumn)
+					linkSessionState(plotter.internalBinnedColumn, binEditor.binnedColumn);
+				
+				
+				_prevBinnedColumn = plotter.internalBinnedColumn;
+				dataColumnComponent.dynamicObject = internalDataColumn;
+			}
+			
+			public function get internalDataColumn():DynamicColumn
+			{
+				try
+				{
+					return (plotter.internalBinnedColumn.internalColumn as FilteredColumn).internalDynamicColumn;
+				}
+				catch (e:Error) { } // do nothing if there is no data column
+				return null;
+			}
+			
+			private function updateAxisLabels():void
+			{
+				updateTitle();
+				
+				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
+				if (binnedColumn)
+				{
+					xAxisLayer.axisPlotter.tickCountRequested.value = binnedColumn.numberOfBins;
+					xAxisLayer.axisPlotter.tickMinValue.value = 0;
+					xAxisLayer.axisPlotter.tickMaxValue.value = binnedColumn.numberOfBins - 1;	
+					xAxisLayer.axisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber);
+				}
+				else
+				{
+					xAxisLayer.axisPlotter.setLabelFunction(null);
+				}
+				
+				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisLayer.axisPlotter.setSideAxisName("Number of Records", -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+			}
+		]]>
+	</mx:Script>
+
+	<ui:ControlPanel>
+		<mx:VBox label="Visualization Controls">
+			<userControls:ControlsSubsetBox>
+				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+							 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
+							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+			</userControls:ControlsSubsetBox>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="bin data"/>
+			<ui:BinningDefinitionEditor id="binEditor"/>
+		</mx:VBox>
+		<mx:VBox label="Advanced">
+			<ui:ColorRampEditor id="cRampEditor"/>
+		</mx:VBox>
+	</ui:ControlPanel>
+</SimpleVisTool>

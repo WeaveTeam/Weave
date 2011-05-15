@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!--- @author kmanohar -->
+<DraggablePanel xmlns="org.oicweave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+				title="Probed Records Table"
+				>
+	<mx:HDividedBox  height="100%" width="100%">
+		<mx:VBox height="100%" width="20%">
+			<mx:Text id="keytypeLabel" width="100%"/>
+			<mx:List id="recordList"
+					 width="100%" height="100%"
+					 toolTip="Select a record"
+					 labelFunction="getProbeHeaderText"
+					 change="recordListChange(event)">
+				
+			</mx:List>
+		</mx:VBox>
+		<mx:DataGrid id="dataGrid" width="80%" height="100%">
+			<mx:columns>
+				<mx:DataGridColumn dataField="Attribute"/>
+				<mx:DataGridColumn dataField="Value"/>
+				<mx:DataGridColumn dataField="DataTable"/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:HDividedBox>
+	<mx:Script>
+		<![CDATA[
+			import org.oicweave.api.data.IQualifiedKey;
+			import mx.collections.ArrayCollection;
+			import mx.events.ListEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectUtil;
+			
+			import org.oicweave.core.ErrorManager;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.api.copySessionState;
+			import org.oicweave.api.data.IAttributeColumn;
+			import org.oicweave.data.KeySets.KeySet;
+			import org.oicweave.utils.ProbeTextUtils;
+			
+			private var probedKeySet:KeySet = new KeySet() ;
+			private var dataGridSource:ArrayCollection = new ArrayCollection([]);
+			private var recordListSource:ArrayCollection = new ArrayCollection([]);
+			private var resultObj:Object;
+			
+			/**
+			 * copies the keySet paramater into private local probedKeySet using copySessionState()
+			 * @param keySet KeySet object to copy
+			 */
+			public function setProbedKeySet(keySet:KeySet):void
+			{
+				recordListSource = new ArrayCollection([]);
+				copySessionState(keySet,probedKeySet);
+				for each(var key:IQualifiedKey in keySet.keys)
+				{
+					recordListSource.source.push(key);
+				}
+				keytypeLabel.text = "KeyType:\n" + (keySet.keys[0] as IQualifiedKey).keyType;
+				recordList.dataProvider = recordListSource;
+				//probedRecords.lock();
+			}
+			
+			private function refreshProbedRecordsTable(record:IQualifiedKey):void
+			{
+				dataGridSource = new ArrayCollection([]);
+				var i:int = 0;
+				var j:int = 0;
+				for each( var key:IQualifiedKey in probedKeySet.keys)
+				{
+					if( key.localName == record.localName)  
+					{
+						// fill DataGrid using resultObj
+						for each( var obj:Object in (resultObj.recordData as Array)[i])
+						{
+							dataGridSource.source.push({Attribute:(resultObj.attributeColumnMetadata as Array)[j].name, Value:obj, DataTable:(resultObj.attributeColumnMetadata as Array)[j].dataTable}) ;
+							j++;
+						}
+						break ;
+					}
+					i++;
+				}
+				this.dataGrid.dataProvider = dataGridSource;
+			}
+			
+			public function handleGetRowResult(event:ResultEvent, token:Object = null):void
+			{
+				resultObj = new Object();
+				resultObj = event.result;
+				
+				if(resultObj!=null)
+				{
+					refreshProbedRecordsTable( probedKeySet.keys[0]) ;
+				}
+			}
+			
+			public function handleGetRowFault(event:FaultEvent, token:Object = null):void
+			{
+				ErrorManager.reportError(event.fault);
+			}
+			
+			/**
+			 * replaces a key's localName in recordList with its value in the first probe header column
+			 * <br/>used as labelFunction for recordList
+			 * @param item must be a IQualifiedKey
+			 * @return probe header text for item IQualifiedKey
+			 */
+			public function getProbeHeaderText(item:Object):String
+			{
+				var result:String = '';
+				var headerColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
+				for each(var header:IAttributeColumn in headerColumns)
+				{
+					result += header.getValueFromKey((item as IQualifiedKey), String);
+				}
+				return (result != '')? result:(item as IQualifiedKey).localName;
+			}
+			
+			private function recordListChange(event:ListEvent):void
+			{
+				try {
+					refreshProbedRecordsTable(List(event.target).selectedItem as IQualifiedKey);	
+				} catch( e1:Error) {}
+			}
+		]]>
+	</mx:Script>
+</DraggablePanel>

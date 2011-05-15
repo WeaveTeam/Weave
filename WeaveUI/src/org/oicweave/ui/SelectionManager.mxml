@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="org.oicweave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="312" height="300" 
+				initialize="init()" 
+				title="Saved Selections"
+				layout="vertical">
+
+	
+	<LinkableObjectList id="savedSelectionsList"
+						width="100%" height="100%"
+						hashMap="{_hashMap}" 
+						labelFunction="selectionsListLabelFunction"
+						allowMultipleSelection="false">
+		
+	</LinkableObjectList>
+	
+	<mx:HBox>
+		<mx:Button label="Delete" 
+				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
+				   click="deleteSelection()"/>
+		<mx:Button label="Rename" 
+				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
+				   click="renameSelection()"/>
+	</mx:HBox>
+	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="close" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
+	</mx:ControlBar>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Application;
+			import org.oicweave.api.copySessionState;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.data.KeySets.KeySet;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.core.LinkableHashMap;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.ui.controlBars.WeaveMenuBar;
+			import org.oicweave.ui.controlBars.WeaveMenuItem;
+			
+			[Bindable]
+			private var _hashMap:LinkableHashMap = savedSelectionsMap;
+			
+			private static var _popupManager:SelectionManager = null;
+			
+			/**
+			 * Function used solely to get the label for each item in the list
+			 **/
+			private static function selectionsListLabelFunction(item:Object):String
+			{
+				// The label will be the name of the item followed by the record count
+				var label:String = savedSelectionsMap.getName(item as KeySet);
+				return label + " (" + (item as KeySet).keys.length + " records)";
+			}
+			
+			/**
+			 * Create the menu items used for the WeaveMenuItem associated with this class
+			 **/
+			public static function setupMenu(parentMenu:WeaveMenuBar, destinationMenu:WeaveMenuItem):void
+			{
+				if(!destinationMenu)
+					return;
+				
+				if(destinationMenu.children)
+					destinationMenu.children.removeAll();
+				
+				var menuItem:WeaveMenuItem;
+				var clickFunction:Function;
+				var selectionActive:Function = function():Boolean
+				{
+					return globalSelection.keys.length > 0;
+				}
+				
+				// menu item to save the current selection
+				if (Weave.properties.enableSaveCurrentSelection.value)
+				{
+					menuItem = new WeaveMenuItem("Save current selection...", saveSelection, null, selectionActive);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
+				// meny item to clear the current selection
+				if (Weave.properties.enableClearCurrentSelection.value)
+				{
+					clickFunction = globalSelection.clearKeys;
+					menuItem = new WeaveMenuItem("Clear current selection", clickFunction, null, selectionActive);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
+				parentMenu.addSeparatorToMenu(destinationMenu);
+				
+				// menu item to manage saved selections
+				if (Weave.properties.enableManageSavedSelections.value)
+				{
+					clickFunction = function():void {
+						// create the SelectionManager as a modal PopUp
+						_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SelectionManager, true) as SelectionManager;
+						// this will disable dragging of this popup
+						_popupManager.isPopUp = false;
+						PopUpManager.centerPopUp(_popupManager);
+					};
+					var enableFunction:Function = function():Boolean
+					{
+						return savedSelectionsMap.getNames().length > 0;
+					};
+					menuItem = new WeaveMenuItem("Manage saved selections...", clickFunction, null, enableFunction);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+
+				var selections:Array = savedSelectionsMap.getObjects();
+				if (selections.length > 0)
+					parentMenu.addSeparatorToMenu(destinationMenu);
+				
+				// for each saved selection
+				for (var i:int = 0; i < selections.length; i++)
+				{
+					var label:String = selectionsListLabelFunction(selections[i]);
+					menuItem = new WeaveMenuItem(label, copySessionState, [selections[i], globalSelection]);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+			}
+			
+			private static function get savedSelectionsMap():LinkableHashMap
+			{
+				return Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS) as LinkableHashMap;
+			}
+			private static function get globalSelection():KeySet
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			}
+
+			private function init():void
+			{
+				// Disable certain features on this manager so that it is purely modal and has to be closed manually
+				// before doing anything else
+				minimizable.value = false;
+				draggable.value = false;
+				maximizable.value = false;
+				closeable.value = false;
+			}
+			
+			/**
+			 * Delete the selection the user picked in the list of saved selections
+			 */
+			private function deleteSelection():void
+			{
+				savedSelectionsMap.removeObject(savedSelectionsMap.getName(savedSelectionsList.selectedItem as KeySet));
+			}
+			
+			/**
+			 * Rename the selection the user picked in the list of saved selections
+			 */
+			private function renameSelection():void
+			{
+				// create a text-input alert box for the user to enter the new name for the selection
+				var alertBox:AlertTextBox = AlertTextBox.show("Selection Name", "Please enter a name for the selection: ");
+				
+				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
+					// if the user clicked cancel, do nothing
+					if( !e.confirm )
+						return;
+					
+					var oldSubset:KeySet = savedSelectionsList.selectedItem as KeySet;
+					var oldName:String = savedSelectionsMap.getName(oldSubset);
+					var newName:String = e.textInput;
+
+					// we want to put the new subset in the same position the old subset was
+					var nameOrder:Array = savedSelectionsMap.getNames();
+					nameOrder[nameOrder.indexOf(oldName)] = newName;
+					
+					savedSelectionsMap.copyObject(newName, oldSubset);
+					savedSelectionsMap.removeObject(oldName);
+					savedSelectionsMap.setNameOrder(nameOrder);
+
+					// invalidate the list so we see it update
+					savedSelectionsList.invalidateList();
+				});
+			}
+			
+			/**
+			 * Save the current selection
+			 */
+			public static function saveSelection():void
+			{
+				// create a text-input alert box for the user to enter the new name for the selection
+				var alertBox:AlertTextBox = AlertTextBox.show("Selection Name", "Please enter a name for the selection: ");
+				
+				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
+					// if the user clicked cancel, do nothing
+					if( !e.confirm )
+						return;
+					
+					savedSelectionsMap.copyObject(e.textInput, globalSelection);
+				});
+			}
+		]]>
+	</mx:Script>
+</DraggablePanel>

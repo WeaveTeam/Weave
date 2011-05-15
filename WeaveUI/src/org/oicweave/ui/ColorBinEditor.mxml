@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:ControlPanel  xmlns="org.oicweave.ui.*"
+				  xmlns:mx="http://www.adobe.com/2006/mxml"
+				  xmlns:ui="org.oicweave.ui.*" 
+				  layout="absolute"
+				  title="Color Controller"
+				  backgroundColor="#EFF4BC"
+				  initialize="init()">
+	<mx:VBox id="VizControlsPanel" label="Visualization Controls">
+
+		<ui:DynamicColumnComponent id="dataColumnComponent" label="Color data"/>
+		<ui:BinningDefinitionEditor id="binEditor"/>
+	</mx:VBox>
+	<mx:VBox id="advControlsPanel" label="Advanced">
+		<ui:ColorRampEditor id="cRampEditor"/>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.core.Application;
+			import mx.managers.PopUpManager;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.api.core.ILinkableDynamicObject;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.api.linkSessionState;
+			import org.oicweave.data.AttributeColumns.BinnedColumn;
+			import org.oicweave.data.AttributeColumns.ColorColumn;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.primitives.ColorRamp;
+			
+			
+			
+			
+			private static var instance:ControlPanel;
+			public static function openDefaultEditor():void
+			{
+				if (!instance)
+					instance = new ColorBinEditor();
+				
+				if (!instance.parent)
+					PopUpManager.addPopUp(instance, Application.application as Application);
+				instance.restorePanel();
+			}
+			
+			private function init():void
+			{
+				var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+				var col:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				dataColumnComponent.dynamicObject = col.internalDynamicColumn;
+				cRampEditor.colorRamp = colorCol.ramp;
+				linkSessionState((Weave.root.getObject(Weave.DEFAULT_COLOR_BIN_COLUMN) as BinnedColumn),binEditor.binnedColumn);
+				
+				this.targets = [colorCol]; 
+			}
+			
+			
+		]]>
+	</mx:Script>
+</ui:ControlPanel>

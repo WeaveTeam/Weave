@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!--	Session State Editor
+   	*  @author skolman
+ 	*  A text editor to change the Session State on the fly.
+-->
+<ui:DraggablePanel
+    xmlns:ui ="org.oicweave.ui.*"
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    width="800" height="600"
+    title="Session State Editor"
+	backgroundColor="#EFF4BC" 
+    xmlns:sessioning="org.oicweave.core.*">
+
+    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
+			 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
+		<mx:HBox width="100%">
+			<mx:Button label="Reload" toolTip="Reloads to previous save state" click="handleReloadClick()" paddingLeft="5" paddingRight="5"/>
+			<mx:Button label="Apply" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
+			<mx:Button label="Save &amp; Close" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
+			<mx:Button label="Cancel" click="removePanel()" paddingLeft="5" paddingRight="5"/>
+		</mx:HBox>
+		<mx:HDividedBox width="100%" height="100%">
+			<mx:VBox id="listVBox" width="100%" height="100%">
+				<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
+				<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
+ 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"/>
+ 				<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off">
+ 					<mx:TextInput id="linkNameInput" width="100%"/>
+ 					<mx:Button label="Link to global object" click="linkSelectedObject();"/>
+ 					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>
+ 				</mx:HBox>
+			</mx:VBox>
+			<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
+				<mx:HBox width="100%" horizontalAlign="right">
+					<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText()" change="searchTermChanged()" width="100%" minWidth="100"/>
+					<mx:Button label="Search" click="highlightSearchText()" repeatDelay="1"/>
+				</mx:HBox>
+				<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleTextAreaFocusIn()" fontAntiAliasType="normal" fontSize="11" fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%"/>
+			</mx:VBox>
+		</mx:HDividedBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.containers.VBox;
+			import mx.controls.Alert;
+			import mx.controls.Label;
+			import mx.core.Application;
+			import mx.effects.Resize;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.WeaveProperties;
+			import org.oicweave.api.WeaveAPI;
+			import org.oicweave.api.core.ILinkableDynamicObject;
+			import org.oicweave.api.core.ILinkableHashMap;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.api.getCallbackCollection;
+			import org.oicweave.api.getLinkableObjectOwner;
+			import org.oicweave.api.getSessionState;
+			import org.oicweave.api.setSessionState;
+			import org.oicweave.core.DynamicState;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.core.WeaveXMLDecoder;
+			import org.oicweave.core.WeaveXMLEncoder;
+			import org.oicweave.core.weave_internal;
+			import org.oicweave.ui.colormap.*;
+			import org.oicweave.utils.DebugUtils;
+			import org.oicweave.utils.EventUtils;
+			import org.oicweave.utils.NumberUtils;
+			import org.oicweave.utils.PopUpUtils;
+			import org.oicweave.utils.VectorUtils;
+			use namespace weave_internal;
+
+		    private var selectors:Array = null;
+		    
+		    private var textField:TextField;
+
+			override protected function constructor():void
+			{
+				super.constructor();
+				panelWidth.value = "75%";
+				panelHeight.value = "75%";
+				panelX.value = "12.5%";
+				panelY.value = "12.5%";
+			}			
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+
+				refreshTimer.addEventListener(TimerEvent.TIMER, handleRefreshTimer);
+				refreshTimer.start();
+				
+				//handle keyboard event CTRL +F to Search Box
+				this.addEventListener(KeyboardEvent.KEY_DOWN,handleCtrlFPressEvent)
+
+		    	EventUtils.addBindCallback(sessionNav, "selectedItem", handleSessionNavSelect);
+		    	
+				sessionNav.addEventListener(KeyboardEvent.KEY_UP,confirmDeleteSelectedItem);
+		    }
+			override public function dispose():void
+			{
+				refreshTimer.stop();
+				EventUtils.removeBindCallback(sessionNav, "selectedItem", handleSessionNavSelect);
+				super.dispose();
+			}
+		    
+			/**
+			 * refresh timer
+			 */
+		    private var _needRefresh:Boolean = false;
+		    private const refreshTimer:Timer = new Timer(200, 0);
+		    private function handleRefreshTimer(event:TimerEvent):void
+		    {
+		    	if (autoRefresh && _needRefresh && !_textModified && visible && parent)
+				{
+					autoRefresh = false; // this prevents text from refreshing every time -- we only want it to refresh when text area gains focus.
+		    		loadSelectedSessionObjectInTextArea();
+				}
+		    }
+		    private function handleSelectedObjectGroupCallback():void
+		    {
+		    	_needRefresh = true;
+		    }
+			private function handleTextAreaFocusIn():void
+			{
+				autoRefresh = true;
+			}
+			
+			private var autoRefresh:Boolean = false;
+   
+		    private var _textModified:Boolean = false
+		    private function handleTextAreaChange():void
+		    {
+		    	_textModified = true;
+		    }
+		    
+
+			private function refreshAndLoadSessionState():void
+			{
+				sessionNav.refresh();
+				loadSelectedSessionObjectInTextArea();
+			}
+			
+			private var _prevSelectedObject:ILinkableObject = null;
+			
+			private function loadSelectedSessionObjectInTextArea(sessObj:ILinkableObject = null):void
+			{
+				_needRefresh = false;
+				
+				if (sessionNav.selectedItem == null && sessObj == null)
+				{
+					sessionStateTextArea.text = '';
+					sessionStateTextArea.enabled = false;
+					return;
+				}
+				
+				
+				if(sessObj != null)
+					_currentSelectedObject = sessObj;
+				else
+					_currentSelectedObject = sessionNav.selectedItem.object;
+				var vsp:Number = sessionStateTextArea.verticalScrollPosition;
+				var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
+				if (_prevSelectedObject != _currentSelectedObject)
+				{
+					if (_prevSelectedObject)
+						getCallbackCollection(_prevSelectedObject).removeCallback(handleSelectedObjectGroupCallback);
+					_prevSelectedObject = _currentSelectedObject;
+					if (_currentSelectedObject)
+						getCallbackCollection(_currentSelectedObject).addGroupedCallback(this, handleSelectedObjectGroupCallback);
+					hsp = 0;
+					vsp = 0;
+				}
+				
+				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
+				_currentSessionState = WeaveXMLEncoder.encode(sessionState,"Tag");
+				sessionStateTextArea.text = _currentSessionState.children().toXMLString();
+				sessionStateTextArea.enabled = true;
+				sessionStateTextArea.validateNow();
+				sessionStateTextArea.verticalScrollPosition = vsp;
+				sessionStateTextArea.horizontalScrollPosition = hsp;
+				_textModified = false;
+			}
+			
+			private var _currentSelectedObject:ILinkableObject = null;
+			private var _currentSessionState:XML = null;
+			private function saveSessionState():void
+		    {
+				_textModified = false;
+				
+				if (_currentSessionState != null && _currentSelectedObject != null)
+				{
+					_currentSessionState.setChildren(XMLList(sessionStateTextArea.text));
+					
+					var currentStateObject:Object = WeaveXMLDecoder.decode(_currentSessionState);
+					
+//					if (sessionStateTextArea.text == 'EMPTYSTRING')
+//						currentStateObject = '';
+					
+					setSessionState(_currentSelectedObject,currentStateObject,true);
+				}
+		    }
+		    private function linkSelectedObject():void
+		    {
+				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedSessionedObject() as ILinkableDynamicObject;
+		    	if (dynamicObject)
+		    	{
+		    		dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
+		    		refreshAndLoadSessionState();
+		    	}
+		    }
+			private function handleSessionNavSelect():void
+			{
+				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedSessionedObject() as ILinkableDynamicObject;
+				if (dynamicObject)
+				{
+					linkNameInput.text = dynamicObject.globalName;
+					linkControls.enabled = true;
+				}
+				else
+				{
+					linkNameInput.text = '';
+					linkControls.enabled = false;
+				}
+				
+				if(_textModified)
+					PopUpUtils.confirm(
+						this,
+						"Save",
+						"Session state has been changed.  Save Changes?",
+						saveAndLoadNewItem,
+						loadSelectedSessionObjectInTextArea
+					);
+				else
+					loadSelectedSessionObjectInTextArea();
+			}
+			
+			private function saveAndLoadNewItem():void
+			{
+				saveSessionState();
+				refreshAndLoadSessionState();
+			}
+			
+		    private function alertError(e:Error):void
+		    {
+		    	PopUpUtils.confirm(
+		    			this,
+		    			e.name,
+		    			e.message+"\n\n"+"Show stack trace?",
+		    			function():void { Alert.show(e.message+"\n\n"+e.getStackTrace(), e.name); }
+		    		);
+		    }
+		    
+		    private function handleReloadClick():void
+		    {
+		    	
+	    		refreshAndLoadSessionState();
+		    }
+		    private function handleApplyClick():void
+		    {
+		    	try {
+			    	saveSessionState();
+			    	refreshAndLoadSessionState();
+				} catch (e:Error) { alertError(e); }
+		    }
+		    
+		    private function saveAndClosePanel():void
+		    {
+		    	try {
+					saveSessionState();
+					super.removePanel();
+				} catch (e:Error) { alertError(e); }
+		    }
+			
+			override public function removePanel():void
+			{
+				if (_textModified)
+				{
+					PopUpUtils.confirm(
+							this,
+							"Save",
+							"Session state has been changed.  Save Changes?",
+							saveAndClosePanel,
+							super.removePanel
+						);
+				}
+				else
+					super.removePanel();
+			}
+			
+			
+			
+			private var _startSearchIndex:int = 0;
+			private function highlightSearchText():Boolean
+			{
+				for (var i:int = 0; i < 2; i++) // 
+				{
+					var text:String = sessionStateTextArea.text;
+					var searchTerm:String = search.text;
+					
+					_startSearchIndex = text.toLowerCase().indexOf(searchTerm.toLowerCase(), _startSearchIndex + 1); // +1 so it won't find the same thing twice 
+					if (_startSearchIndex != -1)
+					{
+						sessionStateTextArea.setSelection(_startSearchIndex, _startSearchIndex+searchTerm.length);
+						sessionStateTextArea.setFocus();
+						return true;
+					}
+					//end of file reached. start search again.
+				}
+				
+				Alert.show("Not found: "+searchTerm, "Search");
+				return false;
+			}
+			
+			private function searchTermChanged():void
+			{
+				_startSearchIndex = -1;
+			}
+			
+			private function handleCtrlFPressEvent(event:KeyboardEvent):void
+			{
+				if (event.ctrlKey && event.keyCode == 70)
+				{
+					search.setFocus();
+				}
+			}
+			
+			private function setLabelName(item:Object):String
+			{
+				var node:XML = XML(item);
+				
+				if(node.@name.toString() != "")
+					return node.@name.toString();
+				else
+					return node.name().toString();
+			}
+			private function confirmDeleteSelectedItem(event:KeyboardEvent):void
+			{
+				if(event.keyCode == 46)
+				{
+					var parent:ILinkableObject = getLinkableObjectOwner(sessionNav.selectedItem.object);
+					if (!parent)
+						return;
+					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+					if (hashMap || dynamicObject)
+						Alert.show("Delete Selected Item?","Confirm Delete",mx.controls.Alert.YES| mx.controls.Alert.NO,this,deleteSelectedItem)
+				}
+			}
+			
+			private function deleteSelectedItem(event:CloseEvent):void
+			{
+				if(event.detail == Alert.YES)
+				{
+					var parent:ILinkableObject = getLinkableObjectOwner(sessionNav.selectedItem.object);
+					if (!parent)
+						return;
+					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+					
+					var oldObject:ILinkableObject = sessionNav.selectedItem.object;
+					if(hashMap)
+						hashMap.removeObject(hashMap.getName(oldObject));
+					else if (dynamicObject)
+						dynamicObject.removeObject();
+					
+					if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(oldObject))
+						refreshAndLoadSessionState();
+					else
+						Alert.show("Object is locked and cannot be deleted.", "Delete Failed");
+				}
+			}
+
+			private static const defaultEditor:SessionStateEditor = new SessionStateEditor();
+			
+			public static function openDefaultEditor(rootObject:ILinkableObject = null):void
+			{
+				if (!defaultEditor.parent)
+					PopUpManager.addPopUp(defaultEditor, Application.application as Application);
+				
+				if (rootObject == null)
+					rootObject = Weave.root;
+				
+				defaultEditor.sessionNav.rootObject = rootObject;
+
+				defaultEditor.restorePanel();
+			}
+		]]>
+	</mx:Script>
+</ui:DraggablePanel>

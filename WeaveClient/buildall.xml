@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- This is the build script to build all the projects and their dependencies. To use these scripts, you must
+	first do the following
+	1) Setup FLEX_HOME as an operating system environment variable pointing to where you installed your Flex 3.5 SDK.
+		This Flex 3.5 SDK must be downloaded directly from Adobe-do not attempt to merge the SDK provided in FlashBuilder.
+		e.g.) C:\Flex 3.5 SDK
+	2) Add the Flex 3.5 SDK's bin folder to your operating system's PATH variable.
+	3) Add ANT's bin folder to your operating system's PATH variable.
+		e.g.) C:\ant\bin
+	4) Change SDK_VERSION property below to contain everything after the "framework_" from the file
+		${FLEX_HOME}/frameworks/rsls/framework_*.swf
+		For example, if yours is
+		${FLEX_HOME}/frameworks/rsls/framework_3.5.0.12683.swf
+		then the SDK_VERSION would be 3.5.0.12683
+	5) Restart Eclipse to let it register the updated PATH.
+	6) Change WEAVE_DOCROOT property located in this file. It should be the same as the WEAVE_DOCROOT
+		defined in your linked resources variable if you are using Eclipse.
+	7) From command prompt, change into the WeaveClient directory and perform this command
+		ant -f buildall.xml dist
+		This will build all the files in order and push the necessary ones to WEAVE_DOCROOT.
+		-->
+<project name="Weave" basedir="./../" default="dist">
+
+	<property environment="env"/>
+
+	<!-- This property must be defined here. Note the use of forward slashes '/' and
+		the slash required at the end -->
+	<property name="WEAVE_DOCROOT" value="C:/dev/apache-tomcat-7.0.6/webapps/ROOT/"/>
+
+	<!-- This property's value is defined as an environment variable -->
+	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
+	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs"/>
+	<property name="SDK_VERSION" value="3.5.0.12683"/>
+
+	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
+
+	<!-- These are the projects -->
+	<property name="API" value="WeaveAPI"/>
+	<property name="CORE" value="WeaveCore"/>
+	<property name="DATA" value="WeaveData"/>
+	<property name="UI" value="WeaveUI"/>
+	<property name="CLIENT" value="WeaveClient"/>
+	<property name="ADMIN" value="WeaveAdmin"/>
+
+
+	<!-- This target will extract the swf files from the swc archives
+		and extract them to the WEAVE_DOCROOT -->
+	<target name="dist" depends="client, admin, ui, data, core, api">
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Moving SWFs to ${WEAVE_DOCROOT} -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<ant dir="${basedir}/${CLIENT}" target="build"/>
+
+		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
+		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
+		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
+		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
+
+		<copy file="${basedir}/${CLIENT}/bin/${CLIENT}.swf" tofile="${WEAVE_DOCROOT}/weave.swf"/>
+		<copy file="${basedir}/${ADMIN}/bin/${ADMIN}.swf" tofile="${WEAVE_DOCROOT}/AdminConsole.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/framework_${SDK_VERSION}.swf" tofile="${WEAVE_DOCROOT}/framework.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/rpc_${SDK_VERSION}.swf" tofile="${WEAVE_DOCROOT}/rpc.swf"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done moving SWFs  -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Generating HTML wrappers  -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<antcall target="admin_wrapper"/>
+		<antcall target="client_wrapper"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done generating HTML wrappers -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+
+	</target>
+
+	<!-- These targets will build each project -->
+	<target name="client" depends="ui, data, core, api, check_client" unless="client_no_changes">
+		<echo message="-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- WeaveClient -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-"/>
+		<ant dir="${basedir}/${CLIENT}" target="build"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done building WeaveClient -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+	</target>
+	<target name="admin" depends="ui, data, core, api, check_admin" unless="admin_no_changes">
+		<echo message="-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- WeaveAdmin  -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-"/>
+		<ant dir="${basedir}/${ADMIN}" target="build"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done building WeaveAdmin  -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+	</target>
+	<target name="api" depends="check_api" unless="api_no_changes">
+		<echo message="-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- WeaveAPI  -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-"/>
+		<ant dir="${basedir}/${API}" target="build"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done building WeaveAPI  -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+	</target>
+	<target name="core" depends="api, check_core" unless="core_no_changes">
+		<echo message="-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- WeaveCore -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-"/>
+		<ant dir="${basedir}/${CORE}" target="build"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done building WeaveCore -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+	</target>
+	<target name="data" depends="core, api, check_data" unless="data_no_changes">
+		<echo message="-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- WeaveData -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-"/>
+		<ant dir="${basedir}/${DATA}" target="build"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done building WeaveData -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+	</target>
+	<target name="ui" depends="data, core, api, check_ui" unless="ui_no_changes">
+		<echo message="-*-*-*-*-*-*-*-"/>
+		<echo message="-*- WeaveUI -*-"/>
+		<echo message="-*-*-*-*-*-*-*-"/>
+		<ant dir="${basedir}/${UI}" target="build"/>
+		<echo message=" "/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message="-*- Done building WeaveUI -*-"/>
+		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+		<echo message=" "/>
+	</target>
+
+	<!-- This target calls the clean targets of each project's build file -->
+	<target name="clean">
+		<echo message="Cleaning all projects..."/>
+		<ant dir="${basedir}/${CLIENT}" target="clean" />
+		<ant dir="${basedir}/${ADMIN}" target="clean" />
+		<ant dir="${basedir}/${API}" target="clean" />
+		<ant dir="${basedir}/${CORE}" target="clean" />
+		<ant dir="${basedir}/${DATA}" target="clean" />
+		<ant dir="${basedir}/${UI}" target="clean" />
+	</target>
+
+
+	<!-- These targets set the properties ${project name}_no_changes if the target for each
+		project is more up-to-date than its source files or dependencies -->
+	<target name="check_api">
+		<echo message="Checking status of ${API}..."/>
+		<uptodate property="api_no_changes" targetfile="${basedir}/${API}/bin/${API}.swc">
+			<srcfiles dir="${basedir}/${API}" includes="**/*.as"/>
+			<srcfiles dir="${basedir}/${API}" includes="**/*.mxml"/>
+		</uptodate>
+	</target>
+	<target name="check_core">
+		<echo message="Checking status of ${CORE}..."/>
+		<uptodate property="core_no_changes" targetfile="${basedir}/${CORE}/bin/${CORE}.swc">
+			<srcfiles dir="${basedir}/${CORE}" includes="**/*.as"/>
+			<srcfiles dir="${basedir}/${CORE}" includes="**/*.mxml"/>
+			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
+		</uptodate>
+	</target>
+	<target name="check_data">
+		<echo message="Checking status of ${DATA}..."/>
+		<uptodate property="data_no_changes" targetfile="${basedir}/${DATA}/bin/${DATA}.swc">
+			<srcfiles dir="${basedir}/${DATA}" includes="**/*.as"/>
+			<srcfiles dir="${basedir}/${DATA}" includes="**/*.mxml"/>
+			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
+			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
+		</uptodate>
+	</target>
+	<target name="check_ui">
+		<echo message="Checking status of ${UI}..."/>
+		<uptodate property="ui_no_changes" targetfile="${basedir}/${UI}/bin/${UI}.swc">
+			<srcfiles dir="${basedir}/${UI}" includes="**/*.as"/>
+			<srcfiles dir="${basedir}/${UI}" includes="**/*.mxml"/>
+			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
+			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
+			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
+		</uptodate>
+	</target>
+	<target name="check_client">
+		<echo message="Checking status of ${CLIENT}..."/>
+		<uptodate property="client_no_changes" targetfile="${basedir}/${CLIENT}/bin/${CLIENT}.swf">
+			<srcfiles dir="${basedir}/${CLIENT}" includes="**/*.as"/>
+			<srcfiles dir="${basedir}/${CLIENT}" includes="**/*.mxml"/>
+			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
+			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
+			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
+			<srcfiles dir="${basedir}/${UI}/bin" includes="${UI}.swc"/>
+		</uptodate>
+	</target>
+	<target name="check_admin">
+		<echo message="Checking status of ${ADMIN}..."/>
+		<uptodate property="admin_no_changes" targetfile="${basedir}/${ADMIN}/bin/${ADMIN}.swf">
+			<srcfiles dir="${basedir}/${ADMIN}" includes="**/*.as"/>
+			<srcfiles dir="${basedir}/${ADMIN}" includes="**/*.mxml"/>
+			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
+			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
+			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
+			<srcfiles dir="${basedir}/${UI}/bin" includes="${UI}.swc"/>
+		</uptodate>
+	</target>
+
+
+	<target name="admin_wrapper">
+		<html-wrapper 
+			output="${WEAVE_DOCROOT}"
+			file="AdminConsole.html"
+			swf="AdminConsole"
+			history="false"
+			version-major="9"
+			version-minor="0"
+			version-revision="124"
+			height="100%"
+			width="100%"
+			title="AdminConsole"
+			template="express-installation"
+			bgcolor="#7B96B6"
+		/>
+	</target>
+
+	<target name="client_wrapper">
+		<html-wrapper 
+			output="${WEAVE_DOCROOT}"
+			file="weave.html"
+			swf="weave"
+			history="false"
+			version-major="9"
+			version-minor="0"
+			version-revision="124"
+			height="100%"
+			width="100%"
+			title="weave"
+			template="express-installation"
+			bgcolor="#7B96B6"
+		/>
+	</target>
+
+	<macrodef name="extract_swc">
+		<attribute name="swc"/>
+		<attribute name="rsl"/>
+		<sequential>
+			<unzip src="@{swc}" dest="${WEAVE_DOCROOT}/temp">
+				<patternset>
+					<include name="library.swf" />
+				</patternset>
+			</unzip>
+			<move file="${WEAVE_DOCROOT}/temp/library.swf" tofile="${WEAVE_DOCROOT}/@{rsl}"/>
+			<delete dir="${WEAVE_DOCROOT}/temp"/>
+		</sequential>
+	</macrodef>
+</project>

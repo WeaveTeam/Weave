@@ -1,0 +1,1770 @@
+<Weave encoding="dynamic">
+	<BinnedColumn name="defaultColorBinColumn">
+		<binningDefinition encoding="dynamic">
+			<SimpleBinningDefinition>
+				<numberOfBins>10</numberOfBins>
+			</SimpleBinningDefinition>
+		</binningDefinition>
+		<internalDynamicColumn encoding="dynamic">
+			<StaticObjectReference name="defaultColorDataColumn"/>
+		</internalDynamicColumn>
+	</BinnedColumn>
+	<FilteredColumn name="defaultColorDataColumn">
+		<filter encoding="dynamic">
+			<StaticObjectReference name="defaultSubsetKeyFilter"/>
+		</filter>
+		<internalDynamicColumn encoding="dynamic">
+			<ReferencedColumn>
+				<columnReference encoding="dynamic">
+					<HierarchyColumnReference>
+						<dataSourceName>obesity.csv</dataSourceName>
+						<hierarchyPath encoding="xml">
+							<hierarchy keyType="US State FIPS Code">
+								<attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+							</hierarchy>
+						</hierarchyPath>
+					</HierarchyColumnReference>
+				</columnReference>
+			</ReferencedColumn>
+		</internalDynamicColumn>
+	</FilteredColumn>
+	<KeyFilter name="defaultSubsetKeyFilter">
+		<excludedKeys/>
+		<includedKeys/>
+		<includeMissingKeys>true</includeMissingKeys>
+		<sessionedKeyType/>
+	</KeyFilter>
+	<KeySet name="defaultSelectionKeySet">
+		<sessionedKeys/>
+		<sessionedKeyType>US State FIPS Code</sessionedKeyType>
+	</KeySet>
+	<KeySet name="defaultProbeKeySet">
+		<sessionedKeys/>
+		<sessionedKeyType>US State FIPS Code</sessionedKeyType>
+	</KeySet>
+	<ColorColumn name="defaultColorColumn">
+		<internalDynamicColumn encoding="dynamic">
+			<StaticObjectReference name="defaultColorBinColumn"/>
+		</internalDynamicColumn>
+		<ramp encoding="xml">
+			<colorRamp category="visualization" name="Jet" dataFormat="qualitative" source="OIC">
+				<node color="0x000086" position="0"/>
+				<node color="0x0000ff" position="0.1518324607329843"/>
+				<node color="0x00ffff" position="0.3717277486910995"/>
+				<node color="0xffff00" position="0.6282722513089005"/>
+				<node color="0xff0000" position="0.8952879581151832"/>
+				<node color="0x860000" position="1"/>
+			</colorRamp>
+		</ramp>
+		<reverse>false</reverse>
+	</ColorColumn>
+	<WeaveProperties name="WeaveProperties">
+		<backgroundColor>13421772</backgroundColor>
+		<cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+		<enableAboutMenu>true</enableAboutMenu>
+		<enableAdd2DHistogram>true</enableAdd2DHistogram>
+		<enableAddBarChart>true</enableAddBarChart>
+		<enableAddColormapHistogram>true</enableAddColormapHistogram>
+		<enableAddDataTable>true</enableAddDataTable>
+		<enableAddGaugeTool>true</enableAddGaugeTool>
+		<enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+		<enableAddHistogram>true</enableAddHistogram>
+		<enableAddLineChart>true</enableAddLineChart>
+		<enableAddMap>true</enableAddMap>
+		<enableAddOpenIndicatorsDataSource>true</enableAddOpenIndicatorsDataSource>
+		<enableAddPieChart>true</enableAddPieChart>
+		<enableAddRadViz>true</enableAddRadViz>
+		<enableAddScatterplot>true</enableAddScatterplot>
+		<enableAddSP2>true</enableAddSP2>
+		<enableAddStickFigurePlot>true</enableAddStickFigurePlot>
+		<enableAddThermometerTool>true</enableAddThermometerTool>
+		<enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+		<enableBorders>true</enableBorders>
+		<enableCloseWindow>true</enableCloseWindow>
+		<enableDataImport>true</enableDataImport>
+		<enableDebugAlert>false</enableDebugAlert>
+		<enableDynamicTools>true</enableDynamicTools>
+		<enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+		<enableExportDataTable>true</enableExportDataTable>
+		<enableExportSessionState>true</enableExportSessionState>
+		<enableExportToolImage>true</enableExportToolImage>
+		<enableFullscreen>true</enableFullscreen>
+		<enableMapLayerAddRemove>true</enableMapLayerAddRemove>
+		<enableMapLayerEdit>true</enableMapLayerEdit>
+		<enableMaximizeWindow>true</enableMaximizeWindow>
+		<enableMenuBar>true</enableMenuBar>
+		<enableMenuBarOnTop>true</enableMenuBarOnTop>
+		<enableMinimizeWindow>true</enableMinimizeWindow>
+		<enableNewDataset>true</enableNewDataset>
+		<enableRightClick>true</enableRightClick>
+		<enableSearchForRecord>true</enableSearchForRecord>
+		<enableSession>true</enableSession>
+		<enableSessionEdit>true</enableSessionEdit>
+		<enableSessionImport>true</enableSessionImport>
+		<enableSessionLoad>true</enableSessionLoad>
+		<enableSessionSave>true</enableSessionSave>
+		<enableSubsetControls>true</enableSubsetControls>
+		<enableTaskbar>true</enableTaskbar>
+		<enableToolAttributeEditing>true</enableToolAttributeEditing>
+		<enableToolAutoResizeAndPosition>true</enableToolAutoResizeAndPosition>
+		<enableToolClickDebug>false</enableToolClickDebug>
+		<enableToolProbe>true</enableToolProbe>
+		<enableToolSelection>true</enableToolSelection>
+		<enableUserPreferences>true</enableUserPreferences>
+		<enableWindowMenu>true</enableWindowMenu>
+		<fontBold>false</fontBold>
+		<fontColor>NaN</fontColor>
+		<fontFamily>Verdana</fontFamily>
+		<fontItalic>false</fontItalic>
+		<fontSize>10</fontSize>
+		<fontUnderline>false</fontUnderline>
+		<pageTitle>Sample Weave Configuration</pageTitle>
+		<probePrefix/>
+		<probeSuffix/>
+		<rServicesURL>/OpenIndicatorsRServices</rServicesURL>
+		<showAttributeSelector>true</showAttributeSelector>
+		<showColorController>true</showColorController>
+		<showCopyright>true</showCopyright>
+		<showEquationEditor>true</showEquationEditor>
+		<showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+		<showProbeColumnEditor>true</showProbeColumnEditor>
+		<showViewBar>false</showViewBar>
+		<showVisToolCloseDialog>false</showVisToolCloseDialog>
+		<version>Beta 0.8.9</version>
+	</WeaveProperties>
+	<DBFDataSource name="DBFDataSource">
+		<attributeHierarchy encoding="xml">
+			<hierarchy>
+				<category keyType="US State FIPS Code" name="DBF Data">
+					<attribute dataType="Geometry" keyType="US State FIPS Code" name="the_geom"/>
+					<attribute keyType="US State FIPS Code" name="AREA"/>
+					<attribute keyType="US State FIPS Code" name="PERIMETER"/>
+					<attribute keyType="US State FIPS Code" name="ST99_D00_"/>
+					<attribute keyType="US State FIPS Code" name="ST99_D00_I"/>
+					<attribute keyType="US State FIPS Code" name="STATE"/>
+					<attribute keyType="US State FIPS Code" name="NAME"/>
+					<attribute keyType="US State FIPS Code" name="LSAD"/>
+					<attribute keyType="US State FIPS Code" name="REGION"/>
+					<attribute keyType="US State FIPS Code" name="DIVISION"/>
+					<attribute keyType="US State FIPS Code" name="LSAD_TRANS"/>
+				</category>
+			</hierarchy>
+		</attributeHierarchy>
+		<dbfUrl>carto_state/st99_d00.dbf</dbfUrl>
+		<keyColName>STATE</keyColName>
+		<keyType>US State FIPS Code</keyType>
+		<shpUrl>carto_state/st99_d00.shp</shpUrl>
+	</DBFDataSource>
+	<LinkableHashMap encoding="dynamic" name="Probed Columns">
+		<ReferencedColumn name="ReferencedColumn2">
+			<columnReference encoding="dynamic">
+				<HierarchyColumnReference>
+					<dataSourceName>obesity.csv</dataSourceName>
+					<hierarchyPath encoding="xml">
+						<hierarchy keyType="US State FIPS Code">
+							<attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
+						</hierarchy>
+					</hierarchyPath>
+				</HierarchyColumnReference>
+			</columnReference>
+		</ReferencedColumn>
+		<ReferencedColumn name="ReferencedColumn">
+			<columnReference encoding="dynamic">
+				<HierarchyColumnReference>
+					<dataSourceName>obesity.csv</dataSourceName>
+					<hierarchyPath encoding="xml">
+						<hierarchy keyType="US State FIPS Code">
+							<attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+						</hierarchy>
+					</hierarchyPath>
+				</HierarchyColumnReference>
+			</columnReference>
+		</ReferencedColumn>
+	</LinkableHashMap>
+	<LinkableHashMap encoding="dynamic" name="Probe Header Columns">
+		<ReferencedColumn name="ReferencedColumn2">
+			<columnReference encoding="dynamic">
+				<HierarchyColumnReference>
+					<dataSourceName>DBFDataSource</dataSourceName>
+					<hierarchyPath encoding="xml">
+						<hierarchy>
+							<category keyType="US State FIPS Code" name="DBF Data">
+								<attribute keyType="US State FIPS Code" name="NAME"/>
+							</category>
+						</hierarchy>
+					</hierarchyPath>
+				</HierarchyColumnReference>
+			</columnReference>
+		</ReferencedColumn>
+	</LinkableHashMap>
+	<CSVDataSource name="obesity.csv">
+		<attributeHierarchy encoding="xml">
+			<hierarchy keyType="US State FIPS Code">
+				<attribute csvColumn="US State FIPS Code" keyType="US State FIPS Code" name="US State FIPS Code" title="US State FIPS Code"/>
+				<attribute csvColumn="State" keyType="US State FIPS Code" name="State" title="State"/>
+				<attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+				<attribute csvColumn="Percent Obese 2006" keyType="US State FIPS Code" name="Percent Obese 2006" title="Percent Obese 2006"/>
+				<attribute csvColumn="Percent Obese 2005" keyType="US State FIPS Code" name="Percent Obese 2005" title="Percent Obese 2005"/>
+				<attribute csvColumn="Percent Obese 2004" keyType="US State FIPS Code" name="Percent Obese 2004" title="Percent Obese 2004"/>
+				<attribute csvColumn="Percent Obese 2003" keyType="US State FIPS Code" name="Percent Obese 2003" title="Percent Obese 2003"/>
+				<attribute csvColumn="Percent Obese 2002" keyType="US State FIPS Code" name="Percent Obese 2002" title="Percent Obese 2002"/>
+				<attribute csvColumn="Percent Obese 2001" keyType="US State FIPS Code" name="Percent Obese 2001" title="Percent Obese 2001"/>
+				<attribute csvColumn="Percent Obese 2000" keyType="US State FIPS Code" name="Percent Obese 2000" title="Percent Obese 2000"/>
+				<attribute csvColumn="Percent Obese 1999" keyType="US State FIPS Code" name="Percent Obese 1999" title="Percent Obese 1999"/>
+				<attribute csvColumn="Percent Obese 1998" keyType="US State FIPS Code" name="Percent Obese 1998" title="Percent Obese 1998"/>
+				<attribute csvColumn="Percent Obese 1997" keyType="US State FIPS Code" name="Percent Obese 1997" title="Percent Obese 1997"/>
+				<attribute csvColumn="Percent Obese 1996" keyType="US State FIPS Code" name="Percent Obese 1996" title="Percent Obese 1996"/>
+				<attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
+			</hierarchy>
+		</attributeHierarchy>
+		<csvDataString/>
+		<keyColName>US State FIPS Code</keyColName>
+		<keyType>US State FIPS Code</keyType>
+		<url>obesity.csv</url>
+	</CSVDataSource>
+	<MapTool name="MapTool">
+		<buttonRadius>3</buttonRadius>
+		<children encoding="dynamic">
+			<SimpleInteractiveVisualization name="visualization">
+				<activeLayerName>plot</activeLayerName>
+				<dataBounds>
+					<xMax>-56.06683541561002</xMax>
+					<xMin>-178.33826519582982</xMin>
+					<yMax>79.44502281221847</yMax>
+					<yMin>11.143216799458322</yMin>
+				</dataBounds>
+				<enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+				<enableFixedAspectRatio>true</enableFixedAspectRatio>
+				<enableZoomAndPan>true</enableZoomAndPan>
+				<includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+				<layers encoding="dynamic">
+					<SelectablePlotLayer name="plot">
+						<enableBitmapFilters>true</enableBitmapFilters>
+						<layerIsVisible>true</layerIsVisible>
+						<plotter encoding="dynamic">
+							<GeometryPlotter>
+								<fillStyle encoding="dynamic">
+									<SolidFillStyle>
+										<alpha>
+											<defaultValue>1</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</alpha>
+										<color>
+											<defaultValue>NaN</defaultValue>
+											<internalDynamicColumn encoding="dynamic">
+												<StaticObjectReference name="defaultColorColumn"/>
+											</internalDynamicColumn>
+										</color>
+										<enabled>
+											<defaultValue>true</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</enabled>
+									</SolidFillStyle>
+								</fillStyle>
+								<geometry encoding="dynamic">
+									<ReferencedColumn>
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>DBFDataSource</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy>
+														<category keyType="US State FIPS Code" name="DBF Data">
+															<attribute dataType="Geometry" name="the_geom"/>
+														</category>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</geometry>
+								<keySet>
+									<keyFilter encoding="dynamic">
+										<StaticObjectReference name="defaultSubsetKeyFilter"/>
+									</keyFilter>
+								</keySet>
+								<lineStyle encoding="dynamic">
+									<SolidLineStyle>
+										<alpha>
+											<defaultValue>0.5</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</alpha>
+										<caps>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</caps>
+										<color>
+											<defaultValue>0</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</color>
+										<enabled>
+											<defaultValue>true</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</enabled>
+										<joints>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</joints>
+										<miterLimit>
+											<defaultValue>3</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</miterLimit>
+										<pixelHinting>
+											<defaultValue>false</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</pixelHinting>
+										<scaleMode>
+											<defaultValue>none</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</scaleMode>
+										<weight>
+											<defaultValue>1</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</weight>
+									</SolidLineStyle>
+								</lineStyle>
+								<pointShapeSize>5</pointShapeSize>
+							</GeometryPlotter>
+						</plotter>
+						<probeFilter encoding="dynamic">
+							<StaticObjectReference name="defaultProbeKeySet"/>
+						</probeFilter>
+						<selectionBlurringAmount>4</selectionBlurringAmount>
+						<selectionFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSelectionKeySet"/>
+						</selectionFilter>
+						<subsetFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSubsetKeyFilter"/>
+						</subsetFilter>
+					</SelectablePlotLayer>
+				</layers>
+				<marginBottom>0</marginBottom>
+				<marginLeft>0</marginLeft>
+				<marginRight>0</marginRight>
+				<marginTop>0</marginTop>
+				<maxZoomLevel>16</maxZoomLevel>
+				<minScreenSize>128</minScreenSize>
+				<minZoomLevel>0</minZoomLevel>
+				<shadowAmount>20</shadowAmount>
+			</SimpleInteractiveVisualization>
+		</children>
+		<closeable>true</closeable>
+		<draggable>true</draggable>
+		<helpAvailable>true</helpAvailable>
+		<hideBorders>false</hideBorders>
+		<lockPanel>false</lockPanel>
+		<maximizable>true</maximizable>
+		<minimizable>true</minimizable>
+		<panelHeight>50.076%</panelHeight>
+		<panelStyleList/>
+		<panelWidth>50.045%</panelWidth>
+		<panelX>0%</panelX>
+		<panelY>0%</panelY>
+		<resizeable>true</resizeable>
+		<showCloseDialog>false</showCloseDialog>
+		<userControlsAvailable>true</userControlsAvailable>
+	</MapTool>
+	<CompoundBarChartTool name="CompoundBarChartTool">
+		<buttonRadius>3</buttonRadius>
+		<children encoding="dynamic">
+			<SimpleInteractiveVisualization name="visualization">
+				<activeLayerName>plot</activeLayerName>
+				<dataBounds>
+					<xMax>48.5</xMax>
+					<xMin>-0.5</xMin>
+					<yMax>338.1</yMax>
+					<yMin>0</yMin>
+				</dataBounds>
+				<enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+				<enableFixedAspectRatio>false</enableFixedAspectRatio>
+				<enableZoomAndPan>false</enableZoomAndPan>
+				<includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+				<layers encoding="dynamic">
+					<SelectablePlotLayer name="plot">
+						<enableBitmapFilters>true</enableBitmapFilters>
+						<layerIsVisible>true</layerIsVisible>
+						<plotter encoding="dynamic">
+							<CompoundBarChartPlotter>
+								<barSpacing>0</barSpacing>
+								<chartColors encoding="xml">
+									<colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
+										<node color="0x04E9E7" position="0"/>
+										<node color="0x009DF4" position="0.08"/>
+										<node color="0x0201F4" position="0.16"/>
+										<node color="0x01FC01" position="0.24"/>
+										<node color="0x00C400" position="0.32"/>
+										<node color="0x008C00" position="0.4"/>
+										<node color="0x0FDF801" position="0.48"/>
+										<node color="0xF99200" position="0.56"/>
+										<node color="0xFD0000" position="0.64"/>
+										<node color="0xBC0000" position="0.72"/>
+										<node color="0xBC0000" position="0.8"/>
+										<node color="0xF800FD" position="0.88"/>
+										<node color="0x9854C6" position="1.0"/>
+									</colorRamp>
+								</chartColors>
+								<colorColumn>
+									<defaultValue>NaN</defaultValue>
+									<internalDynamicColumn encoding="dynamic">
+										<StaticObjectReference name="defaultColorColumn"/>
+									</internalDynamicColumn>
+								</colorColumn>
+								<groupMode>false</groupMode>
+								<heightColumns encoding="dynamic">
+									<ReferencedColumn name="ReferencedColumn">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn2">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2006" keyType="US State FIPS Code" name="Percent Obese 2006" title="Percent Obese 2006"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn3">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2005" keyType="US State FIPS Code" name="Percent Obese 2005" title="Percent Obese 2005"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn4">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2004" keyType="US State FIPS Code" name="Percent Obese 2004" title="Percent Obese 2004"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn5">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2003" keyType="US State FIPS Code" name="Percent Obese 2003" title="Percent Obese 2003"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn6">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2002" keyType="US State FIPS Code" name="Percent Obese 2002" title="Percent Obese 2002"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn7">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2001" keyType="US State FIPS Code" name="Percent Obese 2001" title="Percent Obese 2001"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn8">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2000" keyType="US State FIPS Code" name="Percent Obese 2000" title="Percent Obese 2000"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn9">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1999" keyType="US State FIPS Code" name="Percent Obese 1999" title="Percent Obese 1999"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn10">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1998" keyType="US State FIPS Code" name="Percent Obese 1998" title="Percent Obese 1998"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn11">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1997" keyType="US State FIPS Code" name="Percent Obese 1997" title="Percent Obese 1997"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn12">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1996" keyType="US State FIPS Code" name="Percent Obese 1996" title="Percent Obese 1996"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn13">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</heightColumns>
+								<horizontalMode>false</horizontalMode>
+								<keySet>
+									<keyFilter encoding="dynamic">
+										<StaticObjectReference name="defaultSubsetKeyFilter"/>
+									</keyFilter>
+								</keySet>
+								<lineStyle encoding="dynamic">
+									<SolidLineStyle>
+										<alpha>
+											<defaultValue>0.5</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</alpha>
+										<caps>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</caps>
+										<color>
+											<defaultValue>0</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</color>
+										<enabled>
+											<defaultValue>true</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</enabled>
+										<joints>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</joints>
+										<miterLimit>
+											<defaultValue>3</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</miterLimit>
+										<pixelHinting>
+											<defaultValue>false</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</pixelHinting>
+										<scaleMode>
+											<defaultValue>normal</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</scaleMode>
+										<weight>
+											<defaultValue>1</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</weight>
+									</SolidLineStyle>
+								</lineStyle>
+								<sortColumn encoding="dynamic">
+									<ReferencedColumn>
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</sortColumn>
+							</CompoundBarChartPlotter>
+						</plotter>
+						<probeFilter encoding="dynamic">
+							<StaticObjectReference name="defaultProbeKeySet"/>
+						</probeFilter>
+						<selectionBlurringAmount>4</selectionBlurringAmount>
+						<selectionFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSelectionKeySet"/>
+						</selectionFilter>
+						<subsetFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSubsetKeyFilter"/>
+						</subsetFilter>
+					</SelectablePlotLayer>
+					<AxisLayer name="yAxis">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>-0.5</xMax>
+									<xMin>-0.5</xMin>
+									<yMax>338.1</yMax>
+									<yMin>0</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>338.1</axisLineMaxValue>
+								<axisLineMinValue>0</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>bottom</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="xAxis">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>48.5</xMax>
+									<xMin>-0.5</xMin>
+									<yMax>0</yMax>
+									<yMin>0</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>48.5</axisLineMaxValue>
+								<axisLineMinValue>-0.5</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>top</labelVerticalAlign>
+								<tickCountRequested>11</tickCountRequested>
+								<tickMaxValue>48</tickMaxValue>
+								<tickMinValue>0</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+				</layers>
+				<marginBottom>80</marginBottom>
+				<marginLeft>80</marginLeft>
+				<marginRight>10</marginRight>
+				<marginTop>10</marginTop>
+				<maxZoomLevel>16</maxZoomLevel>
+				<minScreenSize>128</minScreenSize>
+				<minZoomLevel>0</minZoomLevel>
+				<shadowAmount>20</shadowAmount>
+			</SimpleInteractiveVisualization>
+		</children>
+		<closeable>true</closeable>
+		<draggable>true</draggable>
+		<helpAvailable>true</helpAvailable>
+		<hideBorders>false</hideBorders>
+		<labelColumn encoding="dynamic">
+			<ReferencedColumn>
+				<columnReference encoding="dynamic">
+					<HierarchyColumnReference>
+						<dataSourceName>obesity.csv</dataSourceName>
+						<hierarchyPath encoding="xml">
+							<hierarchy keyType="US State FIPS Code">
+								<attribute csvColumn="State" keyType="US State FIPS Code" name="State" title="State"/>
+							</hierarchy>
+						</hierarchyPath>
+					</HierarchyColumnReference>
+				</columnReference>
+			</ReferencedColumn>
+		</labelColumn>
+		<lockPanel>false</lockPanel>
+		<maximizable>true</maximizable>
+		<minimizable>true</minimizable>
+		<panelHeight>49.772%</panelHeight>
+		<panelStyleList/>
+		<panelWidth>50.045%</panelWidth>
+		<panelX>49.955%</panelX>
+		<panelY>0%</panelY>
+		<resizeable>true</resizeable>
+		<showCloseDialog>false</showCloseDialog>
+		<userControlsAvailable>true</userControlsAvailable>
+	</CompoundBarChartTool>
+	<LineChartTool name="LineChartTool">
+		<buttonRadius>3</buttonRadius>
+		<children encoding="dynamic">
+			<SimpleInteractiveVisualization name="visualization">
+				<activeLayerName>plot</activeLayerName>
+				<dataBounds>
+					<xMax>12</xMax>
+					<xMin>0</xMin>
+					<yMax>32.6</yMax>
+					<yMin>10.1</yMin>
+				</dataBounds>
+				<enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+				<enableFixedAspectRatio>false</enableFixedAspectRatio>
+				<enableZoomAndPan>false</enableZoomAndPan>
+				<includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+				<layers encoding="dynamic">
+					<SelectablePlotLayer name="plot">
+						<enableBitmapFilters>true</enableBitmapFilters>
+						<layerIsVisible>true</layerIsVisible>
+						<plotter encoding="dynamic">
+							<ParallelCoordinatesPlotter>
+								<columns encoding="dynamic">
+									<ReferencedColumn name="ReferencedColumn">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn2">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1996" keyType="US State FIPS Code" name="Percent Obese 1996" title="Percent Obese 1996"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn3">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1997" keyType="US State FIPS Code" name="Percent Obese 1997" title="Percent Obese 1997"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn4">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1998" keyType="US State FIPS Code" name="Percent Obese 1998" title="Percent Obese 1998"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn5">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 1999" keyType="US State FIPS Code" name="Percent Obese 1999" title="Percent Obese 1999"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn6">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2000" keyType="US State FIPS Code" name="Percent Obese 2000" title="Percent Obese 2000"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn7">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2001" keyType="US State FIPS Code" name="Percent Obese 2001" title="Percent Obese 2001"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn8">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2002" keyType="US State FIPS Code" name="Percent Obese 2002" title="Percent Obese 2002"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn9">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2003" keyType="US State FIPS Code" name="Percent Obese 2003" title="Percent Obese 2003"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn10">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2004" keyType="US State FIPS Code" name="Percent Obese 2004" title="Percent Obese 2004"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn11">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2005" keyType="US State FIPS Code" name="Percent Obese 2005" title="Percent Obese 2005"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn12">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2006" keyType="US State FIPS Code" name="Percent Obese 2006" title="Percent Obese 2006"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+									<ReferencedColumn name="ReferencedColumn13">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>obesity.csv</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy keyType="US State FIPS Code">
+														<attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</columns>
+								<curveType>ParallelCoordinatesPlotter.LINE_STRAIGHT</curveType>
+								<keySet>
+									<keyFilter encoding="dynamic">
+										<StaticObjectReference name="defaultSubsetKeyFilter"/>
+									</keyFilter>
+								</keySet>
+								<lineStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic">
+											<StaticObjectReference name="defaultColorColumn"/>
+										</internalDynamicColumn>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</lineStyle>
+								<normalize>false</normalize>
+								<shapeBorderColor>8421504</shapeBorderColor>
+								<shapeBorderThickness>2</shapeBorderThickness>
+								<shapeSize>0</shapeSize>
+								<shapeToDraw>No Shape</shapeToDraw>
+							</ParallelCoordinatesPlotter>
+						</plotter>
+						<probeFilter encoding="dynamic">
+							<StaticObjectReference name="defaultProbeKeySet"/>
+						</probeFilter>
+						<selectionBlurringAmount>3</selectionBlurringAmount>
+						<selectionFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSelectionKeySet"/>
+						</selectionFilter>
+						<subsetFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSubsetKeyFilter"/>
+						</subsetFilter>
+					</SelectablePlotLayer>
+					<AxisLayer name="xAxis">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>30</axisLabelDistance>
+								<axisLabelRelativeAngle>0</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>12</xMax>
+									<xMin>0</xMin>
+									<yMax>10.1</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>12</axisLineMaxValue>
+								<axisLineMinValue>0</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>true</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>true</labelDistanceIsVertical>
+								<labelHorizontalAlign>center</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>bottom</labelVerticalAlign>
+								<tickCountRequested>13</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>0</xMax>
+									<xMin>0</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn2">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>1</xMax>
+									<xMin>1</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn3">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>2</xMax>
+									<xMin>2</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn4">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>3</xMax>
+									<xMin>3</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn5">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>4</xMax>
+									<xMin>4</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn6">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>5</xMax>
+									<xMin>5</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn7">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>6</xMax>
+									<xMin>6</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn8">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>7</xMax>
+									<xMin>7</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn9">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>8</xMax>
+									<xMin>8</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn10">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>9</xMax>
+									<xMin>9</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn11">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>10</xMax>
+									<xMin>10</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn12">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>11</xMax>
+									<xMin>11</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="Axis for: ReferencedColumn13">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisFont>Arial</axisFont>
+								<axisFontBold>true</axisFontBold>
+								<axisFontColor>0</axisFontColor>
+								<axisFontItalic>false</axisFontItalic>
+								<axisFontSize>10</axisFontSize>
+								<axisFontUnderline>false</axisFontUnderline>
+								<axisLabelDistance>-10</axisLabelDistance>
+								<axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+								<axisLineAlpha>1</axisLineAlpha>
+								<axisLineColor>0</axisLineColor>
+								<axisLineDataBounds>
+									<xMax>12</xMax>
+									<xMin>12</xMin>
+									<yMax>32.6</yMax>
+									<yMin>10.1</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>32.6</axisLineMaxValue>
+								<axisLineMinValue>10.1</axisLineMinValue>
+								<axisLineThickness>2</axisLineThickness>
+								<axisTickAlpha>1</axisTickAlpha>
+								<axisTickColor>0</axisTickColor>
+								<axisTickLength>10</axisTickLength>
+								<axisTickThickness>2</axisTickThickness>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelVerticalAlign>center</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+				</layers>
+				<marginBottom>35</marginBottom>
+				<marginLeft>50</marginLeft>
+				<marginRight>50</marginRight>
+				<marginTop>10</marginTop>
+				<maxZoomLevel>16</maxZoomLevel>
+				<minScreenSize>128</minScreenSize>
+				<minZoomLevel>0</minZoomLevel>
+				<shadowAmount>20</shadowAmount>
+			</SimpleInteractiveVisualization>
+		</children>
+		<closeable>true</closeable>
+		<draggable>true</draggable>
+		<helpAvailable>true</helpAvailable>
+		<hideBorders>false</hideBorders>
+		<lockPanel>false</lockPanel>
+		<maximizable>true</maximizable>
+		<minimizable>true</minimizable>
+		<panelHeight>50.076%</panelHeight>
+		<panelStyleList/>
+		<panelWidth>100%</panelWidth>
+		<panelX>0%</panelX>
+		<panelY>49.924%</panelY>
+		<resizeable>true</resizeable>
+		<showCloseDialog>false</showCloseDialog>
+		<userControlsAvailable>true</userControlsAvailable>
+	</LineChartTool>
+</Weave>

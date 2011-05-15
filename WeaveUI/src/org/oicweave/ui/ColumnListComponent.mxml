@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!--
+ColumnListComponent
+
+
+@abaumann
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns="org.oicweave.ui.*"
+		 verticalGap="0"
+		 width="100%" height="100%"
+		 borderStyle="outset"
+		 label="Attributes"
+		 backgroundColor="white" backgroundAlpha="0.7">
+	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
+		<mx:Label text="{label}" fontWeight="bold"/>
+		<mx:HBox width="100%" id="selectorControls">
+			<mx:Spacer width="100%"/>
+			<mx:Button label="Open Selector..." click="openSelector()"/>
+		</mx:HBox>
+	</mx:HBox>
+	<LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import mx.events.DragEvent;
+			import mx.managers.DragManager;
+			
+			import org.oicweave.api.core.ILinkableDynamicObject;
+			import org.oicweave.api.core.ILinkableHashMap;
+			import org.oicweave.ui.AttributeSelectorPanel;
+			import org.oicweave.visualization.tools.SimpleVisTool;
+			
+			[Bindable] private var _visTool:SimpleVisTool= null;
+			
+			[Inspectable]
+			public function set visTool(value:SimpleVisTool):void
+			{
+				_visTool = value;
+			}
+			
+			private function openSelector():void
+			{
+				if (_visTool)
+					AttributeSelectorPanel.openToolSelector(_visTool,internalList.hashMap);
+				else
+					AttributeSelectorPanel.openDefaultSelector(internalList.hashMap, label);
+			}
+			
+			[Bindable] private var _hashMap:ILinkableHashMap = null;
+			
+			[Inspectable]
+			public function set hashMap(value:ILinkableHashMap):void
+			{
+				_hashMap = value;
+			}
+			public function get hashMap():ILinkableHashMap
+			{
+				return internalList.hashMap;
+			}
+			
+			[Bindable]
+			public function get length():int
+			{
+				return hashMap.getNames().length;
+			}
+			public function set length(value:int):void
+			{
+				// untested
+				hashMap.getNames().length = value;
+			}
+			
+			[Bindable]
+			private var _minimumNumObjectsInList:int = -1;
+			public function set minimumNumObjectsInList(value:int):void
+			{
+				_minimumNumObjectsInList = value;
+			}
+			
+			[Inspectable]
+			public function set dragMoveEnabled(value:Boolean):void
+			{
+				// this value has to be stored for later because internalList may be null
+				_dragMoveEnabled = value;
+			}
+			[Bindable] private var _dragMoveEnabled:Boolean = false;
+			
+		]]>
+	</mx:Script>
+<!-- enabled="{internalList.numItems - internalList.selectedIndices.length >= _minimumNumObjectsInList}"-->
+	<mx:Button click="internalList.removeSelectedItem()"
+			   toolTip="Click here to remove one or more selected attributes in the list above."
+			   label="Remove Attribute(s)"
+			   enabled="{internalList.selectedIndex >= 0}"
+			   width="100%" fillAlphas="[1.0, 1.0, 1.0, 0.99]" alpha="1.0"/>
+</mx:VBox>

@@ -1,0 +1,1544 @@
+<Weave encoding="dynamic">
+  <WeaveProperties name="WeaveProperties">
+    <axisFontBold>true</axisFontBold>
+    <axisFontColor>0</axisFontColor>
+    <axisFontFamily>Sophia Nubian</axisFontFamily>
+    <axisFontItalic>false</axisFontItalic>
+    <axisFontSize>10</axisFontSize>
+    <axisFontUnderline>false</axisFontUnderline>
+    <backgroundColor>13421772</backgroundColor>
+    <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+    <dataInfoURL/>
+    <debugScreenBounds>false</debugScreenBounds>
+    <enableAboutMenu>true</enableAboutMenu>
+    <enableAdd2DHistogram>true</enableAdd2DHistogram>
+    <enableAddBarChart>true</enableAddBarChart>
+    <enableAddColorLegend>true</enableAddColorLegend>
+    <enableAddColormapHistogram>true</enableAddColormapHistogram>
+    <enableAddDataFilter>true</enableAddDataFilter>
+    <enableAddDataSource>true</enableAddDataSource>
+    <enableAddDataTable>true</enableAddDataTable>
+    <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
+    <enableAddGaugeTool>true</enableAddGaugeTool>
+    <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+    <enableAddHistogram>true</enableAddHistogram>
+    <enableAddLineChart>true</enableAddLineChart>
+    <enableAddMap>true</enableAddMap>
+    <enableAddPieChart>true</enableAddPieChart>
+    <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
+    <enableAddRadViz>true</enableAddRadViz>
+    <enableAddRadViz2>false</enableAddRadViz2>
+    <enableAddRamachandranPlot>true</enableAddRamachandranPlot>
+    <enableAddRScriptEditor>true</enableAddRScriptEditor>
+    <enableAddScatterplot>true</enableAddScatterplot>
+    <enableAddSP2>true</enableAddSP2>
+    <enableAddStickFigurePlot>true</enableAddStickFigurePlot>
+    <enableAddThermometerTool>true</enableAddThermometerTool>
+    <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+    <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+    <enableAddWordle>true</enableAddWordle>
+    <enableClearCurrentSelection>true</enableClearCurrentSelection>
+    <enableCreateSubsets>true</enableCreateSubsets>
+    <enableDataMenu>true</enableDataMenu>
+    <enableDebugAlert>false</enableDebugAlert>
+    <enableDynamicTools>true</enableDynamicTools>
+    <enableEditDataSource>true</enableEditDataSource>
+    <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+    <enableExportDataTable>true</enableExportDataTable>
+    <enableExportToolImage>true</enableExportToolImage>
+    <enableFullscreen>true</enableFullscreen>
+    <enableGoFullscreen>true</enableGoFullscreen>
+    <enableManageSavedSelections>true</enableManageSavedSelections>
+    <enableManageSavedSubsets>true</enableManageSavedSubsets>
+    <enableMenuBar>true</enableMenuBar>
+    <enableMouseWheel>true</enableMouseWheel>
+    <enableNewDataset>true</enableNewDataset>
+    <enableNewUserWizard>true</enableNewUserWizard>
+    <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
+    <enableProbeAnimation>true</enableProbeAnimation>
+    <enableProbeLines>true</enableProbeLines>
+    <enableRefreshHierarchies>true</enableRefreshHierarchies>
+    <enableRemoveSubsets>true</enableRemoveSubsets>
+    <enableRightClick>true</enableRightClick>
+    <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
+    <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
+    <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionsMenu>true</enableSelectionsMenu>
+    <enableSessionBookmarks>true</enableSessionBookmarks>
+    <enableSessionEdit>true</enableSessionEdit>
+    <enableSessionExport>true</enableSessionExport>
+    <enableSessionImport>true</enableSessionImport>
+    <enableSessionMenu>true</enableSessionMenu>
+    <enableShowAllRecords>true</enableShowAllRecords>
+    <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetsMenu>true</enableSubsetsMenu>
+    <enableTaskbar>true</enableTaskbar>
+    <enableToolAttributeEditing>true</enableToolAttributeEditing>
+    <enableToolBorders>true</enableToolBorders>
+    <enableToolClose>true</enableToolClose>
+    <enableToolDrag>true</enableToolDrag>
+    <enableToolMaximize>true</enableToolMaximize>
+    <enableToolMinimize>true</enableToolMinimize>
+    <enableToolProbe>true</enableToolProbe>
+    <enableToolResize>true</enableToolResize>
+    <enableToolSelection>true</enableToolSelection>
+    <enableUserPreferences>true</enableUserPreferences>
+    <enableWindowMenu>true</enableWindowMenu>
+    <pageTitle>Open Indicators Weave</pageTitle>
+    <panelTitleFontBold>false</panelTitleFontBold>
+    <panelTitleFontColor>16777215</panelTitleFontColor>
+    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
+    <panelTitleFontItalic>false</panelTitleFontItalic>
+    <panelTitleFontSize>10</panelTitleFontSize>
+    <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <probeInnerGlowAlpha>0.9</probeInnerGlowAlpha>
+    <probeInnerGlowBlur>5</probeInnerGlowBlur>
+    <probeInnerGlowColor>16777215</probeInnerGlowColor>
+    <probeInnerGlowStrength>10</probeInnerGlowStrength>
+    <probeOuterGlowAlpha>1</probeOuterGlowAlpha>
+    <probeOuterGlowBlur>3</probeOuterGlowBlur>
+    <probeOuterGlowColor>0</probeOuterGlowColor>
+    <probeOuterGlowStrength>3</probeOuterGlowStrength>
+    <probeToolTipBackgroundAlpha>1</probeToolTipBackgroundAlpha>
+    <probeToolTipBackgroundColor>15725756</probeToolTipBackgroundColor>
+    <probeToolTipFontColor>0</probeToolTipFontColor>
+    <rServiceURL>/WeaveServices/RService</rServiceURL>
+    <selectionAlphaAmount>0.5</selectionAlphaAmount>
+    <selectionBlurringAmount>4</selectionBlurringAmount>
+    <shadowAlpha>0.5</shadowAlpha>
+    <shadowAngle>45</shadowAngle>
+    <shadowBlur>4</shadowBlur>
+    <shadowColor>0</shadowColor>
+    <shadowDistance>2</shadowDistance>
+    <showAttributeSelector>true</showAttributeSelector>
+    <showColorController>true</showColorController>
+    <showCopyright>true</showCopyright>
+    <showEquationEditor>true</showEquationEditor>
+    <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+    <showProbeToolTipEditor>true</showProbeToolTipEditor>
+    <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <version>Beta 0.9.6 dev</version>
+    <windowSnapGridSize>1</windowSnapGridSize>
+  </WeaveProperties>
+  <ColorColumn name="defaultColorColumn">
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorBinColumn"/>
+    </internalDynamicColumn>
+    <ramp encoding="xml">
+      <colorRamp name="RdYlBu" colorblindSafe="true" singlehue="false" dataFormat="diverging" category="basic" printFriendly="true" source="ColorBrewer" reverse="false">
+        <node color="0xD7191C" position="0"/>
+        <node color="0xFDAE61" position="0.25"/>
+        <node color="0xFFFFBF" position="0.5"/>
+        <node color="0xABD9E9" position="0.75"/>
+        <node color="0x2C7BB6" position="1.0"/>
+      </colorRamp>
+    </ramp>
+  </ColorColumn>
+  <BinnedColumn name="defaultColorBinColumn">
+    <binningDefinition encoding="dynamic">
+      <SimpleBinningDefinition>
+        <numberOfBins>10</numberOfBins>
+      </SimpleBinningDefinition>
+    </binningDefinition>
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorDataColumn"/>
+    </internalDynamicColumn>
+  </BinnedColumn>
+  <FilteredColumn name="defaultColorDataColumn">
+    <filter encoding="dynamic">
+      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+    </filter>
+    <internalDynamicColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>WeaveDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="MetroBoston Employment by Sector 2001-2006">
+                    <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95262" year="2001" name="Natural Resources and Mining"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </internalDynamicColumn>
+  </FilteredColumn>
+  <KeyFilter name="defaultSubsetKeyFilter">
+    <excluded/>
+    <included/>
+    <includeMissingKeys>true</includeMissingKeys>
+    <includeMissingKeyTypes>true</includeMissingKeyTypes>
+  </KeyFilter>
+  <KeySet name="defaultSelectionKeySet"/>
+  <KeySet name="defaultProbeKeySet"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="DataTables">
+                <category name="MetroBoston Employment by Sector 2001-2006">
+                  <attribute dataType="string" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95249" name="Municipality"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <WeaveDataSource name="WeaveDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="IVPR Indicator Server">
+        <category name="GeometryCollections">
+          <attribute dataType="Geometry" name="Boston 2005 Parcels"/>
+          <attribute dataType="Geometry" name="Boston 2005 Parcels Subset"/>
+          <attribute dataType="Geometry" name="boston_foreclosure_deeds"/>
+          <attribute dataType="Geometry" name="Boston_Hositals"/>
+          <attribute dataType="Geometry" name="Boston_Hositals111"/>
+          <attribute dataType="Geometry" name="Boston_Neighborhoods"/>
+          <attribute dataType="Geometry" name="boston_roads"/>
+          <attribute dataType="Geometry" name="Boston_zips"/>
+          <attribute dataType="Geometry" name="eec2"/>
+          <attribute dataType="Geometry" name="eec_artificial_child"/>
+          <attribute dataType="Geometry" name="eec_familyservices_reproj"/>
+          <attribute dataType="Geometry" name="eec_lowellschools_reproj"/>
+          <attribute dataType="Geometry" name="eec_prekpregnant_reproj"/>
+          <attribute dataType="Geometry" name="EEC_Providers"/>
+          <attribute dataType="Geometry" name="eec_regcnt_MA_ElemSchoolDistricts"/>
+          <attribute dataType="Geometry" name="eec_registrants_ma"/>
+          <attribute dataType="Geometry" name="eec_schoolagedchildren_reproj"/>
+          <attribute dataType="Geometry" name="eec_test1"/>
+          <attribute dataType="Geometry" name="eec_test2"/>
+          <attribute dataType="Geometry" name="emassnh_catchments"/>
+          <attribute dataType="Geometry" name="FamilyServices"/>
+          <attribute dataType="Geometry" name="fd_2005"/>
+          <attribute dataType="Geometry" name="fd_2006"/>
+          <attribute dataType="Geometry" name="fd_2007"/>
+          <attribute dataType="Geometry" name="fd_2008"/>
+          <attribute dataType="Geometry" name="fd_2009"/>
+          <attribute dataType="Geometry" name="fd_2010"/>
+          <attribute dataType="Geometry" name="FD_points_Lowell_new1"/>
+          <attribute dataType="Geometry" name="fe_2007_44_elsd"/>
+          <attribute dataType="Geometry" name="fe_2007_44_unsd"/>
+          <attribute dataType="Geometry" name="FullPoints_Final"/>
+          <attribute dataType="Geometry" name="FullPoints_Lowell"/>
+          <attribute dataType="Geometry" name="fullpoints_lowell_reprojected"/>
+          <attribute dataType="Geometry" name="higher_ed_ma"/>
+          <attribute dataType="Geometry" name="higher_ed_ma_x"/>
+          <attribute dataType="Geometry" name="hwt_point"/>
+          <attribute dataType="Geometry" name="IPEDS(For)2009"/>
+          <attribute dataType="Geometry" name="IPEDS(Non)2009"/>
+          <attribute dataType="Geometry" name="IPEDS(Public)2009"/>
+          <attribute dataType="Geometry" name="ireland_counties"/>
+          <attribute dataType="Geometry" name="ireland_latlongpoints"/>
+          <attribute dataType="Geometry" name="ireland_latlongpoints_v3"/>
+          <attribute dataType="Geometry" name="ireland_latlongpoints_v4"/>
+          <attribute dataType="Geometry" name="ireland_latlongpoints_v5"/>
+          <attribute dataType="Geometry" name="ireland_municipal_combined"/>
+          <attribute dataType="Geometry" name="ireland_nation"/>
+          <attribute dataType="Geometry" name="ireland_regions"/>
+          <attribute dataType="Geometry" name="Lawrence Parcel"/>
+          <attribute dataType="Geometry" name="lawrence_home buyers active"/>
+          <attribute dataType="Geometry" name="LCW Home purchase"/>
+          <attribute dataType="Geometry" name="lowell_nccs_3"/>
+          <attribute dataType="Geometry" name="lowell_neighborhoods_reprojected"/>
+          <attribute dataType="Geometry" name="Lowell_Parcels"/>
+          <attribute dataType="Geometry" name="lowell_registrants"/>
+          <attribute dataType="Geometry" name="LowellFD_2009_Final"/>
+          <attribute dataType="Geometry" name="lowelltracts_w_eec_registrant_count"/>
+          <attribute dataType="Geometry" name="MA Census Tract"/>
+          <attribute dataType="Geometry" name="MA Census Tract 6-digit"/>
+          <attribute dataType="Geometry" name="ma_childcare_2009_sample_points"/>
+          <attribute dataType="Geometry" name="MA_COC"/>
+          <attribute dataType="Geometry" name="MA_EEC_Registrants"/>
+          <attribute dataType="Geometry" name="MA_Major_Streams_Lines"/>
+          <attribute dataType="Geometry" name="ma_SCHOOLS_PT"/>
+          <attribute dataType="Geometry" name="ma_shapes_delete"/>
+          <attribute dataType="Geometry" name="ma_town_region3"/>
+          <attribute dataType="Geometry" name="MA_Towns_MultiPoly_TOWN"/>
+          <attribute dataType="Geometry" name="ma_tract_w_eec_regcnt_and_town"/>
+          <attribute dataType="Geometry" name="ma_tracts_w_eec_regcnt"/>
+          <attribute dataType="Geometry" name="MA_ZCTA"/>
+          <attribute dataType="Geometry" name="MA_ZipCodes_Poly"/>
+          <attribute dataType="Geometry" name="MAPC_Municipalities"/>
+          <attribute dataType="Geometry" name="mass_benchmarks"/>
+          <attribute dataType="Geometry" name="Massachusetts Towns"/>
+          <attribute dataType="Geometry" name="MassARRA"/>
+          <attribute dataType="Geometry" name="MassARRALowellOnly"/>
+          <attribute dataType="Geometry" name="MassARRApoint"/>
+          <attribute dataType="Geometry" name="MassARRAPoint"/>
+          <attribute dataType="Geometry" name="MassARRAVer6"/>
+          <attribute dataType="Geometry" name="masstowns_w_eec_registrant_count"/>
+          <attribute dataType="Geometry" name="MBTABUSROUTES_ARC"/>
+          <attribute dataType="Geometry" name="MBTABUSSTOPS_PT"/>
+          <attribute dataType="Geometry" name="MetroBoston_Schools"/>
+          <attribute dataType="Geometry" name="Metropolitan Division"/>
+          <attribute dataType="Geometry" name="MFI_Points_2007"/>
+          <attribute dataType="Geometry" name="MSA_Tracts"/>
+          <attribute dataType="Geometry" name="mvhp"/>
+          <attribute dataType="Geometry" name="Nashua_Tract"/>
+          <attribute dataType="Geometry" name="NCCS_Lowell"/>
+          <attribute dataType="Geometry" name="nccs_ma_reprojected"/>
+          <attribute dataType="Geometry" name="nccs_shape2"/>
+          <attribute dataType="Geometry" name="nccs_shape_CT"/>
+          <attribute dataType="Geometry" name="nccs_shape_LA"/>
+          <attribute dataType="Geometry" name="nccs_shape_LA_FIPS22051"/>
+          <attribute dataType="Geometry" name="nccs_shape_MA"/>
+          <attribute dataType="Geometry" name="nccs_shape_MACT"/>
+          <attribute dataType="Geometry" name="ne_cd99_110"/>
+          <attribute dataType="Geometry" name="ne_lldistricts"/>
+          <attribute dataType="Geometry" name="ne_lsdistricts"/>
+          <attribute dataType="Geometry" name="ne_streams"/>
+          <attribute dataType="Geometry" name="nehucs10"/>
+          <attribute dataType="Geometry" name="new_england_subbasins"/>
+          <attribute dataType="Geometry" name="newengland_subbasins_v2"/>
+          <attribute dataType="Geometry" name="od_2005"/>
+          <attribute dataType="Geometry" name="od_2006_reprojected"/>
+          <attribute dataType="Geometry" name="od_2007"/>
+          <attribute dataType="Geometry" name="od_2008"/>
+          <attribute dataType="Geometry" name="od_2009"/>
+          <attribute dataType="Geometry" name="od_2010"/>
+          <attribute dataType="Geometry" name="Ohio County Subdivisions"/>
+          <attribute dataType="Geometry" name="Ohio Places"/>
+          <attribute dataType="Geometry" name="ON no FD 2005"/>
+          <attribute dataType="Geometry" name="on no fd 2006_reprojected"/>
+          <attribute dataType="Geometry" name="on no fd 2007_reprojected"/>
+          <attribute dataType="Geometry" name="on no fd 2008_reprojected"/>
+          <attribute dataType="Geometry" name="on no fd 2009_reprojected"/>
+          <attribute dataType="Geometry" name="on no fd 2010_reprojected"/>
+          <attribute dataType="Geometry" name="on no fd_2005"/>
+          <attribute dataType="Geometry" name="PreK"/>
+          <attribute dataType="Geometry" name="PreK2"/>
+          <attribute dataType="Geometry" name="Prek3"/>
+          <attribute dataType="Geometry" name="Prek4"/>
+          <attribute dataType="Geometry" name="PreK6"/>
+          <attribute dataType="Geometry" name="PreKPregnant"/>
+          <attribute dataType="Geometry" name="PrekPregnant2"/>
+          <attribute dataType="Geometry" name="PreKPregnant3"/>
+          <attribute dataType="Geometry" name="private_IPEDS"/>
+          <attribute dataType="Geometry" name="Registrants_US1"/>
+          <attribute dataType="Geometry" name="registrants_us1"/>
+          <attribute dataType="Geometry" name="ri_bg"/>
+          <attribute dataType="Geometry" name="ri_schools08_projected"/>
+          <attribute dataType="Geometry" name="Rwanda_Districts"/>
+          <attribute dataType="Geometry" name="Rwanda_Provinces"/>
+          <attribute dataType="Geometry" name="SchoolAged"/>
+          <attribute dataType="Geometry" name="schooldis_elem_POLY"/>
+          <attribute dataType="Geometry" name="schooldishigh_POLY_ma"/>
+          <attribute dataType="Geometry" name="schooldist_elem_ma"/>
+          <attribute dataType="Geometry" name="schooldist_elem_maPOLY"/>
+          <attribute dataType="Geometry" name="SCHOOLDISTELEM_POLY"/>
+          <attribute dataType="Geometry" name="SCHOOLDISTHIGH_POLY"/>
+          <attribute dataType="Geometry" name="State"/>
+          <attribute dataType="Geometry" name="States"/>
+          <attribute dataType="Geometry" name="StatesforNREL"/>
+          <attribute dataType="Geometry" name="test"/>
+          <attribute dataType="Geometry" name="tl_2009_09_bg00"/>
+          <attribute dataType="Geometry" name="tl_2009_us_state"/>
+          <attribute dataType="Geometry" name="tr25_d00_reprojected"/>
+          <attribute dataType="Geometry" name="Turi points"/>
+          <attribute dataType="Geometry" name="turi points"/>
+          <attribute dataType="Geometry" name="turi points 2008"/>
+          <attribute dataType="Geometry" name="TURI_all_2008"/>
+          <attribute dataType="Geometry" name="Turkey"/>
+          <attribute dataType="Geometry" name="us_cbsa"/>
+          <attribute dataType="Geometry" name="us_interstates"/>
+          <attribute dataType="Geometry" name="USCoastFinalver2selectable"/>
+          <attribute dataType="Geometry" name="USCoastFinalver2selectabledelete"/>
+          <attribute dataType="Geometry" name="USCoastFinalver2selectableWITHFIPS"/>
+          <attribute dataType="Geometry" name="USoilPlatforms"/>
+          <attribute dataType="Geometry" name="USoilPlatformsDelete"/>
+          <attribute dataType="Geometry" name="westminster_const_region"/>
+          <attribute dataType="Geometry" name="world"/>
+          <attribute dataType="Geometry" name="World Borders"/>
+          <attribute dataType="Geometry" name="World Borders (UN Codes)"/>
+          <attribute dataType="Geometry" name="World UN"/>
+          <attribute dataType="Geometry" name="yb_points"/>
+          <attribute dataType="Geometry" name="youthbuild_points"/>
+        </category>
+        <category name="DataTables">
+          <category name="bos_dropoutrate_schools"/>
+          <category name="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal"/>
+          <category name="Boston Land Use"/>
+          <category name="Boston Parcel Data"/>
+          <category name="Boston_Hositals"/>
+          <category name="Boston_Neighborhoods"/>
+          <category name="Boston_Neighborhoods_Obesity"/>
+          <category name="boston_roads"/>
+          <category name="Boston_zips"/>
+          <category name="BostonHospRatesRaceEthnicity"/>
+          <category name="BostonHospRatesRaceEthnicity_v2"/>
+          <category name="Breast_Cancer99-06"/>
+          <category name="breast_cancer_county"/>
+          <category name="c2008_a_ma"/>
+          <category name="Cancer Cases and Deaths"/>
+          <category name="Lynn(JosephTorname)"/>
+          <category name="Lynn2"/>
+          <category name="ma_1_2007_v07"/>
+          <category name="ma_2009performance_school"/>
+          <category name="MA_Birth_ED_Attainment"/>
+          <category name="MA_Births_Less_than_High_Sch"/>
+          <category name="ma_ed_care2004"/>
+          <category name="ma_ed_care200409"/>
+          <category name="MA_EducCare_2004LicenseData"/>
+          <category name="MA_EducCare_2009LicenseData"/>
+          <category name="MA_EducCare_LicenseData_Town"/>
+          <category name="MA_EducCare_LicenseData_Zip"/>
+          <category name="MA_EEC_Registrants"/>
+          <category name="MA_EEC_Registrants_NEW"/>
+          <category name="MA_EEC_Registrants_targettown"/>
+          <category name="MA_HigherED"/>
+          <category name="ma_highered_2003"/>
+          <category name="MA_HIgherED_2003"/>
+          <category name="MA_HigherED_2004"/>
+          <category name="MA_HigherED_2005"/>
+          <category name="MA_HigherED_2006"/>
+          <category name="MA_HigherED_2007"/>
+          <category name="ma_highered_2008"/>
+          <category name="ma_highered_unitid_to_name_2008"/>
+          <category name="MA_Major_Streams_Lines"/>
+          <category name="ma_SCHOOLS_PT"/>
+          <category name="ma_shapes_delete"/>
+          <category name="ma_shapes_delete_try"/>
+          <category name="ma_subsidized_housing_pha"/>
+          <category name="MA_Subsidized_Housing_PHA"/>
+          <category name="ma_town_region3"/>
+          <category name="ma_tract_w_eec_regcnt_and_town"/>
+          <category name="ma_tracts_w_eec_regcnt"/>
+          <category name="MA_ZipCodes_Poly"/>
+          <category name="macs_lunch_g3_0310"/>
+          <category name="MAHigher_ed_2"/>
+          <category name="mahigstem2003"/>
+          <category name="mahigstem2004"/>
+          <category name="mahigstem2005"/>
+          <category name="mahigstem2006"/>
+          <category name="mahigstem2007"/>
+          <category name="mahigstem2008"/>
+          <category name="mahigtot2003"/>
+          <category name="mahigtot2004"/>
+          <category name="mahigtot2005"/>
+          <category name="mahigtot2006"/>
+          <category name="mahigtot2007"/>
+          <category name="mahigtot2008"/>
+          <category name="MAhousing"/>
+          <category name="Malaria cases reported"/>
+          <category name="Malnutrition prevalence weight for age"/>
+          <category name="MAPC_Municipalities"/>
+          <category name="Marine areas protected to territorial waters_percentage"/>
+          <category name="Marine areas protected_sq. km."/>
+          <category name="Marine protected areas"/>
+          <category name="Mass Job Vacancies"/>
+          <category name="Mass_Education_Care_Combined_Table"/>
+          <category name="Massachusetts Land Use"/>
+          <category name="Massachusetts Public Housing Agencies data"/>
+          <category name="MassARRADatacommaLowellV3"/>
+          <category name="MassARRADatacommaV3"/>
+          <category name="MassARRADatacommaV4"/>
+          <category name="masschip_infant_mortality_2007"/>
+          <category name="masschip_infant_mortality_2007_sel"/>
+          <category name="masshospitalizations"/>
+          <category name="massmental"/>
+          <category name="masstowns_w_eec_registrant_count"/>
+          <category name="Maternal mortality ratio"/>
+          <category name="Maternal mortality ratio per 100000 live births"/>
+          <category name="MBTABUSROUTES_ARC"/>
+          <category name="MBTABUSSTOPS_PT"/>
+          <category name="mcas_district_g3_2008"/>
+          <category name="mcas_g3_0310"/>
+          <category name="mcas_g3_0610"/>
+          <category name="mcas_lunch_g3_0310"/>
+          <category name="mcas_lunch_g3_0610"/>
+          <category name="MCAS_lunch_g3_2010"/>
+          <category name="mcas_obesity_g3_0809"/>
+          <category name="mcas_obesity_poverty_g3_08"/>
+          <category name="mcas_obesity_poverty_g3_0809"/>
+          <category name="mcas_obesity_poverty_g3_089"/>
+          <category name="mcas_obesity_poverty_g3_08_089"/>
+          <category name="mcas_performance_g3_2008"/>
+          <category name="mcas_performance_g3_2009"/>
+          <category name="mcas_teacherinfo_amanda"/>
+          <category name="Mdg"/>
+          <category name="mdgUniqueID"/>
+          <category name="Measures of Birth and Death"/>
+          <category name="measures_of_birth_and_death"/>
+          <category name="measuresofbirthdeath_county"/>
+          <category name="Median Family Income by State"/>
+          <category name="Men 15-24 years old with correct knowledge of HIV-AIDS_pct"/>
+          <category name="MetroBoston Employment by Sector 2001-2006">
+            <attribute dataType="string" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95248" name="Municipal Code"/>
+            <attribute dataType="string" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95249" name="Municipality"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95250" year="2001" name="All Industries"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95251" year="2002" name="All Industries"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95252" year="2003" name="All Industries"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95253" year="2004" name="All Industries"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95254" year="2005" name="All Industries"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95255" year="2006" name="All Industries"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95256" year="2001" name="Goods Producing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95257" year="2002" name="Goods Producing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95258" year="2003" name="Goods Producing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95259" year="2004" name="Goods Producing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95260" year="2005" name="Goods Producing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95261" year="2006" name="Goods Producing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95262" year="2001" name="Natural Resources and Mining"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95263" year="2002" name="Natural Resources and Mining"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95264" year="2003" name="Natural Resources and Mining"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95265" year="2004" name="Natural Resources and Mining"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95266" year="2005" name="Natural Resources and Mining"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95267" year="2006" name="Natural Resources and Mining"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95268" year="2001" name="Construction"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95269" year="2002" name="Construction"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95270" year="2003" name="Construction"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95271" year="2004" name="Construction"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95272" year="2005" name="Construction"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95273" year="2006" name="Construction"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95274" year="2001" name="Manufacturing"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95275" year="2002" name="Manufacturing"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95276" year="2003" name="Manufacturing"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95277" year="2004" name="Manufacturing"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95278" year="2005" name="Manufacturing"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95279" year="2006" name="Manufacturing"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95280" year="2001" name="Service-Providing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95281" year="2002" name="Service-Providing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95282" year="2003" name="Service-Providing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95283" year="2004" name="Service-Providing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95284" year="2005" name="Service-Providing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95285" year="2006" name="Service-Providing Domain"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95286" year="2001" name="Trade Transportation and Utilities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95287" year="2002" name="Trade Transportation and Utilities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95288" year="2003" name="Trade Transportation and Utilities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95289" year="2004" name="Trade Transportation and Utilities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95290" year="2005" name="Trade Transportation and Utilities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95291" year="2006" name="Trade Transportation and Utilities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95292" year="2001" name="Information"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95293" year="2002" name="Information"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95294" year="2003" name="Information"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95295" year="2004" name="Information"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95296" year="2005" name="Information"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95297" year="2006" name="Information"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95298" year="2001" name="Financial Activities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95299" year="2002" name="Financial Activities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95300" year="2003" name="Financial Activities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95301" year="2004" name="Financial Activities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95302" year="2005" name="Financial Activities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95303" year="2006" name="Financial Activities"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95304" year="2001" name="Professional and Business Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95305" year="2002" name="Professional and Business Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95306" year="2003" name="Professional and Business Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95307" year="2004" name="Professional and Business Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95308" year="2005" name="Professional and Business Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95309" year="2006" name="Professional and Business Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95310" year="2001" name="Education and Health Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95311" year="2002" name="Education and Health Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95312" year="2003" name="Education and Health Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95313" year="2004" name="Education and Health Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95314" year="2005" name="Education and Health Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95315" year="2006" name="Education and Health Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95316" year="2001" name="Leisure and Hospitality"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95317" year="2002" name="Leisure and Hospitality"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95318" year="2003" name="Leisure and Hospitality"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95319" year="2004" name="Leisure and Hospitality"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95320" year="2005" name="Leisure and Hospitality"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95321" year="2006" name="Leisure and Hospitality"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95322" year="2001" name="Other Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95323" year="2002" name="Other Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95324" year="2003" name="Other Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95325" year="2004" name="Other Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95326" year="2005" name="Other Services"/>
+            <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95327" year="2006" name="Other Services"/>
+          </category>
+          <category name="MetroBoston_Schools"/>
+          <category name="MetroBoston_Schools_MAPC"/>
+          <category name="Metropolitan Division"/>
+          <category name="MFI_Points_2007"/>
+          <category name="MidWest(Industries)2001"/>
+          <category name="MidWest(Industries)2008"/>
+          <category name="midwest(industries)2008"/>
+          <category name="MidWest(Industries)2009"/>
+          <category name="midwest(industries)2009"/>
+          <category name="MidWest(Industries)ALL"/>
+          <category name="midwest0009"/>
+          <category name="midwest2009_NAICS"/>
+          <category name="midwest2009_naics"/>
+          <category name="Midwest26month"/>
+          <category name="Midwest7500"/>
+          <category name="midwest7500"/>
+          <category name="midwest_1999naics"/>
+          <category name="MidwestAGG7500"/>
+          <category name="Millennium Development Goals Combined"/>
+          <category name="Mitre Data"/>
+          <category name="Mobile cellular subscriptions (per 100 people)"/>
+          <category name="Mobile cellular telephone subscriptions"/>
+          <category name="Mobile cellular telephone subscriptions per 100 population"/>
+          <category name="Mortality rate infant (per 1000 live births)"/>
+          <category name="Mortality rate under-5 (per 1,000)"/>
+          <category name="mortgage-lending-hmda"/>
+          <category name="MPS_Elected_May2010"/>
+          <category name="MSAD"/>
+          <category name="munidebt"/>
+          <category name="munidebt 2000"/>
+          <category name="munidebt 2001"/>
+          <category name="munidebt 2002"/>
+          <category name="munidebt 2003"/>
+          <category name="munidebt 2004"/>
+          <category name="munidebt 2005"/>
+          <category name="munidebt 2006"/>
+          <category name="munidebt 2007"/>
+          <category name="munidebt 2008"/>
+          <category name="munidebt 2009"/>
+          <category name="N_Middlesex Municipal"/>
+          <category name="NAEP 4th Grade Reading All Students"/>
+          <category name="NAEP 4th Grade Reading by ELL"/>
+          <category name="NAEP 4th Grade Reading by Race"/>
+          <category name="NAEP_4th_Grade_Reading_All_Students"/>
+          <category name="NAEP_4th_Grade_Reading_by_Race"/>
+          <category name="NAEP_ELL_4th_Grade_Reading"/>
+          <category name="Name"/>
+          <category name="nccs_194c0"/>
+          <category name="NCCS_Lowell"/>
+          <category name="nccs_ma_reprojected"/>
+          <category name="nccs_N194c0"/>
+          <category name="nccs_N194c0_CT"/>
+          <category name="nccs_N194c0_LA"/>
+          <category name="nccs_n194c0_LOWELL.CSV"/>
+          <category name="nccs_N194c0_MA"/>
+          <category name="nccs_njcl26"/>
+          <category name="nccs_njcl26_la_fips22051"/>
+          <category name="nccs_shape2"/>
+          <category name="nccs_shape_CT"/>
+          <category name="nccs_shape_LA"/>
+          <category name="nccs_shape_LA_FIPS22051"/>
+          <category name="nccs_shape_MA"/>
+          <category name="nccs_shape_MACT"/>
+          <category name="NCHC"/>
+          <category name="nchc"/>
+          <category name="ne_state_house_vote"/>
+          <category name="ne_statesenate_vote"/>
+          <category name="ne_streams"/>
+          <category name="ne_tot_loads_yields_reach"/>
+          <category name="nehucs10"/>
+          <category name="Net ODA and official aid received (current US$)"/>
+          <category name="Net ODA as percentage of OECD-DAC donors GNI"/>
+          <category name="Net ODA provided to the least developed countries (current US$)"/>
+          <category name="Net ODA provided to the least developed countries (pct. of GNI)"/>
+          <category name="Net ODA provided total (% of GNI"/>
+          <category name="Net ODA provided total (constant 2008 US$)"/>
+          <category name="Net ODA provided total (current US$)"/>
+          <category name="Net ODA received (% of GNI)"/>
+          <category name="Net ODA received (current US$)"/>
+          <category name="Net ODA received per capita (current US$)"/>
+          <category name="Net ODA to LDCs as percentage of OECD-DAC donors GNI"/>
+          <category name="Net ODA to LDCs_million US dollars"/>
+          <category name="net oda_million us$"/>
+          <category name="Net ODA_million USdollars"/>
+          <category name="net oda_million usdollars"/>
+          <category name="New England Congressional District Data"/>
+          <category name="New England HPI without MSAD"/>
+          <category name="New England Lower House District Data"/>
+          <category name="New England Municipal Data"/>
+          <category name="New England Subbasin Data"/>
+          <category name="New England Upper House District Data"/>
+          <category name="newengland_subbasins_v2"/>
+          <category name="NewEnglandCatchments"/>
+          <category name="nitrogen_load_subbasin"/>
+          <category name="nonsenseHeather"/>
+          <category name="number of farms by state"/>
+          <category name="number of nonprofits by state"/>
+          <category name="obesity"/>
+          <category name="Obesity"/>
+          <category name="obesity by state"/>
+          <category name="Obesity Years"/>
+          <category name="Obesity_County_2004_2007"/>
+          <category name="obesity_district"/>
+          <category name="obesity_g10_2009"/>
+          <category name="obesity_mcas_g10_2010"/>
+          <category name="obesity_state"/>
+          <category name="obesity_test"/>
+          <category name="obesityTimeDimension"/>
+          <category name="obesityTimeDimensionwid"/>
+          <category name="od_2005"/>
+          <category name="od_2006_reprojected"/>
+          <category name="od_2007"/>
+          <category name="od_2008"/>
+          <category name="od_2009"/>
+          <category name="od_2010"/>
+          <category name="oda provided to help build trade capacity percentage"/>
+          <category name="oda provided to help build trade capacity, percentage"/>
+          <category name="ODA provided to help build trade capacity_percentage"/>
+          <category name="ODA received_landlocked developing countries as pct of their GNI"/>
+          <category name="ODA received_landlocked developing countries_million US dollars"/>
+          <category name="ODA received_small islands developing States as pct of their GNI"/>
+          <category name="ODA received_small islands developing States_million US dollars"/>
+          <category name="ODA that is untied_million US dollars"/>
+          <category name="ODA that is untied_percentage"/>
+          <category name="ODA to basic social services as pct of sector-allocable ODA"/>
+          <category name="ODA to basic social services_million US dollars"/>
+          <category name="oecd_combined health and ineq."/>
+          <category name="OECD_Combined health and Ineq."/>
+          <category name="oecd_obese2008"/>
+          <category name="ON no FD 2005"/>
+          <category name="on no fd 2006_reprojected"/>
+          <category name="on no fd 2007_reprojected"/>
+          <category name="on no fd 2008_reprojected"/>
+          <category name="on no fd 2009_reprojected"/>
+          <category name="on no fd 2010_reprojected"/>
+          <category name="on no fd_2005"/>
+          <category name="Order of notice_2009"/>
+          <category name="org code"/>
+          <category name="other grassland pasture and range by state"/>
+          <category name="other land by state"/>
+          <category name="OutputWMunisCounties_comma"/>
+          <category name="ovarian_cancer"/>
+          <category name="Ovarian_Cancer"/>
+          <category name="Ovarian_Cancer1999-2006"/>
+          <category name="own-account and contributing family workers_both_pct"/>
+          <category name="own-account and contributing family workers_women_pct"/>
+          <category name="Pancreatic_Cancer99-06"/>
+          <category name="pancreatic_cancer_county"/>
+          <category name="pct females_15-49_ having comprehensive  knowledge about HIV"/>
+          <category name="pct males_15-49_ having comprehensive  knowledge about HIV"/>
+          <category name="Pct pupils starting grade 1 reach last grade of primary_both"/>
+          <category name="Pct pupils starting grade 1 reach last grade of primary_girls"/>
+          <category name="Pct pupils starting grade 1 who reach last grade of primary_boys"/>
+          <category name="people living with hiv_15-49 years old_percentage"/>
+          <category name="People living with HIV_15-49 years old_percentage"/>
+          <category name="Perc by Town"/>
+          <category name="perc_facilities"/>
+          <category name="Persistence to last grade of primary, female (% of cohort)"/>
+          <category name="Persistence to last grade of primary, male (% of cohort)"/>
+          <category name="Persistence to last grade of primary, total (% of cohort)"/>
+          <category name="Persns Below Poverty Level"/>
+          <category name="Personal computers"/>
+          <category name="Personal computers per 100 population"/>
+          <category name="PewCenterGreenJobsDataV2"/>
+          <category name="point_gaurds_gamewise"/>
+          <category name="Poorest quintiles share in national income or consumption_pct"/>
+          <category name="Population below 1 dollar-PPP-per day_percentage"/>
+          <category name="Population below national poverty line_rural_percentage"/>
+          <category name="Population below national poverty line_total_percentage"/>
+          <category name="Population below national poverty line_urban_percentage"/>
+          <category name="Population By Race by State"/>
+          <category name="population density by state"/>
+          <category name="population foreign born percent by state"/>
+          <category name="Population living in slums (% of urban population)"/>
+          <category name="population race by state"/>
+          <category name="Population undernourished_number of people"/>
+          <category name="population undernourished_percentage"/>
+          <category name="Population undernourished_percentage"/>
+          <category name="population using improved drinking water sources_rural"/>
+          <category name="population using improved drinking water sources_total"/>
+          <category name="population using improved drinking water sources_urban"/>
+          <category name="population using improved sanitation facilities_rural"/>
+          <category name="population using improved sanitation facilities_total"/>
+          <category name="population using improved sanitation facilities_urban"/>
+          <category name="Population using solid fuels_percentage"/>
+          <category name="Population, total"/>
+          <category name="Poverty gap at $1.25 a day (PPP) (%)"/>
+          <category name="Poverty gap at $2 a day (PPP) (%)"/>
+          <category name="Poverty gap at national poverty line (%)"/>
+          <category name="Poverty gap at rural poverty line (%)"/>
+          <category name="Poverty gap at urban poverty line (%)"/>
+          <category name="Poverty gap ratio at 1 dollar a day-PPP_percentage"/>
+          <category name="Poverty headcount ratio at $1.25 a day (PPP)"/>
+          <category name="Poverty headcount ratio at $2 a day (PPP)"/>
+          <category name="Poverty headcount ratio at national poverty line"/>
+          <category name="Poverty headcount ratio at rural poverty line"/>
+          <category name="Poverty headcount ratio at urban poverty line"/>
+          <category name="poverty_families_centract_ma"/>
+          <category name="poverty_families_centract_ma_2"/>
+          <category name="POVERTY_INDICATORS"/>
+          <category name="POVERTY_INDICATORS_W_MCAS"/>
+          <category name="PPP conversion factor GDP (LCU per international $)"/>
+          <category name="PPP conversion factor private consum.-LCU per international $"/>
+          <category name="PPPconversion factor_local currency unit to international dollar"/>
+          <category name="Pregnant women receiving prenatal care (%)"/>
+          <category name="Pregnant women receiving prenatal care of at least four visits"/>
+          <category name="PreK"/>
+          <category name="PreK2"/>
+          <category name="Prek3"/>
+          <category name="Prek4"/>
+          <category name="PreK6"/>
+          <category name="PreKPregnant"/>
+          <category name="PrekPregnant2"/>
+          <category name="PreKPregnant3"/>
+          <category name="Prevalence of HIV female (% ages 15-24)"/>
+          <category name="Prevalence of HIV male (% ages 15-24)"/>
+          <category name="Prevalence of HIV total % of population ages 15-49"/>
+          <category name="Prevalence of undernourishment (% of population)"/>
+          <category name="preventive services use"/>
+          <category name="PREVENTIVE_SERVICES_USE"/>
+          <category name="pricespopulationenergy"/>
+          <category name="PricesPopulationEnergy"/>
+          <category name="PricesPopulationEnergyTotalsforUS"/>
+          <category name="PricesPopulationEnergyVer2"/>
+          <category name="Primary completion rate, total (% of relevant age group)"/>
+          <category name="Primary completion rate_both sexes"/>
+          <category name="Primary completion rate_boys"/>
+          <category name="Primary completion rate_girls"/>
+          <category name="prisoners by state"/>
+          <category name="PrisonersByState"/>
+          <category name="private_IPEDS"/>
+          <category name="Proportion of employed living below 1 dollar-PPP per day_pct"/>
+          <category name="Proportion of land area covered by forest_percentage"/>
+          <category name="Proportion of seats held by women in national parliaments (%)"/>
+          <category name="proportion of seats held by women in national parliaments by year (%)"/>
+          <category name="Proportion of total water resources used_percentage"/>
+          <category name="prostate_cancer"/>
+          <category name="Prostate_Cancer1999-2006"/>
+          <category name="public charities and private foundations by state"/>
+          <category name="public school enrollment by state"/>
+          <category name="Ratio of female to male primary enrollment (%)"/>
+          <category name="Ratio of female to male secondary enrollment (%)"/>
+          <category name="Ratio of female to male tertiary enrollment (%)"/>
+          <category name="Ratio of girls to boys in primary and secondary education (%)"/>
+          <category name="Ratio of school attendance of orphans to non-orphans ages 10-14"/>
+          <category name="Ratio of school attendance rate of orphans to non orphans"/>
+          <category name="Ratio of unemployment_Youth to adult_both sexes"/>
+          <category name="Ratio of unemployment_Youth to adult_men"/>
+          <category name="Ratio of unemployment_Youth to adult_women"/>
+          <category name="Registrants_distribution"/>
+          <category name="registrants_us1"/>
+          <category name="Registrants_US1"/>
+          <category name="relative health importance"/>
+          <category name="RELATIVE_HEALTH_IMPORTANCE"/>
+          <category name="Renewable internal freshwater resources per capita-cubic meters"/>
+          <category name="RI School Proficiency"/>
+          <category name="riders_by_stop"/>
+          <category name="risk factors and access to care"/>
+          <category name="Rosling Indicators"/>
+          <category name="rural parks and wildlife areas land by state"/>
+          <category name="rural transportation facilities land by state"/>
+          <category name="Rwanda_Districts"/>
+          <category name="rwanda_prelim"/>
+          <category name="Rwanda_Provinces"/>
+          <category name="RwandaData"/>
+          <category name="sabman_csv_test"/>
+          <category name="School attendance rate of orphans aged 10-14"/>
+          <category name="School attendance rate_aged 10-14_at least with one parent"/>
+          <category name="School enrollment, primary (% net)"/>
+          <category name="school_distric_estimates_poverty_2003"/>
+          <category name="school_distric_estimates_poverty_2004"/>
+          <category name="school_distric_estimates_poverty_2005"/>
+          <category name="school_distric_estimates_poverty_2006"/>
+          <category name="school_district_elem"/>
+          <category name="school_performance_level"/>
+          <category name="SchoolAged"/>
+          <category name="schooldis_elem_POLY"/>
+          <category name="schooldishigh_POLY_ma"/>
+          <category name="schooldist_elem_ma"/>
+          <category name="schooldist_elem_maPOLY"/>
+          <category name="SCHOOLDISTELEM_POLY"/>
+          <category name="SCHOOLDISTHIGH_POLY"/>
+          <category name="Seats held by men in national parliament"/>
+          <category name="Seats held by women in national parliament"/>
+          <category name="Seats held by women in national parliament_percentage"/>
+          <category name="seds_complete_jun_2010"/>
+          <category name="SFC_Indicators"/>
+          <category name="sfc_indicators"/>
+          <category name="Share of women employed in the nonagricultural sector"/>
+          <category name="Share of women in wage employment in the non-agricultural sector"/>
+          <category name="Share of youth unemployed to total unemployed_both sexes"/>
+          <category name="Share of youth unemployed to total unemployed_men"/>
+          <category name="Share of youth unemployed to total unemployed_women"/>
+          <category name="Share of youth unemployed to youth population_both sexes"/>
+          <category name="Share of youth unemployed to youth population_men"/>
+          <category name="Share of youth unemployed to youth population_women"/>
+          <category name="Slum population as percentage of urban_percentage"/>
+          <category name="slum population as percentage of urban_percentage"/>
+          <category name="Slum population in urban areas"/>
+          <category name="solar as pct of total energy by state"/>
+          <category name="special land by state"/>
+          <category name="State"/>
+          <category name="STATE"/>
+          <category name="state arts appropriations by state"/>
+          <category name="state fips by state"/>
+          <category name="state_house_vote"/>
+          <category name="state_senate_vote"/>
+          <category name="StateEnergyBTUs19602008"/>
+          <category name="StateGINI"/>
+          <category name="StateRenewableEnergy1995-2007"/>
+          <category name="States"/>
+          <category name="StatesforNREL"/>
+          <category name="StatesHealth"/>
+          <category name="StatesHealth Years"/>
+          <category name="Status under enhanced HIPC initiative"/>
+          <category name="student_CMD"/>
+          <category name="student_EJL"/>
+          <category name="Styrene By Town"/>
+          <category name="substance abu"/>
+          <category name="substance_abuse"/>
+          <category name="Suffolk County Demographics By Census Tract"/>
+          <category name="SUMLEV"/>
+          <category name="summary measures of health"/>
+          <category name="summarymeasuresofhealth"/>
+          <category name="tariffs imposed by developed countries on agri. products-LDCs"/>
+          <category name="tariffs imposed by developed countries on agricultural products"/>
+          <category name="tariffs imposed by developed countries on clothingproducts"/>
+          <category name="tariffs imposed by developed countries on textilel products"/>
+          <category name="tariffs imposed by developed countries on textilel products LDCs"/>
+          <category name="Teen Arrests_2005"/>
+          <category name="Telephone lines"/>
+          <category name="Telephone lines (per 100 people)"/>
+          <category name="Telephone lines per 100 population"/>
+          <category name="temp"/>
+          <category name="Terrestrial and marine areas protected_sq-km"/>
+          <category name="Terrestrial and marine areas to total territorial area_pct"/>
+          <category name="Terrestrial areas protected to total surface area_percentage"/>
+          <category name="Terrestrial areas protected_sq-km"/>
+          <category name="Terrestrial protected areas (% of total surface area)"/>
+          <category name="test"/>
+          <category name="test delete"/>
+          <category name="test_demo_1"/>
+          <category name="test_obesity"/>
+          <category name="Test_Obesity"/>
+          <category name="test_oby"/>
+          <category name="testingHeather"/>
+          <category name="testobesity"/>
+          <category name="Tetrachloroethylene by town"/>
+          <category name="tl_2009_us_state"/>
+          <category name="Total debt service (% of exports of goods, services and income)"/>
+          <category name="Total enrollment primary (% net)"/>
+          <category name="Total net enrolment ratio in primary education_both sexes"/>
+          <category name="Total net enrolment ratio in primary education_boys"/>
+          <category name="Total net enrolment ratio in primary education_girls"/>
+          <category name="Total number of seats in national parliament"/>
+          <category name="totalchemicals_town"/>
+          <category name="TotalEnergyPricesExpendituresEIA"/>
+          <category name="toxics all years"/>
+          <category name="tract_ma_trial"/>
+          <category name="Trade (% of GDP)"/>
+          <category name="TRICHLOROETHYLENE by Town"/>
+          <category name="Tuberculosis case detection rate (all forms)"/>
+          <category name="Tuberculosis death rate (per 100,000 people)"/>
+          <category name="Tuberculosis death rate per year per 100000 population"/>
+          <category name="Tuberculosis detection rate under DOTS_percentage"/>
+          <category name="Tuberculosis incidence rate per year per 100000 population"/>
+          <category name="Tuberculosis prevalence rate per 100000 population"/>
+          <category name="Tuberculosis treatment success rate (% of registered cases)"/>
+          <category name="Tuberculosis treatment success rate under DOTS_percentage"/>
+          <category name="Turi points"/>
+          <category name="turi points"/>
+          <category name="turi points 2008"/>
+          <category name="TURI Totals 1990-2007 by town"/>
+          <category name="TURI_all_2008"/>
+          <category name="turkey-amount of municipal waste by destination_2008"/>
+          <category name="UKIncome_MediansMeans"/>
+          <category name="UmassTotals20032008"/>
+          <category name="underweight_2009"/>
+          <category name="Unemployment MSA data"/>
+          <category name="unicefcombined"/>
+          <category name="Unmet need for contraception (% of married women ages 15-49)"/>
+          <category name="Unmet need for family planning_limiting_percentage"/>
+          <category name="Unmet need for family planning_spacing_percentage"/>
+          <category name="Unmet need for family planning_total_percentage"/>
+          <category name="urbaninst_census_acs"/>
+          <category name="urbanrural years"/>
+          <category name="us_interstates"/>
+          <category name="us_state_voting_addenda"/>
+          <category name="us_voterturnout_state_2008"/>
+          <category name="USCoastFinalver2selectable"/>
+          <category name="USCoastFinalver2selectabledelete"/>
+          <category name="USCoastFinalver2selectableWITHFIPS"/>
+          <category name="uscountieseducation"/>
+          <category name="Use of insecticide-treated bed nets (% of under-5 population)"/>
+          <category name="USoilPlatforms"/>
+          <category name="USoilPlatformsDelete"/>
+          <category name="USprisoners"/>
+          <category name="Vulnerable employment, female (% of female employment)"/>
+          <category name="Vulnerable employment, male (% of male employment)"/>
+          <category name="Vulnerable employment, total (% of total employment)"/>
+          <category name="vulnerable pops and env health"/>
+          <category name="vulnerable_pops_and_env_health"/>
+          <category name="vulnerablepops"/>
+          <category name="WB economic indicator"/>
+          <category name="wbc"/>
+          <category name="Weave Jira Issues"/>
+          <category name="Westford_Foreclosures_Deeds"/>
+          <category name="Westford_MassGIS"/>
+          <category name="WHO 2003"/>
+          <category name="who_03"/>
+          <category name="Wind Capacity by State MW"/>
+          <category name="WindCapInstalledbyState"/>
+          <category name="WindCapInstalledbyStateVer3"/>
+          <category name="WindCapInstalledbyStateVer4"/>
+          <category name="WindCapInstalledbyStateVer6"/>
+          <category name="WindCapInstalledbyStateVer7"/>
+          <category name="Women 15-24 years old with correct knowledge of HIV-AIDS_pct"/>
+          <category name="Women to men parity index_as ratio of literacy rates_15-24 age"/>
+          <category name="World 3Dig"/>
+          <category name="World Bank Development Indicators"/>
+          <category name="World Bank Years"/>
+          <category name="World Name Table"/>
+          <category name="World_3 digit"/>
+          <category name="WorldBankWSecKey"/>
+          <category name="Youth unemployment rate_aged 15-24_both sexes"/>
+          <category name="Youth unemployment rate_aged 15-24_men"/>
+          <category name="Youth unemployment rate_aged 15-24_women"/>
+          <category name="YouthBuildPoint2009Unemployment"/>
+          <category name="YouthBuildPrograms2009"/>
+          <category name="YouthBuildPrograms2009_point"/>
+        </category>
+      </hierarchy>
+    </attributeHierarchy>
+    <hierarchyURL/>
+    <url>/WeaveServices/DataService</url>
+  </WeaveDataSource>
+  <EquationColumn name="EquationEditorColumn">
+    <columnTitle>NRM_All_Years</columnTitle>
+    <equation>add(ReferencedColumn, ReferencedColumn2)</equation>
+    <keyColumn encoding="dynamic"/>
+    <unitType/>
+    <variables encoding="dynamic">
+      <ReferencedColumn name="ReferencedColumn">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>WeaveDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="MetroBoston Employment by Sector 2001-2006">
+                    <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95250" year="2001" name="All Industries"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+      <ReferencedColumn name="ReferencedColumn2">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>WeaveDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="MetroBoston Employment by Sector 2001-2006">
+                    <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95251" year="2002" name="All Industries"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </variables>
+  </EquationColumn>
+  <TimeSliderTool name="TimeSliderTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>10</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <dataBounds>
+          <xMax>NaN</xMax>
+          <xMin>NaN</xMin>
+          <yMax>NaN</yMax>
+          <yMin>NaN</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic"/>
+        <marginBottom>0</marginBottom>
+        <marginLeft>0</marginLeft>
+        <marginRight>0</marginRight>
+        <marginTop>0</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <currentSliderPosition>0</currentSliderPosition>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableControlPanel>true</enableControlPanel>
+    <enableHelpPanel>true</enableHelpPanel>
+    <labelsLinkableString>2001,2002,2003,2004,2005,2006</labelsLinkableString>
+    <linkColormap>true</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>9.396%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>61.797%</panelWidth>
+    <panelX>38.203%</panelX>
+    <panelY>0%</panelY>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <timerDelay>2500</timerDelay>
+    <toolTitle/>
+  </TimeSliderTool>
+  <MapTool name="MapTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>10</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <dataBounds>
+          <xMax>293963.5712691913</xMax>
+          <xMin>147832.85565601598</xMin>
+          <yMax>958505.644098117</yMax>
+          <yMin>796759.6845517955</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <enableBitmapFilters>true</enableBitmapFilters>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <GeometryPlotter>
+                <fill>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
+                </fill>
+                <geometryColumn>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WeaveDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category name="GeometryCollections">
+                                <attribute dataType="Geometry" name="Massachusetts Towns"/>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                  <projectionSRS/>
+                </geometryColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <line>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>none</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </line>
+                <pointShapeSize>5</pointShapeSize>
+              </GeometryPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>0</marginBottom>
+        <marginLeft>0</marginLeft>
+        <marginRight>0</marginRight>
+        <marginTop>0</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBackground>true</enableBackground>
+    <enableBorders>true</enableBorders>
+    <enableControlPanel>true</enableControlPanel>
+    <enableHelpPanel>true</enableHelpPanel>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <linkColormap>false</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>89.821%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>49.297%</panelWidth>
+    <panelX>38.281%</panelX>
+    <panelY>9.8434%</panelY>
+    <projectionSRS/>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </MapTool>
+  <ColorBinLegendTool name="ColorBinLegendTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>10</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <dataBounds>
+          <xMax>1</xMax>
+          <xMin>0</xMin>
+          <yMax>9.5</yMax>
+          <yMin>-0.5</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <enableBitmapFilters>true</enableBitmapFilters>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ColorBinLegendPlotter>
+                <dynamicColorColumn encoding="dynamic">
+                  <GlobalObjectReference name="defaultColorColumn"/>
+                </dynamicColorColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <shapeSize>20</shapeSize>
+              </ColorBinLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>true</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>5</marginBottom>
+        <marginLeft>5</marginLeft>
+        <marginRight>5</marginRight>
+        <marginTop>25</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableControlPanel>true</enableControlPanel>
+    <enableHelpPanel>true</enableHelpPanel>
+    <linkColormap>true</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>89.709%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>12.188%</panelWidth>
+    <panelX>87.813%</panelX>
+    <panelY>9.9553%</panelY>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </ColorBinLegendTool>
+  <DataTableTool name="DataTableTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>10</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <dataBounds>
+          <xMax>NaN</xMax>
+          <xMin>NaN</xMin>
+          <yMax>NaN</yMax>
+          <yMin>NaN</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic"/>
+        <marginBottom>0</marginBottom>
+        <marginLeft>0</marginLeft>
+        <marginRight>0</marginRight>
+        <marginTop>0</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <columns encoding="dynamic">
+      <ReferencedColumn name="ReferencedColumn">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>WeaveDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="MetroBoston Employment by Sector 2001-2006">
+                    <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95250" year="2001" name="All Industries"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+      <ReferencedColumn name="ReferencedColumn2">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>WeaveDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="MetroBoston Employment by Sector 2001-2006">
+                    <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95251" year="2002" name="All Industries"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+      <EquationColumn name="EquationEditorColumn">
+        <columnTitle>NRM_All_Years</columnTitle>
+        <equation>add(ReferencedColumn, ReferencedColumn2)</equation>
+        <keyColumn encoding="dynamic"/>
+        <unitType/>
+        <variables encoding="dynamic">
+          <ReferencedColumn name="ReferencedColumn">
+            <dynamicColumnReference encoding="dynamic">
+              <HierarchyColumnReference>
+                <dataSourceName>WeaveDataSource</dataSourceName>
+                <hierarchyPath encoding="xml">
+                  <hierarchy>
+                    <category name="DataTables">
+                      <category name="MetroBoston Employment by Sector 2001-2006">
+                        <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95250" year="2001" name="All Industries"/>
+                      </category>
+                    </category>
+                  </hierarchy>
+                </hierarchyPath>
+              </HierarchyColumnReference>
+            </dynamicColumnReference>
+          </ReferencedColumn>
+          <ReferencedColumn name="ReferencedColumn2">
+            <dynamicColumnReference encoding="dynamic">
+              <HierarchyColumnReference>
+                <dataSourceName>WeaveDataSource</dataSourceName>
+                <hierarchyPath encoding="xml">
+                  <hierarchy>
+                    <category name="DataTables">
+                      <category name="MetroBoston Employment by Sector 2001-2006">
+                        <attribute dataType="number" dataTable="MetroBoston Employment by Sector 2001-2006" keyType="Massachusetts Town ID" id="95251" year="2002" name="All Industries"/>
+                      </category>
+                    </category>
+                  </hierarchy>
+                </hierarchyPath>
+              </HierarchyColumnReference>
+            </dynamicColumnReference>
+          </ReferencedColumn>
+        </variables>
+      </EquationColumn>
+    </columns>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableControlPanel>true</enableControlPanel>
+    <enableHelpPanel>true</enableHelpPanel>
+    <filterByKeyType/>
+    <linkColormap>true</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>99.493%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>67.344%</panelWidth>
+    <panelX>0.3125%</panelX>
+    <panelY>0.12674%</panelY>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <showControls>true</showControls>
+    <sortFieldIndex>NaN</sortFieldIndex>
+    <sortInDescendingOrder>false</sortInDescendingOrder>
+    <toolTitle/>
+  </DataTableTool>
+</Weave>

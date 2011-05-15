@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!--
+RTextEditor
+
+1. Pick your columns
+2. Assign variable names to those columns
+3. Input an R script using those variable names
+4. List the outputs you want
+5. The columns get joined on the client-side using the keys (record identifiers) to produce flat Arrays lined up by row index
+6. These columns become the input to the R script on the server, the server runs the script and returns the results.
+7. On the client side, any returned Arrays are matched up with the original keys using the same row order to become columns.
+8. Any other results are just printed out to the text area.
+
+@spurushe
+@sanbalag
+-->
+<DraggablePanel xmlns="org.oicweave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				title="R Script Editor"
+				x="15%" width="70%" y="15%" height="70%"
+				backgroundColor="#EFF4BC" 
+				layout="horizontal"
+				autoLayout="true"
+				>
+	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
+		<mx:VBox width="20%" height="100%" verticalGap="0">
+			<mx:Label text="(1) Select data to use in your script"/>
+			<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"   />			
+		</mx:VBox>
+		<mx:VBox width="55%" height="100%" verticalGap="0">
+			<LabelWithWordWrap text="(2) Assign variables to your data (Separate by commas)"/>
+			<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
+
+			<mx:Spacer height="{padding}"/>
+
+			<LabelWithWordWrap text="(3) Enter a script (type or paste in)"/>			
+			<mx:TextArea id = "inputTA" width="100%" height="100%" text=""/>						
+
+			<mx:Spacer height="{padding}"/>
+
+			<LabelWithWordWrap text="(4) Input a plot script (Optional)"/>
+			<mx:TextArea id = "plotTA" width="100%" height="100%" text=""/>
+
+			<mx:Spacer height="{padding}"/>
+
+			<LabelWithWordWrap text="(5) Specify script outputs to display, separated by commas"/>
+			<mx:TextArea id = "outputTA" width="100%" height="100%" wordWrap="false"/>
+
+			<mx:Spacer height="{padding}"/>
+
+			<LabelWithWordWrap text="(6) Run your script on the server"/>
+			<mx:HBox>
+				<mx:Button id="B2" label="Run script"  buttonDown="viewAndSendbuttonClickHandler()"/>
+				<mx:CheckBox id="intermediateResultCB" label="Verbose" toolTip="Show intermediate results from R"/>
+				<mx:CheckBox id="warningCB" label="Warnings" toolTip="Show warnings from R"/>
+			</mx:HBox>
+
+			<mx:Spacer height="{padding}"/>
+
+			<LabelWithWordWrap text="(7) Export your script for later use"/>
+			<mx:HBox>
+				<mx:Button id="exportBtn" label="Export" buttonDown="export_buttonDownHandler(event)"/>
+				<mx:Button id="importBtn" label="Import" buttonDown="import_buttonDownHandler(event)"/>	
+			</mx:HBox>						
+		</mx:VBox>
+		<mx:VBox width="25%" height="100%" verticalGap="0">
+			<mx:Label text="Result"/>
+			<mx:TextArea id="ResultTA" width="100%" height="100%" editable="false"/>
+		</mx:VBox>
+	</mx:HBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import org.oicweave.api.WeaveAPI;
+			import org.oicweave.api.data.IQualifiedKey;
+			import org.oicweave.data.AttributeColumns.StringColumn;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.controls.List;
+			import mx.events.FlexEvent;
+			import mx.managers.FocusManager;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ArrayUtil;
+			import mx.utils.ObjectUtil;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.core.DynamicState;
+			import org.oicweave.core.ErrorManager;
+			import org.oicweave.core.LinkableHashMap;
+			import org.oicweave.core.LinkableString;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.core.WeaveXMLDecoder;
+			import org.oicweave.core.WeaveXMLEncoder;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.api.linkBindableProperty;
+			import org.oicweave.api.newLinkableChild;
+			import org.oicweave.api.registerLinkableChild;
+			import org.oicweave.api.data.AttributeColumnMetadata;
+			import org.oicweave.data.AttributeColumns.CSVColumn;
+			import org.oicweave.api.data.IAttributeColumn;
+			import org.oicweave.data.AttributeColumns.ReferencedColumn;
+			import org.oicweave.data.KeySets.KeyFilter;
+			import org.oicweave.data.KeySets.KeySet;
+			import org.oicweave.services.DelayedAsyncInvocation;
+			import org.oicweave.services.DelayedAsyncResponder;
+			import org.oicweave.services.WeaveStatisticsServlet;
+			import org.oicweave.services.beans.HierarchicalClusteringResult;
+			import org.oicweave.services.beans.KMeansClusteringResult;
+			import org.oicweave.services.beans.LinearRegressionResult;
+			import org.oicweave.services.beans.RResult;
+			import org.oicweave.utils.ColumnUtils;
+			import org.oicweave.utils.DebugTimer;
+			import org.oicweave.utils.ProbeTextUtils;
+			import org.oicweave.utils.VectorUtils;
+			import org.oicweave.visualization.tools.SimpleVisTool;
+			import org.oicweave.core.weave_internal;
+			
+			private const padding:int = 5;
+			
+			private static function get selection():KeySet
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			}
+			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			private var Rservice:WeaveStatisticsServlet = new WeaveStatisticsServlet(Weave.properties.rServiceURL.value);
+			public const inputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
+			public const plotTALinkable:LinkableString = newLinkableChild(this, LinkableString);
+			public const outputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
+			public const assignTALinkable:LinkableString = newLinkableChild(this, LinkableString);
+			
+			
+		
+			/*protected function checking_clickHandler(event:MouseEvent):void
+			{
+				var column:Array = variables.getObjects();
+				var refColumn:ReferencedColumn;
+				var columnName:String;
+				var columnNames:Array = new Array();
+				//trace(column);
+				for(var i:int = 0; i<column.length; i++){
+					 refColumn = column[i] as ReferencedColumn;
+					 columnName = refColumn.internalColumn.getMetadata('title');
+					 while(columnName.search(" ") > 0)
+					 {
+						 columnName = columnName.replace(" ","");
+					 }
+					 columnNames.push(columnName);					 
+				}
+				trace(columnNames);
+			}*/
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				
+				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				for (var i:int = 0; i < columns.length; i++)
+					variables.copyObject(null, columns[i]);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				//RimageBtn.enabled = false;
+				linkBindableProperty(inputTALinkable,inputTA,"text");
+				linkBindableProperty(plotTALinkable,plotTA,"text");
+				linkBindableProperty(outputTALinkable,outputTA,"text");
+				linkBindableProperty(assignTALinkable,assignTA,"text");
+			}
+			
+			/**
+			 * @return A multi-dimensional Array like [keys, [data1, data2, ...]]
+			 */
+			private function joinColumns(columns:Array):Array
+			{
+				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
+				//make dataype Null, so that columns will be sent as exact dataype to R
+				//if mentioned as String or NUmber ,will convert all columns to String or Number .
+				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
+				return [result.shift(), result];
+			}
+			
+			private function viewAndSendbuttonClickHandler(): void{
+				var result:Array = new Array();
+				//Columns from Joined columns Method
+				var joinedColumnKeys:Array = new Array();
+				var joinedColumns:Array = new Array();
+				//Columns from ColumnListComponent 
+				var selectedColumns:Array = variables.getObjects();
+				
+				var attributeColumns:Array = new Array();
+				//Use as Attribute column as joinColumns takes mebers of IAttributeColumn
+				for(var i:int = 0; i<selectedColumns.length; i++)
+				{
+					attributeColumns[i] = selectedColumns[i] as IAttributeColumn;
+				}
+				//joinColumns Called only When columns are added to ColumnListComponent
+				if(selectedColumns.length >0)
+				{
+					result = joinColumns(attributeColumns);
+					joinedColumnKeys = result[0];
+					joinedColumns = result[1];
+				}
+						
+				//Values need to assign for Column names in R
+				var assignValues:Array = joinedColumns;
+				//Names for Column that need to be used in R
+				var RscriptAssignNames:String = assignTA.text;
+				var assignNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(assignTA.text));
+				//Script for R input
+				var script:String = inputTA.text;
+				var plotScript:String = plotTA.text;
+				// "\r" - replaced by "/n" in all occurance
+				while(script.search("\r") > 0)
+				{
+					script = script.replace("\r","\n");
+				}				
+				//Script to get output from R
+				var outputNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(outputTA.text));
+
+				//Query is created from runScript with same signature from Jave side
+				var showIntermediateResults:Boolean = intermediateResultCB.selected;
+				var showWarnings:Boolean = warningCB.selected;
+				var query:AsyncToken = Rservice.runScript(assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings);
+				//Keys are passed as token 
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnKeys);
+			}
+			
+			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				//Object to stored returned result - Which is array of object{name: , value: }
+				var Robj:Array = event.result as Array;
+				if (Robj == null)
+				{
+					var error:Error = new Error("R Servlet did not return an Array of results as expected.");
+				 	ErrorManager.reportError(error);
+					return;
+				}
+				
+				//Clears previous Result
+				ResultTA.text = "";
+				trace(ObjectUtil.toString(event.result));
+				
+				if (Robj == null)
+				{
+				}
+				
+				var RresultArray:Array = new Array();
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+					RresultArray.push(rResult);				
+				}
+				
+				//TO display in ResultTA
+				var resultString:String = "";
+				for (var j:int = 0; j < RresultArray.length; j++)
+				{								
+					resultString = resultString + RresultArray[j].name + ":\n" + ObjectUtil.toString(RresultArray[j].value) +"\n";
+				}
+				while (resultString.search("\"") > 0)
+				{
+					resultString = resultString.replace("\"","");
+				}
+				
+				ResultTA.text = resultString;
+				
+				//To make availabe for Weave -Mapping with key returned from Token
+				var keys:Array = token as Array;
+				
+				//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
+				for (var p:int = 0;p < RresultArray.length; p++)
+				{
+					if(RresultArray[p].name == "Plot Results")
+					{
+						var imagePanel:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
+						var image:Image = new Image();
+						image.source = RresultArray[p].value;
+						imagePanel.addChild(image);
+						imagePanel.panelWidth.value = "500";
+						imagePanel.panelHeight.value = "500";
+					}
+						
+					if ((RresultArray[p].value).length == keys.length){
+						if (RresultArray[p].value[0] is String)
+						{
+							var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
+							var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+							var dataVec:Vector.<String> = new Vector.<String>();
+							VectorUtils.copy(keys, keyVec);
+							VectorUtils.copy(Robj[p].value, dataVec);
+							testStringColumn.updateRecords(keyVec, dataVec, true);
+							if (keys.length > 0)
+								testStringColumn.weave_internal::metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
+							testStringColumn.weave_internal::metadata.@name = RresultArray[p].name;
+						}
+						else
+						{
+							var table:Array = [];
+							for (var k:int = 0; k < keys.length; k++)
+								table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
+							
+							//testColumn are named after respective Objects Name (i.e) object{name: , value:}
+							var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
+							testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
+							testColumn.numericMode.value = true;
+							testColumn.csvData.value = WeaveAPI.CSVParser.createCSVFromArrays(table);
+							testColumn.title.value = RresultArray[p].name;
+						}
+					}					
+				}
+			}
+			
+			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
+			{
+				trace(["fault", token, event.message].join('\n'));
+				ErrorManager.reportError(event.fault);
+			}
+			
+			//To get the name of selected Column from ColumnListComponent and add to respective TextArea(based on Focused Texarea)
+/* 			protected function inputColumnList_doubleClickHandler(event:MouseEvent):void
+			{
+				//trace(event.currentTarget.internalList.selectedIndex);
+				var columnName:String = variables.getName(event.currentTarget.internalList.selectedItem as ILinkableObject)
+				if(inputTA == focusedTA )
+				{	
+					var cursorPosBegin:int = focusedTA.selectionBeginIndex;
+					var cursorPosEnd:int = focusedTA.selectionEndIndex;
+					focusedTA.text = focusedTA.text.substr(0,cursorPosBegin) + columnName + focusedTA.text.substr(cursorPosEnd);
+				}
+				//Need to write code to remove Empty lines before sending to R-Side
+				if(outputTA == focusedTA)
+				{
+					if(outputTA.text ==""){
+						outputTA.text = outputTA.text + columnName;
+					}
+					else{
+						outputTA.text = outputTA.text +"\n"+columnName;
+					}					
+				}				
+			}
+
+ 			//Saves the pointer to inputTA
+			protected function inputTA_clickHandler(event:MouseEvent):void
+			{
+				var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
+				focusedTA = selectedTA;
+			}
+			////Saves the pointer to outputTA
+			protected function outputTA_clickHandler(event:MouseEvent):void
+			{
+				var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
+				focusedTA = selectedTA;
+			}
+*/
+			
+			protected function assignTA_clickHandler(event:MouseEvent):void
+			{
+				var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
+				focusedTA = selectedTA;
+			} 
+			
+			private var _sessionFileSaver:FileReference = null;
+			private var _sessionFileLoader:FileReference = null;
+			protected function export_buttonDownHandler(event:FlexEvent):void
+			{
+				var rScriptSessionState:XML =
+					<RScriptEditor>
+						<assignNames>{assignTA.text}</assignNames>
+						<inputScript>{inputTA.text}</inputScript>
+						<plotScript>{plotTA.text}</plotScript>
+						<outputScript>{outputTA.text}</outputScript>
+					</RScriptEditor>;
+					
+				trace(rScriptSessionState);
+					
+				//WeaveXMLEncoder.encode(getSessionState(this)
+				if(_sessionFileSaver == null)
+				{
+					_sessionFileSaver = new FileReference();
+				}
+				
+				// Create a date that we can append to the end of each file to make them unique
+				var date:Date = new Date();
+				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
+				
+				_sessionFileSaver.save(rScriptSessionState, "R-Script Session state " + dateString + ".xml");
+			}
+			
+			private var _defaultsFilename:String = null;
+			protected function import_buttonDownHandler(event:FlexEvent):void
+			{
+				var loadedXML:XML = new XML();
+				if(_sessionFileLoader == null)
+				{
+					_sessionFileLoader = new FileReference();
+					
+					_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
+					_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadIntoReditor(loadedXML);} );
+				}
+				
+				_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
+				
+			}
+			
+			
+			protected function loadIntoReditor(xml:XML):void{
+				assignTA.text = xml.assignNames;
+				inputTA.text = xml.inputScript;
+				plotTA.text = xml.plotScript;
+				outputTA.text = xml.outputScript;
+			}
+			
+			private var focusedTA:TextArea = null;
+			
+			
+
+		]]>
+	</mx:Script>
+	
+</DraggablePanel>

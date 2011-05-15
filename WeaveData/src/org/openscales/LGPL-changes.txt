@@ -1,0 +1,8 @@
+modified files (details inside each file):
+
+Proj4as.as
+ProjConstants.as
+ProjLcc.as
+ProjMerc.as
+ProjProjection.as
+ProjVandg.as

@@ -1,0 +1,561 @@
+<Weave encoding="dynamic">
+  <KeyFilter name="defaultSubsetKeyFilter">
+    <excluded/>
+    <included/>
+    <includeMissingKeys>true</includeMissingKeys>
+    <includeMissingKeyTypes>true</includeMissingKeyTypes>
+  </KeyFilter>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <BinnedColumn name="defaultColorBinColumn">
+    <binningDefinition encoding="dynamic">
+      <SimpleBinningDefinition>
+        <numberOfBins>10</numberOfBins>
+      </SimpleBinningDefinition>
+    </binningDefinition>
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorDataColumn"/>
+    </internalDynamicColumn>
+  </BinnedColumn>
+  <FilteredColumn name="defaultColorDataColumn">
+    <filter encoding="dynamic">
+      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+    </filter>
+    <internalDynamicColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>WFSDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category title="USA Population" name="topp:states">
+                  <attribute dataType="Number" title="FAMILIES" keyType="topp:states" featureTypeName="topp:states" name="FAMILIES"/>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </internalDynamicColumn>
+  </FilteredColumn>
+  <KeySet name="defaultSelectionKeySet"/>
+  <KeySet name="defaultProbeKeySet"/>
+  <ColorColumn name="defaultColorColumn">
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorBinColumn"/>
+    </internalDynamicColumn>
+    <ramp encoding="xml">
+      <colorRamp category="basic" singlehue="false" dataFormat="diverging" printFriendly="true" name="RdYlGn" source="ColorBrewer" reverse="false">
+        <node color="0xD7191C" position="0"/>
+        <node color="0xFDAE61" position="0.25"/>
+        <node color="0xFFFFBF" position="0.5"/>
+        <node color="0xA6D96A" position="0.75"/>
+        <node color="0x1A9641" position="1.0"/>
+      </colorRamp>
+    </ramp>
+  </ColorColumn>
+  <WeaveProperties name="WeaveProperties">
+    <axisFontBold>true</axisFontBold>
+    <axisFontColor>0</axisFontColor>
+    <axisFontFamily>Sophia Nubian</axisFontFamily>
+    <axisFontItalic>false</axisFontItalic>
+    <axisFontSize>10</axisFontSize>
+    <axisFontUnderline>false</axisFontUnderline>
+    <backgroundColor>13421772</backgroundColor>
+    <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+    <dashboardMode>false</dashboardMode>
+    <dataInfoURL/>
+    <debugScreenBounds>false</debugScreenBounds>
+    <enableAboutMenu>true</enableAboutMenu>
+    <enableAdd2DHistogram>true</enableAdd2DHistogram>
+    <enableAddBarChart>true</enableAddBarChart>
+    <enableAddColorLegend>true</enableAddColorLegend>
+    <enableAddColormapHistogram>true</enableAddColormapHistogram>
+    <enableAddDataFilter>true</enableAddDataFilter>
+    <enableAddDataSource>true</enableAddDataSource>
+    <enableAddDataTable>true</enableAddDataTable>
+    <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
+    <enableAddGaugeTool>true</enableAddGaugeTool>
+    <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+    <enableAddHistogram>true</enableAddHistogram>
+    <enableAddLineChart>true</enableAddLineChart>
+    <enableAddMap>true</enableAddMap>
+    <enableAddPieChart>true</enableAddPieChart>
+    <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
+    <enableAddRScriptEditor>true</enableAddRScriptEditor>
+    <enableAddScatterplot>true</enableAddScatterplot>
+    <enableAddThermometerTool>true</enableAddThermometerTool>
+    <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+    <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+    <enableClearCurrentSelection>true</enableClearCurrentSelection>
+    <enableCreateSubsets>true</enableCreateSubsets>
+    <enableDataMenu>true</enableDataMenu>
+    <enableDebugAlert>false</enableDebugAlert>
+    <enableDynamicTools>true</enableDynamicTools>
+    <enableEditDataSource>true</enableEditDataSource>
+    <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+    <enableExportDataTable>true</enableExportDataTable>
+    <enableExportToolImage>true</enableExportToolImage>
+    <enableFullscreen>true</enableFullscreen>
+    <enableGoFullscreen>true</enableGoFullscreen>
+    <enableManageSavedSelections>true</enableManageSavedSelections>
+    <enableManageSavedSubsets>true</enableManageSavedSubsets>
+    <enableMenuBar>true</enableMenuBar>
+    <enableMouseWheel>true</enableMouseWheel>
+    <enableNewDataset>true</enableNewDataset>
+    <enableNewUserWizard>true</enableNewUserWizard>
+    <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
+    <enableProbeAnimation>true</enableProbeAnimation>
+    <enableProbeLines>true</enableProbeLines>
+    <enableRefreshHierarchies>true</enableRefreshHierarchies>
+    <enableRemoveSubsets>true</enableRemoveSubsets>
+    <enableRightClick>true</enableRightClick>
+    <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
+    <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
+    <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionsMenu>true</enableSelectionsMenu>
+    <enableSessionBookmarks>true</enableSessionBookmarks>
+    <enableSessionEdit>true</enableSessionEdit>
+    <enableSessionExport>true</enableSessionExport>
+    <enableSessionImport>true</enableSessionImport>
+    <enableSessionMenu>true</enableSessionMenu>
+    <enableShowAllRecords>true</enableShowAllRecords>
+    <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetsMenu>true</enableSubsetsMenu>
+    <enableTaskbar>true</enableTaskbar>
+    <enableToolAttributeEditing>true</enableToolAttributeEditing>
+    <enableToolProbe>true</enableToolProbe>
+    <enableToolSelection>true</enableToolSelection>
+    <enableUserPreferences>true</enableUserPreferences>
+    <enableWindowMenu>true</enableWindowMenu>
+    <pageTitle>Sample Weave Configuration</pageTitle>
+    <panelTitleFontBold>false</panelTitleFontBold>
+    <panelTitleFontColor>16777215</panelTitleFontColor>
+    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
+    <panelTitleFontItalic>false</panelTitleFontItalic>
+    <panelTitleFontSize>10</panelTitleFontSize>
+    <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <probeInnerGlowAlpha>0.9</probeInnerGlowAlpha>
+    <probeInnerGlowBlur>5</probeInnerGlowBlur>
+    <probeInnerGlowColor>16777215</probeInnerGlowColor>
+    <probeInnerGlowStrength>10</probeInnerGlowStrength>
+    <probeOuterGlowAlpha>1</probeOuterGlowAlpha>
+    <probeOuterGlowBlur>3</probeOuterGlowBlur>
+    <probeOuterGlowColor>0</probeOuterGlowColor>
+    <probeOuterGlowStrength>3</probeOuterGlowStrength>
+    <probeToolTipBackgroundAlpha>0.9</probeToolTipBackgroundAlpha>
+    <probeToolTipBackgroundColor>15725756</probeToolTipBackgroundColor>
+    <probeToolTipFontColor>0</probeToolTipFontColor>
+    <rServiceURL>/WeaveServices/RService</rServiceURL>
+    <selectionAlphaAmount>0.5</selectionAlphaAmount>
+    <selectionBlurringAmount>4</selectionBlurringAmount>
+    <shadowAlpha>0.5</shadowAlpha>
+    <shadowAngle>45</shadowAngle>
+    <shadowBlur>4</shadowBlur>
+    <shadowColor>0</shadowColor>
+    <shadowDistance>2</shadowDistance>
+    <showAttributeSelector>true</showAttributeSelector>
+    <showColorController>true</showColorController>
+    <showCopyright>true</showCopyright>
+    <showEquationEditor>true</showEquationEditor>
+    <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+    <showProbeToolTipEditor>true</showProbeToolTipEditor>
+    <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <version>Beta 0.9.6 dev</version>
+    <windowSnapGridSize>1</windowSnapGridSize>
+  </WeaveProperties>
+  <WFSDataSource name="WFSDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="The ancient geographes INC">
+        <category title="Manhattan (NY) landmarks" name="tiger:poly_landmarks"/>
+        <category title="Manhattan (NY) points of interest" name="tiger:poi"/>
+        <category title="Manhattan (NY) roads" name="tiger:tiger_roads"/>
+        <category title="Spearfish archeological sites" name="sf:archsites"/>
+        <category title="Spearfish bug locations" name="sf:bugsites"/>
+        <category title="Spearfish restricted areas" name="sf:restricted"/>
+        <category title="Spearfish roads" name="sf:roads"/>
+        <category title="Spearfish streams" name="sf:streams"/>
+        <category title="Tasmania cities" name="topp:tasmania_cities"/>
+        <category title="Tasmania roads" name="topp:tasmania_roads"/>
+        <category title="Tasmania state boundaries" name="topp:tasmania_state_boundaries"/>
+        <category title="Tasmania water bodies" name="topp:tasmania_water_bodies"/>
+        <category title="USA Population" name="topp:states">
+          <attribute dataType="Geometry" title="the_geom" keyType="topp:states" projectionSRS="" featureTypeName="topp:states" name="the_geom"/>
+          <attribute dataType="String" title="STATE_NAME" keyType="topp:states" featureTypeName="topp:states" name="STATE_NAME"/>
+          <attribute dataType="String" title="STATE_FIPS" keyType="topp:states" featureTypeName="topp:states" name="STATE_FIPS"/>
+          <attribute dataType="String" title="SUB_REGION" keyType="topp:states" featureTypeName="topp:states" name="SUB_REGION"/>
+          <attribute dataType="String" title="STATE_ABBR" keyType="topp:states" featureTypeName="topp:states" name="STATE_ABBR"/>
+          <attribute dataType="Number" title="LAND_KM" keyType="topp:states" featureTypeName="topp:states" name="LAND_KM"/>
+          <attribute dataType="Number" title="WATER_KM" keyType="topp:states" featureTypeName="topp:states" name="WATER_KM"/>
+          <attribute dataType="Number" title="PERSONS" keyType="topp:states" featureTypeName="topp:states" name="PERSONS"/>
+          <attribute dataType="Number" title="FAMILIES" keyType="topp:states" featureTypeName="topp:states" name="FAMILIES"/>
+          <attribute dataType="Number" title="HOUSHOLD" keyType="topp:states" featureTypeName="topp:states" name="HOUSHOLD"/>
+          <attribute dataType="Number" title="MALE" keyType="topp:states" featureTypeName="topp:states" name="MALE"/>
+          <attribute dataType="Number" title="FEMALE" keyType="topp:states" featureTypeName="topp:states" name="FEMALE"/>
+          <attribute dataType="Number" title="WORKERS" keyType="topp:states" featureTypeName="topp:states" name="WORKERS"/>
+          <attribute dataType="Number" title="DRVALONE" keyType="topp:states" featureTypeName="topp:states" name="DRVALONE"/>
+          <attribute dataType="Number" title="CARPOOL" keyType="topp:states" featureTypeName="topp:states" name="CARPOOL"/>
+          <attribute dataType="Number" title="PUBTRANS" keyType="topp:states" featureTypeName="topp:states" name="PUBTRANS"/>
+          <attribute dataType="Number" title="EMPLOYED" keyType="topp:states" featureTypeName="topp:states" name="EMPLOYED"/>
+          <attribute dataType="Number" title="UNEMPLOY" keyType="topp:states" featureTypeName="topp:states" name="UNEMPLOY"/>
+          <attribute dataType="Number" title="SERVICE" keyType="topp:states" featureTypeName="topp:states" name="SERVICE"/>
+          <attribute dataType="Number" title="MANUAL" keyType="topp:states" featureTypeName="topp:states" name="MANUAL"/>
+          <attribute dataType="Number" title="P_MALE" keyType="topp:states" featureTypeName="topp:states" name="P_MALE"/>
+          <attribute dataType="Number" title="P_FEMALE" keyType="topp:states" featureTypeName="topp:states" name="P_FEMALE"/>
+          <attribute dataType="Number" title="SAMP_POP" keyType="topp:states" featureTypeName="topp:states" name="SAMP_POP"/>
+        </category>
+        <category title="World rectangle" name="tiger:giant_polygon">
+          <attribute dataType="Geometry" title="the_geom" keyType="tiger:giant_polygon" projectionSRS="" featureTypeName="tiger:giant_polygon" name="the_geom"/>
+        </category>
+        <category title="ign_geopla_region_Type" name="pg:ign_geopla_region"/>
+        <category title="simplif_dept_Type" name="pg:ign_geopla_dep"/>
+        <category title="simplif_dept_Type" name="pg:simplif_dept"/>
+        <category title="simplif_france_Type" name="pg:simplif_france"/>
+        <category title="simplif_france_Type" name="pg:ign_geopla_france"/>
+        <category title="velov_Type" name="topp:velov"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <url>http://openscales.org/geoserver/wfs</url>
+  </WFSDataSource>
+  <WeaveDataSource name="OpenIndicatorsDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="Open Indicators Server">
+        <category name="GeometryCollections">
+          <attribute dataType="Geometry" name="asdf"/>
+          <attribute dataType="Geometry" name="Atlanta Superdistricts"/>
+          <attribute dataType="Geometry" name="Boston 2005 Parcels"/>
+          <attribute dataType="Geometry" name="boston_foreclosure_deeds"/>
+          <attribute dataType="Geometry" name="Counties"/>
+          <attribute dataType="Geometry" name="County Subdivisions"/>
+          <attribute dataType="Geometry" name="fe_2007_44_elsd"/>
+          <attribute dataType="Geometry" name="fe_2007_44_unsd"/>
+          <attribute dataType="Geometry" name="MA Census Tract"/>
+          <attribute dataType="Geometry" name="Massachusetts Towns"/>
+          <attribute dataType="Geometry" name="nccs_ma_reprojected_test"/>
+          <attribute dataType="Geometry" name="Ohio County Subdivisions"/>
+          <attribute dataType="Geometry" name="Ohio Places"/>
+          <attribute dataType="Geometry" name="ri_schools08_projected"/>
+          <attribute dataType="Geometry" name="States"/>
+          <attribute dataType="Geometry" name="test1ff"/>
+          <attribute dataType="Geometry" name="World Borders"/>
+        </category>
+        <category name="DataTables">
+          <category name="Access Log"/>
+          <category name="arts_and_culture_!^##$>&lt;>&lt;>points"/>
+          <category name="Atlanta Superdistrict Data"/>
+          <category name="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal"/>
+          <category name="Boston Land Use"/>
+          <category name="Boston Parcel Data"/>
+          <category name="Census County Data"/>
+          <category name="Chicago Demographics"/>
+          <category name="Columbus Data"/>
+          <category name="Connecticut Data"/>
+          <category name="educational attainment"/>
+          <category name="Educational Attainment (Census Tract)"/>
+          <category name="educational attainment v3"/>
+          <category name="Housing Price Index"/>
+          <category name="Housing Price Index V2"/>
+          <category name="Massachusetts Land Use"/>
+          <category name="mhd_major_roads_lines_geometry"/>
+          <category name="Mitre Data"/>
+          <category name="nccs_ma_reprojected_test"/>
+          <category name="ne_indicatorssdff"/>
+          <category name="New England Congressional District Data"/>
+          <category name="New England Lower House District Data"/>
+          <category name="New England Municipal Data"/>
+          <category name="New England Subbasin Data"/>
+          <category name="New England Upper House District Data"/>
+          <category name="Obesity"/>
+          <category name="Obesity Years"/>
+          <category name="Obesity1"/>
+          <category name="objectid"/>
+          <category name="Perc by Town"/>
+          <category name="RI School Proficiency"/>
+          <category name="Rosling Indicators"/>
+          <category name="school_performance_level"/>
+          <category name="st99_d00"/>
+          <category name="StatesHealth"/>
+          <category name="StatesHealth Years"/>
+          <category name="student_CMD"/>
+          <category name="student_EJL"/>
+          <category name="Suffolk County Demographics By Census Tract"/>
+          <category name="test"/>
+          <category name="test1"/>
+          <category name="test1ff"/>
+          <category name="testabc"/>
+          <category name="testasdfasfas"/>
+          <category name="TURI Totals 1990-2007 by town"/>
+          <category name="Unemployment MSA data"/>
+          <category name="unicefcombined"/>
+          <category name="urbanrural years"/>
+          <category name="USprisoners"/>
+          <category name="Weave Jira Issues"/>
+          <category name="World Bank Development Indicators"/>
+          <category name="World Name Table"/>
+        </category>
+      </hierarchy>
+    </attributeHierarchy>
+    <hierarchyURL/>
+    <url>/WeaveServices/DataService</url>
+  </WeaveDataSource>
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WFSDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category title="USA Population" name="topp:states">
+                <attribute name="PERSONS" title="PERSONS" keyType="topp:states" dataType="Number" featureTypeName="topp:states"/>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn2">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WFSDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category title="USA Population" name="topp:states">
+                <attribute name="FAMILIES" title="FAMILIES" keyType="topp:states" dataType="Number" featureTypeName="topp:states"/>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn3">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WFSDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category title="USA Population" name="topp:states">
+                <attribute name="EMPLOYED" title="EMPLOYED" keyType="topp:states" dataType="Number" featureTypeName="topp:states"/>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn4">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WFSDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category title="USA Population" name="topp:states">
+                <attribute name="PUBTRANS" title="PUBTRANS" keyType="topp:states" dataType="Number" featureTypeName="topp:states"/>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WFSDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category title="USA Population" name="topp:states">
+                <attribute name="STATE_NAME" title="STATE_NAME" keyType="topp:states" dataType="String" featureTypeName="topp:states"/>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <MapTool name="MapTool2">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>10</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <dataBounds>
+          <xMax>193174103.86721388</xMax>
+          <xMin>-233249120.5527701</xMin>
+          <yMax>78897689.09973273</yMax>
+          <yMin>-118972705.78531125</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <PlotLayer name="wms">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <WMSPlotter>
+                <displayMissingImage>false</displayMissingImage>
+                <gridSpacing>12</gridSpacing>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <preferLowerQuality>false</preferLowerQuality>
+                <serviceName>NASA OnEarth</serviceName>
+                <srs>EPSG:900913</srs>
+                <styles/>
+              </WMSPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <enableBitmapFilters>true</enableBitmapFilters>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <GeometryPlotter>
+                <fill>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
+                </fill>
+                <geometryColumn>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WFSDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category title="USA Population" name="topp:states">
+                                <attribute featureTypeName="topp:states" title="the_geom" keyType="topp:states" projectionSRS="EPSG:4326" dataType="Geometry" name="the_geom"/>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                  <projectionSRS>EPSG:900913</projectionSRS>
+                </geometryColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <line>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>none</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </line>
+                <pixellation>1</pixellation>
+                <pointShapeSize>5</pointShapeSize>
+              </GeometryPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>0</marginBottom>
+        <marginLeft>0</marginLeft>
+        <marginRight>0</marginRight>
+        <marginTop>0</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBackground>false</enableBackground>
+    <enableBorders>true</enableBorders>
+    <enableControlPanel>true</enableControlPanel>
+    <enableHelpPanel>true</enableHelpPanel>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <linkColormap>false</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <maximizable>true</maximizable>
+    <maximized>true</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>0</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>60.981%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>39.531%</panelWidth>
+    <panelX>9.7917%</panelX>
+    <panelY>30.277%</panelY>
+    <projectionSRS>EPSG:900913</projectionSRS>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </MapTool>
+</Weave>

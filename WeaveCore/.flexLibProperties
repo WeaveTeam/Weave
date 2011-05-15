@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties version="3">
+  <includeClasses>
+    <classEntry path="org.oicweave.core.CallbackCollection"/>
+    <classEntry path="org.oicweave.core.ChildListCallbackInterface"/>
+    <classEntry path="org.oicweave.core.ClassUtils"/>
+    <classEntry path="org.oicweave.core.DynamicState"/>
+    <classEntry path="org.oicweave.core.ErrorManager"/>
+    <classEntry path="org.oicweave.core.GlobalObjectReference"/>
+    <classEntry path="org.oicweave.core.LinkableBoolean"/>
+    <classEntry path="org.oicweave.core.LinkableDisplayObject"/>
+    <classEntry path="org.oicweave.core.LinkableDynamicObject"/>
+    <classEntry path="org.oicweave.core.LinkableHashMap"/>
+    <classEntry path="org.oicweave.core.LinkableNumber"/>
+    <classEntry path="org.oicweave.core.LinkableString"/>
+    <classEntry path="org.oicweave.core.LinkableVariable"/>
+    <classEntry path="org.oicweave.core.LinkableWrapper"/>
+    <classEntry path="org.oicweave.core.LinkableXML"/>
+    <classEntry path="org.oicweave.core.SessionManager"/>
+    <classEntry path="org.oicweave.core.StageUtils"/>
+    <classEntry path="org.oicweave.core.UIUtils"/>
+    <classEntry path="org.oicweave.core.UntypedLinkableVariable"/>
+    <classEntry path="org.oicweave.core.WeaveJavaScriptAPI"/>
+    <classEntry path="org.oicweave.core.WeaveXMLDecoder"/>
+    <classEntry path="org.oicweave.core.WeaveXMLEncoder"/>
+    <classEntry path="org.oicweave.core.weave_internal"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

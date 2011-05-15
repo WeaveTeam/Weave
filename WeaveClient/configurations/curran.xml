@@ -1,0 +1,800 @@
+<Weave encoding="dynamic">
+	<WeaveProperties name="WeaveProperties">
+		<backgroundColor>NaN</backgroundColor>
+		<cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+		<enableAboutMenu>true</enableAboutMenu>
+		<enableAdd2DHistogram>true</enableAdd2DHistogram>
+		<enableAddBarChart>true</enableAddBarChart>
+		<enableAddColormapHistogram>true</enableAddColormapHistogram>
+		<enableAddDataTable>true</enableAddDataTable>
+		<enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+		<enableAddHistogram>true</enableAddHistogram>
+		<enableAddLineChart>true</enableAddLineChart>
+		<enableAddMap>true</enableAddMap>
+		<enableAddOpenIndicatorsDataSource>true</enableAddOpenIndicatorsDataSource>
+		<enableAddPieChart>true</enableAddPieChart>
+		<enableAddRadViz>true</enableAddRadViz>
+		<enableAddScatterplot>true</enableAddScatterplot>
+		<enableAddStickFigurePlot>true</enableAddStickFigurePlot>
+		<enableAddTextTool>true</enableAddTextTool>
+		<enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+		<enableBorders>true</enableBorders>
+		<enableCloseWindow>true</enableCloseWindow>
+		<enableDataImport>true</enableDataImport>
+		<enableDebugAlert>false</enableDebugAlert>
+		<enableDynamicTools>true</enableDynamicTools>
+		<enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+		<enableExportDataTable>true</enableExportDataTable>
+		<enableExportSessionState>true</enableExportSessionState>
+		<enableExportToolImage>true</enableExportToolImage>
+		<enableFullscreen>true</enableFullscreen>
+		<enableMapLayerAddRemove>true</enableMapLayerAddRemove>
+		<enableMapLayerEdit>true</enableMapLayerEdit>
+		<enableMaximizeWindow>true</enableMaximizeWindow>
+		<enableMenuBar>true</enableMenuBar>
+		<enableMenuBarOnTop>true</enableMenuBarOnTop>
+		<enableMinimizeWindow>true</enableMinimizeWindow>
+		<enableNewDataset>true</enableNewDataset>
+		<enableSearchForRecord>true</enableSearchForRecord>
+		<enableSession>true</enableSession>
+		<enableSessionEdit>true</enableSessionEdit>
+		<enableSessionLoad>true</enableSessionLoad>
+		<enableSessionNavigator>true</enableSessionNavigator>
+		<enableSessionSave>true</enableSessionSave>
+		<enableSubsetControls>true</enableSubsetControls>
+		<enableTaskbar>true</enableTaskbar>
+		<enableToolAttributeEditing>true</enableToolAttributeEditing>
+		<enableToolAutoResizeAndPosition>true</enableToolAutoResizeAndPosition>
+		<enableToolClickDebug>false</enableToolClickDebug>
+		<enableToolProbe>true</enableToolProbe>
+		<enableToolSelection>true</enableToolSelection>
+		<enableUserPreferences>true</enableUserPreferences>
+		<enableWindowMenu>true</enableWindowMenu>
+		<fontBold>false</fontBold>
+		<fontColor>NaN</fontColor>
+		<fontFamily/>
+		<fontItalic>false</fontItalic>
+		
+		<fontUnderline>false</fontUnderline>
+		<pageTitle>Open Indicators Weave</pageTitle>
+		<probePrefix/>
+		<probeSuffix/>
+		<rServicesURL>/WeaveServices</rServicesURL>
+		<showCopyright>true</showCopyright>
+		<showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+		<showVisToolCloseDialog>false</showVisToolCloseDialog>
+		<version>Beta 0.8.8</version>
+		<wsShapesURL>/WeaveServices/WSShapesService?wsdl</wsShapesURL>
+	</WeaveProperties>
+	<ColorColumn name="defaultColorColumn">
+		<internalDynamicColumn encoding="dynamic">
+			<StaticObjectReference name="defaultColorBinColumn"/>
+		</internalDynamicColumn>
+		<ramp encoding="xml">
+			<colorRamp category="visualization" dataFormat="qualitative" source="OIC" name="Jet">
+				<node color="0x000086" position="0"/>
+				<node color="0x0000ff" position="0.1518324607329843"/>
+				<node color="0x00ffff" position="0.3717277486910995"/>
+				<node color="0xffff00" position="0.6282722513089005"/>
+				<node color="0xff0000" position="0.8952879581151832"/>
+				<node color="0x860000" position="1"/>
+			</colorRamp>
+		</ramp>
+		<reverse>false</reverse>
+	</ColorColumn>
+	<BinnedColumn name="defaultColorBinColumn">
+		<binningDefinition encoding="dynamic">
+			<SimpleBinningDefinition>
+				<numberOfBins>10</numberOfBins>
+			</SimpleBinningDefinition>
+		</binningDefinition>
+		<internalDynamicColumn encoding="dynamic">
+			<StaticObjectReference name="defaultColorDataColumn"/>
+		</internalDynamicColumn>
+	</BinnedColumn>
+	<FilteredColumn name="defaultColorDataColumn">
+		<filter encoding="dynamic">
+			<StaticObjectReference name="defaultSubsetKeyFilter"/>
+		</filter>
+		<internalDynamicColumn encoding="dynamic"/>
+	</FilteredColumn>
+	<KeyFilter name="defaultSubsetKeyFilter">
+		<excludedKeys/>
+		<includedKeys/>
+		<includeMissingKeys>false</includeMissingKeys>
+		<sessionedKeyType/>
+	</KeyFilter>
+	<KeySet name="defaultSelectionKeySet">
+		<sessionedKeys/>
+		<sessionedKeyType/>
+	</KeySet>
+	<KeySet name="defaultProbeKeySet">
+		<sessionedKeys/>
+		<sessionedKeyType>fips</sessionedKeyType>
+	</KeySet>
+	<GrailsDataSource name="data">
+		<attributeHierarchy encoding="xml">
+			<hierarchy name="Weave Grails Server">
+				<category tableId="15" name="Obesity">
+					<attribute keyType="fips" tableId="15" dataType="String" id="225" name="FIPS" title="FIPS"/>
+					<attribute keyType="fips" tableId="15" dataType="String" id="240" name="FIPS2" title="FIPS2"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="230" name="PercentObese1995" title="PercentObese1995"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="235" name="PercentObese1996" title="PercentObese1996"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="238" name="PercentObese1997" title="PercentObese1997"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="236" name="PercentObese1998" title="PercentObese1998"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="226" name="PercentObese1999" title="PercentObese1999"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="227" name="PercentObese2000" title="PercentObese2000"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="228" name="PercentObese2001" title="PercentObese2001"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="229" name="PercentObese2002" title="PercentObese2002"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="231" name="PercentObese2003" title="PercentObese2003"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="233" name="PercentObese2004" title="PercentObese2004"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="237" name="PercentObese2005" title="PercentObese2005"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="234" name="PercentObese2006" title="PercentObese2006"/>
+					<attribute keyType="fips" tableId="15" dataType="Number" id="232" name="PercentObese2007" title="PercentObese2007"/>
+					<attribute keyType="fips" tableId="15" dataType="String" id="239" name="State" title="State"/>
+				</category>
+				<category tableId="16" name="Test"/>
+			</hierarchy>
+		</attributeHierarchy>
+		<url>/weaveServer/data/get</url>
+	</GrailsDataSource>
+	<LinkableHashMap encoding="dynamic" name="Probed Columns"/>
+	<LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
+	<ThermometerTool name="ThermometerTool">
+		<children encoding="dynamic">
+			<SimpleInteractiveVisualization name="visualization">
+				<activeLayerName>plot</activeLayerName>
+				<dataBounds>
+					<xMax>1</xMax>
+					<xMin>0</xMin>
+					<yMax>20.1</yMax>
+					<yMin>0</yMin>
+				</dataBounds>
+				<enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+				<enableFixedAspectRatio>false</enableFixedAspectRatio>
+				<enableZoomAndPan>true</enableZoomAndPan>
+				<includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+				<layers encoding="dynamic">
+					<AxisLayer name="yAxis">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisLineDataBounds>
+									<xMax>0</xMax>
+									<xMin>0</xMin>
+									<yMax>20.1</yMax>
+									<yMin>0</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>20.1</axisLineMaxValue>
+								<axisLineMinValue>0</axisLineMinValue>
+								<axisLineStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>2</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</axisLineStyle>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelColor>0</labelColor>
+								<labelDistance>-10</labelDistance>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelRelativeAngle>90</labelRelativeAngle>
+								<labelSize>10</labelSize>
+								<labelVerticalAlign>bottom</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickLineLength>10</tickLineLength>
+								<tickLineStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>2</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</tickLineStyle>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<SelectablePlotLayer name="plot">
+						<plotter encoding="dynamic">
+							<ThermometerPlotter>
+								<keySet>
+									<keyFilter encoding="dynamic">
+										<StaticObjectReference name="defaultSubsetKeyFilter"/>
+									</keyFilter>
+								</keySet>
+								<meterColumn encoding="dynamic">
+									<ReferencedColumn>
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>data</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy name="Weave Grails Server">
+														<category tableId="15" name="Obesity">
+															<attribute keyType="fips" dataType="Number" id="230" name="PercentObese1995" title="PercentObese1995"/>
+														</category>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</meterColumn>
+							</ThermometerPlotter>
+						</plotter>
+						<probeFilter encoding="dynamic">
+							<StaticObjectReference name="defaultProbeKeySet"/>
+						</probeFilter>
+						<selectionBlurringAmount>4</selectionBlurringAmount>
+						<selectionFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSelectionKeySet"/>
+						</selectionFilter>
+						<subsetFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSubsetKeyFilter"/>
+						</subsetFilter>
+					</SelectablePlotLayer>
+				</layers>
+				<marginBottom>80</marginBottom>
+				<marginLeft>80</marginLeft>
+				<marginRight>10</marginRight>
+				<marginTop>30</marginTop>
+				<maxZoomLevel>16</maxZoomLevel>
+				<minScreenSize>128</minScreenSize>
+				<minZoomLevel>0</minZoomLevel>
+			</SimpleInteractiveVisualization>
+		</children>
+		<closeable>true</closeable>
+		<draggable>true</draggable>
+		<hideBorders>false</hideBorders>
+		<lockPanel>false</lockPanel>
+		<maximizable>true</maximizable>
+		<minimizable>true</minimizable>
+		<panelHeight>100%</panelHeight>
+		<panelStyleList/>
+		<panelWidth>21.58%</panelWidth>
+		<panelX>77.753%</panelX>
+		<panelY>0%</panelY>
+		<resizeable>true</resizeable>
+		<showCloseDialog>false</showCloseDialog>
+		<userControlsAvailable>true</userControlsAvailable>
+	</ThermometerTool>
+	<GaugeTool name="GaugeTool">
+		<children encoding="dynamic">
+			<SimpleInteractiveVisualization name="visualization">
+				<activeLayerName>plot</activeLayerName>
+				<dataBounds>
+					<xMax>1</xMax>
+					<xMin>-1</xMin>
+					<yMax>1</yMax>
+					<yMin>-0.3</yMin>
+				</dataBounds>
+				<enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+				<enableFixedAspectRatio>false</enableFixedAspectRatio>
+				<enableZoomAndPan>true</enableZoomAndPan>
+				<includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+				<layers encoding="dynamic">
+					<SelectablePlotLayer name="plot">
+						<plotter encoding="dynamic">
+							<GaugePlotter>
+								<keySet>
+									<keyFilter encoding="dynamic">
+										<StaticObjectReference name="defaultSubsetKeyFilter"/>
+									</keyFilter>
+								</keySet>
+								<meterColumn encoding="dynamic">
+									<ReferencedColumn>
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>data</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy name="Weave Grails Server">
+														<category tableId="15" name="Obesity">
+															<attribute keyType="fips" dataType="Number" id="230" name="PercentObese1995" title="PercentObese1995"/>
+														</category>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</meterColumn>
+							</GaugePlotter>
+						</plotter>
+						<probeFilter encoding="dynamic">
+							<StaticObjectReference name="defaultProbeKeySet"/>
+						</probeFilter>
+						<selectionBlurringAmount>4</selectionBlurringAmount>
+						<selectionFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSelectionKeySet"/>
+						</selectionFilter>
+						<subsetFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSubsetKeyFilter"/>
+						</subsetFilter>
+					</SelectablePlotLayer>
+				</layers>
+				<marginBottom>0</marginBottom>
+				<marginLeft>0</marginLeft>
+				<marginRight>0</marginRight>
+				<marginTop>0</marginTop>
+				<maxZoomLevel>16</maxZoomLevel>
+				<minScreenSize>128</minScreenSize>
+				<minZoomLevel>0</minZoomLevel>
+			</SimpleInteractiveVisualization>
+		</children>
+		<closeable>true</closeable>
+		<draggable>true</draggable>
+		<hideBorders>false</hideBorders>
+		<lockPanel>false</lockPanel>
+		<maximizable>true</maximizable>
+		<minimizable>true</minimizable>
+		<panelHeight>67.797%</panelHeight>
+		<panelStyleList/>
+		<panelWidth>77.753%</panelWidth>
+		<panelX>0%</panelX>
+		<panelY>0%</panelY>
+		<resizeable>true</resizeable>
+		<showCloseDialog>false</showCloseDialog>
+		<userControlsAvailable>true</userControlsAvailable>
+	</GaugeTool>
+	<CompoundBarChartTool name="CompoundBarChartTool">
+		<children encoding="dynamic">
+			<SimpleInteractiveVisualization name="visualization">
+				<activeLayerName>plot</activeLayerName>
+				<dataBounds>
+					<xMax>49</xMax>
+					<xMin>0</xMin>
+					<yMax>20.1</yMax>
+					<yMin>0</yMin>
+				</dataBounds>
+				<enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+				<enableFixedAspectRatio>false</enableFixedAspectRatio>
+				<enableZoomAndPan>false</enableZoomAndPan>
+				<includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+				<layers encoding="dynamic">
+					<AxisLayer name="xAxis">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisLineDataBounds>
+									<xMax>49</xMax>
+									<xMin>0</xMin>
+									<yMax>0</yMax>
+									<yMin>0</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>49</axisLineMaxValue>
+								<axisLineMinValue>0</axisLineMinValue>
+								<axisLineStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>2</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</axisLineStyle>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelColor>0</labelColor>
+								<labelDistance>-10</labelDistance>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelRelativeAngle>-45</labelRelativeAngle>
+								<labelSize>10</labelSize>
+								<labelVerticalAlign>top</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickLineLength>10</tickLineLength>
+								<tickLineStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>2</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</tickLineStyle>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<AxisLayer name="yAxis">
+						<isOverlay>false</isOverlay>
+						<plotter encoding="dynamic">
+							<AxisPlotter>
+								<axisLineDataBounds>
+									<xMax>0</xMax>
+									<xMin>0</xMin>
+									<yMax>20.1</yMax>
+									<yMin>0</yMin>
+								</axisLineDataBounds>
+								<axisLineMaxValue>20.1</axisLineMaxValue>
+								<axisLineMinValue>0</axisLineMinValue>
+								<axisLineStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>2</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</axisLineStyle>
+								<forceTickCount>false</forceTickCount>
+								<keySet>
+									<keyFilter encoding="dynamic"/>
+								</keySet>
+								<labelColor>0</labelColor>
+								<labelDistance>-10</labelDistance>
+								<labelDistanceIsVertical>false</labelDistanceIsVertical>
+								<labelHorizontalAlign>right</labelHorizontalAlign>
+								<labelNumberFormatter>
+									<decimalSeparatorFrom>.</decimalSeparatorFrom>
+									<decimalSeparatorTo>.</decimalSeparatorTo>
+									<precision>0</precision>
+									<rounding>none</rounding>
+									<thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+									<thousandsSeparatorTo>,</thousandsSeparatorTo>
+									<useNegativeSign>true</useNegativeSign>
+									<useThousandsSeparator>true</useThousandsSeparator>
+								</labelNumberFormatter>
+								<labelRelativeAngle>45</labelRelativeAngle>
+								<labelSize>10</labelSize>
+								<labelVerticalAlign>bottom</labelVerticalAlign>
+								<tickCountRequested>5</tickCountRequested>
+								<tickLineLength>10</tickLineLength>
+								<tickLineStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>2</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</tickLineStyle>
+								<tickMaxValue>NaN</tickMaxValue>
+								<tickMinValue>NaN</tickMinValue>
+							</AxisPlotter>
+						</plotter>
+						<selectionFilter encoding="dynamic"/>
+					</AxisLayer>
+					<SelectablePlotLayer name="plot">
+						<plotter encoding="dynamic">
+							<CompoundBarChartPlotter>
+								<chartColors encoding="xml">
+									<colorRamp category="aesthetic" dataFormat="qualitative" source="OIC" name="Doppler Radar">
+										<node color="0x04E9E7" position="0"/>
+										<node color="0x009DF4" position="0.08"/>
+										<node color="0x0201F4" position="0.16"/>
+										<node color="0x01FC01" position="0.24"/>
+										<node color="0x00C400" position="0.32"/>
+										<node color="0x008C00" position="0.4"/>
+										<node color="0x0FDF801" position="0.48"/>
+										<node color="0xF99200" position="0.56"/>
+										<node color="0xFD0000" position="0.64"/>
+										<node color="0xBC0000" position="0.72"/>
+										<node color="0xBC0000" position="0.8"/>
+										<node color="0xF800FD" position="0.88"/>
+										<node color="0x9854C6" position="1.0"/>
+									</colorRamp>
+								</chartColors>
+								<groupMode>false</groupMode>
+								<heightColumns encoding="dynamic">
+									<ReferencedColumn name="ReferencedColumn">
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>data</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy name="Weave Grails Server">
+														<category tableId="15" name="Obesity">
+															<attribute title="PercentObese1995" dataType="Number" id="230" name="PercentObese1995" keyType="fips"/>
+														</category>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</heightColumns>
+								<horizontalMode>false</horizontalMode>
+								<keySet>
+									<keyFilter encoding="dynamic">
+										<StaticObjectReference name="defaultSubsetKeyFilter"/>
+									</keyFilter>
+								</keySet>
+								<lineStyle encoding="dynamic">
+									<SolidLineStyle>
+										<alpha>
+											<defaultValue>0.5</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</alpha>
+										<caps>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</caps>
+										<color>
+											<defaultValue>0</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</color>
+										<enabled>
+											<defaultValue>true</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</enabled>
+										<joints>
+											<defaultValue/>
+											<internalDynamicColumn encoding="dynamic"/>
+										</joints>
+										<miterLimit>
+											<defaultValue>3</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</miterLimit>
+										<pixelHinting>
+											<defaultValue>false</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</pixelHinting>
+										<scaleMode>
+											<defaultValue>normal</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</scaleMode>
+										<weight>
+											<defaultValue>1</defaultValue>
+											<internalDynamicColumn encoding="dynamic"/>
+										</weight>
+									</SolidLineStyle>
+								</lineStyle>
+								<sortColumn encoding="dynamic">
+									<ReferencedColumn>
+										<columnReference encoding="dynamic">
+											<HierarchyColumnReference>
+												<dataSourceName>data</dataSourceName>
+												<hierarchyPath encoding="xml">
+													<hierarchy name="Weave Grails Server">
+														<category tableId="15" name="Obesity">
+															<attribute keyType="fips" dataType="Number" id="230" name="PercentObese1995" title="PercentObese1995"/>
+														</category>
+													</hierarchy>
+												</hierarchyPath>
+											</HierarchyColumnReference>
+										</columnReference>
+									</ReferencedColumn>
+								</sortColumn>
+							</CompoundBarChartPlotter>
+						</plotter>
+						<probeFilter encoding="dynamic">
+							<StaticObjectReference name="defaultProbeKeySet"/>
+						</probeFilter>
+						<selectionBlurringAmount>4</selectionBlurringAmount>
+						<selectionFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSelectionKeySet"/>
+						</selectionFilter>
+						<subsetFilter encoding="dynamic">
+							<StaticObjectReference name="defaultSubsetKeyFilter"/>
+						</subsetFilter>
+					</SelectablePlotLayer>
+				</layers>
+				<marginBottom>80</marginBottom>
+				<marginLeft>80</marginLeft>
+				<marginRight>10</marginRight>
+				<marginTop>10</marginTop>
+				<maxZoomLevel>16</maxZoomLevel>
+				<minScreenSize>128</minScreenSize>
+				<minZoomLevel>0</minZoomLevel>
+			</SimpleInteractiveVisualization>
+		</children>
+		<closeable>true</closeable>
+		<draggable>true</draggable>
+		<hideBorders>false</hideBorders>
+		<lockPanel>false</lockPanel>
+		<maximizable>true</maximizable>
+		<minimizable>true</minimizable>
+		<panelHeight>31.78%</panelHeight>
+		<panelStyleList/>
+		<panelWidth>77.531%</panelWidth>
+		<panelX>0%</panelX>
+		<panelY>68.22%</panelY>
+		<resizeable>true</resizeable>
+		<showCloseDialog>false</showCloseDialog>
+		<userControlsAvailable>true</userControlsAvailable>
+	</CompoundBarChartTool>
+</Weave>

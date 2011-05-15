@@ -1,0 +1,1626 @@
+<Weave encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <KeyFilter name="defaultSubsetKeyFilter">
+    <excluded/>
+    <included/>
+    <includeMissingKeys>true</includeMissingKeys>
+    <includeMissingKeyTypes>true</includeMissingKeyTypes>
+  </KeyFilter>
+  <WeaveProperties name="WeaveProperties">
+    <axisFontBold>true</axisFontBold>
+    <axisFontColor>0</axisFontColor>
+    <axisFontFamily>Sophia Nubian</axisFontFamily>
+    <axisFontItalic>false</axisFontItalic>
+    <axisFontSize>11</axisFontSize>
+    <axisFontUnderline>false</axisFontUnderline>
+    <backgroundColor>13421772</backgroundColor>
+    <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+    <dashboardMode>false</dashboardMode>
+    <dataInfoURL/>
+    <debugScreenBounds>false</debugScreenBounds>
+    <enableAboutMenu>true</enableAboutMenu>
+    <enableAdd2DHistogram>true</enableAdd2DHistogram>
+    <enableAddBarChart>true</enableAddBarChart>
+    <enableAddColorLegend>true</enableAddColorLegend>
+    <enableAddColormapHistogram>true</enableAddColormapHistogram>
+    <enableAddDataFilter>true</enableAddDataFilter>
+    <enableAddDataSource>true</enableAddDataSource>
+    <enableAddDataTable>true</enableAddDataTable>
+    <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
+    <enableAddGaugeTool>true</enableAddGaugeTool>
+    <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+    <enableAddHistogram>true</enableAddHistogram>
+    <enableAddLineChart>true</enableAddLineChart>
+    <enableAddMap>true</enableAddMap>
+    <enableAddPieChart>true</enableAddPieChart>
+    <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
+    <enableAddRScriptEditor>true</enableAddRScriptEditor>
+    <enableAddScatterplot>true</enableAddScatterplot>
+    <enableAddThermometerTool>true</enableAddThermometerTool>
+    <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+    <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+    <enableClearCurrentSelection>true</enableClearCurrentSelection>
+    <enableCreateSubsets>true</enableCreateSubsets>
+    <enableDataMenu>true</enableDataMenu>
+    <enableDebugAlert>false</enableDebugAlert>
+    <enableDynamicTools>true</enableDynamicTools>
+    <enableEditDataSource>true</enableEditDataSource>
+    <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+    <enableExportDataTable>true</enableExportDataTable>
+    <enableExportToolImage>true</enableExportToolImage>
+    <enableFullscreen>true</enableFullscreen>
+    <enableGoFullscreen>true</enableGoFullscreen>
+    <enableManageSavedSelections>true</enableManageSavedSelections>
+    <enableManageSavedSubsets>true</enableManageSavedSubsets>
+    <enableMenuBar>true</enableMenuBar>
+    <enableMouseWheel>true</enableMouseWheel>
+    <enableNewDataset>true</enableNewDataset>
+    <enableNewUserWizard>true</enableNewUserWizard>
+    <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
+    <enableProbeAnimation>true</enableProbeAnimation>
+    <enableProbeLines>true</enableProbeLines>
+    <enableRefreshHierarchies>true</enableRefreshHierarchies>
+    <enableRemoveSubsets>true</enableRemoveSubsets>
+    <enableRightClick>true</enableRightClick>
+    <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
+    <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
+    <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionsMenu>true</enableSelectionsMenu>
+    <enableSessionBookmarks>true</enableSessionBookmarks>
+    <enableSessionEdit>true</enableSessionEdit>
+    <enableSessionExport>true</enableSessionExport>
+    <enableSessionImport>true</enableSessionImport>
+    <enableSessionMenu>true</enableSessionMenu>
+    <enableShowAllRecords>true</enableShowAllRecords>
+    <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetsMenu>true</enableSubsetsMenu>
+    <enableTaskbar>true</enableTaskbar>
+    <enableToolAttributeEditing>true</enableToolAttributeEditing>
+    <enableToolProbe>true</enableToolProbe>
+    <enableToolSelection>true</enableToolSelection>
+    <enableUserPreferences>true</enableUserPreferences>
+    <enableWindowMenu>true</enableWindowMenu>
+    <pageTitle>Open Indicators Weave</pageTitle>
+    <panelTitleFontBold>false</panelTitleFontBold>
+    <panelTitleFontColor>16777215</panelTitleFontColor>
+    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
+    <panelTitleFontItalic>false</panelTitleFontItalic>
+    <panelTitleFontSize>10</panelTitleFontSize>
+    <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <probeInnerGlowAlpha>0.9</probeInnerGlowAlpha>
+    <probeInnerGlowBlur>5</probeInnerGlowBlur>
+    <probeInnerGlowColor>16777215</probeInnerGlowColor>
+    <probeInnerGlowStrength>10</probeInnerGlowStrength>
+    <probeOuterGlowAlpha>1</probeOuterGlowAlpha>
+    <probeOuterGlowBlur>3</probeOuterGlowBlur>
+    <probeOuterGlowColor>0</probeOuterGlowColor>
+    <probeOuterGlowStrength>3</probeOuterGlowStrength>
+    <probeToolTipBackgroundAlpha>0.9</probeToolTipBackgroundAlpha>
+    <probeToolTipBackgroundColor>15725756</probeToolTipBackgroundColor>
+    <probeToolTipFontColor>0</probeToolTipFontColor>
+    <rServiceURL>/WeaveServices/RService</rServiceURL>
+    <selectionAlphaAmount>0.5</selectionAlphaAmount>
+    <selectionBlurringAmount>4</selectionBlurringAmount>
+    <shadowAlpha>0.5</shadowAlpha>
+    <shadowAngle>45</shadowAngle>
+    <shadowBlur>4</shadowBlur>
+    <shadowColor>0</shadowColor>
+    <shadowDistance>2</shadowDistance>
+    <showAttributeSelector>true</showAttributeSelector>
+    <showColorController>true</showColorController>
+    <showCopyright>true</showCopyright>
+    <showEquationEditor>true</showEquationEditor>
+    <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+    <showProbeToolTipEditor>true</showProbeToolTipEditor>
+    <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <version>1.0 Beta 1</version>
+    <windowSnapGridSize>4</windowSnapGridSize>
+  </WeaveProperties>
+  <ColorColumn name="defaultColorColumn">
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorBinColumn"/>
+    </internalDynamicColumn>
+    <ramp encoding="xml">
+      <colorRamp source="OIC" name="Van Gogh" reverse="false" category="aesthetic">
+        <node color="0x31415A" position="0"/>
+        <node color="0x609DCD" position="0.15"/>
+        <node color="0xE9B400" position="0.3"/>
+        <node color="0xFFFF00" position="0.4"/>
+        <node color="0xBE2E00" position="0.8"/>
+        <node color="0xBE2E00" position="1"/>
+      </colorRamp>
+    </ramp>
+  </ColorColumn>
+  <BinnedColumn name="defaultColorBinColumn">
+    <binningDefinition encoding="dynamic">
+      <SimpleBinningDefinition>
+        <numberOfBins>10</numberOfBins>
+      </SimpleBinningDefinition>
+    </binningDefinition>
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorDataColumn"/>
+    </internalDynamicColumn>
+  </BinnedColumn>
+  <FilteredColumn name="defaultColorDataColumn">
+    <filter encoding="dynamic">
+      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+    </filter>
+    <internalDynamicColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName/>
+            <hierarchyPath encoding="xml">
+              <hierarchy title="Equations">
+                <attribute title="Equation Column" name="EquationEditorColumn"/>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </internalDynamicColumn>
+  </FilteredColumn>
+  <KeySet name="defaultSelectionKeySet"/>
+  <KeySet name="defaultProbeKeySet"/>
+  <WeaveDataSource name="OpenIndicatorsDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="Open Indicators Server">
+        <category name="Data Tables">
+          <category name="Access Log"/>
+          <category name="arts_and_culture_!^##$>&lt;>&lt;>points"/>
+          <category name="asdf"/>
+          <category name="Atlanta Superdistrict Data"/>
+          <category name="Atlanta Superdistricts"/>
+          <category name="bikeped_facilities"/>
+          <category name="Boston 2005 Parcels"/>
+          <category name="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal"/>
+          <category name="Boston Land Use"/>
+          <category name="Boston Parcel Data"/>
+          <category name="boston_foreclosure_deeds"/>
+          <category name="Census County Data"/>
+          <category name="Chicago Demographics"/>
+          <category name="Columbus Data"/>
+          <category name="Connecticut Data"/>
+          <category name="Counties"/>
+          <category name="County Subdivisions"/>
+          <category name="educational attainment"/>
+          <category name="Educational Attainment (Census Tract)"/>
+          <category name="educational attainment v3"/>
+          <category name="fe_2007_44_elsd"/>
+          <category name="fe_2007_44_unsd"/>
+          <category name="Housing Price Index"/>
+          <category name="Housing Price Index V2"/>
+          <category name="MA Census Tract"/>
+          <category name="Massachusetts Land Use"/>
+          <category name="Massachusetts Towns"/>
+          <category name="mhd_major_roads_lines_geometry"/>
+          <category name="nccs_ma_reprojected_test"/>
+          <category name="nccs_shape_CT"/>
+          <category name="ne_indicatorssdff"/>
+          <category name="New England Congressional District Data"/>
+          <category name="New England Lower House District Data"/>
+          <category name="New England Municipal Data"/>
+          <category name="New England Subbasin Data"/>
+          <category name="New England Upper House District Data"/>
+          <category name="newfile"/>
+          <category name="Obesity"/>
+          <category name="Obesity Years"/>
+          <category name="Obesity1"/>
+          <category name="Obesity3"/>
+          <category name="objectid"/>
+          <category name="Ohio County Subdivisions"/>
+          <category name="Ohio Places"/>
+          <category name="Perc by Town"/>
+          <category name="RI School Proficiency"/>
+          <category name="ri_schools08_projected"/>
+          <category name="Rosling Indicators"/>
+          <category name="school_performance_level"/>
+          <category name="st99_d00"/>
+          <category name="States"/>
+          <category name="StatesHealth"/>
+          <category name="StatesHealth Years"/>
+          <category name="student_CMD"/>
+          <category name="student_EJL"/>
+          <category name="Suffolk County Demographics By Census Tract"/>
+          <category name="test"/>
+          <category name="test1"/>
+          <category name="test1234444444"/>
+          <category name="test1ff"/>
+          <category name="testabc"/>
+          <category name="testasdfasfas"/>
+          <category name="TURI Totals 1990-2007 by town"/>
+          <category name="turi_perc_linechart">
+            <attribute dataTable="turi_perc_linechart" dataType="string" name="facility_id" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="string" name="name" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="string" name="city" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1990transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1991transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1992transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1993transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1994transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1995transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1996transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1997transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1998transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="1999transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2000transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2001transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2002transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2003transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2004transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2005transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2006transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2007transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008manufactured_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008processed_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008otherwise_used_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008shipped_in_or_as_product_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008fugitive_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008point_air_emission_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008discharge_to_water_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008underground_injection_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008landfill_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008land_treatment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008surface_impoundment_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008other_disposal_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008discharge_to_potw_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="2008transfer_to_off_site_amount" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="latitude" keyType="turi_perc_linechart"/>
+            <attribute dataTable="turi_perc_linechart" dataType="number" name="longitude" keyType="turi_perc_linechart"/>
+          </category>
+          <category name="Unemployment MSA data"/>
+          <category name="unicefcombined"/>
+          <category name="urbanrural years"/>
+          <category name="US_States_WGS"/>
+          <category name="USprisoners"/>
+          <category name="Weave Jira Issues"/>
+          <category name="World Bank Development Indicators"/>
+          <category name="World Borders"/>
+          <category name="World Name Table"/>
+          <category name="ZillowNeighborhoods"/>
+        </category>
+        <category name="Geometry Collections">
+          <attribute dataType="Geometry" name="asdf"/>
+          <attribute dataType="Geometry" name="Atlanta Superdistricts"/>
+          <attribute dataType="Geometry" name="bikeped_facilities"/>
+          <attribute dataType="Geometry" name="Boston 2005 Parcels"/>
+          <attribute dataType="Geometry" name="boston_foreclosure_deeds"/>
+          <attribute dataType="Geometry" name="Counties"/>
+          <attribute dataType="Geometry" name="County Subdivisions"/>
+          <attribute dataType="Geometry" name="fe_2007_44_elsd"/>
+          <attribute dataType="Geometry" name="fe_2007_44_unsd"/>
+          <attribute dataType="Geometry" name="MA Census Tract"/>
+          <attribute dataType="Geometry" name="Massachusetts Towns"/>
+          <attribute dataType="Geometry" name="nccs_ma_reprojected_test"/>
+          <attribute dataType="Geometry" name="nccs_shape_CT"/>
+          <attribute dataType="Geometry" name="Ohio County Subdivisions"/>
+          <attribute dataType="Geometry" name="Ohio Places"/>
+          <attribute dataType="Geometry" name="ri_schools08_projected"/>
+          <attribute dataType="Geometry" name="st99_d00"/>
+          <attribute dataType="Geometry" name="States"/>
+          <attribute dataType="Geometry" name="test"/>
+          <attribute dataType="Geometry" name="test1234444444"/>
+          <attribute dataType="Geometry" name="test1ff"/>
+          <attribute dataType="Geometry" name="US_States_WGS"/>
+          <attribute dataType="Geometry" name="World Borders"/>
+          <attribute dataType="Geometry" name="ZillowNeighborhoods"/>
+        </category>
+      </hierarchy>
+    </attributeHierarchy>
+    <hierarchyURL/>
+    <url>/WeaveServices/DataService</url>
+  </WeaveDataSource>
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="DataTables">
+                <category name="Obesity">
+                  <attribute year="" dataTable="Obesity" name="Percent Obese 1995" keyType="US State FIPS Code"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn2">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="DataTables">
+                <category name="Obesity">
+                  <attribute year="" dataTable="Obesity" name="Percent Obese 2007" keyType="US State FIPS Code"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="DataTables">
+                <category name="Obesity">
+                  <attribute year="" dataTable="Obesity" name="State" keyType="US State FIPS Code"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <EquationColumn name="EquationEditorColumn">
+    <columnTitle>Obesity Percent Change</columnTitle>
+    <equation>roundSignificant(getNumber(ReferencedColumn2) - getNumber(ReferencedColumn),15)</equation>
+    <keyColumn encoding="dynamic"/>
+    <unitType/>
+    <variables encoding="dynamic">
+      <ReferencedColumn name="ReferencedColumn">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="Obesity">
+                    <attribute max="40" year="" dataTable="Obesity" min="0" name="Percent Obese 1995" keyType="US State FIPS Code"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+      <ReferencedColumn name="ReferencedColumn2">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="Obesity">
+                    <attribute max="40" year="" dataTable="Obesity" min="0" name="Percent Obese 2007" keyType="US State FIPS Code"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </variables>
+  </EquationColumn>
+  <LinkableDisplayObject name="custom panel">
+    <children encoding="dynamic">
+      <LinkableDisplayObject name="tools">
+        <children encoding="dynamic">
+          <ScatterPlotTool name="scatterplot">
+            <buttonRadius>3</buttonRadius>
+            <children encoding="dynamic">
+              <SimpleInteractiveVisualization name="visualization">
+                <axesAlpha>1</axesAlpha>
+                <axesColor>11579568</axesColor>
+                <axesThickness>10</axesThickness>
+                <axisFontBold>true</axisFontBold>
+                <axisFontColor>0</axisFontColor>
+                <axisFontFamily>Sophia Nubian</axisFontFamily>
+                <axisFontItalic>false</axisFontItalic>
+                <axisFontSize>11</axisFontSize>
+                <axisFontUnderline>false</axisFontUnderline>
+                <dataBounds>
+                  <xMax>22</xMax>
+                  <xMin>10</xMin>
+                  <yMax>34</yMax>
+                  <yMin>18</yMin>
+                </dataBounds>
+                <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+                <enableAutoZoomXToNiceNumbers>true</enableAutoZoomXToNiceNumbers>
+                <enableAutoZoomYToNiceNumbers>true</enableAutoZoomYToNiceNumbers>
+                <enableFixedAspectRatio>false</enableFixedAspectRatio>
+                <enableZoomAndPan>false</enableZoomAndPan>
+                <gridLineAlpha>1</gridLineAlpha>
+                <gridLineColor>14540253</gridLineColor>
+                <gridLineThickness>1</gridLineThickness>
+                <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+                <layers encoding="dynamic">
+                  <AxisLayer name="yAxis">
+                    <isOverlay>false</isOverlay>
+                    <layerIsVisible>true</layerIsVisible>
+                    <plotter encoding="dynamic">
+                      <SimpleAxisPlotter>
+                        <axisLabelDistance>-10</axisLabelDistance>
+                        <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                        <axisLineDataBounds>
+                          <xMax>10</xMax>
+                          <xMin>10</xMin>
+                          <yMax>34</yMax>
+                          <yMin>18</yMin>
+                        </axisLineDataBounds>
+                        <axisLineMaxValue>34</axisLineMaxValue>
+                        <axisLineMinValue>18</axisLineMinValue>
+                        <forceTickCount>false</forceTickCount>
+                        <keySet>
+                          <keyFilter encoding="dynamic"/>
+                        </keySet>
+                        <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                        <labelHorizontalAlign>right</labelHorizontalAlign>
+                        <labelNumberFormatter>
+                          <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                          <decimalSeparatorTo>.</decimalSeparatorTo>
+                          <precision>0</precision>
+                          <rounding>none</rounding>
+                          <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                          <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                          <useNegativeSign>true</useNegativeSign>
+                          <useThousandsSeparator>true</useThousandsSeparator>
+                        </labelNumberFormatter>
+                        <labelTextAlignment>left</labelTextAlignment>
+                        <labelVerticalAlign>bottom</labelVerticalAlign>
+                        <overrideAxisName/>
+                        <showAxisName>true</showAxisName>
+                        <tickCountRequested>10</tickCountRequested>
+                        <tickMaxValue>NaN</tickMaxValue>
+                        <tickMinValue>NaN</tickMinValue>
+                      </SimpleAxisPlotter>
+                    </plotter>
+                    <selectionFilter encoding="dynamic"/>
+                  </AxisLayer>
+                  <AxisLayer name="xAxis">
+                    <isOverlay>false</isOverlay>
+                    <layerIsVisible>true</layerIsVisible>
+                    <plotter encoding="dynamic">
+                      <SimpleAxisPlotter>
+                        <axisLabelDistance>-10</axisLabelDistance>
+                        <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                        <axisLineDataBounds>
+                          <xMax>22</xMax>
+                          <xMin>10</xMin>
+                          <yMax>18</yMax>
+                          <yMin>18</yMin>
+                        </axisLineDataBounds>
+                        <axisLineMaxValue>22</axisLineMaxValue>
+                        <axisLineMinValue>10</axisLineMinValue>
+                        <forceTickCount>false</forceTickCount>
+                        <keySet>
+                          <keyFilter encoding="dynamic"/>
+                        </keySet>
+                        <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                        <labelHorizontalAlign>right</labelHorizontalAlign>
+                        <labelNumberFormatter>
+                          <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                          <decimalSeparatorTo>.</decimalSeparatorTo>
+                          <precision>0</precision>
+                          <rounding>none</rounding>
+                          <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                          <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                          <useNegativeSign>true</useNegativeSign>
+                          <useThousandsSeparator>true</useThousandsSeparator>
+                        </labelNumberFormatter>
+                        <labelTextAlignment>left</labelTextAlignment>
+                        <labelVerticalAlign>top</labelVerticalAlign>
+                        <overrideAxisName/>
+                        <showAxisName>true</showAxisName>
+                        <tickCountRequested>10</tickCountRequested>
+                        <tickMaxValue>NaN</tickMaxValue>
+                        <tickMinValue>NaN</tickMinValue>
+                      </SimpleAxisPlotter>
+                    </plotter>
+                    <selectionFilter encoding="dynamic"/>
+                  </AxisLayer>
+                  <SelectablePlotLayer name="plot">
+                    <backgroundIsVisible>true</backgroundIsVisible>
+                    <enableBitmapFilters>true</enableBitmapFilters>
+                    <layerIsSelectable>true</layerIsSelectable>
+                    <layerIsVisible>true</layerIsVisible>
+                    <plotter encoding="dynamic">
+                      <ScatterPlotPlotter>
+                        <alphaColumn>
+                          <defaultValue>1</defaultValue>
+                          <internalDynamicColumn encoding="dynamic"/>
+                        </alphaColumn>
+                        <colorColumn>
+                          <defaultValue>NaN</defaultValue>
+                          <internalDynamicColumn encoding="dynamic">
+                            <GlobalObjectReference name="defaultColorColumn"/>
+                          </internalDynamicColumn>
+                        </colorColumn>
+                        <defaultScreenRadius>5</defaultScreenRadius>
+                        <enabledSizeBy>true</enabledSizeBy>
+                        <keySet>
+                          <keyFilter encoding="dynamic">
+                            <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                          </keyFilter>
+                        </keySet>
+                        <maxScreenRadius>10</maxScreenRadius>
+                        <minScreenRadius>5</minScreenRadius>
+                        <radiusColumn encoding="dynamic"/>
+                        <xColumn encoding="dynamic">
+                          <ReferencedColumn>
+                            <dynamicColumnReference encoding="dynamic">
+                              <HierarchyColumnReference>
+                                <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                                <hierarchyPath encoding="xml">
+                                  <hierarchy>
+                                    <category name="DataTables">
+                                      <category name="Obesity">
+                                        <attribute year="" dataTable="Obesity" name="Percent Obese 1995" keyType="US State FIPS Code"/>
+                                      </category>
+                                    </category>
+                                  </hierarchy>
+                                </hierarchyPath>
+                              </HierarchyColumnReference>
+                            </dynamicColumnReference>
+                          </ReferencedColumn>
+                        </xColumn>
+                        <yColumn encoding="dynamic">
+                          <ReferencedColumn>
+                            <dynamicColumnReference encoding="dynamic">
+                              <HierarchyColumnReference>
+                                <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                                <hierarchyPath encoding="xml">
+                                  <hierarchy>
+                                    <category name="DataTables">
+                                      <category name="Obesity">
+                                        <attribute year="" dataTable="Obesity" name="Percent Obese 2007" keyType="US State FIPS Code"/>
+                                      </category>
+                                    </category>
+                                  </hierarchy>
+                                </hierarchyPath>
+                              </HierarchyColumnReference>
+                            </dynamicColumnReference>
+                          </ReferencedColumn>
+                        </yColumn>
+                      </ScatterPlotPlotter>
+                    </plotter>
+                    <probeFilter encoding="dynamic">
+                      <GlobalObjectReference name="defaultProbeKeySet"/>
+                    </probeFilter>
+                    <selectionFilter encoding="dynamic">
+                      <GlobalObjectReference name="defaultSelectionKeySet"/>
+                    </selectionFilter>
+                    <subsetFilter encoding="dynamic">
+                      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                    </subsetFilter>
+                    <useTextBitmapFilters>false</useTextBitmapFilters>
+                  </SelectablePlotLayer>
+                  <SelectablePlotLayer name="regressionLine">
+                    <backgroundIsVisible>true</backgroundIsVisible>
+                    <enableBitmapFilters>true</enableBitmapFilters>
+                    <layerIsSelectable>false</layerIsSelectable>
+                    <layerIsVisible>true</layerIsVisible>
+                    <plotter encoding="dynamic">
+                      <RegressionLinePlotter>
+                        <drawLine>true</drawLine>
+                        <keySet>
+                          <keyFilter encoding="dynamic"/>
+                        </keySet>
+                        <lineStyle>
+                          <alpha>
+                            <defaultValue>0.5</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </alpha>
+                          <caps>
+                            <defaultValue/>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </caps>
+                          <color>
+                            <defaultValue>0</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </color>
+                          <enabled>
+                            <defaultValue>true</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </enabled>
+                          <joints>
+                            <defaultValue/>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </joints>
+                          <miterLimit>
+                            <defaultValue>3</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </miterLimit>
+                          <pixelHinting>
+                            <defaultValue>false</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </pixelHinting>
+                          <scaleMode>
+                            <defaultValue>normal</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </scaleMode>
+                          <weight>
+                            <defaultValue>1</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </weight>
+                        </lineStyle>
+                        <xColumn encoding="dynamic">
+                          <ReferencedColumn>
+                            <dynamicColumnReference encoding="dynamic">
+                              <HierarchyColumnReference>
+                                <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                                <hierarchyPath encoding="xml">
+                                  <hierarchy>
+                                    <category name="DataTables">
+                                      <category name="Obesity">
+                                        <attribute year="" dataTable="Obesity" name="Percent Obese 1995" keyType="US State FIPS Code"/>
+                                      </category>
+                                    </category>
+                                  </hierarchy>
+                                </hierarchyPath>
+                              </HierarchyColumnReference>
+                            </dynamicColumnReference>
+                          </ReferencedColumn>
+                        </xColumn>
+                        <yColumn encoding="dynamic">
+                          <ReferencedColumn>
+                            <dynamicColumnReference encoding="dynamic">
+                              <HierarchyColumnReference>
+                                <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                                <hierarchyPath encoding="xml">
+                                  <hierarchy>
+                                    <category name="DataTables">
+                                      <category name="Obesity">
+                                        <attribute year="" dataTable="Obesity" name="Percent Obese 2007" keyType="US State FIPS Code"/>
+                                      </category>
+                                    </category>
+                                  </hierarchy>
+                                </hierarchyPath>
+                              </HierarchyColumnReference>
+                            </dynamicColumnReference>
+                          </ReferencedColumn>
+                        </yColumn>
+                      </RegressionLinePlotter>
+                    </plotter>
+                    <probeFilter encoding="dynamic">
+                      <GlobalObjectReference name="defaultProbeKeySet"/>
+                    </probeFilter>
+                    <selectionFilter encoding="dynamic"/>
+                    <subsetFilter encoding="dynamic"/>
+                    <useTextBitmapFilters>false</useTextBitmapFilters>
+                  </SelectablePlotLayer>
+                  <PlotLayer name="probeLine">
+                    <isOverlay>false</isOverlay>
+                    <layerIsVisible>true</layerIsVisible>
+                    <plotter encoding="dynamic">
+                      <ProbeLinePlotter>
+                        <keySet>
+                          <keyFilter encoding="dynamic"/>
+                        </keySet>
+                        <lineStyle encoding="dynamic">
+                          <SolidLineStyle>
+                            <alpha>
+                              <defaultValue>0.5</defaultValue>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </alpha>
+                            <caps>
+                              <defaultValue/>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </caps>
+                            <color>
+                              <defaultValue>0</defaultValue>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </color>
+                            <enabled>
+                              <defaultValue>true</defaultValue>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </enabled>
+                            <joints>
+                              <defaultValue/>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </joints>
+                            <miterLimit>
+                              <defaultValue>3</defaultValue>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </miterLimit>
+                            <pixelHinting>
+                              <defaultValue>false</defaultValue>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </pixelHinting>
+                            <scaleMode>
+                              <defaultValue>normal</defaultValue>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </scaleMode>
+                            <weight>
+                              <defaultValue>1</defaultValue>
+                              <internalDynamicColumn encoding="dynamic"/>
+                            </weight>
+                          </SolidLineStyle>
+                        </lineStyle>
+                      </ProbeLinePlotter>
+                    </plotter>
+                    <selectionFilter encoding="dynamic"/>
+                  </PlotLayer>
+                </layers>
+                <marginBottom>60</marginBottom>
+                <marginLeft>60</marginLeft>
+                <marginRight>10</marginRight>
+                <marginTop>10</marginTop>
+                <maxZoomLevel>16</maxZoomLevel>
+                <minScreenSize>128</minScreenSize>
+                <minZoomLevel>0</minZoomLevel>
+                <shadowAmount>0</shadowAmount>
+              </SimpleInteractiveVisualization>
+            </children>
+            <closeable>false</closeable>
+            <draggable>false</draggable>
+            <enableBorders>false</enableBorders>
+            <enableControlPanel>true</enableControlPanel>
+            <enableHelpPanel>true</enableHelpPanel>
+            <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+            <linkColormap>true</linkColormap>
+            <linkProbing>true</linkProbing>
+            <linkSelection>true</linkSelection>
+            <linkSubset>true</linkSubset>
+            <maximizable>true</maximizable>
+            <maximized>false</maximized>
+            <minimizable>true</minimizable>
+            <minimized>false</minimized>
+            <panelBackgroundColor>NaN</panelBackgroundColor>
+            <panelBorderColor>NaN</panelBorderColor>
+            <panelHeight>100%</panelHeight>
+            <panelStyleList/>
+            <panelWidth>75.163%</panelWidth>
+            <panelX>0%</panelX>
+            <panelY>0%</panelY>
+            <resizeable>false</resizeable>
+            <showCloseDialog>false</showCloseDialog>
+            <toolTitle/>
+          </ScatterPlotTool>
+          <ColorBinLegendTool name="legend">
+            <buttonRadius>3</buttonRadius>
+            <children encoding="dynamic">
+              <SimpleInteractiveVisualization name="visualization">
+                <axesAlpha>NaN</axesAlpha>
+                <axesColor>NaN</axesColor>
+                <axesThickness>NaN</axesThickness>
+                <axisFontBold>true</axisFontBold>
+                <axisFontColor>0</axisFontColor>
+                <axisFontFamily>Sophia Nubian</axisFontFamily>
+                <axisFontItalic>false</axisFontItalic>
+                <axisFontSize>11</axisFontSize>
+                <axisFontUnderline>false</axisFontUnderline>
+                <dataBounds>
+                  <xMax>1</xMax>
+                  <xMin>0</xMin>
+                  <yMax>9.5</yMax>
+                  <yMin>-0.5</yMin>
+                </dataBounds>
+                <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+                <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+                <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+                <enableFixedAspectRatio>false</enableFixedAspectRatio>
+                <enableZoomAndPan>false</enableZoomAndPan>
+                <gridLineAlpha>NaN</gridLineAlpha>
+                <gridLineColor>NaN</gridLineColor>
+                <gridLineThickness>NaN</gridLineThickness>
+                <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+                <layers encoding="dynamic">
+                  <SelectablePlotLayer name="plot">
+                    <backgroundIsVisible>true</backgroundIsVisible>
+                    <enableBitmapFilters>true</enableBitmapFilters>
+                    <layerIsSelectable>true</layerIsSelectable>
+                    <layerIsVisible>true</layerIsVisible>
+                    <plotter encoding="dynamic">
+                      <ColorBinLegendPlotter>
+                        <dynamicColorColumn encoding="dynamic">
+                          <GlobalObjectReference name="defaultColorColumn"/>
+                        </dynamicColorColumn>
+                        <keySet>
+                          <keyFilter encoding="dynamic">
+                            <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                          </keyFilter>
+                        </keySet>
+                        <lineStyle>
+                          <alpha>
+                            <defaultValue>0.5</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </alpha>
+                          <caps>
+                            <defaultValue/>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </caps>
+                          <color>
+                            <defaultValue>0</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </color>
+                          <enabled>
+                            <defaultValue>true</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </enabled>
+                          <joints>
+                            <defaultValue/>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </joints>
+                          <miterLimit>
+                            <defaultValue>3</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </miterLimit>
+                          <pixelHinting>
+                            <defaultValue>false</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </pixelHinting>
+                          <scaleMode>
+                            <defaultValue>normal</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </scaleMode>
+                          <weight>
+                            <defaultValue>1</defaultValue>
+                            <internalDynamicColumn encoding="dynamic"/>
+                          </weight>
+                        </lineStyle>
+                        <shapeSize>20</shapeSize>
+                      </ColorBinLegendPlotter>
+                    </plotter>
+                    <probeFilter encoding="dynamic">
+                      <GlobalObjectReference name="defaultProbeKeySet"/>
+                    </probeFilter>
+                    <selectionFilter encoding="dynamic">
+                      <GlobalObjectReference name="defaultSelectionKeySet"/>
+                    </selectionFilter>
+                    <subsetFilter encoding="dynamic">
+                      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                    </subsetFilter>
+                    <useTextBitmapFilters>true</useTextBitmapFilters>
+                  </SelectablePlotLayer>
+                </layers>
+                <marginBottom>5</marginBottom>
+                <marginLeft>5</marginLeft>
+                <marginRight>5</marginRight>
+                <marginTop>25</marginTop>
+                <maxZoomLevel>16</maxZoomLevel>
+                <minScreenSize>128</minScreenSize>
+                <minZoomLevel>0</minZoomLevel>
+                <shadowAmount>0</shadowAmount>
+              </SimpleInteractiveVisualization>
+            </children>
+            <closeable>true</closeable>
+            <draggable>false</draggable>
+            <enableBorders>false</enableBorders>
+            <enableControlPanel>true</enableControlPanel>
+            <enableHelpPanel>true</enableHelpPanel>
+            <linkColormap>true</linkColormap>
+            <linkProbing>true</linkProbing>
+            <linkSelection>true</linkSelection>
+            <linkSubset>true</linkSubset>
+            <maximizable>true</maximizable>
+            <maximized>false</maximized>
+            <minimizable>true</minimizable>
+            <minimized>false</minimized>
+            <panelBackgroundColor>NaN</panelBackgroundColor>
+            <panelBorderColor>NaN</panelBorderColor>
+            <panelHeight>100%</panelHeight>
+            <panelStyleList/>
+            <panelWidth>26.144%</panelWidth>
+            <panelX>73.856%</panelX>
+            <panelY>0%</panelY>
+            <resizeable>false</resizeable>
+            <showCloseDialog>false</showCloseDialog>
+            <toolTitle/>
+          </ColorBinLegendTool>
+        </children>
+        <eventListeners/>
+        <properties>
+          <layout>absolute</layout>
+          <percentHeight>100</percentHeight>
+          <percentWidth>100</percentWidth>
+        </properties>
+        <qualifiedClassName>mx.containers.Canvas</qualifiedClassName>
+      </LinkableDisplayObject>
+      <LinkableDisplayObject name="text">
+        <children encoding="dynamic"/>
+        <eventListeners/>
+        <properties>
+          <editable>false</editable>
+          <percentWidth>100</percentWidth>
+          <text>This entire panel (controls + layout) was created in the session state!</text>
+        </properties>
+        <qualifiedClassName>mx.controls.TextArea</qualifiedClassName>
+      </LinkableDisplayObject>
+      <LinkableDisplayObject name="hbox">
+        <children encoding="dynamic">
+          <LinkableDisplayObject name="slider">
+            <children encoding="dynamic"/>
+            <eventListeners/>
+            <properties>
+              <value>2.128571428571429</value>
+            </properties>
+            <qualifiedClassName>mx.controls.HSlider</qualifiedClassName>
+          </LinkableDisplayObject>
+          <LinkableDisplayObject name="spacer">
+            <children encoding="dynamic"/>
+            <eventListeners/>
+            <properties>
+              <percentWidth>100</percentWidth>
+            </properties>
+            <qualifiedClassName>mx.controls.Spacer</qualifiedClassName>
+          </LinkableDisplayObject>
+          <LinkableDisplayObject name="button">
+            <children encoding="dynamic"/>
+            <eventListeners>
+              <click>if (confirm(
+  'mouse click stage coords: ' + event.stageX + ',' + event.stageY + '\n'
+  + 'Click OK to open a ScatterPlotTool'
+))
+  weave.requestObject([null],'ScatterPlotTool');</click>
+            </eventListeners>
+            <properties>
+              <label>click me</label>
+            </properties>
+            <qualifiedClassName>mx.controls.Button</qualifiedClassName>
+          </LinkableDisplayObject>
+        </children>
+        <eventListeners/>
+        <properties>
+          <percentWidth>100</percentWidth>
+        </properties>
+        <qualifiedClassName>mx.containers.HBox</qualifiedClassName>
+      </LinkableDisplayObject>
+    </children>
+    <eventListeners>
+      <close>weave.setSessionState(
+
+[],[{className:null,objectName:'custom panel',sessionState:null}],false
+
+)</close>
+      <mouseMove>weave.setSessionState(
+
+  ['custom panel','children','hbox','children','slider','properties'],
+
+  {value: event.stageX / 70}
+
+)</mouseMove>
+    </eventListeners>
+    <properties>
+      <percentHeight>50</percentHeight>
+      <percentWidth>50</percentWidth>
+      <showCloseButton>true</showCloseButton>
+      <title>custom panel</title>
+      <x>50</x>
+      <y>50</y>
+    </properties>
+    <qualifiedClassName>mx.containers.TitleWindow</qualifiedClassName>
+  </LinkableDisplayObject>
+  <LineChartTool name="LineChartTool" package="org.openindicators.visualization.tools">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <dataBounds>
+          <xMax>1</xMax>
+          <xMin>0</xMin>
+          <yMax>326540</yMax>
+          <yMin>0</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>0</xMax>
+                  <xMin>0</xMin>
+                  <yMax>326540</yMax>
+                  <yMin>0</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>326540</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>1</xMax>
+                  <xMin>0</xMin>
+                  <yMax>0</yMax>
+                  <yMin>0</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>1</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>2</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <enableBitmapFilters>true</enableBitmapFilters>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ParallelCoordinatesPlotter>
+                <columns encoding="dynamic">
+                  <ReferencedColumn name="ReferencedColumn">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="turi_perc_linechart">
+                                <attribute dataTable="turi_perc_linechart" dataType="number" name="1990generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn2">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="turi_perc_linechart">
+                                <attribute dataTable="turi_perc_linechart" dataType="number" name="1991generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </columns>
+                <curveType>none</curveType>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <normalize>false</normalize>
+                <shapeBorderColor>0</shapeBorderColor>
+                <shapeBorderThickness>0</shapeBorderThickness>
+                <shapeSize>5</shapeSize>
+                <shapeToDraw>Solid Circle</shapeToDraw>
+              </ParallelCoordinatesPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="label">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <enableBitmapFilters>true</enableBitmapFilters>
+            <layerIsSelectable>false</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <TextGlyphPlotter>
+                <angle>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </angle>
+                <bold>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </bold>
+                <color>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </color>
+                <dataX encoding="dynamic">
+                  <AlwaysDefinedColumn>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </AlwaysDefinedColumn>
+                </dataX>
+                <dataY encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="turi_perc_linechart">
+                                <attribute dataTable="turi_perc_linechart" dataType="number" name="1991generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </dataY>
+                <font>
+                  <defaultValue>Sophia Nubian</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </font>
+                <hAlign>
+                  <defaultValue>left</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </hAlign>
+                <hideOverlappingText>true</hideOverlappingText>
+                <italic>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </italic>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <size>
+                  <defaultValue>10</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </size>
+                <sortColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="turi_perc_linechart">
+                                <attribute dataTable="turi_perc_linechart" dataType="number" name="1991generated_as_byproduct_amount" keyType="turi_perc_linechart"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </sortColumn>
+                <text encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="DataTables">
+                              <category name="Obesity">
+                                <attribute year="" dataTable="Obesity" name="State" keyType="US State FIPS Code"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </text>
+                <underline>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </underline>
+                <vAlign>
+                  <defaultValue>center</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </vAlign>
+                <xScreenOffset>5</xScreenOffset>
+                <yScreenOffset>0</yScreenOffset>
+              </TextGlyphPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>80</marginRight>
+        <marginTop>10</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableControlPanel>true</enableControlPanel>
+    <enableHelpPanel>true</enableHelpPanel>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <linkColormap>true</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>74.695%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>75%</panelWidth>
+    <panelX>25%</panelX>
+    <panelY>25.131%</panelY>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </LineChartTool>
+</Weave>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="org.oicweave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="org.oicweave.ui.*"
+		 xmlns:userControls="org.oicweave.ui.userControls.*"
+	     layout="absolute">
+	<mx:Script>
+		<![CDATA[
+			import org.oicweave.api.registerLinkableChild;
+			import org.oicweave.api.linkBindableProperty;
+			import org.oicweave.utils.ColumnUtils;
+			import mx.events.FlexEvent;
+			
+			import org.oicweave.core.LinkableBoolean;
+			import org.oicweave.core.LinkableString;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.api.getCallbackCollection;
+			import org.oicweave.api.newLinkableChild;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.primitives.ColorRamp;
+			import org.oicweave.visualization.plotters.PieChartHistogramPlotter;
+
+			public var _plotter:PieChartHistogramPlotter = null;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				// lock dynamic objects into place
+				_plotter = initDefaultPlotter(PieChartHistogramPlotter) as PieChartHistogramPlotter;
+				
+				visualization.enableAutoZoomToExtent.value = true;
+				visualization.enableFixedAspectRatio.value = true;
+				
+				
+				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
+				invalidateAxes();
+				
+				initColumnDefaults(_plotter.unfilteredData);
+				toolTitle.addImmediateCallback(this, updateTitle);
+				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,null,true);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				cRampEditor.colorRamp = _plotter.chartColors;
+			}
+			
+			
+			override public function getSelectableAttributeNames():Array
+			{
+				return ["Data"];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				return [(_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn];
+			}
+			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			
+			private function updateProbeColumns():void
+			{
+				if(includeToolAttributesInProbe.value)
+				{
+					visualization.additionalProbeColumns = [];
+					if(_plotter.binnedData.internalColumn)
+						visualization.additionalProbeColumns.push(_plotter.binnedData.internalColumn);
+					if(visualization.additionalProbeColumns.length == 0) visualization.additionalProbeColumns = null;
+				}
+				else visualization.additionalProbeColumns = null;
+				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
+			}
+			
+			
+			private function invalidateAxes():void
+			{
+				updateTitle();
+			}
+			
+			private function updateTitle():void
+			{
+				if (toolTitle.value == null)
+					title = "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox id="attributesPanel" label="Attributes for Pie Chart Histogram">
+			<userControls:ControlsSubsetBox>
+				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+			</userControls:ControlsSubsetBox>
+			<ui:DynamicColumnComponent visTool="{this}" label="data" initialize="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn"/>
+		</mx:VBox>
+		
+		<mx:VBox id="advControlsPanel" label="Advanced">
+			<ui:ColorRampEditor id="cRampEditor"/>
+		</mx:VBox>
+	</ui:ControlPanel>
+</SimpleVisTool>

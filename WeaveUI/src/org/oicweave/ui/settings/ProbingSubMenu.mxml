@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns="org.oicweave.ui.settings.*" 
+		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="100%" 
+		 height="100%">
+	<mx:ViewStack id="probing"
+				  height="100%" width="100%"
+				  >
+	<mx:Canvas id="admin">
+		<mx:VBox >
+		
+			<mx:HBox>
+				<mx:Label text="Probe Inner Glow Color" 
+						  width="200"		
+						  textAlign="right"
+						  toolTip="Set the inner glow color of probed points"/>
+				<mx:ColorPicker id="probeInnerGlowColor"
+								initialize="linkBindableProperty(Weave.properties.probeInnerGlowColor, probeInnerGlowColor, 'selectedColor' );"
+								/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Probe Inner Glow Strength" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the inner glow thickness of probed points"/>
+				<mx:NumericStepper id="probeInnerGlowStrength"
+								   maximum="255"
+								initialize="linkBindableProperty(Weave.properties.probeInnerGlowStrength, probeInnerGlowStrength, 'value' );"
+								/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Probe Inner Glow Alpha" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the inner glow opacity of probed points"/>
+				<mx:NumericStepper id="probeInnerGlowAlpha"
+								   maximum="1"
+								   stepSize="0.1"
+								   initialize="linkBindableProperty(Weave.properties.probeInnerGlowAlpha, probeInnerGlowAlpha, 'value' );"
+								   />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Probe Outer Glow Color" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the outer glow color of probed points"/>
+				<mx:ColorPicker id="probeOuterGlowColor"
+								initialize="linkBindableProperty(Weave.properties.probeOuterGlowColor, probeOuterGlowColor, 'selectedColor' );"
+								/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Probe Outer Glow Strength" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the outer glow thickness of probed points"/>
+				<mx:NumericStepper id="probeOuterGlowStrength"
+								   maximum="255"
+								   initialize="linkBindableProperty(Weave.properties.probeOuterGlowStrength, probeOuterGlowStrength, 'value' );"
+								   />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Probe Outer Glow Alpha" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the outer glow opacity of probed points"/>
+				<mx:NumericStepper id="probeOuterGlowAlpha"
+								   maximum="1"
+								   stepSize="0.1"
+								   initialize="linkBindableProperty(Weave.properties.probeOuterGlowAlpha, probeOuterGlowAlpha, 'value' );"
+								   />
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:Label text="Probe Tooltip Background Alpha" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the background opacity of the probe text box"/>
+				<mx:NumericStepper id="probeTooltipBackgroundAlpha"
+								   maximum="1"
+								   stepSize="0.1"
+								   initialize="linkBindableProperty(Weave.properties.probeToolTipBackgroundAlpha, probeTooltipBackgroundAlpha, 'value' );"
+								   />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Probe Tooltip Background Color" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the background color of the probe text box"/>
+				<mx:ColorPicker id="probeTooltipBackgroundColor" change="backgroundColorPicked()"/>
+				<mx:Button label="Reset" click="Weave.properties.probeToolTipBackgroundColor.value = NaN;"/>
+			</mx:HBox>
+			
+			<mx:HBox paddingLeft="10">
+				<mx:CheckBox id="enableProbeAnimationCheck"
+							 label="Enable probe animation"
+							 toolTip="Check this box to enable animation of the probe layer.  The transparency of the probed shapes will cycle at a slow speed to help draw attention to what records are being probed.  This can be helpful in identifying small records that may not be noticed when probed or in low contrast situations such as viewing Weave on a projector. "
+							 initialize="linkBindableProperty(Weave.properties.enableProbeAnimation, enableProbeAnimationCheck, 'selected')"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>	
+	<mx:Canvas id="notadmin">
+		
+	</mx:Canvas>
+	</mx:ViewStack>
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import mx.core.IToolTip;
+			import mx.managers.ToolTipManager;
+			import org.oicweave.api.linkBindableProperty;
+			import mx.controls.ToolTip;
+			import org.oicweave.Weave;
+			
+			override protected function childrenCreated():void
+			{
+				Weave.properties.probeToolTipBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
+			}
+			private function backgroundColorCallback():void
+			{
+				var value:Number = Weave.properties.probeToolTipBackgroundColor.value;
+				if (isNaN(value))
+				{
+					var tt:IToolTip = ToolTipManager.createToolTip('',0,0);
+					value = (tt as UIComponent).getStyle('backgroundColor');
+					ToolTipManager.destroyToolTip(tt);
+				}
+				
+				probeTooltipBackgroundColor.selectedColor = value;
+			}
+			private function backgroundColorPicked():void
+			{
+				Weave.properties.probeToolTipBackgroundColor.value = probeTooltipBackgroundColor.selectedColor;
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

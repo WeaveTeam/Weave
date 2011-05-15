@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TextArea paddingLeft="5" xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:htmlText>
+		<![CDATA[
+<b>Check your data!</b>
+The Grid shows you how we interpret your data. Check the rows and columns to confirm that they are in the correct format. Check the Unique Identifier Column and the Delimiter Combo Box. Click next if your data is in the right format.
+<b>Unique Identifier Column</b>
+<p> This is the name of the column header that uniquely identifies each	row of your dataset. We have computed the columns that contain unique values and set the Unique Column Identifier to the first option. You can set it any other available option within the Combo Box. If you are not sure which column to select or <u>if you don't see this combo box</u> you can ignore for now.</p>
+<b>Delimiter</b>
+<p>We assume that your data is delimited so that we can correctly identify the columns within the dataset. When you load the data, we do a quick check to compute the delmiter and then parse the data. Use the grid to check if the data has been parsed correctly. If the wrong delimiter is user you can select from the combo box the commonly used delimiters (Space, Comma, Semi Colon, Tab). <u>You can also type a single character delimiter</u>. The grid displays the parsed data every time you change the delimiter</p>
+		]]>
+	</mx:htmlText>
+</mx:TextArea>

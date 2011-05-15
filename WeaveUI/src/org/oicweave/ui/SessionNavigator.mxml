@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!--	Sesisoned Column References Navigator
+*  @author skolman
+*  
+-->
+<mx:Tree initialize="init()" xmlns:mx="http://www.adobe.com/2006/mxml"  
+		 width="100%" height="100%" 
+		 disclosureOpenIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureOpen')" 
+		 disclosureClosedIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureClosed')"
+		 
+		 change="handleItemSelect(event)"
+		 openDuration="0"
+		 doubleClickEnabled="true"
+		 doubleClick="handleDoubleClick()"
+		 labelFunction="{myLabelFunction}"
+		 >
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.describeType;
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Label;
+			import mx.controls.Tree;
+			import mx.events.ListEvent;
+			import mx.events.TreeEvent;
+			import mx.messaging.management.ObjectName;
+			import mx.utils.ObjectUtil;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.api.WeaveAPI;
+			import org.oicweave.api.core.ILinkableDynamicObject;
+			import org.oicweave.api.core.ILinkableHashMap;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.api.data.IColumnReference;
+			import org.oicweave.core.LinkableDynamicObject;
+			import org.oicweave.core.LinkableHashMap;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.core.weave_internal;
+			import org.oicweave.data.AttributeColumns.DynamicColumn;
+			import org.oicweave.data.ColumnReferences.HierarchyColumnReference;
+			import org.oicweave.utils.DebugUtils;
+			use namespace weave_internal;
+
+			private function init():void
+			{
+			}
+			
+			private var _rootObject:ILinkableObject = null;
+			public function set rootObject(value:ILinkableObject):void
+			{
+				if (_rootObject == value)
+					return;
+				
+				_rootObject = value;
+				
+				if (value == Weave.root)
+					_linkableObjectName = "Weave";
+				else if (Weave.root.getName(_rootObject) != null)
+					_linkableObjectName = Weave.root.getName(_rootObject);
+				else
+					_linkableObjectName = null;
+				
+				handleRootObjectChange();	
+			}
+			public function get rootObject():ILinkableObject
+			{
+				return _rootObject;
+			}
+			
+			private var _linkableObjectName:String = "Weave";
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+
+				if(rootObject == null)
+					rootObject = Weave.root;
+				
+//				this.dataProvider = getTree(rootObject,_linkableObjectName,_sessionObjectTypeFilter);
+//				this.dataProvider.refresh();
+				
+				refresh(rootObject);
+			}
+			
+			private function myLabelFunction(item:Object):String
+			{
+				// append class name to the label.
+				var label:String = getQualifiedClassName(item.object).split("::")[1];
+				if (item.label)
+					label += ' "' + item.label + '"';
+				return label;
+			}
+			
+			private function handleRootObjectChange():void
+			{
+				//trace("handleRootObjectChange");
+//				var tree:Object = getTree(rootObject,_linkableObjectName,_sessionObjectTypeFilter);
+//				this.dataProvider = tree;
+//				this.selectedItem = tree;
+//				this.dataProvider.refresh();
+
+				refresh(rootObject);
+			}
+			
+			private function getTree(object:ILinkableObject, objectName:String, objectTypeFilter:*=null):Object
+			{
+				var result:Object = {label: objectName, object: object, children: []};
+				
+				var names:Array = [];
+				var childObject:ILinkableObject;
+				var tempObject:Object;
+				var ignoreList:Dictionary = new Dictionary(true);
+				if (object is ILinkableHashMap)
+				{
+					names = (object as ILinkableHashMap).getNames();
+					
+					var sessionObjects:Array = (object as ILinkableHashMap).getObjects();
+					
+					for (var i:int = 0; i < names.length; i++)
+					{
+						childObject = sessionObjects[i];
+						if ((WeaveAPI.SessionManager as SessionManager).isChildInSessionState(object, childObject))
+						{
+							// don't include duplicate siblings
+							if (ignoreList[childObject] != undefined)
+								continue;
+							ignoreList[childObject] = true;
+
+							// get subtree
+							tempObject = getTree(childObject,names[i],objectTypeFilter);
+							if (tempObject != null)
+								result.children.push(tempObject);
+						}
+					}
+				}
+				else
+				{
+					if (object is ILinkableDynamicObject)
+					{
+						// do not show static object in tree
+						names = (object as ILinkableDynamicObject).globalName ? [] : ["internalObject"];
+					}
+					else if (object)
+					{
+						names = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
+					}
+					for (var j:int = 0; j < names.length; j++)
+					{
+						childObject = object[names[j]];
+						if (!childObject)
+							continue;
+						if (/* object is ILinkableDynamicObject ||  */(WeaveAPI.SessionManager as SessionManager).isChildInSessionState(object, childObject))
+						{
+							// don't include duplicate siblings
+							if (ignoreList[childObject] != undefined)
+								continue;
+							ignoreList[childObject] = true;
+
+							// get subtree
+							tempObject = getTree(childObject,names[j],objectTypeFilter);
+							if (tempObject != null)
+								result.children.push(tempObject);
+						}
+					}
+				}
+				
+				if (result.children.length == 0)
+					result.children = null;
+				if (objectTypeFilter == null)
+					return result;
+				if (result.children == null && !(object is objectTypeFilter))
+					return null;
+				return result;
+			}
+			
+			
+			private function handleItemSelect(event:ListEvent):void
+			{
+				//trace(event.currentTarget);
+				expandItem(selectedItem, true);
+			}
+			
+			private function handleDoubleClick():void
+			{
+				//expandItem(selectedItem, !isItemOpen(selectedItem))
+				refresh();
+			}
+			private var _sessionObjectTypeFilter:Class = null;
+			public function set sessionObjectTypeFilter(className:Class):void
+			{
+				_sessionObjectTypeFilter = className;
+			
+				var tree:Object = getTree(rootObject,_linkableObjectName,_sessionObjectTypeFilter);
+				dataProvider = tree;
+				dataProvider.refresh();
+				
+				refresh();
+			}
+			
+			public function getSelectedSessionedObject():ILinkableObject
+			{
+				return selectedItem ? selectedItem.object : null;
+			}
+			
+			public function getSelectedItemOfClassType():Object
+			{
+				if (_sessionObjectTypeFilter == null)
+					return selectedItem;
+
+				if (selectedItem && selectedItem.object is _sessionObjectTypeFilter)
+					return selectedItem;
+
+				return null;
+			}
+			
+			public function refresh(selectedObject:ILinkableObject = null):void
+			{
+				if (selectedObject == null)
+					selectedObject = (selectedItem && selectedItem.object) as ILinkableObject;
+				
+				var prevExpandedItems:Array = openItems.concat();
+				
+				var rootItem:Object = getTree(rootObject, _linkableObjectName, _sessionObjectTypeFilter);
+				this.dataProvider = rootItem
+				this.dataProvider.refresh();
+				validateNow();
+				// expand previously-expanded items
+				for each (var item:Object in prevExpandedItems)
+					findCorrespondingNode(item.object, true);
+				// select previously-selected item
+				selectedItem = findCorrespondingNode(selectedObject, true);
+				if (selectedIndex >= 0)
+					scrollToIndex(selectedIndex);
+				expandItem(rootItem, true);
+			}
+			
+			/**
+			 * This function recursively checks subtree nodes for a matching sessioned object.
+			 * @return The node object corresponding to the sessioned object, or null if no node was found.
+			 */
+			private function findCorrespondingNode(sessionedObject:ILinkableObject, expand:Boolean, subtree:Object = null):Object
+			{
+				if (subtree == null)
+				{
+					try
+					{
+						subtree = dataProvider[0];
+					}
+					catch (e:Error)
+					{
+						return null;
+					}
+				}
+				if (subtree.object == sessionedObject)
+				{
+					if (expand)
+						expandItem(subtree, true);
+					return subtree;
+				}
+				if (subtree.children == null)
+					return null;
+				for each (var child:Object in subtree.children)
+				{
+					var result:Object = findCorrespondingNode(sessionedObject, expand, child);
+					if (result != null)
+					{
+						/*if (expand)
+							expandItem(subtree, true);*/
+						return result;
+					}
+				}
+				return null;
+			}
+			
+			
+			override public function expandItem(item:Object, open:Boolean, animate:Boolean=false, dispatchEvent:Boolean=false, cause:Event=null):void
+			{			
+				super.expandItem(item, open, animate, dispatchEvent, cause);
+
+				// keep expanding children while there is only one child
+				if (open && item && item.children && item.children.length == 1)
+					expandItem(item.children[0], open, animate, dispatchEvent, cause);
+			}
+		]]>
+	</mx:Script>
+
+</mx:Tree>

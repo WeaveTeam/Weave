@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="org.oicweave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="org.oicweave.ui.*"
+	     layout="absolute" xmlns:userControls="org.oicweave.ui.userControls.*"
+	     xmlns:mapTool="org.oicweave.visualization.tools.*"
+	     >
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
+			import mx.controls.CheckBox;
+			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MetadataEvent;
+			import mx.events.SliderEvent;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.api.WeaveAPI;
+			import org.oicweave.api.copySessionState;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.api.data.AttributeColumnMetadata;
+			import org.oicweave.api.data.DataTypes;
+			import org.oicweave.api.data.IAttributeColumn;
+			import org.oicweave.api.disposeObjects;
+			import org.oicweave.api.getCallbackCollection;
+			import org.oicweave.api.linkBindableProperty;
+			import org.oicweave.api.linkSessionState;
+			import org.oicweave.api.newLinkableChild;
+			import org.oicweave.api.primitives.IBounds2D;
+			import org.oicweave.api.registerLinkableChild;
+			import org.oicweave.api.ui.IPlotter;
+			import org.oicweave.compiler.MathLib;
+			import org.oicweave.core.LinkableBoolean;
+			import org.oicweave.core.LinkableHashMap;
+			import org.oicweave.core.LinkableNumber;
+			import org.oicweave.core.LinkableString;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.core.weave_internal;
+			import org.oicweave.data.AttributeColumns.ColorColumn;
+			import org.oicweave.data.AttributeColumns.DynamicColumn;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.data.AttributeColumns.ReferencedColumn;
+			import org.oicweave.data.AttributeColumns.ReprojectedGeometryColumn;
+			import org.oicweave.primitives.Bounds2D;
+			import org.oicweave.services.wms.WMSProviders;
+			import org.oicweave.ui.AttributeSelectorPanel;
+			import org.oicweave.ui.ColorBinEditor;
+			import org.oicweave.ui.DraggablePanel;
+			import org.oicweave.ui.DynamicColumnComponent;
+			import org.oicweave.utils.BitmapUtils;
+			import org.oicweave.utils.ColumnUtils;
+			import org.oicweave.utils.DebugUtils;
+			import org.oicweave.utils.EventUtils;
+			import org.oicweave.utils.ProbeTextUtils;
+			import org.oicweave.visualization.layers.InteractiveVisualization;
+			import org.oicweave.visualization.layers.PlotLayer;
+			import org.oicweave.visualization.layers.SelectablePlotLayer;
+			import org.oicweave.visualization.plotters.DynamicPlotter;
+			import org.oicweave.visualization.plotters.GeometryLabelPlotter;
+			import org.oicweave.visualization.plotters.GeometryPlotter;
+			import org.oicweave.visualization.plotters.WMSPlotter;
+			import org.oicweave.visualization.plotters.styles.SolidFillStyle;
+			import org.openscales.proj4as.ProjProjection;
+
+			use namespace weave_internal;
+
+			// disable default plot layer
+			override protected function get plotLayer():SelectablePlotLayer { return null; }
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				// make sure WMS layers are included in the full data bounds
+				visualization.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.includeNonSelectableLayersInAutoZoom.lock();
+				
+				visualization.enableFixedAspectRatio.value = true;
+				visualization.enableAutoZoomToExtent.value = false;
+				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, updateZoomSlider);
+				
+				enableBackground.value = true;
+				
+				linkColormap.value = false;
+				colorColumn.addGroupedCallback(this, updateTitle);
+				toolTitle.addGroupedCallback(this, updateTitle);
+				visualization.defaultMouseMode.addGroupedCallback(this, handleMouseModeChange);
+				
+				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
+				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
+			}
+			
+			override public function getSelectableAttributeNames():Array
+			{
+				return ["Color"];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				return [colorColumn];
+			}
+			
+			/**
+			 * This is the projection of the map visualization.
+			 */
+			public const projectionSRS:LinkableString = registerLinkableChild(this, new LinkableString(null, projectionVerifier));
+			// this function returns true if the projection SRS code is acceptable
+			private function projectionVerifier(srs:String):Boolean
+			{
+				// allow no projection
+				if (srs == null || srs == '')
+					return true;
+				return WeaveAPI.ProjectionManager.projectionExists(srs);
+			}
+			
+			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			
+			// the keys in this Dictionary are LinkableStrings that have been linked to projectionSRS.
+			private var _linkedProjectionVariablesLookup:Dictionary = new Dictionary(true);
+			/**
+			 * This function links the MapTool.projectionSRS variable with another LinkableString.
+			 */
+			private function linkProjection(otherVariable:LinkableString):void
+			{
+				if (_linkedProjectionVariablesLookup[otherVariable])
+					return;
+				_linkedProjectionVariablesLookup[otherVariable] = true;
+				
+				// if map tool specifies a valid projection, use map tool value as the primary value
+				if (WeaveAPI.ProjectionManager.projectionExists(projectionSRS.value))
+					linkSessionState(projectionSRS, otherVariable);
+				else
+					linkSessionState(otherVariable, projectionSRS);
+			}
+			
+			private function handleLayersChange():void
+			{
+				// make sure wms layer projections are identical
+				var wmsPlotters:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(visualization.layers, WMSPlotter);
+				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
+					linkProjection(wmsPlotter.srs);
+				
+				// make sure all geometry column projections are identical
+				var reprojectedColumns:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(visualization.layers, ReprojectedGeometryColumn);
+				for each (var column:ReprojectedGeometryColumn in reprojectedColumns)
+					linkProjection(column.projectionSRS);
+				
+				// force label plotters to use text bitmap filters
+				for each (var layer:SelectablePlotLayer in visualization.layers.getObjects(SelectablePlotLayer))
+					if (layer.getDynamicPlotter().internalObject is GeometryLabelPlotter)
+						layer.useTextBitmapFilters.value = true;
+
+				updateProbeColumns();
+			}
+			private function updateProbeColumns():void
+			{
+				if (includeToolAttributesInProbe.value)
+				{
+					visualization.additionalProbeColumns = [] ;
+					var plotLayers:Array = visualization.layers.getObjects(SelectablePlotLayer);
+					for (var i:int = 0; i < plotLayers.length; i++)
+					{
+						var spl:SelectablePlotLayer = (plotLayers[i] as SelectablePlotLayer);
+						// get all ReferencedColumn objects, excluding geometry columns
+						var refCols:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(spl.plotter, ReferencedColumn);
+						for each (var col:IAttributeColumn in refCols)
+							if (ColumnUtils.getDataType(col) != DataTypes.GEOMETRY)
+								visualization.additionalProbeColumns.push(col);
+					}
+				}
+				else
+					visualization.additionalProbeColumns = null;
+			}
+			
+			private function updateTitle():void
+			{
+				if(toolTitle.value == null)
+					title = "Map " + (colorColumn.internalColumn == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
+				else
+					title = toolTitle.value;
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				var backgroundImageCheck:CheckBox = new CheckBox();
+				backgroundImageCheck.label = "Enable ocean background image";
+				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
+				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
+				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
+				
+				//EventUtils.addBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
+				//EventUtils.addBindCallback(userControlPanel, "visible", handleControlPanelToggle);
+				
+				/*var download:BitmapData = BitmapUtils.loadBitmapDataFromImage("org/oicweave/resources/images/ocean_background2.jpg");
+				trace(download);*/
+				
+				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
+				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
+				
+				if (visualization.layers.getNames().length == 0)
+					addGeomLayer();
+				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, handleBoundsChange, true);
+			}
+			
+			/*private function handleSelectedLayerChange():void
+			{
+				var name:String = visualization.layers.getName(layerList.selectedItem as SelectablePlotLayer);
+				if (name != null)
+				{
+					visualization.activeLayerName.value = name;
+					(layerList.dataProvider as ICollectionView).refresh();
+				}
+			}*/
+			
+			private function handleMouseModeChange(event:Event = null):void
+			{
+				if(event)
+				{
+					if(event.target == panModeButton)
+						visualization.defaultMouseMode.value = InteractiveVisualization.PAN_MODE;
+						
+					else if(event.target == selectModeButton)
+						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_REPLACE;
+					else if(event.target == selectModeSubtractButton)
+						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_SUBTRACT;
+					else if(event.target == selectModeAddButton)
+						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_ADD;
+						
+					else if(event.target == zoomModeButton)
+						visualization.defaultMouseMode.value = InteractiveVisualization.ZOOM_MODE;
+				}
+				
+				if(visualization.defaultMouseMode.value == InteractiveVisualization.PAN_MODE)
+				{
+					panModeButton.selected = true;
+					selectModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected  = false;
+				}
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_REPLACE)
+				{
+					selectModeButton.selected = true;
+					panModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected = false;
+				}
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_SUBTRACT)
+				{
+					selectModeSubtractButton.selected = true;
+					panModeButton.selected = zoomModeButton.selected = selectModeButton.selected = selectModeAddButton.selected = false;
+				}
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_ADD)
+				{
+					selectModeAddButton.selected = true;
+					panModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeButton.selected = false;
+				}
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.ZOOM_MODE)
+				{
+					zoomModeButton.selected = true;
+					panModeButton.selected = selectModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected = false;
+				}
+			}
+			
+			
+			public function get colorColumn():DynamicColumn
+			{
+				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				return fc.internalDynamicColumn;
+			}
+			
+			
+			private function setCenterCoords():void
+			{
+//				var x:Number = MathLib.toNumber(xCenterCoord.text);
+//				var y:Number = MathLib.toNumber(yCenterCoord.text);
+//				visualization.dataBounds.copyTo(_tempBounds);
+//				_tempBounds.setCenter(x, y);
+//				visualization.dataBounds.copyFrom(_tempBounds);
+			}
+			
+			public function updateZoomSlider():void
+			{
+				if (zoomSlider)
+				{
+					currentlyUpdatingZoomSlider = true;
+					zoomSlider.value = visualization.getZoomLevel();
+					currentlyUpdatingZoomSlider = false;
+				}
+			}
+			private var currentlyUpdatingZoomSlider:Boolean = false;
+			
+			private function handleZoomSliderChange():void
+			{
+				if (!currentlyUpdatingZoomSlider)
+					visualization.setZoomLevel(zoomSlider.value);
+			}
+			
+			private function handleZoomInClick():void
+			{
+				visualization.dataBounds.copyTo(_tempBounds);
+				_tempBounds.centeredResize(_tempBounds.getWidth() / 2, _tempBounds.getHeight() / 2);
+				visualization.dataBounds.copyFrom(_tempBounds);
+			}
+			
+			private function handleZoomOutClick():void
+			{
+				visualization.dataBounds.copyTo(_tempBounds);
+				_tempBounds.centeredResize(_tempBounds.getWidth() * 2, _tempBounds.getHeight() * 2);
+				visualization.dataBounds.copyFrom(_tempBounds);
+			}
+			
+			private function handlePanButtonClick(xPan:Number, yPan:Number):void
+			{
+				var panPercent:Number = 0.3;
+				
+				visualization.dataBounds.copyTo(_tempBounds);
+				_tempBounds.offset(
+						_tempBounds.getWidth() * panPercent * xPan,
+						_tempBounds.getHeight() * panPercent * yPan
+					);
+				visualization.dataBounds.copyFrom(_tempBounds);
+			}
+			
+			private var scrollWheelScaler:int = 3; // number of mouse wheel delta increments required to zoom in/out 2x
+			
+			private var _tempBounds:IBounds2D = new Bounds2D();
+			
+			
+
+			[Embed(source="/org/oicweave/resources/images/ocean_background2.jpg")]
+			private var BackgroundImage:Class;
+			private var backgroundImageBitmapData:BitmapData = null;
+			public const enableBackground:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidateDisplayList);
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				
+				if (enableBackground.value)
+				{
+					if(_userWindowSettings && _userWindowSettings.backgroundColorPicker)
+						_userWindowSettings.backgroundColorPicker.enabled = false;
+					
+					if(backgroundImageBitmapData == null)
+					{
+						var backgroundImage:Bitmap = new BackgroundImage();
+						backgroundImageBitmapData = new BitmapData(backgroundImage.width, backgroundImage.height);
+						backgroundImageBitmapData.draw(backgroundImage);
+					}
+				
+					visualization.graphics.clear();
+					
+					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
+					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
+				}
+				else
+				{
+					if(_userWindowSettings && _userWindowSettings.backgroundColorPicker)
+						_userWindowSettings.backgroundColorPicker.enabled = true;
+					
+					visualization.graphics.clear();
+				}
+			}
+			private function handleZoomExtentClick():void
+			{
+				visualization.dataBounds.copyFrom(visualization.fullDataBounds);
+			}
+			
+			private function addGeomLayer():void
+			{
+				var layer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("plot"), SelectablePlotLayer, false);
+				var plotter:GeometryPlotter = layer.getDynamicPlotter().requestLocalObject(GeometryPlotter, true);
+			}
+			
+			private function addLabelLayer():void
+			{
+				var i:int;
+				// get existing layers before they change
+				var layers:Array = visualization.layers.getObjects(SelectablePlotLayer).reverse(); // top to bottom
+				// if a layer is selected in the editor, check that one first.
+				if (layerEditor.selectedItem is SelectablePlotLayer)
+					layers.unshift(layerEditor.selectedItem);
+				// create new label layer
+				var labelLayer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("label"), SelectablePlotLayer, false);
+				var plotter:GeometryLabelPlotter = labelLayer.getDynamicPlotter().requestLocalObject(GeometryLabelPlotter, true);
+				// loop through existing layers to find geometry layer that we can add corresponding labels for
+				for (i = 0; i < layers.length; i++)
+				{
+					var geomLayer:SelectablePlotLayer = layers[i];
+					var geomPlotter:GeometryPlotter = geomLayer.getDynamicPlotter().internalObject as GeometryPlotter;
+					if (geomPlotter)
+					{
+						// found a geometry layer
+						copySessionState(geomPlotter.geometryColumn, plotter.geometryColumn);
+						// see if there is a matching column in probe headers
+						var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
+						for (i = 0; i < headers.length; i++)
+						{
+							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
+							{
+								plotter.text.copyLocalObject(headers[i]);
+								break;
+							}
+						}
+						// stop when we found geometry layer
+						break;
+					}
+				}
+			}
+			
+			private function addWMSLayer():void
+			{
+				var oldLayerNames:Array = visualization.layers.getNames();
+				var layer:PlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("wms"), PlotLayer, false);
+				var plotter:WMSPlotter = layer.getDynamicPlotter().requestLocalObject(WMSPlotter, true) as WMSPlotter;
+				
+				//plotter.serviceName = WMSProviders.NASA;
+				// put old layers on top
+				visualization.layers.setNameOrder(oldLayerNames);
+			}
+
+			private function handleBoundsChange():void
+			{
+				// update center coordinates text boxes
+				visualization.dataBounds.copyTo(_tempBounds);
+				xCenterCoord.text = String(_tempBounds.getXCenter());
+				yCenterCoord.text = String(_tempBounds.getYCenter());
+				
+				// The code below shouldn't be used because it causes the dataBounds callbacks
+				// to run twice and it messes up the behavior of PlotLayerContainer.updateDataBounds().
+				// These linkable variables are unnecessary anyway because
+				// you can get the values from the dataBounds.
+				//linkableXCenterCoord.value = xCenter; // this causes dataBounds callbacks to run.
+				//linkableYCenterCoord.value = yCenter; // and so does this.
+			}
+			
+			override public function dispose():void
+			{
+				super.dispose();
+				disposeObjects(layerEditor);
+				//EventUtils.removeBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
+				//EventUtils.removeBindCallback(userControlPanel, "visible", handleControlPanelToggle);
+			}
+		]]>
+	</mx:Script>
+
+	
+	
+	<mx:VBox	id="mapControls"
+				horizontalAlign="center" verticalGap="2" 
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
+				right="2" bottom="2"
+				backgroundColor="white" backgroundAlpha="0.01">
+		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
+				 height="{zoomControlsToggle.selected ? 0 : NaN}"
+				 verticalGap="2">
+			
+			<mx:VBox id="panControls" horizontalAlign="center" verticalGap="1" height="100%">
+				<mx:Button id="north"
+							label="N"
+							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+							width="16" height="16"
+							click="handlePanButtonClick(0,1)"
+							labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"
+							/>
+				
+				<mx:HBox horizontalGap="2">			
+					<mx:Button id="west"
+						    label="W"
+							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+							width="16" height="16"
+							click="handlePanButtonClick(-1,0)"
+							 labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
+					<mx:Button id="zoomToExtentButton"
+							   toolTip="Click this button to zoom to map's full extent"
+							   icon="@Embed(source='/org/oicweave/resources/images/zoomToExtent.png')"
+							   fillAlphas="[1,1]" 
+							   width="16" height="16" 
+							   cornerRadius="0"
+							   click="handleZoomExtentClick()"/>
+					<mx:Button id="east"
+						    label="E"
+							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+							width="16" height="16"
+							click="handlePanButtonClick(1,0)"
+							labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
+				</mx:HBox>
+				
+				<mx:Button id="south"
+							label="S"
+							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+							width="16" height="16"
+							click="handlePanButtonClick(0,-1)"
+							labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
+			</mx:VBox>
+		</mx:VBox>
+		
+		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
+				height="{zoomControlsToggle.selected ? 0 : NaN}"
+				verticalGap="2"
+				visible="{!zoomControlsToggle.selected}"
+				backgroundColor="white" backgroundAlpha="0.5" borderStyle="outset">
+			<mx:Button id="zoomIn"
+					icon="@Embed(source='/org/oicweave/resources/images/zoomPlus.png')"
+					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+					width="15" height="15"
+					 click="handleZoomInClick()"
+					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
+			
+			<mx:VSlider id="zoomSlider" showDataTip="false" allowTrackClick="true" liveDragging="true" minimum="0" maximum="16" tickInterval="1" height="88" change="handleZoomSliderChange();"/>
+			
+			<mx:Button id="zoomOut"
+					icon="@Embed(source='/org/oicweave/resources/images/zoomMinus.png')"
+					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+					width="15" height="15"
+					 click="handleZoomOutClick()"
+					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
+		</mx:VBox>
+		
+		<mx:Spacer height="{zoomControlsToggle.selected ? 0 : 5}"/>
+	
+		<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
+		<mx:HBox id="mouseModeBox" horizontalGap="1" right="2" bottom="2"  
+				 backgroundColor="white" backgroundAlpha="0.01"
+				 alpha="1"> 
+			<mx:Button id="panModeButton" 
+				icon="@Embed(source='/org/oicweave/resources/images/cursor_hand.png')"
+				fillAlphas="[1,1]"  fillColors="{panModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+				alpha="{panModeButton.selected ? 1 : 0.5}"
+				width="17" height="17" 
+				toggle="true"
+				toolTip="Select this mode to enable panning on the map using the mouse."
+				click="handleMouseModeChange(event)" cornerRadius="0"/>
+			<mx:Button id="selectModeSubtractButton"
+				icon="@Embed(source='/org/oicweave/resources/images/selectMode_subtract.png')"
+				fillAlphas="[1,1]"  fillColors="{selectModeSubtractButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+				alpha="{selectModeSubtractButton.selected ? 1 : 0.5}" 
+				width="0" minWidth="0" height="17" 
+				visible="false"
+				toggle="true"
+				toolTip="Select this mode to enable subtracting selections from existing selections of shapes on the map using the mouse."
+				click="handleMouseModeChange(event)" cornerRadius="0"
+				/>
+			<mx:Button id="selectModeButton"
+				icon="@Embed(source='/org/oicweave/resources/images/selectMode.png')"
+				fillAlphas="[1,1]"  fillColors="{selectModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+				alpha="{selectModeButton.selected ? 1 : 0.5}"
+				width="17" height="17"
+				toggle="true"
+				toolTip="Select this mode to enable adding selections to existing selections of shapes on the map using the mouse."
+				click="handleMouseModeChange(event)" cornerRadius="0"
+				selected="true"/>
+			<mx:Button id="selectModeAddButton"
+				icon="@Embed(source='/org/oicweave/resources/images/selectMode_add.png')"
+				fillAlphas="[1,1]"  fillColors="{selectModeAddButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+				alpha="{selectModeAddButton.selected ? 1 : 0.5}"
+				width="0" minWidth="0" height="17"
+				visible="false"
+				toggle="true"
+				toolTip="Select this mode to enable selection of shapes on the map using the mouse."
+				click="handleMouseModeChange(event)" cornerRadius="0"
+				/>
+			<mx:Button id="zoomModeButton"
+				icon="@Embed(source='/org/oicweave/resources/images/zoomMode.png')"
+				fillAlphas="[1,1]" fillColors="{zoomModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+				alpha="{zoomModeButton.selected ? 1 : 0.5}"
+				width="17" height="17" 
+				toggle="true"
+				toolTip="Select this mode to enable zooming on the map using the mouse to create a box around the area you want to zoom into."
+				click="handleMouseModeChange(event)" cornerRadius="0"/>
+			<mx:Button id="zoomControlsToggle"
+					   icon="@Embed(source='/org/oicweave/resources/images/minimize_icon.png')"
+					   width="17" height="17" toggle="true" selected="false"/>
+		</mx:HBox>
+	</mx:VBox>
+	
+
+	<ui:ControlPanel>
+		<mx:VBox id="attributesPanel" label="Attributes for Map">
+			<mx:HBox width="100%">
+				<mx:Button label="Add Geometry Layer" click="addGeomLayer();"/>
+				<mx:Button label="Add Label Layer" click="addLabelLayer();"/>
+				<mx:Button label="Add WMS Layer" click="addWMSLayer();"/>
+			</mx:HBox>
+			
+			<!--<mx:DataGrid dataProvider="{_layerNames.reverse()}">
+			<mx:columns>
+			<mx:DataGridColumn headerText="Visible"/>
+			<mx:DataGridColumn headerText="Probe" headerWordWrap="true"/>
+			<mx:DataGridColumn headerText="Geography"/>
+			<mx:DataGridColumn headerText="Edit"/>
+			<mx:DataGridColumn headerText="Remove"/>
+			</mx:columns>
+			</mx:DataGrid>-->
+			
+			<ui:PlotLayerEditor id="layerEditor" initialize="layerEditor.visualization = visualization"/>
+			<mx:HBox width="100%" verticalAlign="middle">
+				<ui:DynamicColumnComponent label="color" visTool="{this}" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox label="Advanced">
+			<userControls:ControlsSubsetBox>
+				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
+				<mx:VBox verticalGap="1">
+					<mx:Label text="Coordinates at map center:" fontWeight="bold"/>
+					<mx:HBox horizontalGap="0" borderStyle="outset" horizontalAlign="center">
+						<mx:Label text="(x: "/>
+						<!--<mx:TextInput id="xCenterCoord" width="50" change="setCenterCoords()" editable="false"/>-->
+						<mx:Label id="xCenterCoord" width="75"/>
+						<mx:Label text=", y: "/>
+						<!--<mx:TextInput id="yCenterCoord" width="50" change="setCenterCoords()" editable="false"/>-->
+						<mx:Label id="yCenterCoord" width="75"/>
+						<mx:Label text=")"/>
+					</mx:HBox>
+				</mx:VBox>
+			</userControls:ControlsSubsetBox>
+			<userControls:ControlsSubsetBox>
+				<mx:HBox verticalAlign="center" horizontalAlign="center">
+					<mx:Label text="Projection"/> 
+					<mx:TextInput id="projTextInput"
+						initialize="linkBindableProperty(projectionSRS, projTextInput, 'text');"
+						change="projValidLabel.text = projectionVerifier(projTextInput.text) ? 'Valid' : 'Invalid';"
+						focusOut="projTextInput.text = projectionSRS.value; projValidLabel.text = '';"
+						/>
+					<mx:Label id="projValidLabel" fontWeight="bold"/>
+				</mx:HBox>
+			</userControls:ControlsSubsetBox>
+			<userControls:ControlsSubsetBox>
+				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+							 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
+							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+			</userControls:ControlsSubsetBox>
+		</mx:VBox>
+	</ui:ControlPanel>
+</SimpleVisTool>

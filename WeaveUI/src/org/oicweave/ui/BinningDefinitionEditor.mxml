@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!--
+* Institute for Visualization and Perception Research
+* Indicator Visualization Platform Framework
+*
+* Web-based data visualization and mapping framework.
+*
+*
+*
+* Copyright (c) 2009-10 Institute for Visualization and Perception Research
+* Department of Computer Science
+* University of Massachusetts Lowell
+* One University Ave.
+* Lowell, Massachusetts  01854
+* U.S.A.
+* All rights reserved.
+*
+* Warning: This computer software program, including all text, graphics, the
+* selection and arrangement thereof, the algorithms, the process, and all
+* other materials in this file, including its compilation are protected by
+* copyright law and international treaties. Unauthorized copying or altering
+* thereof, in hard or soft copy, or distribution of this program or any
+* portion thereof, is expressly forbidden without prior written consent and
+* may result in severe civil and criminal penalties, and will be prosecuted
+* to the maximum extent possible under the law. Additionally, all software
+* packages, compilations, and derivatives thereof, which include this file,
+* are protected as well. Use is subject to license terms.
+-->
+
+<!--
+BinningDefinitionEditor
+
+@sanbalagan
+-->
+<mx:VBox xmlns:ui ="org.oicweave.ui.*"
+		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns="org.oicweave.ui.*"
+		 implements="org.oicweave.api.core.ILinkableObject"
+		 width="{NaN}" height="{NaN}"
+		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
+	<!-- NOTE: setting the panel's width and height to NaN will force it to resize to the children... -->
+	
+	<mx:Style>
+		.group-hbox-style {
+			border-style: inset;
+			vertical-align: middle;
+			background-color: #FEFFC2;
+			padding-left: 3;
+		}
+	</mx:Style>
+	
+		<mx:Label text="Binning Type:"/>
+		<mx:RadioButtonGroup id="typeGroup"/>
+		
+		<mx:HBox id="simpleBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{simpleRadio.selected ? 1.0 : 0.0}">
+			<mx:RadioButton  id="simpleRadio" label="Simple" groupName="typeGroup" selected="true" width="140"/>
+			<mx:HBox enabled="{simpleRadio.selected}">
+				<mx:Label text="Number of Bins:" width="120"/>
+				<mx:NumericStepper minimum="2" maximum="20" stepSize="1" id="numOfBins"/>
+				<!--
+					<TextInputWithRegex change="saveSessionState()" id="numOfBins" width="40" enter="handleInputEnter(event)" restrict="0-9"/>	
+				-->
+			</mx:HBox>
+		</mx:HBox>
+		
+		<mx:HRule width="100%"/>
+		
+		<mx:HBox id="ncBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{ncRadio.selected ? 1.0 : 0.0}">
+			<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="140"/>
+			<ui:CustomSplitBinningEditor id="csEditor" enabled="{ncRadio.selected}"/>
+		</mx:HBox>
+		
+		<mx:HRule width="100%"/>
+		
+		<mx:HBox id="quantileBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{quantileRadio.selected ? 1.0 : 0.0}">
+			<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="140"/>
+			<mx:HBox enabled="{quantileRadio.selected}">
+				<mx:Label text="Reference Quantile:" width="120"/>
+				<mx:TextInput id="refQuantile" width="40"/>	
+			</mx:HBox>		
+		</mx:HBox>
+		
+		<mx:HRule width="100%"/>
+		
+		<mx:HBox id="equalIntervalBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{equalIntervalRadio.selected ? 1.0 : 0.0}">
+			<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="140"/>
+			<mx:HBox enabled="{equalIntervalRadio.selected}">
+				<mx:Label text="Data Interval:" width="120"/>				 
+				<mx:TextInput id="dataInterval" width="40"/>				
+			</mx:HBox>	
+		</mx:HBox>
+		
+		<mx:HRule width="100%"/>
+		
+		<mx:HBox id="sdBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{sdRadio.selected ? 1.0 : 0.0}">	
+			<mx:RadioButton  id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="140"/>
+			<mx:HBox enabled="{sdRadio.selected}">
+				<mx:Label text="SD Number:" width="120"/>				 
+				<mx:TextInput id="SD" width="40"/>				
+			</mx:HBox>
+		</mx:HBox>
+	
+	<!--<mx:ControlBar>
+		<mx:Button label="Apply" click="saveSessionState()"/>
+	</mx:ControlBar>-->
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.api.core.ILinkableObject;
+			import org.oicweave.api.data.IBinningDefinition;
+			import org.oicweave.api.linkBindableProperty;
+			import org.oicweave.api.newLinkableChild;
+			import org.oicweave.core.LinkableDynamicObject;
+			import org.oicweave.core.LinkableNumber;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.data.AttributeColumns.BinnedColumn;
+			import org.oicweave.data.BinningDefinitions.CustomSplitBinningDefinition;
+			import org.oicweave.data.BinningDefinitions.DynamicBinningDefinition;
+			import org.oicweave.data.BinningDefinitions.EqualIntervalBinningDefinition;
+			import org.oicweave.data.BinningDefinitions.ExplicitBinningDefinition;
+			import org.oicweave.data.BinningDefinitions.QuantileBinningDefinition;
+			import org.oicweave.data.BinningDefinitions.SimpleBinningDefinition;
+			import org.oicweave.data.BinningDefinitions.StandardDeviationBinningDefinition;
+			import org.oicweave.utils.EventUtils;
+			
+			/**make UI to access this for things using a binned column**/
+			
+			[Bindable]
+			private var _binningTypes:Array = ["Simple", "Quantile", "Equal Interval", "Standard Deviation", "Custom Split"];
+			
+			private function handleInputEnter(event:FlexEvent):void
+			{
+			    event.preventDefault();
+			
+			    stage.focus = null;
+		    }
+
+			
+			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn); 
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				binnedColumn.addGroupedCallback(this,handleBinnedColumnChange,true);
+				
+				EventUtils.addDelayedCallback(numOfBins,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(csEditor.splitMax,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(csEditor.splitMin,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(csEditor.binRange,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(refQuantile,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(dataInterval,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(SD,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(typeGroup,Event.CHANGE,saveSessionState);
+				
+				
+//				csEditor.splitMax.addEventListener(Event.CHANGE,saveSessionState);
+//				csEditor.splitMin.addEventListener(Event.CHANGE,saveSessionState);
+//				csEditor.binRange.addEventListener(Event.CHANGE,saveSessionState);
+				
+			}
+			
+			
+			private function handleBinnedColumnChange():void
+			{
+				if(!initialized)
+				{
+					callLater(handleBinnedColumnChange);
+					return;
+				}
+				
+				var def:IBinningDefinition = binnedColumn.binningDefinition.internalBinningDefinition;
+				
+				if(def is SimpleBinningDefinition)
+				{
+					var _sBD:SimpleBinningDefinition = def as SimpleBinningDefinition;
+					typeGroup.selection = simpleRadio;
+					numOfBins.value = _sBD.numberOfBins.value;
+				}
+				else if(def is CustomSplitBinningDefinition)
+				{
+					var _eBD:CustomSplitBinningDefinition = def as CustomSplitBinningDefinition;
+					typeGroup.selection = ncRadio;
+					csEditor.splitMin.text = _eBD.dataMin.value.toString();
+					csEditor.splitMax.text = _eBD.dataMax.value.toString();
+					csEditor.binRange.text = _eBD.binRange.value;
+				}
+				else if(def is QuantileBinningDefinition)
+				{
+					var _qb:QuantileBinningDefinition = def as QuantileBinningDefinition;
+					typeGroup.selection = quantileRadio;
+					refQuantile.text = _qb.refQuantile.value.toString();
+				}
+				else if(def is EqualIntervalBinningDefinition)
+				{
+					var _eiBD:EqualIntervalBinningDefinition = def as EqualIntervalBinningDefinition;
+					typeGroup.selection = equalIntervalRadio;
+					dataInterval.text = _eiBD.dataInterval.value.toString();
+				}
+				else if(def is StandardDeviationBinningDefinition)
+				{
+					var _sdBD:StandardDeviationBinningDefinition = def as StandardDeviationBinningDefinition;
+					typeGroup.selection = sdRadio;
+					SD.text = _sdBD.sdNumber.value.toString();
+				}
+				
+			
+			}
+			
+			public function saveSessionState():void
+			{
+				binnedColumn.delayCallbacks();
+				switch (typeGroup.selection)
+				{
+					case simpleRadio:
+						var _sBD:SimpleBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
+						_sBD.numberOfBins.value =  numOfBins.value;
+						break;
+					case ncRadio:
+						var _eBD:CustomSplitBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(CustomSplitBinningDefinition, false);
+						_eBD.dataMin.value= Number(csEditor.splitMin.text);
+						_eBD.dataMax.value = Number(csEditor.splitMax.text);
+						_eBD.binRange.value = csEditor.binRange.text;
+						break;
+					case quantileRadio:
+						var _qBD:QuantileBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(QuantileBinningDefinition, false);
+						_qBD.refQuantile.value = Number(refQuantile.text);
+						break;
+					case equalIntervalRadio:
+						var _eiBD:EqualIntervalBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(EqualIntervalBinningDefinition, false);
+						_eiBD.dataInterval.value = Number(dataInterval.text);
+						break;
+					case sdRadio:
+						var _sdBD:StandardDeviationBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(StandardDeviationBinningDefinition, false);
+						_sdBD.sdNumber.value = Number(SD.text);
+						break;
+					
+				}
+				binnedColumn.resumeCallbacks();
+			}
+			
+			private function handleModeClick():void{
+				switch (typeGroup.selection)
+				{
+					case simpleRadio:
+						var _sBD:SimpleBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
+						linkBindableProperty(_sBD.numberOfBins, numOfBins, "text");
+						break;
+					case ncRadio:
+						var _eBD:CustomSplitBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(CustomSplitBinningDefinition, false);
+						linkBindableProperty(_eBD.dataMin, csEditor.splitMin,"text");
+						linkBindableProperty(_eBD.dataMax, csEditor.splitMax,"text");
+						linkBindableProperty(_eBD.binRange, csEditor.binRange,"text");
+						break;
+					case quantileRadio:
+						var _qBD:QuantileBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(QuantileBinningDefinition, false);
+						linkBindableProperty(_qBD.refQuantile,refQuantile,"text");
+						break;
+					case equalIntervalRadio:
+						var _eiBD:EqualIntervalBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(EqualIntervalBinningDefinition, false);
+						linkBindableProperty(_eiBD.dataInterval, dataInterval, "text");
+						break;
+					case sdRadio:
+						var _sdBD:StandardDeviationBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(StandardDeviationBinningDefinition, false);
+						linkBindableProperty(_sdBD.sdNumber, SD ,"text");
+						break;
+					
+				}
+			}
+		]]>
+	</mx:Script>
+	
+
+	</mx:VBox>

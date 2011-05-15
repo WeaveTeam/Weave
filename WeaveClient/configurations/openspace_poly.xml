@@ -1,0 +1,497 @@
+<Weave encoding="dynamic">
+	<DynamicColumn encoding="dynamic" name="defaultColorColumn">
+		<ColorColumn name="defaultColorColumn">
+			<internalDynamicColumn encoding="dynamic">
+				<ReferencedColumn>
+					<columnReference encoding="dynamic">
+						<HierarchyColumnReference>
+							<dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+							<hierarchyPath encoding="xml">
+								<hierarchy name="Open Indicators Server">
+									<category name="DataTables">
+										<category name="OPENSPACE_POLY">
+											<attribute year="" name="ASSESS_LOT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+										</category>
+									</category>
+								</hierarchy>
+							</hierarchyPath>
+						</HierarchyColumnReference>
+					</columnReference>
+				</ReferencedColumn>
+			</internalDynamicColumn>
+			<ramp encoding="xml">
+				<colorRamp category="visualization" name="Jet" source="OIC" dataFormat="qualitative">
+					<node color="0x000086" position="0"/>
+					<node color="0x0000ff" position="0.1518324607329843"/>
+					<node color="0x00ffff" position="0.3717277486910995"/>
+					<node color="0xffff00" position="0.6282722513089005"/>
+					<node color="0xff0000" position="0.8952879581151832"/>
+					<node color="0x860000" position="1"/>
+				</colorRamp>
+			</ramp>
+		</ColorColumn>
+	</DynamicColumn>
+	<WeaveProperties name="WeaveProperties">
+		<cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+		<enableAboutMenu>true</enableAboutMenu>
+		<enableAdd2DHistogram>true</enableAdd2DHistogram>
+		<enableAddBarChart>true</enableAddBarChart>
+		<enableAddColormapHistogram>true</enableAddColormapHistogram>
+		<enableAddDataTable>true</enableAddDataTable>
+		<enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+		<enableAddHistogram>true</enableAddHistogram>
+		<enableAddMap>true</enableAddMap>
+		<enableAddOpenIndicatorsDataSource>true</enableAddOpenIndicatorsDataSource>
+		<enableAddScatterplot>true</enableAddScatterplot>
+		<enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+		<enableDataImport>true</enableDataImport>
+		<enableDebugAlert>false</enableDebugAlert>
+		<enableDynamicTools>true</enableDynamicTools>
+		<enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+		<enableExportDataTable>true</enableExportDataTable>
+		<enableExportToolImage>true</enableExportToolImage>
+		<enableMapLayerAddRemove>true</enableMapLayerAddRemove>
+		<enableMapLayerEdit>true</enableMapLayerEdit>
+		<enableMenuBar>true</enableMenuBar>
+		<enableNewDataset>true</enableNewDataset>
+		<enableSession>true</enableSession>
+		<enableSessionEdit>true</enableSessionEdit>
+		<enableSessionLoad>true</enableSessionLoad>
+		<enableSessionSave>true</enableSessionSave>
+		<enableSubsetControls>true</enableSubsetControls>
+		<enableTaskbar>true</enableTaskbar>
+		<enableToolAttributeEditing>true</enableToolAttributeEditing>
+		<enableToolAutoResizeAndPosition>true</enableToolAutoResizeAndPosition>
+		<enableToolClickDebug>false</enableToolClickDebug>
+		<enableToolProbe>true</enableToolProbe>
+		<enableToolSelection>true</enableToolSelection>
+		<enableWindowMenu>true</enableWindowMenu>
+		<pageTitle>Sample Weave Configuration</pageTitle>
+		<probePrefix/>
+		<probeSuffix/>
+		<rServicesURL>/WeaveServices</rServicesURL>
+		<showCopyright>true</showCopyright>
+		<showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+		<showVisToolCloseDialog>false</showVisToolCloseDialog>
+		<version>Beta 0.8</version>
+		<wsShapesURL>/WeaveServices/WSShapesService?wsdl</wsShapesURL>
+	</WeaveProperties>
+	<AttributeSelectorPanel name="AttributeSelectorPanel1">
+		<closeable_>true</closeable_>
+		<draggable_>true</draggable_>
+		<dynamicColumn encoding="dynamic">
+			<ReferencedColumn>
+				<columnReference encoding="dynamic">
+					<HierarchyColumnReference>
+						<dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+						<hierarchyPath encoding="xml">
+							<hierarchy name="Open Indicators Server">
+								<category name="DataTables">
+									<category name="OPENSPACE_POLY">
+										<attribute year="" name="PROJ_ID2" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+									</category>
+								</category>
+							</hierarchy>
+						</hierarchyPath>
+					</HierarchyColumnReference>
+				</columnReference>
+			</ReferencedColumn>
+		</dynamicColumn>
+		<maximizable_>true</maximizable_>
+		<minimizable_>true</minimizable_>
+		<panelHeight>85.649%</panelHeight>
+		<panelWidth>57.053%</panelWidth>
+		<panelX>4.8589%</panelX>
+		<panelY>0%</panelY>
+		<resizeable_>true</resizeable_>
+		<showCloseDialog_>false</showCloseDialog_>
+	</AttributeSelectorPanel>
+	<SessionStateEditor name="Session State Editor">
+		<closeable_>true</closeable_>
+		<draggable_>true</draggable_>
+		<maximizable_>true</maximizable_>
+		<minimizable_>true</minimizable_>
+		<panelHeight>78.071%</panelHeight>
+		<panelWidth>69.279%</panelWidth>
+		<panelX>0%</panelX>
+		<panelY>4.1332%</panelY>
+		<resizeable_>true</resizeable_>
+		<showCloseDialog_>false</showCloseDialog_>
+	</SessionStateEditor>
+	<OpenIndicatorsDataSource name="OpenIndicatorsDataSource">
+		<alertEnabled>true</alertEnabled>
+		<attributeHierarchy encoding="xml">
+			<hierarchy name="Open Indicators Server">
+				<category name="GeometryCollections">
+					<attribute dataType="Geometry" keyType="OPENSPACE_POLY" name="OPENSPACE_POLY"/>
+				</category>
+				<category name="DataTables">
+					<category name="OPENSPACE_POLY">
+						<attribute year="" name="the_geom_id" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="TOWN_ID" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="POLY_ID" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="SITE_NAME" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="FEE_OWNER" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OWNER_ABRV" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OWNER_TYPE" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute min="" year="" name="MANAGER" max="" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="MANAGR_ABR" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="MANAGR_TYP" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="PRIM_PURP" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="PUB_ACCESS" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="LEV_PROT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_1_ORG" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_1_ABRV" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_1_TYPE" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_1_INT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_2_ORG" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_2_ABRV" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_2_TYPE" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_2_INT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_3_ORG" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_3_ABRV" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_3_TYPE" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OLI_3_INT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="GRANTPROG1" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="GRANTTYPE1" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="GRANTPROG2" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute min="" year="" name="GRANTTYPE2" max="" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="PROJ_ID1" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute min="" year="" name="PROJ_ID2" max="" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute min="" year="" name="PROJ_ID3" max="" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="EOEAINVOLV" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="ARTICLE97" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="FY_FUNDING" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="BOND_ACCT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="GIS_ACRES" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="CAL_DATE_R" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="DEED_ACRES" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OS_DEED_BO" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OS_DEED_PA" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="ASSESS_ACR" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute min="" year="" name="ASSESS_MAP" max="" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="ASSESS_BLK" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute min="" year="" name="ASSESS_LOT" max="" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="ASSESS_SUB" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="ALT_SITE_N" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="ATT_DATE" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="BASE_MAP" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="SOURCE_MAP" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="SOURCE_TYP" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="COMMENTS" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="LOC_ID" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="DCAM_ID" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="FEESYM" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="INTSYM" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="OS_ID" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="AREA" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+						<attribute year="" name="LEN" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+					</category>
+				</category>
+			</hierarchy>
+		</attributeHierarchy>
+		<hierarchyURL/>
+		<url>/WeaveServices</url>
+	</OpenIndicatorsDataSource>
+	<SimpleVisTool name="scatterplotTool">
+		<closeable_>true</closeable_>
+		<draggable_>true</draggable_>
+		<maximizable_>true</maximizable_>
+		<minimizable_>true</minimizable_>
+		<panelHeight>31.573%</panelHeight>
+		<panelWidth>27.665%</panelWidth>
+		<panelX>72.335%</panelX>
+		<panelY>0%</panelY>
+		<resizeable_>true</resizeable_>
+		<showCloseDialog_>false</showCloseDialog_>
+		<visualization>
+			<dataBounds>
+				<xMax>58.6</xMax>
+				<xMin>20</xMin>
+				<yMax>78.2313</yMax>
+				<yMin>19.5032</yMin>
+			</dataBounds>
+			<enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+			<fixedAspectRatio>NaN</fixedAspectRatio>
+			<layers encoding="dynamic">
+				<SelectablePlotLayer name="plot">
+					<plotter encoding="dynamic">
+						<CircleGlyphPlotter>
+							<dataX encoding="dynamic">
+								
+							</dataX>
+							<dataY encoding="dynamic">
+								
+							</dataY>
+							<defaultScreenRadius>5</defaultScreenRadius>
+							<enabledSizeBy>false</enabledSizeBy>
+							<fillStyle encoding="dynamic">
+								<SolidFillStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<color>
+										<defaultValue>NaN</defaultValue>
+										<internalDynamicColumn encoding="dynamic">
+											<ColorColumn name="defaultColorColumn">
+												<internalDynamicColumn encoding="dynamic">
+													<ReferencedColumn>
+														<columnReference encoding="dynamic">
+															<HierarchyColumnReference>
+																<dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+																<hierarchyPath encoding="xml">
+																	<hierarchy name="Open Indicators Server">
+																		<category name="DataTables">
+																			<category name="OPENSPACE_POLY">
+																				<attribute year="" name="ASSESS_LOT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+																			</category>
+																		</category>
+																	</hierarchy>
+																</hierarchyPath>
+															</HierarchyColumnReference>
+														</columnReference>
+													</ReferencedColumn>
+												</internalDynamicColumn>
+												<ramp encoding="xml">
+													<colorRamp category="visualization" name="Jet" source="OIC" dataFormat="qualitative">
+														<node color="0x000086" position="0"/>
+														<node color="0x0000ff" position="0.1518324607329843"/>
+														<node color="0x00ffff" position="0.3717277486910995"/>
+														<node color="0xffff00" position="0.6282722513089005"/>
+														<node color="0xff0000" position="0.8952879581151832"/>
+														<node color="0x860000" position="1"/>
+													</colorRamp>
+												</ramp>
+											</ColorColumn>
+										</internalDynamicColumn>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+								</SolidFillStyle>
+							</fillStyle>
+							<keySet>
+								<keyFilter encoding="dynamic"/>
+							</keySet>
+							<lineStyle encoding="dynamic">
+								<SolidLineStyle>
+									<alpha>
+										<defaultValue>0.5</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</SolidLineStyle>
+							</lineStyle>
+							<maxScreenRadius>10</maxScreenRadius>
+							<minScreenRadius>5</minScreenRadius>
+							<screenRadius encoding="dynamic"/>
+						</CircleGlyphPlotter>
+					</plotter>
+					<probeFilter encoding="dynamic">
+						<KeySet name="probeFilter">
+							<sessionedKeys/>
+							<sessionedKeyType>US County FIPS Code</sessionedKeyType>
+						</KeySet>
+					</probeFilter>
+					<selectionFilter encoding="dynamic">
+						<KeySet name="selectionFilter">
+							<sessionedKeys/>
+							<sessionedKeyType>US County FIPS Code</sessionedKeyType>
+						</KeySet>
+					</selectionFilter>
+					<subsetFilter encoding="dynamic"/>
+				</SelectablePlotLayer>
+			</layers>
+			<marginBottom>5</marginBottom>
+			<marginLeft>5</marginLeft>
+			<marginRight>5</marginRight>
+			<marginTop>5</marginTop>
+		</visualization>
+	</SimpleVisTool>
+	<SimpleVisTool name="geometryTool">
+		<closeable_>true</closeable_>
+		<draggable_>true</draggable_>
+		<maximizable_>true</maximizable_>
+		<minimizable_>true</minimizable_>
+		<panelHeight>47.072%</panelHeight>
+		<panelWidth>53.683%</panelWidth>
+		<panelX>36.912%</panelX>
+		<panelY>40.528%</panelY>
+		<resizeable_>true</resizeable_>
+		<showCloseDialog_>false</showCloseDialog_>
+		<visualization>
+			<dataBounds>
+				<xMax>330816.09420000017</xMax>
+				<xMin>33861.264200001955</xMin>
+				<yMax>959662.6308999993</yMax>
+				<yMin>777614.9409000017</yMin>
+			</dataBounds>
+			<enableAutoZoomToExtent>0</enableAutoZoomToExtent>
+			<fixedAspectRatio>1</fixedAspectRatio>
+			<layers encoding="dynamic">
+				<SelectablePlotLayer name="plot">
+					<plotter encoding="dynamic">
+						<GeometryPlotter>
+							<fillStyle encoding="dynamic">
+								<SolidFillStyle>
+									<alpha>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<color>
+										<defaultValue>NaN</defaultValue>
+										<internalDynamicColumn encoding="dynamic">
+											<ColorColumn name="defaultColorColumn">
+												<internalDynamicColumn encoding="dynamic">
+													<ReferencedColumn>
+														<columnReference encoding="dynamic">
+															<HierarchyColumnReference>
+																<dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+																<hierarchyPath encoding="xml">
+																	<hierarchy name="Open Indicators Server">
+																		<category name="DataTables">
+																			<category name="OPENSPACE_POLY">
+																				<attribute year="" name="ASSESS_LOT" keyType="OPENSPACE_POLY" dataTableName="OPENSPACE_POLY"/>
+																			</category>
+																		</category>
+																	</hierarchy>
+																</hierarchyPath>
+															</HierarchyColumnReference>
+														</columnReference>
+													</ReferencedColumn>
+												</internalDynamicColumn>
+												<ramp encoding="xml">
+													<colorRamp category="visualization" name="Jet" source="OIC" dataFormat="qualitative">
+														<node color="0x000086" position="0"/>
+														<node color="0x0000ff" position="0.1518324607329843"/>
+														<node color="0x00ffff" position="0.3717277486910995"/>
+														<node color="0xffff00" position="0.6282722513089005"/>
+														<node color="0xff0000" position="0.8952879581151832"/>
+														<node color="0x860000" position="1"/>
+													</colorRamp>
+												</ramp>
+											</ColorColumn>
+										</internalDynamicColumn>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+								</SolidFillStyle>
+							</fillStyle>
+							<geometry encoding="dynamic">
+								<ReferencedColumn>
+									<columnReference encoding="dynamic">
+										<HierarchyColumnReference>
+											<dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+											<hierarchyPath encoding="xml">
+												<hierarchy name="Open Indicators Server">
+													<category name="GeometryCollections">
+														<attribute dataType="Geometry" name="OPENSPACE_POLY"/>
+													</category>
+												</hierarchy>
+											</hierarchyPath>
+										</HierarchyColumnReference>
+									</columnReference>
+								</ReferencedColumn>
+							</geometry>
+							<keySet>
+								<keyFilter encoding="dynamic"/>
+							</keySet>
+							<lineStyle encoding="dynamic">
+								<SolidLineStyle>
+									<alpha>
+										<defaultValue>0.5</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</alpha>
+									<caps>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</caps>
+									<color>
+										<defaultValue>0</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</color>
+									<enabled>
+										<defaultValue>true</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</enabled>
+									<joints>
+										<defaultValue/>
+										<internalDynamicColumn encoding="dynamic"/>
+									</joints>
+									<miterLimit>
+										<defaultValue>3</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</miterLimit>
+									<pixelHinting>
+										<defaultValue>false</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</pixelHinting>
+									<scaleMode>
+										<defaultValue>normal</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</scaleMode>
+									<weight>
+										<defaultValue>1</defaultValue>
+										<internalDynamicColumn encoding="dynamic"/>
+									</weight>
+								</SolidLineStyle>
+							</lineStyle>
+						</GeometryPlotter>
+					</plotter>
+					<probeFilter encoding="dynamic">
+						<KeySet name="probeFilter">
+							<sessionedKeys/>
+							<sessionedKeyType>US County FIPS Code</sessionedKeyType>
+						</KeySet>
+					</probeFilter>
+					<selectionFilter encoding="dynamic">
+						<KeySet name="selectionFilter">
+							<sessionedKeys/>
+							<sessionedKeyType>US County FIPS Code</sessionedKeyType>
+						</KeySet>
+					</selectionFilter>
+					<subsetFilter encoding="dynamic"/>
+				</SelectablePlotLayer>
+			</layers>
+			<marginBottom>5</marginBottom>
+			<marginLeft>5</marginLeft>
+			<marginRight>5</marginRight>
+			<marginTop>5</marginTop>
+		</visualization>
+	</SimpleVisTool>
+</Weave>

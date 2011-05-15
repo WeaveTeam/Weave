@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="org.oicweave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="org.oicweave.ui.*" 
+	     layout="absolute">
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.events.FlexEvent;
+			
+			import org.oicweave.Weave;
+			import org.oicweave.core.LinkableNumber;
+			import org.oicweave.core.LinkableString;
+			import org.oicweave.core.SessionManager;
+			import org.oicweave.api.getCallbackCollection;
+			import org.oicweave.api.linkBindableProperty;
+			import org.oicweave.api.newLinkableChild;
+			import org.oicweave.data.AttributeColumns.DynamicColumn;
+			import org.oicweave.data.AttributeColumns.FilteredColumn;
+			import org.oicweave.api.data.IAttributeColumn;
+			import org.oicweave.primitives.ColorRamp;
+			import org.oicweave.ui.DynamicColumnComponent;
+			import org.oicweave.utils.ColumnUtils;
+			import org.oicweave.utils.ProbeTextUtils;
+			import org.oicweave.visualization.plotters.RadViz2Plotter;
+			import org.oicweave.visualization.plotters.styles.SolidFillStyle;
+
+			
+			public var _plotter:RadViz2Plotter = null;
+			override protected function constructor():void
+			{
+				super.constructor();
+				// lock dynamic objects into place
+				_plotter = initDefaultPlotter(RadViz2Plotter) as RadViz2Plotter;
+				getCallbackCollection(_plotter).addGroupedCallback(this, updateTitle);
+				
+				visualization.enableAutoZoomToExtent.value = true;
+				visualization.enableFixedAspectRatio.value = true;
+				visualization.enableZoomAndPan.value = false;
+
+				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
+				var columnsToInit:Array = [];
+				for (var i:int = 0; i < count; i++)
+				{
+					columnsToInit.push(_plotter.columns.requestObject(null, DynamicColumn, false));
+				}
+				
+				if(columnsToInit.length > 0)
+					(initColumnDefaults as Function).apply(null, columnsToInit);
+			}
+
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+
+				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn ;
+				columnList.hashMap = _plotter.columns;
+				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
+
+				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
+				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');
+				
+				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );
+			}
+			
+			public function get colorColumn():DynamicColumn
+			{
+				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				return fc.internalDynamicColumn;
+			}
+			
+			override public function getSelectableAttributeNames():Array
+			{
+				return ["Size","Color","Anchor Dimensions"];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
+			}
+			
+			private function updateTitle():void
+			{
+				if (toolTitle.value == null)
+				{				
+					// try to get unique attribute names separated by commas
+					// should probably be unique names for parallel coordinates, single name for line chart with years listed...?
+					var newTitle:String = "RadViz of ";
+					
+					var uniqueColumns:Dictionary = new Dictionary();
+					
+					for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
+					{
+						uniqueColumns[ColumnUtils.getTitle(column)] = column;
+					}
+					
+					for (var uniqueTitle:String in uniqueColumns)
+					{
+						newTitle += uniqueTitle + ", ";
+					}
+					
+					if(newTitle.charAt(newTitle.length-1) == ",")
+						newTitle = newTitle.substr(0, newTitle.length-2);
+					
+					title = newTitle;
+				}
+			}
+			
+			private const colorRampName:LinkableString = newLinkableChild(this, LinkableString,handleColorRampName);
+			
+			private function handleColorRampName():void
+			{
+				if (stage == null)
+					return callLater(handleColorRampName);
+				_plotter.colorMap.value = ColorRamp.getColorRampXMLByName(colorRampName.value);				
+			}
+			
+			private function alphaSliderFormatFunction(item:Number):String {
+				//return int(100 - (item * 100)) + "% Transparent";
+				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+			}
+			
+			private function handleReseedJitterButtonClick(event:MouseEvent = null):void
+			{
+				_plotter.setNewRandomJitterColumn();
+				reseedJitterButton.selected = false; 
+			}
+			
+			private function handleAnchorReorderButtonClick(event:MouseEvent = null):void
+			{
+				_plotter.applyDimensionReordering();
+				anchorReorderButton.selected = false; 
+			}
+			private function enableConstSize(event:MouseEvent):void
+			{
+				//trace( size.internalList.numChildren);
+				//if( size.internalList.numChildren ) sizeSlider.enabled = false; 
+				//else sizeSlider.enabled = true;
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
+			<mx:VBox width="100%" 
+					 id="controls">
+				<mx:HBox width="100%" 
+						 borderStyle="inset" 
+						 backgroundColor="0xFFFFFF" 
+						 backgroundAlpha="0.7">
+					<mx:Label text="Point Opacity:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+					
+					<mx:HSlider id="alphaSlider"
+								width="100%"
+								alpha="1.0"
+								snapInterval="0.1"
+								tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
+								dataTipFormatFunction="alphaSliderFormatFunction"
+								minimum="0.1" maximum="1.0" value="1.0"
+								liveDragging="true"/>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox width="100%" 
+					 id="controls2">
+				<mx:HBox width="100%" 
+						 borderStyle="inset" 
+						 backgroundColor="0xFFFFFF" 
+						 backgroundAlpha="0.7">
+					<mx:Label text="Apply Jitter:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to change record coordinates by a random number"/>
+					
+					<mx:CheckBox id="jitterckbx"
+								 />
+				</mx:HBox>
+				<mx:HBox width="100%" 
+						 borderStyle="inset" 
+						 backgroundColor="0xFFFFFF" 
+						 backgroundAlpha="0.7">
+					<mx:Label text="Jitter Level:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use slider to adjust the jitter level"/>
+					
+					<mx:HSlider id="jitterSlider"
+								enabled="{jitterckbx.selected}"
+								width="100%"
+								alpha="1.0"
+								snapInterval="1"
+								tickInterval="1"
+								labels="{['1','2','3','4','5','6','7','8','9','10']}"
+								showDataTip="false"
+								minimum="-19" maximum="-10"
+								liveDragging="true"/>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox width="100%" 
+					 id="controls3">
+				<mx:HBox width="100%" 
+						 borderStyle="inset" 
+						 backgroundColor="0xFFFFFF" 
+						 backgroundAlpha="0.7">
+					<mx:Label text="Re-randomize jitter:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to reseed jitter with new random values"/>
+					
+					<mx:HBox backgroundColor="0xFFFFFF" 
+							 cornerRadius="5" 
+							 borderStyle="solid" borderThickness="1" borderColor="0x222222"
+							 >
+						<mx:LinkButton id="reseedJitterButton" click="handleReseedJitterButtonClick(event)" 
+									   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00"/>
+					</mx:HBox>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox width="100%" 
+					 id="controls4">
+				<mx:HBox width="100%" 
+						 borderStyle="inset" 
+						 backgroundColor="0xFFFFFF" 
+						 backgroundAlpha="0.7">
+					<mx:Label text="Apply Dimensional Anchor Reordering Algorithm:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to reorder the dimensional anchors"/>
+					
+					<mx:HBox backgroundColor="0xFFFFFF" 
+							 cornerRadius="5" 
+							 borderStyle="solid" borderThickness="1" borderColor="0x222222"
+							 >
+						<mx:LinkButton id="anchorReorderButton" click="handleAnchorReorderButtonClick(event)" 
+									   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00"
+									   />
+					</mx:HBox>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:VBox width="100%" 
+					 >
+				<mx:HBox width="100%" 
+						 borderStyle="inset" 
+						 backgroundColor="0xFFFFFF" 
+						 backgroundAlpha="0.7">
+					<mx:Label text="Constant Size Radius:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to adjust point radius when there is no size column"/>
+					
+					<mx:HSlider id="sizeSlider"
+								width="100%"
+								alpha="1.0"
+								tickInterval="1" 
+								minimum="1" maximum="10" 
+								liveDragging="true"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:VBox>
+		
+		<mx:VBox id="attributesPanel" label="Attributes for Rad Viz">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
+			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" click="enableConstSize(event);"/>
+		</mx:VBox>
+		<mx:VBox id="AdvancedPanel" label="Advanced">
+			<mx:Label text="Color scale used in pie-chart glyphs:"/>
+			<mx:DataGrid id="colormapGrid"
+						 useRollOver="false"
+						 minWidth="200" width="100%" height="100%"
+						 color="black"
+						 rollOverColor="0xCCFEFF"
+						 fontWeight="normal"
+						 paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
+						 horizontalScrollPolicy="off" verticalScrollPolicy="on"
+						 allowMultipleSelection="false"  
+						 dataProvider="{new XMLList(ColorRamp.allColorRamps.colorRamp)}"
+						 change="colorRampName.value = colormapGrid.selectedItem.@name;"
+						 headerHeight="22">
+				<mx:columns>												
+					<mx:DataGridColumn dataField="@name"  headerText="Color Scale"  itemRenderer="org.oicweave.ui.colormap.ColorRampPresetItemRenderer"/>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:VBox>
+	</ui:ControlPanel>
+</SimpleVisTool>
