@@ -44,6 +44,7 @@ package org.oicweave.ui
 		override public function set dataProvider(value:Object):void
 		{
 			// The dropdown will not be properly reset unless it is currently shown.
+			validateNow();
 			downArrowButton_buttonDownHandler(null);
 			
 			super.dataProvider = value;

@@ -1,27 +1,42 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<actionScriptProperties analytics="false" mainApplicationPath="AdminConsole.mxml" version="6">
-  <compiler additionalCompilerArguments="-locale en_US -as3=true -default-script-limits 1000 60 -optimize=true -target-player=10.0.0 -compiler.debug=true" autoRSLOrdering="false" copyDependentFiles="true" flexSDK="Flex 3.5" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="WEAVE_DOCROOT" outputFolderPath="bin-debug" rootURL="http://localhost:8080/" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+<actionScriptProperties analytics="false" mainApplicationPath="AdminConsole.mxml" projectUUID="437aa0e1-2583-4e07-99c6-bd1b7362124f" version="10">
+  <compiler additionalCompilerArguments="-locale en_US -as3=true -default-script-limits 1000 60 -optimize=true -target-player=10.0.0 -compiler.debug=true" autoRSLOrdering="false" copyDependentFiles="true" flexSDK="Flex 3.5" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="WEAVE_DOCROOT" outputFolderPath="bin-debug" removeUnusedRSL="true" rootURL="http://localhost:8080/" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
     <compilerSourcePath/>
     <libraryPath defaultLinkType="3">
       <libraryPathEntry kind="4" path="">
         <modifiedEntries>
-          <libraryPathEntry kind="3" linkType="4" path="${PROJECT_FRAMEWORKS}/libs/framework.swc" useDefaultLinkType="true">
+          <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="${PROJECT_FRAMEWORKS}/libs/framework.swc" useDefaultLinkType="true">
             <crossDomainRsls>
               <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="framework.swf"/>
             </crossDomainRsls>
           </libraryPathEntry>
-          <libraryPathEntry kind="3" linkType="4" path="${PROJECT_FRAMEWORKS}/libs/rpc.swc" useDefaultLinkType="true">
+          <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="${PROJECT_FRAMEWORKS}/libs/rpc.swc" useDefaultLinkType="true">
             <crossDomainRsls>
               <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="rpc.swf"/>
             </crossDomainRsls>
           </libraryPathEntry>
         </modifiedEntries>
       </libraryPathEntry>
-      <libraryPathEntry kind="1" linkType="1" path="libs"/>
-      <libraryPathEntry autoExtract="true" kind="3" linkType="3" path="/WeaveAPI/bin/WeaveAPI.swc" rslUrl="WeaveAPI.swf" useDefaultLinkType="false"/>
-      <libraryPathEntry autoExtract="true" kind="3" linkType="3" path="/WeaveCore/bin/WeaveCore.swc" rslUrl="WeaveCore.swf" useDefaultLinkType="false"/>
-      <libraryPathEntry autoExtract="true" kind="3" linkType="3" path="/WeaveData/bin/WeaveData.swc" rslUrl="WeaveData.swf" useDefaultLinkType="false"/>
-      <libraryPathEntry autoExtract="true" kind="3" linkType="3" path="/WeaveUI/bin/WeaveUI.swc" rslUrl="WeaveUI.swf" useDefaultLinkType="false"/>
+      <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveAPI/bin/WeaveAPI.swc" useDefaultLinkType="false">
+        <crossDomainRsls>
+          <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveAPI.swf"/>
+        </crossDomainRsls>
+      </libraryPathEntry>
+      <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveCore/bin/WeaveCore.swc" useDefaultLinkType="false">
+        <crossDomainRsls>
+          <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveCore.swf"/>
+        </crossDomainRsls>
+      </libraryPathEntry>
+      <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveData/bin/WeaveData.swc" useDefaultLinkType="false">
+        <crossDomainRsls>
+          <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveData.swf"/>
+        </crossDomainRsls>
+      </libraryPathEntry>
+      <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveUI/bin/WeaveUI.swc" useDefaultLinkType="false">
+        <crossDomainRsls>
+          <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveUI.swf"/>
+        </crossDomainRsls>
+      </libraryPathEntry>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
@@ -30,4 +45,5 @@
   </applications>
   <modules/>
   <buildCSSFiles/>
+  <flashCatalyst validateFlashCatalystCompatibility="false"/>
 </actionScriptProperties>

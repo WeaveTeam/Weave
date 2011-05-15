@@ -20,13 +20,17 @@
 package org.oicweave.data
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 	
 	import org.oicweave.api.WeaveAPI;
 	import org.oicweave.api.data.AttributeColumnMetadata;
 	import org.oicweave.api.data.IAttributeColumn;
+	import org.oicweave.api.data.IColumnWrapper;
 	import org.oicweave.api.data.IQualifiedKey;
 	import org.oicweave.api.data.IStatisticsCache;
 	import org.oicweave.compiler.MathLib;
+	import org.oicweave.data.AttributeColumns.DynamicColumn;
+	import org.oicweave.data.AttributeColumns.ReferencedColumn;
 	
 	/**
 	 * This is an all-static class containing numerical statistics on columns and functions to access the statistics.
@@ -67,8 +71,7 @@ package org.oicweave.data
 		 */
 		public function getMin(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getMin][column];
+			return validateCache(column, getMin);
 		}
 		
 		/**
@@ -77,8 +80,7 @@ package org.oicweave.data
 		 */
 		public function getMax(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getMax][column];
+			return validateCache(column, getMax);
 		}
 		
 		/**
@@ -87,8 +89,7 @@ package org.oicweave.data
 		 */
 		public function getCount(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getCount][column];
+			return validateCache(column, getCount);
 		}
 		
 		/**
@@ -97,8 +98,7 @@ package org.oicweave.data
 		 */
 		public function getSum(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getSum][column];
+			return validateCache(column, getSum);
 		}
 		
 		/**
@@ -107,8 +107,7 @@ package org.oicweave.data
 		 */
 		public function getSquareSum(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getSquareSum][column];
+			return validateCache(column, getSquareSum);
 		}
 		
 		/**
@@ -117,8 +116,7 @@ package org.oicweave.data
 		 */
 		public function getMean(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getMean][column];
+			return validateCache(column, getMean);
 		}
 		
 		/**
@@ -127,8 +125,7 @@ package org.oicweave.data
 		 */
 		public function getVariance(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getVariance][column];
+			return validateCache(column, getVariance);
 		}
 		
 		/**
@@ -137,8 +134,7 @@ package org.oicweave.data
 		 */
 		public function getStandardDeviation(column:IAttributeColumn):Number
 		{
-			validateCache(column);
-			return cache[getStandardDeviation][column];
+			return validateCache(column, getStandardDeviation);
 		}
 		
 		/**
@@ -147,8 +143,7 @@ package org.oicweave.data
 		 */
 		public function getRunningTotals(column:IAttributeColumn):Dictionary
 		{
-			validateCache(column);
-			return cache[getRunningTotals][column];
+			return validateCache(column, getRunningTotals);
 		}
 
 		/**
@@ -176,11 +171,30 @@ package org.oicweave.data
 		/**
 		 * This function will validate the cached statistical values for the given column.
 		 * @param column A column to calculate basic statistical values for.
+		 * @param statsFunction The function we are interested in calling.
+		 * @return The cached result of the statsFunction for the given column.
 		 */
-		private function validateCache(column:IAttributeColumn):void
+		private function validateCache(column:IAttributeColumn, statsFunction:Function):*
 		{
+			//---
+			// special case for column wrappers that do not alter the data in any way
+			var wrapperTypes:Array = [DynamicColumn,ReferencedColumn];
+			var foundWrapper:Boolean = false;
+			do {
+				foundWrapper = false;
+				for each (var wrapperType:Class in wrapperTypes)
+				{
+					if (column is wrapperType && getQualifiedClassName(column) == getQualifiedClassName(wrapperType))
+					{
+						column = (column as IColumnWrapper).internalColumn;
+						foundWrapper = true;
+					}
+				}
+			} while (foundWrapper);
+			//---
+			
 			if (column == null)
-				return;
+				return NaN;
 
 			// if the cacheIsValid dictionary has no entry for this column,
 			// add a callback to the column that will invalidate the cache
@@ -251,6 +265,8 @@ package org.oicweave.data
 				// the cache is now valid for this column
 				cacheIsValid[column] = true;
 			}
+			
+			return cache[statsFunction][column];
 		}
 	}
 }
