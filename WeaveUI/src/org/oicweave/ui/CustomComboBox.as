@@ -21,6 +21,9 @@ package org.oicweave.ui
 {
 	import mx.collections.CursorBookmark;
 	import mx.controls.ComboBox;
+	
+	import org.oicweave.core.SessionManager;
+	import org.oicweave.core.StageUtils;
 
 	/**
 	 * BUG FIX: set dataProvider() now updates drop-down list.
@@ -43,10 +46,15 @@ package org.oicweave.ui
 		 */		
 		override public function set dataProvider(value:Object):void
 		{
-			// The dropdown will not be properly reset unless it is currently shown.
-			validateNow();
-			downArrowButton_buttonDownHandler(null);
-			
+			// TEMPORARY SOLUTION
+			// Sometimes this code crashes with a null reference error.
+			// So, until this is fully debugged, only attempt this fix when running the debug player.
+			if (SessionManager.runningDebugFlashPlayer)
+			{
+				// The dropdown will not be properly reset unless it is currently shown.
+				validateNow();
+				downArrowButton_buttonDownHandler(null);
+			}
 			super.dataProvider = value;
 		}
 		
