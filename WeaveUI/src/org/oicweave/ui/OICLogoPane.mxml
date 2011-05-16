@@ -21,7 +21,7 @@
 -->
 
 <mx:Button 	xmlns:mx="http://www.adobe.com/2006/mxml" 
-			label="(C) {(new Date()).getFullYear()} Open Indicators Consortium Weave"
+			label="(C) {(new Date()).getFullYear()} Open Indicators Consortium Weave "
 			
 			skin="{null}"
 			
