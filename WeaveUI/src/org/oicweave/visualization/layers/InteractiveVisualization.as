@@ -91,9 +91,6 @@ package org.oicweave.visualization.layers
 //			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
 			defaultMouseMode.value = SELECT_MODE_REPLACE;
-			
-			// hide the values that don't need to be in the session state
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(this, defaultMouseMode);
 		}
 		public function dispose():void
 		{

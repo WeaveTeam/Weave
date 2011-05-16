@@ -285,8 +285,9 @@ package org.oicweave.visualization.plotters
 			_tempMatrix.translate(xMinScreen, yMinScreen);
 
 			// draw each tile's reprojected shape
-			for each (var tile:WMSTile in allTiles)
+			for (var i:int = 0; i < allTiles.length; i++)
 			{
+				var tile:WMSTile = allTiles[i];
 				if (tile.bitmapData == null)
 				{
 					if (displayMissingImage.value == false)
@@ -315,8 +316,9 @@ package org.oicweave.visualization.plotters
 
 			var allTiles:Array = _service.requestImages(dataBounds, screenBounds);
 				
-			for each(var tile:WMSTile in allTiles){
-
+			for (var i:int = 0; i < allTiles.length; i++)
+			{
+				var tile:WMSTile = allTiles[i];
 				// above we requested some tiles outside the dataBounds... we don't want to draw them
 				if (!tile.bounds.overlaps(dataBounds, false))
 					continue;

@@ -220,8 +220,9 @@ package org.oicweave.services.wms
 				}
 			}
 
+			lowerQualTiles = lowerQualTiles.concat(completedTiles);
 			lowerQualTiles = lowerQualTiles.sort(tileSortingComparison);
-			return lowerQualTiles.concat(completedTiles);
+			return lowerQualTiles;
 		}
 		
 		/**
