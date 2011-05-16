@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" implements="weave.api.ui.IProbeDisplay">
+	<mx:Script>
+		<![CDATA[
+			import mx.core.IToolTip;
+			import mx.controls.List;
+			import mx.controls.Label;
+			import mx.core.UIComponent;
+			
+			
+			
+			private var sampleData:XML = 
+								 <probe>
+									<embeddedVis type="weave.multilayers.MultiLayerScatterPlot" percentWidth="" percentHeight=""/>
+									<record key="" label="">
+										<metadata type=""/>
+										<attribute label="" value=""/>
+									</record>
+									<metadata/>
+								 </probe>
+			
+			public function createFromComplexProbeData(data:XML):UIComponent
+			{
+				var dataList:List = new List();
+				dataList.dataProvider = data.record;
+				dataList.labelField = "@label";
+				
+				var a:IToolTip
+				return dataList;
+			}
+			public function createFromSimpleProbeData(data:String):UIComponent
+			{
+				var label:Label = new Label();
+				label.text = data;
+				return label;
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

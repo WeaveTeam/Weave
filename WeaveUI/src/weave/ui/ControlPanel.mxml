@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				title="Control Panel"
+				backgroundColor="0xCCCCCC"
+				addedToStage="save();"
+				layout="vertical"
+				>
+	<mx:Metadata>
+		[DefaultProperty("children")]
+
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.containers.TabNavigator;
+			import mx.controls.Alert;
+			import mx.core.Container;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
+			import weave.api.getSessionState;
+			import weave.api.setSessionState;
+			import weave.core.ClassUtils;
+			import weave.core.DynamicState;
+			import weave.core.SessionManager;
+			import weave.core.weave_internal;
+			use namespace weave_internal;
+			
+			private const padding:int = 5;
+			private var _targetObjects:Array = null;
+			private var _savedTargetSessionStates:Array;
+			private var _savedGlobalSessionStates:Array;
+			
+			override public function set layout(value:String):void
+			{
+				super.layout = "vertical";
+			}
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				closeable.value = false;
+				minimizable.value = false;
+				maximizable.value = false;
+			}
+			
+			public function set children(array:Array):void
+			{
+				initialize();
+				for (var i:int = 0; i < array.length; i++)
+				{
+					controlPanelControls.tabNavigator.addChild(array[i]);
+				}
+			}
+			
+			[Inspectable]
+			/**
+			 * setter for _targetObjects
+			 * @param Array an array of ILinkableObjects 
+			 */
+			public function set targets(array:Array):void
+			{
+				// make sure controls are initialized before attempting to manipulate its children.
+				controlPanelControls.initialize();
+				controlPanelControls.validateNow();
+				
+				// show buttons if there are targets, hide them if not
+				if (array == null || array.length == 0)
+				{
+					closeable.value = true;
+					if (controlPanelControls.contains(controlPanelControls.buttons))
+						controlPanelControls.removeChild(controlPanelControls.buttons);
+				}
+				else
+				{
+					closeable.value = false;
+					if (!controlPanelControls.contains(controlPanelControls.buttons))
+						controlPanelControls.addChild(controlPanelControls.buttons);
+				}
+				
+				_targetObjects = array;
+				save();
+			}
+			
+			/**
+			 * This function reverts session state(s) in targets to the previous state(s) set in save() 
+			 */
+			public function revert():void
+			{
+				if (!_targetObjects)
+					return;
+				var i:int = 0;
+				for each(var object:ILinkableObject in _targetObjects)
+				{
+					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(object))
+						setSessionState(object, _savedTargetSessionStates[i++]); 
+				}
+				for each (var dynamicState:DynamicState in _savedGlobalSessionStates)
+				{
+					var classDef:Class = ClassUtils.getClassDefinition(dynamicState.className);
+					var globalObject:ILinkableObject = Weave.root.requestObject(dynamicState.objectName, classDef, false);
+					setSessionState(globalObject, dynamicState.sessionState);
+				}
+			}
+			
+			/**
+			 * This function saves the session state(s) of all ILinkableObjects in _targetObjects 
+			 * to a local Array <br/>
+			 * If _targetObjects is null and a parent ILinkableObject exists, 
+			 * the parent ILinkableObject's session state will be saved
+			 */
+			public function save():void
+			{
+				_savedGlobalSessionStates = [];
+				_savedTargetSessionStates = [];
+				if (_targetObjects == null && parent is ILinkableObject)
+				{
+					_targetObjects = [parent];
+				}
+				for each(var object:ILinkableObject in _targetObjects)
+				{
+					if (object)
+					{
+						_savedTargetSessionStates.push(getSessionState(object));
+						saveRelatedSessionStates(object);
+					}
+				}
+			}
+			
+			private function saveRelatedSessionStates(object:ILinkableObject):void
+			{
+				var dynamicObjects:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(object, ILinkableDynamicObject);
+				for each (var dynamicObject:ILinkableDynamicObject in dynamicObjects)
+				{
+					if (dynamicObject.internalObject && dynamicObject.globalName != null)
+					{
+						_savedGlobalSessionStates.push(
+							new DynamicState(
+								dynamicObject.globalName,
+								getQualifiedClassName(dynamicObject.internalObject),
+								getSessionState(dynamicObject.internalObject)
+							)
+						);
+						saveRelatedSessionStates(dynamicObject.internalObject);
+					}
+				}
+			}
+			private var createdChildren:Boolean = false;
+			/**
+			 * container for the Save, Revert, Cancel and Save & Close buttons 
+			 */
+			protected const controlPanelControls:ControlPanelControls = new ControlPanelControls();
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				if (createdChildren)
+					return;
+
+				var children:Array = getChildren();
+				removeAllChildren();
+				
+				addChild(controlPanelControls);
+				controlPanelControls.addEventListener(FlexEvent.CREATION_COMPLETE, handleControlsCreated);
+				
+				controlPanelControls.initialize();
+				for ( var i:int = 0; i < children.length; i++ )
+				{
+					controlPanelControls.tabNavigator.addChild(children[i]);
+				}
+				createdChildren = true;
+			}
+			
+			private function handleControlsCreated(e:FlexEvent):void
+			{
+				controlPanelControls.revertBtn.addEventListener(MouseEvent.CLICK,function (e:MouseEvent):void { revert() });
+				controlPanelControls.cancelBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { revert(); removePanel(); });
+				controlPanelControls.saveBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); });
+				controlPanelControls.saveCloseBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); removePanel(); });
+			}
+		]]>
+	</mx:Script>
+</DraggablePanel>

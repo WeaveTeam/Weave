@@ -19,26 +19,26 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="org.oicweave.ui.admin.managers.*">
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*">
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.TextArea;
-			import org.oicweave.services.WeaveAdminService;
+			import weave.services.WeaveAdminService;
 			import mx.binding.utils.BindingUtils;
 			import mx.core.IFlexDisplayObject;
 			import mx.managers.PopUpManager;
 			
-			import org.oicweave.StringDefinition;
-			import org.oicweave.Weave;
-			import org.oicweave.services.AdminInterface;
-			import org.oicweave.ui.PopupDialog;
-			import org.oicweave.ui.WizardPanel;
-			import org.oicweave.ui.admin.LoginPopup;
-			import org.oicweave.ui.admin.wizards.CSVImportWizard;
-			import org.oicweave.ui.admin.wizards.SHPImportWizard;
-			import org.oicweave.ui.admin.wizards.SQLImportWizard;
-			import org.oicweave.utils.EventUtils;
+			import weave.StringDefinition;
+			import weave.Weave;
+			import weave.services.AdminInterface;
+			import weave.ui.PopupDialog;
+			import weave.ui.WizardPanel;
+			import weave.ui.admin.LoginPopup;
+			import weave.ui.admin.wizards.CSVImportWizard;
+			import weave.ui.admin.wizards.SHPImportWizard;
+			import weave.ui.admin.wizards.SQLImportWizard;
+			import weave.utils.EventUtils;
 			
 			private function handleCreationComplete():void
 			{

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
+		  xmlns="weave.ui.*"
+		  layout="absolute"
+		  width="600" height="400"
+		  title="{dialog is Container ? (dialog as Container).label : 'Import...'}"
+		  borderAlpha="1"
+		  borderColor="#C5C3A8"
+		  borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
+		  headerHeight="20" roundedBottomCorners="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.Container;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+
+			/**
+			 * @param dialogClass A Class that extends Container and contains controls you want to display inside a popup.
+			 */
+			public static function openDialog(parent:DisplayObject, dialogClass:Class):Container
+			{
+				var popup:PopupDialog = PopUpManager.createPopUp(parent, PopupDialog, true) as PopupDialog;
+				popup.dialogClass = dialogClass;
+				PopUpManager.centerPopUp(popup);
+				popup.closePopupFunction = function():void{
+					PopUpManager.removePopUp(popup)
+				};
+				return popup.dialog;
+			}
+			
+			[Bindable] public var dialog:Container = null;
+			private var closePopupFunction:Function = null;
+
+			[Inspectable]
+			public function set dialogClass(clazz:Class):void
+			{
+				var instanze:Object = new clazz();
+				if(instanze.hasOwnProperty("getWizardButtons")){
+					bar.removeChild(finishButton);
+					var buttons:Object = instanze.getWizardButtons();
+					for(label in buttons){
+						var callback:Function = buttons[label];
+						var button:Button = new Button();
+						button.label = label;
+						button.addEventListener(FlexEvent.BUTTON_DOWN,function(event:Event):void{
+							callback(closePopupFunction);
+						});
+						
+						bar.addChild(button);
+					}
+				}
+				dialog = instanze as Container;
+				this.addChild(dialog);
+			}
+		]]>
+	</mx:Script>
+	<!--<mx:TextArea x="81" y="41" editable="false" wordWrap="true" selectable="false" width="229" height="126">
+		<mx:text><![CDATA[Wizard to help the user with data import for whatever type of data they are importing.  Bulk import from here as well...After the user completes this stage, the thing they just created should be selected in the editor view.]]></mx:text>
+	</mx:TextArea>-->
+	<mx:ControlBar id="bar" paddingTop="5" paddingBottom="5">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Cancel" click="PopUpManager.removePopUp(this)"/>
+		<mx:Button id="finishButton" label="Finish" enabled="true" emphasized="true" click="PopUpManager.removePopUp(this)"/>
+	</mx:ControlBar>
+	
+	
+	<mx:Style>
+		.weave-panel-style, .weave-system-style {
+			borderAlpha: 0.95;
+			alpha: 1.0;
+			backgroundAlpha: 1.0;
+			borderColor: #4D5258;
+			
+			headerHeight: 20;
+			
+			paddingLeft: 0;
+			paddingRight: 0;
+			paddingTop: 0;
+			paddingBottom: 0;
+			
+			resizeBorderThickness: 5;
+			
+			borderThicknessTop: 2;
+			borderThicknessBottom: 2;
+			borderThicknessLeft: 2;
+			borderThicknessRight: 2;
+			
+			roundedBottomCorners: false;
+			cornerRadius: 0;
+		}
+		.weave-system-style, .weave-system-title-style {
+			fontFamily: Verdana;
+			fontWeight: normal;
+			fontSize: 10;
+			fontStyle: normal;
+			textDecoration: none;
+		}
+		.weave-panel-title-style, .weave-system-title-style {
+			fontWeight: normal;
+			color: white;
+		}
+	</mx:Style>
+</mx:Panel>

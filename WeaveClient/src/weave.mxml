@@ -25,4 +25,4 @@
  		
  		One example of a client using the weave framework.
    -->
-<VisApplication xmlns="org.oicweave.*"/>
+<VisApplication xmlns="weave.*"/>

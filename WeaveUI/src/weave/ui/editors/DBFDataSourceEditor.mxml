@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="weave.ui.*"
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	implements="weave.api.ui.ILinkableObjectEditor"
+	creationComplete="handleCreationComplete()"
+	>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			
+			import weave.Weave;
+			import weave.api.core.ILinkableObject;
+			import weave.data.DataSources.DBFDataSource;
+			import weave.utils.EditorManager;
+			
+			{EditorManager.registerEditor(DBFDataSource,DBFDataSourceEditor);}
+			
+			[Bindable]
+			private var uniqueName:String = Weave.root.generateUniqueName("DBFDataSource");
+			
+			private var _dbfDataSource:DBFDataSource = null;
+			public function set linkableObject(object:ILinkableObject):void
+			{
+				_dbfDataSource = object as DBFDataSource;
+				
+				var checkObj:String  = Weave.root.getName(_dbfDataSource);
+				if(checkObj !=null)
+				{
+					editorTitle.text = "Edit";
+					uniqueName = Weave.root.getName(_dbfDataSource);
+					dbfURL.text = _dbfDataSource.dbfUrl.value;
+					shpURL.text = _dbfDataSource.shpUrl.value;
+					keyColumnName.text = _dbfDataSource.keyColName.value;
+					keyType.text = _dbfDataSource.keyType.value;
+					sourceName.editable = false;
+					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
+				}
+
+			}
+			
+			
+			private function handleCreationComplete():void
+			{
+				
+			}			
+			public function applyChanges():void
+			{
+				try{
+					_dbfDataSource.dbfUrl.value = dbfURL.text;
+					_dbfDataSource.shpUrl.value = shpURL.text;
+					_dbfDataSource.keyColName.value = keyColumnName.text;
+					_dbfDataSource.keyType.value = keyType.text;
+					Alert.show("Changes saved.")
+				}
+				catch(e:Error){
+					Alert.show("Changes could not be saved. " + e.message,"Error");
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Label id="editorTitle" fontWeight="bold" text="Add DBF Data Source"/>
+	<mx:HBox>
+		<mx:Label text="Source Name *" width="120"/>
+		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="DBF Source URL *" width="120"/>
+		<mx:TextInput id="dbfURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your DBF Source file e.g. : http://vis.weave.com/st99_d00.dbf"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Shape Source URL" width="120"/>
+		<mx:TextInput id="shpURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV Source file e.g. : http://vis.weave.com/st99_d00.shp"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Key Column" width="120"/>
+		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Key Type *" width="120"/>
+		<mx:TextInput id="keyType" width="200" text="{uniqueName}" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+	</mx:HBox>
+	<mx:Spacer height="20"/>
+	<mx:Label text="*required"/>
+</mx:VBox>

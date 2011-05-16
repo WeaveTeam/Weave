@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns="weave.ui.settings.*" 
+		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="100%" 
+		 height="100%">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+			import weave.Weave;
+			import weave.core.SessionManager;
+		]]>
+	</mx:Script>
+	<mx:ViewStack id="selection"
+				  height="100%" width="100%"
+				  >
+	<mx:Canvas id="admin">
+		<mx:VBox>
+			
+			<mx:HBox>
+				<mx:Label text="Shadow Color" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the shadow color of selected points"/>
+				<mx:ColorPicker id="shadowColor"
+								creationComplete="linkBindableProperty(Weave.properties.shadowColor, shadowColor, 'selectedColor' );"
+								/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Shadow Alpha" 
+						  width="200"	
+						  textAlign="right"
+						  toolTip="Set the opacity of selected points"/>
+				<mx:NumericStepper id="shadowAlpha"
+								   maximum="1"
+								   stepSize="0.1"
+								   creationComplete="linkBindableProperty(Weave.properties.shadowAlpha, shadowAlpha, 'value' );"
+								   />
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>	
+	<mx:Canvas id="notadmin">
+		
+	</mx:Canvas>
+	</mx:ViewStack>
+</mx:VBox>

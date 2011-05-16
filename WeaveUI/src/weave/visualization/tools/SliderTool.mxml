@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool
+	xmlns="weave.visualization.tools.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ui="weave.ui.*"
+	xmlns:settings="weave.ui.settings.*"
+	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
+	verticalScrollPolicy="off"
+	width="400" 
+	title="Slider Tool"
+	height="40">
+
+<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			
+			import weave.Weave;
+			import weave.WeaveProperties;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IDataSource;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.SessionManager;
+			import weave.core.StageUtils;
+			import weave.core.weave_internal;
+			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.utils.HierarchyUtils;
+            use namespace weave_internal;
+
+	//constructor
+	
+	//This class is the base class for Slider visualization tools
+	override protected function constructor():void
+	{
+		super.constructor();
+		this.height = 40;
+		// wait 1 frame before initializing labels because other tools may not be initialized yet
+		StageUtils.callLater(this,initializeLabels, null, false);
+		StageUtils.callLater(this,addCallbacks, null, false);
+
+		Weave.properties.axisFontFamily.addGroupedCallback(this,updateLabelProperties);
+		Weave.properties.axisFontColor.addGroupedCallback(this,updateLabelProperties);
+		Weave.properties.axisFontSize.addGroupedCallback(this,updateLabelProperties);
+		Weave.properties.axisFontUnderline.addGroupedCallback(this, updateLabelProperties);
+	}
+
+	//class data
+
+	//@TODO session this so that the admin can specify a different maximum tick count
+	protected static const MAX_TICK_COUNT:int = 10;
+	//@TODO session this so that the admin can specify a different maximum delay
+	private static const MAX_TIMER_DELAY:Number = 2500;
+	public var timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
+	//dimensionsList is the dataprovider for the combo box
+	[Bindable] protected var dimensionsList:ArrayCollection = new ArrayCollection();
+	public static var dimensionsRefs:ArrayCollection = new ArrayCollection();
+	public var labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange);
+	public var currentSliderPosition:LinkableNumber = newLinkableChild(this, LinkableNumber);
+	private var _timer:Timer;
+	
+	////abstract functions that must be overridden by subclasses of this class
+
+	/**
+	 * This function finds a list of attribute tags in the same attribute hierarchy
+	 * that have the same @dataTable and @name attributes, then returns a list of
+	 * the values that will go into the slider.
+	 * @param ref A reference to an attribute tag in an AttributeHierarchy.
+	 * @return An Array of values from the referenced column.
+	 */
+	protected function getValuesFromColHier(ref:HierarchyColumnReference):Array 
+	{
+		return null;
+	}
+
+	/**
+	 * handleLabelChange
+	 * This method is called every time there is a change in labels,
+	 * so be sure to change labels only as often as is necesary.  
+	 * */
+	public function handleLabelChange():void {}	
+
+	/** 
+	 * This method is automatically called when the hslider
+	 *  is changed.  Here we update all the visualization tools to 
+	 *  the new time.  
+	 * **/
+	public function setColsToSliderValue():void { }
+	
+	/**
+	 * This is specified in the HSlider - called to get the tooltip that appears when 
+	 * the user probes over the slider.  Item is the index of the value that the user is hovering 
+	 * over.  
+	 **/
+	protected function formatDataTip(item:Number):String 
+	{
+		return null;
+	}
+	
+	public function addCallbacks():void { }
+
+	//class methods that are common to all SliderTools
+	
+	private function initializeLabels():void
+	{
+		//we'll run through the dimensions to set the defaults
+		//intialize the labels (a list of years concatenated, separated by commas)
+		if (labelsLinkableString.value.length == 0)
+		{
+			var labels:Array = getValuesFromCurrentDimensions();
+			if ((labelsLinkableString.value != null) && (labels != null))
+				labelsLinkableString.value = labels.join(',');
+		}
+		updateLabelProperties();
+		dimensionSlider.value = currentSliderPosition.value;
+	}
+
+	
+	private function updateLabelProperties():void
+	{
+		if (!parent)
+			return callLater(updateLabelProperties); 
+		dimensionSlider.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
+		dimensionSlider.setStyle("color", Weave.properties.axisFontColor.value);
+		dimensionSlider.setStyle("fontSize", Weave.properties.axisFontSize.value);
+		dimensionSlider.invalidateProperties();
+	}
+
+	/**
+	 * This function gets called after children have been created
+	 */ 
+	override protected function childrenCreated():void
+	{
+		super.childrenCreated();
+		
+		this.height = 40;
+
+		if (! timerDelay.value)
+			timerDelay.value = MAX_TIMER_DELAY;
+		if (! currentSliderPosition.value)
+			currentSliderPosition.value = 0;
+		speedSlider.minimum = 0;
+		speedSlider.maximum = 2000;
+		speedSlider.toolTip = "Change the speed of the slider.";
+		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
+		//is there a timer that is still running? 
+		dimensionSlider.value = currentSliderPosition.value;
+		if ((playButton != null) && (_timer != null))
+		{
+			playButton.toolTip = "Automatically cycle through the times.";
+			if (_timer.running)
+			{
+				playButton.label = "||";
+				playButton.toolTip = "Stop";
+			}
+			else
+			{
+				playButton.label = ">";
+				playButton.toolTip = "Play"
+			}
+		}
+		
+		linkBindableProperty(labelsLinkableString, labelsInput, 'text');
+	}		
+	
+	/**
+	 * dispose - called when the tool is deleted from the desktop
+	 * */
+	override public function dispose():void
+	{
+		if (_timer != null)
+		{
+			if (_timer.running) _timer.stop();
+			_timer.removeEventListener(TimerEvent.TIMER, moveSlider);
+		}
+		super.dispose();
+	}
+	
+	/**
+	 * getTimesFromCurrentDimensions
+	 * The labels for the time slider come from the dimensions 
+	 *  in the visualization tools that are on the desktop.
+	 *  Here we get the list of times and initialize the slider labels. 
+	 *  @TODO - allow the user to link the time slider to specific tools,
+	 *     the current implementation links the timeslider to all 
+	 *     the tools
+	 * **/
+	protected function getValuesFromCurrentDimensions():Array
+	{
+		//loop through the columns, getting the possible time values for each
+		//step one - just get first one
+		var descendants:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(Weave.root, HierarchyColumnReference);
+		var len:int = descendants.length;
+		var newLabels:Array = [];
+		var lookingForLabels:Boolean = true;
+		var countOfYearsFound:Number = 0;
+		for (var i:int = 0; i < len; i++)
+		{
+			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
+			var years:Array = getValuesFromColHier(ref);
+			//for a default, we choose the dimension with the most values
+			// the user/admin can change which dimension is used, but this is a best guess at a first default
+			if (years.length > countOfYearsFound)
+			{
+				newLabels = years;
+				countOfYearsFound = years.length;
+			}
+		}
+
+		return newLabels;
+	}
+	
+	
+	private function onUserControlsAddedToStage(event:Event):void
+	{
+		getValuesFromCurrentDimensions();
+	}
+	
+	/**
+	 * This event is triggered when the user changes the dimension in the attrListCombo box
+	 * */
+	private function dimensionChange(event:Event):void
+	{
+		var index:int = attrListCombo.selectedIndex;
+		if (index >= dimensionsRefs.length)
+			return;
+		var ref:HierarchyColumnReference = dimensionsRefs.getItemAt(index) as HierarchyColumnReference;
+		var times:Array = getValuesFromColHier(ref);
+		labelsLinkableString.value = times.join(',');
+	}
+
+	
+	protected function addToListOfDims(ref:HierarchyColumnReference):void
+	{
+		var path:XML = ref.hierarchyPath.value;
+		var attrXML:XML = HierarchyUtils.getNodeFromPath(path, path); // get leaf node
+		//February 17, 2011  Fixing bug below:  the xml has changed from dataTableName to dataTable
+		//var dataTableName:String = attrXML.@dataTableName;
+		var strToAdd:String = attrXML.@dataTable + "///" + attrXML.@name;
+		//if it isn't already in the list, add it
+		if (dimensionsList.getItemIndex(strToAdd) < 0)
+		{
+			dimensionsList.addItem(strToAdd);
+			dimensionsRefs.addItem(ref);
+		}
+	}
+	
+
+	public function dimensionSliderChange():void
+	{
+		currentSliderPosition.value = dimensionSlider.value;
+		setColsToSliderValue();
+	}
+
+	/**
+	 * playButtonPushed - There is a play button (above see id="playButton") that the user can push
+	 *   to automatically cycle through the values.
+	 *   This function is called when that button is pushed.  
+	 * */
+	public function playButtonPushed():void
+	{
+		if ((_timer == null) || (! _timer.hasEventListener(TimerEvent.TIMER)))
+		{
+			_timer = new Timer(timerDelay.value);
+			_timer.addEventListener(TimerEvent.TIMER, moveSlider);
+		}
+		
+		if (_timer.running)
+		{
+			if (playButton != null) 
+			{
+				playButton.label = ">";
+				playButton.toolTip = "Play";				
+			}
+			_timer.stop();
+		}
+		else
+		{
+			if (playButton != null) 
+			{
+				playButton.label = "||";
+				playButton.toolTip = "Stop";				
+			}
+			_timer.start();
+		}
+	}
+	private function getDelay():String
+	{
+		var delayDescription:String = (MAX_TIMER_DELAY - speedSlider.value).toFixed(0) + " millisecond delay"; 
+		return delayDescription;
+	}
+	
+	/**
+	 * speedSliderChange - this is called when user moves the speed slider
+	 * */
+	public function speedSliderChange():void
+	{
+		timerDelay.value = MAX_TIMER_DELAY - speedSlider.value;
+		if (_timer && (timerDelay.value))
+			_timer.delay = timerDelay.value;
+	}
+
+	/**
+	 * moveSlider - This method is called everytime the timer triggers
+	 * it.  It forces the slider to move.  
+	 * **/
+	private function moveSlider(evt:TimerEvent):void
+	{
+		if (dimensionSlider.value < dimensionSlider.maximum)
+			dimensionSlider.value = dimensionSlider.value + 1;
+		else
+			dimensionSlider.value = dimensionSlider.minimum;
+		dimensionSliderChange();		
+		if (_timer.currentCount == (_timer.repeatCount - 1))
+		{
+			playButton.label = "Play";
+			_timer.reset();
+		}
+	}
+	
+	
+	private function formatSpeedDataTip(item:Number):String
+	{
+		var delayDescription:String = getDelay();
+		if (item < speedSlider.value)
+		{
+			return "slower: " + delayDescription;
+		}
+		else
+		{
+			return "faster: " + delayDescription;
+		}
+	}
+			
+		]]>
+	</mx:Script>
+<mx:HBox width="100%">
+	<mx:VBox width="5%">
+		<mx:Button
+			width="5%" id="playButton" label=">" alpha="1.0" 
+			fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
+			click="playButtonPushed()"/>
+	<mx:HSlider
+		height="90%"
+		id="speedSlider"
+		width="50"
+		liveDragging="true"
+		dataTipFormatFunction="formatSpeedDataTip"
+		change="speedSliderChange();"/>
+	</mx:VBox>
+	<mx:HSlider 
+			height="90%"
+			id="dimensionSlider"
+			width="100%"
+			dataTipFormatFunction="formatDataTip"
+			snapInterval="1"
+			tickInterval="1"
+			liveDragging="true"
+			change="dimensionSliderChange();"
+			name="Time Slider Tool"
+			> 				
+	</mx:HSlider>
+</mx:HBox>
+	<ui:ControlPanel>
+			<mx:Panel id="VizControlsPanel" 
+					  label="Visualization Controls" 
+					  headerHeight="2"
+					  borderColor="0x000000" 
+					  backgroundColor="0xCCCCCC" 
+					  backgroundAlpha="0.0" 
+					  borderThickness="0.0" 
+					  width="100%" 
+					  borderAlpha="0.2" 
+					  addedToStage="onUserControlsAddedToStage(event)"
+					  borderStyle="none">
+				<mx:VBox width="100%" 
+						 verticalGap="0">
+					<mx:VBox width="100%" 
+							 id="timesliderControls">
+	<mx:HBox width="100%">
+		<mx:Label text="Time slider labels:"/>
+		<mx:TextInput id="labelsInput" 
+					  width="90%"
+					  toolTip="Entering a title here will override the automatic title generated by the tool."
+					  />
+	</mx:HBox>
+	<mx:HBox width="100%" height="100%">
+	</mx:HBox>
+	<mx:HBox width="100%" height="100%">
+		<mx:Label id="dimsLabel" text="Replace slider labels with values from a dimension with year values:" />
+	</mx:HBox>
+	<mx:HBox>
+		<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange(event)"/>
+	</mx:HBox>
+					</mx:VBox>
+					<mx:HBox width="100%">
+					</mx:HBox>
+				</mx:VBox>
+			</mx:Panel>
+	</ui:ControlPanel>
+
+</SimpleVisTool>
+
+

@@ -5311,7 +5311,7 @@
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>20</shadowAmount>
       </SimpleInteractiveVisualization>
-      <SessionedTextArea name="Label" package="org.oicweave.ui.annotation">
+      <SessionedTextArea name="Label" package="weave.ui.annotation">
         <backgroundAlpha>0.549618320610687</backgroundAlpha>
         <backgroundColor>16777215</backgroundColor>
         <borderColor>0</borderColor>
@@ -5663,7 +5663,7 @@
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>20</shadowAmount>
       </SimpleInteractiveVisualization>
-      <SessionedTextArea name="Label" package="org.oicweave.ui.annotation">
+      <SessionedTextArea name="Label" package="weave.ui.annotation">
         <backgroundAlpha>0.17557251908396945</backgroundAlpha>
         <backgroundColor>65484</backgroundColor>
         <borderColor>0</borderColor>
@@ -6297,7 +6297,7 @@
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>20</shadowAmount>
       </SimpleInteractiveVisualization>
-      <SessionedTextArea name="Label" package="org.oicweave.ui.annotation">
+      <SessionedTextArea name="Label" package="weave.ui.annotation">
         <backgroundAlpha>0</backgroundAlpha>
         <backgroundColor>16777215</backgroundColor>
         <borderColor>0</borderColor>
@@ -6424,7 +6424,7 @@
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>20</shadowAmount>
       </SimpleInteractiveVisualization>
-      <SessionedTextArea name="Label" package="org.oicweave.ui.annotation">
+      <SessionedTextArea name="Label" package="weave.ui.annotation">
         <backgroundAlpha>1</backgroundAlpha>
         <backgroundColor>16777215</backgroundColor>
         <borderColor>0</borderColor>
@@ -6436,7 +6436,7 @@
         <textAreaWindowY>9.8416%</textAreaWindowY>
         <verticalAlign>middle</verticalAlign>
       </SessionedTextArea>
-      <SessionedTextArea name="Label2" package="org.oicweave.ui.annotation">
+      <SessionedTextArea name="Label2" package="weave.ui.annotation">
         <backgroundAlpha>1</backgroundAlpha>
         <backgroundColor>16777215</backgroundColor>
         <borderColor>0</borderColor>
@@ -6772,7 +6772,7 @@
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>20</shadowAmount>
       </SimpleInteractiveVisualization>
-      <SessionedTextArea name="Label" package="org.oicweave.ui.annotation">
+      <SessionedTextArea name="Label" package="weave.ui.annotation">
         <backgroundAlpha>0</backgroundAlpha>
         <backgroundColor>16777215</backgroundColor>
         <borderColor>0</borderColor>

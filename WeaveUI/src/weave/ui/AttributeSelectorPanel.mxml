@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<ControlPanel
+	xmlns="weave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	title="Attribute Selector"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	show="this.invalidateSize();"
+	backgroundColor="#EFF4BC"
+	>
+	<mx:VBox width="100%" height="100%" id="outerVBox" verticalGap="5">
+		<mx:HBox id="paramSelector" verticalAlign="middle">
+			<mx:Label text="Parameter to modify:"/>
+			<CustomToggleButtonBar
+				id="dimensionTypeLinks"
+				width="100%"
+				useHandCursor="true"
+				itemClick="linkToObject(selectableAttributes[event.index]);"/>
+		</mx:HBox>
+		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
+		<!--<mx:VBox width="100%" height="0">
+			<mx:Button label="Refresh" click="{sessionNavigator.refresh()}"/>
+			<ui:SessionNavigator id="sessionNavigator" height="100%"/>
+		</mx:VBox>-->
+			<HierarchyColumnSelector id="hierarchySelector" width="100%" height="100%"/>
+			<mx:HBox id="addColumnControls" width="100%">
+				<mx:Spacer width="100%"/>
+				<mx:Button label="Add selected attribute" click="addColumn()"/>
+			</mx:HBox>
+			<ColumnListComponent id="columnList" width="100%" height="100%"/>
+		</mx:VDividedBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.disposeObjects;
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.controls.Label;
+			import mx.controls.List;
+			import mx.core.Application;
+			import mx.core.Container;
+			import mx.core.DragSource;
+			import mx.core.IContainer;
+			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
+			import mx.effects.easing.Circular;
+			import mx.events.DragEvent;
+			import mx.events.ItemClickEvent;
+			import mx.events.ListEvent;
+			import mx.graphics.Stroke;
+			import mx.managers.CursorManager;
+			import mx.managers.DragManager;
+			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.data.IDataSource;
+			import weave.api.linkSessionState;
+			import weave.api.registerLinkableChild;
+			import weave.api.unlinkSessionState;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableString;
+			import weave.core.LinkableXML;
+			import weave.core.SessionManager;
+			import weave.core.WeaveXMLEncoder;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.ExtendedDynamicColumn;
+			import weave.data.AttributeColumns.ProxyColumn;
+			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.primitives.AttributeHierarchy;
+			import weave.visualization.tools.SimpleVisTool;
+
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				panelWidth.value = "50%";
+				panelHeight.value = "70%";
+				panelX.value = "25%";
+				panelY.value = "15%";
+				minimizable.value = true;
+				maximizable.value = true;
+				
+				closeable.value = true;
+				closeable.lock();
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+
+				columnList.titleHBox.addChild(addColumnControls);
+			}
+			
+			override public function dispose():void
+			{
+				super.dispose();
+				disposeObjects(hierarchySelector);
+			}
+			
+			private function addColumn():void
+			{
+				if (columnList.hashMap == null)
+				{
+					linkToObject(null);
+					return;
+				}
+				var refColumn:ReferencedColumn = hierarchySelector.dynamicColumn.internalObject as ReferencedColumn;
+				columnList.hashMap.copyObject(null,refColumn);
+			}
+			
+			private var _prevLinkedColumn:DynamicColumn = null;
+			private function linkToDynamicColumn(linkObject:DynamicColumn):void
+			{
+				if (_prevLinkedColumn != null)
+					unlinkSessionState(_prevLinkedColumn, hierarchySelector.dynamicColumn);
+
+				_prevLinkedColumn = linkObject;
+				
+				if (linkObject != null)
+				{
+					linkSessionState(linkObject, hierarchySelector.dynamicColumn);
+
+					// if newly linked object doesn't have an internal column,
+					// keep the currently selected path except for the leaf node
+					if(linkObject.internalColumn == null)
+					{
+						var path:LinkableXML = hierarchySelector.dimensionTreeView.selectedPath;
+						if (!path.value)
+							return;
+						var attr:XMLList = path.value.descendants("attribute");
+						if (attr.length() > 0)
+						{
+							delete attr[0];
+							path.detectChanges();
+						}
+					}
+				}
+			}
+			
+			[Bindable] private var selectableAttributes:Array = [];
+			[Bindable] private var selectableAttributeNames:Array = []; // to be used as a dataProvider for a repeater
+			
+			private function showOrHideParamSelector(show:Boolean):void
+			{
+				if (show && !outerVBox.contains(paramSelector))
+					outerVBox.addChildAt(paramSelector,0);
+				if (!show && outerVBox.contains(paramSelector))
+					outerVBox.removeChild(paramSelector);
+			}
+			
+			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
+			{
+				var index:int = selectableAttributes.indexOf(columnOrHashMap);
+				if (index >= 0)
+				{
+					objectTitle = selectableAttributeNames[index];
+					title = "Attribute Selector for " + objectTitle;
+					dimensionTypeLinks.selectedIndex = index;
+					showOrHideParamSelector(true);
+				}
+				else
+				{
+					title = "Attribute Selector";
+					if (objectTitle)
+						title += ' for ' + objectTitle;
+					showOrHideParamSelector(false);
+				}
+				
+				var columnWrapper:IColumnWrapper = columnOrHashMap as IColumnWrapper;
+				if (columnWrapper)
+				{
+					// temporary solution - find internal dynamic column
+					while (true)
+					{
+						if (columnWrapper.internalColumn is DynamicColumn)
+							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
+						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
+							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
+						else
+							break;
+					}
+					if (columnWrapper is ExtendedDynamicColumn)
+						columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
+					
+					linkToDynamicColumn(columnWrapper as DynamicColumn);
+				}
+				
+				if (columnOrHashMap is ILinkableHashMap)
+				{
+					linkToDynamicColumn(null);
+
+					// set path to first column.
+					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(DynamicColumn);
+					if (columns.length > 0)
+					{
+						copySessionState(columns[0], hierarchySelector.dynamicColumn);
+					}
+					else
+					{
+						columns = (columnOrHashMap as ILinkableHashMap).getObjects(ReferencedColumn);
+						if (columns.length > 0)
+							hierarchySelector.dynamicColumn.copyLocalObject(columns[0]);
+					}
+					
+					var child:DisplayObject = columnList.selectorControls;
+					if (child.parent && child.parent.contains(child))
+						child.parent.removeChild(child);
+					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
+					columnList.label = objectTitle ? objectTitle : 'Selected Attributes';
+					verticalDividedBox.addChild(columnList);
+				}
+				else if (verticalDividedBox.contains(columnList))
+				{
+					verticalDividedBox.removeChild(columnList);
+				}
+
+				// set targets for ControlPanel to support session saving
+				if (selectableAttributes.indexOf(columnOrHashMap) < 0)
+					targets = selectableAttributes = columnOrHashMap ? [columnOrHashMap] : [];
+			}
+			
+			private static var defaultSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
+			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
+			{
+				openDefaultSelector();
+				defaultSelector.targets = defaultSelector.selectableAttributes = tool.getSelectableAttributes();
+				defaultSelector.dimensionTypeLinks.dataProvider = defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
+				defaultSelector.linkToObject(attributeToLinkTo);
+			}
+			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null):void
+			{
+				if (!defaultSelector.parent)
+					PopUpManager.addPopUp(defaultSelector, Application.application as Application);
+
+				defaultSelector.linkToObject(linkTo, title);
+				
+				defaultSelector.restorePanel();
+			}
+		]]>
+	</mx:Script>
+</ControlPanel>

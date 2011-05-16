@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns="weave.ui.settings.*" 
+		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="100%" 
+		 height="100%"
+		 initialize="onInitialize();" 
+		 >
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			
+			import weave.Weave;
+			import weave.api.linkBindableProperty;
+			import weave.core.SessionManager;
+			
+			private function onInitialize():void
+			{
+				Weave.properties.enableMenuBar.addGroupedCallback(this, handleMenuToggled);
+			}
+			private function handleMenuToggled():void
+			{
+				if (!Weave.properties.enableMenuBar.value)
+				{
+					// put up an alert box so the user has to confirm removing the menu bar
+					Alert.show("Are you sure you want to remove the menu bar?  \nOnce removed, the functions that are accessed through the menu will no longer be accessible.",
+						   "Remove menu bar?",
+						   Alert.YES | Alert.NO,
+						   null,
+						   function(e:CloseEvent):void {
+						   		// if the user chose yes to removing the menu bar
+						   		if(e.detail == Alert.YES)
+						   		{
+						   			Weave.properties.enableMenuBar.value = false;
+						   		}
+						   		else if(e.detail == Alert.NO)
+						   		{
+						   			// if the user said no to removing the menu bar, reset the sessioned variable back to enabled
+						   			Weave.properties.enableMenuBar.value = true;
+						   		}
+						   });
+				}
+			}
+			private const verticalGap:int = 0;
+		]]>
+	</mx:Script>
+	
+		<mx:CheckBox toolTip="This option toggles access to the main toolbar" 
+							id="enable"
+							label="Show menu bar"
+							initialize="linkBindableProperty(Weave.properties.enableMenuBar, enable, 'selected');"
+							/>
+	
+	
+		<mx:TabNavigator id="menusViewStack" resizeToContent="true" width="100%" height="100%">
+			<mx:VBox  label="Data" paddingLeft="10" verticalGap="{verticalGap}">
+				<mx:CheckBox toolTip="Checking this box will enable the Import drop down menu in the main tool bar"
+							 id="dataMenu"
+							 label="Data Menu"
+							 width="120" 
+							 creationComplete="linkBindableProperty(Weave.properties.enableDataMenu,dataMenu,'selected')"/>
+				<mx:HBox>
+					<mx:Spacer width="10"/>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Checking this box will allow the user to refresh all data source hierarchies"
+									 enabled="{dataMenu.selected == true}"
+									 id="refreshHierarchies"
+									 label="Refresh data source hierarchies"
+									 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies,refreshHierarchies,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to import a new data set"
+									 enabled="{dataMenu.selected == true}"
+									 id="newDataset"
+									 label="New Dataset"
+									 creationComplete="linkBindableProperty(Weave.properties.enableNewDataset,newDataset,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a new Open Indicators data source"
+									 enabled="{dataMenu.selected == true}"
+									 id="newWeaveDataSource"
+									 label="Add WeaveDataSource"
+									 visible="false"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddWeaveDataSource,newWeaveDataSource,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a new Grails data source"
+									 enabled="{dataMenu.selected == true}"
+									 id="newGrailsDataSource"
+									 label="Add GrailsDataSource"
+									 visible="false"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddGrailsDataSource,newGrailsDataSource,'selected')"/> 
+					</mx:VBox>
+				</mx:HBox>			
+			</mx:VBox>
+			<mx:VBox label="Export" paddingLeft="10" verticalGap="{verticalGap}">
+				<mx:CheckBox toolTip="Checking this box will enable the Export drop down menu in the main tool bar"
+							 id="exportMenu"
+							 label="Export Menu"
+							 creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage,exportMenu,'selected')"/> 
+				<mx:HBox>
+					<mx:Spacer width="10"/>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Checking this box will allow the user to export or print application screenshot"
+									 enabled="{exportMenu.selected == true}"
+									 id="exportOrPrintApplicationScreenshot"
+									 label="Save Or Print Application Screenshot"
+									 creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot,exportOrPrintApplicationScreenshot,'selected')"/>
+			 		<!--	<mx:CheckBox toolTip="Checking this box will allow the user to export a data table"
+									 enabled="{exportMenu.selected == true}"
+									 id="exportDataTable"
+									 label="Export Data Table"
+									 width="120" 
+									 creationComplete="linkBindableProperty(Weave.properties.enableExportDataTable,exportDataTable,'selected')"/>
+					-->
+						</mx:VBox>
+				</mx:HBox>	
+			</mx:VBox>	
+			<mx:VBox  label="Tools" paddingLeft="10" verticalGap="{verticalGap}">	 	
+				<mx:CheckBox toolTip="Checking this box will enable the Tools drop down menu in the main tool bar"
+							 id="toolsMenu"
+							 label="Tools Menu"
+							 creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools,toolsMenu,'selected')"/>
+				
+				
+				<mx:HBox>
+					<mx:Spacer width="10"/>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Checking this box will allow the user to open the Color Controller"
+									 enabled="{toolsMenu.selected == true}"
+									 id="showColorController"
+									 label="Show Color Controller"
+									 creationComplete="linkBindableProperty(Weave.properties.showColorController,showColorController,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to open the Probe ToolTip Editor"
+									 enabled="{toolsMenu.selected == true}"
+									 id="showProbeToolTipEditor"
+									 label="Show Probe ToolTip Editor"
+									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor,showProbeToolTipEditor,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to open the Equation Editor"
+									 enabled="{toolsMenu.selected == true}"
+									 id="showEquationEditor"
+									 label="Show Equation Editor"
+									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor,showEquationEditor,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to open the Attribute Selector"
+									 enabled="{toolsMenu.selected == true}"
+									 id="showAttributeSelector"
+									 label="Show Attribute Selector"
+									 creationComplete="linkBindableProperty(Weave.properties.showAttributeSelector,showAttributeSelector,'selected')"/> 
+					</mx:VBox>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a bar chart visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addBarChart"
+									 label="Add Bar Chart"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddBarChart,addBarChart,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Color Legend"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addColorLegend"
+									 label="Add Color Legend"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddColorLegend,addColorLegend,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Colormap Histogram visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addColormapHistogram"
+									 label="Add Colormap Histogram"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddColormapHistogram,addColormapHistogram,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Data Table"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addDataTable"
+									 label="Add Data Table"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddDataTable,addDataTable,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Dimension Slider Tool"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addDimensionSlider"
+									 label="Add Dimension Slider Tool"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddDimensionSliderTool,addDimensionSlider,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Gauge Tool"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addGaugeTool"
+									 label="Add Gauge Tool"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddGaugeTool,addGaugeTool,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a histogram visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addHistogram"
+									 label="Add Histogram"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddHistogram,addHistogram,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a line chart visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addLineChart"
+									 label="Add Line Chart"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddLineChart,addLineChart,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a map visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addMap"
+									 label="Add Map"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddMap,addMap,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a pie chart visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addPieChart"
+									 label="Add Pie Chart"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChart,addPieChart,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a pie chart histogram visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addPieChartHistogram"
+									 label="Add Pie Chart Histogram"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChartHistogram,addPieChartHistogram,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add the R Script Editor"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addRScriptEditor"
+									 label="Add R Script Editor"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRScriptEditor,addRScriptEditor,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a scatterplot visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addScatterplot"
+									 label="Add Scatterplot"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddScatterplot,addScatterplot,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Thermometer Tool"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addThermometerTool"
+									 label="Add Thermometer Tool"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddThermometerTool,addThermometerTool,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Time Slider Tool"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addTimeSlider"
+									 label="Add Time Slider Tool"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddTimeSliderTool,addTimeSlider,'selected')"/>
+					</mx:VBox>
+						<!--
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Stick Figure visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addStickFigurePlot"
+									 label="Add Stick Figure Plot"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddStickFigurePlot,addStickFigurePlot,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a radial visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addRadViz"
+									 label="Add RadViz"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz,addRadViz,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a radial visualization"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addRadViz2"
+									 label="Add RadViz2"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz2,addRadViz2,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a SP2"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addSP2"
+									 label="Add SP2"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddSP2,addSP2,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Ramachandran Plot"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addRamachandranPlot"
+									 label="Add Ramachandran Plot"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRamachandranPlot,addRamachandranPlot,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Wordle"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addWordle"
+									 label="Add Wordle"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddWordle,addWordle,'selected')"/>
+						-->
+				</mx:HBox>	
+			</mx:VBox>	
+			
+			<mx:VBox  width="100%" label="Selections" paddingLeft="10" verticalGap="{verticalGap}">	 	
+				<mx:CheckBox toolTip="Checking this box will enable the Selections drop down menu in the main tool bar"
+							 id="selectionsMenu"
+							 label="Selections Menu"
+							 creationComplete="linkBindableProperty(Weave.properties.enableSelectionsMenu,selectionsMenu,'selected')"/> 
+				<mx:HBox>
+					<mx:Spacer width="10"/>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Check this box to enable the Save current selection option"
+									 enabled="{selectionsMenu.selected == true}"
+									 id="saveCurrentSelection"
+									 label="Save current Selection"
+									 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSelection,saveCurrentSelection,'selected')"/>
+						<mx:CheckBox toolTip="Check this box to enable the Clear current selection option"
+									 enabled="{selectionsMenu.selected == true}"
+									 id="clearCurrentSelection"
+									 label="Clear current Selection"
+									 creationComplete="linkBindableProperty(Weave.properties.enableClearCurrentSelection,clearCurrentSelection,'selected')"/>
+						<mx:CheckBox toolTip="Check this box to enable the Manage saved selections option"
+									 enabled="{selectionsMenu.selected == true}"
+									 id="manageSavedSelections"
+									 label="Manage saved selections"
+									 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSelections,manageSavedSelections,'selected')"/>
+					</mx:VBox>
+				</mx:HBox>	
+			</mx:VBox>	
+			
+			<mx:VBox  width="100%" label="Subsets" paddingLeft="10" verticalGap="{verticalGap}">	 	
+				<mx:CheckBox toolTip="Checking this box will enable the Subsets drop down menu in the main tool bar"
+							 id="subsetsMenu"
+							 label="Subsets Menu"
+							 width="120" 
+							 creationComplete="linkBindableProperty(Weave.properties.enableSubsetsMenu,subsetsMenu,'selected')"/> 
+				<mx:HBox>
+					<mx:Spacer width="10"/>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Check this box to enable the Create subset from selected records option"
+									 enabled="{subsetsMenu.selected == true}"
+									 id="createSubset"
+									 label="Create subset from selected records"
+									 creationComplete="linkBindableProperty(Weave.properties.enableCreateSubsets,createSubset,'selected')"/>
+						<mx:CheckBox toolTip="Check this box to enable the Remove selected records from subset option"
+									 enabled="{subsetsMenu.selected == true}"
+									 id="removeSubset"
+									 label="Remove selected records from subset"
+									 creationComplete="linkBindableProperty(Weave.properties.enableRemoveSubsets,removeSubset,'selected')"/>
+						<mx:CheckBox toolTip="Check this box to enable the Show all records option"
+									 enabled="{subsetsMenu.selected == true}"
+									 id="showAllRecords"
+									 label="Show all records"
+									 creationComplete="linkBindableProperty(Weave.properties.enableShowAllRecords,showAllRecords,'selected')"/>
+						<mx:CheckBox toolTip="Check this box to enable the Save current subset option"
+									 enabled="{subsetsMenu.selected == true}"
+									 id="saveCurrentSubset"
+									 label="Save current subset"
+									 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSubset,saveCurrentSubset,'selected')"/>
+						<mx:CheckBox toolTip="Check this box to enable the Manage saved subsets option"
+									 enabled="{subsetsMenu.selected == true}"
+									 id="manageSavedSubsets"
+									 label="Manage saved subsets"
+									 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSubsets,manageSavedSubsets,'selected')"/>
+					</mx:VBox>
+				</mx:HBox>	
+			</mx:VBox>	
+			
+			<mx:VBox   label="Session" paddingLeft="10" verticalGap="{verticalGap}">	 	
+				<mx:CheckBox toolTip="Checking this box will enable the Session drop down menu in the main tool bar"
+							 id="sessionMenu"
+							 label="Session Menu"
+							 width="120" 
+							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu,sessionMenu,'selected')"/>
+				<mx:HBox>
+					<mx:Spacer width="10"/>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Checking this box will allow the user to save a bookmark in the session history"
+									 enabled="{sessionMenu.selected == true}"
+									 id="sessionBookmarks"
+									 label="Save/Load Session Bookmarks"
+									 creationComplete="linkBindableProperty(Weave.properties.enableSessionBookmarks,sessionBookmarks,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to edit the current session state"
+									 enabled="{sessionMenu.selected == true}"
+									 id="editCurrentSessionState"
+									 label="Edit/Copy Current Session State"
+									 creationComplete="linkBindableProperty(Weave.properties.enableSessionEdit,editCurrentSessionState,'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to import a session state"
+									 enabled="{sessionMenu.selected == true}"
+									 id="importSessionState"
+									 label="Import Session State"
+									 creationComplete="linkBindableProperty(Weave.properties.enableSessionImport,importSessionState,'selected')"/> 
+						<mx:CheckBox toolTip="Checking this box will allow the user to export the Session State"
+									 enabled="{sessionMenu.selected == true}"
+									 id="exportSessionState"
+									 label="Export Session State"
+									 creationComplete="linkBindableProperty(Weave.properties.enableSessionExport,exportSessionState,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to open the User Interface Preferences Panel"
+									 enabled="{sessionMenu.selected == true}"
+									 id="userInterfacePreferences"
+									 label="User Interface Preferences"
+									 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences,userInterfacePreferences,'selected')"/>  
+					</mx:VBox>
+				</mx:HBox>	
+			</mx:VBox>	
+			
+			<mx:VBox  width="100%" label="Window" paddingLeft="10" verticalGap="{verticalGap}">	 	
+				<mx:CheckBox toolTip="Checking this box will enable the Window drop down menu in the main tool bar"
+							 id="windowMenu"
+							 label="Window Menu"
+							 width="120" 
+							 creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu,windowMenu,'selected')"/> 
+				<mx:HBox>
+					<mx:Spacer width="10"/>
+					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Checking this box will allow the user to go fullscreen"
+									 enabled="{windowMenu.selected == true}"
+									 id="goFullscreen"
+									 label="Go Fullscreen"
+									 creationComplete="linkBindableProperty(Weave.properties.enableGoFullscreen,goFullscreen,'selected')"/>  
+						
+					</mx:VBox>
+				</mx:HBox>	
+			</mx:VBox>	
+			
+			<mx:VBox label="About" paddingLeft="10" verticalGap="{verticalGap}">
+				<mx:CheckBox toolTip="Checking this box will enable the About drop down menu in the main tool bar"
+						 id="aboutMenu"
+						 label="About Menu"
+						 width="120" 
+						 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu,aboutMenu,'selected')"/> 
+			</mx:VBox>
+			
+		</mx:TabNavigator>
+</mx:VBox>	

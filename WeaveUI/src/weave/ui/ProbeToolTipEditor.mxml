@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ControlPanel
+	xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	backgroundColor="#EFF4BC" 
+	title="Probe ToolTip Editor" layout="absolute"
+	>
+	<HelpPanel>
+		<mx:VBox label="Header Columns">
+			<mx:Label text="Example tooltip:"/>
+			<mx:HBox styleName="exampleStyle">
+				<mx:Image source="@Embed(source='/weave/resources/images/tooltipheader.png')"/> 
+			</mx:HBox>
+			<mx:Label text="The attributes highlighted in green are header columns"/>
+		</mx:VBox>
+		<mx:VBox label="Probed Columns">
+			<mx:Label text="Example tooltip:"/>
+			<mx:HBox styleName="exampleStyle">
+				<mx:Image source="@Embed(source='/weave/resources/images/tooltipProbed.png')"/>
+			</mx:HBox>
+			<mx:Label text="The attributes highlighted in green are the probed columns"/>
+		</mx:VBox>
+	</HelpPanel>
+	
+	<mx:VBox label="Header Columns">
+		<mx:TextArea text="The values from these columns will be listed in a single line, separated by commas." editable="false" width="100%" backgroundAlpha="0" wordWrap="true" borderThickness="0"/>	
+		<ColumnListComponent label="Header Columns" id="headerList" preinitialize="headerList.hashMap = ProbeTextUtils.probeHeaderColumns;" width="100%" height="100%" />		
+	</mx:VBox>
+	
+	<mx:VBox label="Probed Columns">
+		<mx:TextArea text="The values from these columns will be displayed under the header line along with the column names." editable="false" width="100%" backgroundAlpha="0" wordWrap="true" borderThickness="0"/>
+		<ColumnListComponent label="Probed columns" id="columnList" preinitialize="columnList.hashMap = ProbeTextUtils.probedColumns;" width="100%" height="100%" />
+	</mx:VBox>
+	<mx:Style>
+		.exampleStyle {
+			borderStyle:solid;
+			borderThickness:2;
+			borderColor:#4D5258;
+		}
+	</mx:Style>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			import mx.core.Application;
+			import mx.managers.PopUpManager;
+			import mx.managers.ToolTipManager;
+			
+			import weave.Weave;
+			import weave.core.SessionManager;
+			import weave.utils.ProbeTextUtils;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+			}
+			
+			override protected function childrenCreated():void
+			{
+				this.targets = [ProbeTextUtils.probedColumns, ProbeTextUtils.probeHeaderColumns];
+				controlPanelControls.tabNavigator.selectedIndex = 1;
+			}
+			
+			private const pad:Number = 3 ;
+			
+			private static var instance:ControlPanel;
+			public static function openDefaultEditor():void
+			{
+				if (!instance)
+					instance = new ProbeToolTipEditor();
+				
+				if (!instance.parent)
+					PopUpManager.addPopUp(instance, Application.application as Application);
+				instance.restorePanel();
+			}
+		]]>
+	</mx:Script>
+</ControlPanel>

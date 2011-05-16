@@ -1,0 +1,325 @@
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+package weave.config;
+
+import java.rmi.RemoteException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.rowset.CachedRowSet;
+
+import weave.config.ISQLConfig.AttributeColumnInfo;
+import weave.config.ISQLConfig.ConnectionInfo;
+import weave.config.ISQLConfig.GeometryCollectionInfo;
+import weave.utils.DebugTimer;
+import weave.utils.ListUtils;
+import weave.utils.SQLUtils;
+
+/**
+ * SQLConfigUtils
+ * 
+ * @author Andy Dufilie
+ */
+public class SQLConfigUtils
+{
+	/**
+	 * This function returns a Connection that should stay open to avoid connection setup overhead.
+	 * The Connection returned by this function should not be closed.
+	 * @param config An ISQLConfig interface to a config file
+	 * @param connectionName The name of a connection in the config file.
+	 * @return A new SQL connection using the specified connection.
+	 */
+	public static Connection getStaticReadOnlyConnection(ISQLConfig config, String connectionName) throws SQLException, RemoteException
+	{
+		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		return info.getStaticReadOnlyConnection();
+	}
+	
+	/**
+	 * getConnection: Returns a new SQL connection 
+	 * @param config An ISQLConfig interface to a config file
+	 * @param connectionName The name of a connection in the config file.
+	 * @return A new SQL connection using the specified connection.
+	 */
+	public static Connection getConnection(ISQLConfig config, String connectionName) throws SQLException, RemoteException
+	{
+		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		return info.getConnection();
+	}
+	
+	/**
+	 * @param config An ISQLConfig interface to a config file
+	 * @param connectionName The name of a connection in the config file
+	 * @param query An SQL Query
+	 * @return A CachedRowSet object containing the result of the SQL query
+	 * @throws RemoteException
+	 * @throws SQLException
+	 */
+	public static CachedRowSet getRowSetFromQuery(ISQLConfig config, String connectionName, String query) throws SQLException, RemoteException
+	{
+		Connection conn = getStaticReadOnlyConnection(config, connectionName);
+		return SQLUtils.getRowSetFromQuery(conn, query);
+	}
+
+//	private static CachedRowSet getRowSetFromQuery(ISQLConfig config, String query, String dataTableName, String attributeColumnName)
+//		throws RemoteException
+//	{
+//		if (query.length() == 0)
+//		{
+//			throw new RemoteException(String.format("AttributeColumn \"%s\" does not exist in DataTable \"%s\"", attributeColumnName, dataTableName));
+//		}
+//		
+//		String connectionName = config.getDataTableInfo(dataTableName).connection;
+//		CachedRowSet crs = null;
+//		try
+//		{
+//			crs = getRowSetFromQuery(config, connectionName, query);
+//	
+//			//System.out.println(String.format("`%s`,`%s`", crs.getMetaData().getColumnName(1), crs.getMetaData().getColumnName(2)));
+//		}
+//		catch (SQLException e)
+//		{
+//			e.printStackTrace();
+//			throw new RemoteException(String.format("Unable to execute dataWithKeysQuery for AttributeColumn \"%s\" in DataTable \"%s\"", attributeColumnName, dataTableName));
+//		}
+//		
+//		// return the copy of the query result
+//		return crs;
+//	}
+
+	public static String getJoinQueryForAttributeColumns(ISQLConfig config, Map<String, String> metadataQueryParams1, Map<String, String> metadataQueryParams2)
+		throws RemoteException, SQLException
+	{
+		// get column info
+		List<AttributeColumnInfo> infoList1 = config.getAttributeColumnInfo(metadataQueryParams1);
+		List<AttributeColumnInfo> infoList2 = config.getAttributeColumnInfo(metadataQueryParams2);
+		if (infoList1.size() == 0)
+			throw new RemoteException("No match for first joined attribute column.");
+		if (infoList2.size() == 0)
+			throw new RemoteException("No match for second joined attribute column.");
+		if (infoList1.size() > 1)
+			throw new RemoteException("Multiple matches for first joined attribute column.");
+		if (infoList2.size() > 1)
+			throw new RemoteException("Multiple matches for second joined attribute column.");
+		
+		AttributeColumnInfo info1 = infoList1.get(0);
+		AttributeColumnInfo info2 = infoList2.get(0);
+		if (info1.connection != info2.connection)
+			throw new RemoteException("SQL Connection for two columns must be the same to join them.");
+		if (config.getConnectionInfo(info1.connection).dbms != SQLUtils.MYSQL)
+			throw new RemoteException("getJoinQueryForAttributeColumns() only supports MySQL.");
+		Connection conn = getStaticReadOnlyConnection(config, info1.connection);
+		
+		CachedRowSet crs1, crs2;
+		String keyCol1, dataCol1, query1;
+		String keyCol2, dataCol2, query2;
+		
+		query1 = info1.sqlQuery;
+		query1 = query1.trim();
+		if (query1.endsWith(";"))
+			query1 = query1.substring(0, query1.length() - 1);
+		crs1 = SQLUtils.getRowSetFromQuery(conn, query1);
+		keyCol1 = crs1.getMetaData().getColumnName(1);
+		dataCol1 = crs1.getMetaData().getColumnName(2);
+
+		query2 = info2.sqlQuery;
+		query2 = query2.trim();
+		if (query2.endsWith(";"))
+			query2 = query2.substring(0, query2.length() - 1);
+		crs2 = SQLUtils.getRowSetFromQuery(conn, query2);
+		keyCol2 = crs2.getMetaData().getColumnName(1);
+		dataCol2 = crs2.getMetaData().getColumnName(2);
+
+		String combinedQuery = String.format(
+				"select a.`%s` as keyCode, a.`%s` as data1, b.`%s` as data2"
+				+ " from (%s) as a join (%s) as b"
+				+ " on a.`%s` = b.`%s`",
+				keyCol1, dataCol1, dataCol2,
+				query1, query2,
+				keyCol1, keyCol2
+			);
+		return combinedQuery;
+	}
+
+	public static CachedRowSet getRowSetFromJoinedAttributeColumns(ISQLConfig config, Map<String, String> metadataQueryParams1, Map<String, String> metadataQueryParams2)
+		throws RemoteException, SQLException
+	{
+		String combinedQuery = getJoinQueryForAttributeColumns(config, metadataQueryParams1, metadataQueryParams2);
+
+		List<AttributeColumnInfo> infoList1 = config.getAttributeColumnInfo(metadataQueryParams1);
+		
+		CachedRowSet crs = getRowSetFromQuery(config, infoList1.get(0).connection, combinedQuery);
+		
+		/*
+		//for debugging
+		String result = "keyCode, data1, data2\n";
+		try
+		{
+			while (crs.next())
+			{
+				result += String.format("%s, %s, %s\n", crs.getString(1), crs.getString(2), crs.getString(3));
+			}
+			System.out.println(result);
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+		*/
+		
+		return crs;
+	}
+	/**
+	 * This function copies all connections, dataTables, and geometryCollections from one ISQLConfig to another.
+	 * @param source A configuration to copy from.
+	 * @param destination A configuration to copy to.
+	 * @return The total number of items that were migrated.
+	 * @throws Exception If migration fails.
+	 * 
+	 * @author Andrew Wilkinson
+	 * @author Andy Dufilie
+	 */
+	@SuppressWarnings("unchecked")
+	public synchronized static int migrateSQLConfig( ISQLConfig source, ISQLConfig destination) throws RemoteException, SQLException
+	{
+		DebugTimer timer = new DebugTimer();
+		Connection conn = (destination instanceof DatabaseConfig) ? ((DatabaseConfig)destination).getConnection() : null;
+		Savepoint savePoint = null;
+		int count = 0;
+		try
+		{
+			if (conn != null)
+			{
+				conn.setAutoCommit(false);
+				savePoint = conn.setSavepoint("migrateSQLConfig");
+			}
+
+			// add connections
+//			List<String> connNames = source.getConnectionNames();
+//			for (int i = 0; i < connNames.size(); i++)
+//				count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_CONNECTION, connNames.get(i));
+
+			// add geometry collections
+			List<String> geoNames = source.getGeometryCollectionNames();
+			timer.report("begin "+geoNames.size()+" geom names");
+			int printInterval = Math.max(1, geoNames.size() / 50);
+			for (int i = 0; i < geoNames.size(); i++)
+			{
+				if (i % printInterval == 0)
+					System.out.println("Migrating geometry collection " + (i+1) + "/" + geoNames.size());
+				count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geoNames.get(i));
+			}
+			timer.report("done migrating geom collections");
+
+			// add columns
+			List<AttributeColumnInfo> columnInfo = source.getAttributeColumnInfo(Collections.EMPTY_MAP);
+			timer.report("begin "+columnInfo.size()+" columns");
+			printInterval = Math.max(1, columnInfo.size() / 50);
+			for( int i = 0; i < columnInfo.size(); i++)
+			{
+				if (i % printInterval == 0)
+					System.out.println("Migrating column " + (i+1) + "/" + columnInfo.size());
+				destination.addAttributeColumn(columnInfo.get(i));
+			}
+			count += columnInfo.size();
+			System.out.println("done!");
+			
+			if (conn != null)
+			{
+				conn.releaseSavepoint(savePoint);
+				conn.setAutoCommit(true);
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			try
+			{
+				conn.rollback(savePoint);
+				conn.setAutoCommit(true);
+			}
+			catch (SQLException se)
+			{
+				se.printStackTrace();
+			}
+			throw new RemoteException(e.getMessage(), e);
+		}
+		return count;
+	}
+	public synchronized static int migrateSQLConfigEntry( ISQLConfig source, ISQLConfig destination, String entryType, String entryName) throws InvalidParameterException, RemoteException
+	{
+		if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_CONNECTION))
+		{
+			// do nothing if entry doesn't exist in source
+			if (ListUtils.findString(entryName, source.getConnectionNames()) < 0)
+				return 0;
+			// save info from source before removing from destination, just in case source==destination
+			ConnectionInfo info = source.getConnectionInfo(entryName);
+			destination.removeConnection(entryName);
+			destination.addConnection(info);
+			return 1;
+		}
+		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION))
+		{
+			// do nothing if entry doesn't exist in source
+			if (ListUtils.findString(entryName, source.getGeometryCollectionNames()) < 0)
+				return 0;
+			// save info from source before removing from destination, just in case source==destination
+			DebugTimer timer = new DebugTimer();
+			GeometryCollectionInfo info = source.getGeometryCollectionInfo(entryName);
+			timer.lap("getGeometryCollectionInfo "+entryName);
+			destination.removeGeometryCollection(entryName);
+			timer.lap("removeGeometryCollection "+entryName);
+			destination.addGeometryCollection(info);
+			timer.report("addGeometryCollection "+entryName);
+			return 1;
+		}
+		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_DATATABLE))
+		{
+			// do nothing if entry doesn't exist in source
+			if (ListUtils.findString(entryName, source.getDataTableNames()) < 0)
+				return 0;
+			// save info from source before removing from destination, just in case source==destination
+			DebugTimer timer = new DebugTimer();
+			List<AttributeColumnInfo> columns = source.getAttributeColumnInfo(entryName);
+			timer.lap("getAttributeColumnInfo "+entryName +": "+columns.size());
+			destination.removeDataTable(entryName);
+			timer.lap("removeDataTable "+entryName);
+			for( int i = 0; i < columns.size(); i++ )
+			{
+				destination.addAttributeColumn(columns.get(i));
+				timer.report("addAttributeColumn "+i+"/"+columns.size());
+			}
+			return columns.size();
+		}
+		else
+			throw new InvalidParameterException(String.format("Unable to save configuration entry of type \"%s\".", entryType));
+	}
+
+	public static class InvalidParameterException extends Exception
+	{
+		private static final long serialVersionUID = 6290284095499981871L;
+		public InvalidParameterException(String msg) { super(msg); }
+	}
+}

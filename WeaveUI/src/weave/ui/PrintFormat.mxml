@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!--	PrintFormat
+   	*  @author skolman
+ 	*  A UI Tool to simply print out the snapshot of the selected Application/Tool Image with a title and copyright logo
+-->
+	
+<mx:TitleWindow 
+    xmlns:ui ="weave.ui.*"
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+	layout="absolute" 
+    title="Print / Export Image"
+    showCloseButton="true"
+    close="handleClose(event)"
+    borderAlpha="0.95"
+    borderThickness="2"
+    
+    horizontalScrollPolicy="off" verticalScrollPolicy="off"
+    >
+    
+    <mx:Script>
+	<![CDATA[
+		import mx.core.Application;
+		import mx.core.UIComponent;
+		import weave.data.AttributeColumns.AbstractAttributeColumn;
+		import mx.utils.ObjectUtil;
+		import weave.utils.BitmapUtils;
+		import mx.printing.FlexPrintJobScaleType;
+		import mx.printing.FlexPrintJob;
+		import mx.managers.PopUpManager;
+		
+		//Title of the Application/Tool to be printed
+		private var _applicationTitle:String = null;
+		[Bindable]
+		public function get applicationTitle():String
+		{
+			return _applicationTitle;
+		}
+	    public function set applicationTitle(value:String):void
+		{
+			_applicationTitle = value;
+		}
+		
+		//Snapshot of the Application/Tool to be printed
+		[Bindable]
+		private var _imageSource:Object = null;
+		private var _componentToScreenshot:UIComponent = null;
+		public function get componentToScreenshot():UIComponent
+		{
+			return _componentToScreenshot;
+		}
+		public function set componentToScreenshot(value:UIComponent):void
+		{
+			_componentToScreenshot = value;
+			
+			_imageSource = BitmapUtils.getPNGFromComponent(value);
+		}
+		
+		//handle when close button of TitleWindow is clicked
+		public function handleClose(event:Event):void
+		{
+			PopUpManager.removePopUp(this);
+		}
+		
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+			this.applicationTitle = (Application.application as Application).pageTitle;
+		}		
+		
+		//handle when "Print" is clicked
+		private var _fileSaver:FileReference = null;
+		private function handlePrintClick(event:Event):void
+		{
+			if(_fileSaver == null)
+			{
+				_fileSaver = new FileReference();
+			}
+
+			
+			// Create a date that we can append to the end of each file to make them unique
+   			var date:Date = new Date();
+   			var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
+   			
+   			// Create an instance of the FlexPrintJob class.
+            var printJob:FlexPrintJob = new FlexPrintJob();
+
+			printJob.printAsBitmap = true;
+
+			// HACK: to stop from showing this window resized during the print process -- we still see printVbox resized inside this when we first choose to print
+			this.width = 0;
+			this.height = 0;
+			this.x = parent.width + 500;
+			this.y = parent.height + 500;
+
+			printVbox.scaleX = 1.0;
+   		   	printVbox.scaleY = 1.0;
+   		   	
+   		   	
+   		   	
+   		   	
+   		   	// HACK: to stop it from cutting off the side of the image
+   		   	printVbox.setStyle("paddingRight", 60);
+
+			printVbox.validateProperties();
+
+			//close popup
+			PopUpManager.removePopUp(this);
+			
+            // Start the print job.
+            if (printJob.start() != true) return;
+
+
+
+            // Add the object to print. Do not scale it.
+            //printJob.addObject(this, FlexPrintJobScaleType.NONE);
+            printJob.addObject(printVbox, FlexPrintJobScaleType.SHOW_ALL);
+
+            // Send the job to the printer.
+            printJob.send();	
+		}
+		
+		//handle when "Save as Image" is clicked
+		private function handleSaveAsImageClick(event:Event):void
+		{
+			if(_fileSaver == null)
+			{
+				_fileSaver = new FileReference();
+			}
+			
+			// Create a date that we can append to the end of each file to make them unique
+   			var date:Date = new Date();
+   			var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
+   			
+   			//save the jpeg image
+   		   	
+   		   	printVbox.scaleX = 1.0;
+   		   	printVbox.scaleY = 1.0;
+
+			
+			printVbox.validateProperties();
+			
+   		   	
+   			_fileSaver.save(BitmapUtils.getPNGFromComponent(this.printVbox), "weave screenshot " + dateString + ".png");
+   			
+   			//close popup after image is saved
+   			PopUpManager.removePopUp(this);	
+		}
+		
+		override public function move(x:Number, y:Number):void
+		{
+			x = Math.min(x, parent.width - this.width);
+			y = Math.min(y, parent.height - this.height);
+			
+			super.move(x, y);
+		}
+		
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+		{
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
+			
+			this.validateNow();
+
+			if(parent)
+			{
+				super.move(parent.width / 2 - this.width / 2, parent.height / 2 - this.height / 2);
+			}
+		}
+		
+   		]]>
+	</mx:Script>
+	<mx:VBox id="printVbox" width="100%" height="100%" backgroundColor="0xFFFFFF" horizontalAlign="center" scaleX="0.5" scaleY="0.5" clipContent="true" mouseEnabled="false">
+		<mx:Label text="{applicationTitle}" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"/>
+		<mx:Image id="exportImage" source="{_imageSource}"/>
+		<ui:OICLogoPane width="100%"/>
+	</mx:VBox>
+	
+	<mx:ControlBar horizontalAlign="center">
+		<mx:Button id="printButton" label="Print" click="handlePrintClick(event)"/>
+		<mx:Button id="saveButton" label="Save as Image" click="handleSaveAsImageClick(event)"/>
+		<mx:Button id="cancelButton" label="Cancel" click="PopUpManager.removePopUp(this)"/>
+	</mx:ControlBar>
+</mx:TitleWindow> 

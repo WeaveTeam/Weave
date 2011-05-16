@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!--
+
+@abaumann
+@skolman
+-->
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns="weave.ui.*"
+		 width="100%" height="30"
+		 borderStyle="outset"
+		 backgroundColor="white" backgroundAlpha="0.7"
+		 verticalGap="0" verticalAlign="middle"
+		 horizontalGap="2">
+	<!--<ConnectionComponent id="connComponent"/>-->
+	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
+	<LinkableObjectList id="internalList" 
+						variableRowHeight="false"
+			 
+		 				doubleClickEnabled="true" 
+		 				doubleClick="openAttributeSelector()"  
+		 				width="100%" rowCount="1" height="25"/>
+	<mx:Button icon="@Embed(source='/weave/resources/images/folder.png')" 
+		       toolTip="Click here to select the column used for this property."
+			   width="25" height="25" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" 
+			   cornerRadius="20"
+			   click="openAttributeSelector()"/>
+			   
+	<mx:Button icon="@Embed(source='/weave/resources/images/trashCan.png')" 
+			   width="25" height="25" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" 
+			   click="internalList.removeSelectedItem()"
+			   cornerRadius="20"
+			   toolTip="Click here to remove the column used for this property."/>
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import mx.events.DragEvent;
+			import mx.managers.DragManager;
+			
+			import weave.core.SessionManager;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			private var _initialized:Boolean = false;
+			
+			[Inspectable]
+			public function set dynamicObject(value:ILinkableDynamicObject):void
+			{
+				internalList.dynamicObject = value;
+//				connComponent.dynamicObject = value;
+			}
+			
+			private var _visTool:SimpleVisTool = null;
+			[Inspectable]
+			public function set visTool(value:SimpleVisTool):void
+			{
+				_visTool = value;
+			}
+			
+			private function openAttributeSelector():void
+			{
+				if (_visTool)
+					AttributeSelectorPanel.openToolSelector(_visTool, internalList.dynamicObject);
+				else
+					AttributeSelectorPanel.openDefaultSelector(internalList.dynamicObject, label);
+			} 	
+		]]>
+	</mx:Script>
+</mx:HBox>

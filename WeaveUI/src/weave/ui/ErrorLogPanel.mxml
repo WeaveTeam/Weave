@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns="weave.ui.*" 
+		borderColor="#C5C3A8"
+		title="Error log"
+		>
+	<mx:TextArea id="textArea" width="100%" height="100%" editable="false" minHeight="0"/>
+<!--
+	<mx:List id="list" variableRowHeight="true"  width="100%" height="100%">
+		<mx:itemRenderer>
+			<mx:Component>
+			<mx:Box dataChange="handleDataChange();">
+				<mx:TextArea id="textArea" width="100%"
+					editable="false"
+					verticalScrollPolicy="off"
+					/>
+			<mx:Script>
+				<![CDATA[
+					private function handleDataChange():void
+					{
+						textArea.text = (data as Error).name + ': ' + (data as Error).message;
+					}
+				]]>
+			</mx:Script>
+			</mx:Box>
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:List>
+-->
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Application;
+			import mx.managers.PopUpManager;
+			import weave.utils.DebugUtils;
+			import mx.rpc.Fault;
+			import weave.core.SessionManager;
+			import mx.controls.TextArea;
+			import weave.core.ErrorManager;
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				ErrorManager.callbacks.addGroupedCallback(this, handleError, true);
+			}
+			
+			private var errorIndex:int = 0;
+			private function handleError():void
+			{
+				while (errorIndex < ErrorManager.errors.length)
+				{
+					if (errorIndex > 0)
+						textArea.text += '\n\n';
+					
+					var error:Error = ErrorManager.errors[errorIndex++];
+					if (error is Fault || !SessionManager.runningDebugFlashPlayer)
+					{
+						textArea.text += error.message;
+					}
+					else
+					{
+						// get partial stack trace
+						textArea.text += error.message + '\nStack trace: ' + DebugUtils.getCompactStackTrace(error).join('; ');
+					}
+				}
+				textArea.validateProperties();
+				textArea.verticalScrollPosition = textArea.maxVerticalScrollPosition;
+			}
+			
+			private static const instance:ErrorLogPanel = new ErrorLogPanel();
+			public static function openErrorLog():void
+			{
+				instance.panelX.value = "0%";
+				instance.panelY.value = "80%";
+				instance.panelWidth.value = "100%";
+				instance.panelHeight.value = "20%";
+
+				if (!instance.parent)
+					PopUpManager.addPopUp(instance, Application.application as Application);
+				instance.restorePanel();
+			}
+		]]>
+	</mx:Script>
+</DraggablePanel>

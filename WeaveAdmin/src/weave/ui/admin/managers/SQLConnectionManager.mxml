@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:ui="weave.ui.*"
+				xmlns="weave.ui.admin.managers.*" 
+				width="100%" height="100%" 
+				label="{dataChanged?'Database connections*':'Database connections'}"
+				creationComplete="handleCreationComplete()">
+	<mx:VBox height="100%">
+		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
+		<mx:HBox width="100%">
+			<mx:Spacer width="100%"/>
+			<mx:Button label="Remove" click="handleRemoveConnection()"/>
+			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
+		</mx:HBox>
+	</mx:VBox>	
+	
+	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
+		<mx:Canvas id="simpleSetting" label="Add Database" width="100%" height="100%">
+			<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+				<mx:Label fontWeight="bold" text="Add or modify a database connection:"/>
+				<ui:Indent indent="{_indent}" label="Connection name:">
+					<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
+					<mx:CheckBox label="Overwrite" id="configOverwrite"/>
+				</ui:Indent>
+				<ui:Indent indent="{_indent}" label="SQL Server type">
+					<ui:CustomComboBox change="{dataChanged=true}" id="connectionDBMSCombo" dataProvider="{['MySQL','PostGreSQL']}" width="130"/>
+				</ui:Indent>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" textWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{connectionDBMSCombo.text=='MySQL' ? 3306 : 5432}" textWidth="130"/>
+				<ui:Indent indent="{_indent}" label="SQL Database name">
+					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
+					<mx:Label text="(Optional)"/>
+					<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.  In PostGreSQL, databases are different from schemas.  MySQL does not differentiate between the two.', 'Admin Console Help')"/>
+				</ui:Indent>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
+				<ui:Indent>
+					<mx:Button label="Save this database connection"
+							   click="saveConnectionInfo()"
+							   fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+					<mx:Button label="Clear" id="clearConnectionColumns" click="clearConnectionColumns_clickHandler(event)" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+				</ui:Indent>
+			</mx:VBox>
+		</mx:Canvas>
+		<mx:Canvas label="Migrate SQLConfig.XML" width="100%" height="100%">
+			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+				<mx:Label fontWeight="bold" text="Migrate SQLConfig.XML entries to a database:"/>
+				<ui:Indent indent="{170}" label="Connection to use">
+					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
+				</ui:Indent>
+				<ui:TextBox indent="{170}" label="Password" id="migratePasswordInput" displayAsPassword="true"/>
+				<ui:TextBox indent="{170}" label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
+				<ui:TextBox indent="{170}" label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
+				<ui:TextBox indent="{170}" label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
+				<ui:Indent>
+					<mx:Button id="migrateButton" label="Migrate SQLConfig.XML entries to this database location" click="migrateToDatabase()" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+				</ui:Indent>
+			</mx:VBox>
+		</mx:Canvas>
+		<!--		<mx:Canvas label="etc" width="100%" height="100%">
+		<mx:TextArea x="55.5" y="76" width="413" height="221" editable="false" selectable="false">
+		<mx:text><![CDATA[Controls for editing the item selected in the tree on the left.  Most used/simplest settings should be highlighted, more advanced controls available via more tabs if needed]]></mx:text>
+		</mx:TextArea>
+		</mx:Canvas>-->
+	</mx:TabNavigator>	
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.ListEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.services.AdminInterface;
+			import weave.services.DelayedAsyncInvocation;
+			import weave.services.beans.ConnectionInfo;
+			import weave.ui.Center;
+			import weave.ui.Indent;
+			import weave.ui.TextBox;
+			import weave.utils.EventUtils;
+			import weave.utils.PopUpUtils;
+			
+			[Bindable]
+			private var serverConfigEntryWasModified:Boolean = false;
+			
+			[Bindable] private var _indent:int = 130;
+			
+			[Bindable]
+			private var dataChanged:Boolean = false;
+			
+			private function handleCreationComplete():void
+			{
+				EventUtils.addBindCallback(AdminInterface.instance,"connectionNames",loadDataSource);
+				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
+			}
+			
+			public function loadDataSource():void
+			{
+				treeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.connectionNames);
+			}
+			
+			private function handleItemClick(event:ListEvent):void
+			{
+				if(dataChanged)
+				{
+					// ask user to confirm
+					PopUpUtils.confirm(
+						this,
+						"Leave current Database Connection",
+						'Are you sure you want to leave the current Database Connection? Any unsaved changes will be lost.',
+						function():void
+						{
+							loadDatabaseInfo();
+						}
+					);
+				}
+				else loadDatabaseInfo();
+			}
+			
+			private function loadDatabaseInfo():void
+			{
+				var query:DelayedAsyncInvocation = AdminInterface.instance.getConnectionInfo(treeWithSearch.tree.selectedItem.label);
+				query.addAsyncResponder(
+					function(event:ResultEvent, token:Object = null):void
+					{
+						var info:ConnectionInfo = new ConnectionInfo(event.result);
+						//Connection name
+						//connectionNameInput.text = tree.tree.selectedItem.label;
+						connectionNameInput.text = info.name;
+						//SQL Server Type
+						if ((info.dbms as String).toUpperCase() == "MYSQL")
+							connectionDBMSCombo.selectedIndex = 0;
+						else
+							connectionDBMSCombo.selectedIndex = 1;
+						//SQL Server Ip
+						connectionIPInput.text = info.ip;
+						//SQL Server Port
+						connectionPortInput.text = info.port;
+						//SQL Database Name
+						connectionDatabaseInput.text = info.database; 
+						//User Name
+						connectionUserInput.text = info.user;
+						//Password
+						connectionPasswordInput.text = info.pass;
+					}
+				);
+				
+				dataChanged = false;
+			}
+		
+			private function get hostUrl():String
+			{
+				var result:Array = mx.core.Application.application.url.split("http://");
+				var index:int = (result.length > 1) ? 1 : 0;
+				result = (result[index] as String).split("/");
+				return result[0] as String;
+			}
+			
+			private const hostIP:String = hostUrl.split(':')[0];
+			
+			protected function clearConnectionColumns_clickHandler(event:MouseEvent):void
+			{
+
+				connectionNameInput.text = "";
+				connectionDBMSCombo.selectedIndex = 0;
+				connectionIPInput.text = "localhost";
+				connectionPortInput.text = "3306";
+				connectionDatabaseInput.text = "";
+				connectionUserInput.text = "";
+				connectionPasswordInput.text = "";
+				configOverwrite.selected = false;
+			}
+			
+			private function saveConnectionInfo():void
+			{
+				var info:ConnectionInfo = new ConnectionInfo(null);
+				info.name = connectionNameInput.text;
+				info.dbms = connectionDBMSCombo.text;
+				info.ip = connectionIPInput.text;
+				info.port = connectionPortInput.text;
+				info.database = connectionDatabaseInput.text;
+				info.user = connectionUserInput.text;
+				info.pass = connectionPasswordInput.text;
+				
+				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected);
+			}
+			
+			private function migrateToDatabase():void
+			{
+				migrateButton.enabled = false;
+				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
+					   migrateConnectionCombo.text,
+					   migratePasswordInput.text,
+					   migrateSchemaInput.text,
+					   migrateGeometryConfigInput.text,
+					   migrateDataConfigInput.text
+					);
+				query.addAsyncResponder(enableMigrateButton, enableMigrateButton);
+			}
+			
+			private function enableMigrateButton(..._):void
+			{
+				migrateButton.enabled = true;
+			}
+			
+			private function handleRemoveConnection():void
+			{
+				var connectionLabel:String;
+				
+				if (treeWithSearch.tree.selectedItem == null)
+					return;
+				
+				connectionLabel = treeWithSearch.tree.selectedItem.label;
+				
+				PopUpUtils.confirm(
+					this,
+					"Confirm delete",
+					'Delete connection "' + connectionLabel + '"?', 
+					function():void
+					{
+						AdminInterface.instance.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
+					}
+				);
+
+			}
+			
+		]]>
+	</mx:Script>
+</mx:HDividedBox>

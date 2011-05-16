@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="312" height="300" 
+				initialize="init()" 
+				title="Saved Subsets"
+				layout="vertical">
+
+	
+	<LinkableObjectList id="savedSubsetsList"
+						width="100%" height="100%"
+						hashMap="{_hashMap}" 
+						labelFunction="subsetsListLabelFunction"
+						allowMultipleSelection="false">
+		
+	</LinkableObjectList>
+	
+	<mx:HBox>
+		<mx:Button label="Delete" 
+				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
+				   click="deleteSubset()"/>
+		<mx:Button label="Rename" 
+				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
+				   click="renameSubset()"/>
+	</mx:HBox>
+	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="close" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
+	</mx:ControlBar>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Application;
+			import weave.api.copySessionState;
+			import weave.api.data.IKeyFilter;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			import weave.api.core.ILinkableObject;
+			import weave.core.LinkableHashMap;
+			import weave.core.SessionManager;
+			import weave.ui.controlBars.WeaveMenuBar;
+			import weave.ui.controlBars.WeaveMenuItem;
+			
+			[Bindable]
+			private var _hashMap:LinkableHashMap = savedSubsetsMap;
+			
+			private static var _popupManager:SubsetManager = null;
+			
+			/**
+			 * Function used solely to get the label for each list item
+			 **/
+			private static function subsetsListLabelFunction(item:Object):String
+			{
+				// the label will be the name of the item followed by the included/excluded records count
+				var label:String = savedSubsetsMap.getName(item as ILinkableObject);
+				return label + " (" + getKeyFilterRecordsText(label) + ")";
+			}
+			
+			/**
+			 * Function used solely to get a string that says the number of records in either the included or excluded key sets
+			 **/
+			private static function getKeyFilterRecordsText(keyFilterName:String):String
+			{
+				// get the subset by its name
+				var keyFilter:KeyFilter = (savedSubsetsMap.getObject(keyFilterName) as KeyFilter);
+				
+				// create a string for the number of included keys followed by " records"
+				// if the excluded keys are used instead, the string will be excluded keys followed by " excluded records"
+				if (keyFilter.includeMissingKeys.value)
+					return keyFilter.excluded.keys.length + ' excluded records';
+				else
+					return keyFilter.included.keys.length + ' records';
+			}
+			
+			/**
+			 * Create the menu items used for the WeaveMenuItem associated with this class
+			 **/
+			public static function setupMenu(parentMenu:WeaveMenuBar, destinationMenu:WeaveMenuItem):void
+			{
+				if(!destinationMenu)
+					return;
+				
+				if(destinationMenu.children)
+					destinationMenu.children.removeAll();
+				
+				var menuItem:WeaveMenuItem;
+				var clickFunction:Function;
+				var subsetActive:Function = function():Boolean
+				{
+					// a subset is available when the included or excluded keys are of length 1 or more
+					return globalSubset.included.keys.length > 0 || globalSubset.excluded.keys.length > 0;
+				};
+				var selectionActive:Function = function():Boolean
+				{
+					return globalSelection.keys.length > 0;
+				};
+				
+				// menu item to create subset from selected
+				if (Weave.properties.enableCreateSubsets.value)
+				{
+					clickFunction = function():void {
+						globalSubset.replaceKeys(false, true, globalSelection.keys);
+						globalSelection.clearKeys();
+					};
+					menuItem = new WeaveMenuItem("Create subset from selected records", clickFunction, null, selectionActive);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
+				// menu item to remove selected records
+				if (Weave.properties.enableRemoveSubsets.value)
+				{
+					clickFunction = function():void
+					{
+						// we will use the selected records as excluded keys and clear the current selection which is no longer valid
+						globalSubset.excludeKeys(globalSelection.keys);
+						globalSelection.clearKeys();
+					};
+					menuItem = new WeaveMenuItem("Remove selected records from subset", clickFunction, null, selectionActive);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
+				// menu item to show all records
+				if (Weave.properties.enableShowAllRecords.value)
+				{
+					clickFunction = function():void
+					{
+						globalSubset.replaceKeys(true, true);
+						globalSelection.clearKeys();
+					};
+					menuItem = new WeaveMenuItem("Show all records", clickFunction, null, subsetActive);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
+				// menu item to save subsets
+				if (Weave.properties.enableSaveCurrentSubset.value)
+				{
+					parentMenu.addSeparatorToMenu(destinationMenu);
+					menuItem = new WeaveMenuItem("Save current subset...", saveSubset, null, subsetActive);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
+				if (Weave.properties.enableManageSavedSubsets.value)
+				{
+					clickFunction = function():void
+					{
+						// when a user clicks this option we will create the SelectionManager as a popup 
+						_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SubsetManager, true) as SubsetManager;
+						
+						// this makes it so the popup is not draggable
+						_popupManager.isPopUp = false;
+						
+						PopUpManager.centerPopUp(_popupManager);
+					};
+					var enableFunction:Function = function():Boolean
+					{
+						// we can manage subsets when there is at least one saved subset
+						return savedSubsetsMap.getNames().length > 0;
+					};
+					menuItem = new WeaveMenuItem("Manage saved subsets...", clickFunction, null, enableFunction);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
+				// get the saved subsets map and get the names of the saved subsets
+				var subsets:Array = savedSubsetsMap.getObjects();
+				
+				// if we have at least one saved subset, we will add a separator before them
+				if (subsets.length > 0)
+					parentMenu.addSeparatorToMenu(destinationMenu);
+				
+				for (var i:int = 0; i < subsets.length; i++)
+				{
+					var label:String = subsetsListLabelFunction(subsets[i]);
+					menuItem = new WeaveMenuItem(label, copySessionState, [subsets[i], globalSubset]);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+			}
+			
+			private static function get savedSubsetsMap():LinkableHashMap
+			{
+				return Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS) as LinkableHashMap;
+			}
+			private static function get globalSelection():KeySet
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			}
+			private static function get globalSubset():KeyFilter
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+			}
+			
+			private function init():void
+			{
+				// Disable certain features on this manager so that it is purely modal and has to be closed manually
+				// before doing anything else
+				minimizable.value = false;
+				draggable.value = false;
+				maximizable.value = false;
+				closeable.value = false;
+			}
+			
+			/**
+			 * Handle deleting of an existing subset
+			 **/
+			private function deleteSubset():void
+			{
+				savedSubsetsMap.removeObject(savedSubsetsMap.getName(savedSubsetsList.selectedItem as KeyFilter));
+			}
+			
+			/**
+			 * Handle renaming of an existing subset
+			 **/
+			private function renameSubset():void
+			{
+				var alertBox:AlertTextBox = AlertTextBox.show("Subset Name", "Please enter a name for the subset: ");
+				
+				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
+					if( !e.confirm )
+						return;
+						
+					var oldSubset:KeyFilter = savedSubsetsList.selectedItem as KeyFilter;
+					var oldName:String = savedSubsetsMap.getName(oldSubset);
+					var newName:String = e.textInput;
+
+					// we want to put the new subset in the same position the old subset was
+					var nameOrder:Array = savedSubsetsMap.getNames();
+					nameOrder[nameOrder.indexOf(oldName)] = newName;
+					
+					savedSubsetsMap.copyObject(newName, oldSubset);
+					savedSubsetsMap.removeObject(oldName);
+					savedSubsetsMap.setNameOrder(nameOrder);
+
+					// invalidate the list so we see it update
+					savedSubsetsList.invalidateList();
+				});
+			}
+			
+			/**
+			 * Handle saving of a new subset the user has created
+			 **/
+			public static function saveSubset():void
+			{
+				var alertBox:AlertTextBox = AlertTextBox.show("Subset Name", "Please enter a name for the subset: ");
+				
+				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
+					// if the user clicked cancel, then we will just return from here and save nothing
+					if( !e.confirm )
+						return;
+					
+					savedSubsetsMap.copyObject(e.textInput, globalSubset);
+				});
+			}
+		]]>
+	</mx:Script>
+</DraggablePanel>

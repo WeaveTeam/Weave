@@ -35,7 +35,7 @@
 
   <servlet>
     <servlet-name>DataService</servlet-name>
-    <servlet-class>org.oicweave.servlets.DataService</servlet-class>
+    <servlet-class>weave.servlets.DataService</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>DataService</servlet-name>
@@ -44,7 +44,7 @@
 
   <servlet>
     <servlet-name>AdminService</servlet-name>
-    <servlet-class>org.oicweave.servlets.AdminService</servlet-class>
+    <servlet-class>weave.servlets.AdminService</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>AdminService</servlet-name>
@@ -53,7 +53,7 @@
 
   <servlet>
     <servlet-name>RService</servlet-name>
-    <servlet-class>org.oicweave.servlets.RService</servlet-class>
+    <servlet-class>weave.servlets.RService</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>RService</servlet-name>

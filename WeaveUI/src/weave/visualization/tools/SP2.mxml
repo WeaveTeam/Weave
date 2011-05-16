@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="weave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="weave.ui.*" 
+	     layout="absolute"
+		 xmlns:userControls="weave.ui.userControls.*"
+		 xmlns:settings="weave.ui.settings.*">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.registerLinkableChild;
+			import weave.api.linkBindableProperty;
+			import weave.utils.ColumnUtils;
+			import mx.events.ChildExistenceChangedEvent;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.SliderEvent;
+			
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
+			import weave.core.SessionManager;
+			import weave.core.UIUtils;
+			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
+			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.DraggablePanel;
+			import weave.utils.BitmapText;
+			import weave.utils.DebugUtils;
+			import weave.visualization.layers.PlotLayer;
+			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.AxisPlotter;
+			import weave.visualization.plotters.CircleGlyphPlotter;
+			import weave.visualization.plotters.ImageGlyphPlotter;
+			import weave.visualization.plotters.styles.SolidFillStyle;
+		
+		
+			public var _plotter:ImageGlyphPlotter = null;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				// lock dynamic objects into place
+				_plotter = initDefaultPlotter(ImageGlyphPlotter) as ImageGlyphPlotter;
+				xAxisEnabled = true;
+				yAxisEnabled = true;
+
+				//BEGIN TEMPORARY SOLUTION
+				visualization.marginLeft.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginBottom.addImmediateCallback(this, updateAxisLabels);
+				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
+				// END TEMPORARY SOLUTION
+				
+				visualization.enableXAxisProbing = true;
+				visualization.enableYAxisProbing = true;
+				
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.xColumn])
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.yColumn])
+				
+				visualization.enableAutoZoomXToNiceNumbers.value = true;
+				visualization.enableAutoZoomYToNiceNumbers.value = true;
+
+				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
+				invalidateAxes();
+				
+				initColumnDefaults( _plotter.dataX, _plotter.dataY);
+				toolTitle.addImmediateCallback(this, updateTitle);
+				
+				_plotter.xColumn.addImmediateCallback(this,updateProbeColumns);
+				_plotter.yColumn.addImmediateCallback(this,updateProbeColumns);
+
+				visualization.marginBottom.value = 80;
+				visualization.marginTop.value    = 10;
+				visualization.marginLeft.value   = 80;
+				visualization.marginRight.value  = 10;
+			}
+			
+			override public function getSelectableAttributeNames():Array
+			{
+				return ["X","Y","Image"];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				return [_plotter.xColumn,_plotter.yColumn,_plotter.imageURL.internalDynamicColumn];
+			}
+			
+			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			
+			private function updateProbeColumns():void
+			{
+				if(includeToolAttributesInProbe.value)
+				{
+					visualization.additionalProbeColumns = [];
+					if(_plotter.xColumn.internalColumn) visualization.additionalProbeColumns.push(_plotter.xColumn.internalColumn);
+					if(_plotter.yColumn.internalColumn) visualization.additionalProbeColumns.push(_plotter.yColumn.internalColumn);
+					if(visualization.additionalProbeColumns.length == 0) visualization.additionalProbeColumns = null ;
+				}
+				else visualization.additionalProbeColumns = null;
+				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
+			}
+			
+			private function invalidateAxes():void
+			{
+				updateTitle();
+			}
+			
+			private function updateTitle():void
+			{
+				if (toolTitle.value == null)
+					title = "Scatter Plot of " + ColumnUtils.getTitle(_plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(_plotter.yColumn);
+			}
+			
+			private function updateAxisLabels():void
+			{
+				visualization.setXAxisColumn(_plotter.xColumn);
+				visualization.setYAxisColumn(_plotter.yColumn);
+				
+				if (_plotter == null)
+					title = "Scatter Plot";
+/*				else
+					title = "Scatter Plot of " + _plotter.xColumn.title + " -vs- " + _plotter.yColumn.title;
+	*/			
+				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dataX), 
+																0,   
+				                                                0, visualization.marginBottom.value - 3, 
+				                                                BitmapText.VERTICAL_ALIGN_BOTTOM);
+				                                                
+				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dataY), 
+																-90, 
+																-visualization.marginLeft.value, 0, 
+																BitmapText.VERTICAL_ALIGN_TOP);
+			}
+
+			
+
+			private function alphaSliderFormatFunction(item:Number):String {
+				//return int(100 - (item * 100)) + "% Transparent";
+				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+			}
+			
+			private function handleSizeByTextChange(event:Event):void
+			{
+				if (sizeByCheck.selected)
+				{ 
+					sizeByCheck.setStyle("textRollOverColor", "0x339900");
+					sizeByCheck.setStyle("textSelectedColor", "0x339900");
+					sizeByCheck.setStyle("Color", "0x339900");
+					sizeBySlider.enabled = true;
+					
+				}
+				else{
+					sizeByCheck.label = "Size by: DISABLED";
+					sizeByCheck.setStyle("textRollOverColor", "0xCC3300");
+					sizeByCheck.setStyle("textSelectedColor", "0xCC3300");
+					sizeByCheck.setStyle("Color", "0xCC3300");
+					
+					sizeBySlider.enabled = false;
+				}
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+			<mx:Panel id="VizControlsPanel" 
+					  label="Visualization Controls" 
+					  headerHeight="2"
+					  borderColor="0x000000" 
+					  backgroundColor="0xCCCCCC" 
+					  backgroundAlpha="0.0" 
+					  borderThickness="0.0" 
+					  height="100%" 
+					  width="100%" 
+					  borderAlpha="0.2" 
+					  borderStyle="none">
+				<mx:VBox width="100%" 
+						 verticalGap="0">
+					<mx:VBox width="100%" 
+							 id="scatterplotControls">
+						<mx:HBox width="100%" 
+								 borderStyle="inset" 
+								 backgroundColor="0xFFFFFF" 
+								 backgroundAlpha="0.7">
+							<mx:Label text="Point Opacity:" 
+									  color="0x000000" fontSize="12" 
+									  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+						</mx:HBox>
+						<userControls:ControlsSubsetBox>
+							<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+										 toolTip="Checking this box makes the x, y, color and size attributes visible in this tool's probe tooltip"
+										 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						</userControls:ControlsSubsetBox>
+						<ui:DynamicColumnComponent visTool="{this}" label="x column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="y column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="image column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.imageURL.internalDynamicColumn"/>
+						<mx:VBox borderStyle="inset"
+								 backgroundColor="0xFFFFFF" 
+								 backgroundAlpha="0.7"
+								 width="100%">
+							<mx:HBox width="100%">
+								<!--change="handleSizeByCheckChange(event)"textRollOverColor="0xffffff" 
+								textSelectedColor="0xffffff" -->
+								<mx:CheckBox id="sizeByCheck" 
+											 fontSize="12" 
+											 label="Size by: ENABLED" 
+											 color="{sizeByCheck.selected? 0x339900 : 0xCC3300}"
+											 textRollOverColor="0x339900"
+											 selected="true" 
+											 click="handleSizeByTextChange(event)"/>
+								<!--{sizeByCheck.selected ? _previousColumnName : '( click="handleSizeBySelectDimensionClick(event)"-->
+								<mx:Label id="sizeByColumnLabel" enabled="{sizeByCheck.selected}" color="0xffffff" width="100%"  fontSize="9"/>
+							</mx:HBox>
+							
+							<!--<mx:Label text="[min, max]"  color="0xFFFFFF" visible="{sizeByCheck.selected}" fontSize="9"/-->
+							<mx:HBox width="100%"> 
+								<mx:Label text="Point Size:" 
+										  color="0x000000" 
+										  fontSize="12"/>
+								<!--change="handleSizeSliderChange(event)" minimum="{_minPointSize}" maximum="{_maxPointSize}"  dataTipFormatFunction="sizeSliderDataTipFormatFunction"-->
+								<mx:HSlider id="sizeBySlider"
+											liveDragging="true"
+											width="100%"
+											thumbCount="2" 
+											snapInterval="1"
+											minimum="1" 
+											tickInterval="1"
+											mouseDown="event.stopImmediatePropagation();"/>
+							</mx:HBox>
+						</mx:VBox>
+					</mx:VBox>
+					<mx:HBox width="100%">
+						<!--click="showControlPanel.value = !showControlPanel.value;" initialize="if (showControlPanel.getSessionState() == null) showControlPanel.value = true;"-->
+					</mx:HBox>
+				</mx:VBox>
+			</mx:Panel>
+	</ui:ControlPanel>
+</SimpleVisTool>

@@ -11,8 +11,8 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="false" exportJavaFiles="false" exportOutputFolder="true">
-        <folder path="/GeometryStreamConverter/src/META-INF"/>
-        <javaElement handleIdentifier="=GeometryStreamConverter/src&lt;org.oicweave.utils"/>
-        <javaElement handleIdentifier="=GeometryStreamConverter/src&lt;org.oicweave.geometrystream"/>
+        <javaElement handleIdentifier="=GeometryStreamConverter/src&lt;weave.geometrystream"/>
+        <file path="/GeometryStreamConverter/LICENSE.txt"/>
+        <javaElement handleIdentifier="=GeometryStreamConverter/src&lt;weave.utils"/>
     </selectedElements>
 </jardesc>

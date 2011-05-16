@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SliderTool
+	xmlns="weave.visualization.tools.*" 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ui="weave.ui.*"
+	xmlns:settings="weave.ui.settings.*"
+	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
+	verticalScrollPolicy="off"
+	width="400" 
+	title="Dimension Slider Tool"
+	height="40">
+
+<mx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.data.IDataSource;
+			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.api.data.IDataSource;
+			import weave.data.AttributeColumns.ProxyColumn;
+			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+			import weave.utils.HierarchyUtils;
+			import weave.core.SessionManager;
+			import weave.core.weave_internal;
+			import weave.Weave;
+            use namespace weave_internal;
+
+	//constructor
+	
+	override protected function constructor():void
+	{
+		super.constructor();
+	}
+	
+	//class data
+
+	private var values:Array = new Array();
+	
+	//overrides of abstract SliderTool functions
+	
+	/**
+	 * This function gets called after children have been created
+	 */ 
+	override protected function childrenCreated():void
+	{
+		super.childrenCreated();
+		if (dimsLabel != null)
+			dimsLabel.text = "Replace labels with values from a dimension with a secondary key:";
+
+	}	
+	
+	override public function addCallbacks():void 
+	{
+		var descendants:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(Weave.root, HierarchyColumnReference);
+		var len:int = descendants.length;
+		for (var i:int = 0; i < len; i++)
+		{
+			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
+			var proxy:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
+			if (proxy != null)
+				proxy.addGroupedCallback(this, setColsToSliderValue);
+		}
+	}
+	
+
+	/**
+	 * This function finds a list of attribute tags in the same attribute hierarchy
+	 * that have the same @dataTableName and @name attributes, then returns a list of
+	 * their @year values.
+	 * @param ref A reference to an attribute tag in an AttributeHierarchy.
+	 * @return An Array of @year values that the referenced column is defined for.
+	 */
+	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
+	{
+		var path:XML = ref.hierarchyPath.value;
+		var attrXML:XML = HierarchyUtils.getNodeFromPath(path, path); // get leaf node
+		var dataSource:IDataSource = ref.getDataSource();
+		var dataTableName:String = attrXML.@dataTable;
+		var colName:String = attrXML.@name;
+
+		var valuesFromColumn:Array = [];
+
+		var dimensionColumn:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
+		if (dimensionColumn != null)
+		{
+			//if dimensionColumn.internalColumn is null, it may be that the data is not 
+			//   yet there - let's add a callback
+			if (dimensionColumn.internalColumn == null)
+			{
+				return valuesFromColumn;
+			}
+			else
+			{
+				var secKeyCol:SecondaryKeyNumColumn = dimensionColumn.internalColumn as SecondaryKeyNumColumn;
+				if (secKeyCol == null)
+					return valuesFromColumn;
+				var keys:Array = secKeyCol.secondaryKeys;
+				for (var i:int = keys.length - 1; i >= 0; i--)
+					valuesFromColumn.push(keys[i]);
+				if (keys.length > 0)
+					addToListOfDims(ref);
+			}
+		}
+		valuesFromColumn.sort();
+		return valuesFromColumn;
+	}
+	 
+	/**
+	 * handleLabelChange
+	 * This method is called every time there is a change in labels,
+	 * so be sure to change labels only as often as is necesary.  
+	 * We fill in the hslider labels from this.labelsLinkableString
+	 * Since this.labelsLinkableString is a LinkableString it can be changed by
+	 * the user by editing the sessionHistory.  
+	 * */
+	override public function handleLabelChange():void
+	{
+		//@TODO have values associated with the labels so that the labels can be
+		//   changed and the values are still passed into the column request
+		if (!parent)
+			return callLater(handleLabelChange);
+		var labelsString:String = labelsLinkableString.value;
+		values = labelsString.split(',');
+		if (values.length < MAX_TICK_COUNT)
+			dimensionSlider.labels = values;
+		else
+		{
+			dimensionSlider.labels = new Array();
+			var interval:int = Math.ceil(values.length / MAX_TICK_COUNT);
+			for (var i:int = 0; i < values.length; i += interval)
+				dimensionSlider.labels.push(values[i]);
+			var iLast:int = values.length - 1;
+			if (i < iLast)
+				dimensionSlider.labels.push(values[iLast]);
+		}
+		dimensionSlider.minimum = 0;
+		dimensionSlider.maximum = values.length - 1;		
+		//set tick interval 
+		dimensionSlider.tickInterval = 1;
+	}	
+
+	/** 
+	 * change - this method is automatically called when the hslider
+	 *  is changed.  Here we update all the visualization tools to 
+	 *  the new value.  
+	 * **/
+	override public function setColsToSliderValue():void
+	{
+		var newValue:String = values[dimensionSlider.value];
+		var descendants:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(Weave.root, HierarchyColumnReference);
+		var len:int = descendants.length;
+		for (var i:int = 0; i < len; i++)
+		{
+			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
+			var proxy:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
+			if (proxy != null)
+			{
+				var secKeyCol:SecondaryKeyNumColumn = proxy.internalColumn as SecondaryKeyNumColumn;
+				if (secKeyCol != null)
+				{
+					secKeyCol.currentSecondaryKey = newValue;  //calls callbacks
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * This is specified in the HSlider above - called to get the tooltip that appears when 
+	 * the user probes over the slider.  Item is the index of the value that the user is hovering 
+	 * over.  
+	 **/
+	override protected function formatDataTip(item:Number):String 
+	{
+		var value:String = values[item];
+		return value;
+	}
+			
+			
+		]]>
+	</mx:Script>
+</SliderTool>
+

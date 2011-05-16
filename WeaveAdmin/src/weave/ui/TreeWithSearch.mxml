@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns="weave.ui.*"
+		 verticalGap="8"
+		  horizontalScrollPolicy="off"
+		 height="100%" width="100%" creationComplete="handleCreationComplete()"
+		 >
+	<TextInputWithPrompt id="searchTerm" width="100%" prompt="{prompt}" clear="search()" keyUp="search()"/><!-- toolTip="would show tree as flat list with columns (date, creator, etc) that could be sorted" -->
+	<mx:Tree id="tree" dataProvider="{treeSource}" showRoot="false" width="100%" height="100%" />
+<!--
+	<mx:HBox height="100%" width="100%">
+		<mx:List id="list" dataProvider="{treeSource.children}" width="100%" height="100%" horizontalScrollPolicy="off">
+			<mx:itemRenderer>
+				<mx:Component>
+					<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" creationComplete="creationCompleteHandler(event)" >
+						<mx:Label text="{_label}" />
+						<mx:Button id="modButton" label="Modify" visible="false" />
+						<mx:Button id="delButton" label="Delete" visible="false" />
+						<mx:Script>
+							<![CDATA[
+								import mx.controls.Alert;
+								import mx.events.FlexEvent;
+								import mx.events.ListEvent;
+								
+								[Bindable] private var _label:String = "";
+								
+								override public function set data(value:Object):void
+								{
+									if( outerDocument.treeSource != null ) {
+										_label = value.label;
+									}
+									if(value == data)
+										return;
+									
+									super.data = value;
+								}
+								
+								private function handleRollOver(event:MouseEvent):void
+								{
+									modButton.visible = true;
+									delButton.visible = true;
+								}
+								private function handleRollOut(event:MouseEvent):void
+								{
+									modButton.visible = false;
+									delButton.visible = false;
+								}
+								private function handleModClick(event:MouseEvent):void
+								{
+									Alert.show("Mod Button", "ALERT");
+								}
+								private function handleDelClick(event:MouseEvent):void
+								{
+									Alert.show("Delete Button", "ALERT");
+								}
+								private function creationCompleteHandler(event:FlexEvent):void
+								{
+									addEventListener(MouseEvent.MOUSE_OVER, handleRollOver);
+									addEventListener(MouseEvent.MOUSE_OUT, handleRollOut);
+									modButton.addEventListener(MouseEvent.CLICK, handleModClick);
+									delButton.addEventListener(MouseEvent.CLICK, handleDelClick);
+								}
+
+							]]>
+						</mx:Script>
+					</mx:HBox>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:List>
+	</mx:HBox>
+	-->
+	
+<mx:Script>
+	<![CDATA[
+		import mx.collections.ArrayCollection;
+		[Bindable]
+		public var treeSource:Object = null;
+		
+		[Bindable] public var prompt:String = "Enter search text";
+		
+		/**
+		 * This will set the treeSource to a flat tree, generated from a list of labels.
+		 * @param labels A flat list of labels to use as items in the tree.
+		 */
+		public function generateFlatTreeFromLabels(labels:Array):void
+		{
+			var root:Object = null;
+			if (labels.length > 0)
+			{
+				root = {label: "", object: "", children: []};
+				for (var i:int = 0; i < labels.length; i++)
+				{
+					root.children.push({label: labels[i], object: labels[i], children: null});
+				}
+			}
+			treeSource = root;
+			search();
+		}
+		
+		private function handleCreationComplete():void
+		{
+			
+		}
+		
+		private function search():void
+		{
+			if(searchTerm.text.length > 0)
+			{
+				tree.dataProvider = getFilteredTree(treeSource);
+//				list.dataProvider = getFilteredTree(treeSource.children);
+//				datagrid.dataProvider = getFilteredTree(treeSource.children);
+			}else{
+				tree.dataProvider = treeSource;
+//				list.dataProvider = treeSource.children;
+//				datagrid.dataProvider = treeSource.children;
+			}
+		}
+		
+		private function clear():void
+		{
+			searchTerm.text = "";
+			search();
+		}
+		private function getFilteredTree(node:Object):Object
+		{
+			if (node == null)
+				return null;
+
+			var result:Object = {label: node.label, object: node.object, children: []};
+			
+			if (node.children == null || node.children.length == 0)
+			{
+				if ((node.label as String).toLowerCase().search(searchTerm.text.toLowerCase()) < 0)
+					return null;
+				node.children = null;
+				return node;
+			}
+			
+			for (var i:int = 0; i < node.children.length; i++)
+			{
+				var subtree:Object = getFilteredTree(node.children[i]);
+				if (subtree != null)
+					result.children.push(subtree);
+			}
+			
+			if (result.children.length == 0)
+			{
+				result.children = null;
+				if ((result.label as String).toLowerCase().search(searchTerm.text.toLowerCase()) < 0)
+					return null;
+			}
+			
+			return result;
+		}
+	]]>
+</mx:Script>
+</mx:VBox>

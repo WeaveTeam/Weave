@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:WizardViewStack
+			xmlns:mx="http://www.adobe.com/2006/mxml"
+			xmlns:ui="weave.ui.*"
+			xmlns:admin="weave.ui.admin.*"
+			xmlns="weave.ui.admin.wizards.*" 
+			label="Import DBF data to SQL"
+			width="640" height="300"
+			creationComplete="handleCreationComplete()"
+			>
+	<mx:VBox width="100%" height="100%">
+		<mx:Label fontWeight="bold" text="Store Shapefile Attributes data from .DBF to SQL database"/>
+		<mx:HBox width="100%">
+			<mx:Label text="DBF File (ending in .DBF)" textAlign="right"/>
+			<mx:TextInput id="importDBFFileNameInputToStore" enabled="true"/>
+			<mx:Button label="Upload ..." click="browseAndUploadDBFFiles();"/>
+		</mx:HBox>
+		<admin:SQLTableSelectorDialog name="tableSelector"/>
+		<ui:Center>
+			<mx:VBox>
+				<mx:Button id="importDBFButton" label="Store DBF Data in Database" click="AdminInterface.instance.storeDBFDataToDatabase(importDBFFileNameInputToStore.text,importDBFSchemaComboToStore.text, importDBFTableInputToStore.text, importDBFDataToSQLOverwriteCheck.selected, importDBFButton)" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+				<mx:Label text="Note: This does not create a Weave configuration entry yet, it only uploads the data to a SQL table."/>
+			</mx:VBox>
+		</ui:Center>
+		
+	</mx:VBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			
+			import weave.services.AdminInterface;
+			
+			private var dbfFileReference:FileReference = new FileReference();
+			
+			private function browseAndUploadDBFFiles():void
+			{
+				var fileTypes:Array = [new FileFilter("DBF Files", "*.dbf")];
+				dbfFileReference.browse(fileTypes);
+			}
+			
+			private function dbfFileSelectedHandler(event:Event):void
+			{
+				try
+				{
+					// upload file to server
+					var name:String = dbfFileReference.name;
+					dbfFileReference.load();
+					var nameWithoutExt:String = name.substr(0, name.length - 4);
+					importDBFFileNameInputToStore.text = nameWithoutExt;
+				}
+				catch (err:Error)
+				{
+					//fileStatus.text = "Error";
+					Alert.show(err.message, err.name);
+					trace(err.getStackTrace());
+				}
+			}
+			
+			private function dbfFileCompleteHandler():void
+			{
+				AdminInterface.instance.uploadFile(dbfFileReference);
+			}
+
+			protected function handleCreationComplete():void
+			{
+				dbfFileReference.addEventListener(Event.SELECT, dbfFileSelectedHandler);
+				dbfFileReference.addEventListener(Event.COMPLETE, dbfFileCompleteHandler);
+			}
+
+		]]>
+	</mx:Script>
+</ui:WizardViewStack>

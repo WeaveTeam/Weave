@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TextArea xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+    verticalScrollPolicy="off" horizontalScrollPolicy="off"
+    resize="resetHeight()"
+    change="resetHeight()"
+    initialize="init()" 
+    creationComplete="init()" 
+    >
+
+    <mx:Script>
+        <![CDATA[
+        	private function init():void
+        	{
+				textField.height = 0;
+            	textField.autoSize = "center";
+        	}
+        
+        	private function resetHeight():void
+        	{
+    			if (parent && !editable)
+    			{
+					styleChanged("headerHeight");
+					notifyStyleChangeInChildren("headerHeight", true);
+    			}
+        	}
+        
+        	override public function set percentWidth(value:Number):void
+        	{
+        		wordWrap = true;
+        		super.percentWidth = value;
+        	}
+        	override public function set width(value:Number):void
+        	{
+        		wordWrap = false;
+        		super.width = value;
+        	}
+        
+            override public function validateSize(recursive:Boolean=false):void
+            {
+            	super.validateSize(recursive);
+            	if (wordWrap)
+            	{
+	            	//this.textField.width;
+            	}
+            	else
+            	{
+					width = textField.width;
+            	}
+                height = textField.height;
+            	//NOTE : there is still a bug that when you delete an extra line it will not update
+				// the size until you type a new character, not sure why this happens...
+            }
+        ]]>
+    </mx:Script>
+</mx:TextArea>
