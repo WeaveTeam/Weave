@@ -28,5 +28,5 @@ package weave.core
 	 * 
 	 * @author adufilie
 	 */
-	public namespace weave_internal = "http://www.oicweave.org/as3/weave/internal";
+	public namespace weave_internal = "http://www.openindicators.org/as3/weave/internal";
 }
