@@ -197,11 +197,11 @@ package weave.visualization.plotters
 
 				if( screenRadius.internalColumn ) {
 					if(!isNaN(spanRadians))
-						WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y, radius*0.01);
+						WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y, radius*radiusConstant.value*0.0025);
 				}
 				else
 				{
-					WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y,0.05);
+					WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y,radiusConstant.value*.005);
 				}
 				graphics.endFill();
 			}

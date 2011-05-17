@@ -46,24 +46,29 @@ package weave.visualization.plotters
 		public const lineStyle:DynamicLineStyle = newNonSpatialProperty(DynamicLineStyle);
 		
 		private var drawLine:Boolean = false;
-		private const point1:Point = new Point();//reusable object
-		private const point2:Point = new Point(); // reusable object
-		private const point3:Point = new Point(); // reusable object
+		private const yAxis:Point = new Point();//reusable object
+		private const plot:Point = new Point(); // reusable object
+		private const xAxis:Point = new Point(); // reusable object
+		private var yToPlot:Boolean ;
+		private var xToPlot:Boolean ;
 		
 		public function clearCoordinates():void
 		{
 			drawLine = false;
 			getCallbackCollection(this).triggerCallbacks();
 		}
-		public function setCoordinates(x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number):void
+		
+		public function setCoordinates(x_yAxis:Number, y_yAxis:Number, xPlot:Number, yPlot:Number, x_xAxis:Number, y_xAxis:Number, yToPlotBool:Boolean, xToPlotBool:Boolean):void
 		{
-			point1.x = x1;
-			point1.y = y1;
-			point2.x = x2;
-			point2.y = y2;
-			point3.x = x3;
-			point3.y = y3;
+			yAxis.x = x_yAxis;
+			yAxis.y = y_yAxis;
+			plot.x = xPlot;
+			plot.y = yPlot;
+			xAxis.x = x_xAxis;
+			xAxis.y = y_xAxis;
 			drawLine = true;
+			yToPlot = yToPlotBool ;
+			xToPlot = xToPlotBool ;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
@@ -79,30 +84,31 @@ package weave.visualization.plotters
 				
 				graphics.beginFill(0xff0000);
 				graphics.lineStyle(1,0xff0000);
-				if(point2.x || point2.y)
+				dataBounds.projectPointTo(plot, screenBounds);
+				if(yToPlot)
 				{
-					dataBounds.projectPointTo(point1, screenBounds);
+					dataBounds.projectPointTo(yAxis, screenBounds);
 					
 					// Start at X axis
-					graphics.moveTo(point1.x, point1.y);
+					graphics.moveTo(yAxis.x, yAxis.y);
 					
-					dataBounds.projectPointTo(point2, screenBounds);
-					graphics.drawCircle(point1.x, point1.y,2);
-					graphics.moveTo(point1.x, point1.y);
+					graphics.drawCircle(yAxis.x, yAxis.y,2);
+					graphics.moveTo(yAxis.x, yAxis.y);
 					
 					// Finish line at point
-					graphics.lineTo(point2.x, point2.y);
-					graphics.drawCircle(point2.x,point2.y,2);
+					graphics.lineTo(plot.x, plot.y);
+					
 					//trace(coordinate, screenBounds, dataBounds);
-					
 				}
-				if( point3.x || point3.y)
+				graphics.drawCircle(plot.x,plot.y,2);
+				
+				if( xToPlot)
 				{
-					graphics.moveTo(point2.x, point2.y);
-					dataBounds.projectPointTo(point3, screenBounds);
+					graphics.moveTo(plot.x, plot.y);
+					dataBounds.projectPointTo(xAxis, screenBounds);
 					
-					graphics.lineTo(point3.x, point3.y);
-					graphics.drawCircle(point3.x, point3.y, 2);
+					graphics.lineTo(xAxis.x, xAxis.y);
+					graphics.drawCircle(xAxis.x, xAxis.y, 2);
 				}
 				
 				graphics.endFill();

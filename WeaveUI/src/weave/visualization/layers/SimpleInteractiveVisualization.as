@@ -465,69 +465,80 @@ package weave.visualization.layers
 		
 		/**
 		 * This function should be called by a tool to initialize a probe line layer and its ProbeLinePlotter
-		 * @param x flag to specify whether the xAxis needs a probe line and tooltip
+		 * @param xAxisToPlot set to true if xAxis needs a probe line and tooltip
+		 * @param yAxisToPlot set to true if yAxis needs a probe line and tooltip
 		 * @param labelFunction optional function to convert number values to string 
 		 * @param labelFunctionX optional function to convert xAxis number values to string
-		 */		
-		public function enableProbeLine(x:Boolean,labelFunction:Function=null,labelFunctionX:Function=null):void
+		 */	
+		public function enableProbeLine(xAxisToPlot:Boolean,yAxisToPlot:Boolean,labelFunction:Function=null,labelFunctionX:Function=null):void
 		{
-			_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
-			_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
-			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines,[x,labelFunction, labelFunctionX]);
+			if( !_probeLineLayer ) {
+				_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
+				_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
+			}
+			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines,[xAxisToPlot,yAxisToPlot,labelFunction, labelFunctionX]);
+		}
+		
+		/**
+		 * Disables probe lines by removing the appropriate function from the list of callbacks
+		 */
+		public function disableProbelines():void 
+		{
+			getCallbackCollection(_plotLayer.probeFilter).removeCallback(updateProbeLines);
 		}
 		
 		/**
 		 * Draws the probe lines using _probePlotter and the corresponding axes tooltips
-		 * @param x flag to specify whether the xAxis needs a probe line and tooltip
+		 * @param xAxisToPlot set to true if xAxis needs a probe line and tooltip
+		 * @param yAxisToPlot set to true if yAxis needs a probe line and tooltip
 		 * @param labelFunction optional function to convert number values to string 
 		 * @param labelFunctionX optional function to convert xAxis number values to string 
 		 * 
 		 */	
-		private function updateProbeLines(x:Boolean, labelFunctionY:Function, labelFunctionX:Function):void
+		private function updateProbeLines(xAxisToPlot:Boolean, yAxisToPlot:Boolean, labelFunctionY:Function, labelFunctionX:Function):void
 		{
 			destroyProbeLineTooltips();
 			if(!Weave.properties.enableProbeLines.value)
 				return;
 			var recordKeys:Array = (_plotLayer.probeFilter.internalObject as IKeySet).keys;
 			
-			if( (recordKeys.length == 0) || ((this.parent as DraggablePanel) != DraggablePanel.activePanel) || barChartGroupMode)
+			if( (recordKeys.length == 0) || ((this.parent as DraggablePanel) != DraggablePanel.activePanel))
 			{
 				_probePlotter.clearCoordinates();
 				return;
 			}
-			var x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number;
+			var x_yAxis:Number, y_yAxis:Number, xPlot:Number, yPlot:Number, x_xAxis:Number, y_xAxis:Number;
 			var bounds:IBounds2D = (_plotLayer.spatialIndex as SpatialIndex).getBoundsFromKey(recordKeys[0])[0];
-			if( !barChartHorizontalMode )
+			if( yAxisToPlot )
 			{
-				x1 = _xAxisLayer.axisPlotter.axisLineMinValue.value;
-				y1 = bounds.getYMax();
+				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
+				y_yAxis = bounds.getYMax();
 				
-				x2 = bounds.getXCenter();
-				y2 = bounds.getYMax();
+				xPlot = bounds.getXCenter();
+				yPlot = bounds.getYMax();
 				
-				if(x)
+				if(xAxisToPlot)
 				{
-					x3 = bounds.getXCenter();
-					y3 = _yAxisLayer.axisPlotter.axisLineMinValue.value ;
-					showProbeTooltips(x3, bounds,labelFunctionX,true);
+					x_xAxis = bounds.getXCenter();
+					y_xAxis = _yAxisLayer.axisPlotter.axisLineMinValue.value ;
+					showProbeTooltips(x_xAxis, bounds,labelFunctionX,true);
 				}
-				else
-					x3 = y3 = 0;
 				
-				showProbeTooltips(y1,bounds,labelFunctionY);
+				showProbeTooltips(y_yAxis,bounds,labelFunctionY);
+				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis,true, xAxisToPlot );
 			} else
 			{
-				x1 = bounds.getXMax();
-				y1 = bounds.getYCenter();
+				xPlot = bounds.getXMax();
+				yPlot = bounds.getYCenter();
 				
-				x2 = x1;
-				y2 = _yAxisLayer.axisPlotter.axisLineMinValue.value;
+				x_xAxis = xPlot;
+				y_xAxis = _yAxisLayer.axisPlotter.axisLineMinValue.value;
 				
-				x3 = y3 = 0;
+				showProbeTooltips(xPlot, bounds, labelFunctionY,false, true);
 				
-				showProbeTooltips(x2, bounds, labelFunctionY,false, true);
+				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis, false, true);
+				
 			}
-			_probePlotter.setCoordinates(x1,y1,x2,y2,x3,y3);
 		}
 		
 		/**
