@@ -48,6 +48,7 @@ package weave.api
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
+	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
@@ -93,6 +94,13 @@ package weave.api
 		public static function get ProjectionManager():IProjectionManager
 		{
 			return getSingletonInstance(IProjectionManager);
+		}
+		/**
+		 * This is the singleton instance of the registered IProgressIndicator implementation.
+		 */
+		public static function get ProgressIndicator():IProgressIndicator
+		{
+			return getSingletonInstance(IProgressIndicator);
 		}
 		/**
 		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.

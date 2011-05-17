@@ -194,6 +194,8 @@ import mx.rpc.IResponder;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
+import weave.api.WeaveAPI;
+import weave.api.data.IProgressIndicator;
 import weave.api.services.IURLRequestToken;
 import weave.core.StageUtils;
 import weave.services.ProgressIndicator;
@@ -204,7 +206,7 @@ internal class CustomURLLoader extends URLLoader
 	public function CustomURLLoader(request:URLRequest, dataFormat:String)
 	{
 		// keep track of pending requests
-		ProgressIndicator.addPendingRequest(this);
+		_progressIndicator.addPendingRequest(this);
 		addResponder(new AsyncResponder(removePendingRequest, removePendingRequest));
 		
 		// set up event listeners
@@ -218,6 +220,7 @@ internal class CustomURLLoader extends URLLoader
 		super.load(request);
 	}
 	
+	private const _progressIndicator:IProgressIndicator = WeaveAPI.ProgressIndicator;
 	private var _asyncToken:AsyncToken = new AsyncToken();
 	private var _isClosed:Boolean = false;
 	private var _urlRequest:URLRequest = null;
@@ -229,7 +232,7 @@ internal class CustomURLLoader extends URLLoader
 	
 	override public function close():void
 	{
-		ProgressIndicator.removePendingRequest(this);
+		_progressIndicator.removePendingRequest(this);
 		_isClosed = true;
 		try {
 			super.close();
@@ -299,7 +302,7 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleProgressUpdate(event:Event):void
 	{
-		ProgressIndicator.reportPendingRequestProgress(this, bytesLoaded / bytesTotal);
+		_progressIndicator.reportPendingRequestProgress(this, bytesLoaded / bytesTotal);
 	}
 
 	/**
@@ -308,7 +311,7 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function removePendingRequest(event:Event, token:Object = null):void
 	{
-		ProgressIndicator.removePendingRequest(this);
+		_progressIndicator.removePendingRequest(this);
 	}
 
 	/**

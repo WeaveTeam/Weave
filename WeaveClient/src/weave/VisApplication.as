@@ -57,6 +57,7 @@ package weave
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
@@ -138,6 +139,12 @@ package weave
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 
+
+		{ /** BEGIN STATIC CODE BLOCK **/ 
+			Weave.initialize(); // referencing this here causes all WeaveAPI implementations to be registered.
+		} /** END STATIC CODE BLOCK **/ 
+		
+		
 		// Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
 		// view to add new tools, manage windows, do advanced tasks, etc.
 		private var _weaveMenu:WeaveMenuBar = null;
@@ -173,8 +180,6 @@ package weave
 			this.setStyle('backgroundColor',0xCCCCCC);
 			this.pageTitle = "Open Indicators Weave";
 
-			Weave.initialize(); // referencing this here causes all WeaveAPI implementations to be registered.
-			
 			_visTaskbar = new VisTaskbar();
 			visDesktop = new VisDesktop();
 			
@@ -334,9 +339,7 @@ package weave
 //		private var _viewStack:ViewStack = new ViewStack();
 //		private var _viewTabBar:ViewBar = new ViewBar();
 //		private var _addTab:HBox = new HBox();
-		
-		private var _progressIndicatorTextArea:AutoResizingTextArea = new AutoResizingTextArea();
-		
+
 //		private function addViewBar():void
 //		{
 //			_userPreferencesIcon.emphasized=true;
@@ -369,10 +372,10 @@ package weave
 
 		private var _maxProgressBarValue:int = 0;
 		private var _progressIndicatorProgressBar:ProgressBar = new ProgressBar;
-		
+		private const _progressIndicator:IProgressIndicator = WeaveAPI.ProgressIndicator;
 		private function handleProgressIndicatorCounterChange():void
 		{
-			var pendingCount:int = ProgressIndicator.pendingRequestCount;
+			var pendingCount:int = _progressIndicator.getPendingRequestCount();
 			var tempString:String = pendingCount + " Pending Request" + (pendingCount == 1 ? '' : 's');
 			
 			_progressIndicatorProgressBar.label = tempString;
@@ -394,11 +397,8 @@ package weave
 				if (pendingCount > _maxProgressBarValue)
 					_maxProgressBarValue = pendingCount;
 				
-				_progressIndicatorProgressBar.setProgress(ProgressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
-				//_progressIndicatorProgressBar.width = _progressIndicatorTextArea.width;
+				_progressIndicatorProgressBar.setProgress(_progressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
 				_progressIndicatorProgressBar.visible = true;
-				//_progressIndicatorProgressBar.height = 12; // constant				
-				//_progressIndicatorProgressBar.width = 120;		
 			}
 			
 		}
@@ -450,7 +450,7 @@ package weave
 //			_viewTabBar.addEventListener(ItemClickEvent.ITEM_CLICK, handleTabSelected);
 //			addEventListener(ResizeEvent.RESIZE,handleTabBarResize);
 			
-			ProgressIndicator.callbacks.addGroupedCallback(this, handleProgressIndicatorCounterChange, true);
+			_progressIndicator.getCallbackCollection().addGroupedCallback(this, handleProgressIndicatorCounterChange, true);
 			visDesktop.addChild(_progressIndicatorProgressBar);
 			_progressIndicatorProgressBar.visible = false;
 			_progressIndicatorProgressBar.x = 0;

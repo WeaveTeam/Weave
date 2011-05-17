@@ -27,6 +27,7 @@ package weave
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
+	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
@@ -46,6 +47,7 @@ package weave
 	import weave.data.ProjectionManager;
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
+	import weave.services.ProgressIndicator;
 	import weave.utils.DebugTimer;
 	
 	/**
@@ -76,6 +78,7 @@ package weave
 			WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
 			WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
 			WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
+			WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
 			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
 			
 			// initialize the session state interface to point to Weave.root

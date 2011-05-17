@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<flexLibProperties includeAllClasses="true" version="3">
+<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.api.WeaveAPI"/>
     <classEntry path="weave.api.compiler.ICompiledObject"/>
@@ -34,6 +34,7 @@
     <classEntry path="weave.api.data.IKeyFilter"/>
     <classEntry path="weave.api.data.IKeySet"/>
     <classEntry path="weave.api.data.IPrimitiveColumn"/>
+    <classEntry path="weave.api.data.IProgressIndicator"/>
     <classEntry path="weave.api.data.IProjectionManager"/>
     <classEntry path="weave.api.data.IProjector"/>
     <classEntry path="weave.api.data.IQualifiedKey"/>
@@ -42,12 +43,15 @@
     <classEntry path="weave.api.data.IStreamedColumn"/>
     <classEntry path="weave.api.disposeObjects"/>
     <classEntry path="weave.api.getCallbackCollection"/>
+    <classEntry path="weave.api.getLinkableObjectOwner"/>
+    <classEntry path="weave.api.getLinkableObjectRoot"/>
     <classEntry path="weave.api.getSessionState"/>
     <classEntry path="weave.api.linkBindableProperty"/>
     <classEntry path="weave.api.linkSessionState"/>
     <classEntry path="weave.api.newDisposableChild"/>
     <classEntry path="weave.api.newLinkableChild"/>
     <classEntry path="weave.api.primitives.IBounds2D"/>
+    <classEntry path="weave.api.primitives.IMatrix"/>
     <classEntry path="weave.api.registerDisposableChild"/>
     <classEntry path="weave.api.registerLinkableChild"/>
     <classEntry path="weave.api.services.IAsyncService"/>

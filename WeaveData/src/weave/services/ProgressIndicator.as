@@ -21,25 +21,35 @@ package weave.services
 {
 	import flash.utils.Dictionary;
 	
-	import weave.core.CallbackCollection;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IProgressIndicator;
+	import weave.core.CallbackCollection;
 
 	/**
 	 * This class is used as a central location for reporting the progress of pending asynchronous requests.
 	 * 
 	 * @author adufilie
 	 */
-	public class ProgressIndicator
+	public class ProgressIndicator implements IProgressIndicator
 	{
 		/**
-		 * This is the callback interface for detecting when pendingRequestCount changes.
+		 * This is the singleton instance of this class.
 		 */
-		public static const callbacks:ICallbackCollection = new CallbackCollection();
+		public static function get instance():ProgressIndicator
+		{
+			return WeaveAPI.ProgressIndicator as ProgressIndicator;
+		}
+		
+		public function getCallbackCollection():ICallbackCollection
+		{
+			return _callbacks;
+		}
 
 		/**
 		 * This is the number of pending requests (Read-only).
 		 */
-		public static function get pendingRequestCount():int
+		public function getPendingRequestCount():int
 		{
 			return _tokenCount;
 		}
@@ -47,12 +57,12 @@ package weave.services
 		/**
 		 * This function will register a pending request token and increase the pendingRequestCount if necessary.
 		 */
-		public static function addPendingRequest(token:Object):void
+		public function addPendingRequest(token:Object):void
 		{
 			reportPendingRequestProgress(token, 0);
 		}
 		
-		public static function reportPendingRequestProgress(token:Object, percent:Number):void
+		public function reportPendingRequestProgress(token:Object, percent:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
 			if (_tokenToProgressMap[token] == undefined)
@@ -61,13 +71,13 @@ package weave.services
 				_maxTokenCount++;
 			}
 			_tokenToProgressMap[token] = percent;
-			callbacks.triggerCallbacks();
+			_callbacks.triggerCallbacks();
 		}
 		
 		/**
 		 * This function will remove a previously registered pending request token and decrease the pendingRequestCount if necessary.
 		 */
-		public static function removePendingRequest(token:Object):void
+		public function removePendingRequest(token:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
 			if (_tokenToProgressMap[token] == undefined)
@@ -79,14 +89,14 @@ package weave.services
 			if (_tokenCount == 0)
 				_maxTokenCount = 0;
 			
-			callbacks.triggerCallbacks();
+			_callbacks.triggerCallbacks();
 		}
 		
 		/**
 		 * This function checks the overall progress of all pending requests.
 		 * @return A Number between 0 and 1.
 		 */
-		public static function getNormalizedProgress():Number
+		public function getNormalizedProgress():Number
 		{
 			// add up the percentages
 			var sum:Number = 0;
@@ -98,9 +108,10 @@ package weave.services
 			return sum / _maxTokenCount;
 		}
 
-		private static var _tokenCount:int = 0;
-		private static var _maxTokenCount:int = 0;
-		private static const _pendingRequestToPercentMap:Dictionary = new Dictionary();
-		private static const _tokenToProgressMap:Dictionary = new Dictionary();
+		private const _callbacks:ICallbackCollection = new CallbackCollection();
+		private var _tokenCount:int = 0;
+		private var _maxTokenCount:int = 0;
+		private const _pendingRequestToPercentMap:Dictionary = new Dictionary();
+		private const _tokenToProgressMap:Dictionary = new Dictionary();
 	}
 }
