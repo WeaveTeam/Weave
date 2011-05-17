@@ -27,6 +27,11 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
+	import org.vanrijkom.dbf.DbfField;
+	import org.vanrijkom.dbf.DbfHeader;
+	import org.vanrijkom.dbf.DbfRecord;
+	import org.vanrijkom.dbf.DbfTools;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
@@ -35,6 +40,7 @@ package weave.data.DataSources
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.core.weave_internal;
@@ -44,15 +50,10 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.services.URLRequestUtils;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.ShpFileReader;
 	import weave.utils.VectorUtils;
-	import org.vanrijkom.dbf.DbfField;
-	import org.vanrijkom.dbf.DbfHeader;
-	import org.vanrijkom.dbf.DbfRecord;
-	import org.vanrijkom.dbf.DbfTools;
 
 	use namespace weave_internal;
 
@@ -83,7 +84,7 @@ package weave.data.DataSources
 			if (dbfUrl.value != null)
 			{
 				dbfData = null;
-				URLRequestUtils.getURL(new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, null, URLLoaderDataFormat.BINARY);
+				_urlRequestUtils.getURL(new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, null, URLLoaderDataFormat.BINARY);
 			}
 		}
 		private function handleShpUrlChange():void
@@ -93,7 +94,7 @@ package weave.data.DataSources
 				if (shpfile)
 					disposeObjects(shpfile)
 				shpfile = null;
-				URLRequestUtils.getURL(new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
+				_urlRequestUtils.getURL(new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
 			}
 		}
 		
@@ -244,5 +245,7 @@ package weave.data.DataSources
 			}
 			return values;
 		}
+		
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

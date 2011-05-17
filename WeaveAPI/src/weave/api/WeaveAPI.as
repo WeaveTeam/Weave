@@ -52,6 +52,7 @@ package weave.api
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
+	import weave.api.services.IURLRequestUtils;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -116,7 +117,13 @@ package weave.api
 		{
 			return getSingletonInstance(ICSVParser);
 		}
-		
+		/**
+		 * This is the singleton instance of the registered IURLRequestUtils implementation.
+		 */
+		public static function get URLRequestUtils():IURLRequestUtils
+		{
+			return getSingletonInstance(IURLRequestUtils);
+		}
 		/**************************************/
 		
 		

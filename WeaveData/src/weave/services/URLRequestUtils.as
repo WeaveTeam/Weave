@@ -41,6 +41,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.services.IURLRequestToken;
+	import weave.api.services.IURLRequestUtils;
 	import weave.core.StageUtils;
 	import weave.primitives.WeakReference;
 
@@ -49,7 +50,7 @@ package weave.services
 	 * 
 	 * @author adufilie
 	 */
-	public class URLRequestUtils
+	public class URLRequestUtils implements IURLRequestUtils
 	{
 		public static const DATA_FORMAT_TEXT:String = URLLoaderDataFormat.TEXT;
 		public static const DATA_FORMAT_BINARY:String = URLLoaderDataFormat.BINARY;
@@ -64,14 +65,14 @@ package weave.services
 		 * @param dataFormat The value to set as the dataFormat property of a URLLoader object.
 		 * @return The URLLoader used to perform the HTTP GET request.
 		 */
-		public static function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
+		public function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
 		{
 			var urlLoader:CustomURLLoader = new CustomURLLoader(request, dataFormat);
 			urlLoader.addResponder(new AsyncResponder(asyncResultHandler || noOp, asyncFaultHandler || noOp, token));
 			return urlLoader;
 		}
 		
-		private static function noOp(..._):void { } // does nothing
+		private function noOp(..._):void { } // does nothing
 
 		/**
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
@@ -82,7 +83,7 @@ package weave.services
 		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
 		 */
-		public static function getContent(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
+		public function getContent(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
 		{
 			if (useCache)
 			{
@@ -114,13 +115,13 @@ package weave.services
 		/**
 		 * This maps a URL to the content that was downloaded from that URL.
 		 */		
-		private static const _contentCache:Object = new Object();
+		private const _contentCache:Object = new Object();
 		
 		/**
 		 * A mapping of URL Strings to CustomURLLoaders.
 		 * This mapping is necessary for cached requests to return the active request.
 		 */
-		private static const _requestURLToLoader:Object = new Object();
+		private const _requestURLToLoader:Object = new Object();
 		
 		/**
 		 * This function gets called asynchronously from getContent().
@@ -128,7 +129,7 @@ package weave.services
 		 * but it is ok because nothing outside this class has access to the internal CustomURLLoader
 		 * and the result and fault functions added internally do not cause problems when both are called.
 		 */
-		private static function handleGetContentResult(resultEvent:ResultEvent, token:Object = null):void
+		private function handleGetContentResult(resultEvent:ResultEvent, token:Object = null):void
 		{
 			var url:String = token as String;
 			var customURLLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;

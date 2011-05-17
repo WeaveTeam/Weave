@@ -23,10 +23,11 @@ package weave.services.wms
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.services.IURLRequestToken;
+	import weave.api.services.IURLRequestUtils;
 	import weave.primitives.Bounds2D;
-	import weave.services.URLRequestUtils;
 
 	/**
 	 * This class describes a tile used by a WMS server.
@@ -180,7 +181,9 @@ package weave.services.wms
 		public function downloadImage(resultFunction:Function, faultFunction:Function, token:Object = null):void
 		{
 			cancelDownload();
-			_urlRequestToken = URLRequestUtils.getContent(_urlRequest, resultFunction, faultFunction, token);
+			_urlRequestToken = _urlRequestUtils.getContent(_urlRequest, resultFunction, faultFunction, token);
 		}
+		
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

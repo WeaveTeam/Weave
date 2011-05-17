@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.services.IURLRequestUtils;
 	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.ErrorManager;
@@ -185,7 +186,7 @@ package weave.data.DataSources
 			{
 				if (hierarchyURL.value != "" && hierarchyURL.value != null)
 				{
-					URLRequestUtils.getURL(new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError);
+					_urlRequestUtils.getURL(new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError);
 					trace("hierarchy url "+hierarchyURL.value);
 					return;
 				}
@@ -496,6 +497,15 @@ package weave.data.DataSources
 			trace("Fault creating report: " + event.fault.name, event.message);
 			ErrorManager.reportError(event.fault);
 		}
+		
+		// TEMPORARY SOLUTION: We might need to register classes the first time we try to use..
+		{ /** BEGIN STATIC CODE BLOCK **/
+			WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
+			_urlRequestUtils = WeaveAPI.URLRequestUtils;
+		} /** END STATIC CODE BLOCK **/
+		
+		
+		private static var _urlRequestUtils:IURLRequestUtils = null;
 	}
 }
 

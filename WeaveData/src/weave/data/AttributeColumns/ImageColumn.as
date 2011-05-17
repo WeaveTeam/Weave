@@ -27,8 +27,10 @@ package weave.data.AttributeColumns
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.services.IURLRequestUtils;
 	import weave.services.URLRequestUtils;
 
 	public class ImageColumn extends DynamicColumn
@@ -45,7 +47,7 @@ package weave.data.AttributeColumns
 		 * This is the image cache.
 		 */
 		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
-
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (dataType != null)
@@ -56,7 +58,7 @@ package weave.data.AttributeColumns
 			if( _urlToImageMap[_imageURL] == undefined ){
 		
 				_urlToImageMap[_imageURL] = _missingImage;
-				URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+				_urlRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 				
 			}
 			

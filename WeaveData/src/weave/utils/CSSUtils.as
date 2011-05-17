@@ -26,7 +26,8 @@ package weave.utils
 	import mx.styles.CSSStyleDeclaration;
 	import mx.styles.StyleManager;
 	
-	import weave.services.URLRequestUtils;
+	import weave.api.WeaveAPI;
+	import weave.api.services.IURLRequestUtils;
 
 	/**
 	 * CSSUtils
@@ -43,7 +44,7 @@ package weave.utils
 		 */
 		public static function loadStyleSheet(url:String):void
 		{
-			URLRequestUtils.getURL(
+			_urlRequestUtils.getURL(
 				new URLRequest(url),
 				function(event:ResultEvent, token:Object = null):void
 				{
@@ -170,5 +171,7 @@ package weave.utils
 		{			
 			return matchedString.replace("-", "").toUpperCase();	
 		}
+		
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

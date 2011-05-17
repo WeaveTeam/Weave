@@ -34,13 +34,13 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.services.URLRequestUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
@@ -69,7 +69,7 @@ package weave.data.DataSources
 		{
 			if (url.value != "" && url.value != null) // if url is specified
 			{
-				URLRequestUtils.getURL(new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
+				_urlRequestUtils.getURL(new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
 			}
 			else if (csvDataString.value != null) // if data is specified
 			{
@@ -273,5 +273,7 @@ package weave.data.DataSources
 		}
 		
 		private const nullValues:Array = [null, "", "null", "\\N", "NaN"];
+		
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

@@ -35,13 +35,13 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.services.URLRequestUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 
@@ -67,7 +67,7 @@ package weave.data.DataSources
 			{
 				var urlRequest:URLRequest = new URLRequest(url.value);
 				urlRequest.contentType = "application/vnd.ms-excel";
-				URLRequestUtils.getURL(urlRequest, handleXLSDownload, handleXLSDownloadError, null, URLLoaderDataFormat.BINARY);
+				_urlRequestUtils.getURL(urlRequest, handleXLSDownload, handleXLSDownloadError, null, URLLoaderDataFormat.BINARY);
 			}
 		}
 
@@ -196,5 +196,7 @@ package weave.data.DataSources
 			
 			return -1;
 		}
+		
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

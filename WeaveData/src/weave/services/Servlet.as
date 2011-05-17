@@ -33,6 +33,7 @@ package weave.services
 	
 	import weave.api.WeaveAPI;
 	import weave.api.services.IAsyncService;
+	import weave.api.services.IURLRequestUtils;
 	
 	/**
 	 * Servlet
@@ -128,7 +129,7 @@ package weave.services
 			var token:AsyncToken = new AsyncToken();
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
+			_urlRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
 			return token;
 		}
 		
@@ -141,5 +142,7 @@ package weave.services
 		{
 			(token as AsyncToken).mx_internal::applyFault(event);
 		}
+		
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

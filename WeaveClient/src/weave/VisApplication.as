@@ -61,6 +61,7 @@ package weave
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.services.IURLRequestUtils;
 	import weave.compiler.BooleanLib;
 	import weave.compiler.MathLib;
 	import weave.core.DynamicState;
@@ -74,7 +75,6 @@ package weave
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
 	import weave.services.ProgressIndicator;
-	import weave.services.URLRequestUtils;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
@@ -945,11 +945,12 @@ package weave
 			
 			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
 		
-			URLRequestUtils.getURL(new URLRequest(_defaultsFilename + noCacheHack), handleDefaultsFileDownloaded, handleDefaultsFileFault);
+			_urlRequestUtils.getURL(new URLRequest(_defaultsFilename + noCacheHack), handleDefaultsFileDownloaded, handleDefaultsFileFault);
 			
 			_alreadyLoaded = true;
 		}
 		
+		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 		private var _stateLoaded:Boolean = false;
 		private function loadSessionState(state:XML):void
 		{
