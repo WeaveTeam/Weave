@@ -67,7 +67,7 @@
 				
 				// lock dynamic objects into place
 				plotter = initDefaultPlotter(HistogramPlotter) as HistogramPlotter;
-				visualization.enableProbeLine(false);
+				visualization.enableProbeLine(false, true);
 
 				xAxisEnabled = true;
 				yAxisEnabled = true;

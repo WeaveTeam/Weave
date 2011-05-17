@@ -68,7 +68,9 @@
 
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(CompoundBarChartPlotter) as CompoundBarChartPlotter;
-				visualization.enableProbeLine(false);
+				visualization.enableProbeLine(false, true);
+				_plotter.groupMode.addGroupedCallback(this, updateProbeLines ) ;
+				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines ) ;
 				
 				yAxisEnabled = true;
 				xAxisEnabled = true;
@@ -142,6 +144,16 @@
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			
+			private function updateProbeLines():void
+			{
+				if( _plotter.groupMode.value ) 
+					visualization.disableProbelines() ;
+				else if( _plotter.horizontalMode.value) 
+					visualization.enableProbeLine(true, false) ;
+				else
+					visualization.enableProbeLine(false, true ) ;
+			}
 			
 			private function updateProbeColumns():void
 			{
