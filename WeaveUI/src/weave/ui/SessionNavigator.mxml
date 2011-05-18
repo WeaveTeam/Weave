@@ -236,7 +236,6 @@
 			
 			public function refresh(selectedObject:ILinkableObject = null):void
 			{
-				trace('sessionNav.refresh');
 				if (selectedObject == null)
 					selectedObject = (selectedItem && selectedItem.object) as ILinkableObject;
 				
