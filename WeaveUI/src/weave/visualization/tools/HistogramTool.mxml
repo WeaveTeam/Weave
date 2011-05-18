@@ -81,7 +81,7 @@
 				visualization.marginRight.value  = 10;
 				
 				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange);
-				
+				visualization.enableXAxisProbing = true;
 
 				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
 				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
@@ -112,7 +112,7 @@
 			{
 				AttributeSelectorPanel.openToolSelector(this,internalDataColumn);
 			}
-			
+						
 			private function updateProbeColumns():void
 			{
 				visualization.additionalProbeColumns = [];
@@ -160,6 +160,8 @@
 			private function updateAxisLabels():void
 			{
 				updateTitle();
+				
+				visualization.setXAxisColumn(plotter.dynamicColorColumn);
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)

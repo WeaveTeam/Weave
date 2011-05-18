@@ -374,7 +374,7 @@ package weave.visualization.layers
 					var ttPoint:Point;
 					
 					var stageWidth:int  = stage.width;
-					var stageHeight:int = stage.height;
+					var stageHeight:int = stage.stageHeight ; //stage.height returns incorrect values
 					var createXTooltip:Boolean = false;
 					var createYTooltip:Boolean = false;
 					
