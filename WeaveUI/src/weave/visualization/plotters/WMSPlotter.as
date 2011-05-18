@@ -34,6 +34,8 @@ package weave.visualization.plotters
 	import flash.text.TextFieldType;
 	import flash.utils.Dictionary;
 	
+	import org.openscales.proj4as.ProjConstants;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
@@ -52,7 +54,6 @@ package weave.visualization.plotters
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
-	import org.openscales.proj4as.ProjConstants;
 
 	/**
 	 * WMSPlotter
@@ -370,7 +371,6 @@ package weave.visualization.plotters
 			_tempMatrix.translate(0, destination.height - _textField.height);
 			destination.draw(_textField, _tempMatrix);		
 		}
-		
 
 		/**
 		 * Set the provider for the plotter.
@@ -384,8 +384,16 @@ package weave.visualization.plotters
 				disposeObjects(_service);
 			}
 			
+			// TEMPORARY SOLUTION
+			// if there is no provider (which may happen due to ComboBox issue), default to NASA
 			if (provider == '' || provider == null)
-				return;
+			{
+				serviceName.delayCallbacks(); // prevent a recursive callback call for next line
+				serviceName.value = WMSProviders.NASA;
+				provider = serviceName.value;
+				serviceName.resumeCallbacks(); // allow the callback to be called again
+			}
+			// END TEMPORARY SOLUTION
 			
 			if (provider == WMSProviders.NASA)
 			{

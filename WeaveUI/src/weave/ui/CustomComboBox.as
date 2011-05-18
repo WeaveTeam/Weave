@@ -52,7 +52,7 @@ package weave.ui
 			if (SessionManager.runningDebugFlashPlayer)
 			{
 				// The dropdown will not be properly reset unless it is currently shown.
-				validateNow();
+				// validateNow(); // this often breaks the combobox used for WMS Settings in PlotLayerEditor
 				downArrowButton_buttonDownHandler(null);
 			}
 			super.dataProvider = value;
