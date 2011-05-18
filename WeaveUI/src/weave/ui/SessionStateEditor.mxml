@@ -61,6 +61,8 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import com.as3xls.xls.formula.Functions;
+			
 			import mx.collections.ArrayCollection;
 			import mx.collections.XMLListCollection;
 			import mx.containers.VBox;
@@ -161,11 +163,30 @@
 		    	_textModified = true;
 		    }
 		    
-
+			private function askToSave():void
+			{
+				if (_textModified == false)
+					return;
+				
+				_textModified = false;
+				var functionSave:Function = function():void { saveAndLoadNewItem(); sessionNav.refresh(); };
+				var functionDontSave:Function = function():void { loadSelectedSessionObjectInTextArea(); sessionNav.refresh(); };
+				PopUpUtils.confirm(
+					this,
+					"Save",
+					"Session state has been changed.  Save Changes?",
+					functionSave,
+					functionDontSave
+				);
+			}
+			
 			private function refreshAndLoadSessionState():void
 			{
-				sessionNav.refresh();
-				loadSelectedSessionObjectInTextArea();
+				askToSave(); // ask the user to save and set _textModified to false
+				
+				// we don't need to do the following because askToSave() will call these functions if appropriate
+				//sessionNav.refresh(); // refresh the display (this won't ask to save because _textModified is false)
+				//loadSelectedSessionObjectInTextArea();  // load the object in text area
 			}
 			
 			private var _prevSelectedObject:ILinkableObject = null;
@@ -180,8 +201,7 @@
 					sessionStateTextArea.enabled = false;
 					return;
 				}
-				
-				
+
 				if(sessObj != null)
 					_currentSelectedObject = sessObj;
 				else
@@ -251,16 +271,7 @@
 				}
 				
 				if(_textModified)
-				{
-					PopUpUtils.confirm(
-						this,
-						"Save",
-						"Session state has been changed.  Save Changes?",
-						saveAndLoadNewItem,
-						loadSelectedSessionObjectInTextArea
-					);
-					_textModified = false;
-				}
+					askToSave();
 				else
 					loadSelectedSessionObjectInTextArea();
 			}

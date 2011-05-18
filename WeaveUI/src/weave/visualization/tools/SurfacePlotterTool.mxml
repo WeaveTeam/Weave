@@ -82,7 +82,7 @@
 				
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(SurfacePlotter) as SurfacePlotter;
-				visualization.enableProbeLine(true, labelFunctionY, labelFunctionX);
+				visualization.enableProbeLine(true, true, labelFunctionY, labelFunctionX);
 
 				xAxisEnabled = true;
 				yAxisEnabled = true;

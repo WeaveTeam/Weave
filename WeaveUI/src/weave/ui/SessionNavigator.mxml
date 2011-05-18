@@ -255,7 +255,7 @@
 				expandItem(rootItem, true);
 			}
 			
-			//TODO: make this function iterative (breadth first search) to improve performance
+			// TODO: make this function iterative (breadth first search) to improve performance
 			/**
 			 * This function recursively checks subtree nodes for a matching sessioned object.
 			 * @return The node object corresponding to the sessioned object, or null if no node was found.
