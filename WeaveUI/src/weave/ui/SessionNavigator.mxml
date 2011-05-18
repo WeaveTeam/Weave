@@ -236,6 +236,7 @@
 			
 			public function refresh(selectedObject:ILinkableObject = null):void
 			{
+				trace('sessionNav.refresh');
 				if (selectedObject == null)
 					selectedObject = (selectedItem && selectedItem.object) as ILinkableObject;
 				
@@ -255,6 +256,7 @@
 				expandItem(rootItem, true);
 			}
 			
+			//TODO: make this function iterative (breadth first search) to improve performance
 			/**
 			 * This function recursively checks subtree nodes for a matching sessioned object.
 			 * @return The node object corresponding to the sessioned object, or null if no node was found.

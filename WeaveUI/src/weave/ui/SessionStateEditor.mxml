@@ -165,15 +165,18 @@
 			private function refreshAndLoadSessionState():void
 			{
 				sessionNav.refresh();
+				trace('done sessioNav.refresh');
 				loadSelectedSessionObjectInTextArea();
+				trace('done loadSelectedSessionObjInTxt');
 			}
 			
 			private var _prevSelectedObject:ILinkableObject = null;
 			
 			private function loadSelectedSessionObjectInTextArea(sessObj:ILinkableObject = null):void
 			{
+				trace('loadSelectedSessionObj');
 				_needRefresh = false;
-				
+
 				if (sessionNav.selectedItem == null && sessObj == null)
 				{
 					sessionStateTextArea.text = '';
@@ -251,6 +254,7 @@
 				}
 				
 				if(_textModified)
+				{
 					PopUpUtils.confirm(
 						this,
 						"Save",
@@ -258,6 +262,8 @@
 						saveAndLoadNewItem,
 						loadSelectedSessionObjectInTextArea
 					);
+					_textModified = false;
+				}
 				else
 					loadSelectedSessionObjectInTextArea();
 			}
