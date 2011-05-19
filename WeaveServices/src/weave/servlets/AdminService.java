@@ -1241,6 +1241,7 @@ public class AdminService extends GenericServlet
 			if (dbms.equalsIgnoreCase(SQLUtils.MYSQL))
 			{
 				stmt = conn.createStatement();
+				//ignoring 1st line so that we don't put the column headers as the first row of data
 				stmt.executeUpdate(String.format(
 						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
 						formatted_CSV_path, quotedTable));
