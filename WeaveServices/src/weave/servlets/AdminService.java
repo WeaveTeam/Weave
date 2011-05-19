@@ -1242,7 +1242,7 @@ public class AdminService extends GenericServlet
 			{
 				stmt = conn.createStatement();
 				stmt.executeUpdate(String.format(
-						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n'",
+						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
 						formatted_CSV_path, quotedTable));
 				stmt.close();
 			}
