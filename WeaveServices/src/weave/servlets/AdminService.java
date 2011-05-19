@@ -1413,7 +1413,7 @@ public class AdminService extends GenericServlet
 	 * the config file.
 	 */
 
-	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, List<String> keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String[] nullValues) throws RemoteException
+	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, List<String> keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
@@ -1503,7 +1503,7 @@ public class AdminService extends GenericServlet
 		return resultAddSQL
 				+ "\n\n"
 				+ addConfigGeometryCollection(configOverwrite, configConnectionName, password, configGeometryCollectionName,
-						configKeyType, sqlSchema, sqlTablePrefix, importNotes);
+						configKeyType, sqlSchema, sqlTablePrefix, projectionSRS, importNotes);
 	}
 
 	synchronized public String storeDBFDataToDatabase(String configConnectionName, String password, String[] fileNameWithoutExtension, String sqlSchema, String sqlTableName, boolean sqlOverwrite, String[] nullValues) throws RemoteException
@@ -1538,7 +1538,7 @@ public class AdminService extends GenericServlet
 		return "DBF Data stored successfully";
 	}
 
-	synchronized public String addConfigGeometryCollection(boolean configOverwrite, String configConnectionName, String password, String configGeometryCollectionName, String configKeyType, String sqlSchema, String sqlTablePrefix, String importNotes) throws RemoteException
+	synchronized public String addConfigGeometryCollection(boolean configOverwrite, String configConnectionName, String password, String configGeometryCollectionName, String configKeyType, String sqlSchema, String sqlTablePrefix, String projectionSRS, String importNotes) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
 
@@ -1557,6 +1557,7 @@ public class AdminService extends GenericServlet
 		info.tablePrefix = sqlTablePrefix;
 		info.keyType = configKeyType;
 		info.importNotes = importNotes;
+		info.projection = projectionSRS;
 
 		createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, info.name);
 		config.removeGeometryCollection(info.name);

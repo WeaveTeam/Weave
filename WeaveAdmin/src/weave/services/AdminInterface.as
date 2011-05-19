@@ -449,7 +449,9 @@ package weave.services
 			dbfKeyColumns = event.result as Array || [];
 		}
 		
-		public function convertShapefileToSQLStream(fileName:String, keyColumns:Array, sqlSchema:String, sqlTable:String, tableOverwriteCheck:Boolean, geometryCollection:String, configOverwriteCheck:Boolean, keyType:String, nullValues:String):void
+		public function convertShapefileToSQLStream(fileName:String, keyColumns:Array, sqlSchema:String, sqlTable:String, 
+													tableOverwriteCheck:Boolean, geometryCollection:String, configOverwriteCheck:Boolean, 
+													keyType:String, srsCode:String, nullValues:String):void
 		{
 			service.convertShapefileToSQLStream(
 				activeConnectionName,
@@ -462,6 +464,7 @@ package weave.services
 				geometryCollection,
 				configOverwriteCheck,
 				keyType,
+				srsCode,
 				nullValues
 			);
 		}

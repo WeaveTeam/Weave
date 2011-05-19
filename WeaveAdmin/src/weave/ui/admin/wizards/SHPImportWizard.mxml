@@ -60,6 +60,11 @@
 			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
 			<mx:Button label="?" click="showHelpForKeyType()"/>
 		</mx:HBox>
+		<mx:HBox id="projectionCode" enabled="false">
+			<mx:Label text="Projection SRS" width="{indent}"/>
+			<mx:TextInput id="srsProjectionTxtInput" text="EPSG:4326"/>  <!-- is it a good idea to use the standard lat/long as the default? -->
+			<mx:Button id="srsProjectionValidateBtn" label="Validate" click="validateProjectionSRS()"/>
+		</mx:HBox>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
@@ -68,6 +73,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.StringDefinition;
+			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
@@ -209,6 +215,7 @@
 							geometryCollectionNameInput.text,
 							configOverwriteCheck.selected,
 							shpKeyTypeCombo.text,
+							srsProjectionTxtInput.text,
 							nullFlagInput.text
 						);
 				}
@@ -234,6 +241,20 @@
 				nextEnabled = enable;
 				backEnabled = enable;
 				finishEnabled = enable;
+				projectionCode.enabled = enable;
+			}
+			
+			private function validateProjectionSRS():void
+			{
+				var alertTitle:String = 'Projection Validation';
+				var message:String;
+				
+				if (WeaveAPI.ProjectionManager.projectionExists(srsProjectionTxtInput.text))
+					message = 'Projection code is valid.';
+				else
+					message = 'Projection code is invalid or not recognized.';
+				
+				Alert.show(message, alertTitle);
 			}
 		]]>
 	</mx:Script>
