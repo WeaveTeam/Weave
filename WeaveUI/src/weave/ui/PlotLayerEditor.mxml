@@ -133,7 +133,7 @@
 										paddingLeft="7" paddingRight="7" paddingTop="1" paddingBottom="1"
 										useHandCursor="true" 
 										click="editLayer(event)" 
-										toolTip="Click here to set the geometry used for the label positions." 
+										creationComplete="handleLinkButtonCreated()" 
 										id="layerName" 
 										rollOverColor="0xAAFF00" selectionColor="0x00FF00" />
 					<!--	<mx:LinkButton 	width="100%" 
@@ -150,13 +150,13 @@
 					<mx:Spacer width="100%"/>
 					
 					
-					<mx:Button id="editButton"
+					<mx:Button id="settingsButton"
 						   toggle="true" 
 						   label="settings" 
 						   paddingLeft="2" paddingRight="2"
 						   width="60"
 						   toolTip="Click here to view this layer's modifiable parameters."
-						   click="handleEditButtonClicked(editButton, controlsStack)"
+						   click="handleEditButtonClicked(settingsButton, controlsStack)"
 						   />
 					
 					
@@ -370,7 +370,7 @@
 
 						private function handleEditButtonClicked(button:Button, stack:ViewStack):void
 						{
-							if(!editButton.selected)
+							if(!settingsButton.selected)
 								controlsStack.selectedChild = empty;
 							else
 							{
@@ -382,6 +382,17 @@
 								if (plotter is WMSPlotter)
 									controlsStack.selectedChild = wmsPlotterControls;
 							}
+						}
+						
+						private function handleLinkButtonCreated():void 
+						{
+							var plotter:IPlotter = getPlotter(data as IPlotLayer);
+							if(plotter is GeometryLabelPlotter)
+								layerName.toolTip = "Click here to set the geometry used for the label positions" ;
+							if(plotter is GeometryPlotter)
+								layerName.toolTip = "Click here to set the geometry" ;
+							if(plotter is WMSPlotter)
+								layerName.toolTip = "Click here to set the WMS service" ;
 						}
 						
 						private function handleSolidFillColorCheck():void
@@ -429,12 +440,12 @@
 							if (data != callLaterData)
 								return;
 								
-							editButton.visible = false;
+							settingsButton.visible = false;
 							
 							var plotter:IPlotter = getPlotter(data as IPlotLayer);
 							if (plotter is GeometryLabelPlotter)
 							{
-								editButton.visible = true;
+								settingsButton.visible = true;
 								var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
 								linkBindableProperty(labelPlotter.size.defaultValue, labelSizeSlider, "value" );
 								linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor" );
@@ -443,7 +454,7 @@
 							}
 							else if (plotter is GeometryPlotter)
 							{
-								editButton.visible = true;
+								settingsButton.visible = true;
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
 								linkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
@@ -459,7 +470,7 @@
 							}
 							else if(plotter is WMSPlotter)
 							{
-								editButton.visible = true;
+								settingsButton.visible = true;
 								var wmsPlotter:WMSPlotter = plotter as WMSPlotter;
 								
 								linkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
@@ -551,7 +562,7 @@
 							if(controlsStack)
 								controlsStack.selectedChild = empty;
 							
-							editButton.selected = false;
+							settingsButton.selected = false;
 
 							// save pointer to new layer
 							super.data = value;
