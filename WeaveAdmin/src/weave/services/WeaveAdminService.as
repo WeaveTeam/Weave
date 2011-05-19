@@ -304,12 +304,13 @@ package weave.services
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}
-		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, nullValues:String):DelayedAsyncInvocation
+		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("convertShapefileToSQLStream", arguments);
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}
+		
 		public function storeDBFDataToDatabase(configConnectionName:String, password:String, fileNameWithoutExtension:String, sqlSchema:String, sqlTableName:String, sqlOverwrite:Boolean, nullValues:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("storeDBFDataToDatabase", arguments);
