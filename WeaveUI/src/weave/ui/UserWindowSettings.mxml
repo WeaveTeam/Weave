@@ -86,12 +86,20 @@
 						 initialize="linkBindableProperty(_tool.resizeable, resizeCheckBox,'selected')"/>
 		</mx:VBox>	
 		<mx:VBox width="100%" height="100%">
+			<mx:CheckBox label="Allow Pinning" 
+						 fontWeight="bold"
+						 fontSize="12"
+						 selected="true" 
+						 id="windowPinningCheckBox" 
+						 toolTip="Selecting this option will enable the user to pin this tool"
+						 initialize="linkBindableProperty(_tool.pinnable,windowPinningCheckBox, 'selected')"/>
+			
 			<mx:CheckBox label="Allow Minimization" 
 						 fontWeight="bold"
 						 fontSize="12"
 						 selected="true" 
 						 id="windowMinimizeCheckBox" 
-						 toolTip="Selecting or deselecting this option will enable of disable the user to minimize this tool"
+						 toolTip="Selecting this option will enable the user to minimize this tool"
 						 initialize="linkBindableProperty(_tool.minimizable,windowMinimizeCheckBox, 'selected')"/>
 			<mx:CheckBox label="Allow Maximization" 
 						 fontWeight="bold"

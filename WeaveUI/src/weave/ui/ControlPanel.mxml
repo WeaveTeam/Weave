@@ -67,6 +67,7 @@
 				super.constructor();
 				
 				closeable.value = false;
+				pinnable.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
 			}
