@@ -86,6 +86,13 @@
 						 initialize="linkBindableProperty(_tool.resizeable, resizeCheckBox,'selected')"/>
 		</mx:VBox>	
 		<mx:VBox width="100%" height="100%">
+			<mx:CheckBox label="Allow Pinning to back" 
+						 fontWeight="bold"
+						 fontSize="12"
+						 selected="true" 
+						 id="windowPinningToBackCheckBox" 
+						 toolTip="Selecting this option will enable the user to pin this tool to the back of the stage"
+						 initialize="linkBindableProperty(_tool.pinnableToBack,windowPinningToBackCheckBox, 'selected')"/>
 			<mx:CheckBox label="Allow Pinning" 
 						 fontWeight="bold"
 						 fontSize="12"
@@ -93,7 +100,6 @@
 						 id="windowPinningCheckBox" 
 						 toolTip="Selecting this option will enable the user to pin this tool"
 						 initialize="linkBindableProperty(_tool.pinnable,windowPinningCheckBox, 'selected')"/>
-			
 			<mx:CheckBox label="Allow Minimization" 
 						 fontWeight="bold"
 						 fontSize="12"

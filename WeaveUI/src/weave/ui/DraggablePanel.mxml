@@ -322,18 +322,19 @@
 			
 			public static var showRollOverBorders:Boolean;
 			
-			public const draggable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			public const resizeable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const minimizable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const maximizable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const pinnable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const closeable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const showCloseDialog:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			public const enableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableControlPanel:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableHelpPanel:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
-			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
+			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
+			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const maximizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const pinnable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const pinnableToBack:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate, true);
+			public const closeable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const showCloseDialog:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false));
+			public const enableBorders:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const enableControlPanel:LinkableBoolean 	= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const enableHelpPanel:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const panelBorderColor:LinkableNumber 		= registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
+			public const panelBackgroundColor:LinkableNumber 	= registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 	
 			// this is used to temporarily show the borders when in dashboard admin mode.
 			protected const forceEnableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate);
@@ -350,6 +351,7 @@
 			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMaximizedChange);
 			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange);
 			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange);
+			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange);
 			
 			/**
 			 * This function copies the values for x,y,width,height from the corresponding sessioned properties.
@@ -427,6 +429,8 @@
 					minimized.value = false;
 				if (!pinnable.value)
 					pinned.value = false;
+				if (!pinnableToBack.value)
+					pinnedToBack.value = false;
 				
 				invalidateSize();
 				invalidateDisplayList();
@@ -643,7 +647,8 @@
 			
 			[Embed(source="/weave/resources/images/pushpin.png")]
 			private var pinIcon:Class;
-			
+			[Embed(source="/weave/resources/images/pushpinback.png")]
+			private var pinToBackIcon:Class;
 			[Embed(source= "/weave/resources/images/maximize_icon.png")]
 			private var _maximizeIcon:Class;
 			[Embed(source= "/weave/resources/images/unmaximize_icon.png")]
@@ -701,6 +706,13 @@
 			public function togglePinned():void
 			{
 				pinned.value = !pinned.value ;
+				pinnedToBack.value = false;
+			}
+			
+			public function togglePinnedToBack():void
+			{
+				pinnedToBack.value = !pinnedToBack.value;
+				pinned.value = false;
 			}
 			
 			private function handlePinnedChange():void
@@ -708,11 +720,21 @@
 				if(!pinnable.value)
 					pinned.value = false;
 				if(pinned.value) {
-					pinButton.setStyle("fillColors",[0xFF0000,0xFF0000]);
+					pinButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
 				}
 				else
 					pinButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );	
 				movePinnedPanelsToForeground();
+			}
+			
+			private function handlePinnedToBackChange():void
+			{
+				if(!pinnableToBack.value)
+					pinnedToBack.value = false;
+				if(pinnedToBack.value) {
+					pinToBackButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
+				} else
+					pinToBackButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
 			}
 			
 			public function toggleMaximized():void
@@ -1137,16 +1159,23 @@
 				if(!parent) return;
 				if(this.pinned.value) return;
 				var pinnedPanels:Array = [];
+				var pinnedToBackPanels:Array = [];
+				var dpanel:DraggablePanel ;
 				for(var i:int = 0; i < parent.numChildren; i++ )
 				{
-					if(parent.getChildAt(i) is DraggablePanel)
-						if((parent.getChildAt(i) as DraggablePanel).pinned.value)
-							pinnedPanels.push(parent.getChildAt(i) as DraggablePanel);
+					if(parent.getChildAt(i) is DraggablePanel) {
+						if((dpanel = parent.getChildAt(i) as DraggablePanel).pinned.value)
+							pinnedPanels.push(dpanel);
+						if(dpanel.pinnedToBack.value)
+							pinnedToBackPanels.push(dpanel);
+					}
 				}
 				for( i = 0; i < pinnedPanels.length; i++ )
 				{
 					(pinnedPanels[i] as DraggablePanel).sendWindowToForeground();
 				}
+				for( i = pinnedToBackPanels.length -1; i >= 0; i-- )
+					(pinnedToBackPanels[i] as DraggablePanel).sendWindowToBackground();
 			}
 			
 			public function sendWindowToForeground():void
@@ -1368,6 +1397,7 @@
 			protected var maximizeButton:Button = new Button();
 			protected var closePanelButton:Button = new Button();
 			protected var pinButton:Button = new Button();
+			protected var pinToBackButton:Button = new Button();
 			
 			public const buttonRadius:LinkableNumber = newLinkableChild(this, LinkableNumber, panelNeedsUpdate, true);
 
@@ -1386,6 +1416,7 @@
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
 				setupControlButton(pinButton, pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
+				setupControlButton(pinToBackButton, pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 
 				helpButton.label = "?";
@@ -1554,6 +1585,9 @@
 				if(pinnable.value)
 					rightIconWidths += buttonSize + spaceBetweenButtons;
 				
+				if(pinnableToBack.value)
+					rightIconWidths += buttonSize + spaceBetweenButtons;
+				
 				return rightIconWidths;
 			}
 
@@ -1712,6 +1746,27 @@
 						pinButton.visible = true;
 					} else {
 						pinButton.visible = false;
+					}
+					if(pinnableToBack.value)
+					{
+						if( !titleBar.contains(pinToBackButton))
+							titleBar.addChild(pinToBackButton);
+						pinToBackButton.setStyle("cornerRadius", buttonRadius.value);
+						pinToBackButton.x = rightButtonX;
+						if(closeable.value)
+							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
+						if(maximizable.value)
+							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
+						if(minimizable.value)
+							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
+						if(pinnable.value)
+							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
+						pinToBackButton.y = offsetFromTop ;
+						pinToBackButton.width = buttonSize;
+						pinToBackButton.height = buttonSize;
+						pinToBackButton.visible = true;
+					} else {
+						pinToBackButton.visible = false;
 					}
 				}
 			}
