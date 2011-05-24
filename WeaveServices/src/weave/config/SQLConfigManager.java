@@ -32,6 +32,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
 import weave.config.ISQLConfig.ConnectionInfo;
+import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.utils.FileUtils;
 import weave.utils.SQLUtils;
 import org.xml.sax.SAXParseException;
@@ -187,6 +188,17 @@ public final class SQLConfigManager
 		}
 		return config;
 	}
+	
+	synchronized public boolean checkSQLConfigMigrated() throws RemoteException
+	{
+		getConfig();
+		
+		if(config.getDatabaseConfigInfo() == null)
+			return false;
+		else
+			return true;
+	}
+	
 	
 	/**
 	 * detectConfigChanges:

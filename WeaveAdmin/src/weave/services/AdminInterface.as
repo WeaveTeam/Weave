@@ -36,6 +36,7 @@ package weave.services
 	{
 		private static var _thisInstance:AdminInterface = null;
 		[Bindable] public var sqlConfigExists:Boolean = true;
+		[Bindable] public var sqlConfigMigrated:Boolean = true;
 		public static function get instance():AdminInterface
 		{
 			if (_thisInstance == null)
@@ -46,6 +47,7 @@ package weave.services
 		public function AdminInterface()
 		{
 			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
+			service.checkSQLConfigMigrated().addAsyncResponder(handleCheckSQLConfigMigrated);
 		}
 		
 		private function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
@@ -62,6 +64,20 @@ package weave.services
 				getConnectionNames(true);
 				sqlConfigExists = true;
 			}
+		}
+		
+		
+		private function handleCheckSQLConfigMigrated(event:ResultEvent, token:Object=null):void
+		{
+			if(event.result.status as Boolean == false)
+			{
+				WeaveAdminService.messageDisplay("Error",String(event.result.comment),false);
+				sqlConfigMigrated = false;
+			}else{
+				sqlConfigMigrated = true;
+				WeaveAdminService.messageDisplay("Success",String(event.result.comment),false);
+			}
+				
 		}
 
 		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
@@ -242,6 +258,11 @@ package weave.services
 		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
 		{
 			service.saveConnectionInfo(connectionInfo, configOverwrite);
+			
+			//this to check if the saveConnectionInfo was successful. When the user adds the database for the first time, 
+			//the Admin Console needs to know so that it can then force the user to migrate to the database.
+			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
+			
 			getConnectionNames();
 		}
 		public function removeConnectionInfo(connectionName:String):DelayedAsyncInvocation
@@ -253,13 +274,15 @@ package weave.services
 		
 		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String, geometryConfig:String, dataConfig:String):DelayedAsyncInvocation
 		{
-			return service.migrateConfigToDatabase(
+			var query:DelayedAsyncInvocation = service.migrateConfigToDatabase(
 				connectionName,
 				password,
 				schema,
 				geometryConfig,
 				dataConfig
 			);
+			query.addAsyncResponder(handleCheckSQLConfigMigrated);
+			return query;
 		}
 
 

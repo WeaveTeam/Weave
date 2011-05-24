@@ -34,7 +34,7 @@
 		</mx:HBox>
 	</mx:VBox>	
 	
-	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
+	<mx:TabNavigator id="tabNavigator" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
 		<mx:Canvas id="simpleSetting" label="Add Database" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 				<mx:Label fontWeight="bold" text="Add or modify a database connection:"/>
@@ -62,8 +62,9 @@
 				</ui:Indent>
 			</mx:VBox>
 		</mx:Canvas>
-		<mx:Canvas label="Migrate SQLConfig.XML" width="100%" height="100%">
+		<mx:Canvas id="migrateTab" label="Migrate SQLConfig.XML" width="100%" height="100%">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+				<mx:Label id="forceMigrateMessage" visible="false" color="red" text="Please migrate the sqlconfig.xml file to your database. The other options will be disabled till you finish the migration process." />
 				<mx:Label fontWeight="bold" text="Migrate SQLConfig.XML entries to a database:"/>
 				<ui:Indent indent="{170}" label="Connection to use">
 					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
@@ -108,10 +109,45 @@
 			[Bindable]
 			private var dataChanged:Boolean = false;
 			
+			[Bindable]
+			public var sqlConfigMigrated:Boolean = false;
+			
+			
 			private function handleCreationComplete():void
 			{
 				EventUtils.addBindCallback(AdminInterface.instance,"connectionNames",loadDataSource);
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
+				BindingUtils.bindSetter(handleSQLConfigExists,AdminInterface.instance,"sqlConfigExists");
+				sqlConfigMigrated = AdminInterface.instance.sqlConfigMigrated;
+			}
+			
+			private function handleSQLConfigExists(val:Boolean):void
+			{
+				if(val)
+				{
+					EventUtils.addBindCallback(AdminInterface.instance,"sqlConfigMigrated",forceSQLConfigMigrate);	
+				}else{
+					tabNavigator.selectedChild = simpleSetting;
+					EventUtils.removeBindCallback(AdminInterface.instance,"sqlConfigMigrated",forceSQLConfigMigrate);
+					sqlConfigMigrated = false;
+				}
+				
+			}
+			
+			private function forceSQLConfigMigrate():void
+			{
+				if(!AdminInterface.instance.sqlConfigMigrated)
+				{
+					tabNavigator.selectedChild = migrateTab;
+					simpleSetting.enabled = false;
+					forceMigrateMessage.visible= true;
+					sqlConfigMigrated = false;
+				}else
+				{
+					simpleSetting.enabled = true;
+					forceMigrateMessage.visible = false;
+					sqlConfigMigrated = true;
+				}
 			}
 			
 			public function loadDataSource():void
@@ -121,6 +157,8 @@
 			
 			private function handleItemClick(event:ListEvent):void
 			{
+				if(sqlConfigMigrated)
+					tabNavigator.selectedChild = simpleSetting;
 				if(dataChanged)
 				{
 					// ask user to confirm
@@ -139,6 +177,7 @@
 			
 			private function loadDatabaseInfo():void
 			{
+				
 				var query:DelayedAsyncInvocation = AdminInterface.instance.getConnectionInfo(treeWithSearch.tree.selectedItem.label);
 				query.addAsyncResponder(
 					function(event:ResultEvent, token:Object = null):void
@@ -203,6 +242,7 @@
 				info.pass = connectionPasswordInput.text;
 				
 				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected);
+				dataChanged = false;
 			}
 			
 			private function migrateToDatabase():void
@@ -221,6 +261,8 @@
 			private function enableMigrateButton(..._):void
 			{
 				migrateButton.enabled = true;
+				forceSQLConfigMigrate();
+				dataChanged= false;
 			}
 			
 			private function handleRemoveConnection():void

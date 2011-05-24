@@ -133,6 +133,21 @@ public class AdminService extends GenericServlet
 		}
 	}
 
+	synchronized public AdminServiceResponse checkSQLConfigMigrated() throws RemoteException
+	{
+		try
+		{
+			if(configManager.checkSQLConfigMigrated())
+				return new AdminServiceResponse(true,"SQLConfig.xml file is migrated");
+			else
+				return new AdminServiceResponse(false,"SQLConfig.xml is not migrated");
+		}catch(RemoteException e)
+		{
+			e.printStackTrace();
+			return new AdminServiceResponse(false,"Could not check if sqlconfig.xml is migrated");
+		}
+	}
+	
 	synchronized public Boolean authenticate(String connectionName, String password) throws RemoteException
 	{
 		ISQLConfig config = null;
@@ -451,7 +466,7 @@ public class AdminService extends GenericServlet
 		return config.getDatabaseConfigInfo();
 	}
 
-	synchronized public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
+	synchronized public AdminServiceResponse migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
 	{
 		checkPasswordAndGetConfig(connectionName, password);
 
@@ -477,13 +492,13 @@ public class AdminService extends GenericServlet
 		{
 			e.printStackTrace();
 			if (count > 0)
-				throw new RemoteException("Migrated " + count + " items then failed", e);
-			throw new RemoteException("Migration failed", e);
+				return new AdminServiceResponse(false,"Migrated " + count + " items then failed"+ e.getMessage());
+			return new AdminServiceResponse(false,"Migration failed +" + e.getMessage());
 		}
 
-		return count
+		return new AdminServiceResponse(true,count
 				+ " items were copied from " + new File(configFileName).getName()
-				+ " into the database.  The admin console will now use the specified database connection to store further configuration entries.";
+				+ " into the database.  The admin console will now use the specified database connection to store further configuration entries.");
 	}
 
 	// /////////////////////////////////////////////////

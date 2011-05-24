@@ -100,6 +100,11 @@ package weave.services
 		{
 			return generateQueryAndAddToQueue("checkSQLConfigExists", arguments);
 		}
+		
+		public function checkSQLConfigMigrated():DelayedAsyncInvocation
+		{
+			return generateQueryAndAddToQueue("checkSQLConfigMigrated", arguments);
+		}
 
 		public function authenticate(connectionName:String, password:String):DelayedAsyncInvocation
 		{
@@ -110,7 +115,9 @@ package weave.services
 		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String, geometryConfigTable:String, dataConfigTable:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("migrateConfigToDatabase", arguments);
-		    query.addAsyncResponder(alertResult);
+			
+			//query.addAsyncResponder(alertResult);  //this is commented because migrateConfigToDatabase now returns an AdminServiceResponse
+			
 		    return query;
 		}
 
