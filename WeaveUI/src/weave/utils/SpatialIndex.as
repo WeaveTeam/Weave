@@ -43,17 +43,23 @@ package weave.utils
 	/**
 	 * This class provides an interface to a collection of spatially indexed IShape objects.
 	 * This class will not detect changes to the shapes you add to the index.
-	 * If you change the bounds of the shapes, you will need to call ShapeIndex.createIndex().
+	 * If you change the bounds of the shapes, you will need to call SpatialIndex.createIndex().
 	 * 
 	 * @author adufilie
+	 * @author kmonico
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
 		public function SpatialIndex(callback:Function = null, callbackParameters:Array = null)
 		{
 			addImmediateCallback(this, callback, callbackParameters);
+			//_geometryIndex = new GeometrySpatialIndex(callback, callbackParameters);
+			//_refinedIndex = new RefinedSpatialIndex(callback, callbackParameters);
 		}
 
+		private var _geometryIndex:GeometrySpatialIndex = null;
+		private var _refinedIndex:RefinedSpatialIndex = null;
+		
 		/**
 		 * collectiveBounds
 		 * This bounds represents the full extent of the shape index.
@@ -186,6 +192,7 @@ package weave.utils
 				}
 			}
 			
+			// remember the type of the plotter so we can perform the bridge actions
 			if (plotter is DynamicPlotter)
 				_lastUsedPlotter = (plotter as DynamicPlotter).internalObject as IPlotter;
 			else
@@ -229,8 +236,6 @@ package weave.utils
 		 */
 		public function getKeysContainingPoint(point:Point):Array
 		{
-			//TODO: use polygon containment test on query results
-
 			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
 			minKDKey[XMAX_INDEX] = point.x;
 			minKDKey[YMAX_INDEX] = point.y;
@@ -248,8 +253,6 @@ package weave.utils
 		 */
 		public function getOverlappingKeys(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			//TODO: use polygon containment test on query results
-
 			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
 			minKDKey[XMAX_INDEX] = bounds.getXNumericMin(); // enforce result.XMAX >= query.xNumericMin
 			minKDKey[YMAX_INDEX] = bounds.getYNumericMin(); // enforce result.YMAX >= query.yNumericMin
@@ -264,6 +267,7 @@ package weave.utils
 		private const _tempPoint1:Point = new Point(); // reusable object
 		private const _tempPoint2:Point = new Point(); // reusable object
 		private const _tempLineSegment:LineSegment = new LineSegment();
+		
 		/**
 		 * This function should be used for queries on points from a GeometryPlotter only. 
 		 * This function will not perform any type checking and must be used with caution.
@@ -273,7 +277,7 @@ package weave.utils
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of keys with bounds that overlap the given bounds and are closest to the center of the given bounds.
 		 */
-		public function getKeysContainingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		public function getKeysContainingBoundsCenter(bounds:IBounds2D, stopOnFirstFind:Boolean = false, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			// TODO: make the parts be sorted by size so we check the largest part first?
 			
@@ -281,6 +285,12 @@ package weave.utils
 			var yQueryCenter:Number = bounds.getYCenter();
 			var queryRay:LineRay = new LineRay(xQueryCenter, yQueryCenter);
 			var result:Array = [];
+			var importance:Number;
+			if (isNaN(xPrecision) || isNaN(yPrecision))
+				importance = 0;
+			else
+				importance = xPrecision * yPrecision;
+			
 			// get the shapes that intersect with the given bounds
 			var keys:Array = getOverlappingKeys(bounds);
 			
@@ -305,7 +315,7 @@ package weave.utils
 					var geom:GeneralizedGeometry = geoms[iGeom] as GeneralizedGeometry;
 
 					// get the simplified geometry as a vector of parts
-					var simplifiedGeom:Vector.<Vector.<BLGNode>> = geom.getSimplifiedGeometry(xPrecision * yPrecision, bounds); // TODO: get only the nodes we need
+					var simplifiedGeom:Vector.<Vector.<BLGNode>> = geom.getSimplifiedGeometry(importance, bounds); 
 					
 					// for each part, go through the coordinates building a segment and checking if a ray from the
 					// query center intersects it
@@ -346,21 +356,25 @@ package weave.utils
 							_tempLineSegment.beginPoint = _tempPoint1;
 							_tempLineSegment.endPoint = _tempPoint2;
 							_tempLineSegment.makeSlopePositive();
-							if (_tempLineSegment.intersectsRay(queryRay))
+							if (ComputationalGeometryUtils.doesLineIntersectRay(_tempLineSegment, queryRay))
 								++intersectionCount;
 						}
 						
-						if (intersectionCount % 2 == 1)
+						if (intersectionCount % 2 == 1 && kPoint > 0)
 						{
-							foundPart = true;
-							//trace((keys[iKey] as IQualifiedKey).keyType, (keys[iKey] as IQualifiedKey).localName); 
-							break outerLoop;
+							foundPart = true; // we found a part
+							result.push(keys[iKey]); // save the key
+							//trace((keys[iKey] as IQualifiedKey).keyType, (keys[iKey] as IQualifiedKey).localName);
+							
+							// determine whether to exit this main loop or continue
+							if (stopOnFirstFind == true) 
+								break outerLoop;
+							else
+								continue outerLoop;
 						}
 					}
 				}
 			}
-			if (foundPart == true)
-				result.push(keys[iKey]);
 			
 			return result;
 		}
@@ -374,7 +388,7 @@ package weave.utils
 		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			if (_lastUsedPlotter is GeometryPlotter)
-				return getKeysContainingBounds(bounds, xPrecision, yPrecision);
+				return getKeysContainingBoundsCenter(bounds, true, xPrecision, yPrecision);
 			
 			// get the shapes that intersect with the given bounds
 			var keys:Array = getOverlappingKeys(bounds);

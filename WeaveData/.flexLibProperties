@@ -187,6 +187,7 @@
     <classEntry path="weave.utils.VectorUtils"/>
     <classEntry path="weave.utils.WordProcessingUtils"/>
     <classEntry path="weave.utils.ZoomUtils"/>
+    <classEntry path="weave.utils.ComputationalGeometryUtils"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

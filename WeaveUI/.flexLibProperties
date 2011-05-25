@@ -187,6 +187,8 @@
     <classEntry path="weave.visualization.tools.ThermometerTool"/>
     <classEntry path="weave.visualization.tools.TimeSliderTool"/>
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
+    <classEntry path="weave.utils.GeometrySpatialIndex"/>
+    <classEntry path="weave.utils.RefinedSpatialIndex"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
