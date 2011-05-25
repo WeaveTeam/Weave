@@ -259,10 +259,9 @@ package weave.utils
 			return kdtree.queryRange(minKDKey, maxKDKey);
 		}
 
-		private const _tempLineSegments:Vector.<LineSegment> = new Vector.<LineSegment>(); // reusable vector for the line segments
 		private const _tempPoint1:Point = new Point(); // reusable object
 		private const _tempPoint2:Point = new Point(); // reusable object
-		
+		private const _tempLineSegment:LineSegment = new LineSegment();
 		/**
 		 * This function should be used for queries on points from a GeometryPlotter only. 
 		 * This function will not perform any type checking and must be used with caution.
@@ -300,15 +299,16 @@ package weave.utils
 				{
 					// the current geometry
 					var geom:GeneralizedGeometry = geoms[iGeom] as GeneralizedGeometry;
-					
+
 					// get the simplified geometry as a vector of parts
-					var simplifiedGeom:Vector.<Vector.<BLGNode>> = geom.getSimplifiedGeometry(0, bounds); // restrict to visible area
+					var simplifiedGeom:Vector.<Vector.<BLGNode>> = geom.getSimplifiedGeometry(xPrecision * yPrecision, bounds); // TODO: get only the nodes we need
 					
 					// for each part, build an array of segments
 					for (var iPart:int = 0; iPart < simplifiedGeom.length; ++iPart)
 					{
-						_tempLineSegments.length = 0; // TODO: reuse the line segments but discard unused ones after the following part
+						//_tempLineSegments.length = 0; // TODO: reuse the line segments but discard unused ones after the following part
 						var currentPart:Vector.<BLGNode> = simplifiedGeom[iPart];
+						var intersectionCount:int = 0;
 						
 						var kPoint:int = 0;
 						var currentNode:BLGNode;
@@ -337,15 +337,11 @@ package weave.utils
 							_tempPoint2.x = currentNode.x;
 							_tempPoint2.y = currentNode.y;
 							
-							_tempLineSegments.push(new LineSegment(_tempPoint1, _tempPoint2)); // TODO: object pool?
-						}
-						
-						// now check if the polygon formed by these line segments contains the query point
-						var intersectionCount:int = 0;
-						var segment:LineSegment;
-						for each (segment in _tempLineSegments)
-						{
-							if (segment.intersectsRay(queryRay))
+							// build the segment and check if the ray intersects it
+							_tempLineSegment.beginPoint = _tempPoint1;
+							_tempLineSegment.endPoint = _tempPoint2;
+							_tempLineSegment.makeSlopePositive();
+							if (_tempLineSegment.intersectsRay(queryRay))
 								++intersectionCount;
 						}
 						
@@ -443,26 +439,43 @@ import flash.geom.Point;
 
 internal class LineSegment
 {
-	public function LineSegment(p1:Point, p2:Point)
+	public function LineSegment(p1:Point = null, p2:Point = null)
 	{
-		// if p1 is lower point
-		if (p1.y < p2.y)
+		if (p1 && p2)
+		{
+			// if p1 is lower point
+			if (p1.y < p2.y)
+			{
+				_p1.x = p1.x;
+				_p1.y = p1.y;
+				_p2.x = p2.x;
+				_p2.y = p2.y;
+			}
+			else // p2 is lower point
+			{
+				_p1.x = p2.x;
+				_p1.y = p2.y;
+				_p2.x = p1.x;
+				_p2.y = p1.y;
+			}
+		}
+		else if (p1)
 		{
 			_p1.x = p1.x;
 			_p1.y = p1.y;
+		}
+		else if (p2)
+		{
 			_p2.x = p2.x;
 			_p2.y = p2.y;
 		}
-		else // p2 is lower point
-		{
-			_p1.x = p2.x;
-			_p1.y = p2.y;
-			_p2.x = p1.x;
-			_p2.y = p1.y;
-		}
-
 	}
 	
+	public function get beginPoint():Point { return _p1; }
+	public function get endPoint():Point { return _p2; }
+	public function set beginPoint(p:Point):void { _p1.x = p.x; _p1.y = p.y; }
+	public function set endPoint(p:Point):void { _p2.x = p.x; _p2.y = p.y; }
+		
 	private const _p1:Point = new Point();
 	private const _p2:Point = new Point();
 	
