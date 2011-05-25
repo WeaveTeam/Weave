@@ -145,7 +145,6 @@
     <classEntry path="weave.visualization.plotters.SimpleTextGlyphPlotter"/>
     <classEntry path="weave.visualization.plotters.SizeBinLegendPlotter"/>
     <classEntry path="weave.visualization.plotters.StickFigureGlyphPlotter"/>
-    <classEntry path="weave.visualization.plotters.SurfacePlotter"/>
     <classEntry path="weave.visualization.plotters.TextGlyphPlotter"/>
     <classEntry path="weave.visualization.plotters.ThermometerPlotter"/>
     <classEntry path="weave.visualization.plotters.WMSPlotter"/>
@@ -185,7 +184,6 @@
     <classEntry path="weave.visualization.tools.SizeBinLegendTool"/>
     <classEntry path="weave.visualization.tools.SliderTool"/>
     <classEntry path="weave.visualization.tools.StickFigureGlyphTool"/>
-    <classEntry path="weave.visualization.tools.SurfacePlotterTool"/>
     <classEntry path="weave.visualization.tools.ThermometerTool"/>
     <classEntry path="weave.visualization.tools.TimeSliderTool"/>
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
