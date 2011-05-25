@@ -32,7 +32,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
 import weave.config.ISQLConfig.ConnectionInfo;
-import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.utils.FileUtils;
 import weave.utils.SQLUtils;
 import org.xml.sax.SAXParseException;
