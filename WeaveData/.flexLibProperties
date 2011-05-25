@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="false" version="1">
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="1">
   <includeClasses>
     <classEntry path="org.openscales.proj4as.Datum"/>
     <classEntry path="org.openscales.proj4as.Proj4as"/>
@@ -127,6 +127,8 @@
     <classEntry path="weave.primitives.ImageFactory"/>
     <classEntry path="weave.primitives.KDNode"/>
     <classEntry path="weave.primitives.KDTree"/>
+    <classEntry path="weave.primitives.LineRay"/>
+    <classEntry path="weave.primitives.LineSegment"/>
     <classEntry path="weave.primitives.LinkableBounds2D"/>
     <classEntry path="weave.primitives.LinkableNumberFormatter"/>
     <classEntry path="weave.primitives.LooseAxisDescription"/>
