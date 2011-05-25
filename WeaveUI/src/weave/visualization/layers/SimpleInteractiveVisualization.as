@@ -497,6 +497,8 @@ package weave.visualization.layers
 		 */	
 		private function updateProbeLines(xAxisToPlot:Boolean, yAxisToPlot:Boolean, labelFunctionY:Function, labelFunctionX:Function):void
 		{
+			// TODO: why is this called when the drag select reaches another window?
+			
 			destroyProbeLineTooltips();
 			if(!Weave.properties.enableProbeLines.value)
 				return;
@@ -509,6 +511,11 @@ package weave.visualization.layers
 			}
 			var x_yAxis:Number, y_yAxis:Number, xPlot:Number, yPlot:Number, x_xAxis:Number, y_xAxis:Number;
 			var bounds:IBounds2D = (_plotLayer.spatialIndex as SpatialIndex).getBoundsFromKey(recordKeys[0])[0];
+			
+			// if there is a visualization with one set of data and the user drag selects over to it, the 
+			// spatial index will return an empty array for the key, which means bounds will be null. 
+			if (bounds == null) 
+				return; 
 			if( yAxisToPlot )
 			{
 				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
