@@ -72,6 +72,7 @@
     <classEntry path="weave.api.ui.IZoomView"/>
     <classEntry path="weave.api.unlinkBindableProperty"/>
     <classEntry path="weave.api.unlinkSessionState"/>
+    <classEntry path="weave.api.ui.ISpatialIndexImplementation"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -624,7 +624,7 @@ package weave.visualization.layers
 					//trace(layers.getName(layer),tempDataBounds,tempScreenBounds);
 					
 					// get data coords from screen coords
-					var buffer:Number = 5; 
+					var buffer:Number = 10; 
 					
 					tempPoint.x = mouseX - buffer;
 					tempPoint.y = mouseY - buffer;

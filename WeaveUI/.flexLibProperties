@@ -189,6 +189,7 @@
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
     <classEntry path="weave.utils.GeometrySpatialIndex"/>
     <classEntry path="weave.utils.RefinedSpatialIndex"/>
+    <classEntry path="weave.utils.SpatialIndexFactory"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -516,6 +516,7 @@ package weave.visualization.layers
 			// spatial index will return an empty array for the key, which means bounds will be null. 
 			if (bounds == null) 
 				return; 
+			
 			if( yAxisToPlot )
 			{
 				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
