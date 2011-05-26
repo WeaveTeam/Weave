@@ -39,13 +39,51 @@ package weave.api.ui
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 
+	/**
+	 * This is an interface for the implementations of specialized spatial index classes which
+	 * provide more accurate results using computational geometry algorithms.
+	 * 
+	 * @author kmonico
+	 */
 	public interface ISpatialIndexImplementation
 	{
+		/**
+		 * This function will cache the key inside the implementation.
+		 *  
+		 * @param key The IQualifiedKey object to cache.
+		 */		
 		function cacheKey(key:IQualifiedKey):void;
 		
+		/**
+		 * This function will return the data bounds associated with the key.
+		 *  
+		 * @param key The IQualifiedKey to find.
+		 * @return The data bounds associated with the key. 
+		 */				
+		function getBoundsFromKey(key:IQualifiedKey):Array;
+		
+		/**
+		 * This function will iterate through the keys and determine which keys contain the center of the bounds object.
+		 *  
+		 * @param keys The keys to check. These keys must map to a GeometryColumn.
+		 * @param bounds The bounds to use for checking.
+		 * @param stopOnFirstFind If this is <code>true</code>, this function will return at most 1 key. Otherwise it will return all keys which contain the point.
+		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
+		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
+		 * @return An array of IQualifiedKey objects which contain the center of the bounds object.
+		 */		
 		function getKeysContainingBoundsCenter(keys:Array, bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
 		
-		function getBoundsFromKey(key:IQualifiedKey):Array;
+		/**
+		 * This function will iterate through the keys and determine which keys overlap the bounds object.
+		 *  
+		 * @param keys The keys to check. These keys must map to a GeometryColumn.
+		 * @param bounds The bounds to use for checking.
+		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
+		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
+		 * @return An array of IQualifiedKey objects which contain the center of the bounds object.
+		 */		
+		function getKeysOverlappingBounds(keys:Array, bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
 		
 	}
 }

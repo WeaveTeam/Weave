@@ -114,10 +114,8 @@ package weave.utils
 		{
 			delayCallbacks();
 						
-			// TODO: make this not a hack?
 			_indexImplementation = SpatialIndexFactory.getImplementation(plotter);
-			if (_indexImplementation == null)
-				trace(plotter);
+
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
@@ -203,6 +201,8 @@ package weave.utils
 		 */
 		public function getKeysOverlappingPoint(point:Point):Array
 		{
+			// this function isn't used
+			
 			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
 			minKDKey[XMAX_INDEX] = point.x;
 			minKDKey[YMAX_INDEX] = point.y;
@@ -220,6 +220,25 @@ package weave.utils
 		 */
 		public function getOverlappingKeys(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
+			var keys:Array = getKeysInRectangularRange(bounds, minImportance);
+			return _indexImplementation.getKeysOverlappingBounds(keys, bounds, 1, minImportance);
+		}
+
+
+		/**
+		 * This function will find all keys whose collective bounds overlap the given bounds object.
+		 * The collective bounds is defined as a rectangle which contains every point in the key.
+		 * 
+		 * @param bounds The bounds for the spatial query.
+		 * @param minImportance The minimum importance of which to query.
+		 * @return An array of keys with bounds that overlap the given bounds with the specific importance.
+		 */		
+		private function getKeysInRectangularRange(bounds:IBounds2D, minImportance:Number = 0):Array
+		{
+			// TEMPORARY: Make this be performed by the implementations so they can ignore the importance value or not
+			if (!(_indexImplementation is GeometrySpatialIndex))
+				minImportance = 0;
+			
 			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
 			minKDKey[XMAX_INDEX] = bounds.getXNumericMin(); // enforce result.XMAX >= query.xNumericMin
 			minKDKey[YMAX_INDEX] = bounds.getYNumericMin(); // enforce result.YMAX >= query.yNumericMin
@@ -228,11 +247,12 @@ package weave.utils
 			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax(); // enforce result.XMIN <= query.xNumericMax
 			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
 			
-			return kdtree.queryRange(minKDKey, maxKDKey);
+			return kdtree.queryRange(minKDKey, maxKDKey);			
 		}
-
-
+		
 		/**
+		 * This function will return the keys closest to the center of the bounds object.
+		 * 
 		 * @param bounds A bounds used to query the spatial index.
 		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
@@ -240,7 +260,7 @@ package weave.utils
 		 */
 		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
-			var keys:Array = getOverlappingKeys(bounds);
+			var keys:Array = getKeysInRectangularRange(bounds);
 			return _indexImplementation.getKeysContainingBoundsCenter(keys, bounds, true, xPrecision, yPrecision);
 		}
 		

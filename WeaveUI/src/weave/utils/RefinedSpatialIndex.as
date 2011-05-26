@@ -7,8 +7,7 @@ package weave.utils
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndexImplementation;
-	import weave.core.CallbackCollection;
-
+	
 	/**
 	 * This is an implementation of a SpatialIndex for a general IPlotter object.
 	 * 
@@ -40,13 +39,6 @@ package weave.utils
 			_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
 		}
 		
-		
-		/**
-		 * @param bounds A bounds used to query the spatial index.
-		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
-		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
-		 * @return An array of keys with bounds that overlap the given bounds and are closest to the center of the given bounds.
-		 */
 		public function getKeysContainingBoundsCenter(keys:Array, bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			// init local vars
@@ -102,6 +94,11 @@ package weave.utils
 			}
 			result.length = resultCount;
 			return result;
+		}
+		
+		public function getKeysOverlappingBounds(keys:Array, bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		{
+			return keys;
 		}
 	}
 }

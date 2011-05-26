@@ -580,8 +580,12 @@ package weave.visualization.layers
 				setProbeKeys(layer, []);
 				projectDragBoundsToDataQueryBounds();
 				
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getOverlappingKeys(queryBounds, 0);
-				//var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysContainingBounds(queryBounds, false);
+				
+				// calculate minImportance
+				layer.getDataBounds(tempDataBounds);
+				layer.getScreenBounds(tempScreenBounds);
+				var keys:Array = (layer.spatialIndex as SpatialIndex).getOverlappingKeys(queryBounds, tempDataBounds.getArea() / tempScreenBounds.getArea());
+				//var keys:Array = (layer.spatialIndex as SpatialIndex).getOverlappingKeys(queryBounds, 0);
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time

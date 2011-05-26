@@ -81,7 +81,7 @@ package weave.utils
 		 * @param bounds The Bounds2D to use as the rectangle.
 		 * @return A boolean indicating true if the line does cross the bounds.
 		 */
-		public static function doesLineCrossBounds(line:LineSegment, bounds:Bounds2D):Boolean
+		public static function doesLineCrossBounds(line:LineSegment, bounds:IBounds2D):Boolean
 		{
 			// TODO: optimize for speed
 			
@@ -150,10 +150,17 @@ package weave.utils
 		public static function doesLineIntersectLine(line1:LineSegment, line2:LineSegment):Boolean
 		{
 			// solve the equation
-			// | x00 - x10 |   | x11 |     | x01 |
-			// |           | = |     | s - |     | t
-			// | y00 - y10 |   | y11 |     | y01 |
-			// to get s,t in [0,1]. 
+			// | (x00 - x10) |   | x11 |     | x01 |
+			// |             | = |     | s - |     | t
+			// | (y00 - y10) |   | y11 |     | y01 |
+			// to get s,t in [0,1]. Note the LHS is a 2x1 vector, 2 rows 1 column. 
+			//
+			// The RHS can be rewritten as
+			// | x11 -y11 |   | s |
+			// |          | * |   |
+			// | x01 -y01 |   | t |
+			// which is a 2x2 matrix times a 2x1 vector, giving a 2x1 vector result.
+			//
 			// This is essentially a change of basis for the coordinate system
 			var line1Begin:Point = line1.beginPoint;
 			var line1End:Point = line1.endPoint;
@@ -183,6 +190,7 @@ package weave.utils
 			return false;
 		}
 		
+		// reusable objects
 		private static const _tempMinPoint:Point = new Point();
 		private static const _tempMaxPoint:Point = new Point();		
 		private static const _tempBounds:IBounds2D = new Bounds2D();
