@@ -1286,7 +1286,6 @@
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
 				// update temporary admin dashboard border mode
-				updateForceEnableBorders();
 				
 				// make sure cursors dont keep changing while resizing
 				if (parent && _resizeable && !_resizing && !_minimized && !maximized.value)
@@ -1414,17 +1413,17 @@
 
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
-				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
-				setupControlButton(pinButton, pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
-				setupControlButton(pinToBackButton, pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
-				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
+				setupControlButton(minimizeButton, _minimizeIcon, MouseEvent.CLICK, handleMinimizeButtonClick, "Click here to minimize this component.");
+				setupControlButton(pinButton, pinIcon, MouseEvent.MOUSE_DOWN, togglePinned, "Click here to pin this window to the stage.") ;
+				setupControlButton(pinToBackButton, pinToBackIcon, MouseEvent.MOUSE_DOWN, togglePinnedToBack, "Click here to pin this window to the back of the stage");
+				setupControlButton(maximizeButton, _maximizeIcon, MouseEvent.CLICK, toggleMaximized, "Click here to maximize or restore this component.");
 
 				helpButton.label = "?";
-				setupControlButton(helpButton, null, toggleHelpPanel, "Click here to show help on how to use this component.");
+				setupControlButton(helpButton, null, MouseEvent.CLICK, toggleHelpPanel, "Click here to show help on how to use this component.");
 				
-				setupControlButton(userControlButton, _userControlIcon, toggleUserControlPanel, "Click here to change settings for this component.");
+				setupControlButton(userControlButton, _userControlIcon, MouseEvent.CLICK, toggleUserControlPanel, "Click here to change settings for this component.");
 				
-				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
+				setupControlButton(closePanelButton, null, MouseEvent.CLICK, handleCloseButtonClick, "Click here to close this component.");
 				closePanelButton.label = "X";
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
 				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
@@ -1515,7 +1514,7 @@
 			
 			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
-			private function setupControlButton(button:Button, icon:Class, clickHandler:Function, tooltip:String = null):void
+			private function setupControlButton(button:Button, icon:Class, eventType:String, clickHandler:Function, tooltip:String = null):void
 			{
 				button.setStyle("icon", icon);
 				button.toolTip = tooltip;
@@ -1533,7 +1532,7 @@
 				button.setStyle("fillAlphas", [1,1] );
 				button.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
 				
-				button.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):*{ clickHandler(); e.stopImmediatePropagation(); } );
+				button.addEventListener(eventType, function(e:MouseEvent):*{ clickHandler(); e.stopImmediatePropagation(); } );
 				button.width = buttonSize;
 				button.height = buttonSize;
 				button.buttonMode = true;

@@ -1155,15 +1155,37 @@ package weave
 			enable = function():Boolean {
 					return (topPanel && topPanel.closeable.value);
 				};
+			
+			enable = function():Boolean {
+				return (topPanel != null); 
+			};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable) );
+				
+			// cascade windows
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Cascade All Windows", cascadeWindows, null, enable ));
 			
-			/*_visMenu.addMenuItemToMenu(_windowMenu, new VisMenuItem("Tile All Windows", null, null, null,false), true);//, "weave.resources.images.arrowLeft.png"));
-			_visMenu.addMenuItemToMenu(_windowMenu, new VisMenuItem("Cascade All Windows", null, null,null,false));
-			_visMenu.addMenuItemToMenu(_windowMenu, new VisMenuItem("Minimize All Windows", null, null,null,false));
-			_visMenu.addMenuItemToMenu(_windowMenu, new VisMenuItem("Restore All Minimized Windows", null, null,null,false));
-			_visMenu.addMenuItemToMenu(_windowMenu, new VisMenuItem("Close All Windows", null, null,null,false));
 			
-			*/
+			click = function():void {
+				var children:Array = Weave.root.getObjects(DraggablePanel);
+				while(children.length)
+				{
+					panel = children.pop() as DraggablePanel;
+					panel.removePanel();
+				}
+			};
+			// close windows
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Close All Windows", click, null, enable)) ;
+			
+			click = function():void {
+				var children:Array = Weave.root.getObjects(DraggablePanel);
+				while(children.length)
+				{
+					panel = children.shift() as DraggablePanel;
+					panel.restorePanel();
+				}
+			};
+			// restore all minimized windows
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Restore All Mimimized Windows", click, null, true ));
 			
 			if(Weave.properties.enableGoFullscreen.value)
 				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(
@@ -1253,8 +1275,34 @@ package weave
 			}		
 		}
 
-
-		
+		private function cascadeWindows():void
+		{
+			var panels:Array = Weave.root.getObjects(DraggablePanel);
+			if(!panels.length) return;
+			
+			var dpanel:DraggablePanel;
+			dpanel = panels[panels.length-1] as DraggablePanel;
+			
+			dpanel.panelWidth.value = "50%";
+				
+			var maxY:Number = NumberUtils.getNumberFromPercentString(dpanel.panelHeight.value);
+			var maxX:Number = NumberUtils.getNumberFromPercentString(dpanel.panelWidth.value);
+			var max:Number = Math.min(maxX,maxY);		
+			max = Math.min(max, 80);
+			
+			var increment:Number = (100-max)/panels.length;
+			var dist:Number = 0 ;
+			
+			for( var i:int = 0; i < panels.length ; i++ ) 
+			{
+				dpanel = panels[i] as DraggablePanel;
+				dpanel.panelX.value = dist.toString()+"%";
+				dpanel.panelY.value = dist.toString()+"%";
+				dpanel.panelWidth.value = "50%" ;
+				dpanel.panelHeight.value = "50%" ;
+				dist += increment;
+			}
+		}
 		
 		// The tool "grid" (rows and columns) are used in a non-dynamic view -- The _toolColumnSpace is a vertical box that 
 		// holds all the columns of tools
