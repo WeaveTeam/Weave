@@ -80,21 +80,22 @@ package weave.utils
 			
 			var xQueryCenter:Number = bounds.getXCenter();
 			var yQueryCenter:Number = bounds.getYCenter();
-			var queryRay:LineRay = new LineRay(xQueryCenter, yQueryCenter);
-
+			var queryRay:LineRay = _tempLineRay;
+			
+			_tempPoint1.x = xQueryCenter;
+			_tempPoint1.y = yQueryCenter;
+			queryRay.origin = _tempPoint1;			
+			
 			var importance:Number;
 			if (isNaN(xPrecision) || isNaN(yPrecision))
 				importance = 0;
 			else
 				importance = xPrecision * yPrecision;
-			
-			var foundPart:Boolean = false;
 
 			// for each key, get its geometries. Notice the use of the label to quickly exit the loop.
 			outerLoop: for (var iKey:int = 0; iKey < keys.length; ++iKey)
 			{
 				var key:IQualifiedKey= keys[iKey];
-				//var column:IAttributeColumn = _keyToGeometryColumn[key] as IAttributeColumn;
 				var geoms:Array = _geomColumn.getValueFromKey(key) as Array;
 				if (geoms == null)
 					continue;
@@ -112,7 +113,6 @@ package weave.utils
 					// query center intersects it
 					for (var iPart:int = 0; iPart < simplifiedGeom.length; ++iPart)
 					{
-						//_tempLineSegments.length = 0; // TODO: reuse the line segments but discard unused ones after the following part
 						var currentPart:Vector.<BLGNode> = simplifiedGeom[iPart];
 						var intersectionCount:int = 0;
 						
@@ -153,7 +153,6 @@ package weave.utils
 						
 						if (intersectionCount % 2 == 1 && kPoint > 0)
 						{
-							foundPart = true; // we found a part
 							result.push(keys[iKey]); // save the key
 							//trace((keys[iKey] as IQualifiedKey).keyType, (keys[iKey] as IQualifiedKey).localName);
 							
@@ -176,27 +175,33 @@ package weave.utils
 			// NOTE: A lot of this code is duplicated from getKeysContainingBoundsCenter, but this serves a very different
 			// purpose. For optimal performance, the operations are done serially so refactoring the duplicated code
 			// into a separate function would hurt performance or not be serial.
+			
+			// NOTE 2: This function fails in the case where the part of a geometry (aka a polygon) fully contains the 
+			// bounds. To check for that, this function would also need to check all 4 of the corners of the bounds for
+			// containment, which would require another pass through the loop and/or memory which can't be given for a 1000 
+			// point part. For performance reasons, this case is assumed not necessary.
 			var result:Array = [];
 			if (keys.length == 0)
 				return result;
-			
+
 			var xQueryCenter:Number = bounds.getXCenter();
 			var yQueryCenter:Number = bounds.getYCenter();
-			var queryRay:LineRay = new LineRay(xQueryCenter, yQueryCenter);
-
+			var queryRay:LineRay = _tempLineRay;
+			
+			_tempPoint1.x = xQueryCenter;
+			_tempPoint1.y = yQueryCenter;
+			queryRay.origin = _tempPoint1;
+			
 			var importance:Number;
 			if (isNaN(xPrecision) || isNaN(yPrecision))
 				importance = 0;
 			else
 				importance = xPrecision * yPrecision;
-			
-			var foundPart:Boolean = false;
 
 			// for each key, get its geometries. Notice the use of the label to quickly exit the loop.
 			outerLoop: for (var iKey:int = 0; iKey < keys.length; ++iKey)
 			{
 				var key:IQualifiedKey= keys[iKey];
-				//var column:IAttributeColumn = _keyToGeometryColumn[key] as IAttributeColumn;
 				var geoms:Array = _geomColumn.getValueFromKey(key) as Array;
 				if (geoms == null)
 					continue;
@@ -210,17 +215,14 @@ package weave.utils
 					// get the simplified geometry as a vector of parts
 					var simplifiedGeom:Vector.<Vector.<BLGNode>> = geom.getSimplifiedGeometry(importance, bounds); 
 					
-					// for each part, go through the coordinates building a segment and checking if a ray from the
-					// query center intersects it
+					// for each part, check if it has a point inside the bounds or if it a line crossing a segment
 					for (var iPart:int = 0; iPart < simplifiedGeom.length; ++iPart)
 					{
-						//_tempLineSegments.length = 0; // TODO: reuse the line segments but discard unused ones after the following part
 						var currentPart:Vector.<BLGNode> = simplifiedGeom[iPart];
 						
 						var kPoint:int = 0;
 						var currentNode:BLGNode;
 						// iterate through the points, two at a time
-			
 						while (kPoint < currentPart.length)
 						{
 							// store the first point of the segment
@@ -248,20 +250,32 @@ package weave.utils
 							_tempLineSegment.beginPoint = _tempPoint1;
 							_tempLineSegment.endPoint = _tempPoint2;
 							_tempLineSegment.makeSlopePositive();
-							if (ComputationalGeometryUtils.doesLineCrossBounds(_tempLineSegment, bounds))
+							
+							// check if either point is inside the bounds
+							// or if the linesegment crosses the bounds
+							trace(_tempLineSegment.beginPoint, _tempLineSegment.endPoint, "***", bounds);
+							if (//bounds.containsPoint(_tempPoint1) || bounds.containsPoint(_tempPoint2) ||
+								ComputationalGeometryUtils.doesLineCrossBounds(_tempLineSegment, bounds))
 							{
+								trace('yes');
 								result.push(keys[iKey]);
-								continue outerLoop; // move to the next key
+								continue outerLoop; // move on to the next key
 							}
+							else
+								trace('no');
 						}
 					} // end part loop
 				} // end Geometry loop
 			} // end outerLoop aka Key loop
+			
+			/*if (result.length > 0)
+				trace(bounds);*/
 			return result;
 		} // end function
 		
 		private const _tempLineSegment:LineSegment = new LineSegment();
 		private const _tempPoint1:Point = new Point();
 		private const _tempPoint2:Point = new Point();
+		private const _tempLineRay:LineRay = new LineRay(NaN, NaN, 0);
 	}
 }

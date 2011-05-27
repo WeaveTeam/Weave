@@ -104,12 +104,12 @@ package weave.utils
 		public static function doesLineCrossBounds(line:LineSegment, bounds:IBounds2D):Boolean
 		{
 			// TODO: optimize for speed
-			
+
 			// We assume A is always the lower point
 			var A:Point = line.beginPoint; // the lower point of the line segment
 			var B:Point = line.endPoint; // the higher point of the line segment
 			bounds.getMinPoint(_tempMinPoint);
-			bounds.getMinPoint(_tempMaxPoint);
+			bounds.getMaxPoint(_tempMaxPoint);
 			
 			// It's easier to test for the false cases first
 			_tempBounds.reset();
@@ -128,13 +128,16 @@ package weave.utils
 			
 			// Case 3: The line crosses any side of the bounds rectangle
 			// first check bottom side --
-			_tempLineSegment.beginPoint = _tempMinPoint;
+			_tempLineSegment.xLower = _tempMinPoint.x;
+			_tempLineSegment.yLower = _tempMinPoint.y;
 			_tempLineSegment.xHigher = _tempMaxPoint.x;
 			_tempLineSegment.yHigher = _tempMinPoint.y;
 			if (doesLineIntersectLine(line, _tempLineSegment))
 				return true;
 			
 			// then left side  |
+			_tempLineSegment.xLower = _tempMinPoint.x;
+			_tempLineSegment.yLower = _tempMinPoint.y;
 			_tempLineSegment.xHigher = _tempMinPoint.x;
 			_tempLineSegment.yHigher = _tempMaxPoint.y;
 			if (doesLineIntersectLine(line, _tempLineSegment))
@@ -143,13 +146,16 @@ package weave.utils
 			// now top side --
 			_tempLineSegment.xLower = _tempMinPoint.x;
 			_tempLineSegment.yLower = _tempMaxPoint.y;
-			_tempLineSegment.endPoint = _tempMaxPoint;
+			_tempLineSegment.xHigher = _tempMaxPoint.x;
+			_tempLineSegment.yHigher = _tempMaxPoint.y;
 			if (doesLineIntersectLine(line, _tempLineSegment))
 				return true;
 			
 			// now right side |
 			_tempLineSegment.xLower = _tempMaxPoint.x;
 			_tempLineSegment.yLower = _tempMinPoint.y;
+			_tempLineSegment.xHigher = _tempMaxPoint.x;
+			_tempLineSegment.yHigher = _tempMaxPoint.y;
 			if (doesLineIntersectLine(line, _tempLineSegment))
 				return true;
 			
@@ -169,45 +175,33 @@ package weave.utils
 		 */
 		public static function doesLineIntersectLine(line1:LineSegment, line2:LineSegment):Boolean
 		{
-			// solve the equation
-			// | (x00 - x10) |   | x11 |     | x01 |
-			// |             | = |     | s - |     | t
-			// | (y00 - y10) |   | y11 |     | y01 |
-			// to get s,t in [0,1]. Note the LHS is a 2x1 vector, 2 rows 1 column. 
-			//
-			// The RHS can be rewritten as
-			// | x11 -y11 |   | s |
-			// |          | * |   |
-			// | x01 -y01 |   | t |
-			// which is a 2x2 matrix times a 2x1 vector, giving a 2x1 vector result.
-			//
-			// This is essentially a change of basis for the coordinate system
 			var line1Begin:Point = line1.beginPoint;
 			var line1End:Point = line1.endPoint;
 			var line2Begin:Point = line2.beginPoint;
 			var line2End:Point = line2.endPoint;
-			var x00:Number = line1Begin.x;
-			var x01:Number = line1End.x;
-			var x10:Number = line2Begin.x;
-			var x11:Number = line2End.x;
-			var y00:Number = line1Begin.y;
-			var y01:Number = line1End.y;
-			var y10:Number = line2Begin.y;
-			var y11:Number = line2End.y;
+			var x1:Number = line1Begin.x; 
+			var x2:Number = line1End.x;
+			var x3:Number = line2Begin.x;
+			var x4:Number = line2End.x;
+			var y1:Number = line1Begin.y;
+			var y2:Number = line1End.y;
+			var y3:Number = line2Begin.y;
+			var y4:Number = line2End.y;
 			
-			var determinant:Number = x11 * y01 - x01 * y11; // determinant of the matrix formed on the right hand side
+			var denominator:Number = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
 			
-			// if determinant is 0, the lines are parallel
-			if (Math.abs(determinant) <= Number.MIN_VALUE) 
+			// if this is 0, the lines are parallel
+			if (Math.abs(denominator) <= Number.MIN_VALUE) 
 				return false; 
 				
-			var s:Number = (1/determinant) - ((x00 - x10) * y01 - (y00 - y10) * x01);
-			var t:Number = (1/determinant) - ( -(x00 - x10) * y11 + (y00 - y10) * x11);
+			var s:Number = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+			var t:Number = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
 			
-			if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
-				return true;
+			// if one of these is false, the intersection isn't along the line segments
+			if (s < 0 || s > 1 || t < 0 || t > 1)
+				return false;
 			
-			return false;
+			return true;
 		}
 		
 		// reusable objects

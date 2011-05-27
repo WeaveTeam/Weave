@@ -18,7 +18,7 @@ package weave.primitives
 			_angle = theta;
 		}
 		
-		public function set origin(p:Point):void { _origin.x = p.x; _origin.y = p.x; }
+		public function set origin(p:Point):void { _origin.x = p.x; _origin.y = p.y; }
 		public function get origin():Point { return _origin; } 
 		public function set angle(theta:Number):void { _angle = theta; }
 		public function get angle():Number { return _angle; }

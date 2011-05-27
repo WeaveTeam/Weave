@@ -347,7 +347,7 @@ package weave.core
 		 * @param groupedCallback The callback function that will only be allowed to run during a scheduled time each frame.  It must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
 		 */
-		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
+		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false, parameters:Array = null):void
 		{
 			if (!_frameCallbackAdded)
 			{
@@ -371,6 +371,7 @@ package weave.core
 			{
 				triggerEntry = new CallbackEntry();
 				_groupedCallbackToTriggerEntryMap[groupedCallback] = triggerEntry;
+				triggerEntry.parameters = parameters; // testing...
 				triggerEntry.recursionLimit = recursionLimit;
 				triggerEntry.context = [relevantContext]; // the context in this entry will be an array of contexts
 				triggerEntry.addCallback_stackTrace = new Error().getStackTrace();
@@ -403,7 +404,7 @@ package weave.core
 						{
 							// increase recursion count while the function is running.
 							triggerEntry.recursionCount++;
-							groupedCallback.apply();
+							groupedCallback.apply(null, triggerEntry.parameters);
 							triggerEntry.recursionCount--;
 						}
 					}
