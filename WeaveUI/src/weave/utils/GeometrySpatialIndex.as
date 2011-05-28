@@ -42,38 +42,28 @@ package weave.utils
 	 * 
 	 * @author kmonico
 	 */
-	public class GeometrySpatialIndex implements ISpatialIndexImplementation
+	public class GeometrySpatialIndex extends AbstractSpatialIndexImplementation 
 	{
 		public function GeometrySpatialIndex(plotter:ILinkableObject)
 		{
 			var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 			_geomPlotter = geomPlotter;
 			_geomColumn = geomPlotter.geometryColumn;
+			super(plotter);
 		}
 
-		private var _geomColumn:ReprojectedGeometryColumn = null;
 		private var _geomPlotter:GeometryPlotter = null;
-		private var _keyToBoundsMap:Dictionary = new Dictionary();
-		
-		public function getBoundsFromKey(key:IQualifiedKey):Array
-		{
-			var result:Array = _keyToBoundsMap[key] as Array;
-			if (result == null)
-			{
-				result = [];
-			}
-			
-			return result;
-		}
-				
-		public function cacheKey(key:IQualifiedKey):void
-		{
-			_keyToBoundsMap[key] = _geomPlotter.getDataBoundsFromRecordKey(key);
-		}
-		
+		private var _geomColumn:ReprojectedGeometryColumn = null;
 
-		public function getKeysContainingBoundsCenter(keys:Array, bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		override public function getKeysContainingBoundsCenter(bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
+			var importance:Number;
+			if (isNaN(xPrecision) || isNaN(yPrecision))
+				importance = 0;
+			else
+				importance = xPrecision * yPrecision;
+			
+			var keys:Array = getKeysInRectangularRange(bounds, importance);
 			var result:Array = [];
 			if (keys.length == 0)
 				return result;
@@ -86,12 +76,6 @@ package weave.utils
 			_tempPoint1.y = yQueryCenter;
 			queryRay.origin = _tempPoint1;			
 			
-			var importance:Number;
-			if (isNaN(xPrecision) || isNaN(yPrecision))
-				importance = 0;
-			else
-				importance = xPrecision * yPrecision;
-
 			// for each key, get its geometries. Notice the use of the label to quickly exit the loop.
 			outerLoop: for (var iKey:int = 0; iKey < keys.length; ++iKey)
 			{
@@ -147,7 +131,7 @@ package weave.utils
 							_tempLineSegment.beginPoint = _tempPoint1;
 							_tempLineSegment.endPoint = _tempPoint2;
 							_tempLineSegment.makeSlopePositive();
-							if (ComputationalGeometryUtils.doesLineIntersectRay(_tempLineSegment, queryRay))
+							if (ComputationalGeometryUtils.lineIntersectsRay(_tempLineSegment, queryRay))
 								++intersectionCount;
 						}
 						
@@ -170,7 +154,7 @@ package weave.utils
 		
 			
 
-		public function getKeysOverlappingBounds(keys:Array, bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		override public function getKeysOverlappingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			// NOTE: A lot of this code is duplicated from getKeysContainingBoundsCenter, but this serves a very different
 			// purpose. For optimal performance, the operations are done serially so refactoring the duplicated code
@@ -180,6 +164,14 @@ package weave.utils
 			// bounds. To check for that, this function would also need to check all 4 of the corners of the bounds for
 			// containment, which would require another pass through the loop and/or memory which can't be given for a 1000 
 			// point part. For performance reasons, this case is assumed not necessary.
+			
+			var importance:Number;
+			if (isNaN(xPrecision) || isNaN(yPrecision))
+				importance = 0;
+			else
+				importance = xPrecision * yPrecision;
+			
+			var keys:Array = getKeysInRectangularRange(bounds, importance);
 			var result:Array = [];
 			if (keys.length == 0)
 				return result;
@@ -191,12 +183,6 @@ package weave.utils
 			_tempPoint1.x = xQueryCenter;
 			_tempPoint1.y = yQueryCenter;
 			queryRay.origin = _tempPoint1;
-			
-			var importance:Number;
-			if (isNaN(xPrecision) || isNaN(yPrecision))
-				importance = 0;
-			else
-				importance = xPrecision * yPrecision;
 
 			// for each key, get its geometries. Notice the use of the label to quickly exit the loop.
 			outerLoop: for (var iKey:int = 0; iKey < keys.length; ++iKey)
@@ -253,23 +239,16 @@ package weave.utils
 							
 							// check if either point is inside the bounds
 							// or if the linesegment crosses the bounds
-							trace(_tempLineSegment.beginPoint, _tempLineSegment.endPoint, "***", bounds);
 							if (//bounds.containsPoint(_tempPoint1) || bounds.containsPoint(_tempPoint2) ||
-								ComputationalGeometryUtils.doesLineCrossBounds(_tempLineSegment, bounds))
+								ComputationalGeometryUtils.lineCrossesBounds(_tempLineSegment, bounds))
 							{
-								trace('yes');
 								result.push(keys[iKey]);
 								continue outerLoop; // move on to the next key
 							}
-							else
-								trace('no');
 						}
 					} // end part loop
 				} // end Geometry loop
 			} // end outerLoop aka Key loop
-			
-			/*if (result.length > 0)
-				trace(bounds);*/
 			return result;
 		} // end function
 		

@@ -65,25 +65,63 @@ package weave.api.ui
 		/**
 		 * This function will iterate through the keys and determine which keys contain the center of the bounds object.
 		 *  
-		 * @param keys The keys to check. These keys must map to a GeometryColumn.
 		 * @param bounds The bounds to use for checking.
 		 * @param stopOnFirstFind If this is <code>true</code>, this function will return at most 1 key. Otherwise it will return all keys which contain the point.
 		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of IQualifiedKey objects which contain the center of the bounds object.
 		 */		
-		function getKeysContainingBoundsCenter(keys:Array, bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
+		function getKeysContainingBoundsCenter(bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
 		
 		/**
 		 * This function will iterate through the keys and determine which keys overlap the bounds object.
 		 *  
-		 * @param keys The keys to check. These keys must map to a GeometryColumn.
 		 * @param bounds The bounds to use for checking.
 		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of IQualifiedKey objects which contain the center of the bounds object.
 		 */		
-		function getKeysOverlappingBounds(keys:Array, bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
+		function getKeysOverlappingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
+
+		/**
+		 * Set the keys source for the index.
+		 * 
+		 * @param keys An array of IQualifiedKey objects.
+		 */
+		function setKeySource(keys:Array):void;
 		
+		/**
+		 * Insert a key into the index with the bounds as its lookup.
+		 *
+		 * @param bounds The bounds used to insert this key.
+		 * @param key The key to insert.
+		 */
+		function insertKey(bounds:IBounds2D, key:IQualifiedKey):void;
+	
+		/**
+		 * Get the keys for this index. 
+		 * 
+		 * @return An array of IQualifiedKey objects. 
+		 */		
+		function getKeys():Array;
+		
+		/**
+		 * Return the number of keys in this index.
+		 * 
+		 * @return The number of keys in the index. 
+		 */		
+		function getRecordCount():int;
+		
+		/**
+		 * Clear the KDTree in the index.
+		 */
+		function clearTree():void;
+		
+		/**
+		 * Get a value indicating whether this index's tree has autobalance enabled or disabled.
+		 * 
+		 * @return True if the KDTree has autobalancing and false otherwise.
+		 */		
+		function getAutoBalance():Boolean;
 	}
 }

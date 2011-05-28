@@ -43,7 +43,7 @@ package weave.utils
 		 * @param ray The LineRay to use for the test.
 		 * @return A boolean indicating true or false if the ray does intersect the line.
 		 */
-		public static function doesLineIntersectRay(line:LineSegment, ray:LineRay):Boolean
+		public static function lineIntersectsRay(line:LineSegment, ray:LineRay):Boolean
 		{
 			// We assume A is always the lower point
 			var rayOrigin:Point = ray.origin; // origin of the ray
@@ -95,23 +95,21 @@ package weave.utils
 		/**
 		 * This function will determine if a line crosses a rectangular bounds object at any point.
 		 * An crossing is defined to be true if any point of the line lies in the interior of the bounds
-		 * or on the border.
+		 * or on the border. 
 		 * 
 		 * @param line The LineSegment to test.
 		 * @param bounds The Bounds2D to use as the rectangle.
 		 * @return A boolean indicating true if the line does cross the bounds.
 		 */
-		public static function doesLineCrossBounds(line:LineSegment, bounds:IBounds2D):Boolean
+		public static function lineCrossesBounds(line:LineSegment, bounds:IBounds2D):Boolean
 		{
-			// TODO: optimize for speed
-
 			// We assume A is always the lower point
 			var A:Point = line.beginPoint; // the lower point of the line segment
 			var B:Point = line.endPoint; // the higher point of the line segment
 			bounds.getMinPoint(_tempMinPoint);
 			bounds.getMaxPoint(_tempMaxPoint);
 			
-			// It's easier to test for the false cases first
+			// It's faster to test for the obviously false cases first
 			_tempBounds.reset();
 			_tempBounds.setMinPoint(A);
 			_tempBounds.setMaxPoint(B);
@@ -120,7 +118,7 @@ package weave.utils
 			if (!_tempBounds.overlaps(bounds, true))
 				return false;
 
-			// there is some overlap
+			// there is some overlap between the bounds
 			
 			// Case 2: An endpoint is contained in the bounds
 			if (bounds.containsPoint(A) || bounds.containsPoint(B))
@@ -132,7 +130,7 @@ package weave.utils
 			_tempLineSegment.yLower = _tempMinPoint.y;
 			_tempLineSegment.xHigher = _tempMaxPoint.x;
 			_tempLineSegment.yHigher = _tempMinPoint.y;
-			if (doesLineIntersectLine(line, _tempLineSegment))
+			if (lineIntersectsLine(line, _tempLineSegment))
 				return true;
 			
 			// then left side  |
@@ -140,7 +138,7 @@ package weave.utils
 			_tempLineSegment.yLower = _tempMinPoint.y;
 			_tempLineSegment.xHigher = _tempMinPoint.x;
 			_tempLineSegment.yHigher = _tempMaxPoint.y;
-			if (doesLineIntersectLine(line, _tempLineSegment))
+			if (lineIntersectsLine(line, _tempLineSegment))
 				return true;
 
 			// now top side --
@@ -148,7 +146,7 @@ package weave.utils
 			_tempLineSegment.yLower = _tempMaxPoint.y;
 			_tempLineSegment.xHigher = _tempMaxPoint.x;
 			_tempLineSegment.yHigher = _tempMaxPoint.y;
-			if (doesLineIntersectLine(line, _tempLineSegment))
+			if (lineIntersectsLine(line, _tempLineSegment))
 				return true;
 			
 			// now right side |
@@ -156,12 +154,11 @@ package weave.utils
 			_tempLineSegment.yLower = _tempMinPoint.y;
 			_tempLineSegment.xHigher = _tempMaxPoint.x;
 			_tempLineSegment.yHigher = _tempMaxPoint.y;
-			if (doesLineIntersectLine(line, _tempLineSegment))
+			if (lineIntersectsLine(line, _tempLineSegment))
 				return true;
 			
 			// the line doesn't cross an edge and it's not contained within the rectangle
 			return false;
-
 		}
 		
 		/**
@@ -173,8 +170,26 @@ package weave.utils
 		 * @param line2 The other LineSegment.
 		 * @return A boolean indicating true if the lines intersect, and false otherwise.
 		 */
-		public static function doesLineIntersectLine(line1:LineSegment, line2:LineSegment):Boolean
+		public static function lineIntersectsLine(line1:LineSegment, line2:LineSegment):Boolean
 		{
+			// we have two lines
+			// line1: P1 = line1Begin + s * (line1End - line1Begin) 
+			// line2: P2 = line2Begin + t * (line2End - line2Begin)
+			// If we let P1 = P2, a point on both lines, we get these two equations
+			// x1 + s * (x2 - x1) = x3 + t * (x4 - x3)
+			// y1 + s * (y2 - y1) = y3 + t * (y4 - y3)
+			// ... where (x1, y1) and (x2, y2) are the points for line1, and similarly for line2
+			//
+			// We can rearrange these to get this system
+			// x3 - x1 = s * (x2 - x1) - t * (x4 - x3)
+			// y3 - y1 = s * (y2 - y1) - t * (y4 - y3)
+			// or equivalently,
+			// | (x3 - x1) |   | (x2 - x1)    (x4 - x3) | | s |
+			// |           | = |                        | |   |
+			// | (y3 - y1) |   | (y2 - y1)    (y4 - y3) | | t |
+			// which is a 2x1 matrix = (2x2 matrix) * (2x1 matrix)
+			// we can invert the 2x2 matrix, multiply both sides by that, and get
+			// the values of s and t
 			var line1Begin:Point = line1.beginPoint;
 			var line1End:Point = line1.endPoint;
 			var line2Begin:Point = line2.beginPoint;
@@ -188,9 +203,9 @@ package weave.utils
 			var y3:Number = line2Begin.y;
 			var y4:Number = line2End.y;
 			
-			var denominator:Number = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+			var denominator:Number = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1); // the determinant of the 2x2 matrix
 			
-			// if this is 0, the lines are parallel
+			// if this is 0, the lines are parallel (inverted matrix => no solution)
 			if (Math.abs(denominator) <= Number.MIN_VALUE) 
 				return false; 
 				

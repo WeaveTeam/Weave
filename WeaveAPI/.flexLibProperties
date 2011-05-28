@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="false" version="3">
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.api.WeaveAPI"/>
     <classEntry path="weave.api.compiler.ICompiledObject"/>
@@ -63,16 +63,17 @@
     <classEntry path="weave.api.services.IWeaveStatisticsService"/>
     <classEntry path="weave.api.setSessionState"/>
     <classEntry path="weave.api.ui.IFillStyle"/>
+    <classEntry path="weave.api.ui.IKDTree"/>
     <classEntry path="weave.api.ui.ILineStyle"/>
     <classEntry path="weave.api.ui.ILinkableObjectEditor"/>
     <classEntry path="weave.api.ui.IPlotLayer"/>
     <classEntry path="weave.api.ui.IPlotter"/>
     <classEntry path="weave.api.ui.IProbeDisplay"/>
     <classEntry path="weave.api.ui.ISpatialIndex"/>
+    <classEntry path="weave.api.ui.ISpatialIndexImplementation"/>
     <classEntry path="weave.api.ui.IZoomView"/>
     <classEntry path="weave.api.unlinkBindableProperty"/>
     <classEntry path="weave.api.unlinkSessionState"/>
-    <classEntry path="weave.api.ui.ISpatialIndexImplementation"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -32,34 +32,18 @@ package weave.utils
 	 * 
 	 * @author kmonico
 	 */
-	public class RefinedSpatialIndex implements ISpatialIndexImplementation
+	public class RefinedSpatialIndex extends AbstractSpatialIndexImplementation 
 	{
 		public function RefinedSpatialIndex(plotter:ILinkableObject)
 		{
-			_plotter = plotter as IPlotter;
+			super(plotter);
 		}
 		
-		private var _plotter:IPlotter = null;
-		private var _keyToBoundsMap:Dictionary = new Dictionary();
-		
-		public function getBoundsFromKey(key:IQualifiedKey):Array
+		override public function getKeysContainingBoundsCenter(bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
-			var result:Array = _keyToBoundsMap[key] as Array;
-			if (result == null)
-			{
-				result = [];
-			}
+			var importance:Number;
 			
-			return result;
-		}
-		
-		public function cacheKey(key:IQualifiedKey):void
-		{
-			_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
-		}
-		
-		public function getKeysContainingBoundsCenter(keys:Array, bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
-		{
+			var keys:Array = getKeysInRectangularRange(bounds, 0);
 			// init local vars
 			var closestDistanceSq:Number = Infinity;
 			var xDistance:Number;
@@ -115,8 +99,9 @@ package weave.utils
 			return result;
 		}
 		
-		public function getKeysOverlappingBounds(keys:Array, bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		override public function getKeysOverlappingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
+			var keys:Array = getKeysInRectangularRange(bounds, 0);
 			return keys;
 		}
 	}

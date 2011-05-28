@@ -51,6 +51,8 @@ package weave.utils
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
+		// This class acts as both a facade and a bridge/adapter to the ISpatialIndexImplementation
+		// It may be better to fully replace it as it serves no special purpose right now
 		public function SpatialIndex(callback:Function = null, callbackParameters:Array = null)
 		{
 			addImmediateCallback(this, callback, callbackParameters);
@@ -91,20 +93,11 @@ package weave.utils
 		 */
 		public function get recordCount():int
 		{
-			return kdtree.nodeCount;
+			if (_indexImplementation)
+				return _indexImplementation.getRecordCount();
+			else
+				return 0;
 		}
-		
-		/**
-		 * kdtree
-		 * This provides the internal indexing method.
-		 */
-		private var kdtree:KDTree = new KDTree(5); // KDkeys should be of the form: [xmin, ymin, xmax, ymax, importance]
-		/**
-		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
-		 */
-		private const XMIN_INDEX:int = 0, YMIN_INDEX:int = 1;
-		private const XMAX_INDEX:int = 2, YMAX_INDEX:int = 3;
-		private const IMPORTANCE_INDEX:int = 4;
 
 		/**
 		 * This function fills the spatial index with the data bounds of each record in a plotter.
@@ -140,7 +133,7 @@ package weave.utils
 				}
 
 				// if auto-balance is disabled, randomize insertion order
-				if (!kdtree.autoBalance)
+				if (!_indexImplementation.getAutoBalance())
 				{
 					// randomize the order of the shapes to avoid a possibly poorly-performing
 					// KDTree structure due to the given ordering of the records
@@ -157,12 +150,14 @@ package weave.utils
 						//TODO: index shapes with missing bounds values into a different index
 						if (!bounds.isUndefined())
 						{
-							kdtree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key); 
+							_indexImplementation.insertKey(bounds, key);
 							collectiveBounds.includeBounds(bounds);
 						}
 					}
 				}
 			}
+			
+			_indexImplementation.setKeySource(_keysArray);
 			
 			// if there are keys
 			if (_keysArray.length > 0 || !tempBounds.equals(collectiveBounds))
@@ -182,36 +177,11 @@ package weave.utils
 				triggerCallbacks();
 			
 			_keysArray.length = 0;
-			kdtree.clear();
+			if (_indexImplementation)
+				_indexImplementation.clearTree();
 			collectiveBounds.reset();
 
 			resumeCallbacks();
-		}
-
-		/**
-		 * These KDKey arrays are created once and reused to avoid unnecessary creation of objects.
-		 * The only values that change are the ones that are undefined here.
-		 */
-		private var minKDKey:Array = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN, NaN, 0];
-		private var maxKDKey:Array = [NaN, NaN, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
-		
-		/**
-		 * @param point A point used to query the spatial index.
-		 * @return An array of keys with bounds that contain the given point.
-		 */
-		public function getKeysOverlappingPoint(point:Point):Array
-		{
-			// this function isn't used
-			
-			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
-			minKDKey[XMAX_INDEX] = point.x;
-			minKDKey[YMAX_INDEX] = point.y;
-			minKDKey[IMPORTANCE_INDEX] = 0;
-			// set the maximum query values for shape.bounds.xMin, shape.bounds.yMin
-			maxKDKey[XMIN_INDEX] = point.x;
-			maxKDKey[YMIN_INDEX] = point.y;
-
-			return kdtree.queryRange(minKDKey, maxKDKey);
 		}
 
 		/**
@@ -220,34 +190,7 @@ package weave.utils
 		 */
 		public function getOverlappingKeys(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			var keys:Array = getKeysInRectangularRange(bounds, minImportance);
-			return _indexImplementation.getKeysOverlappingBounds(keys, bounds, 1, minImportance);
-		}
-
-
-		/**
-		 * This function will find all keys whose collective bounds overlap the given bounds object.
-		 * The collective bounds is defined as a rectangle which contains every point in the key.
-		 * 
-		 * @param bounds The bounds for the spatial query.
-		 * @param minImportance The minimum importance of which to query.
-		 * @return An array of keys with bounds that overlap the given bounds with the specific importance.
-		 */		
-		private function getKeysInRectangularRange(bounds:IBounds2D, minImportance:Number = 0):Array
-		{
-			// TEMPORARY: Make this be performed by the implementations so they can ignore the importance value or not
-			if (!(_indexImplementation is GeometrySpatialIndex))
-				minImportance = 0;
-			
-			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
-			minKDKey[XMAX_INDEX] = bounds.getXNumericMin(); // enforce result.XMAX >= query.xNumericMin
-			minKDKey[YMAX_INDEX] = bounds.getYNumericMin(); // enforce result.YMAX >= query.yNumericMin
-			minKDKey[IMPORTANCE_INDEX] = minImportance; // enforce result.IMPORTANCE >= minImportance
-			// set the maximum query values for shape.bounds.xMin, shape.bounds.yMin
-			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax(); // enforce result.XMIN <= query.xNumericMax
-			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
-			
-			return kdtree.queryRange(minKDKey, maxKDKey);			
+			return _indexImplementation.getKeysOverlappingBounds(bounds, 1, minImportance);
 		}
 		
 		/**
@@ -260,8 +203,7 @@ package weave.utils
 		 */
 		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
-			var keys:Array = getKeysInRectangularRange(bounds);
-			return _indexImplementation.getKeysContainingBoundsCenter(keys, bounds, true, xPrecision, yPrecision);
+			return _indexImplementation.getKeysContainingBoundsCenter(bounds, true, xPrecision, yPrecision);
 		}
 		
 		// reusable temporary objects

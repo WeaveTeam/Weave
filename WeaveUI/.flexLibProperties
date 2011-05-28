@@ -190,6 +190,7 @@
     <classEntry path="weave.utils.GeometrySpatialIndex"/>
     <classEntry path="weave.utils.RefinedSpatialIndex"/>
     <classEntry path="weave.utils.SpatialIndexFactory"/>
+    <classEntry path="weave.utils.AbstractSpatialIndexImplementation"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
