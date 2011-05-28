@@ -190,7 +190,18 @@ package weave.utils
 		 */
 		public function getOverlappingKeys(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			return _indexImplementation.getKeysOverlappingBounds(bounds, 1, minImportance);
+			// INEXACT
+			return _indexImplementation.getKeysInRectangularRange(bounds, minImportance);
+		}
+		
+		/**
+		 * @param bounds A bounds used to query the spatial index.
+		 * @return An array of keys with bounds that overlap the given bounds.
+		 */
+		public function getKeysContainingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
+		{
+			// EXACT
+			return _indexImplementation.getKeysContainingBounds(bounds, 1, minImportance);
 		}
 		
 		/**

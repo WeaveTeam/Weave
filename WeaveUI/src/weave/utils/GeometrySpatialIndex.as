@@ -154,7 +154,7 @@ package weave.utils
 		
 			
 
-		override public function getKeysOverlappingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		override public function getKeysContainingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			// NOTE: A lot of this code is duplicated from getKeysContainingBoundsCenter, but this serves a very different
 			// purpose. For optimal performance, the operations are done serially so refactoring the duplicated code

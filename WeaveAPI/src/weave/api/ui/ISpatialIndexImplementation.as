@@ -81,8 +81,18 @@ package weave.api.ui
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of IQualifiedKey objects which contain the center of the bounds object.
 		 */		
-		function getKeysOverlappingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
+		function getKeysContainingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
 
+		/**
+		 * This function will find all keys whose collective bounds overlap the given bounds object.
+		 * The collective bounds is defined as a rectangle which contains every point in the key.
+		 * 
+		 * @param bounds The bounds for the spatial query.
+		 * @param minImportance The minimum importance of which to query.
+		 * @return An array of keys with bounds that overlap the given bounds with the specific importance.
+		 */		
+		function getKeysInRectangularRange(bounds:IBounds2D, minImportance:Number = 0):Array;
+			
 		/**
 		 * Set the keys source for the index.
 		 * 

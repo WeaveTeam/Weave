@@ -99,7 +99,7 @@ package weave.utils
 			return result;
 		}
 		
-		override public function getKeysOverlappingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		override public function getKeysContainingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			var keys:Array = getKeysInRectangularRange(bounds, 0);
 			return keys;

@@ -77,7 +77,7 @@ package weave.utils
 			return null;
 		}
 		
-		/* abstract */ public function getKeysOverlappingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		/* abstract */ public function getKeysContainingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			return null;
 		}
@@ -90,7 +90,7 @@ package weave.utils
 		 * @param minImportance The minimum importance of which to query.
 		 * @return An array of keys with bounds that overlap the given bounds with the specific importance.
 		 */		
-		protected function getKeysInRectangularRange(bounds:IBounds2D, minImportance:Number = 0):Array
+		public function getKeysInRectangularRange(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
 			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
 			minKDKey[XMAX_INDEX] = bounds.getXNumericMin(); // enforce result.XMAX >= query.xNumericMin
