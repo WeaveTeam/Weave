@@ -390,7 +390,31 @@
 									 id="goFullscreen"
 									 label="Go Fullscreen"
 									 creationComplete="linkBindableProperty(Weave.properties.enableGoFullscreen,goFullscreen,'selected')"/>  
-						
+						<mx:CheckBox toolTip="Checking this box will allow the user to minimize all windows"
+									 enabled="{windowMenu.selected == true}"
+									 id="minimizeAll"
+									 label="Minimize All Windows"
+									 creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows,minimizeAll,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to restore all minimized windows"
+									 enabled="{windowMenu.selected == true}"
+									 id="restoreAll"
+									 label="Restore All Minimized Windows"
+									 creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows,restoreAll,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to close all windows"
+									 enabled="{windowMenu.selected == true}"
+									 id="closeAll"
+									 label="Close All Windows"
+									 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows,closeAll,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to cascade all windows"
+									 enabled="{windowMenu.selected == true}"
+									 id="cascadeAll"
+									 label="Cascade All Windows"
+									 creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows,cascadeAll,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to tile all windows"
+									 enabled="{windowMenu.selected == true}"
+									 id="tileAll"
+									 label="Tile All Windows"
+									 creationComplete="linkBindableProperty(Weave.properties.enableTileAllWindows,tileAll,'selected')"/>
 					</mx:VBox>
 				</mx:HBox>	
 			</mx:VBox>	

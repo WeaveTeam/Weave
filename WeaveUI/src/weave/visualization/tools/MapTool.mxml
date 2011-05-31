@@ -35,6 +35,8 @@
 			import mx.events.MetadataEvent;
 			import mx.events.SliderEvent;
 			
+			import org.openscales.proj4as.ProjProjection;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -81,7 +83,6 @@
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.WMSPlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
-			import org.openscales.proj4as.ProjProjection;
 
 			use namespace weave_internal;
 
@@ -222,6 +223,8 @@
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
 				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, handleBoundsChange, true);
+				
+				linkSessionState(getLinkableChildren(),overviewWindow.children);
 			}
 			
 			/*private function handleSelectedLayerChange():void
@@ -342,8 +345,6 @@
 			private var scrollWheelScaler:int = 3; // number of mouse wheel delta increments required to zoom in/out 2x
 			
 			private var _tempBounds:IBounds2D = new Bounds2D();
-			
-			
 
 			[Embed(source="/weave/resources/images/ocean_background2.jpg")]
 			private var BackgroundImage:Class;
@@ -461,7 +462,7 @@
 		]]>
 	</mx:Script>
 
-	
+	<ui:MapOverviewWindow id="overviewWindow" left="0" bottom="0" creationComplete="overviewWindow.enableBorders.value = false"/>
 	
 	<mx:VBox	id="mapControls"
 				horizontalAlign="center" verticalGap="2" 

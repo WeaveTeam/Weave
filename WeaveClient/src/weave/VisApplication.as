@@ -1116,20 +1116,6 @@ package weave
 				};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable) );
 			
-			// minimize All Windows: Get a list of all panels and call minimizePanel() on each sequentially
-			label = "Minimize All Windows";
-			click = function():void {
-				var children:Array = Weave.root.getObjects(DraggablePanel);
-				while (children.length)
-				{
-					var panel:DraggablePanel = children.pop() as DraggablePanel;
-					panel.minimizePanel();
-				}
-			};
-			enable = function():Boolean {
-				return (topPanel && topPanel.minimizable.value);
-			};
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable) );
 			
 			// maximize/restore
 			label = function():String { 
@@ -1156,26 +1142,20 @@ package weave
 					return (topPanel && topPanel.closeable.value);
 				};
 			
-			enable = function():Boolean {
-				return (topPanel != null); 
-			};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable) );
 				
-			// cascade windows
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Cascade All Windows", cascadeWindows, null, enable ));
-			
-			
+			// Minimize All Windows: Get a list of all panels and call minimizePanel() on each sequentially
 			click = function():void {
 				var children:Array = Weave.root.getObjects(DraggablePanel);
-				while(children.length)
+				while (children.length)
 				{
-					panel = children.pop() as DraggablePanel;
-					panel.removePanel();
+					var panel:DraggablePanel = children.pop() as DraggablePanel;
+					if(panel.minimizable.value) panel.minimizePanel();
 				}
 			};
-			// close windows
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Close All Windows", click, null, enable)) ;
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Minimize All Windows", click, null, Weave.properties.enableMinimizeAllWindows.value) );
 			
+			// Restore all minimized windows: Get a list of all panels and call restorePanel() on each sequentially
 			click = function():void {
 				var children:Array = Weave.root.getObjects(DraggablePanel);
 				while(children.length)
@@ -1184,31 +1164,47 @@ package weave
 					panel.restorePanel();
 				}
 			};
-			// restore all minimized windows
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Restore All Mimimized Windows", click, null, true ));
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Restore All Mimimized Windows", click, null, Weave.properties.enableRestoreAllMinimizedWindows.value ));
 			
-			if(Weave.properties.enableGoFullscreen.value)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(
-																	function():String { 
-																		if ( stage.displayState == StageDisplayState.FULL_SCREEN) 
-																			return 'Exit Fullscreen'; 
-																		
-																		return 'Go Fullscreen';
-																	},
-																	function():void{
-         																if (stage.displayState == StageDisplayState.NORMAL )
-         																{
-            																// set full screen display
-            																stage.displayState = StageDisplayState.FULL_SCREEN;
-         																}
-         																else
-         																{
-            																// set normal display
-            																stage.displayState = StageDisplayState.NORMAL;
-         																}
-      																	}, 
-																	null,
-																	true) );
+			// Close All Windows: Get a list of all panels and call removePanel() on each sequentially
+			click = function():void {
+				var children:Array = Weave.root.getObjects(DraggablePanel);
+				while(children.length)
+				{
+					panel = children.pop() as DraggablePanel;
+					panel.removePanel();
+				}
+			};
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Close All Windows", click, null, Weave.properties.enableCloseAllWindows.value)) ;
+			
+			// cascade windows
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Cascade All Windows", cascadeWindows, null, Weave.properties.enableCascadeAllWindows.value ));
+			
+			// tile windows
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Tile All Windows", tileWindows, null, Weave.properties.enableTileAllWindows.value )) ;
+			
+			
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(
+				function():String { 
+					if ( stage.displayState == StageDisplayState.FULL_SCREEN) 
+						return 'Exit Fullscreen'; 
+					
+					return 'Go Fullscreen';
+				},
+				function():void{
+					if (stage.displayState == StageDisplayState.NORMAL )
+					{
+						// set full screen display
+						stage.displayState = StageDisplayState.FULL_SCREEN;
+					}
+					else
+					{
+						// set normal display
+						stage.displayState = StageDisplayState.NORMAL;
+					}
+				}, 
+				null,
+				Weave.properties.enableGoFullscreen.value) );
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 			//_visMenu.addSeparatorToMenu(windowMenu);
 			//_visMenu.addMenuItemToMenu("Window", new VisMenuItem("[submenu] Load Window Layout", null));
@@ -1275,22 +1271,22 @@ package weave
 			}		
 		}
 
+		/**
+		 * @author kmanohar
+		 * <br/>This function arranges all DraggablePanels currently on stage along a diagonal
+		 */		
 		private function cascadeWindows():void
 		{
-			var panels:Array = Weave.root.getObjects(DraggablePanel);
+			var panels:Array = getWindowsOnStage();
 			if(!panels.length) return;
 			
 			var dpanel:DraggablePanel;
 			dpanel = panels[panels.length-1] as DraggablePanel;
 			
 			dpanel.panelWidth.value = "50%";
-				
-			var maxY:Number = NumberUtils.getNumberFromPercentString(dpanel.panelHeight.value);
-			var maxX:Number = NumberUtils.getNumberFromPercentString(dpanel.panelWidth.value);
-			var max:Number = Math.min(maxX,maxY);		
-			max = Math.min(max, 80);
+			dpanel.panelHeight.value = "50%";
 			
-			var increment:Number = (100-max)/panels.length;
+			var increment:Number = 50/panels.length;
 			var dist:Number = 0 ;
 			
 			for( var i:int = 0; i < panels.length ; i++ ) 
@@ -1302,6 +1298,86 @@ package weave
 				dpanel.panelHeight.value = "50%" ;
 				dist += increment;
 			}
+		}
+		
+		/**
+		 * @author kmanohar
+		 * <br/> This function tiles all the DraggablePanels currently on stage
+		 * <br/> TO DO: create a ui for this so the user can specify how to divide the stage
+		 */		
+		private function tileWindows():void
+		{
+			var panels:Array = getWindowsOnStage();
+ 			var numPanels:uint = panels.length;
+			if(!numPanels) return;
+			
+			var gridLength:Number = Math.ceil(Math.sqrt(numPanels));
+			var i:Number = gridLength; var j:Number = gridLength;
+			var factor1:uint = i; var factor2:uint = j;
+			
+			if( numPanels == 2) 
+			{
+				factor1 = 2;
+				factor2 = 1;
+			}
+			else if( (gridLength*gridLength != numPanels) && (numPanels != 1) )
+			{
+				/*if( !(numPanels % 5) );
+				else if( !(numPanels % 3));	*/
+				if( numPanels % 2 )numPanels++;
+				var minDiff:Number = numPanels;
+				while( i < numPanels )
+				{
+					j = gridLength;
+					while( j >= 1 )
+					{
+						if(i*j == numPanels) 
+							if( (i-j <= minDiff) ) {
+								minDiff = i-j ;
+								factor1 = i; factor2 = j;
+							}
+						j--;
+					}
+					i++;
+				}
+			}
+			
+			//trace( factor1 + " " + factor2 + " " + numPanels);
+			
+			var dp:DraggablePanel;
+			var xPos:Number = 0; var yPos:Number = 0 ;
+			var width:Number = 100/((stage.stageWidth > stage.stageHeight) ? factor1 : factor2);
+			var height:Number = 100/((stage.stageWidth > stage.stageHeight) ? factor2 : factor1);
+			for( i = 0; i < panels.length; i++ )
+			{
+				dp = panels[i] as DraggablePanel;
+				dp.panelX.value = xPos.toString() + "%";
+				dp.panelY.value = yPos.toString() + "%";
+				dp.panelWidth.value = width.toString() + "%";
+				dp.panelHeight.value = height.toString() + "%";
+				xPos += width;
+				if(xPos >= 100) xPos = 0;
+				if( !xPos) yPos += height ;
+			}
+		}
+		
+		/**
+		 * @author kmanohar
+		 * @return an Array containing all DraggablePanels on stage that are not minimized
+		 * 
+		 */		
+		private function getWindowsOnStage():Array
+		{
+			var panels:Array = Weave.root.getObjects(DraggablePanel);
+			var panelsOnStage:Array = [];
+			var panel:DraggablePanel;
+			for( var i:int = 0; i < panels.length; i++ )
+			{
+				panel = panels[i] as DraggablePanel;
+				if(!panel.minimized.value) 
+					panelsOnStage.push(panels[i]);
+			}
+			return panelsOnStage;
 		}
 		
 		// The tool "grid" (rows and columns) are used in a non-dynamic view -- The _toolColumnSpace is a vertical box that 
