@@ -55,7 +55,7 @@ package weave.utils
 		private var _geomPlotter:GeometryPlotter = null;
 		private var _geomColumn:ReprojectedGeometryColumn = null;
 
-		override public function getKeysContainingBoundsCenter(bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
+		override public function getClosestOverlappingKeys(bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
 			var importance:Number;
 			if (isNaN(xPrecision) || isNaN(yPrecision))
@@ -151,8 +151,6 @@ package weave.utils
 			} // end outerLoop aka Key loop
 			return result;
 		} // end function
-		
-			
 
 		override public function getKeysContainingBounds(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
@@ -239,7 +237,7 @@ package weave.utils
 							
 							// check if either point is inside the bounds
 							// or if the linesegment crosses the bounds
-							if (//bounds.containsPoint(_tempPoint1) || bounds.containsPoint(_tempPoint2) ||
+							if (bounds.containsPoint(_tempPoint1) || bounds.containsPoint(_tempPoint2) ||
 								ComputationalGeometryUtils.lineCrossesBounds(_tempLineSegment, bounds))
 							{
 								result.push(keys[iKey]);

@@ -101,7 +101,8 @@ package weave.utils
 
 		/**
 		 * This function fills the spatial index with the data bounds of each record in a plotter.
-		 * @param plotter An IPlotter object to create a spatial index for.
+		 * 
+		 * @param plotter An IPlotter object to index.
 		 */
 		public function createIndex(plotter:IPlotter):void
 		{
@@ -191,6 +192,8 @@ package weave.utils
 		public function getOverlappingKeys(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
 			// INEXACT
+			if (_indexImplementation == null)
+				return [];
 			return _indexImplementation.getKeysInRectangularRange(bounds, minImportance);
 		}
 		
@@ -201,6 +204,8 @@ package weave.utils
 		public function getKeysContainingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
 			// EXACT
+			if (_indexImplementation == null)
+				return [];
 			return _indexImplementation.getKeysContainingBounds(bounds, 1, minImportance);
 		}
 		
@@ -214,7 +219,9 @@ package weave.utils
 		 */
 		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
 		{
-			return _indexImplementation.getKeysContainingBoundsCenter(bounds, true, xPrecision, yPrecision);
+			if (_indexImplementation == null)
+				return [];
+			return _indexImplementation.getClosestOverlappingKeys(bounds, true, xPrecision, yPrecision);
 		}
 		
 		// reusable temporary objects

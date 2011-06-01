@@ -24,6 +24,7 @@ package weave.utils
 	import weave.api.ui.ISpatialIndexImplementation;
 	import weave.visualization.plotters.DynamicPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
+	import weave.visualization.plotters.ParallelCoordinatesPlotter;
 
 	/**
 	 * This is a static Factory for creating the implementation spatial index for a specific
@@ -49,11 +50,13 @@ package weave.utils
 				var internalObject:ILinkableObject = (plotter as DynamicPlotter).internalObject;
 				if (internalObject is GeometryPlotter)
 					return new GeometrySpatialIndex(internalObject);
+				else if (internalObject is ParallelCoordinatesPlotter)
+					return new LineChartSpatialIndex(internalObject);
 				else 
-					return new RefinedSpatialIndex(internalObject);
+					return new AbstractSpatialIndexImplementation(internalObject);
 			}
 			
-			return new RefinedSpatialIndex(plotter);
+			return new AbstractSpatialIndexImplementation(internalObject);
 		}
 	}
 }

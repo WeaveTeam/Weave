@@ -71,7 +71,7 @@ package weave.api.ui
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of IQualifiedKey objects which contain the center of the bounds object.
 		 */		
-		function getKeysContainingBoundsCenter(bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
+		function getClosestOverlappingKeys(bounds:IBounds2D, stopOnFirstFind:Boolean = true, xPrecision:Number = NaN, yPrecision:Number = NaN):Array;
 		
 		/**
 		 * This function will iterate through the keys and determine which keys overlap the bounds object.

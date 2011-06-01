@@ -219,10 +219,78 @@ package weave.utils
 			return true;
 		}
 		
+		/**
+		 * This function will compute the square of the closest distance between a line segment and a point.
+		 * 
+		 * @param line The line segment.
+		 * @param point The point.
+		 * @return The smallest Euclidean distance squared from the point to the line.
+		 */
+		public static function linePointDistanceSq(line:LineSegment, point:Point):Number
+		{
+			var pointA:Point = line.beginPoint;
+			var pointB:Point = line.endPoint;
+			var x1:Number = pointA.x;
+			var y1:Number = pointA.y;
+			var x2:Number = pointB.x;
+			var y2:Number = pointB.y;
+			var x3:Number = point.x;
+			var y3:Number = point.y;
+			
+			// solve point = pointA + t(pointB - pointA)
+			//
+			// where the points are treated as vectors
+			// The value of t is a parametrization. If t is in [0,1],
+			// then the normal from the point to the line lies on the line segment
+			// and the distance can be computed trivially.
+			// If t is outside the range, then constrain t to [0,1] and
+			// the distance is from the point to one end of the line segment.
+			
+			// calculate ||pointB - pointA|| squared
+			var p2MinusP1:Point = vectorSubtract(pointB, pointA, _tempVectorPoint);
+			var denominator:Number = vectorDotProduct(p2MinusP1, p2MinusP1);
+			
+			// if denominator is 0, then A and B are the same point--distance between point and A
+			if (denominator <= Number.MIN_VALUE)
+			{
+				return Math.pow(point.x - pointA.x, 2) + Math.pow(point.y - pointA.y, 2); 
+			}
+
+			var t:Number = ((x3 - x1) * (x2 - x1) + (y3 - y1) * (y2 - y1)) / denominator;
+			
+			if (t < 0)
+				t = 0;
+			if (t > 1)
+				t = 1;
+			
+			var xFinal:Number = t * p2MinusP1.x;
+			var yFinal:Number = t * p2MinusP1.y;
+			
+			return Math.pow(xFinal - point.x, 2) + Math.pow(yFinal - point.y, 2);
+		}
+		
+		private static function vectorAdd(p1:Point, p2:Point, result:Point):Point
+		{
+			result.x = p1.x + p2.x;
+			result.y = p1.y + p2.y;
+			return result;
+		}
+		private static function vectorSubtract(p1:Point, p2:Point, result:Point):Point
+		{
+			result.x = p1.x - p2.x;
+			result.y = p1.y - p2.y;
+			return result;
+		}
+		private static function vectorDotProduct(p1:Point, p2:Point):Number
+		{
+			return p1.x * p2.x + p1.y * p2.y;
+		}
+			
 		// reusable objects
 		private static const _tempMinPoint:Point = new Point();
 		private static const _tempMaxPoint:Point = new Point();		
 		private static const _tempBounds:IBounds2D = new Bounds2D();
 		private static const _tempLineSegment:LineSegment = new LineSegment();
+		private static const _tempVectorPoint:Point = new Point();
 	}
 }

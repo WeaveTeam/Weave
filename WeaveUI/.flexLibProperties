@@ -188,9 +188,9 @@
     <classEntry path="weave.visualization.tools.TimeSliderTool"/>
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
     <classEntry path="weave.utils.GeometrySpatialIndex"/>
-    <classEntry path="weave.utils.RefinedSpatialIndex"/>
     <classEntry path="weave.utils.SpatialIndexFactory"/>
     <classEntry path="weave.utils.AbstractSpatialIndexImplementation"/>
+    <classEntry path="weave.utils.LineChartSpatialIndex"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
