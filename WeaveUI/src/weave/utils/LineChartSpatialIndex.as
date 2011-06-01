@@ -157,7 +157,7 @@ package weave.utils
 				
 				var keyBounds:Array = _keyToBoundsMap[key];
 				
-				// check left
+				// check left // test
 				if (doLeftCheck)
 				{
 					var leftBounds1:IBounds2D = keyBounds[iLeft];
