@@ -22,10 +22,10 @@ package weave.utils
 {
 	import flash.geom.Point;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.primitives.IBounds2D;
 	import weave.primitives.Bounds2D;
-	import weave.primitives.LineRay;
-	import weave.primitives.LineSegment;
 
 	/**
 	 * This is a collection of static methods used for common computational geometry
@@ -39,17 +39,16 @@ package weave.utils
 		 * This function will determine if a ray intersects a line. In this function,
 		 * the ray is treated as all possible rays originating from the origin of the point.
 		 * 
-		 * @param line The LineSegment to test.
-		 * @param ray The LineRay to use for the test.
+		 * @param Ax X coordinate of A in AB
+		 * @param Ay Y coordinate of A in AB
+		 * @param Bx X coordinate of B in AB
+		 * @param By Y coordinate of B in AB
+		 * @param Cx X coordinate of C in point C
+		 * @param Cy Y coordinate of C in point C
 		 * @return A boolean indicating true or false if the ray does intersect the line.
-		 */
-		public static function lineIntersectsRay(line:LineSegment, ray:LineRay):Boolean
+		 */		
+		public static function lineIntersectsRay(Ax:Number, Ay:Number, Bx:Number, By:Number, Cx:Number, Cy:Number):Boolean
 		{
-			// We assume A is always the lower point
-			var rayOrigin:Point = ray.origin; // origin of the ray
-			var A:Point = line.beginPoint; // the lower point of the line segment
-			var B:Point = line.endPoint; // the higher point of the line segment
-			
 			// visual. Picture all rays as moving to the right (which we can do since we require the point to have positive slope)
 			//    . . . .           o---->
 			//               \     
@@ -68,109 +67,59 @@ package weave.utils
 			// greater or equal to the slope of segment AB, then the ray intersects.
 			// In all other cases, the ray does not intersect.
 			
+			// make sure A is lower
+			var temp:Number;
+			if (Ay > By)
+			{
+				temp = Ay;
+				Ay = By;
+				By = temp;
+				
+				temp = Ax;
+				Ax = Bx;
+				Bx = temp;
+			}
+			
 			// if the ray origin is lower than the lower point or higher than the higher point
-			if (rayOrigin.y < A.y || rayOrigin.y > B.y)
+			if (Cy < Ay || Cy > By)
 				return false;
 			
 			// if the ray is too far to the right, clearly does not interset
-			if (rayOrigin.x > Math.max(A.x, B.x))
+			if (Cx > Math.max(Ax, Bx))
 				return false;
 			
 			// if the ray is to the left at this point, clearly intersets 
-			if (rayOrigin.x < Math.min(A.x, B.x))
+			if (Cx < Math.min(Ax, Bx))
 				return true;
 			
 			var m1:Number = Number.POSITIVE_INFINITY; // slope of AB, initialized to +infinity to handle division by 0 
 			var m2:Number = Number.POSITIVE_INFINITY; // slope of AR, initialized to +infinity to handle division by 0
 			// calculate m1
-			if (A.x != B.x)
-				m1 = (B.y - A.y) / (B.x - A.x);
+			if (Ax != Bx)
+				m1 = (By - Ay) / (Bx - Ax);
 			// calculate m2
-			if (A.x != rayOrigin.x)
-				m2 = (rayOrigin.y - A.y) / (rayOrigin.x - A.x);
+			if (Ax != Cx)
+				m2 = (Cy - Ay) / (Cx - Ax);
 			
 			return (m2 >= m1);
 		}
-		
-		/**
-		 * This function will determine if a line crosses a rectangular bounds object at any point.
-		 * An crossing is defined to be true if any point of the line lies in the interior of the bounds
-		 * or on the border. 
-		 * 
-		 * @param line The LineSegment to test.
-		 * @param bounds The Bounds2D to use as the rectangle.
-		 * @return A boolean indicating true if the line does cross the bounds.
-		 */
-		public static function lineCrossesBounds(line:LineSegment, bounds:IBounds2D):Boolean
-		{
-			// We assume A is always the lower point
-			var A:Point = line.beginPoint; // the lower point of the line segment
-			var B:Point = line.endPoint; // the higher point of the line segment
-			bounds.getMinPoint(_tempMinPoint);
-			bounds.getMaxPoint(_tempMaxPoint);
-			
-			// It's faster to test for the obviously false cases first
-			_tempBounds.reset();
-			_tempBounds.setMinPoint(A);
-			_tempBounds.setMaxPoint(B);
-			
-			// Case 1: There is no overlap between the bounds, therefore there is no crossing
-			if (!_tempBounds.overlaps(bounds, true))
-				return false;
 
-			// there is some overlap between the bounds
-			
-			// Case 2: An endpoint is contained in the bounds
-			if (bounds.containsPoint(A) || bounds.containsPoint(B))
-				return true;
-			
-			// Case 3: The line crosses any side of the bounds rectangle
-			// first check bottom side --
-			_tempLineSegment.xLower = _tempMinPoint.x;
-			_tempLineSegment.yLower = _tempMinPoint.y;
-			_tempLineSegment.xHigher = _tempMaxPoint.x;
-			_tempLineSegment.yHigher = _tempMinPoint.y;
-			if (lineIntersectsLine(line, _tempLineSegment))
-				return true;
-			
-			// then left side  |
-			_tempLineSegment.xLower = _tempMinPoint.x;
-			_tempLineSegment.yLower = _tempMinPoint.y;
-			_tempLineSegment.xHigher = _tempMinPoint.x;
-			_tempLineSegment.yHigher = _tempMaxPoint.y;
-			if (lineIntersectsLine(line, _tempLineSegment))
-				return true;
-
-			// now top side --
-			_tempLineSegment.xLower = _tempMinPoint.x;
-			_tempLineSegment.yLower = _tempMaxPoint.y;
-			_tempLineSegment.xHigher = _tempMaxPoint.x;
-			_tempLineSegment.yHigher = _tempMaxPoint.y;
-			if (lineIntersectsLine(line, _tempLineSegment))
-				return true;
-			
-			// now right side |
-			_tempLineSegment.xLower = _tempMaxPoint.x;
-			_tempLineSegment.yLower = _tempMinPoint.y;
-			_tempLineSegment.xHigher = _tempMaxPoint.x;
-			_tempLineSegment.yHigher = _tempMaxPoint.y;
-			if (lineIntersectsLine(line, _tempLineSegment))
-				return true;
-			
-			// the line doesn't cross an edge and it's not contained within the rectangle
-			return false;
-		}
-		
 		/**
 		 * This function will determine whether the two lines intersect. An intersection is defined
 		 * if the line segments cross at one point--if they are parallel or coincidental, the intersection
-		 * is defined to be false.
+		 * is defined to be false. 
 		 * 
-		 * @param line1 One LineSegment.
-		 * @param line2 The other LineSegment.
+		 * @param x1 X coordinate of A in AB.
+		 * @param y1 Y coordinate of A in AB.
+		 * @param x2 X coordinate of B in AB.
+		 * @param y2 Y coordinate of B in AB.
+		 * @param x3 X coordinate of E in EF.
+		 * @param y3 Y coordinate of E in EF. 
+		 * @param x4 X coordinate of F in EF.
+		 * @param y4 Y coordinate of F in EF.
 		 * @return A boolean indicating true if the lines intersect, and false otherwise.
 		 */
-		public static function lineIntersectsLine(line1:LineSegment, line2:LineSegment):Boolean
+		public static function lineIntersectsLine2(x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number, x4:Number, y4:Number, output:Point = null, ABasSeg:Boolean=true, EFasSeg:Boolean=true):Point
 		{
 			// we have two lines
 			// line1: P1 = line1Begin + s * (line1End - line1Begin) 
@@ -190,107 +139,269 @@ package weave.utils
 			// which is a 2x1 matrix = (2x2 matrix) * (2x1 matrix)
 			// we can invert the 2x2 matrix, multiply both sides by that, and get
 			// the values of s and t
-			var line1Begin:Point = line1.beginPoint;
-			var line1End:Point = line1.endPoint;
-			var line2Begin:Point = line2.beginPoint;
-			var line2End:Point = line2.endPoint;
-			var x1:Number = line1Begin.x; 
-			var x2:Number = line1End.x;
-			var x3:Number = line2Begin.x;
-			var x4:Number = line2End.x;
-			var y1:Number = line1Begin.y;
-			var y2:Number = line1End.y;
-			var y3:Number = line2Begin.y;
-			var y4:Number = line2End.y;
+			var y1minusy3:Number = y1 - y3;
+			var x1minusx3:Number = x1 - x3;
+			var y4minusy3:Number = y4 - y3;
+			var x4minusx3:Number = x4 - x3;
+			var y2minusy1:Number = y2 - y1;
+			var x2minusx1:Number = x2 - x1;
 			
-			var denominator:Number = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1); // the determinant of the 2x2 matrix
+			var denominator:Number = (y4minusy3) * (x2minusx1) - (x4minusx3) * (y2minusy1); // the determinant of the 2x2 matrix
 			
-			// if this is 0, the lines are parallel (inverted matrix => no solution)
+			// if this is 0, the lines are parallel (no inverted matrix => no solution)
 			if (Math.abs(denominator) <= Number.MIN_VALUE) 
-				return false; 
-				
-			var s:Number = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
-			var t:Number = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+				return null; 
 			
-			// if one of these is false, the intersection isn't along the line segments
-			if (s < 0 || s > 1 || t < 0 || t > 1)
-				return false;
+			var s:Number = ((x4minusx3) * (y1minusy3) - (y4minusy3) * (x1minusx3)) / denominator;
+			var t:Number = ((x2minusx1) * (y1minusy3) - (y2minusy1) * (x1minusx3)) / denominator;
 			
-			return true;
-		}
-		
-		/**
-		 * This function will compute the square of the closest distance between a line segment and a point.
-		 * 
-		 * @param line The line segment.
-		 * @param point The point.
-		 * @return The smallest Euclidean distance squared from the point to the line.
-		 */
-		public static function linePointDistanceSq(line:LineSegment, point:Point):Number
-		{
-			var pointA:Point = line.beginPoint;
-			var pointB:Point = line.endPoint;
-			var x1:Number = pointA.x;
-			var y1:Number = pointA.y;
-			var x2:Number = pointB.x;
-			var y2:Number = pointB.y;
-			var x3:Number = point.x;
-			var y3:Number = point.y;
+			var ipx:Number = x1 + s * (x2minusx1);
+			var ipy:Number = y1 + s * (y2minusy1);
 			
-			// solve point = pointA + t(pointB - pointA)
-			//
-			// where the points are treated as vectors
-			// The value of t is a parametrization. If t is in [0,1],
-			// then the normal from the point to the line lies on the line segment
-			// and the distance can be computed trivially.
-			// If t is outside the range, then constrain t to [0,1] and
-			// the distance is from the point to one end of the line segment.
-			
-			// calculate ||pointB - pointA|| squared
-			var p2MinusP1:Point = vectorSubtract(pointB, pointA, _tempVectorPoint);
-			var denominator:Number = vectorDotProduct(p2MinusP1, p2MinusP1);
-			
-			// if denominator is 0, then A and B are the same point--distance between point and A
-			if (denominator <= Number.MIN_VALUE)
+			// if AB or EF is a line segment, ensure the intersection is on the line
+			if (ABasSeg)
 			{
-				return Math.pow(point.x - pointA.x, 2) + Math.pow(point.y - pointA.y, 2); 
+				if ( (x1 < x2) ? (ipx < x1 || x2 < ipx) : (ipx < x2 || x1 < ipx) )
+					return null;
+				if ( (y1 < y2) ? (ipy < y1 || y2 < ipy) : (ipy < y2 || y1 < ipy) )
+            	    return null;
+			}
+			if (EFasSeg)
+			{
+				if ( (x3 < x4) ? (ipx < x3 || x4 < ipx) : (ipx < x4 || x3 < ipx) )
+					return null;
+				if ( (y3 < y4) ? (ipy < y3 || y4 < ipy) : (ipy < y4 || y3 < ipy) )
+            	    return null;
+			}
+			
+			// store output point
+			if (output)
+			{
+				output.x = x1 + s * (x2minusx1);
+				output.y = y1 + s * (y2minusy1);
 			}
 
-			var t:Number = ((x3 - x1) * (x2 - x1) + (y3 - y1) * (y2 - y1)) / denominator;
 			
-			if (t < 0)
-				t = 0;
-			if (t > 1)
-				t = 1;
-			
-			var xFinal:Number = t * p2MinusP1.x;
-			var yFinal:Number = t * p2MinusP1.y;
-			
-			return Math.pow(xFinal - point.x, 2) + Math.pow(yFinal - point.y, 2);
-		}
-		
-		private static function vectorAdd(p1:Point, p2:Point, result:Point):Point
-		{
-			result.x = p1.x + p2.x;
-			result.y = p1.y + p2.y;
-			return result;
-		}
-		private static function vectorSubtract(p1:Point, p2:Point, result:Point):Point
-		{
-			result.x = p1.x - p2.x;
-			result.y = p1.y - p2.y;
-			return result;
-		}
-		private static function vectorDotProduct(p1:Point, p2:Point):Number
-		{
-			return p1.x * p2.x + p1.y * p2.y;
+			return output;
 		}
 			
 		// reusable objects
 		private static const _tempMinPoint:Point = new Point();
 		private static const _tempMaxPoint:Point = new Point();		
 		private static const _tempBounds:IBounds2D = new Bounds2D();
-		private static const _tempLineSegment:LineSegment = new LineSegment();
 		private static const _tempVectorPoint:Point = new Point();
+		
+		/**
+		 * lineIntersectsLine
+		 * This function computes the intersection point of two lines.
+		 * Each line can individually be treated as a segment or an infinite line.
+		 * It is much faster to compute the intersection of infinite lines.
+		 * The algorithm was taken from the following blogs and optimized for speed:
+		 * http://keith-hair.net/blog/2008/08/04/find-intersection-point-of-two-lines-in-as3/
+		 * http://blog.controul.com/2009/05/line-segment-intersection/
+		 * @param Ax X coordinate of A in line AB
+		 * @param Ay Y coordinate of A in line AB
+		 * @param Bx X coordinate of B in line AB
+		 * @param By Y coordinate of B in line AB
+		 * @param Ex X coordinate of E in line EF
+		 * @param Ey Y coordinate of E in line EF
+		 * @param Fx X coordinate of F in line EF
+		 * @param Fy Y coordinate of F in line EF
+		 * @param outputIntersectionPoint A Point object to store the intersection coordinates in
+		 * @param ABasSeg true if you want to treat line AB as a segment, false for an infinite line
+		 * @param EFasSeg true if you want to treat line EF as a segment, false for an infinite line
+		 * @return Either outputIntersectionPoint or a new Point containing the intersection coordinates
+		 */
+		public static function lineIntersectsLine(Ax:Number, Ay:Number, Bx:Number, By:Number, Ex:Number, Ey:Number, Fx:Number, Fy:Number, outputIntersectionPoint:Point=null, ABasSeg:Boolean=true, EFasSeg:Boolean=true):Point
+		{
+			var dy1:Number = By-Ay;
+			var dx1:Number = Ax-Bx;
+			var dy2:Number = Fy-Ey;
+			var dx2:Number = Ex-Fx;
+			var denom:Number = dy1*dx2 - dy2*dx1;
+			if (denom == 0)
+				return null;
+			
+			var c1:Number = Bx*Ay - Ax*By;
+			var c2:Number = Fx*Ey - Ex*Fy;
+			
+			// get the intersection point of the two lines
+			var ipx:Number, ipy:Number;
+			ipx = (dx1*c2 - dx2*c1) / denom;
+			ipy = (dy2*c1 - dy1*c2) / denom;
+
+			// fix rounding errors
+			if (dy1 == 0)
+			{
+				ipy = Ay;
+			}
+			else if (dy2 == 0)
+			{
+				ipy = Ey;
+			}
+			if (dx1 == 0)
+			{
+				ipx = Ax;
+			}
+			else if (dx2 == 0)
+			{
+				ipx = Ex;
+			}
+
+			// if the lines are segments, return null if the intersection falls outside their bounds.
+			if (ABasSeg)
+			{
+				if ( (Ax < Bx) ? (ipx < Ax || Bx < ipx) : (ipx < Bx || Ax < ipx) )
+					return null;
+				if ( (Ay < By) ? (ipy < Ay || By < ipy) : (ipy < By || Ay < ipy) )
+            	    return null;
+			}
+			if (EFasSeg)
+			{
+				if ( (Ex < Fx) ? (ipx < Ex || Fx < ipx) : (ipx < Fx || Ex < ipx) )
+					return null;
+				if ( (Ey < Fy) ? (ipy < Ey || Fy < ipy) : (ipy < Fy || Ey < ipy) )
+            	    return null;
+			}
+			
+			if (outputIntersectionPoint == null)
+				outputIntersectionPoint = new Point();
+			outputIntersectionPoint.x = ipx;
+			outputIntersectionPoint.y = ipy;
+			return outputIntersectionPoint;
+		}
+
+		/**
+		 * polygonOverlapsPolygon
+		 * Optimized for situations where polygon2 is contained in polygon1.
+		 * @param polygon1 An array of objects representing vertices, each having x and y properties.
+		 * @param polygon2 An array of objects representing vertices, each having x and y properties.
+		 * @return true if the polygons overlap
+		 */
+		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):Object
+		{
+			if (polygon1.length == 0 || polygon2.length == 0)
+				return false;
+			var a:Object = polygon2[0];
+			var b:Object;
+			for (var i2:int = polygon2.length - 1; i2 >= 0; i2--)
+			{
+				b = a;
+				a = polygon2[i2];
+				if (polygonIntersectsLine(polygon1, a.x, a.y, b.x, b.y))
+					return true;
+			}
+			// if no lines intersect, check for point containment
+			if (polygonOverlapsPoint(polygon1, a.x, a.y))
+				return true;
+			a = polygon1[0];
+			return polygonOverlapsPoint(polygon2, a.x, a.y);
+		}
+		
+		/**
+		 * polygonIntersectsLine
+		 * @param polygon An array of objects representing vertices, each having x and y properties.
+		 * @param Ax X coordinate of A in line AB
+		 * @param Ay Y coordinate of A in line AB
+		 * @param Bx X coordinate of B in line AB
+		 * @param By Y coordinate of B in line AB
+		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
+		 * @return true if the line intersects the polygon
+		 */
+		public static function polygonIntersectsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Object
+		{
+			if (polygon.length == 0)
+				return false;
+			var c:Object = polygon[0];
+			var d:Object;
+			for (var i:int = polygon.length - 1; i >= 0; i--)
+			{
+				d = c;
+				c = polygon[i];
+				if (lineIntersectsLine(Ax, Ay, Bx, By, c.x, c.y, d.x, d.y, tempPoint, asSegment) != null)
+					return true;
+			}
+			return false;
+		}
+
+		/**
+		 * polygonOverlapsPoint
+		 * @param polygon An array of objects representing vertices, each having x and y properties.
+		 * @param x The x coordinate of the point to test for containment.
+		 * @param y The y coordinate of the point to test for containment.
+		 * @return true if the polygon contains the point.
+		 */
+		public static function polygonOverlapsPoint(polygon:Object, x:Number, y:Number):Boolean
+		{
+			if (polygon.length == 0)
+				return false;
+			var riCount:int = 0; // number of ray intersections
+			var riIndex:int; // ray intersection index
+			var segSide:int;
+			var Ax:Number = polygon[0].x;
+			var Ay:Number = polygon[0].y;
+			var Bx:Number;
+			var By:Number;
+			// loop through the segments of the polygon
+			for (var pointIndex:int = polygon.length - 1; pointIndex >= 0; pointIndex--)
+			{
+				Bx = Ax;
+				By = Ay;
+				Ax = polygon[pointIndex].x;
+				Ay = polygon[pointIndex].y;
+
+				// get intersection of segment AB and a horizontal ray passing through (x,y), then check if the intersection is >= x
+				if (Ay != By && lineIntersectsLine(x, y, x + 1, y, Ax, Ay, Bx, By, tempPoint, false) != null && tempPoint.x >= x)
+				{
+					// if the intersection is on an endpoint of segment AB, determine if the segment is above or below the ray
+					if (tempPoint.y == Ay && tempPoint.x == Ax)
+						segSide = ObjectUtil.numericCompare(tempPoint.y, By);
+					else if (tempPoint.y == By && tempPoint.x == Bx)
+						segSide = ObjectUtil.numericCompare(tempPoint.y, Ay);
+					else
+						segSide = 0;
+					// if intersection is an endpoint of segment AB, check if this intersection has already been recorded
+					if (segSide != 0)
+						for (riIndex = 0; riIndex < riCount; riIndex++) // loop through previously recorded intersections
+							if (riXcoords[riIndex] == tempPoint.x && riYcoords[riIndex] == tempPoint.y) // if coords match...
+								if (riSegSide[riIndex] == -segSide) // and previous segment was on the opposite side of the ray...
+									break; // don't count this duplicate intersection point
+					// if the above loop was not ended with break, or the intersection was not an endpoint of segment AB...
+					if (riIndex == riCount || segSide == 0)
+					{
+						// record the intersection
+						riXcoords[riCount] = tempPoint.x;
+						riYcoords[riCount] = tempPoint.y;
+						riSegSide[riCount] = segSide;
+						riCount++;
+					}
+				}
+			}
+			// an odd number of intersections means the point is inside the polygon
+			return (riCount % 2 == 1);
+		}
+
+		/**
+		 * @param ax The X coordinate of point A
+		 * @param ay The Y coordinate of point A
+		 * @param bx The X coordinate of point B
+		 * @param by The Y coordinate of point B
+		 * @param cx The X coordinate of point C
+		 * @param cy The Y coordinate of point C
+		 * @return The distance from the line passing through A and B to the point C
+		 */
+		public function getDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
+		{
+			var dx:Number = bx-ax;
+			var dy:Number = by-ay;
+			var dd:Number = Math.sqrt(dx*dx+dy*dy);
+			return Math.abs((cx - ax)*(dy/dd) - (cy - ay)*(dx/dd));
+		}
+
+		// reusable temporary objects to reduce GC activity:
+		private static const tempPoint:Point = new Point();
+		private static const riXcoords:Array = []; // ray intersection coords
+		private static const riYcoords:Array = []; // ray intersection coords
+		private static const riSegSide:Array = []; // each value is -1 or 1 depending on if segment was completely above or below the ray, 0 if neither	
 	}
 }

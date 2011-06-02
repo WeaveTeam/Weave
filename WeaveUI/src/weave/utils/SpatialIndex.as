@@ -20,24 +20,26 @@
 package weave.utils
 {
 	import flash.geom.Point;
+	import flash.ui.KeyLocation;
 	import flash.utils.Dictionary;
+	import flash.utils.clearTimeout;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
-	import weave.api.ui.ISpatialIndexImplementation;
 	import weave.core.CallbackCollection;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.Geometry;
 	import weave.primitives.KDTree;
-	import weave.primitives.LineRay;
-	import weave.primitives.LineSegment;
 	import weave.visualization.plotters.DynamicPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
 	
@@ -51,17 +53,19 @@ package weave.utils
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
-		// This class acts as both a facade and a bridge/adapter to the ISpatialIndexImplementation
-		// It may be better to fully replace it as it serves no special purpose right now
+		/*
+		 * This class currently handles bounds. It can easily be extended to handle 
+		 * arbitrary polygons by modifying the query functions near the bottom. 
+		 */
+		
+		
 		public function SpatialIndex(callback:Function = null, callbackParameters:Array = null)
 		{
 			addImmediateCallback(this, callback, callbackParameters);
 		}
 
-		/**
-		 * This is the implementation of an index for a specific IPlotter.
-		 */
-		private var _indexImplementation:ISpatialIndexImplementation = null;
+		private var _kdTree:KDTree = new KDTree(5);
+		private var _keyToBoundsMap:Dictionary = new Dictionary();
 		
 		/**
 		 * collectiveBounds
@@ -76,7 +80,12 @@ package weave.utils
 		 */
 		public function getBoundsFromKey(key:IQualifiedKey):Array
 		{
-			return _indexImplementation.getBoundsFromKey(key);
+			var result:Array = _keyToBoundsMap[key] as Array;
+			
+			if (result == null)
+				result = [];
+			
+			return result;
 		}
 		
 		/**
@@ -93,12 +102,11 @@ package weave.utils
 		 */
 		public function get recordCount():int
 		{
-			if (_indexImplementation)
-				return _indexImplementation.getRecordCount();
-			else
-				return 0;
+			return _kdTree.nodeCount;
 		}
 
+		private var _keyToGeometriesMap:Dictionary = new Dictionary();
+		
 		/**
 		 * This function fills the spatial index with the data bounds of each record in a plotter.
 		 * 
@@ -108,13 +116,19 @@ package weave.utils
 		{
 			delayCallbacks();
 						
-			_indexImplementation = SpatialIndexFactory.getImplementation(plotter);
-
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
 			
-			tempBounds.copyFrom(collectiveBounds);
+			if (plotter is DynamicPlotter)
+			{
+				if ((plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
+					_keyToGeometriesMap = new Dictionary();
+				else 
+					_keyToGeometriesMap = null;
+			}
+			
+			_tempBounds.copyFrom(collectiveBounds);
 
 			clear();
 			
@@ -130,11 +144,14 @@ package weave.utils
 				while (--i > -1)
 				{
 					key = _keysArray[i] as IQualifiedKey;
-					_indexImplementation.cacheKey(key);
+					_keyToBoundsMap[key] = plotter.getDataBoundsFromRecordKey(key);
+					
+					if (_keyToGeometriesMap != null)
+						_keyToGeometriesMap[key] = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 				}
 
 				// if auto-balance is disabled, randomize insertion order
-				if (!_indexImplementation.getAutoBalance())
+				if (!_kdTree.autoBalance)
 				{
 					// randomize the order of the shapes to avoid a possibly poorly-performing
 					// KDTree structure due to the given ordering of the records
@@ -145,23 +162,21 @@ package weave.utils
 				while (--i > -1)
 				{
 					key = _keysArray[i] as IQualifiedKey;
-					for each (bounds in _indexImplementation.getBoundsFromKey(key))
+					for each (bounds in getBoundsFromKey(key))
 					{
 						// do not index shapes with undefined bounds
 						//TODO: index shapes with missing bounds values into a different index
 						if (!bounds.isUndefined())
 						{
-							_indexImplementation.insertKey(bounds, key);
+							_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
 							collectiveBounds.includeBounds(bounds);
 						}
 					}
 				}
 			}
 			
-			_indexImplementation.setKeySource(_keysArray);
-			
 			// if there are keys
-			if (_keysArray.length > 0 || !tempBounds.equals(collectiveBounds))
+			if (_keysArray.length > 0 || !_tempBounds.equals(collectiveBounds))
 				triggerCallbacks();
 			
 			resumeCallbacks();
@@ -178,36 +193,170 @@ package weave.utils
 				triggerCallbacks();
 			
 			_keysArray.length = 0;
-			if (_indexImplementation)
-				_indexImplementation.clearTree();
+			_kdTree.clear();
 			collectiveBounds.reset();
 
 			resumeCallbacks();
 		}
 
+		
 		/**
+		 * This function will get all keys whose collective bounds overlap the given bounds.
+		 * 
 		 * @param bounds A bounds used to query the spatial index.
 		 * @return An array of keys with bounds that overlap the given bounds.
 		 */
 		public function getOverlappingKeys(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			// INEXACT
-			if (_indexImplementation == null)
-				return [];
-			return _indexImplementation.getKeysInRectangularRange(bounds, minImportance);
+			// This is a filter for bounding boxes and should be used for getting fast results
+			// during panning and zooming.
+			
+			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
+			minKDKey[XMAX_INDEX] = bounds.getXNumericMin(); // enforce result.XMAX >= query.xNumericMin
+			minKDKey[YMAX_INDEX] = bounds.getYNumericMin(); // enforce result.YMAX >= query.yNumericMin
+			minKDKey[IMPORTANCE_INDEX] = minImportance; // enforce result.IMPORTANCE >= minImportance
+			// set the maximum query values for shape.bounds.xMin, shape.bounds.yMin
+			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax(); // enforce result.XMIN <= query.xNumericMax
+			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
+			
+			return _kdTree.queryRange(minKDKey, maxKDKey);
 		}
 		
 		/**
+		 * This function will get the keys which intersect with the bounds.
+		 * 
 		 * @param bounds A bounds used to query the spatial index.
 		 * @return An array of keys with bounds that overlap the given bounds.
 		 */
 		public function getKeysContainingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			// EXACT
-			if (_indexImplementation == null)
-				return [];
-			return _indexImplementation.getKeysContainingBounds(bounds, 1, minImportance);
-		}
+			// first get the keys whose collective bounds overlap the bounds
+			var keys:Array = getOverlappingKeys(bounds, 0);
+			
+			// if there are 0 keys or this index isn't for a IPlotterWithGeometries, return the keys
+			if (keys.length == 0 || _keyToGeometriesMap == null)
+				return keys;
+			
+			// define the bounds as a polygon
+			var xMin:Number = bounds.getXMin();
+			var yMin:Number = bounds.getYMin();
+			var xMax:Number = bounds.getXMax();
+			var yMax:Number = bounds.getYMax();
+			_tempBoundsPolygon[0].x = xMin; _tempBoundsPolygon[0].y = yMin;
+			_tempBoundsPolygon[1].x = xMin; _tempBoundsPolygon[1].y = yMax;
+			_tempBoundsPolygon[2].x = xMax; _tempBoundsPolygon[2].y = yMax;
+			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
+			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
+
+			var result:Array = [];
+
+			// for each key, look up its geometries 
+			keyLoop: for (var i:int = keys.length - 1; i >= 0; --i)
+			{
+				var key:IQualifiedKey = keys[i];
+				var geoms:Array = _keyToGeometriesMap[key];
+
+				// for each geometry, get vertices, check type, and do proper geometric overlap
+				for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
+				{
+					var geom:Object = geoms[iGeom];
+
+					if (geom is GeneralizedGeometry)
+					{
+						var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
+						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, bounds);
+						
+						// for each part, build the vertices polygon and check for the overlap
+						for (var iPart:int = 0; iPart < simplifiedGeom.length; ++iPart)
+						{
+							_tempGeometryPolygon.length = 0;
+							
+							var part:Vector.<BLGNode> = simplifiedGeom[iPart];
+							if (part.length == 0)
+								continue;
+							
+							for (var iNode:int = 0; iNode < part.length; ++iNode)
+								_tempGeometryPolygon.push(part[iNode]);
+							_tempGeometryPolygon.push(part[0]);
+							
+							switch (genGeom.geomType)
+							{
+								case GeneralizedGeometry.GEOM_TYPE_LINE:
+									if (ComputationalGeometryUtils.polygonIntersectsLine(
+										_tempBoundsPolygon, /* polygon */ 
+										_tempGeometryPolygon[0].x, _tempGeometryPolygon[0].y, /* point A on AB */
+										_tempGeometryPolygon[1].x, _tempGeometryPolygon[1].y /* point B on AB */ ))
+									{
+										result.push(key);
+										continue keyLoop;
+									}
+									break;
+								
+								case GeneralizedGeometry.GEOM_TYPE_POINT:
+									if (ComputationalGeometryUtils.polygonOverlapsPoint(
+										_tempBoundsPolygon, /* polygon */ 
+										_tempGeometryPolygon[0].x, _tempGeometryPolygon[0].y /* point */))
+									{
+										result.push(key);
+										continue keyLoop;
+									}
+									break;
+								
+								case GeneralizedGeometry.GEOM_TYPE_POLYGON:
+									if (ComputationalGeometryUtils.polygonOverlapsPolygon(
+										_tempBoundsPolygon, /* bounds polygon */
+										_tempGeometryPolygon /* vertices polygon */ ))
+									{
+										result.push(key);
+										continue keyLoop;
+									}
+									break;
+								
+							}
+						}
+					}
+					else // NOT a generalized geometry
+					{
+						var vertices:Array = (geom as ISimpleGeometry).getVertices();
+						
+						if (geom.isLine())
+						{
+							if (ComputationalGeometryUtils.polygonIntersectsLine(
+								_tempBoundsPolygon, /* polygon */ 
+								vertices[0].x, vertices[0].y, /* point A on AB */
+								vertices[1].x, vertices[1].y /* point B on AB */ ))
+							{
+								result.push(key);
+								continue keyLoop;
+							}
+						}
+						else if (geom.isPoint())
+						{
+							if (ComputationalGeometryUtils.polygonOverlapsPoint(
+								_tempBoundsPolygon, /* polygon */ 
+								vertices[0].x, vertices[0].y /* point */))
+							{
+								result.push(key);
+								continue keyLoop;
+							}
+						}
+						else // polygon
+						{
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(
+								_tempBoundsPolygon, /* bounds polygon */
+								_tempGeometryPolygon /* vertices polygon */ ))
+							{
+								result.push(key);
+								continue keyLoop;
+							}
+						}	
+					}
+				
+				} // end for each (var geom...
+			} // end for each (var key...
+
+			return result;
+		} // end function
 		
 		/**
 		 * This function will return the keys closest to the center of the bounds object.
@@ -218,13 +367,106 @@ package weave.utils
 		 * @return An array of keys with bounds that overlap the given bounds and are closest to the center of the given bounds.
 		 */
 		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
-		{
-			if (_indexImplementation == null)
-				return [];
-			return _indexImplementation.getClosestOverlappingKeys(bounds, true, xPrecision, yPrecision);
+		{			
+			var keys:Array = getOverlappingKeys(bounds, 0);
+			
+			// some function for the old code?
+			if (_keyToGeometriesMap == null)
+				return keys;
+			
+			var xQueryCenter:Number = bounds.getXCenter();
+			var yQueryCenter:Number = bounds.getYCenter();
+			var importance:Number = (isNaN(xPrecision) || isNaN(yPrecision)) ? 0 : xPrecision * yPrecision;
+			var result:Array = [];
+			
+			// define the bounds as a polygon
+			var xMin:Number = bounds.getXMin();
+			var yMin:Number = bounds.getYMin();
+			var xMax:Number = bounds.getXMax();
+			var yMax:Number = bounds.getYMax();
+			_tempBoundsPolygon[0].x = xMin; _tempBoundsPolygon[0].y = yMin;
+			_tempBoundsPolygon[1].x = xMin; _tempBoundsPolygon[1].y = yMax;
+			_tempBoundsPolygon[2].x = xMax; _tempBoundsPolygon[2].y = yMax;
+			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
+			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
+			
+			keyLoop: for (var iKey:int = keys.length - 1; iKey >= 0; --iKey)
+			{
+				var key:IQualifiedKey = keys[iKey];
+				var geoms:Array = _keyToGeometriesMap[key];
+				// for each geom, check if one of its parts contains the point using ray casting
+				for (var iGeom:int = geoms.length - 1; iGeom >= 0; --iGeom)
+				{
+					// the current geometry
+					var geom:Object = geoms[iGeom];
+
+					if (geom is GeneralizedGeometry)
+					{
+						// get the simplified geometry as a vector of parts
+						var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds); 
+						
+						for (var iPart:int = simplifiedGeom.length - 1; iPart >= 0; --iPart)
+						{
+							var currentPart:Vector.<BLGNode> = simplifiedGeom[iPart];
+							
+							if (currentPart.length == 0) 
+								continue;
+							
+							_tempGeometryPolygon.length = 0;						
+							for each (var node:BLGNode in currentPart)
+								_tempGeometryPolygon.push(node);
+							_tempGeometryPolygon.push(currentPart[0]);
+							if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempGeometryPolygon, xQueryCenter, yQueryCenter))
+							{
+								result.push(key);
+								break keyLoop;							
+							}
+						} // end part loop
+					} // end if ( geom is gen...)
+					else // not a generalized geometry
+					{
+						var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
+						var vertices:Array = simpleGeom.getVertices();
+						
+						if (simpleGeom.isPolygon())
+						{
+							if (ComputationalGeometryUtils.polygonOverlapsPoint(
+								vertices, /* polygon */ 
+								xQueryCenter, yQueryCenter /* point */))
+							{
+								result.push(key);
+								break keyLoop;
+							}
+						}
+					}
+					
+					
+				} // end geom loop
+			} // end key loop
+			
+			return result;		
 		}
 		
+		/**
+		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
+		 */
+		private const XMIN_INDEX:int = 0, YMIN_INDEX:int = 1;
+		private const XMAX_INDEX:int = 2, YMAX_INDEX:int = 3;
+		private const IMPORTANCE_INDEX:int = 4;
+		
+		/**
+		 * These KDKey arrays are created once and reused to avoid unnecessary creation of objects.
+		 * The only values that change are the ones that are undefined here.
+		 */
+		private var minKDKey:Array = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN, NaN, 0];
+		private var maxKDKey:Array = [NaN, NaN, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+
+		
 		// reusable temporary objects
-		private static const tempBounds:IBounds2D = new Bounds2D();
+		private const _tempBounds:IBounds2D = new Bounds2D();
+		private const _tempArray:Array = [];
+		private const _tempBoundsPolygon:Array = [new Point(), new Point(), new Point(), new Point(), new Point()];
+		private const _tempGeometryPolygon:Array = [];
+		private const _tempVertices:Array = [];
 	}
 }

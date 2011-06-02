@@ -68,13 +68,14 @@ package weave.api.ui
 		function get keySet():IFilteredKeySet;
 		
 		/**
-		 * This function provides a mapping from a record key to an Array of geometric objects, specified
+		 * This function provides a mapping from a record key to an Array of bounds objects, specified
 		 * in data coordinates, that cover the bounds associated with that record key.
 		 * The simplest geometric object supported is Bounds2D.  Other objects may be supported in future versions.
 		 * @param recordKey The key of a data record.
 		 * @return An Array of geometric objects, in data coordinates, that cover the bounds associated with the record key.
 		 */
 		function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array;
+
 		
 		/**
 		 * Draws the graphics for a list of records onto a sprite.

@@ -70,10 +70,11 @@
     <classEntry path="weave.api.ui.IPlotter"/>
     <classEntry path="weave.api.ui.IProbeDisplay"/>
     <classEntry path="weave.api.ui.ISpatialIndex"/>
-    <classEntry path="weave.api.ui.ISpatialIndexImplementation"/>
     <classEntry path="weave.api.ui.IZoomView"/>
     <classEntry path="weave.api.unlinkBindableProperty"/>
     <classEntry path="weave.api.unlinkSessionState"/>
+    <classEntry path="weave.api.data.ISimpleGeometry"/>
+    <classEntry path="weave.api.ui.IPlotterWithGeometries"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
