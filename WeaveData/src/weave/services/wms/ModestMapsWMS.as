@@ -290,9 +290,9 @@ package weave.services.wms
 			else if (_mapProvider is YahooOverlayMapProvider)
 				maxZoom = 20;
 			else if (_mapProvider is OpenMapQuestProvider)
-				maxZoom = 16;
+				maxZoom = 15;
 			else if (_mapProvider is OpenMapQuestAerialProvider)
-				maxZoom = 8;
+				maxZoom = 7;
 			
 			
 			// very few providers have a zoom of 0, so the loop starts at 1 to prevent enforcement later

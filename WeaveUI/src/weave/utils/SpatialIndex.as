@@ -24,6 +24,8 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.clearTimeout;
 	
+	import weave.Weave;
+	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -40,6 +42,7 @@ package weave.utils
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.Geometry;
 	import weave.primitives.KDTree;
+	import weave.ui.probing.WeaveProbeTemplate;
 	import weave.visualization.plotters.DynamicPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
 	
@@ -237,8 +240,8 @@ package weave.utils
 			if (keys.length == 0)
 				return keys;
 			
-			// if 
-			if (_keyToGeometriesMap == null)
+			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
+			if (_keyToGeometriesMap == null || Weave.properties.enableLegacyProbing.value == true)
 				return keys;
 			
 			// define the bounds as a polygon
@@ -387,8 +390,8 @@ package weave.utils
 			if (keys.length == 0)
 				return keys;
 			
-			// if this index is not for an IPlotterWithGeometries, do the old function
-			if (_keyToGeometriesMap == null)
+			// if this index is not for an IPlotterWithGeometries OR the user wants legacy probing, do the old function
+			if (_keyToGeometriesMap == null || Weave.properties.enableLegacyProbing.value == true)
 				return getClosestKeys(keys, bounds, xPrecision, yPrecision);
 
 			// calculate the importance value
