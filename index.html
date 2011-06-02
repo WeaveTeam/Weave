@@ -7,7 +7,9 @@
 
 	<meta name="keywords" content="" />
 	<meta name="description" content="" />
-
+	<script src="jquery.js" type="text/javascript" charset="utf-8"></script>
+	<link rel="stylesheet" href="prettyPhoto.css" type="text/css" media="screen" charset="utf-8" />
+	<script src="jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
 	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" media="all" /> 
 	<!--<link rel="stylesheet" type="text/css" href="resume.css" media="all" />-->
 	<style type="text/css">
@@ -75,6 +77,12 @@ a#pdf:hover { background: #222; }
 	</style>
 
 </head>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function(){
+    $("a[rel^='prettyPhoto']").prettyPhoto({theme:'light_square',social_tools:false});
+  });
+</script>
+
 <body>
 
 <div id="doc2" class="yui-t7">
@@ -107,25 +115,92 @@ a#pdf:hover { background: #222; }
 							<p class="enlarge">
 								Weave is a new web-based visualization platform designed to enable visualization of any available data by anyone for any purpose. Weave is an application development platform supporting multiple levels of user proficiency &ndash; novice to advanced  &ndash; as well as the ability to integrate, disseminate and visualize data at &ldquo;nested&rdquo; levels of geography.  
 							</p>
+							<p class="enlarge">Please check the information below for demos, download and documentation</p>
 							<br/>
-							<p class="enlarge">
+							
+						</div>
+					</div><!--// .yui-gf -->
+					
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Demo</h2>
+						</div>
+						<div class="yui-u">
+								<h3>{Click to see video}</h3>
+								<br/>
+								
+								<div class="talent">
+									<h2><a href="http://www.youtube.com/watch?v=E9o7AXkzyc4" rel="prettyPhoto" style="color:#990003;">US Obeisty</a></h2>
+								</div>
+
+								<div class="talent">
+									<h2><a href="http://www.youtube.com/watch?v=HZhy7FJRJV0" rel="prettyPhoto">UK Elections</a></h2>
+								</div>
+						</div>
+					</div><!--// .yui-gf -->
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Screenshots</h2>
+							
+						</div>
+						<div class="yui-u">
+								<h3>{Click image to see larger view}</h3>
+								<br/>
+								<div class="talent">
+									<a title="US demographics by county" href="us_county_data.jpg" rel="prettyPhoto"><img src="us_county_data_thumbnail.png"/></a>
+									<p>US demographics by county</p>
+								</div>
+
+								<div class="talent">
+									<a title="Foreclosures in Lowell Massachusetts" href="Lowell2.jpeg" rel="prettyPhoto"><img src="Lowell2_thumbnail.png"/></a>
+									<p>Foreclosures in Lowell Massachusetts</p>
+								</div>
+								<div class="talent">
+									<a title="The UN Millennium Development Goals in Weave, with an automatic regression line on the scatterplot." href="world_employment.jpg" rel="prettyPhoto"><img src="world_employment_thumbnail.png"/></a>
+									<p>The UN Millennium Development Goals in Weave, with an automatic regression line on the scatterplot.</p>
+								</div>
+
+								<div class="talent">
+									<a title="Using WMS to overlay sattelite images in Map tool" href="World_WMS.jpeg" rel="prettyPhoto"><img src="World_WMS_thumbnail.png"/></a>
+									<p>Using WMS to overlay sattelite images in Map tool</p>
+								</div>
+
+								<div class="talent">
+									<a title="Advanced shape streaming to support parcel level data" href="Lowell Parcel1.jpeg" rel="prettyPhoto"><img src="Lowell Parcel1_thumbnail.png"/></a>
+									<p>Advanced shape streaming to support parcel level data</p>
+								</div>
+						
+								
+						</div>
+					</div><!--// .yui-gf -->
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Download</h2>
+						</div>
+						<div class="yui-u">
+								<p class="enlarge">
 							The Weave core code is being released under the GNU General Public License version 3 (GPLv3), and the Weave API under the Mozilla Public License (MPL v 1.1).The code is available for download now at <a target="_blank" href="http://www.github.com/IVPR/Weave">GitHub</a>. Check the links below for documentation and demo videos. 
 							</p>
 						</div>
 					</div><!--// .yui-gf -->
-
+					
 					<div class="yui-gf">
 						<div class="yui-u first">
 							<h2>Installation</h2>
 						</div>
 						<div class="yui-u">
 							<ul class="talent">
-								<li>Setting up in Linux</li>
-								<p></p>
+								<li><h3>Setting up in Windows</h3></li>
+								<p><a href="http://www.scribd.com/doc/56862995/Overview-of-Weave-Setup-for-Windows" target="_blank"> Overview of Weave Setup</a></p>
+								<p><a href="http://www.scribd.com/doc/56862097/Setting-Up-MySQL-in-Windows" target="_blank">Setting Up MySQL</a></p>
+								<p><a href="http://www.scribd.com/doc/56862086/Setting-Up-Java-for-Windows" target="_blank">Setting Up Java</a></p>
+								<p><a href="http://www.scribd.com/doc/56862102/Setting-Up-Tomcat-in-Windows" target="_blank">Setting Up Tomcat</a></p>
+								<p><a href="http://www.scribd.com/doc/56862082/Setting-Up-Flash-Player-for-Windows" target="_blank">Setting Up Flash Player</a></p>
+								<p><a href="http://www.scribd.com/doc/56862105/Setting-Up-Weave-files-in-Windows" target="_blank">Setting Up Weave files</a></p>
 								
 							</ul>
 							<ul class="talent">
-								<li>Setting up in Linux</li>
+								<li><h3>Setting up in Linux</h3></li>
 								<p><a href="http://www.scribd.com/doc/56864429/Overview-of-Weave-Setup-for-Linux" target="_blank"> Overview of Weave Setup</a></p>
 								<p><a href="http://www.scribd.com/doc/56864422/Setting-Up-MySQL-on-Linux" target="_blank">Setting Up MySQL</a></p>
 								<p><a href="http://www.scribd.com/doc/56864420/Setting-Up-Java-for-Linux" target="_blank">Setting Up Java</a></p>
@@ -135,8 +210,8 @@ a#pdf:hover { background: #222; }
 							</ul>
 							
 							<ul class="talent">
-								<li>Setting up in Mac</li>
-								<p>Blah</p>
+								<li><h3>Setting up in Mac</h3></li>
+								<p>Will be added soon.</p>
 								
 							</ul>
 						</div>
@@ -147,47 +222,22 @@ a#pdf:hover { background: #222; }
 							<h2>Tutorials</h2>
 						</div>
 						<div class="yui-u">
-
+						<p>Video tutorials to be uploaded soon..</p>
 								<div class="talent">
-									<h2>Web Design</h2>
-									<p>Assertively exploit wireless initiatives rather than synergistic core competencies.	</p>
-								</div>
-
-								<div class="talent">
-									<h2>Interface Design</h2>
-									<p>Credibly streamline mission-critical value with multifunctional functionalities.	 </p>
-								</div>
-
-								<div class="talent">
-									<h2>Project Direction</h2>
-									<p>Proven ability to lead and manage a wide variety of design and development projects in team and independent situations.</p>
-								</div>
-								<div class="talent">
-									<h2>Web Design</h2>
-									<p>Assertively exploit wireless initiatives rather than synergistic core competencies.	</p>
-								</div>
-
-								<div class="talent">
-									<h2>Interface Design</h2>
-									<p>Credibly streamline mission-critical value with multifunctional functionalities.	 </p>
-								</div>
-
-								<div class="talent">
-									<h2>Project Direction</h2>
-									<p>Proven ability to lead and manage a wide variety of design and development projects in team and independent situations.</p>
+								
 								</div>
 						</div>
 					</div><!--// .yui-gf -->
 
 					
 
-					<div class="yui-gf">
+					<!--<div class="yui-gf">
 	
 						<div class="yui-u first">
 							<h2>Experience</h2>
 						</div><!--// .yui-u -->
 
-						<div class="yui-u">
+						<!--<div class="yui-u">
 
 							<div class="job">
 								<h2>Facebook</h2>
@@ -219,10 +269,10 @@ a#pdf:hover { background: #222; }
 							</div>
 
 						</div><!--// .yui-u -->
-					</div><!--// .yui-gf -->
+					<!--</div>--><!--// .yui-gf -->
 
 
-					<div class="yui-gf last">
+					<!--<div class="yui-gf last">
 						<div class="yui-u first">
 							<h2>Education</h2>
 						</div>
@@ -238,7 +288,7 @@ a#pdf:hover { background: #222; }
 		</div><!--// bd -->
 
 		<div id="ft">
-			<p>Jonathan Doe &mdash; <a href="mailto:name@yourdomain.com">name@yourdomain.com</a> &mdash; (313) - 867-5309</p>
+			<p>Weave - University of Massachusetts Lowell - Open Indicators Consortium</p>
 		</div><!--// footer -->
 
 	</div><!-- // inner -->
