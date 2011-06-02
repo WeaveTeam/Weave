@@ -476,7 +476,7 @@ package weave.visualization.layers
 				_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
 				_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
 			}
-			getCallbackCollection(_plotLayer.probeFilter).addGroupedCallback(this, updateProbeLines, false, [xAxisToPlot,yAxisToPlot,labelFunction, labelFunctionX]);
+			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xAxisToPlot,yAxisToPlot,labelFunction, labelFunctionX], false);
 		}
 		
 		/**
