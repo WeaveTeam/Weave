@@ -1,83 +1,251 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
-  <meta charset='utf-8'>
 
-  <title>IVPR/Weave @ GitHub</title>
+	<title>Weave (Web-based Analysis and Visualization Environment)</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
-  <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #54b3e2;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #000000;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-    h1 { font-size: 3.8em; color: #ab4c1d; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #ab4c1d; }
-    h3 { text-align: center; color: #ab4c1d; }
-    a { color: #ab4c1d; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-  </style>
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" media="all" /> 
+	<!--<link rel="stylesheet" type="text/css" href="resume.css" media="all" />-->
+	<style type="text/css">
+	
+.msg { padding: 10px; background: #222; position: relative; }
+.msg h1 { color: #fff;  }
+.msg a { margin-left: 20px; background: #408814; color: white; padding: 4px 8px; text-decoration: none; }
+.msg a:hover { background: #266400; }
+
+
+body { font-family: Georgia; color: #444; }
+#inner { padding: 10px 80px; margin: 80px auto; background: #f5f5f5; border: solid #666; border-width: 8px 0 2px 0; }
+.yui-gf { margin-bottom: 2em; padding-bottom: 2em; border-bottom: 1px solid #ccc; }
+
+
+#hd { margin: 2.5em 0 3em 0; padding-bottom: 1.5em; border-bottom: 1px solid #ccc }
+#hd h2 { letter-spacing: 2px; }
+#bd, #ft { margin-bottom: 2em; }
+
+
+#ft { padding: 1em 0 5em 0; font-size: 92%; border-top: 1px solid #ccc; text-align: center; }
+#ft p { margin-bottom: 0; text-align: center;   }
+
+
+#hd h1 { font-size: 48px; letter-spacing: 3px; }
+h2 { font-size: 152% }
+h3, h4 { font-size: 122%; }
+h1, h2, h3, h4 { color: #333; }
+p { font-size: 100%; line-height: 18px; padding-right: 3em; }
+a { color: #990003 }
+a:hover { text-decoration:none;}
+strong { font-weight: bold; }
+li { line-height: 24px; border-bottom: 1px solid #ccc; }
+p.enlarge { font-size: 144%; padding-right: 6.5em; line-height: 24px; }
+p.enlarge span { color: #000 }
+.contact-info { margin-top: 7px; }
+.first h2 { font-style: italic; }
+.last { border-bottom: 0 }
+
+
+
+
+a#pdf { display: block; float: left; background: #666; color: white; padding: 6px 50px 6px 12px; margin-bottom: 6px; text-decoration: none;  }
+a#pdf:hover { background: #222; }
+
+.job { position: relative; margin-bottom: 1em; padding-bottom: 1em; border-bottom: 1px solid #ccc; }
+.job h4 { position: absolute; top: 0.35em; right: 0 }
+.job p { margin: 0.75em 0 3em 0; }
+
+.last { border: none; }
+.skills-list {  }
+.skills-list ul { margin: 0; }
+.skills-list li { margin: 3px 0; padding: 3px 0; }
+.skills-list li span { font-size: 152%; display: block; margin-bottom: -2px; padding: 0 }
+.talent { width: 32%; float: left }
+.talent h2 { margin-bottom: 6px; }
+
+#srt-ttab { margin-bottom: 100px; text-align: center;  }
+#srt-ttab img.last { margin-top: 20px }
+
+
+.yui-gf .yui-u{width:80.2%;}
+.yui-gf div.first{width:12.3%;}
+
+	</style>
+
 </head>
-
 <body>
-  <a href="http://github.com/IVPR/Weave"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
-  <div id="container">
+<div id="doc2" class="yui-t7">
+	<div id="inner">
+	
+		<div id="hd">
+			<div class="yui-gc">
+				<div  style="width:75%;" class="yui-u first">
+					<h1>Weave</h1>
+					<h2>Web-based Analysis and Visualization Environment</h2>
+				</div>
 
-    <div class="download">
-      <a href="http://github.com/IVPR/Weave/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/IVPR/Weave/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
+				<div  style="width:20%;" class="yui-u">
+					<div class="contact-info">
+						<a target="_blank" href="http://www.github.com/IVPR/Weave"><img src="github.png" /></a>
+					</div><!--// .contact-info -->
+				</div>
+			</div><!--// .yui-gc -->
+		</div><!--// hd -->
 
-    <h1><a href="http://github.com/IVPR/Weave">Weave</a>
-      <span class="small">by <a href="http://github.com/IVPR">IVPR</a></span></h1>
+		<div id="bd">
+			<div id="yui-main">
+				<div class="yui-b">
 
-    <div class="description">
-      Weave (Web-based Analysis and Visualization Environment)
-    </div>
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>About</h2>
+						</div>
+						<div class="yui-u">
+							<p class="enlarge">
+								Weave is a new web-based visualization platform designed to enable visualization of any available data by anyone for any purpose. Weave is an application development platform supporting multiple levels of user proficiency &ndash; novice to advanced  &ndash; as well as the ability to integrate, disseminate and visualize data at &ldquo;nested&rdquo; levels of geography.  
+							</p>
+							<br/>
+							<p class="enlarge">
+							The Weave core code is being released under the GNU General Public License version 3 (GPLv3), and the Weave API under the Mozilla Public License (MPL v 1.1).The code is available for download now at <a target="_blank" href="http://www.github.com/IVPR/Weave">GitHub</a>. Check the links below for documentation and demo videos. 
+							</p>
+						</div>
+					</div><!--// .yui-gf -->
 
-    <p>main Project test</p><h2>Dependencies</h2>
-<p>Dependencies</p>
-<h2>Install</h2>
-<p>Installation Instructions go here</p>
-<h2>License</h2>
-<p>Code License</p>
-<h2>Authors</h2>
-<p>adufilie (adufilie@cs.uml.edu)<br/>Kyle Monico (gr8kmm@gmail.com)<br/>kmanohar (krithika16@gmail.com)<br/>Mary Beth Smrtic (mbsmrtic@gmail.com)<br/>Sebastin Kolman (saby83@gmail.com)<br/><br/>      </p>
-<h2>Contact</h2>
-<p>UMass Lowell IVPR (andy.dufilie@gmail.com)<br/>      </p>
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Installation</h2>
+						</div>
+						<div class="yui-u">
+							<ul class="talent">
+								<li>Setting up in Linux</li>
+								<p></p>
+								
+							</ul>
+							<ul class="talent">
+								<li>Setting up in Linux</li>
+								<p><a href="http://www.scribd.com/doc/56864429/Overview-of-Weave-Setup-for-Linux" target="_blank"> Overview of Weave Setup</a></p>
+								<p><a href="http://www.scribd.com/doc/56864422/Setting-Up-MySQL-on-Linux" target="_blank">Setting Up MySQL</a></p>
+								<p><a href="http://www.scribd.com/doc/56864420/Setting-Up-Java-for-Linux" target="_blank">Setting Up Java</a></p>
+								<p><a href="http://www.scribd.com/doc/56864425/Setting-Up-Tomcat-in-Linux" target="_blank">Setting Up Tomcat</a></p>
+								<p><a href="http://www.scribd.com/doc/56864418/Setting-Up-Flash-Player-in-Linux" target="_blank">Setting Up Flash Player</a></p>
+								<p><a href="http://www.scribd.com/doc/56864426/Setting-Up-Weave-files-for-Linux" target="_blank">Setting Up Weave files</a></p>
+							</ul>
+							
+							<ul class="talent">
+								<li>Setting up in Mac</li>
+								<p>Blah</p>
+								
+							</ul>
+						</div>
+					</div><!--// .yui-gf-->
+					
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Tutorials</h2>
+						</div>
+						<div class="yui-u">
+
+								<div class="talent">
+									<h2>Web Design</h2>
+									<p>Assertively exploit wireless initiatives rather than synergistic core competencies.	</p>
+								</div>
+
+								<div class="talent">
+									<h2>Interface Design</h2>
+									<p>Credibly streamline mission-critical value with multifunctional functionalities.	 </p>
+								</div>
+
+								<div class="talent">
+									<h2>Project Direction</h2>
+									<p>Proven ability to lead and manage a wide variety of design and development projects in team and independent situations.</p>
+								</div>
+								<div class="talent">
+									<h2>Web Design</h2>
+									<p>Assertively exploit wireless initiatives rather than synergistic core competencies.	</p>
+								</div>
+
+								<div class="talent">
+									<h2>Interface Design</h2>
+									<p>Credibly streamline mission-critical value with multifunctional functionalities.	 </p>
+								</div>
+
+								<div class="talent">
+									<h2>Project Direction</h2>
+									<p>Proven ability to lead and manage a wide variety of design and development projects in team and independent situations.</p>
+								</div>
+						</div>
+					</div><!--// .yui-gf -->
+
+					
+
+					<div class="yui-gf">
+	
+						<div class="yui-u first">
+							<h2>Experience</h2>
+						</div><!--// .yui-u -->
+
+						<div class="yui-u">
+
+							<div class="job">
+								<h2>Facebook</h2>
+								<h3>Senior Interface Designer</h3>
+								<h4>2005-2007</h4>
+								<p>Intrinsicly enable optimal core competencies through corporate relationships. Phosfluorescently implement worldwide vortals and client-focused imperatives. Conveniently initiate virtual paradigms and top-line convergence. </p>
+							</div>
+
+							<div class="job">
+								<h2>Apple Inc.</h2>
+								<h3>Senior Interface Designer</h3>
+								<h4>2005-2007</h4>
+								<p>Progressively reconceptualize multifunctional "outside the box" thinking through inexpensive methods of empowerment. Compellingly morph extensive niche markets with mission-critical ideas. Phosfluorescently deliver bricks-and-clicks strategic theme areas rather than scalable benefits. </p>
+							</div>
+
+							<div class="job">
+								<h2>Microsoft</h2>
+								<h3>Principal and Creative Lead</h3>
+								<h4>2004-2005</h4>
+								<p>Intrinsicly transform flexible manufactured products without excellent intellectual capital. Energistically evisculate orthogonal architectures through covalent action items. Assertively incentivize sticky platforms without synergistic materials. </p>
+							</div>
 
 
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/IVPR/Weave/zipball/master">zip</a> or
-      <a href="http://github.com/IVPR/Weave/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/IVPR/Weave</pre>
-    </p>
+							<div class="job last">
+								<h2>International Business Machines (IBM)</h2>
+								<h3>Lead Web Designer</h3>
+								<h4>2001-2004</h4>
+								<p>Globally re-engineer cross-media schemas through viral methods of empowerment. Proactively grow long-term high-impact human capital and highly efficient innovation. Intrinsicly iterate excellent e-tailers with timely e-markets.</p>
+							</div>
 
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/IVPR/Weave">IVPR/Weave</a>
-    </div>
+						</div><!--// .yui-u -->
+					</div><!--// .yui-gf -->
 
-  </div>
 
-  
+					<div class="yui-gf last">
+						<div class="yui-u first">
+							<h2>Education</h2>
+						</div>
+						<div class="yui-u">
+							<h2>Indiana University - Bloomington, Indiana</h2>
+							<h3>Dual Major, Economics and English &mdash; <strong>4.0 GPA</strong> </h3>
+						</div>
+					</div><!--// .yui-gf -->
+
+
+				</div><!--// .yui-b -->
+			</div><!--// yui-main -->
+		</div><!--// bd -->
+
+		<div id="ft">
+			<p>Jonathan Doe &mdash; <a href="mailto:name@yourdomain.com">name@yourdomain.com</a> &mdash; (313) - 867-5309</p>
+		</div><!--// footer -->
+
+	</div><!-- // inner -->
+
+
+</div><!--// doc -->
+
+
 </body>
 </html>
