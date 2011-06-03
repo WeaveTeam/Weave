@@ -98,22 +98,22 @@
 				<mx:Label text="Line Chart" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(ScatterPlotTool)" id="scatterplotImage" source="@Embed(source= '/weave/resources/images/scatter_plot_weave_new.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(ScatterPlotTool)" id="scatterplotImage" source="@Embed(source= '/weave/resources/images/scatter_plot_weave_new1.png')"/>
 				<mx:Label text="Scatterplot" fontWeight="bold"/>
 			</mx:VBox>
 			
 		</mx:HBox>
 		<mx:HBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(PieChartTool)" id="pieChartImage" source="@Embed(source= '/weave/resources/images/pie_chart_weave.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(PieChartTool)" id="pieChartImage" source="@Embed(source= '/weave/resources/images/pie_chart_weave1.png')"/>
 				<mx:Label text="Pie Chart" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(GaugeTool)" id="gaugeImage" source="@Embed(source= '/weave/resources/images/gauge_meter_weave.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(GaugeTool)" id="gaugeImage" source="@Embed(source= '/weave/resources/images/gauge_meter_weave1.png')"/>
 				<mx:Label text="Gauge Meter" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(HistogramTool)" id="histogramImage" source="@Embed(source= '/weave/resources/images/histogram_weave.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(HistogramTool)" id="histogramImage" source="@Embed(source= '/weave/resources/images/histogram_weave1.png')"/>
 				<mx:Label text="Histogram" fontWeight="bold"/>
 			</mx:VBox>
 			
