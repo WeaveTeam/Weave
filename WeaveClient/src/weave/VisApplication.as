@@ -1273,7 +1273,7 @@ package weave
 
 		/**
 		 * @author kmanohar
-		 * <br/>This function arranges all DraggablePanels currently on stage along a diagonal
+		 * <br/>This function arranges all DraggablePanels along a diagonal
 		 */		
 		private function cascadeWindows():void
 		{
@@ -1302,7 +1302,7 @@ package weave
 		
 		/**
 		 * @author kmanohar
-		 * <br/> This function tiles all the DraggablePanels currently on stage
+		 * <br/> This function tiles all the DraggablePanels on stage
 		 * <br/> TO DO: create a ui for this so the user can specify how to divide the stage
 		 */		
 		private function tileWindows():void
