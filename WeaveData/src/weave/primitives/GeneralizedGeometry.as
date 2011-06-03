@@ -19,6 +19,7 @@
 
 package weave.primitives
 {
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.utils.BLGTreeUtils;
 	
@@ -32,7 +33,7 @@ package weave.primitives
 	 * 
 	 * @author adufilie
 	 */
-	public class GeneralizedGeometry
+	public class GeneralizedGeometry 
 	{
 		/**
 		 * GeneralizedGeometry
@@ -77,6 +78,9 @@ package weave.primitives
 		public static const GEOM_TYPE_POINT:String = "Point";
 		public static const GEOM_TYPE_LINE:String = "Arc";
 		public static const GEOM_TYPE_POLYGON:String = "Polygon";
+		public function isLine():Boolean { return geomType == GEOM_TYPE_LINE; }
+		public function isPoint():Boolean { return geomType == GEOM_TYPE_POINT; }
+		public function isPolygon():Boolean { return geomType == GEOM_TYPE_POLYGON; }
 
 		/**
 		 * isEmpty

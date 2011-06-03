@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.unlinkSessionState;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableDynamicObject;
@@ -129,6 +130,14 @@ package weave.visualization.plotters
 		{
 			if (internalObject is IPlotter)
 				return (internalObject as IPlotter).getDataBoundsFromRecordKey(recordKey);
+			else
+				return [];
+		}
+		
+		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey):Array
+		{
+			if (internalObject is IPlotterWithGeometries)
+				return (internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(recordKey);
 			else
 				return [];
 		}

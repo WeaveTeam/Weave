@@ -231,7 +231,7 @@ package weave.visualization.plotters
 		{
 			return [];
 		}
-
+		
 		protected static const recordsPerDraw:int = 200; // for use with the template drawPlot code
 		
 		/**

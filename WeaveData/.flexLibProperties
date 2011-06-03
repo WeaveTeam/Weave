@@ -124,11 +124,10 @@
     <classEntry path="weave.primitives.Bounds2D"/>
     <classEntry path="weave.primitives.ColorRamp"/>
     <classEntry path="weave.primitives.GeneralizedGeometry"/>
+    <classEntry path="weave.primitives.Geometry"/>
     <classEntry path="weave.primitives.ImageFactory"/>
     <classEntry path="weave.primitives.KDNode"/>
     <classEntry path="weave.primitives.KDTree"/>
-    <classEntry path="weave.primitives.LineRay"/>
-    <classEntry path="weave.primitives.LineSegment"/>
     <classEntry path="weave.primitives.LinkableBounds2D"/>
     <classEntry path="weave.primitives.LinkableNumberFormatter"/>
     <classEntry path="weave.primitives.LooseAxisDescription"/>
@@ -175,6 +174,7 @@
     <classEntry path="weave.utils.CSSUtils"/>
     <classEntry path="weave.utils.ColumnUtils"/>
     <classEntry path="weave.utils.CommaSeparatedNumbersValidator"/>
+    <classEntry path="weave.utils.ComputationalGeometryUtils"/>
     <classEntry path="weave.utils.DebugTimer"/>
     <classEntry path="weave.utils.DebugUtils"/>
     <classEntry path="weave.utils.EventUtils"/>
@@ -187,7 +187,6 @@
     <classEntry path="weave.utils.VectorUtils"/>
     <classEntry path="weave.utils.WordProcessingUtils"/>
     <classEntry path="weave.utils.ZoomUtils"/>
-    <classEntry path="weave.utils.ComputationalGeometryUtils"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

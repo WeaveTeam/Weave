@@ -34,12 +34,14 @@ package weave.visualization.plotters
 	import weave.api.disposeObjects;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.PlotterUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
@@ -54,7 +56,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryPlotter extends AbstractPlotter
+	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries
 	{
 		public function GeometryPlotter()
 		{
@@ -65,7 +67,6 @@ package weave.visualization.plotters
 
 			fill.enableMissingDataFillPattern.value = false;
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
-			
 
 			setKeySource(geometryColumn);
 		}
@@ -107,6 +108,12 @@ package weave.visualization.plotters
 				for each (var geom:GeneralizedGeometry in geoms)
 					results.push(geom.bounds);
 			return results;
+		}
+		
+		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
+		{
+			var geoms:Array = geometryColumn.getValueFromKey(recordKey);
+			return geoms;
 		}
 		
 		/**
