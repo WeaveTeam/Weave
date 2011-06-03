@@ -48,7 +48,7 @@ package weave.visualization.plotters
 	 * @author adufilie
 	 * @author abaumann
 	 */
-	public class ParallelCoordinatesPlotter extends AbstractPlotter //implements IPlotterWithGeometries // TODO: implement IPlotterWithGeometries
+	public class ParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries 
 	{
 		public function ParallelCoordinatesPlotter()
 		{
@@ -155,19 +155,19 @@ package weave.visualization.plotters
 			return results;
 		}
 		
-/*		private const _tempArray:Array = [];
+		private const _tempArray:Array = [];
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
 		{
 			var results:Array = [];
 			
-			_tempArray.length = 0;
-			
-			// push each line into the geometry
+			// push three geometries between each column
 			for (var i:int = 0; i < _columns.length - 1; ++i) // fence post problem
 			{
 				var geometry:Geometry = new Geometry(Geometry.LINE);
 				var pointA:Point = new Point();
 				var pointB:Point = new Point();
+				
+				_tempArray.length = 0;
 				
 				// get the first point and set it
 				pointA.x = i;
@@ -179,11 +179,11 @@ package weave.visualization.plotters
 				pointB.y = (_columns[i + 1] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
 				_tempArray.push(pointB);
 				geometry.setVertices(_tempArray);		
-				results.push(geometry);
+				results.push(geometry);				
 			}
 
 			return results;
-		}*/
+		}
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

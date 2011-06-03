@@ -30,7 +30,8 @@ package weave.utils
 	/**
 	 * This is a collection of static methods used for common computational geometry
 	 * problems involving LineSegment, LineRay, Bounds2D, and other objects.
-	 * 
+	 *
+	 * @author adufilie 
 	 * @author kmonico
 	 */
 	public class ComputationalGeometryUtils
@@ -307,7 +308,7 @@ package weave.utils
 		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
 		 * @return true if the line intersects the polygon
 		 */
-		public static function polygonIntersectsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Object
+		public static function polygonIntersectsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Boolean
 		{
 			if (polygon.length == 0)
 				return false;
@@ -320,9 +321,33 @@ package weave.utils
 				if (lineIntersectsLine(Ax, Ay, Bx, By, c.x, c.y, d.x, d.y, tempPoint, asSegment) != null)
 					return true;
 			}
+			
 			return false;
 		}
 
+		/**
+		 * @param polygon An array of objects representing vertices, each having x and y properties.
+		 * @param Ax X coordinate of A in line AB
+		 * @param Ay Y coordinate of A in line AB
+		 * @param Bx X coordinate of B in line AB
+		 * @param By Y coordinate of B in line AB
+		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
+		 * @return true if the line overlaps the polygon.
+		 */
+		public static function polygonOverlapsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Boolean
+		{
+			if (polygonIntersectsLine(polygon, Ax, Ay, Bx, By, asSegment) == true)
+				return true;
+			
+			if (polygonOverlapsPoint(polygon, Ax, Ay) == true)
+				return true;
+			
+			if (polygonOverlapsPoint(polygon, Bx, By) == true)
+				return true;
+			
+			return false;
+		}
+		
 		/**
 		 * polygonOverlapsPoint
 		 * @param polygon An array of objects representing vertices, each having x and y properties.

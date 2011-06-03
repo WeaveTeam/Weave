@@ -155,7 +155,22 @@ package weave.utils
 					_keyToBoundsMap[key] = plotter.getDataBoundsFromRecordKey(key);
 					
 					if (_keyToGeometriesMap != null)
-						_keyToGeometriesMap[key] = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+					{
+						var geoms:Array = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+						_keyToGeometriesMap[key] = geoms;
+						
+						for (var iGeom:int = geoms.length - 1; iGeom >= 0; --iGeom)
+						{
+							var simpleGeom:ISimpleGeometry = geoms[iGeom] as ISimpleGeometry;
+							if (simpleGeom == null)
+								continue;
+
+							var simpleGeomBounds:IBounds2D = simpleGeom.getBounds();
+							_kdTree.insert([simpleGeomBounds.getXNumericMin(), simpleGeomBounds.getYNumericMin(), simpleGeomBounds.getXNumericMax(), simpleGeomBounds.getYNumericMax(), simpleGeomBounds.getArea()], key);
+						}
+						
+					}
+						
 				}
 
 				// if auto-balance is disabled, randomize insertion order
@@ -290,8 +305,8 @@ package weave.utils
 							{
 								// if a line, check for bounds intersecting the line
 								case GeneralizedGeometry.GEOM_TYPE_LINE:
-									if (ComputationalGeometryUtils.polygonIntersectsLine(
-										_tempBoundsPolygon, /* polygon */ 
+									if (ComputationalGeometryUtils.polygonOverlapsLine(
+										_tempBoundsPolygon, /* bounds polygon */ 
 										_tempGeometryPolygon[0].x, _tempGeometryPolygon[0].y, /* point A on AB */
 										_tempGeometryPolygon[1].x, _tempGeometryPolygon[1].y /* point B on AB */ ))
 									{
@@ -303,7 +318,7 @@ package weave.utils
 								// if a point, check for bounds overlapping the point
 								case GeneralizedGeometry.GEOM_TYPE_POINT:
 									if (ComputationalGeometryUtils.polygonOverlapsPoint(
-										_tempBoundsPolygon, /* polygon */ 
+										_tempBoundsPolygon, /* bounds polygon */ 
 										_tempGeometryPolygon[0].x, _tempGeometryPolygon[0].y /* point */))
 									{
 										result.push(key);
@@ -333,7 +348,7 @@ package weave.utils
 						
 						if (simpleGeom.isLine()) // if a line, check for bounds intersect line
 						{
-							if (ComputationalGeometryUtils.polygonIntersectsLine(
+							if (ComputationalGeometryUtils.polygonOverlapsLine(
 								_tempBoundsPolygon, /* polygon */ 
 								vertices[0].x, vertices[0].y, /* point A on AB */
 								vertices[1].x, vertices[1].y /* point B on AB */ ))
@@ -405,7 +420,7 @@ package weave.utils
 			
 			var result:Array = [];
 			
-			_keyToDistance.length = 0;
+			_keyToDistance = new Dictionary();
 			
 			// for each key, get its geometries
 			keyLoop: for (var iKey:int = keys.length - 1; iKey >= 0; --iKey)
@@ -441,12 +456,14 @@ package weave.utils
 							_tempGeometryPolygon.push(currentPart[0]);
 							
 							// if the polygon overlaps the point, save the key and break
-							if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempGeometryPolygon, xQueryCenter, yQueryCenter))
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempGeometryPolygon, _tempBoundsPolygon))
 							{
 								result.push(key);
 								break keyLoop;	// break because it's the closest
 							}
+							
 						} // end part loop
+						
 					} // end if ( geom is gen...)
 					else // not a generalized geometry
 					{
@@ -457,17 +474,17 @@ package weave.utils
 						// if it's a polygon, check point in polygon with query center
 						if (simpleGeom.isPolygon())
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPoint(
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(
 								vertices, /* polygon */ 
-								xQueryCenter, yQueryCenter /* point */))
+								_tempBoundsPolygon /* bounds polygon */ ))
 							{
 								result.push(key);
 								break keyLoop; // break because it's the closest
 							}
 						}
-						else if (simpleGeom.isLine()) // if line, check intersection with the polygon 
+						else if (simpleGeom.isLine()) // if line, check overlap with the polygon 
 						{
-							if (ComputationalGeometryUtils.polygonIntersectsLine(
+							if (ComputationalGeometryUtils.polygonOverlapsLine(
 								_tempBoundsPolygon,
 								vertices[0].x, vertices[0].y,
 								vertices[1].x, vertices[1].y))
@@ -502,13 +519,13 @@ package weave.utils
 			
 			var minDistance:Number = Number.POSITIVE_INFINITY;
 			var minKey:IQualifiedKey = null;
-			for (var temp:Object in _keyToDistance)
+			for (var tempKey:Object in _keyToDistance)
 			{
-				var thisDistance:Number = _keyToDistance[key as IQualifiedKey];
+				var thisDistance:Number = _keyToDistance[tempKey as IQualifiedKey];
 				if (thisDistance < minDistance)
 				{
 					minDistance = thisDistance;
-					minKey = temp as IQualifiedKey;
+					minKey = tempKey as IQualifiedKey;
 				}
 			}
 			
@@ -518,7 +535,7 @@ package weave.utils
 			return result;
 		}
 		
-		private const _keyToDistance:Array = [];
+		private var _keyToDistance:Dictionary = null;
 		
 		private function setTempBounds(bounds:IBounds2D):void
 		{

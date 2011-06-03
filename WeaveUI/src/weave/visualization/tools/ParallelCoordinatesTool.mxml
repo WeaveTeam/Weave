@@ -380,8 +380,8 @@
 						
 						<mx:RadioButtonGroup id="curvatureButtons" />
 						<mx:RadioButton label="Straight Line" value="ParallelCoordinatesPlotter.LINE_STRAIGHT" 		 	groupName="curvatureButtons"/>
-						<mx:RadioButton label="Away"          value="ParallelCoordinatesPlotter.LINE_CURVE_AWAY" 		groupName="curvatureButtons"/>
-						<mx:RadioButton label="Towards"       value="ParallelCoordinatesPlotter.LINE_CURVE_TOWARDS" 	groupName="curvatureButtons"/>
+						<!--<mx:RadioButton label="Away"          value="ParallelCoordinatesPlotter.LINE_CURVE_AWAY" 		groupName="curvatureButtons"/>
+						<mx:RadioButton label="Towards"       value="ParallelCoordinatesPlotter.LINE_CURVE_TOWARDS" 	groupName="curvatureButtons"/>-->
 						<mx:RadioButton label="Double"        value="ParallelCoordinatesPlotter.LINE_DOUBLE_CURVE"  	groupName="curvatureButtons"/>
 					</userControls:ControlsSubsetBox>
 					<userControls:ControlsSubsetBox width="100%">
