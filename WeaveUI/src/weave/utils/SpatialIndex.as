@@ -30,11 +30,13 @@ package weave.utils
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.linkBindableProperty;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.CallbackCollection;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
@@ -65,8 +67,11 @@ package weave.utils
 		public function SpatialIndex(callback:Function = null, callbackParameters:Array = null)
 		{
 			addImmediateCallback(this, callback, callbackParameters);
+			//_useGeometricProbing.value = Weave.properties.enableGeometryProbing.value;
+			//linkBindableProperty(_useGeometricProbing, Weave.properties.enableGeometryProbing, "value");
 		}
 
+		//private const _useGeometricProbing:LinkableBoolean = new LinkableBoolean();
 		private var _kdTree:KDTree = new KDTree(5);
 		private var _keyToBoundsMap:Dictionary = new Dictionary();
 		
@@ -241,7 +246,7 @@ package weave.utils
 				return keys;
 			
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			if (_keyToGeometriesMap == null || Weave.properties.enableLegacyProbing.value == true)
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
 				return keys;
 			
 			// define the bounds as a polygon
@@ -391,7 +396,7 @@ package weave.utils
 				return keys;
 			
 			// if this index is not for an IPlotterWithGeometries OR the user wants legacy probing, do the old function
-			if (_keyToGeometriesMap == null || Weave.properties.enableLegacyProbing.value == true)
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
 				return getClosestKeys(keys, bounds, xPrecision, yPrecision);
 
 			// calculate the importance value

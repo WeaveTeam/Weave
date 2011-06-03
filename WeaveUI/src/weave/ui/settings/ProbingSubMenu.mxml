@@ -118,10 +118,10 @@
 								 initialize="linkBindableProperty(Weave.properties.enableProbeAnimation, enableProbeAnimationCheck, 'selected')"/>
 				</mx:HBox>
 				<mx:HBox>
-					<mx:CheckBox id="enableLegacyProbing"
-								 label="Enable Legacy Probing"
-								 toolTip="Check this box to use the legacy probing. This probing is sometimes inaccurate but may be desired for performance."
-								 initialize="linkBindableProperty(Weave.properties.enableLegacyProbing, enableLegacyProbing, 'selected')"/>
+					<mx:CheckBox id="enableDetailedProbing"
+								 label="Enable Detailed Geometry Probing"
+								 toolTip="Check this box to use the detailed geometry probing. This probing is accurate but may decrease performance."
+								 initialize="linkBindableProperty(Weave.properties.enableGeometryProbing, enableDetailedProbing, 'selected')"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>

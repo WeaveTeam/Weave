@@ -119,7 +119,7 @@ package weave.utils
 		 * @param y4 Y coordinate of F in EF.
 		 * @return A boolean indicating true if the lines intersect, and false otherwise.
 		 */
-		public static function lineIntersectsLine2(x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number, x4:Number, y4:Number, output:Point = null, ABasSeg:Boolean=true, EFasSeg:Boolean=true):Point
+		public static function lineIntersectsLine(x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number, x4:Number, y4:Number, output:Point = null, ABasSeg:Boolean=true, EFasSeg:Boolean=true):Point
 		{
 			// we have two lines
 			// line1: P1 = line1Begin + s * (line1End - line1Begin) 
@@ -150,29 +150,19 @@ package weave.utils
 			
 			// if this is 0, the lines are parallel (no inverted matrix => no solution)
 			if (Math.abs(denominator) <= Number.MIN_VALUE) 
+			{
 				return null; 
+			}
 			
 			var s:Number = ((x4minusx3) * (y1minusy3) - (y4minusy3) * (x1minusx3)) / denominator;
 			var t:Number = ((x2minusx1) * (y1minusy3) - (y2minusy1) * (x1minusx3)) / denominator;
-			
-			var ipx:Number = x1 + s * (x2minusx1);
-			var ipy:Number = y1 + s * (y2minusy1);
-			
+				
 			// if AB or EF is a line segment, ensure the intersection is on the line
-			if (ABasSeg)
+			if ( (ABasSeg && (s < 0 || s > 1)) || (EFasSeg && (t < 0 || t > 1)) )
 			{
-				if ( (x1 < x2) ? (ipx < x1 || x2 < ipx) : (ipx < x2 || x1 < ipx) )
-					return null;
-				if ( (y1 < y2) ? (ipy < y1 || y2 < ipy) : (ipy < y2 || y1 < ipy) )
-            	    return null;
+				return null;
 			}
-			if (EFasSeg)
-			{
-				if ( (x3 < x4) ? (ipx < x3 || x4 < ipx) : (ipx < x4 || x3 < ipx) )
-					return null;
-				if ( (y3 < y4) ? (ipy < y3 || y4 < ipy) : (ipy < y4 || y3 < ipy) )
-            	    return null;
-			}
+
 			
 			// store output point
 			if (output)
@@ -181,7 +171,6 @@ package weave.utils
 				output.y = y1 + s * (y2minusy1);
 			}
 
-			
 			return output;
 		}
 			
@@ -212,16 +201,18 @@ package weave.utils
 		 * @param EFasSeg true if you want to treat line EF as a segment, false for an infinite line
 		 * @return Either outputIntersectionPoint or a new Point containing the intersection coordinates
 		 */
-		public static function lineIntersectsLine(Ax:Number, Ay:Number, Bx:Number, By:Number, Ex:Number, Ey:Number, Fx:Number, Fy:Number, outputIntersectionPoint:Point=null, ABasSeg:Boolean=true, EFasSeg:Boolean=true):Point
+		public static function lineIntersectsLine2(Ax:Number, Ay:Number, Bx:Number, By:Number, Ex:Number, Ey:Number, Fx:Number, Fy:Number, outputIntersectionPoint:Point=null, ABasSeg:Boolean=true, EFasSeg:Boolean=true):Point
 		{
 			var dy1:Number = By-Ay;
 			var dx1:Number = Ax-Bx;
 			var dy2:Number = Fy-Ey;
 			var dx2:Number = Ex-Fx;
 			var denom:Number = dy1*dx2 - dy2*dx1;
-			if (denom == 0)
-				return null;
 			
+			if (denom == 0)
+			{
+				return null;
+			}
 			var c1:Number = Bx*Ay - Ax*By;
 			var c2:Number = Fx*Ey - Ex*Fy;
 			
@@ -252,16 +243,24 @@ package weave.utils
 			if (ABasSeg)
 			{
 				if ( (Ax < Bx) ? (ipx < Ax || Bx < ipx) : (ipx < Bx || Ax < ipx) )
+				{
 					return null;
+				}
 				if ( (Ay < By) ? (ipy < Ay || By < ipy) : (ipy < By || Ay < ipy) )
-            	    return null;
+				{
+					return null;
+				}
 			}
 			if (EFasSeg)
 			{
 				if ( (Ex < Fx) ? (ipx < Ex || Fx < ipx) : (ipx < Fx || Ex < ipx) )
+				{
 					return null;
+				}
 				if ( (Ey < Fy) ? (ipy < Ey || Fy < ipy) : (ipy < Fy || Ey < ipy) )
-            	    return null;
+				{
+					return null;
+				}
 			}
 			
 			if (outputIntersectionPoint == null)

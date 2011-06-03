@@ -127,7 +127,7 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
-		public const enableLegacyProbing:LinkableBoolean = new LinkableBoolean(false); // use the old probing algorithms
+		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
 		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
