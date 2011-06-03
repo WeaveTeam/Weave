@@ -1,0 +1,22 @@
+<project name="WeaveServices" basedir="." default="main">
+    <path id="classpath">
+        <fileset dir="lib" includes="**/*.jar"/>
+        <fileset dir="/usr/share/java/" includes="junit4.jar"/>
+        <fileset dir="/usr/share/java/" includes="servlet-api.jar"/>
+    </path>
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    <target name="build">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="classpath"/>
+    </target>
+    <target name="dist" depends="build">
+        <war destfile="build/jar/WeaveServices.war">
+            <lib dir="lib"/>
+            <classes dir="build/classes"/>
+            <webinf dir="WebContent/WEB-INF"/>
+            <metainf dir="WebContent/META-INF"/>
+        </war>
+    </target>
+</project>
