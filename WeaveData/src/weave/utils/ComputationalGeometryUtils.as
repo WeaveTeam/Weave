@@ -389,7 +389,7 @@ package weave.utils
 		 * @param cy The Y coordinate of point C
 		 * @return The distance from the line passing through A and B to the point C
 		 */
-		public function getDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
+		public static function getDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
 		{
 			var dx:Number = bx-ax;
 			var dy:Number = by-ay;
@@ -397,6 +397,20 @@ package weave.utils
 			return Math.abs((cx - ax)*(dy/dd) - (cy - ay)*(dx/dd));
 		}
 
+		/**
+		 * @param ax The X coordinate of point A
+		 * @param ay The Y coordinate of point A
+		 * @param bx The X coordinate of point B
+		 * @param by The Y coordinate of point B
+		 * @return The distance from point A to point B
+		 */
+		public static function getDistanceFromPointSq(ax:Number, ay:Number, bx:Number, by:Number):Number
+		{
+			var dx:Number = bx - ax;
+			var dy:Number = by - ay;
+			return dx * dx + dy * dy;
+		}
+		
 		// reusable temporary objects to reduce GC activity:
 		private static const tempPoint:Point = new Point();
 		private static const riXcoords:Array = []; // ray intersection coords

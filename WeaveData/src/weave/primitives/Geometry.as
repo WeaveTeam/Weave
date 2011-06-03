@@ -20,9 +20,10 @@
 package weave.primitives
 {
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.primitives.IBounds2D;
 
 	/**
-	 * This class acts as a wrapper around for a general polygon.
+	 * This class acts as a wrapper for a general polygon.
 	 * 
 	 * @author kmonico
 	 */
@@ -34,12 +35,26 @@ package weave.primitives
 		}
 		
 		public function getVertices():Array { return _vertices; }
-		public function setVertices(o:Array):void {	_vertices = o.concat(); }
+		public function setVertices(o:Array):void 
+		{	
+			_vertices = o.concat();
+			
+			_bounds.reset();
+			
+			for each (var coord:Object in _vertices)
+				_bounds.includeCoords(coord.x, coord.y);			
+		}
 
 		public function isPolygon():Boolean { return _type == CLOSED_POLYGON; }
 		public function isLine():Boolean { return _type == LINE; }
 		public function isPoint():Boolean { return _type == POINT; }
 		
+		public function getBounds():IBounds2D
+		{
+			return _bounds.cloneBounds();
+		}
+		
+		private const _bounds:IBounds2D = new Bounds2D(); 		
 		private var _vertices:Array = null; // [object with x and y fields, another object, ...]
 		private var _type:String = '';
 		public static const CLOSED_POLYGON:String = "CLOSED_POLYGON";

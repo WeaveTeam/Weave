@@ -250,15 +250,7 @@ package weave.utils
 				return keys;
 			
 			// define the bounds as a polygon
-			var xMin:Number = bounds.getXMin();
-			var yMin:Number = bounds.getYMin();
-			var xMax:Number = bounds.getXMax();
-			var yMax:Number = bounds.getYMax();
-			_tempBoundsPolygon[0].x = xMin; _tempBoundsPolygon[0].y = yMin;
-			_tempBoundsPolygon[1].x = xMin; _tempBoundsPolygon[1].y = yMax;
-			_tempBoundsPolygon[2].x = xMax; _tempBoundsPolygon[2].y = yMax;
-			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
-			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
+			setTempBounds(bounds);
 
 			var result:Array = [];
 
@@ -398,15 +390,22 @@ package weave.utils
 			// if this index is not for an IPlotterWithGeometries OR the user wants legacy probing, do the old function
 			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
 				return getClosestKeys(keys, bounds, xPrecision, yPrecision);
+			
+			// the below code is only used for plotters which implement IPlotterWithGeometries and if the enableGeometryProbing property is true
 
 			// calculate the importance value
 			var importance:Number = (isNaN(xPrecision) || isNaN(yPrecision)) ? 0 : xPrecision * yPrecision;
 			
-			// get the center of the bounds
+			// get the center of the bounds which will be used for polygon and point overlap
 			var xQueryCenter:Number = bounds.getXCenter();
 			var yQueryCenter:Number = bounds.getYCenter();
-
+			
+			// define the _tempBoundsPolygon
+			setTempBounds(bounds);
+			
 			var result:Array = [];
+			
+			_keyToDistance.length = 0;
 			
 			// for each key, get its geometries
 			keyLoop: for (var iKey:int = keys.length - 1; iKey >= 0; --iKey)
@@ -445,7 +444,7 @@ package weave.utils
 							if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempGeometryPolygon, xQueryCenter, yQueryCenter))
 							{
 								result.push(key);
-								break keyLoop;							
+								break keyLoop;	// break because it's the closest
 							}
 						} // end part loop
 					} // end if ( geom is gen...)
@@ -455,7 +454,7 @@ package weave.utils
 						var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
 						var vertices:Array = simpleGeom.getVertices();
 						
-						// if it's a polygon, check point in polygon
+						// if it's a polygon, check point in polygon with query center
 						if (simpleGeom.isPolygon())
 						{
 							if (ComputationalGeometryUtils.polygonOverlapsPoint(
@@ -463,8 +462,34 @@ package weave.utils
 								xQueryCenter, yQueryCenter /* point */))
 							{
 								result.push(key);
-								break keyLoop;
+								break keyLoop; // break because it's the closest
 							}
+						}
+						else if (simpleGeom.isLine()) // if line, check intersection with the polygon 
+						{
+							if (ComputationalGeometryUtils.polygonIntersectsLine(
+								_tempBoundsPolygon,
+								vertices[0].x, vertices[0].y,
+								vertices[1].x, vertices[1].y))
+							{
+								_keyToDistance[key] = ComputationalGeometryUtils.getDistanceFromLine(
+									vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y,
+									xQueryCenter, yQueryCenter);
+									
+								continue keyLoop; 
+							}								
+						}
+						else if (simpleGeom.isPoint()) // if point, check intersection with polygon
+						{
+							if (ComputationalGeometryUtils.polygonOverlapsPoint(
+								_tempBoundsPolygon,
+								vertices[0].x, vertices[0].y))
+							{
+								_keyToDistance[key] = ComputationalGeometryUtils.getDistanceFromPointSq(
+									vertices[0].x, vertices[0].y, xQueryCenter, yQueryCenter);
+										
+								continue keyLoop;
+							}	
 						}
 					} // end if ( .. ) { } else { } ...
 					
@@ -472,8 +497,43 @@ package weave.utils
 				
 			} // end key loop
 			
-			return result;		
+			if (result.length > 0)
+				return result;
+			
+			var minDistance:Number = Number.POSITIVE_INFINITY;
+			var minKey:IQualifiedKey = null;
+			for (var temp:Object in _keyToDistance)
+			{
+				var thisDistance:Number = _keyToDistance[key as IQualifiedKey];
+				if (thisDistance < minDistance)
+				{
+					minDistance = thisDistance;
+					minKey = temp as IQualifiedKey;
+				}
+			}
+			
+			if (minKey != null)
+				result.push(minKey);
+			
+			return result;
 		}
+		
+		private const _keyToDistance:Array = [];
+		
+		private function setTempBounds(bounds:IBounds2D):void
+		{
+			var b:Bounds2D = bounds as Bounds2D;
+			var xMin:Number = b.xMin;
+			var yMin:Number = b.yMin;
+			var xMax:Number = b.xMax;
+			var yMax:Number = b.yMax;
+			_tempBoundsPolygon[0].x = xMin; _tempBoundsPolygon[0].y = yMin;
+			_tempBoundsPolygon[1].x = xMin; _tempBoundsPolygon[1].y = yMax;
+			_tempBoundsPolygon[2].x = xMax; _tempBoundsPolygon[2].y = yMax;
+			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
+			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
+		}
+			
 		
 		/**
 		 * This function will get the keys closest the center of the bounds object. This function is used primarily
