@@ -19,6 +19,10 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
+<!---
+@author kmanohar
+<br/>A SimpleVisTool that is linked to the MapTool's layers
+-->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
@@ -28,6 +32,9 @@
 	     >
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.ObjectUtil;
+			
+			import weave.api.getCallbackCollection;
 			import weave.api.primitives.IBounds2D;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.LinkableBounds2D;
@@ -44,12 +51,26 @@
 				
 				panelX.value = "0%";
 				panelY.value = "0%";
-				resizeable.value = false;
+				minimizable.value = false;
+				maximizable.value = false;
+				closeable.value = false;
+				pinnable.value = false;
 
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableAutoZoomToExtent.lock();
+				
+				// make sure WMS layers are included in the full data bounds
+				visualization.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.includeNonSelectableLayersInAutoZoom.lock();
+				
+				visualization.enableFixedAspectRatio.value = true;
+			
+				sessionPanelCoordsAsPercentages = false;
 			}
 
+			private var _tempBounds:IBounds2D = new Bounds2D();		
+			
+			
 		]]>
 	</mx:Script>
 

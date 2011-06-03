@@ -1286,6 +1286,7 @@
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
 				// update temporary admin dashboard border mode
+				updateForceEnableBorders();
 				
 				// make sure cursors dont keep changing while resizing
 				if (parent && _resizeable && !_resizing && !_minimized && !maximized.value)
