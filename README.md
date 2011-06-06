@@ -15,5 +15,5 @@ To build the projects on the command line, use the **WeaveClient/buildall.xml** 
 
 Linux readme: [[README-linux.md]]
 
-Recommended development environment setup: [[https://github.com/IVPR/Weave/wiki/Development-Environment-Setup]]
+Recommended development environment setup: https://github.com/IVPR/Weave/wiki/Development-Environment-Setup
 
