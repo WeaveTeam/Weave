@@ -36,6 +36,8 @@
 
 package weave.api.data
 {
+	import weave.api.primitives.IBounds2D;
+
 	/**
 	 * This is an interface to a geometry object defined by an array of vertices
 	 * and a type.
@@ -72,5 +74,10 @@ package weave.api.data
 		 * Get the vertices.
 		 */
 		function getVertices():Array;
+		
+		/**
+		 * Get the collective bounds for the bounding box of this simple geometry.
+		 */
+		function getBounds():IBounds2D;
 	}
 }

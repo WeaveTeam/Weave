@@ -30,7 +30,8 @@ package weave.utils
 	/**
 	 * This is a collection of static methods used for common computational geometry
 	 * problems involving LineSegment, LineRay, Bounds2D, and other objects.
-	 * 
+	 *
+	 * @author adufilie 
 	 * @author kmonico
 	 */
 	public class ComputationalGeometryUtils
@@ -277,7 +278,7 @@ package weave.utils
 		 * @param polygon2 An array of objects representing vertices, each having x and y properties.
 		 * @return true if the polygons overlap
 		 */
-		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):Object
+		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):Boolean
 		{
 			if (polygon1.length == 0 || polygon2.length == 0)
 				return false;
@@ -307,7 +308,7 @@ package weave.utils
 		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
 		 * @return true if the line intersects the polygon
 		 */
-		public static function polygonIntersectsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Object
+		public static function polygonIntersectsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Boolean
 		{
 			if (polygon.length == 0)
 				return false;
@@ -320,9 +321,33 @@ package weave.utils
 				if (lineIntersectsLine(Ax, Ay, Bx, By, c.x, c.y, d.x, d.y, tempPoint, asSegment) != null)
 					return true;
 			}
+			
 			return false;
 		}
 
+		/**
+		 * @param polygon An array of objects representing vertices, each having x and y properties.
+		 * @param Ax X coordinate of A in line AB
+		 * @param Ay Y coordinate of A in line AB
+		 * @param Bx X coordinate of B in line AB
+		 * @param By Y coordinate of B in line AB
+		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
+		 * @return true if the line overlaps the polygon.
+		 */
+		public static function polygonOverlapsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Boolean
+		{
+			if (polygonIntersectsLine(polygon, Ax, Ay, Bx, By, asSegment) == true)
+				return true;
+			
+			if (polygonOverlapsPoint(polygon, Ax, Ay) == true)
+				return true;
+			
+			if (polygonOverlapsPoint(polygon, Bx, By) == true)
+				return true;
+			
+			return false;
+		}
+		
 		/**
 		 * polygonOverlapsPoint
 		 * @param polygon An array of objects representing vertices, each having x and y properties.
@@ -389,7 +414,7 @@ package weave.utils
 		 * @param cy The Y coordinate of point C
 		 * @return The distance from the line passing through A and B to the point C
 		 */
-		public function getDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
+		public static function getDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
 		{
 			var dx:Number = bx-ax;
 			var dy:Number = by-ay;
@@ -397,6 +422,20 @@ package weave.utils
 			return Math.abs((cx - ax)*(dy/dd) - (cy - ay)*(dx/dd));
 		}
 
+		/**
+		 * @param ax The X coordinate of point A
+		 * @param ay The Y coordinate of point A
+		 * @param bx The X coordinate of point B
+		 * @param by The Y coordinate of point B
+		 * @return The distance from point A to point B
+		 */
+		public static function getDistanceFromPointSq(ax:Number, ay:Number, bx:Number, by:Number):Number
+		{
+			var dx:Number = bx - ax;
+			var dy:Number = by - ay;
+			return dx * dx + dy * dy;
+		}
+		
 		// reusable temporary objects to reduce GC activity:
 		private static const tempPoint:Point = new Point();
 		private static const riXcoords:Array = []; // ray intersection coords

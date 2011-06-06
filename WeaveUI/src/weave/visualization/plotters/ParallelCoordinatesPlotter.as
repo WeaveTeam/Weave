@@ -28,7 +28,9 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -36,6 +38,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.KeySets.KeySet;
+	import weave.primitives.Geometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
@@ -45,7 +48,7 @@ package weave.visualization.plotters
 	 * @author adufilie
 	 * @author abaumann
 	 */
-	public class ParallelCoordinatesPlotter extends AbstractPlotter
+	public class ParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries 
 	{
 		public function ParallelCoordinatesPlotter()
 		{
@@ -139,7 +142,7 @@ package weave.visualization.plotters
 			var results:Array = [];
 			var i:int;
 			var _normalize:Boolean = normalize.value;
-			for (i = 0; i < _columns.length; i++)
+			for (i = 0; i < _columns.length; ++i)
 			{
 				// project data coordinates to screen coordinates and draw graphics
 				tempPoint.x = i;
@@ -152,6 +155,36 @@ package weave.visualization.plotters
 				bounds.setCenteredRectangle(tempPoint.x, tempPoint.y, 0, 0);
 				results.push(bounds);
 			}
+			return results;
+		}
+		
+		private const _tempArray:Array = [];
+		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
+		{
+			var results:Array = [];
+			
+			// push three geometries between each column
+			for (var i:int = 0; i < _columns.length - 1; ++i) // fence post problem
+			{
+				var geometry:Geometry = new Geometry(Geometry.LINE);
+				var pointA:Point = new Point();
+				var pointB:Point = new Point();
+				
+				_tempArray.length = 0;
+				
+				// get the first point and set it
+				pointA.x = i;
+				pointA.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+				_tempArray.push(pointA);
+				
+				// get the second point
+				pointB.x = i + 1;
+				pointB.y = (_columns[i + 1] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+				_tempArray.push(pointB);
+				geometry.setVertices(_tempArray);		
+				results.push(geometry);				
+			}
+
 			return results;
 		}
 		
