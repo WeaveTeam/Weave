@@ -11,9 +11,10 @@ Projects in this repository:
  * WeaveAdmin: GPLv3 license, Flex application for admin activities
  * WeaveServices: GPLv3 license, back-end Java webapp for Admin and Data server features
 
+Recommended development environment setup: https://github.com/IVPR/Weave/wiki/Development-Environment-Setup
+
 To build the projects on the command line, use the **WeaveClient/buildall.xml** and **WeaveServices/build.xml** Ant scripts.
 
-Linux readme: [[README-linux.md]]
+See README-linux.md for more detailed Linux build instructions.
 
-Recommended development environment setup: https://github.com/IVPR/Weave/wiki/Development-Environment-Setup
 
