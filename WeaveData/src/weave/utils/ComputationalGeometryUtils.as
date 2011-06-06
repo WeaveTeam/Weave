@@ -278,7 +278,7 @@ package weave.utils
 		 * @param polygon2 An array of objects representing vertices, each having x and y properties.
 		 * @return true if the polygons overlap
 		 */
-		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):Object
+		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):Boolean
 		{
 			if (polygon1.length == 0 || polygon2.length == 0)
 				return false;

@@ -418,9 +418,12 @@ package weave.utils
 			// define the _tempBoundsPolygon
 			setTempBounds(bounds);
 			
+			
 			var result:Array = [];
 			
 			_keyToDistance = new Dictionary();
+			var xVerticesCenter:Number;
+			var yVerticesCenter:Number;
 			
 			// for each key, get its geometries
 			keyLoop: for (var iKey:int = keys.length - 1; iKey >= 0; --iKey)
@@ -458,8 +461,16 @@ package weave.utils
 							// if the polygon overlaps the point, save the key and break
 							if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempGeometryPolygon, _tempBoundsPolygon))
 							{
-								result.push(key);
-								break keyLoop;	// break because it's the closest
+								getCenterPoint(_tempGeometryPolygon, _tempCenterPoint);
+								var xGeomCenter:Number = _tempCenterPoint.x;
+								var yGeomCenter:Number = _tempCenterPoint.y;
+								
+								_keyToDistance[key] = ComputationalGeometryUtils.getDistanceFromPointSq(
+									xGeomCenter, yGeomCenter, 
+									xQueryCenter, yQueryCenter
+								);
+								
+								continue keyLoop;
 							}
 							
 						} // end part loop
@@ -478,8 +489,16 @@ package weave.utils
 								vertices, /* polygon */ 
 								_tempBoundsPolygon /* bounds polygon */ ))
 							{
-								result.push(key);
-								break keyLoop; // break because it's the closest
+								getCenterPoint(vertices, _tempCenterPoint);
+								xVerticesCenter = _tempCenterPoint.x;
+								yVerticesCenter = _tempCenterPoint.y;
+
+								_keyToDistance[key] = ComputationalGeometryUtils.getDistanceFromPointSq(
+									xVerticesCenter, yVerticesCenter, 
+									xQueryCenter, yQueryCenter
+								);
+								
+								continue keyLoop; // break because it's the closest
 							}
 						}
 						else if (simpleGeom.isLine()) // if line, check overlap with the polygon 
@@ -514,9 +533,6 @@ package weave.utils
 				
 			} // end key loop
 			
-			if (result.length > 0)
-				return result;
-			
 			var minDistance:Number = Number.POSITIVE_INFINITY;
 			var minKey:IQualifiedKey = null;
 			for (var tempKey:Object in _keyToDistance)
@@ -536,6 +552,7 @@ package weave.utils
 		}
 		
 		private var _keyToDistance:Dictionary = null;
+		private const _tempCenterPoint:Point = new Point();
 		
 		private function setTempBounds(bounds:IBounds2D):void
 		{
@@ -550,7 +567,26 @@ package weave.utils
 			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
 			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
 		}
+				
+		private function getCenterPoint(polygon:Array, output:Point = null):Point
+		{
+			var x:Number = 0;
+			var y:Number = 0;
+			var numNodes:int = polygon.length;
 			
+			for each (var obj:Object in polygon)
+			{
+				x += obj.x;
+				y += obj.y;
+			}
+			
+			if (output == null)
+				output = new Point();
+			
+			output.x = x / numNodes;
+			output.y = y / numNodes;
+			return output;
+		}
 		
 		/**
 		 * This function will get the keys closest the center of the bounds object. This function is used primarily
