@@ -1,5 +1,8 @@
 Weave: Web-based Analysis and Visualization Environment
-http://www.iweave.org/
+
+Project website: http://www.iweave.org/
+
+Issue Tracker: http://129.63.8.219/bugzilla
 
 Projects in this repository:
 
