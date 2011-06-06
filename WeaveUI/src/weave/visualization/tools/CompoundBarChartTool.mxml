@@ -378,7 +378,11 @@
 				<mx:CheckBox id="showAllLabelsCheckBox" label="Show all bar labels"
 							 toolTip="This option will always show a label for each bar."/>
 			</userControls:ControlsSubsetBox>
-			
+			<userControls:ControlsSubsetBox width="100%">
+				<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
+							 toolTip="Enables automatic zooming to the subset of data currently displayed"
+							 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
+			</userControls:ControlsSubsetBox>
 			
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">

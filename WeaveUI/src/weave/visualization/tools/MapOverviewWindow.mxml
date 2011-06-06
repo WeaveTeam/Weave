@@ -32,6 +32,7 @@
 	     >
 	<mx:Script>
 		<![CDATA[
+			import mx.core.UIComponent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.api.getCallbackCollection;
@@ -40,6 +41,7 @@
 			import weave.primitives.LinkableBounds2D;
 			import weave.utils.NumberUtils;
 			import weave.visualization.layers.PlotLayer;
+			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.RectanglePlotter;
 
 			override protected function constructor():void
@@ -67,10 +69,56 @@
 			
 				sessionPanelCoordsAsPercentages = false;
 			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				component.toolTip = "You are currently viewing the highlighted area";
+				this.addChild(component);
+			}
 
-			private var _tempBounds:IBounds2D = new Bounds2D();		
+			private var tempBounds:IBounds2D = new Bounds2D();
+			private const tempShape:Sprite = new Sprite();
+			private var screenBounds:IBounds2D = new Bounds2D();
+			private var component:UIComponent = new UIComponent();
 			
+			private const dataBoundsBitmap:Bitmap = new Bitmap(new BitmapData(20,20), PixelSnapping.NEVER, true);
 			
+			public function drawBoundsRectangle(dataBounds:LinkableBounds2D):void
+			{
+				dataBounds.copyTo(tempBounds);
+				if( tempBounds.isEmpty() || tempBounds.isUndefined() ) return;
+				getScreenBounds(screenBounds);
+									
+				var graphics:Graphics = tempShape.graphics;
+				graphics.clear();
+				
+				graphics.lineStyle(1);
+				graphics.beginFill(0xffff00,0.5);
+				
+				visualization.fullDataBounds.projectCoordsTo(tempBounds,screenBounds);
+				
+				graphics.drawRect(tempBounds.getXMin(),tempBounds.getYMin(),tempBounds.getWidth(),tempBounds.getHeight());
+				graphics.endFill();
+				
+				component.addChild(tempShape);
+			}
+			
+			private function getScreenBounds(outputScreenBounds:IBounds2D):void
+			{
+				// default behaviour is to set screenBounds beginning from lower-left corner and ending at upper-right corner
+				var left:Number = visualization.marginLeft.value;
+				var top:Number = visualization.marginTop.value;
+				var right:Number = unscaledWidth - visualization.marginRight.value;
+				var bottom:Number = unscaledHeight - visualization.marginBottom.value;
+				// set screenBounds beginning from lower-left corner and ending at upper-right corner
+				//TODO: is other behavior required?
+				outputScreenBounds.setBounds(left, bottom, right, top);
+				if (left > right)
+					outputScreenBounds.setWidth(0);
+				if (top > bottom)
+					outputScreenBounds.setHeight(0);
+			}
 		]]>
 	</mx:Script>
 

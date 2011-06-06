@@ -71,6 +71,7 @@ package weave.visualization.plotters
 			horizontalMode.value = false;
 			groupMode.value = false;
 			barSpacing.value = 0;
+			zoomToSubset.value = true;
 			
 			heightColumns.addGroupedCallback(this, defineSortColumnIfUndefined);
 			registerNonSpatialProperty(colorColumn);
@@ -97,6 +98,7 @@ package weave.visualization.plotters
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const horizontalMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 		public const groupMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
+		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 		public const barSpacing:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
 		private function defineSortColumnIfUndefined():void
@@ -354,24 +356,26 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			var bounds:IBounds2D = getReusableBounds(NaN, 0, NaN, 0);
-			for each (var column:IAttributeColumn in heightColumns.getObjects())
+			if(!zoomToSubset.value)
 			{
-				if (groupMode.value)
+				for each (var column:IAttributeColumn in heightColumns.getObjects())
 				{
-					bounds.includeCoords(NaN, WeaveAPI.StatisticsCache.getMin(column));
-					bounds.includeCoords(NaN, WeaveAPI.StatisticsCache.getMax(column));
+					if (groupMode.value)
+					{
+						bounds.includeCoords(NaN, WeaveAPI.StatisticsCache.getMin(column));
+						bounds.includeCoords(NaN, WeaveAPI.StatisticsCache.getMax(column));
+					}
+					else
+					{
+						if (!isNaN(WeaveAPI.StatisticsCache.getMax(column)))
+							bounds.setYMax(bounds.getYMax() + WeaveAPI.StatisticsCache.getMax(column));
+					}
 				}
-				else
-				{
-					if (!isNaN(WeaveAPI.StatisticsCache.getMax(column)))
-						bounds.setYMax(bounds.getYMax() + WeaveAPI.StatisticsCache.getMax(column));
-				}
+				
+				// swap x,y if in horizontal mode
+				if (horizontalMode.value)
+					bounds.setBounds(bounds.getYMin(), bounds.getXMin(), bounds.getYMax(), bounds.getXMax());
 			}
-			
-			// swap x,y if in horizontal mode
-			if (horizontalMode.value)
-				bounds.setBounds(bounds.getYMin(), bounds.getXMin(), bounds.getYMax(), bounds.getXMax());
-			
 			return bounds;
 		}
 		

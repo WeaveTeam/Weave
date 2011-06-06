@@ -26,12 +26,6 @@
 	     layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.data.IAttributeColumn;
-			import weave.api.registerLinkableChild;
-			import weave.api.core.ILinkableObject;
-			import weave.api.copySessionState;
-			import weave.api.data.AttributeColumnMetadata;
-			import weave.utils.ColumnUtils;
 			import flash.utils.flash_proxy;
 			
 			import mx.events.FlexEvent;
@@ -39,25 +33,30 @@
 			
 			import weave.Weave;
 			import weave.WeaveProperties;
-			import weave.core.LinkableBoolean;
-			import weave.core.SessionManager;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.ui.IPlotLayer;
+			import weave.core.LinkableBoolean;
+			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.api.data.IAttributeColumn;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.LinkableBounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColumnListComponent;
 			import weave.utils.BitmapText;
+			import weave.utils.ColumnUtils;
 			import weave.utils.DebugUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.AxisLayer;
-			import weave.api.ui.IPlotLayer;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AxisPlotter;
@@ -420,6 +419,12 @@
 				<mx:CheckBox id="selectionAndProbeOnlyCheckBox" label="Show selection &amp; probe only" 
 							 color="0x000000" fontSize="{controlsFontSize}" 
 							 toolTip="" change="handleSelectionAndProbeOnlyCheckBox();"/>
+			</userControls:ControlsSubsetBox>
+			<userControls:ControlsSubsetBox width="100%">
+				<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
+							 color="0x000000" fontSize="{controlsFontSize}"
+							 toolTip="Enables automatic zooming to the subset of data currently displayed"
+							 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
 			</userControls:ControlsSubsetBox>
 		</mx:VBox>
 	</ui:ControlPanel>

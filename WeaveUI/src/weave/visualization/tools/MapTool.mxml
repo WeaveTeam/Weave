@@ -225,8 +225,7 @@
 				
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, handleBoundsChange, true);
-				
+								
 				enableOverview.value = false;
 				
 			}
@@ -481,6 +480,8 @@
 					{
 						overviewTool = children.requestObject(children.generateUniqueName("overview"),MapOverviewWindow,true);
 						linkSessionState(visualization.layers, overviewTool.visualization.layers); 
+						getCallbackCollection(visualization.dataBounds).addImmediateCallback(this,overviewTool.drawBoundsRectangle,[visualization.dataBounds]);
+						visualization.layers.addImmediateCallback(this,overviewTool.drawBoundsRectangle,[visualization.dataBounds]);
 					}
 				} else {
 					if(overviewTool && contains(overviewTool))
