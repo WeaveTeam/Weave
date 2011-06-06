@@ -1,5 +1,5 @@
 Projects:
-1. WeaveAPI: MPL tri-license, ActionScript interface classes
+++ WeaveAPI: MPL tri-license, ActionScript interface classes
 + WeaveCore: GPLv3 license, core sessioning framework
 + WeaveData: GPLv3 license, columns related to loading data and other non-UI features.
 + WeaveUI: GPLv3 license, user interface classes
