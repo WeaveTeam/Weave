@@ -22,6 +22,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.geom.Rectangle;
 	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ICallbackInterface;
@@ -251,6 +252,7 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
 			graphics.clear();
+			screenBounds.getRectangle(clipRectangle);
 			for (var i:int = 0; i < recordKeys.length; i++)
 			{
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
@@ -261,18 +263,21 @@ package weave.visualization.plotters
 				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
 				if (++count > AbstractPlotter.recordsPerDraw)
 				{
-					destination.draw(tempShape);
+					destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
 					graphics.clear();
 					count = 0;
 				}
 			}
+
 			// flush the tempShape buffer
 			if (count > 0)
-				destination.draw(tempShape);
+				destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
 			
 			//---------------------------------------------------------
 			// END template code
 		}
+		protected const clipRectangle:Rectangle = new Rectangle;
+		protected var clipDrawing:Boolean = true;
 		protected const tempShape:Shape = new Shape(); // reusable temporary object
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

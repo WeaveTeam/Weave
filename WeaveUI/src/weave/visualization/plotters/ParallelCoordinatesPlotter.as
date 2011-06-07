@@ -139,17 +139,26 @@ package weave.visualization.plotters
 			var results:Array = [];
 			var i:int;
 			var _normalize:Boolean = normalize.value;
-			for (i = 0; i < _columns.length; ++i)
+			for (i = 0; i < _columns.length - 1; ++i)
 			{
-				// project data coordinates to screen coordinates and draw graphics
-				tempPoint.x = i;
+				var x:Number;
+				var y:Number;
+				
+				x = i;
 				if (_normalize)
-					tempPoint.y = ColumnUtils.getNorm(_columns[i], recordKey);
+					y = ColumnUtils.getNorm(_columns[i], recordKey);
 				else
-					tempPoint.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
 				
 				var bounds:IBounds2D = getReusableBounds();
-				bounds.setCenteredRectangle(tempPoint.x, tempPoint.y, 0, 0);
+				bounds.setCenteredRectangle(x, y, 0, 0);
+				
+				if (_normalize)
+					y = ColumnUtils.getNorm(_columns[i+1], recordKey);
+				else
+					y = (_columns[i+1] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+				bounds.includeCoords(x + 1, y);
+				
 				results.push(bounds);
 			}
 			return results;
