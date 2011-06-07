@@ -4,6 +4,9 @@ Project website: http://www.iweave.org/
 
 Issue Tracker: http://129.63.8.219/bugzilla
 
+The binaries are included in [weave.zip](http://github.com/IVPR/Weave/raw/master/weave.zip)
+
+
 Projects in this repository:
 
  * WeaveAPI: MPL tri-license, ActionScript interface classes
@@ -19,5 +22,3 @@ The bare minimum you need to build Weave is [Flex 3.5](http://fpdownload.adobe.c
 To build the projects on the command line, use the **WeaveClient/buildall.xml** and **WeaveServices/build.xml** Ant scripts.
 
 See README-linux.md for more detailed Linux build instructions.
-
-
