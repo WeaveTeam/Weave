@@ -49,12 +49,12 @@ package weave.ui
 			// TEMPORARY SOLUTION
 			// Sometimes this code crashes with a null reference error.
 			// So, until this is fully debugged, only attempt this fix when running the debug player.
-			if (SessionManager.runningDebugFlashPlayer)
-			{
-				// The dropdown will not be properly reset unless it is currently shown.
-				// validateNow(); // this often breaks the combobox used for WMS Settings in PlotLayerEditor
-				downArrowButton_buttonDownHandler(null);
-			}
+//			if (SessionManager.runningDebugFlashPlayer)
+//			{
+//				// The dropdown will not be properly reset unless it is currently shown.
+//				validateNow();
+//				downArrowButton_buttonDownHandler(null);
+//			}
 			super.dataProvider = value;
 		}
 		
