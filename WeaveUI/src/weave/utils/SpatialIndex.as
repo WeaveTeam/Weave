@@ -58,7 +58,7 @@ package weave.utils
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
-		// TODO: Refactor to use image/color hits instead
+		// TODO: Refactor to use image/color hits instead. The image hits should use some sort of trapezoidal or triangular grid.
 		
 		public function SpatialIndex(callback:Function = null, callbackParameters:Array = null)
 		{
