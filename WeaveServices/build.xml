@@ -10,10 +10,11 @@
     <target name="build">
         <mkdir dir="build/classes"/>
         <javac srcdir="src" destdir="build/classes" classpathref="classpath"/>
+        <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
     </target>
     <target name="dist" depends="build">
         <war destfile="build/jar/WeaveServices.war">
-            <lib dir="lib"/>
+            <lib dir="lib/"/>
             <classes dir="build/classes"/>
             <webinf dir="WebContent/WEB-INF"/>
             <metainf dir="WebContent/META-INF"/>
