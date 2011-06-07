@@ -56,6 +56,8 @@ package weave.visualization.plotters
 			lineStyle.weight.defaultValue.value = 1;
 			lineStyle.alpha.defaultValue.value = 1.0;
 			setKeySource(_combinedKeySet);
+			
+			zoomToSubset.value = true;
 		}
 
 		/*
@@ -94,6 +96,7 @@ package weave.visualization.plotters
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const curveType:LinkableString  = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));
 		public const shapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
+		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 
 		public static const CURVE_NONE:String = 'none';
 		public static const CURVE_TOWARDS:String = 'towards';
@@ -369,20 +372,22 @@ package weave.visualization.plotters
 		{
 			// normalized data coordinates
 			var bounds:IBounds2D = getReusableBounds();
-			bounds.setBounds(0, 0, Math.max(1, columns.getNames().length - 1), 1);
-			
-			if (!normalize.value)
+			if(!zoomToSubset.value)
 			{
-				// reset y coords
-				bounds.setYRange(NaN, NaN);
-				for each (var column:IAttributeColumn in columns.getObjects())
+				bounds.setBounds(0, 0, Math.max(1, columns.getNames().length - 1), 1);
+				
+				if (!normalize.value)
 				{
-					// expand y range to include all data coordinates
-					bounds.includeCoords(0, WeaveAPI.StatisticsCache.getMin(column));
-					bounds.includeCoords(0, WeaveAPI.StatisticsCache.getMax(column));
+					// reset y coords
+					bounds.setYRange(NaN, NaN);
+					for each (var column:IAttributeColumn in columns.getObjects())
+					{
+						// expand y range to include all data coordinates
+						bounds.includeCoords(0, WeaveAPI.StatisticsCache.getMin(column));
+						bounds.includeCoords(0, WeaveAPI.StatisticsCache.getMax(column));
+					}
 				}
-			}
-			
+			}			
 			return bounds;
 		}
 		

@@ -34,6 +34,7 @@
 			import mx.events.FlexEvent;
 			import mx.events.MetadataEvent;
 			import mx.events.SliderEvent;
+			import mx.utils.ObjectUtil;
 			
 			import org.openscales.proj4as.ProjProjection;
 			
@@ -94,10 +95,7 @@
 			override protected function constructor():void
 			{
 				super.constructor();
-				
-				//overviewTool = children.requestObject("overviewWindow",MapOverviewTool,false);
-				//children.setNameOrder(["visualization","overviewWindow"]);
-				
+								
 				// make sure WMS layers are included in the full data bounds
 				visualization.includeNonSelectableLayersInAutoZoom.value = true;
 				visualization.includeNonSelectableLayersInAutoZoom.lock();
@@ -108,7 +106,6 @@
 				
 				enableBackground.value = true;
 				
-				linkColormap.value = false;
 				colorColumn.addGroupedCallback(this, updateTitle);
 				toolTitle.addGroupedCallback(this, updateTitle);
 				visualization.defaultMouseMode.addGroupedCallback(this, handleMouseModeChange);
@@ -227,13 +224,9 @@
 				
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, handleBoundsChange, true);
+								
+				enableOverview.value = false;
 				
-//				enableOverview.value = true;
-				
-				//overviewTool = children.requestObject(children.generateUniqueName("overview"),MapOverviewWindow,true);
-				
-				//linkSessionState(visualization.layers, overviewTool.visualization.layers); 
 			}
 			
 			/*private function handleSelectedLayerChange():void
@@ -359,7 +352,7 @@
 			private var BackgroundImage:Class;
 			private var backgroundImageBitmapData:BitmapData = null;
 			public const enableBackground:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidateDisplayList);
-			//public const enableOverview:LinkableBoolean = newLinkableChild(this, LinkableBoolean, overviewCheckBox_clickHandler);
+			public const enableOverview:LinkableBoolean = newLinkableChild(this, LinkableBoolean, updateOverviewWindow);
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
@@ -471,23 +464,30 @@
 				//EventUtils.removeBindCallback(userControlPanel, "visible", handleControlPanelToggle);
 			}
 			
-			//public var overviewTool:MapOverviewWindow;
-			/*
-			private function overviewCheckBox_clickHandler():void
+			public var overviewTool:MapOverviewWindow;
+			
+			private function updateOverviewWindow():void
 			{
 				// TODO Auto-generated method stub
-				if(overviewCheckBox.selected)
+				if(enableOverview.value)
 				{
 					if(overviewTool && !contains(overviewTool))
 					{
 						addChild(overviewTool);
+					}
+					if(!overviewTool)
+					{
+						overviewTool = children.requestObject(children.generateUniqueName("overview"),MapOverviewWindow,true);
+						linkSessionState(visualization.layers, overviewTool.visualization.layers); 
+						getCallbackCollection(visualization.dataBounds).addImmediateCallback(this,overviewTool.drawBoundsRectangle,[visualization.dataBounds]);
+						visualization.layers.addImmediateCallback(this,overviewTool.drawBoundsRectangle,[visualization.dataBounds]);
 					}
 				} else {
 					if(overviewTool && contains(overviewTool))
 						removeChild(overviewTool) ;
 				}
 				
-			} */
+			} 
 			
 		]]>
 	</mx:Script>
@@ -647,11 +647,11 @@
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
-			<!--<userControls:ControlsSubsetBox>
+			<userControls:ControlsSubsetBox>
 				<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
 							 creationComplete="linkBindableProperty(enableOverview,overviewCheckBox,'selected')"
 							 selected="true"/>
-			</userControls:ControlsSubsetBox>-->
+			</userControls:ControlsSubsetBox>
 			<userControls:ControlsSubsetBox>
 				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
 				<mx:VBox verticalGap="1">
