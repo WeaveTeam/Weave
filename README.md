@@ -1,6 +1,6 @@
 Weave: Web-based Analysis and Visualization Environment
 
-Project website: http://www.iweave.org/
+Project website: http://ivpr.github.com/Weave/
 
 Issue Tracker: http://129.63.8.219/bugzilla
 
