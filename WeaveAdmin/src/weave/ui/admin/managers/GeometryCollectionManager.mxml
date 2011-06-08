@@ -50,7 +50,7 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.beans.GeometryCollectionInfo;
-			import weave.ui.WizardPanel;
+			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;

@@ -2,7 +2,7 @@ Weave: Web-based Analysis and Visualization Environment
 
 Project website: http://ivpr.github.com/Weave/
 
-Issue Tracker: http://129.63.8.219:8080/secure/Dashboard.jspa
+Issue Tracker: http://129.63.8.219/redmine/public
 
 The binaries are included in [weave.zip](http://github.com/IVPR/Weave/raw/master/weave.zip)
 

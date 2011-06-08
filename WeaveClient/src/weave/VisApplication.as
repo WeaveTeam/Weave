@@ -1454,8 +1454,7 @@ package weave
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				
-				
-				SessionedTextBox.createContextMenuItems(this)
+				SessionedTextBox.createContextMenuItems(this);
 				
 					
 				//HelpPanel.createContextMenuItems(this);
