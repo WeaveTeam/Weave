@@ -255,7 +255,12 @@ package weave.services
 		{
 			return service.getConnectionInfo(activeConnectionName, activePassword, connectionName);
 		}
-		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
+		
+		
+		//This function only saves the connection and does not get the connection names like
+		//the saveConnectionInfo function. Incase the connection fails the user won't see the 
+		//other error messages if getConnectionNames function fails
+		public function saveConnectionInfoOnly(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
 		{
 			service.saveConnectionInfo(connectionInfo, configOverwrite);
 			
@@ -263,6 +268,11 @@ package weave.services
 			//the Admin Console needs to know so that it can then force the user to migrate to the database.
 			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
 			
+		}
+		
+		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
+		{
+			saveConnectionInfoOnly(connectionInfo,configOverwrite);			
 			getConnectionNames();
 		}
 		public function removeConnectionInfo(connectionName:String):DelayedAsyncInvocation

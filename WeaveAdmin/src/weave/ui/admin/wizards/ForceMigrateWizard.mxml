@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<admin:WizardViewStack
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:ui="weave.ui.*"
+	xmlns:admin="weave.ui.admin.*"
+	xmlns="weave.ui.admin.wizards.*"
+	label="Admin Console Configuration"
+	width="640" height="300"
+	creationComplete="handleCreationComplete()"
+	>
+	<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+		<mx:Label fontWeight="bold" text="Add a Database Connection"/>
+		<ui:Indent indent="{_indent}" label="Connection name:*">
+			<mx:TextInput id="connectionNameInput" width="130" text="default"/>
+		</ui:Indent>
+		<ui:Indent indent="{_indent}" label="SQL Server type:*">
+			<ui:CustomComboBox id="connectionDBMSCombo" dataProvider="{['MySQL','PostGreSQL']}" width="130"/>
+		</ui:Indent>
+		<ui:TextBox indent="{_indent}" label="SQL Server IP:*" id="connectionIPInput" text="{hostIP}" textWidth="130"/>
+		<ui:TextBox indent="{_indent}" label="SQL Server Port:*" id="connectionPortInput" text="{connectionDBMSCombo.text=='MySQL' ? 3306 : 5432}" textWidth="130"/>
+		<ui:Indent indent="{_indent}" label="SQL Database name:">
+			<mx:TextInput id="connectionDatabaseInput" width="130"/>
+			<mx:Label text="(Optional)"/>
+			<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.  In PostGreSQL, databases are different from schemas.  MySQL does not differentiate between the two.', 'Admin Console Help')"/>
+		</ui:Indent>
+		<ui:TextBox indent="{_indent}" label="SQL User Name:*" id="connectionUserInput" textWidth="130"/>
+		<ui:TextBox indent="{_indent}" label="SQL Password:*" id="connectionPasswordInput" displayAsPassword="true" textWidth="130" toolTip="if you are using the default empty password, you can leave this field empty."/>
+		<mx:Label text="Note: You can always add/delete database connections later."/>
+	</mx:VBox>
+	<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+		<mx:Label fontWeight="bold" text="Enter the schema and table names to use for storing configuration"/>
+		<ui:TextBox indent="{_indent}" label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
+		<ui:TextBox indent="{_indent}" label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
+		<ui:TextBox indent="{_indent}" label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
+		<mx:Label text="Note: You can always change these settings later."/>
+	</mx:VBox>
+		<!--<ui:Indent>
+			<mx:Button id="migrateButton" label="Migrate SQLConfig.XML entries to this database location" click="migrateToDatabase()" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+		</ui:Indent>-->
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.messaging.config.ConfigMap;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.xml.SchemaTypeRegistry;
+			
+			import weave.services.AdminInterface;
+			import weave.services.DelayedAsyncInvocation;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.beans.ConnectionInfo;
+			
+			[Bindable]
+			private var _indent:int = 170;
+			
+			private function handleCreationComplete():void
+			{
+				
+				//disabled by default
+				//we enable it after the user hits the next button
+				finishEnabled = false;
+				
+			}
+			
+			override public function next():void
+			{
+				//check if required fields are enetered
+				if(connectionIPInput.text == "" || connectionNameInput.text == "" ||
+				connectionPortInput.text == "" || connectionUserInput.text == "")
+				{
+					Alert.show("All fields makred with * are required.", "Error");
+					return;
+				}
+				
+				
+				super.next();
+				finishEnabled = true;				
+			}
+			
+			override public function back():void
+			{
+				finishEnabled = false;
+				super.back();
+			}
+			
+			private function get hostUrl():String
+			{
+				var result:Array = mx.core.Application.application.url.split("http://");
+				var index:int = (result.length > 1) ? 1 : 0;
+				result = (result[index] as String).split("/");
+				return result[0] as String;
+			}
+			
+			private const hostIP:String = hostUrl.split(':')[0];
+			
+			
+			/**
+			 * Adds the database connection and migrates the sqlconfig to this database
+			 * 
+			 **/
+			override public function finish():void
+			{
+				var connectionInfo:ConnectionInfo = new ConnectionInfo(null);
+				
+				connectionInfo.database = connectionDatabaseInput.text;
+				connectionInfo.dbms = connectionDBMSCombo.text;
+				connectionInfo.ip = connectionIPInput.text;
+				connectionInfo.name = connectionNameInput.text;
+				connectionInfo.pass = connectionPasswordInput.text;
+				connectionInfo.port = connectionPortInput.text;
+				connectionInfo.user = connectionUserInput.text;
+				
+				AdminInterface.instance.saveConnectionInfoOnly(connectionInfo,true);
+				
+				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
+					connectionNameInput.text,
+					connectionPasswordInput.text,
+					migrateSchemaInput.text,
+					migrateGeometryConfigInput.text,
+					migrateDataConfigInput.text);
+				
+				//dispatch close event if migration is successfull
+				query.addAsyncResponder(function(result:ResultEvent,token:Object = null):void{
+					dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+				});
+			}
+			
+		]]>
+	</mx:Script>
+</admin:WizardViewStack>
