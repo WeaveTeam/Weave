@@ -2,9 +2,9 @@ Weave: Web-based Analysis and Visualization Environment
 
 Project website: http://ivpr.github.com/Weave/
 
-Issue Tracker: http://129.63.8.219/redmine/public
-
 Nightly build: http://www.github.com/IVPR/Weave-Binaries/
+
+Issue Tracker: http://129.63.8.219/redmine/public
 
 Projects in this repository:
 
