@@ -36,26 +36,8 @@
 
 package weave.api.services
 {
-	import flash.display.Loader;
-	import flash.display.LoaderInfo;
-	import flash.events.ErrorEvent;
-	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.ProgressEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.net.URLLoader;
-	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
-	
-	import mx.core.mx_internal;
-	import mx.rpc.AsyncResponder;
-	import mx.rpc.AsyncToken;
-	import mx.rpc.Fault;
-	import mx.rpc.IResponder;
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.services.IURLRequestToken;
 

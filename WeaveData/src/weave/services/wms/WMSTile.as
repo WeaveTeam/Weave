@@ -181,9 +181,7 @@ package weave.services.wms
 		public function downloadImage(resultFunction:Function, faultFunction:Function, token:Object = null):void
 		{
 			cancelDownload();
-			_urlRequestToken = _urlRequestUtils.getContent(_urlRequest, resultFunction, faultFunction, token);
+			_urlRequestToken = WeaveAPI.URLRequestUtils.getContent(_urlRequest, resultFunction, faultFunction, token);
 		}
-		
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

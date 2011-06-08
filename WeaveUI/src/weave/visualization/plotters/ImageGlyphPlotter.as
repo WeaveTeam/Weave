@@ -103,7 +103,7 @@ package weave.visualization.plotters
 					// set a placeholder so it doesn't get downloaded again
 					_urlToImageMap[_imageURL] = _missingImage;
 					// download the image
-					_urlRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+					WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 				}
 			}
 		}
@@ -130,7 +130,5 @@ package weave.visualization.plotters
 			_urlToImageMap[token] = _missingImage;
 			getCallbackCollection(this).triggerCallbacks();
 		}
-		
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

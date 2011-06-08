@@ -19,8 +19,6 @@
 
 package weave.data.DataSources
 {
-	import __AS3__.vec.Vector;
-	
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
@@ -34,7 +32,6 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -69,7 +66,7 @@ package weave.data.DataSources
 		{
 			if (url.value != "" && url.value != null) // if url is specified
 			{
-				_urlRequestUtils.getURL(new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
+				WeaveAPI.URLRequestUtils.getURL(new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
 			}
 			else if (csvDataString.value != null) // if data is specified
 			{
@@ -273,7 +270,5 @@ package weave.data.DataSources
 		}
 		
 		private const nullValues:Array = [null, "", "null", "\\N", "NaN"];
-		
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

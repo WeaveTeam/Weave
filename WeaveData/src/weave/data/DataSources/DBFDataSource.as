@@ -84,7 +84,7 @@ package weave.data.DataSources
 			if (dbfUrl.value != null)
 			{
 				dbfData = null;
-				_urlRequestUtils.getURL(new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, null, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, null, URLLoaderDataFormat.BINARY);
 			}
 		}
 		private function handleShpUrlChange():void
@@ -94,7 +94,7 @@ package weave.data.DataSources
 				if (shpfile)
 					disposeObjects(shpfile)
 				shpfile = null;
-				_urlRequestUtils.getURL(new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
 			}
 		}
 		
@@ -245,7 +245,5 @@ package weave.data.DataSources
 			}
 			return values;
 		}
-		
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

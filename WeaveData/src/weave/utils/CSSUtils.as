@@ -44,7 +44,7 @@ package weave.utils
 		 */
 		public static function loadStyleSheet(url:String):void
 		{
-			_urlRequestUtils.getURL(
+			WeaveAPI.URLRequestUtils.getURL(
 				new URLRequest(url),
 				function(event:ResultEvent, token:Object = null):void
 				{
@@ -171,7 +171,5 @@ package weave.utils
 		{			
 			return matchedString.replace("-", "").toUpperCase();	
 		}
-		
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }

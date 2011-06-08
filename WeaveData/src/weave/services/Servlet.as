@@ -129,7 +129,7 @@ package weave.services
 			var token:AsyncToken = new AsyncToken();
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			_urlRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
+			WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
 			return token;
 		}
 		
@@ -142,7 +142,5 @@ package weave.services
 		{
 			(token as AsyncToken).mx_internal::applyFault(event);
 		}
-		
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 	}
 }
