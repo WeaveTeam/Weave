@@ -26,7 +26,7 @@
 
 	<!-- This property must be defined here. Note the use of forward slashes '/' and
 		the slash required at the end -->
-	<property name="WEAVE_DOCROOT" value="C:/dev/apache-tomcat-7.0.6/webapps/ROOT/"/>
+	<property name="WEAVE_DOCROOT" value="/home/pkovac/pub/weave"/>
 
 	<!-- This property's value is defined as an environment variable -->
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
@@ -42,14 +42,12 @@
 	<property name="UI" value="WeaveUI"/>
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
+        <property name="SERVICES" value="WeaveServices"/>
 
 
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DOCROOT -->
-	<target name="dist" depends="client, admin, ui, data, core, api">
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Moving SWFs to ${WEAVE_DOCROOT} -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
+	<target name="dist" depends="client, admin, ui, data, core, api, services">
 		<ant dir="${basedir}/${CLIENT}" target="build"/>
 
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
@@ -59,114 +57,35 @@
 
 		<copy file="${basedir}/${CLIENT}/bin/${CLIENT}.swf" tofile="${WEAVE_DOCROOT}/weave.swf"/>
 		<copy file="${basedir}/${ADMIN}/bin/${ADMIN}.swf" tofile="${WEAVE_DOCROOT}/AdminConsole.swf"/>
+		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${WEAVE_DOCROOT}/${SERVICES}.war"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/framework_${SDK_VERSION}.swf" tofile="${WEAVE_DOCROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/rpc_${SDK_VERSION}.swf" tofile="${WEAVE_DOCROOT}/rpc.swf"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done moving SWFs  -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Generating HTML wrappers  -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
 		<antcall target="admin_wrapper"/>
 		<antcall target="client_wrapper"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done generating HTML wrappers -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-
 	</target>
 
 	<!-- These targets will build each project -->
 	<target name="client" depends="ui, data, core, api, check_client" unless="client_no_changes">
-		<echo message="-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- WeaveClient -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-"/>
 		<ant dir="${basedir}/${CLIENT}" target="build"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done building WeaveClient -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
 	</target>
 	<target name="admin" depends="ui, data, core, api, check_admin" unless="admin_no_changes">
-		<echo message="-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- WeaveAdmin  -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-"/>
 		<ant dir="${basedir}/${ADMIN}" target="build"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done building WeaveAdmin  -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
 	</target>
 	<target name="api" depends="check_api" unless="api_no_changes">
-		<echo message="-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- WeaveAPI  -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-"/>
 		<ant dir="${basedir}/${API}" target="build"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done building WeaveAPI  -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
 	</target>
 	<target name="core" depends="api, check_core" unless="core_no_changes">
-		<echo message="-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- WeaveCore -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-"/>
 		<ant dir="${basedir}/${CORE}" target="build"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done building WeaveCore -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
 	</target>
 	<target name="data" depends="core, api, check_data" unless="data_no_changes">
-		<echo message="-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- WeaveData -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-"/>
 		<ant dir="${basedir}/${DATA}" target="build"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done building WeaveData -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
 	</target>
 	<target name="ui" depends="data, core, api, check_ui" unless="ui_no_changes">
-		<echo message="-*-*-*-*-*-*-*-"/>
-		<echo message="-*- WeaveUI -*-"/>
-		<echo message="-*-*-*-*-*-*-*-"/>
 		<ant dir="${basedir}/${UI}" target="build"/>
-		<echo message=" "/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message="-*- Done building WeaveUI -*-"/>
-		<echo message="-*-*-*-*-*-*-*-*-*-*-*-*-*-*-"/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
-		<echo message=" "/>
 	</target>
+        <target name="services">
+            <ant dir="${basedir}/WeaveServices" target="dist"/>
+        </target>
 
 	<!-- This target calls the clean targets of each project's build file -->
 	<target name="clean">
@@ -177,6 +96,7 @@
 		<ant dir="${basedir}/${CORE}" target="clean" />
 		<ant dir="${basedir}/${DATA}" target="clean" />
 		<ant dir="${basedir}/${UI}" target="clean" />
+		<ant dir="${basedir}/${SERVICES}" target="clean" />
 	</target>
 
 
@@ -273,7 +193,6 @@
 			bgcolor="#7B96B6"
 		/>
 	</target>
-
 	<macrodef name="extract_swc">
 		<attribute name="swc"/>
 		<attribute name="rsl"/>

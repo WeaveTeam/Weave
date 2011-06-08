@@ -47,7 +47,7 @@ Weave is an open source web-based visualization platform, written in Actionscrip
 6. Edit the ``buildall.xml`` file, being sure to follow the directions provided in the comment at the beginning of the file, being sure to set ``WEAVE_DOCROOT`` to some path writable by your user.
 7. Run 
 
- ``ant -f buildall.xml``
+ ``ANT_OPTS=-XX:MaxPermSize=1024m ant -f buildall.xml``
 
 8. Open a new file at /etc/tomcat6/Catalina/localhost/weave.xml, ie
 
@@ -58,6 +58,7 @@ Weave is an open source web-based visualization platform, written in Actionscrip
  ``<Context path="/weave" docBase="/home/user/pub/app">``
 	
  Modifying ``docBase`` as appropriate. 
+8. Copy WeaveServices.war from ``/home/user/pub/app`` into ``/var/lib/tomcat6/webapps``.
 9. Restart the tomcat service as appropriate for your distribution. For example, on Ubuntu/Debian:
  ``/etc/init.d/tomcat6 restart``
 10. Open your browser and enter 

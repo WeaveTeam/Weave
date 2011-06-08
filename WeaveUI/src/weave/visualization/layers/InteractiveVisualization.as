@@ -584,6 +584,9 @@ package weave.visualization.layers
 				// calculate minImportance
 				layer.getDataBounds(tempDataBounds);
 				layer.getScreenBounds(tempScreenBounds);
+				if (!tempDataBounds.overlaps(queryBounds))
+					continue;
+				tempDataBounds.constrainBounds(queryBounds, false);	
 				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysContainingBounds(queryBounds, tempDataBounds.getArea() / tempScreenBounds.getArea());
 				setSelectionKeys(layer, keys, true);
 				
@@ -645,9 +648,13 @@ package weave.visualization.layers
 					//trace(layers.getName(layer),queryBounds);
 					
 					// probe for records
+					
+					if (!tempDataBounds.overlaps(queryBounds))
+						continue;
+					tempDataBounds.constrainBounds(queryBounds, false);
 					var keys:Array = (layer.spatialIndex as SpatialIndex).getClosestOverlappingKeys( queryBounds, xPrecision, yPrecision );
 					//trace(layers.getName(layer),keys);
-					
+						
 					// stop when we find keys
 					if (keys.length > 0)
 					{

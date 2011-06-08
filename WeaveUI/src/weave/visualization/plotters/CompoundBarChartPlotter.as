@@ -124,7 +124,7 @@ package weave.visualization.plotters
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
-			
+			screenBounds.getRectangle(clipRectangle, true);
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
 			graphics.clear();
@@ -293,7 +293,7 @@ package weave.visualization.plotters
 			}
 			// flush the tempShape buffer
 			if (count > 0)
-				destination.draw(tempShape);
+				destination.draw(tempShape, null, null, null, clipRectangle);
 			
 			//---------------------------------------------------------
 			// END template code
