@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<flexLibProperties includeAllClasses="false" version="1">
+<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="false" version="1">
   <includeClasses>
     <classEntry path="MXClasses"/>
     <classEntry path="weave.Weave"/>
@@ -168,6 +168,7 @@
     <classEntry path="weave.visualization.tools.HistogramTool"/>
     <classEntry path="weave.visualization.tools.ImageGlyphTool"/>
     <classEntry path="weave.visualization.tools.LineChartTool"/>
+    <classEntry path="weave.visualization.tools.MapOverviewWindow"/>
     <classEntry path="weave.visualization.tools.MapTool"/>
     <classEntry path="weave.visualization.tools.MeterToolInputSelector"/>
     <classEntry path="weave.visualization.tools.ParallelCoordinatesTool"/>
@@ -187,7 +188,6 @@
     <classEntry path="weave.visualization.tools.ThermometerTool"/>
     <classEntry path="weave.visualization.tools.TimeSliderTool"/>
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
-    <classEntry path="weave.ui.infomap.InfoMapPanel"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
