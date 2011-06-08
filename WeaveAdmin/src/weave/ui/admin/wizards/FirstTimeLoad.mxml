@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:WizardViewStack
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:ui="weave.ui.*"
+	xmlns:admin="weave.ui.admin.*"
+	xmlns="weave.ui.admin.wizards.*"
+	label="Import SQL tables to Weave"
+	width="640" height="300"
+	>
+	<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+		<mx:Label fontWeight="bold" text="Add a database connection:"/>
+		<ui:Indent indent="{_indent}" label="Connection name:">
+			<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
+			<mx:CheckBox visible="false" label="Overwrite" id="configOverwrite"/>
+		</ui:Indent>
+		<ui:Indent indent="{_indent}" label="SQL Server type">
+			<ui:CustomComboBox id="connectionDBMSCombo" dataProvider="{['MySQL','PostGreSQL']}" width="130"/>
+		</ui:Indent>
+		<ui:TextBox indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" textWidth="130"/>
+		<ui:TextBox indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{connectionDBMSCombo.text=='MySQL' ? 3306 : 5432}" textWidth="130"/>
+		<ui:Indent indent="{_indent}" label="SQL Database name">
+			<mx:TextInput id="connectionDatabaseInput" width="130"/>
+			<mx:Label text="(Optional)"/>
+			<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.  In PostGreSQL, databases are different from schemas.  MySQL does not differentiate between the two.', 'Admin Console Help')"/>
+		</ui:Indent>
+		<ui:TextBox indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
+		<ui:TextBox indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
+		<!--<ui:Indent>
+			<mx:Button label="Save this database connection"
+					   click="saveConnectionInfo()"
+					   fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+			<mx:Button label="Clear" id="clearConnectionColumns" click="clearConnectionColumns_clickHandler(event)" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+		</ui:Indent>-->
+	</mx:VBox>
+	<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+		<mx:Label id="forceMigrateMessage" visible="false" color="red" text="Please migrate the sqlconfig.xml file to your database. The other options will be disabled till you finish the migration process." />
+		<mx:Label fontWeight="bold" text="Migrate SQLConfig.XML entries to the database:"/>
+		<ui:Indent indent="{170}" label="Connection to use">
+			<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
+		</ui:Indent>
+		<ui:TextBox indent="{170}" label="Password" id="migratePasswordInput" displayAsPassword="true"/>
+		<ui:TextBox indent="{170}" label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
+		<ui:TextBox indent="{170}" label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
+		<ui:TextBox indent="{170}" label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
+		<!--<ui:Indent>
+			<mx:Button id="migrateButton" label="Migrate SQLConfig.XML entries to this database location" click="migrateToDatabase()" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+		</ui:Indent>-->
+	<mx:Script>
+		<![CDATA[
+			
+			private var _indent:int = 50;
+		]]>
+	</mx:Script>
+</ui:WizardViewStack>
