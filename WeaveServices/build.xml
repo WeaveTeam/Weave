@@ -13,7 +13,8 @@
         <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
     </target>
     <target name="dist" depends="build">
-        <war destfile="build/jar/WeaveServices.war">
+	<mkdir dir="build/jar"/>
+        <war destfile="build/jar/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
             <lib dir="lib/"/>
             <classes dir="build/classes"/>
             <webinf dir="WebContent/WEB-INF"/>
