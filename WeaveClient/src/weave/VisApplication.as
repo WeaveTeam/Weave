@@ -102,7 +102,6 @@ package weave
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
-	import weave.ui.infomap.InfoMapPanel;
 	import weave.ui.settings.GlobalUISettings;
 	import weave.utils.BitmapUtils;
 	import weave.utils.CSSUtils;
@@ -1455,12 +1454,6 @@ package weave
 				{
 					// Add context menu item for selection related items (subset creation, etc)	
 					KeySetContextMenuItems.createContextMenuItems(this);
-				}
-				
-				
-				if(Weave.properties.enableInfoMap.value)
-				{
-					InfoMapPanel.createContextMenuItems(this);
 				}
 				
 				SessionedTextBox.createContextMenuItems(this);
