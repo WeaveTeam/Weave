@@ -22,20 +22,22 @@
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.controls.TextArea;
-			import weave.services.WeaveAdminService;
-			import mx.binding.utils.BindingUtils;
 			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.StringDefinition;
 			import weave.Weave;
 			import weave.services.AdminInterface;
+			import weave.services.WeaveAdminService;
 			import weave.ui.PopupDialog;
-			import weave.ui.WizardPanel;
 			import weave.ui.admin.LoginPopup;
+			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.wizards.CSVImportWizard;
+			import weave.ui.admin.wizards.ForceMigrateWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
 			import weave.utils.EventUtils;
@@ -61,8 +63,22 @@
 			{
 				if (!val)
 				{
+					var migrateViewStack:ForceMigrateWizard = new ForceMigrateWizard();
+					var migratePanel:WizardPanel = WizardPanel.createWizard(this, migrateViewStack) as WizardPanel;
+					
+					//we don't want the user to hit the close button before the migration step
+					//so we disable it.
+					migratePanel.cancelButton.visible = false;
+					
+					//When the user hits the finish button we will do a check to see if migration was sucessfull. 
+					//if yes, we close the wizard and direct the user to the client configuration tab
+					//if no, we will leave it open (in modal mode).
+					migrateViewStack.addEventListener(CloseEvent.CLOSE,function(..._):void{
+							tabNavigator.selectedChild = clientConfig;
+							PopUpManager.removePopUp(migratePanel);}
+					);
 					_sqlConfigMigrated = false;
-					tabNavigator.selectedChild = sqlConnectionManager;
+					//tabNavigator.selectedChild = sqlConnectionManager;
 				}
 			}
 			
@@ -111,7 +127,7 @@
 		<mx:HRule width="100%"/>
 		<mx:VDividedBox width="100%" height="100%" >
 			<mx:TabNavigator id="tabNavigator" width="100%" height="100%" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" fontSize="10">
-				<managers:ClientConfigurationManager  enabled="{_sqlConfigMigrated }"/>
+				<managers:ClientConfigurationManager  id="clientConfig" enabled="{_sqlConfigMigrated }"/>
 				<managers:DataTableManager  enabled="{_sqlConfigMigrated }"/>
 				<managers:GeometryCollectionManager  enabled="{_sqlConfigMigrated }"/>
 				<managers:SQLConnectionManager id="sqlConnectionManager"/>

@@ -113,7 +113,7 @@
 			import weave.services.WeaveAdminService;
 			import weave.services.beans.AttributeColumnInfo;
 			import weave.ui.PopupDialog;
-			import weave.ui.WizardPanel;
+			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.DublinCoreEntryComponent;
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;

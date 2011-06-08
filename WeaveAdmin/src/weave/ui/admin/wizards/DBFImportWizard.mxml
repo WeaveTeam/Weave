@@ -19,7 +19,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<ui:WizardViewStack
+<admin:WizardViewStack
 			xmlns:mx="http://www.adobe.com/2006/mxml"
 			xmlns:ui="weave.ui.*"
 			xmlns:admin="weave.ui.admin.*"
@@ -91,4 +91,4 @@
 
 		]]>
 	</mx:Script>
-</ui:WizardViewStack>
+</admin:WizardViewStack>
