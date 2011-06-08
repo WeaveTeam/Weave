@@ -4,8 +4,7 @@ Project website: http://ivpr.github.com/Weave/
 
 Issue Tracker: http://129.63.8.219/redmine/public
 
-The binaries are included in [weave.zip](http://github.com/IVPR/Weave/raw/master/weave.zip)
-
+Nightly build: http://www.github.com/IVPR/Weave-Binaries/
 
 Projects in this repository:
 
