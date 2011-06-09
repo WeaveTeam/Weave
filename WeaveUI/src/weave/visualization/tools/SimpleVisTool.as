@@ -107,11 +107,6 @@ package weave.visualization.tools
 		}
 		
 		
-		public const linkColormap:LinkableBoolean  = registerLinkableChild(this, new LinkableBoolean(true));
-		public const linkSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const linkSubset:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(true));
-		public const linkProbing:LinkableBoolean   = registerLinkableChild(this, new LinkableBoolean(true));
-		
 		public const toolTitle:LinkableString = newLinkableChild(this, LinkableString, handleToolTitleChange);
 		
 		private function handleToolTitleChange():void

@@ -371,19 +371,18 @@ package weave
 //		}
 
 		private var _maxProgressBarValue:int = 0;
-		private var _progressIndicatorProgressBar:ProgressBar = new ProgressBar;
-		private const _progressIndicator:IProgressIndicator = WeaveAPI.ProgressIndicator;
+		private var _progressBar:ProgressBar = new ProgressBar;
 		private function handleProgressIndicatorCounterChange():void
 		{
-			var pendingCount:int = _progressIndicator.getPendingRequestCount();
+			var pendingCount:int = WeaveAPI.ProgressIndicator.getTaskCount();
 			var tempString:String = pendingCount + " Pending Request" + (pendingCount == 1 ? '' : 's');
 			
-			_progressIndicatorProgressBar.label = tempString;
+			_progressBar.label = tempString;
 
 			if (pendingCount == 0)				// hide progress bar and text area
 			{
-				_progressIndicatorProgressBar.visible = false;
-				_progressIndicatorProgressBar.setProgress(0, 1); // reset progress bar
+				_progressBar.visible = false;
+				_progressBar.setProgress(0, 1); // reset progress bar
 				
 				_maxProgressBarValue = 0;
 			}
@@ -392,13 +391,13 @@ package weave
 				if (visDesktop.visible == false)
 					return;
 				
-				_progressIndicatorProgressBar.alpha = .8;
+				_progressBar.alpha = .8;
 				
 				if (pendingCount > _maxProgressBarValue)
 					_maxProgressBarValue = pendingCount;
 				
-				_progressIndicatorProgressBar.setProgress(_progressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
-				_progressIndicatorProgressBar.visible = true;
+				_progressBar.setProgress(WeaveAPI.ProgressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
+				_progressBar.visible = true;
 			}
 			
 		}
@@ -450,21 +449,21 @@ package weave
 //			_viewTabBar.addEventListener(ItemClickEvent.ITEM_CLICK, handleTabSelected);
 //			addEventListener(ResizeEvent.RESIZE,handleTabBarResize);
 			
-			_progressIndicator.getCallbackCollection().addGroupedCallback(this, handleProgressIndicatorCounterChange, true);
-			visDesktop.addChild(_progressIndicatorProgressBar);
-			_progressIndicatorProgressBar.visible = false;
-			_progressIndicatorProgressBar.x = 0;
-			_progressIndicatorProgressBar.setStyle("bottom", 0);
-			_progressIndicatorProgressBar.setStyle("trackHeight", 16); //TODO: global UI setting instead of 12?
-			_progressIndicatorProgressBar.setStyle("borderColor", 0x000000);
-			_progressIndicatorProgressBar.setStyle("color", 0xFFFFFF); //color of text
-			_progressIndicatorProgressBar.setStyle("barColor", "haloBlue");
-			_progressIndicatorProgressBar.setStyle("trackColors", [0x000000, 0x000000]);
-			_progressIndicatorProgressBar.labelPlacement = ProgressBarLabelPlacement.CENTER;
-			_progressIndicatorProgressBar.label = '';
-			_progressIndicatorProgressBar.mode = "manual"; 
-			_progressIndicatorProgressBar.minHeight = 16;
-			_progressIndicatorProgressBar.minWidth = 135; // constant
+			getCallbackCollection(WeaveAPI.ProgressIndicator).addGroupedCallback(this, handleProgressIndicatorCounterChange, true);
+			visDesktop.addChild(_progressBar);
+			_progressBar.visible = false;
+			_progressBar.x = 0;
+			_progressBar.setStyle("bottom", 0);
+			_progressBar.setStyle("trackHeight", 16); //TODO: global UI setting instead of 12?
+			_progressBar.setStyle("borderColor", 0x000000);
+			_progressBar.setStyle("color", 0xFFFFFF); //color of text
+			_progressBar.setStyle("barColor", "haloBlue");
+			_progressBar.setStyle("trackColors", [0x000000, 0x000000]);
+			_progressBar.labelPlacement = ProgressBarLabelPlacement.CENTER;
+			_progressBar.label = '';
+			_progressBar.mode = "manual"; 
+			_progressBar.minHeight = 16;
+			_progressBar.minWidth = 135; // constant
 
 			
 			
@@ -945,12 +944,11 @@ package weave
 			
 			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
 		
-			_urlRequestUtils.getURL(new URLRequest(_defaultsFilename + noCacheHack), handleDefaultsFileDownloaded, handleDefaultsFileFault);
+			WeaveAPI.URLRequestUtils.getURL(new URLRequest(_defaultsFilename + noCacheHack), handleDefaultsFileDownloaded, handleDefaultsFileFault);
 			
 			_alreadyLoaded = true;
 		}
 		
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 		private var _stateLoaded:Boolean = false;
 		private function loadSessionState(state:XML):void
 		{
@@ -1456,8 +1454,7 @@ package weave
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				
-				
-				SessionedTextBox.createContextMenuItems(this)
+				SessionedTextBox.createContextMenuItems(this);
 				
 					
 				//HelpPanel.createContextMenuItems(this);

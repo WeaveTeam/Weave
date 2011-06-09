@@ -47,7 +47,6 @@ package weave.data.AttributeColumns
 		 * This is the image cache.
 		 */
 		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
-		private static const _urlRequestUtils:IURLRequestUtils = WeaveAPI.URLRequestUtils;
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (dataType != null)
@@ -55,11 +54,10 @@ package weave.data.AttributeColumns
 			var _imageURL:String = super.getValueFromKey(key, String) as String;
 			if(_imageURL == null)
 				return _missingImage;
-			if( _urlToImageMap[_imageURL] == undefined ){
-		
+			if( _urlToImageMap[_imageURL] == undefined )
+			{
 				_urlToImageMap[_imageURL] = _missingImage;
-				_urlRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
-				
+				WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 			}
 			
 			if( (_urlToImageMap[_imageURL] ) != null ){

@@ -24,6 +24,7 @@ package weave.services
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IProgressIndicator;
+	import weave.api.getCallbackCollection;
 	import weave.core.CallbackCollection;
 
 	/**
@@ -31,65 +32,62 @@ package weave.services
 	 * 
 	 * @author adufilie
 	 */
-	public class ProgressIndicator implements IProgressIndicator
+	public class ProgressIndicator extends CallbackCollection implements IProgressIndicator
 	{
 		/**
-		 * This is the singleton instance of this class.
+		 * This is the number of pending requests.
 		 */
-		public static function get instance():ProgressIndicator
+		public function getTaskCount():int
 		{
-			return WeaveAPI.ProgressIndicator as ProgressIndicator;
-		}
-		
-		public function getCallbackCollection():ICallbackCollection
-		{
-			return _callbacks;
-		}
-
-		/**
-		 * This is the number of pending requests (Read-only).
-		 */
-		public function getPendingRequestCount():int
-		{
-			return _tokenCount;
+			return _taskCount;
 		}
 
 		/**
 		 * This function will register a pending request token and increase the pendingRequestCount if necessary.
+		 * 
+		 * @param taskToken The object whose progress to track.
 		 */
-		public function addPendingRequest(token:Object):void
+		public function addTask(taskToken:Object):void
 		{
-			reportPendingRequestProgress(token, 0);
+			updateTask(taskToken, 0);
 		}
 		
-		public function reportPendingRequestProgress(token:Object, percent:Number):void
+		/**
+		 * This function will report the current progress of a request.
+		 * 
+		 * @param taskToken The object whose progress to track.
+		 * @param percent The current progress of the token's request.
+		 */
+		public function updateTask(taskToken:Object, percent:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
-			if (_tokenToProgressMap[token] == undefined)
+			if (_taskToProgressMap[taskToken] == undefined)
 			{
-				_tokenCount++;
-				_maxTokenCount++;
+				_taskCount++;
+				_maxTaskCount++;
 			}
-			_tokenToProgressMap[token] = percent;
-			_callbacks.triggerCallbacks();
+			_taskToProgressMap[taskToken] = percent;
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
 		 * This function will remove a previously registered pending request token and decrease the pendingRequestCount if necessary.
+		 * 
+		 * @param taskToken The object to remove from the progress indicator.
 		 */
-		public function removePendingRequest(token:Object):void
+		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
-			if (_tokenToProgressMap[token] == undefined)
+			if (_taskToProgressMap[taskToken] == undefined)
 				return;
 			
-			delete _tokenToProgressMap[token];
-			_tokenCount--;
+			delete _taskToProgressMap[taskToken];
+			_taskCount--;
 			// reset max count when count goes to zero
-			if (_tokenCount == 0)
-				_maxTokenCount = 0;
+			if (_taskCount == 0)
+				_maxTaskCount = 0;
 			
-			_callbacks.triggerCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -103,15 +101,14 @@ package weave.services
 			for each (var percentage:Number in _pendingRequestToPercentMap)
 				sum += percentage;
 			// make any pending requests that no longer exist count as 100% done
-			sum += _maxTokenCount - _tokenCount;
+			sum += _maxTaskCount - _taskCount;
 			// divide by the max count to get overall percentage
-			return sum / _maxTokenCount;
+			return sum / _maxTaskCount;
 		}
 
-		private const _callbacks:ICallbackCollection = new CallbackCollection();
-		private var _tokenCount:int = 0;
-		private var _maxTokenCount:int = 0;
+		private var _taskCount:int = 0;
+		private var _maxTaskCount:int = 0;
 		private const _pendingRequestToPercentMap:Dictionary = new Dictionary();
-		private const _tokenToProgressMap:Dictionary = new Dictionary();
+		private const _taskToProgressMap:Dictionary = new Dictionary();
 	}
 }

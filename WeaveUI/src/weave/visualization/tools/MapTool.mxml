@@ -106,7 +106,6 @@
 				
 				enableBackground.value = true;
 				
-				linkColormap.value = false;
 				colorColumn.addGroupedCallback(this, updateTitle);
 				toolTitle.addGroupedCallback(this, updateTitle);
 				visualization.defaultMouseMode.addGroupedCallback(this, handleMouseModeChange);

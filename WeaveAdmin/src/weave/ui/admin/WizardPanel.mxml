@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!--
+	This is a generic panel for a wizard interface, containing back/next/finish/cancel buttons.
+	@author adufilie
+-->
+<mx:Panel 
+		xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns="weave.ui.admin.*"
+		layout="absolute"
+		title="{viewStack.label}"
+		borderAlpha="1"
+		borderColor="#C5C3A8"
+		borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
+		verticalScrollPolicy="off"
+		horizontalScrollPolicy="off"
+		roundedBottomCorners="true">
+
+	<mx:Box id="viewStackContainer"
+			verticalScrollPolicy="off"
+			horizontalScrollPolicy="off"/>
+	
+	<mx:ControlBar paddingTop="5" paddingBottom="5">
+		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}"/>
+		<mx:Spacer width="100%"/>
+		<mx:Button id="backButton" label="Back" enabled="{viewStack.backEnabled &amp;&amp; (viewStack.selectedIndex &gt; 0)}" click="viewStack.back()"/>
+		<mx:Button id="nextButton" label="Next" enabled="{viewStack.nextEnabled &amp;&amp; (viewStack.selectedIndex &lt; viewStackNumChildren - 1)}" click="viewStack.next()"/>
+		<mx:Button id="finishButton" label="Finish" enabled="{viewStack.finishEnabled}" click="viewStack.finish()" emphasized="true"/>
+		<mx:Button id="cancelButton" label="Close" click="viewStack.cancel();"/>
+	</mx:ControlBar>
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.Container;
+			import mx.core.IFlexDisplayObject;
+			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable] private var viewStack:WizardViewStack = null;
+			[Bindable] private var viewStackNumChildren:int = 0;
+
+			/**
+			 * This function must be called to initialize the WizardViewStack used by the WizardPanel.
+			 * @param viewStack A WizardViewStack that the WizardPanel will control.
+			 */
+			public function setWizardViewStack(viewStack:WizardViewStack):void
+			{
+				this.viewStack = viewStack;
+				viewStackContainer.addChild(viewStack);
+				viewStack.addEventListener(FlexEvent.CREATION_COMPLETE, function(..._):void { viewStackNumChildren = viewStack.numChildren; });
+			}
+			
+			/**
+			 * This function creates a Wizard Panel using a specified WizardViewStack object.
+			 * @param parent The parent of the popup window to be created.
+			 * @param wizardPanelClass A Class that extends WizardPanel and contains controls you want to display inside a popup.
+			 */
+			public static function createWizard(parent:DisplayObject, wizardViewStack:WizardViewStack):Container
+			{
+				var wiz:WizardPanel = PopUpManager.createPopUp(parent, WizardPanel, true) as WizardPanel;
+				wiz.setWizardViewStack(wizardViewStack);
+				PopUpManager.centerPopUp(wiz);
+				wiz.cancelButton.addEventListener(MouseEvent.CLICK, function(..._):void{ PopUpManager.removePopUp(wiz); });
+				return wiz;
+			}
+		]]>
+	</mx:Script>
+	<mx:Style>
+		.weave-panel-style, .weave-system-style {
+			borderAlpha: 0.95;
+			alpha: 1.0;
+			backgroundAlpha: 1.0;
+			borderColor: #4D5258;
+			
+			headerHeight: 20;
+			
+			paddingLeft: 0;
+			paddingRight: 0;
+			paddingTop: 0;
+			paddingBottom: 0;
+			
+			resizeBorderThickness: 5;
+			
+			borderThicknessTop: 2;
+			borderThicknessBottom: 2;
+			borderThicknessLeft: 2;
+			borderThicknessRight: 2;
+			
+			roundedBottomCorners: false;
+			cornerRadius: 0;
+		}
+		.weave-system-style, .weave-system-title-style {
+			fontFamily: Verdana;
+			fontWeight: normal;
+			fontSize: 10;
+			fontStyle: normal;
+			textDecoration: none;
+		}
+		.weave-panel-title-style, .weave-system-title-style {
+			fontWeight: normal;
+			color: white;
+		}
+	</mx:Style>
+</mx:Panel>

@@ -168,6 +168,7 @@
     <classEntry path="weave.visualization.tools.HistogramTool"/>
     <classEntry path="weave.visualization.tools.ImageGlyphTool"/>
     <classEntry path="weave.visualization.tools.LineChartTool"/>
+    <classEntry path="weave.visualization.tools.MapOverviewWindow"/>
     <classEntry path="weave.visualization.tools.MapTool"/>
     <classEntry path="weave.visualization.tools.MeterToolInputSelector"/>
     <classEntry path="weave.visualization.tools.ParallelCoordinatesTool"/>

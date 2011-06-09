@@ -55,16 +55,16 @@
 			{
 				if(_toolToControl)
 				{
-					unlinkBindableProperty(_toolToControl.linkColormap,  linkColorCheck,     "selected");
-					unlinkBindableProperty(_toolToControl.linkProbing,   linkProbingCheck,   "selected");
-					unlinkBindableProperty(_toolToControl.linkSelection, linkSelectionCheck, "selected");
-					unlinkBindableProperty(_toolToControl.linkSubset,    linkSubsetCheck,    "selected");
+//					unlinkBindableProperty(_toolToControl.linkColormap,  linkColorCheck,     "selected");
+//					unlinkBindableProperty(_toolToControl.linkProbing,   linkProbingCheck,   "selected");
+//					unlinkBindableProperty(_toolToControl.linkSelection, linkSelectionCheck, "selected");
+//					unlinkBindableProperty(_toolToControl.linkSubset,    linkSubsetCheck,    "selected");
 				}
 				
-				linkBindableProperty(value.linkColormap,  linkColorCheck,     "selected");
-				linkBindableProperty(value.linkProbing,   linkProbingCheck,   "selected");
-				linkBindableProperty(value.linkSelection, linkSelectionCheck, "selected");
-				linkBindableProperty(value.linkSubset,    linkSubsetCheck,    "selected");
+//				linkBindableProperty(value.linkColormap,  linkColorCheck,     "selected");
+//				linkBindableProperty(value.linkProbing,   linkProbingCheck,   "selected");
+//				linkBindableProperty(value.linkSelection, linkSelectionCheck, "selected");
+//				linkBindableProperty(value.linkSubset,    linkSubsetCheck,    "selected");
 				
 				_toolToControl = value;
 			}

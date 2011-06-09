@@ -1,8 +1,10 @@
 Weave: Web-based Analysis and Visualization Environment
 
-Project website: http://www.iweave.org/
+Project website: http://ivpr.github.com/Weave/
 
-Issue Tracker: http://129.63.8.219/bugzilla
+Issue Tracker: http://129.63.8.219/redmine/public
+
+Nightly build: http://www.github.com/IVPR/Weave-Binaries/
 
 Projects in this repository:
 
@@ -19,5 +21,3 @@ The bare minimum you need to build Weave is [Flex 3.5](http://fpdownload.adobe.c
 To build the projects on the command line, use the **WeaveClient/buildall.xml** and **WeaveServices/build.xml** Ant scripts.
 
 See README-linux.md for more detailed Linux build instructions.
-
-
