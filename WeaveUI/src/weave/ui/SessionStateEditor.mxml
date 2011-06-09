@@ -21,7 +21,13 @@
 -->
 <!--	Session State Editor
    	*  @author skolman
+    *  @author kmonico
  	*  A text editor to change the Session State on the fly.
+-->
+<!--
+    TODO: This class has many if else statements depending on the type of editor. It's probably a
+    better idea to create some new state object whose states are either TextArea or DataGrid instead
+    of the implementation below. 
 -->
 <ui:DraggablePanel
     xmlns:ui ="weave.ui.*"
@@ -50,12 +56,23 @@
  					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>
  				</mx:HBox>
 			</mx:VBox>
-			<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
+			<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" id="editorBox">
 				<mx:HBox width="100%" horizontalAlign="right">
 					<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText()" change="searchTermChanged()" width="100%" minWidth="100"/>
 					<mx:Button label="Search" click="highlightSearchText()" repeatDelay="1"/>
 				</mx:HBox>
-				<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleTextAreaFocusIn()" fontAntiAliasType="normal" fontSize="11" fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%"/>
+				<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleTextAreaFocusIn()" fontAntiAliasType="normal" fontSize="11" 
+							 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
+				
+				<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleDataGridFocusIn()" fontAntiAliasType="normal" fontSize="11"
+							 fontFamily="Courier New" change="handleDataGridChange()" width="100%" height="100%" verticalScrollPolicy="auto" 
+							 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24">
+					<mx:columns>
+						<mx:DataGridColumn dataField="Name" headerText="Name" editable="false"/>
+						<mx:DataGridColumn dataField="Value" headerText="Value"/>
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:Button id="toggleView" label="Toggle View" click="handleToggleViewClick()" toolTip="Click this button to switch the view of the session state."/>
 			</mx:VBox>
 		</mx:HDividedBox>
 	</mx:VBox>
@@ -64,11 +81,11 @@
 			import com.as3xls.xls.formula.Functions;
 			
 			import mx.collections.ArrayCollection;
-			import mx.collections.XMLListCollection;
 			import mx.containers.VBox;
 			import mx.controls.Alert;
 			import mx.controls.Label;
 			import mx.core.Application;
+			import mx.core.mx_internal;
 			import mx.effects.Resize;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
@@ -82,11 +99,16 @@
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.core.ILinkableVariable;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableObjectOwner;
 			import weave.api.getSessionState;
+			import weave.api.linkBindableProperty;
 			import weave.api.setSessionState;
 			import weave.core.DynamicState;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
@@ -101,8 +123,6 @@
 
 		    private var selectors:Array = null;
 		    
-		    private var textField:TextField;
-
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -112,6 +132,8 @@
 				panelY.value = "12.5%";
 			}			
 			
+			private var _viewEditor:String = DATA_GRID;
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -120,12 +142,31 @@
 				refreshTimer.start();
 				
 				//handle keyboard event CTRL +F to Search Box
-				this.addEventListener(KeyboardEvent.KEY_DOWN,handleCtrlFPressEvent)
+				this.addEventListener(KeyboardEvent.KEY_DOWN, handleCtrlFPressEvent)
 
 		    	EventUtils.addBindCallback(sessionNav, "selectedItem", handleSessionNavSelect);
 		    	
-				sessionNav.addEventListener(KeyboardEvent.KEY_UP,confirmDeleteSelectedItem);
+				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
+				
+				var editor:String = _viewEditor;
+				if (editor == TEXT_EDITOR)
+				{
+					editorBox.removeChild(sessionStateDataGrid);0
+					editorBox.addChildAt(sessionStateTextArea, editorBox.numChildren - 2);
+					sessionStateTextArea.visible = true;
+					sessionStateTextArea.enabled = true;
+				}
+				else if (editor == DATA_GRID)
+				{
+					editorBox.removeChild(sessionStateTextArea);
+					editorBox.addChildAt(sessionStateDataGrid, editorBox.numChildren - 2);
+					sessionStateDataGrid.visible = true;
+					sessionStateDataGrid.enabled = true;
+				}
+				loadSelectedSessionObjectInView();
+				
 		    }
+			
 			override public function dispose():void
 			{
 				refreshTimer.stop();
@@ -143,13 +184,14 @@
 		    	if (autoRefresh && _needRefresh && !_textModified && visible && parent)
 				{
 					autoRefresh = false; // this prevents text from refreshing every time -- we only want it to refresh when text area gains focus.
-		    		loadSelectedSessionObjectInTextArea();
+		    		loadSelectedSessionObjectInView();
 				}
 		    }
 		    private function handleSelectedObjectGroupCallback():void
 		    {
 		    	_needRefresh = true;
 		    }
+			
 			private function handleTextAreaFocusIn():void
 			{
 				autoRefresh = true;
@@ -170,7 +212,7 @@
 				
 				_textModified = false;
 				var functionSave:Function = function():void { saveAndLoadNewItem(); sessionNav.refresh(); };
-				var functionDontSave:Function = function():void { loadSelectedSessionObjectInTextArea(); sessionNav.refresh(); };
+				var functionDontSave:Function = function():void { loadSelectedSessionObjectInView(); sessionNav.refresh(); };
 				PopUpUtils.confirm(
 					this,
 					"Save",
@@ -183,70 +225,33 @@
 			private function refreshAndLoadSessionState():void
 			{
 				askToSave(); // ask the user to save and set _textModified to false
-				
-				// we don't need to do the following because askToSave() will call these functions if appropriate
-				//sessionNav.refresh(); // refresh the display (this won't ask to save because _textModified is false)
-				//loadSelectedSessionObjectInTextArea();  // load the object in text area
 			}
 			
 			private var _prevSelectedObject:ILinkableObject = null;
 			
-			private function loadSelectedSessionObjectInTextArea(sessObj:ILinkableObject = null):void
+			private function loadSelectedSessionObjectInView(sessObj:ILinkableObject = null):void
 			{
+				if (sessionStateDataGrid.visible == false && sessionStateTextArea.visible == false)
+					return;
+				
 				_needRefresh = false;
 
 				if (sessionNav.selectedItem == null && sessObj == null)
 				{
-					sessionStateTextArea.text = '';
-					sessionStateTextArea.enabled = false;
+					clearAndDisableView();
 					return;
 				}
 
+				enableView();
 				if(sessObj != null)
 					_currentSelectedObject = sessObj;
 				else
 					_currentSelectedObject = sessionNav.selectedItem.object;
-				var vsp:Number = sessionStateTextArea.verticalScrollPosition;
-				var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
-				if (_prevSelectedObject != _currentSelectedObject)
-				{
-					if (_prevSelectedObject)
-						getCallbackCollection(_prevSelectedObject).removeCallback(handleSelectedObjectGroupCallback);
-					_prevSelectedObject = _currentSelectedObject;
-					if (_currentSelectedObject)
-						getCallbackCollection(_currentSelectedObject).addGroupedCallback(this, handleSelectedObjectGroupCallback);
-					hsp = 0;
-					vsp = 0;
-				}
-				
-				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
-				_currentSessionState = WeaveXMLEncoder.encode(sessionState,"Tag");
-				sessionStateTextArea.text = _currentSessionState.children().toXMLString();
-				sessionStateTextArea.enabled = true;
-				sessionStateTextArea.validateNow();
-				sessionStateTextArea.verticalScrollPosition = vsp;
-				sessionStateTextArea.horizontalScrollPosition = hsp;
+
+				loadSessionStateInView();
 				_textModified = false;
 			}
-			
-			private var _currentSelectedObject:ILinkableObject = null;
-			private var _currentSessionState:XML = null;
-			private function saveSessionState():void
-		    {
-				_textModified = false;
-				
-				if (_currentSessionState != null && _currentSelectedObject != null)
-				{
-					_currentSessionState.setChildren(XMLList(sessionStateTextArea.text));
-					
-					var currentStateObject:Object = WeaveXMLDecoder.decode(_currentSessionState);
-					
-//					if (sessionStateTextArea.text == 'EMPTYSTRING')
-//						currentStateObject = '';
-					
-					setSessionState(_currentSelectedObject,currentStateObject,true);
-				}
-		    }
+
 		    private function linkSelectedObject():void
 		    {
 				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedSessionedObject() as ILinkableDynamicObject;
@@ -273,7 +278,7 @@
 				if(_textModified)
 					askToSave();
 				else
-					loadSelectedSessionObjectInTextArea();
+					loadSelectedSessionObjectInView();
 			}
 			
 			private function saveAndLoadNewItem():void
@@ -294,7 +299,6 @@
 		    
 		    private function handleReloadClick():void
 		    {
-		    	
 	    		refreshAndLoadSessionState();
 		    }
 		    private function handleApplyClick():void
@@ -328,25 +332,32 @@
 				else
 					super.removePanel();
 			}
-			
-			
+
 			
 			private var _startSearchIndex:int = 0;
 			private function highlightSearchText():Boolean
 			{
-				for (var i:int = 0; i < 2; i++) // 
+				if (_viewEditor == TEXT_EDITOR)
 				{
-					var text:String = sessionStateTextArea.text;
-					var searchTerm:String = search.text;
-					
-					_startSearchIndex = text.toLowerCase().indexOf(searchTerm.toLowerCase(), _startSearchIndex + 1); // +1 so it won't find the same thing twice 
-					if (_startSearchIndex != -1)
+					// search through the text
+					for (var i:int = 0; i < 2; i++) // 
 					{
-						sessionStateTextArea.setSelection(_startSearchIndex, _startSearchIndex+searchTerm.length);
-						sessionStateTextArea.setFocus();
-						return true;
+						var text:String = sessionStateTextArea.text;
+						var searchTerm:String = search.text;
+						
+						_startSearchIndex = text.toLowerCase().indexOf(searchTerm.toLowerCase(), _startSearchIndex + 1); // +1 so it won't find the same thing twice 
+						if (_startSearchIndex >= 0)
+						{
+							sessionStateTextArea.setSelection(_startSearchIndex, _startSearchIndex+searchTerm.length);
+							sessionStateTextArea.setFocus();
+							return true;
+						}
+						//end of file reached. start search again.
 					}
-					//end of file reached. start search again.
+				}
+				else if (_viewEditor == DATA_GRID)
+				{
+					// search through the rows of the dataProvider
 				}
 				
 				Alert.show("Not found: "+searchTerm, "Search");
@@ -412,6 +423,273 @@
 				}
 			}
 
+			private function handleDataGridFocusIn():void
+			{
+				autoRefresh = true;
+			}
+			
+			private function handleDataGridChange():void
+			{
+				_textModified = true;
+			}
+
+			private function handleToggleViewClick():void
+			{
+				var oldValue:String = _viewEditor;
+				if (oldValue == TEXT_EDITOR)
+				{
+					//toggleView.label = "Text Editor View";
+					_viewEditor = DATA_GRID;
+					editorBox.removeChild(sessionStateTextArea);
+					editorBox.addChildAt(sessionStateDataGrid, editorBox.numChildren - 1);
+					
+					sessionStateTextArea.enabled = false;
+					sessionStateTextArea.editable = false;
+					sessionStateTextArea.visible = false;
+
+					sessionStateDataGrid.enabled = true;
+					sessionStateDataGrid.editable = true;
+					sessionStateDataGrid.visible = true;
+					
+
+				}
+				else if (oldValue == DATA_GRID)
+				{
+					//toggleView.label = "Data Grid View";
+					_viewEditor = TEXT_EDITOR;
+					editorBox.removeChild(sessionStateDataGrid);
+					editorBox.addChildAt(sessionStateTextArea, editorBox.numChildren - 1);
+					
+					sessionStateTextArea.enabled = true;
+					sessionStateTextArea.editable = true;
+					sessionStateTextArea.visible = true;
+
+					sessionStateDataGrid.enabled = false;
+					sessionStateDataGrid.editable = false;
+					sessionStateDataGrid.visible = false;
+				}
+				loadSelectedSessionObjectInView();
+			}
+			
+			private function clearAndDisableView():void
+			{
+				if (_viewEditor == TEXT_EDITOR)
+				{
+					sessionStateTextArea.text = '';
+					sessionStateTextArea.enabled = false;
+				}
+				else if (_viewEditor == DATA_GRID)
+				{
+					sessionStateDataGrid.dataProvider = [ {Name: '', Value: ''} ];
+					sessionStateDataGrid.enabled = false;
+				}
+			}
+			private function enableView():void
+			{
+				if (_viewEditor == TEXT_EDITOR)
+				{
+					sessionStateTextArea.text = '';
+					sessionStateTextArea.enabled = true;
+					sessionStateTextArea.visible = true;
+				}
+				else if (_viewEditor == DATA_GRID)
+				{
+					sessionStateDataGrid.dataProvider = [ {Name: '', Value: ''} ];
+					sessionStateDataGrid.enabled = true;
+					sessionStateDataGrid.visible = true;
+				}
+			}
+			
+			public static const TEXT_EDITOR:String = "TEXT_EDITOR";
+			public static const DATA_GRID:String = "DATA_GRID";
+			private function loadSessionStateInView():void
+			{
+				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
+				if (_prevSelectedObject != _currentSelectedObject)
+				{
+					if (_prevSelectedObject)
+						getCallbackCollection(_prevSelectedObject).removeCallback(handleSelectedObjectGroupCallback);
+					_prevSelectedObject = _currentSelectedObject;
+					if (_currentSelectedObject)
+						getCallbackCollection(_currentSelectedObject).addGroupedCallback(this, handleSelectedObjectGroupCallback);
+					hsp = 0;
+					vsp = 0;
+				}
+
+				if (_viewEditor == TEXT_EDITOR)
+				{
+					var vsp:Number = sessionStateTextArea.verticalScrollPosition;
+					var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
+
+					_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"Tag");
+					sessionStateTextArea.text = _currentSessionStateXML.children().toXMLString();
+					sessionStateTextArea.enabled = true;
+					sessionStateTextArea.validateNow();
+					sessionStateTextArea.verticalScrollPosition = vsp;
+					sessionStateTextArea.horizontalScrollPosition = hsp;
+				}
+				else if (_viewEditor == DATA_GRID)
+				{
+					// if the object is a single ILinkableVariable
+					if (_currentSelectedObject is ILinkableVariable)
+					{
+						var value:Object = (_currentSelectedObject as ILinkableVariable).getSessionState();
+						if (value === null) // strict equality check to avoid casting 0, false, or '' to values of 0 (equal to null)
+							value = '';
+						sessionStateDataGrid.dataProvider = [ {Name: sessionNav.selectedItem.label || '', Value: value.toString() } ];
+						return;
+					} 
+					
+					// the object isn't a single variable -- check the properties
+					// there are two possibilities for the sessionState's contents
+					// 1) The objects returned from getClassInfo().properties are QName objects
+					// 2) Or the objects are just the array indices, which means the sessionState has dynamic states
+					var dataGridProvider:ArrayCollection = new ArrayCollection();
+					var propertiesArray:Array = ObjectUtil.getClassInfo(sessionState).properties;
+					for (var iProperty:int = 0; iProperty < propertiesArray.length; ++iProperty)
+					{
+						var key:Object = propertiesArray[iProperty];
+						var propertyString:String;
+						var sessionedProperty:Object; 
+						
+						if (key is QName)
+						{
+							var qKey:QName = key as QName;
+							propertyString = qKey.localName;
+							sessionedProperty = sessionState[propertyString];
+						}
+						else
+						{
+							var dynamicStateKey:DynamicState = sessionState[iProperty] as DynamicState;
+							propertyString = dynamicStateKey.objectName;
+							sessionedProperty = dynamicStateKey.sessionState; 
+							
+							//trace(dynamicStateKey.objectName, dynamicStateKey.className, typeof(sessionedProperty), sessionedProperty);
+						}
+						
+						// the property may be an arbitrary object, but it's better to show it anyway because this shows
+						// many of properties we want to see
+						if (sessionedProperty == null)
+							sessionedProperty = '';
+
+						switch (typeof(sessionedProperty))
+						{
+							case "object":
+								if (!(sessionedProperty is Array))
+									break;
+								
+								// we want each element in the array to be a simple object
+								if (!arrayHasSimpleContents(sessionedProperty as Array))
+									break;
+							case "boolean":
+							case "number":
+							case "string":
+							case "xml":
+								dataGridProvider.addItem( {Name: propertyString || '', Value: sessionedProperty.toString() } );
+								break;
+							default:
+								break;
+						}
+					}
+					_currentSessionStateDataProvider = dataGridProvider;
+					sessionStateDataGrid.dataProvider = dataGridProvider;
+					sessionStateDataGrid.enabled = true;
+					sessionStateDataGrid.editable = true;
+					sessionStateDataGrid.validateNow();
+				}
+			}
+			
+			
+			private var _currentSelectedObject:ILinkableObject = null;
+			private var _currentSessionStateXML:XML = null;
+			private var _currentSessionStateDataProvider:ArrayCollection = null; 
+			private function saveSessionState():void
+		    {
+				_textModified = false;
+				
+				if (_currentSelectedObject != null)
+				{
+					if (_viewEditor == TEXT_EDITOR && _currentSessionStateXML != null)
+					{
+						_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
+						
+						var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
+						
+						setSessionState(_currentSelectedObject, decodedStateObject, true);
+					}
+					else if (_viewEditor == DATA_GRID && _currentSessionStateDataProvider != null)
+					{
+						var newSessionState:Object;
+						var i:int, j:int;
+						
+						_currentSessionStateDataProvider = sessionStateDataGrid.dataProvider as ArrayCollection;
+						
+						
+						
+						// special case of just one object to set
+						if (_currentSelectedObject is ILinkableVariable && _currentSessionStateDataProvider.length == 1)
+						{
+							newSessionState = _currentSessionStateDataProvider[0].Value;
+							setSessionState(_currentSelectedObject, newSessionState, true);
+							return;
+						}
+	
+						
+						var oldSessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
+						// special case of DynamicState objects
+						if (oldSessionState is Array) 
+						{
+							newSessionState = (oldSessionState as Array).concat();
+							for (i = 0; i < newSessionState.length; ++i)
+							{
+								var lookupName:String = (newSessionState[i] as DynamicState).objectName;
+								
+								// find the matching value in the datagrid, if there is one
+								for (j = 0; j < _currentSessionStateDataProvider.length; ++j)
+								{
+									if (_currentSessionStateDataProvider[j].Name == lookupName)
+									{
+										(newSessionState[i] as DynamicState).sessionState = _currentSessionStateDataProvider[j].Value;
+										break;
+									}
+								}
+							}
+							
+							setSessionState(_currentSelectedObject, newSessionState, false);
+							return;
+						}
+
+						// general case of just a Dictionary
+						newSessionState = new Object();
+						for (i = 0; i < _currentSessionStateDataProvider.length; ++i)
+						{
+							newSessionState[_currentSessionStateDataProvider[i].Name] = _currentSessionStateDataProvider[i].Value;
+						}
+						
+						setSessionState(_currentSelectedObject, newSessionState, false); // do not remove any missing things
+					}
+				}
+		    }
+			
+			private function arrayHasSimpleContents(array:Array):Boolean
+			{
+				for each (var o:Object in array)
+				{
+					switch (typeof(o))
+					{
+						case "object":
+						case "function":
+							return false;
+							break;
+						
+						default:
+							break;
+					}
+				}
+				
+				return true;
+			}
+			
 			private static const defaultEditor:SessionStateEditor = new SessionStateEditor();
 			
 			public static function openDefaultEditor(rootObject:ILinkableObject = null):void
@@ -426,6 +704,10 @@
 
 				defaultEditor.restorePanel();
 			}
+			
 		]]>
 	</mx:Script>
 </ui:DraggablePanel>
+
+
+			
