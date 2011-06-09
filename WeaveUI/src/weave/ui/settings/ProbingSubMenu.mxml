@@ -119,7 +119,7 @@
 				</mx:HBox>
 				<mx:HBox>
 					<mx:CheckBox id="enableDetailedProbing"
-								 label="Enable Detailed Geometry Probing"
+								 label="Enable detailed geometry probing"
 								 toolTip="Check this box to use the detailed geometry probing. This probing is accurate but may decrease performance."
 								 initialize="linkBindableProperty(Weave.properties.enableGeometryProbing, enableDetailedProbing, 'selected')"/>
 				</mx:HBox>

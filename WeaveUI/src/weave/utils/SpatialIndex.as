@@ -42,7 +42,7 @@ package weave.utils
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.primitives.Geometry;
+	import weave.primitives.SimpleGeometry;
 	import weave.primitives.KDTree;
 	import weave.ui.probing.WeaveProbeTemplate;
 	import weave.visualization.plotters.DynamicPlotter;
@@ -595,11 +595,22 @@ package weave.utils
 					
 					for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
 					{
-						for each (var geom:* in geoms)
+						for each (var geom:* in geoms)Object
 						{
+							xDistance = geom.bounds.getXCenter() - xQueryCenter;
+							yDistance = geom.bounds.getYCenter() - yQueryCenter;
+							if (!isNaN(xPrecision) && xPrecision != 0)
+								xDistance = int(xDistance / xPrecision);
+							if (!isNaN(yPrecision) && yPrecision != 0)
+								yDistance = int(yDistance / yPrecision);
+							var geomDistance:Number = xDistance * xDistance + yDistance * yDistance; 
+							
 							if (geom is GeneralizedGeometry)
 							{
 								var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
+								var genGeomBounds:IBounds2D = genGeom.bounds;
+
+								
 								var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
 
 								for (var i:int = 0; i < simplifiedGeom.length; ++i)
@@ -614,6 +625,8 @@ package weave.utils
 											distanceSq = 0;
 											overlapsQueryCenter = true;
 										}
+										else
+											distanceSq = geomDistance;
 									}
 									else if (genGeom.isLine()) 
 										distanceSq = ComputationalGeometryUtils.getDistanceFromLine(
@@ -659,6 +672,8 @@ package weave.utils
 										distanceSq = 0;
 										overlapsQueryCenter = true;
 									}
+									else 
+										distanceSq = geomDistance;
 								}
 								else if (simpleGeom.isLine())
 									distanceSq = ComputationalGeometryUtils.getDistanceFromLine(

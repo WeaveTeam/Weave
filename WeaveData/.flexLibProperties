@@ -124,7 +124,7 @@
     <classEntry path="weave.primitives.Bounds2D"/>
     <classEntry path="weave.primitives.ColorRamp"/>
     <classEntry path="weave.primitives.GeneralizedGeometry"/>
-    <classEntry path="weave.primitives.Geometry"/>
+    <classEntry path="weave.primitives.SimpleGeometry"/>
     <classEntry path="weave.primitives.ImageFactory"/>
     <classEntry path="weave.primitives.KDNode"/>
     <classEntry path="weave.primitives.KDTree"/>

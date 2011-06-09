@@ -29,6 +29,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.resources.fonts.EmbeddedFonts;
+	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
 
 	use namespace weave_internal;
@@ -127,7 +128,7 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
-		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(false); // use the geometry probing (default to off because too slow)
+		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
 		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
@@ -226,6 +227,8 @@ package weave
 		public const probeToolTipFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
+
+		//public const sessionStateEditor:LinkableString = new LinkableString();
 		
 		// temporary?
 		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service

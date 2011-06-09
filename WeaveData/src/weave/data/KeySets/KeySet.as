@@ -287,7 +287,7 @@ package weave.data.KeySets
 		
 		//---------------------------------------------------------------------------------
 		// test code
-		//{ test(); }
+		// { test(); }
 		private static function test():void
 		{
 			var k:KeySet = new KeySet();
