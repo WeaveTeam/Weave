@@ -1267,7 +1267,7 @@ public class AdminService extends GenericServlet
 				// using modified driver from
 				// http://kato.iki.fi/sw/db/postgresql/jdbc/copy/
 				((PGConnection) conn).getCopyAPI().copyIntoDB(
-						String.format("COPY %s FROM STDIN WITH DELIMITER ','", quotedTable),
+						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
 						new FileInputStream(formatted_CSV_path));
 			}
 
