@@ -23,7 +23,7 @@
               <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
               <hierarchyPath encoding="xml">
                 <hierarchy keyType="Country Code">
-                  <attribute csvColumn="Urban population (% of total)" title="Urban population (% of total)" keyType="Country Code" name="Urban population (% of total)"/>
+                  <attribute title="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" name="Urban population (% of total)"/>
                 </hierarchy>
               </hierarchyPath>
             </HierarchyColumnReference>
@@ -61,7 +61,7 @@
     <axisFontItalic>false</axisFontItalic>
     <axisFontSize>11</axisFontSize>
     <axisFontUnderline>false</axisFontUnderline>
-    <backgroundColor>13421772</backgroundColor>
+    <backgroundColor>0</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
     <dashboardMode>false</dashboardMode>
     <dataInfoURL/>
@@ -177,7 +177,7 @@
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Country Name" title="Country Name" keyType="Country Code" name="Country Name"/>
+              <attribute title="Country Name" keyType="Country Code" csvColumn="Country Name" name="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -189,7 +189,7 @@
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population, female (% of total)" title="Population, female (% of total)" keyType="Country Code" name="Population, female (% of total)"/>
+              <attribute title="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" name="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -201,7 +201,7 @@
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Rural population (% of total population)" title="Rural population (% of total population)" keyType="Country Code" name="Rural population (% of total population)"/>
+              <attribute title="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" name="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -213,7 +213,7 @@
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)" keyType="Country Code" name="Population ages 65 and above (% of total)"/>
+              <attribute title="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -225,7 +225,7 @@
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)" keyType="Country Code" name="Population ages 15-64 (% of total)"/>
+              <attribute title="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -237,7 +237,7 @@
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Urban population (% of total)" title="Urban population (% of total)" keyType="Country Code" name="Urban population (% of total)"/>
+              <attribute title="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" name="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -249,7 +249,7 @@
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)" keyType="Country Code" name="Population ages 0-14 (% of total)"/>
+              <attribute title="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -260,30 +260,30 @@
   <CSVDataSource name="WorldAgricultureIndicators.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute csvColumn="Year" title="Year" keyType="Country Name"/>
-        <attribute csvColumn="YearCode" title="YearCode" keyType="Country Name"/>
-        <attribute csvColumn="Country Name" title="Country Name" keyType="Country Name"/>
-        <attribute csvColumn="Country Code" title="Country Code" keyType="Country Name"/>
-        <attribute csvColumn="Agricultural machinery, tractors" title="Agricultural machinery, tractors" keyType="Country Name"/>
-        <attribute csvColumn="Agricultural machinery, tractors per 100 sq. km of arable land" title="Agricultural machinery, tractors per 100 sq. km of arable land" keyType="Country Name"/>
-        <attribute csvColumn="Agriculture value added per worker (constant 2000 US$)" title="Agriculture value added per worker (constant 2000 US$)" keyType="Country Name"/>
-        <attribute csvColumn="Cereal yield (kg per hectare)" title="Cereal yield (kg per hectare)" keyType="Country Name"/>
-        <attribute csvColumn="Crop production index (1999-2001 = 100)" title="Crop production index (1999-2001 = 100)" keyType="Country Name"/>
-        <attribute csvColumn="Economically active population in agriculture&#x9;(number)" title="Economically active population in agriculture&#x9;(number)" keyType="Country Name"/>
-        <attribute csvColumn="Fertilizer consumption (metric tons)" title="Fertilizer consumption (metric tons)" keyType="Country Name"/>
-        <attribute csvColumn="Food production index (1999-2001 = 100)" title="Food production index (1999-2001 = 100)" keyType="Country Name"/>
-        <attribute csvColumn="Land under cereal production (hectares)" title="Land under cereal production (hectares)" keyType="Country Name"/>
-        <attribute csvColumn="Livestock production index (1999-2001 = 100)" title="Livestock production index (1999-2001 = 100)" keyType="Country Name"/>
-        <attribute csvColumn="Agricultural land (% of land area)" title="Agricultural land (% of land area)" keyType="Country Name"/>
-        <attribute csvColumn="Agricultural land (sq. km)" title="Agricultural land (sq. km)" keyType="Country Name"/>
-        <attribute csvColumn="Arable land (% of land area)" title="Arable land (% of land area)" keyType="Country Name"/>
-        <attribute csvColumn="Arable land (hectares per person)" title="Arable land (hectares per person)" keyType="Country Name"/>
-        <attribute csvColumn="Arable land (hectares)" title="Arable land (hectares)" keyType="Country Name"/>
-        <attribute csvColumn="Forest area (% of land area)" title="Forest area (% of land area)" keyType="Country Name"/>
-        <attribute csvColumn="Forest area (sq. km)" title="Forest area (sq. km)" keyType="Country Name"/>
-        <attribute csvColumn="Land area (sq. km)" title="Land area (sq. km)" keyType="Country Name"/>
-        <attribute csvColumn="Permanent cropland (% of land area)" title="Permanent cropland (% of land area)" keyType="Country Name"/>
-        <attribute csvColumn="Surface area (sq. km)" title="Surface area (sq. km)" keyType="Country Name"/>
+        <attribute keyType="Country Name" title="Year" csvColumn="Year"/>
+        <attribute keyType="Country Name" title="YearCode" csvColumn="YearCode"/>
+        <attribute keyType="Country Name" title="Country Name" csvColumn="Country Name"/>
+        <attribute keyType="Country Name" title="Country Code" csvColumn="Country Code"/>
+        <attribute keyType="Country Name" title="Agricultural machinery, tractors" csvColumn="Agricultural machinery, tractors"/>
+        <attribute keyType="Country Name" title="Agricultural machinery, tractors per 100 sq. km of arable land" csvColumn="Agricultural machinery, tractors per 100 sq. km of arable land"/>
+        <attribute keyType="Country Name" title="Agriculture value added per worker (constant 2000 US$)" csvColumn="Agriculture value added per worker (constant 2000 US$)"/>
+        <attribute keyType="Country Name" title="Cereal yield (kg per hectare)" csvColumn="Cereal yield (kg per hectare)"/>
+        <attribute keyType="Country Name" title="Crop production index (1999-2001 = 100)" csvColumn="Crop production index (1999-2001 = 100)"/>
+        <attribute keyType="Country Name" title="Economically active population in agriculture&#x9;(number)" csvColumn="Economically active population in agriculture&#x9;(number)"/>
+        <attribute keyType="Country Name" title="Fertilizer consumption (metric tons)" csvColumn="Fertilizer consumption (metric tons)"/>
+        <attribute keyType="Country Name" title="Food production index (1999-2001 = 100)" csvColumn="Food production index (1999-2001 = 100)"/>
+        <attribute keyType="Country Name" title="Land under cereal production (hectares)" csvColumn="Land under cereal production (hectares)"/>
+        <attribute keyType="Country Name" title="Livestock production index (1999-2001 = 100)" csvColumn="Livestock production index (1999-2001 = 100)"/>
+        <attribute keyType="Country Name" title="Agricultural land (% of land area)" csvColumn="Agricultural land (% of land area)"/>
+        <attribute keyType="Country Name" title="Agricultural land (sq. km)" csvColumn="Agricultural land (sq. km)"/>
+        <attribute keyType="Country Name" title="Arable land (% of land area)" csvColumn="Arable land (% of land area)"/>
+        <attribute keyType="Country Name" title="Arable land (hectares per person)" csvColumn="Arable land (hectares per person)"/>
+        <attribute keyType="Country Name" title="Arable land (hectares)" csvColumn="Arable land (hectares)"/>
+        <attribute keyType="Country Name" title="Forest area (% of land area)" csvColumn="Forest area (% of land area)"/>
+        <attribute keyType="Country Name" title="Forest area (sq. km)" csvColumn="Forest area (sq. km)"/>
+        <attribute keyType="Country Name" title="Land area (sq. km)" csvColumn="Land area (sq. km)"/>
+        <attribute keyType="Country Name" title="Permanent cropland (% of land area)" csvColumn="Permanent cropland (% of land area)"/>
+        <attribute keyType="Country Name" title="Surface area (sq. km)" csvColumn="Surface area (sq. km)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>Year,YearCode,Country Name,Country Code,"Agricultural machinery, tractors","Agricultural machinery, tractors per 100 sq. km of arable land",Agriculture value added per worker (constant 2000 US$),Cereal yield (kg per hectare),Crop production index (1999-2001 = 100),Economically active population in agriculture	(number),Fertilizer consumption (metric tons),Food production index (1999-2001 = 100),Land under cereal production (hectares),Livestock production index (1999-2001 = 100),Agricultural land (% of land area),Agricultural land (sq. km),Arable land (% of land area),Arable land (hectares per person),Arable land (hectares),Forest area (% of land area),Forest area (sq. km),Land area (sq. km),Permanent cropland (% of land area),Surface area (sq. km)
@@ -531,21 +531,21 @@
   <CSVDataSource name="WorldPopulationIndicators.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute csvColumn="Year" title="Year" keyType="Country Code"/>
-        <attribute csvColumn="YearCode" title="YearCode" keyType="Country Code"/>
-        <attribute csvColumn="Country Name" title="Country Name" keyType="Country Code"/>
-        <attribute csvColumn="Country Code" title="Country Code" keyType="Country Code"/>
-        <attribute csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Population density (people per sq. km)" title="Population density (people per sq. km)" keyType="Country Code"/>
-        <attribute csvColumn="Population growth (annual %)" title="Population growth (annual %)" keyType="Country Code"/>
-        <attribute csvColumn="Population in the largest city (% of urban population)" title="Population in the largest city (% of urban population)" keyType="Country Code"/>
-        <attribute csvColumn="Population, female (% of total)" title="Population, female (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Rural population (% of total population)" title="Rural population (% of total population)" keyType="Country Code"/>
-        <attribute csvColumn="Urban population (% of total)" title="Urban population (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Urban population growth (annual %)" title="Urban population growth (annual %)" keyType="Country Code"/>
-        <attribute csvColumn="Rural population growth (annual %)" title="Rural population growth (annual %)" keyType="Country Code"/>
+        <attribute keyType="Country Code" title="Year" csvColumn="Year"/>
+        <attribute keyType="Country Code" title="YearCode" csvColumn="YearCode"/>
+        <attribute keyType="Country Code" title="Country Name" csvColumn="Country Name"/>
+        <attribute keyType="Country Code" title="Country Code" csvColumn="Country Code"/>
+        <attribute keyType="Country Code" title="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)"/>
+        <attribute keyType="Country Code" title="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)"/>
+        <attribute keyType="Country Code" title="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)"/>
+        <attribute keyType="Country Code" title="Population density (people per sq. km)" csvColumn="Population density (people per sq. km)"/>
+        <attribute keyType="Country Code" title="Population growth (annual %)" csvColumn="Population growth (annual %)"/>
+        <attribute keyType="Country Code" title="Population in the largest city (% of urban population)" csvColumn="Population in the largest city (% of urban population)"/>
+        <attribute keyType="Country Code" title="Population, female (% of total)" csvColumn="Population, female (% of total)"/>
+        <attribute keyType="Country Code" title="Rural population (% of total population)" csvColumn="Rural population (% of total population)"/>
+        <attribute keyType="Country Code" title="Urban population (% of total)" csvColumn="Urban population (% of total)"/>
+        <attribute keyType="Country Code" title="Urban population growth (annual %)" csvColumn="Urban population growth (annual %)"/>
+        <attribute keyType="Country Code" title="Rural population growth (annual %)" csvColumn="Rural population growth (annual %)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>Year,YearCode,Country Name,Country Code,Population ages 0-14 (% of total),Population ages 15-64 (% of total),Population ages 65 and above (% of total),Population density (people per sq. km),Population growth (annual %),Population in the largest city (% of urban population),"Population, female (% of total)",Rural population (% of total population),Urban population (% of total),Urban population growth (annual %),Rural population growth (annual %)
@@ -793,21 +793,21 @@
   <CSVDataSource name="WorldPopulationIndicators2.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute csvColumn="Year" title="Year" keyType="Country Code"/>
-        <attribute csvColumn="YearCode" title="YearCode" keyType="Country Code"/>
-        <attribute csvColumn="Country Name" title="Country Name" keyType="Country Code"/>
-        <attribute csvColumn="Country Code" title="Country Code" keyType="Country Code"/>
-        <attribute csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Population density (people per sq. km)" title="Population density (people per sq. km)" keyType="Country Code"/>
-        <attribute csvColumn="Population growth (annual %)" title="Population growth (annual %)" keyType="Country Code"/>
-        <attribute csvColumn="Population in the largest city (% of urban population)" title="Population in the largest city (% of urban population)" keyType="Country Code"/>
-        <attribute csvColumn="Population, female (% of total)" title="Population, female (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Rural population (% of total population)" title="Rural population (% of total population)" keyType="Country Code"/>
-        <attribute csvColumn="Urban population (% of total)" title="Urban population (% of total)" keyType="Country Code"/>
-        <attribute csvColumn="Urban population growth (annual %)" title="Urban population growth (annual %)" keyType="Country Code"/>
-        <attribute csvColumn="Rural population growth (annual %)" title="Rural population growth (annual %)" keyType="Country Code"/>
+        <attribute keyType="Country Code" title="Year" csvColumn="Year"/>
+        <attribute keyType="Country Code" title="YearCode" csvColumn="YearCode"/>
+        <attribute keyType="Country Code" title="Country Name" csvColumn="Country Name"/>
+        <attribute keyType="Country Code" title="Country Code" csvColumn="Country Code"/>
+        <attribute keyType="Country Code" title="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)"/>
+        <attribute keyType="Country Code" title="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)"/>
+        <attribute keyType="Country Code" title="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)"/>
+        <attribute keyType="Country Code" title="Population density (people per sq. km)" csvColumn="Population density (people per sq. km)"/>
+        <attribute keyType="Country Code" title="Population growth (annual %)" csvColumn="Population growth (annual %)"/>
+        <attribute keyType="Country Code" title="Population in the largest city (% of urban population)" csvColumn="Population in the largest city (% of urban population)"/>
+        <attribute keyType="Country Code" title="Population, female (% of total)" csvColumn="Population, female (% of total)"/>
+        <attribute keyType="Country Code" title="Rural population (% of total population)" csvColumn="Rural population (% of total population)"/>
+        <attribute keyType="Country Code" title="Urban population (% of total)" csvColumn="Urban population (% of total)"/>
+        <attribute keyType="Country Code" title="Urban population growth (annual %)" csvColumn="Urban population growth (annual %)"/>
+        <attribute keyType="Country Code" title="Rural population growth (annual %)" csvColumn="Rural population growth (annual %)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>Year,YearCode,Country Name,Country Code,Population ages 0-14 (% of total),Population ages 15-64 (% of total),Population ages 65 and above (% of total),Population density (people per sq. km),Population growth (annual %),Population in the largest city (% of urban population),"Population, female (% of total)",Rural population (% of total population),Urban population (% of total),Urban population growth (annual %),Rural population growth (annual %)
@@ -2983,10 +2983,6 @@
     <enableBorders>true</enableBorders>
     <enableControlPanel>false</enableControlPanel>
     <enableHelpPanel>true</enableHelpPanel>
-    <linkColormap>true</linkColormap>
-    <linkProbing>true</linkProbing>
-    <linkSelection>true</linkSelection>
-    <linkSubset>true</linkSubset>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
@@ -3020,7 +3016,7 @@
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
         <dataBounds>
-          <xMax>36.978796469809666</xMax>
+          <xMax>36.97879646980967</xMax>
           <xMin>-141.9179794923361</xMin>
           <yMax>88.96929418378953</yMax>
           <yMin>-36.71135221999641</yMin>
@@ -3255,11 +3251,8 @@
     <enableBorders>true</enableBorders>
     <enableControlPanel>true</enableControlPanel>
     <enableHelpPanel>true</enableHelpPanel>
+    <enableOverview>false</enableOverview>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <linkColormap>false</linkColormap>
-    <linkProbing>true</linkProbing>
-    <linkSelection>true</linkSelection>
-    <linkSubset>true</linkSubset>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
@@ -3409,7 +3402,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Country Name" title="Country Name" keyType="Country Code" name="Country Name"/>
+                              <attribute title="Country Name" keyType="Country Code" csvColumn="Country Name" name="Country Name"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3423,7 +3416,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population, female (% of total)" title="Population, female (% of total)" keyType="Country Code" name="Population, female (% of total)"/>
+                              <attribute title="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" name="Population, female (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3437,7 +3430,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Rural population (% of total population)" title="Rural population (% of total population)" keyType="Country Code" name="Rural population (% of total population)"/>
+                              <attribute title="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" name="Rural population (% of total population)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3451,7 +3444,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)" keyType="Country Code" name="Population ages 65 and above (% of total)"/>
+                              <attribute title="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3465,7 +3458,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)" keyType="Country Code" name="Population ages 15-64 (% of total)"/>
+                              <attribute title="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3479,7 +3472,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Urban population (% of total)" title="Urban population (% of total)" keyType="Country Code" name="Urban population (% of total)"/>
+                              <attribute title="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" name="Urban population (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3493,7 +3486,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)" keyType="Country Code" name="Population ages 0-14 (% of total)"/>
+                              <attribute title="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3552,6 +3545,7 @@
                 <shapeBorderThickness>0</shapeBorderThickness>
                 <shapeSize>5</shapeSize>
                 <shapeToDraw>Solid Circle</shapeToDraw>
+                <zoomToSubset>true</zoomToSubset>
               </ParallelCoordinatesPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -3598,7 +3592,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)" keyType="Country Code" name="Population ages 0-14 (% of total)"/>
+                              <attribute title="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3636,7 +3630,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)" keyType="Country Code" name="Population ages 0-14 (% of total)"/>
+                              <attribute title="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3685,10 +3679,6 @@
     <enableControlPanel>true</enableControlPanel>
     <enableHelpPanel>true</enableHelpPanel>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <linkColormap>true</linkColormap>
-    <linkProbing>true</linkProbing>
-    <linkSelection>true</linkSelection>
-    <linkSubset>true</linkSubset>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
@@ -3722,7 +3712,7 @@
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
         <dataBounds>
-          <xMax>106.92477876106203</xMax>
+          <xMax>106.92477876106204</xMax>
           <xMin>-15.075221238938028</xMin>
           <yMax>66.89328972179533</yMax>
           <yMin>-41.05863989820605</yMin>
@@ -3788,12 +3778,12 @@
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>106.92477876106203</xMax>
+                  <xMax>106.92477876106204</xMax>
                   <xMin>-15.075221238938028</xMin>
                   <yMax>-41.05863989820605</yMax>
                   <yMin>-41.05863989820605</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>106.92477876106203</axisLineMaxValue>
+                <axisLineMaxValue>106.92477876106204</axisLineMaxValue>
                 <axisLineMinValue>-15.075221238938028</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
@@ -3862,7 +3852,7 @@
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population, female (% of total)" title="Population, female (% of total)" keyType="Country Code" name="Population, female (% of total)"/>
+                              <attribute title="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" name="Population, female (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -3923,13 +3913,14 @@
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute csvColumn="Population, female (% of total)" title="Population, female (% of total)" keyType="Country Code"/>
+                            <attribute keyType="Country Code" title="Population, female (% of total)" csvColumn="Population, female (% of total)"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
+                <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -4019,17 +4010,13 @@
             <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <attribute csvColumn="Country Name" title="Country Name" keyType="Country Code"/>
+                <attribute keyType="Country Code" title="Country Name" csvColumn="Country Name"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
         </dynamicColumnReference>
       </ReferencedColumn>
     </labelColumn>
-    <linkColormap>true</linkColormap>
-    <linkProbing>true</linkProbing>
-    <linkSelection>true</linkSelection>
-    <linkSubset>true</linkSubset>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>

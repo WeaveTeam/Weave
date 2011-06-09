@@ -286,7 +286,7 @@ package weave.visualization.plotters
 				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
 				if (++count > AbstractPlotter.recordsPerDraw)
 				{
-					destination.draw(tempShape);
+					destination.draw(tempShape, null, null, null, clipRectangle);
 					graphics.clear();
 					count = 0;
 				}
