@@ -28,21 +28,21 @@
 	     xmlns:ui="weave.ui.*"
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*"
 	     xmlns:mapTool="weave.visualization.tools.*"
-		 creationComplete="enableBorders.value = false"
 	     >
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
+			import mx.containers.Canvas;
+			import mx.events.ResizeEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
+			import weave.api.ui.IPlotLayer;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.LinkableBounds2D;
 			import weave.utils.NumberUtils;
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.RectanglePlotter;
+
 
 			override protected function constructor():void
 			{
@@ -57,13 +57,13 @@
 				maximizable.value = false;
 				closeable.value = false;
 				pinnable.value = false;
+				enableBorders.value = false;
 
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableAutoZoomToExtent.lock();
 				
 				// make sure WMS layers are included in the full data bounds
 				visualization.includeNonSelectableLayersInAutoZoom.value = true;
-				visualization.includeNonSelectableLayersInAutoZoom.lock();
 				
 				visualization.enableFixedAspectRatio.value = true;
 			
@@ -73,51 +73,61 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				component.toolTip = "You are currently viewing the highlighted area";
-				this.addChild(component);
+				 visualization.addChild(canvas);
+				canvas.toolTip = "You are currently viewing the highlighted area";
 			}
-
+			
+			override protected function updateForceEnableBorders():void
+			{
+				super.updateForceEnableBorders();
+				drawBoundsRectangle();
+			}
+			
+			public const parentDataBounds:LinkableBounds2D = newLinkableChild(this,LinkableBounds2D, drawBoundsRectangle, true);
+			private var overviewDataBounds:IBounds2D = new Bounds2D();
+			private var screenBounds:IBounds2D = new Bounds2D();
 			private var tempBounds:IBounds2D = new Bounds2D();
 			private const tempShape:Sprite = new Sprite();
-			private var screenBounds:IBounds2D = new Bounds2D();
-			private var component:UIComponent = new UIComponent();
+			private var canvas:Canvas = new Canvas();
 			
-			private const dataBoundsBitmap:Bitmap = new Bitmap(new BitmapData(20,20), PixelSnapping.NEVER, true);
-			
-			public function drawBoundsRectangle(dataBounds:LinkableBounds2D):void
+			public function drawBoundsRectangle():void
 			{
-				dataBounds.copyTo(tempBounds);
-				if( tempBounds.isEmpty() || tempBounds.isUndefined() ) return;
-				getScreenBounds(screenBounds);
+				getDataScreenBounds();
+				parentDataBounds.copyTo(tempBounds);
+				
+				if( tempBounds.isEmpty() || tempBounds.isUndefined() ) return;				
+				if( screenBounds.isEmpty() || screenBounds.isUndefined()) return;
 									
-				var graphics:Graphics = tempShape.graphics;
+				var graphics:Graphics = canvas.graphics;
 				graphics.clear();
 				
 				graphics.lineStyle(1);
 				graphics.beginFill(0xffff00,0.5);
-				
-				visualization.fullDataBounds.projectCoordsTo(tempBounds,screenBounds);
-				
+
+				visualization.dataBounds.copyTo(overviewDataBounds);
+				overviewDataBounds.projectCoordsTo(tempBounds,screenBounds);
+
 				graphics.drawRect(tempBounds.getXMin(),tempBounds.getYMin(),tempBounds.getWidth(),tempBounds.getHeight());
 				graphics.endFill();
 				
-				component.addChild(tempShape);
-			}
+				//hack to enforce the clipContent property- this is a flex bug
+				//otherwise, the rectangle can appear outside the component
+				canvas.width = this.width+5;
+				
+			} 
 			
-			private function getScreenBounds(outputScreenBounds:IBounds2D):void
+			private function getDataScreenBounds():void
 			{
-				// default behaviour is to set screenBounds beginning from lower-left corner and ending at upper-right corner
-				var left:Number = visualization.marginLeft.value;
-				var top:Number = visualization.marginTop.value;
-				var right:Number = unscaledWidth - visualization.marginRight.value;
-				var bottom:Number = unscaledHeight - visualization.marginBottom.value;
-				// set screenBounds beginning from lower-left corner and ending at upper-right corner
-				//TODO: is other behavior required?
-				outputScreenBounds.setBounds(left, bottom, right, top);
-				if (left > right)
-					outputScreenBounds.setWidth(0);
-				if (top > bottom)
-					outputScreenBounds.setHeight(0);
+				var i:int = 0;
+				for each( var plotlayer:IPlotLayer in visualization.layers.getObjects(IPlotLayer))
+				{
+					if(i == 0) plotlayer.getScreenBounds(screenBounds);
+					else {
+						plotlayer.getScreenBounds(tempBounds);
+						screenBounds.includeBounds(tempBounds); 					
+					}
+					i++;
+				}
 			}
 		]]>
 	</mx:Script>

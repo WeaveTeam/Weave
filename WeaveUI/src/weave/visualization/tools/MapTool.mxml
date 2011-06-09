@@ -480,8 +480,8 @@
 					{
 						overviewTool = children.requestObject(children.generateUniqueName("overview"),MapOverviewWindow,true);
 						linkSessionState(visualization.layers, overviewTool.visualization.layers); 
-						getCallbackCollection(visualization.dataBounds).addImmediateCallback(this,overviewTool.drawBoundsRectangle,[visualization.dataBounds]);
-						visualization.layers.addImmediateCallback(this,overviewTool.drawBoundsRectangle,[visualization.dataBounds]);
+						linkSessionState(visualization.dataBounds,overviewTool.parentDataBounds);						
+						visualization.layers.addGroupedCallback(this,overviewTool.drawBoundsRectangle);
 					}
 				} else {
 					if(overviewTool && contains(overviewTool))
