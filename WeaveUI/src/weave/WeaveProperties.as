@@ -69,13 +69,15 @@ package weave
 		public static const DEFAULT_FONT_SIZE:Number = 10;
 		public static const DEFAULT_AXIS_FONT_SIZE:Number = 11;
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
+		public static const DATA_GRID:String = "DataGrid";
+		public static const TEXT_EDITOR:String = "TextArea";
 		
 		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
 		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; };
 		private function verifyWindowSnapGridSize(value:Number):Boolean { return value >= 1; }
-		
+		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
@@ -228,7 +230,7 @@ package weave
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
-		//public const sessionStateEditor:LinkableString = new LinkableString();
+		public const sessionStateEditor:LinkableString = new LinkableString("", verifySessionStateEditor);
 		
 		// temporary?
 		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service

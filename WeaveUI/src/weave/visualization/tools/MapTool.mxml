@@ -103,7 +103,7 @@
 				visualization.enableFixedAspectRatio.value = true;
 				visualization.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, updateZoomSlider);
-				
+			
 				enableBackground.value = true;
 				
 				colorColumn.addGroupedCallback(this, updateTitle);
@@ -112,6 +112,33 @@
 				
 				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
 				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
+			}
+			
+				
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				var backgroundImageCheck:CheckBox = new CheckBox();
+				backgroundImageCheck.label = "Enable ocean background image";
+				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
+				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
+				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
+				
+				//EventUtils.addBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
+				//EventUtils.addBindCallback(userControlPanel, "visible", handleControlPanelToggle);
+				
+				/*var download:BitmapData = BitmapUtils.loadBitmapDataFromImage("weave/resources/images/ocean_background2.jpg");
+				trace(download);*/
+				
+				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
+				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
+				
+				if (visualization.layers.getNames().length == 0)
+					addGeomLayer();
+								
+				enableOverview.value = false;
+				
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -201,32 +228,6 @@
 					title = "Map " + (colorColumn.internalColumn == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
 				else
 					title = toolTitle.value;
-			}
-			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
-				
-				var backgroundImageCheck:CheckBox = new CheckBox();
-				backgroundImageCheck.label = "Enable ocean background image";
-				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
-				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
-				
-				//EventUtils.addBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
-				//EventUtils.addBindCallback(userControlPanel, "visible", handleControlPanelToggle);
-				
-				/*var download:BitmapData = BitmapUtils.loadBitmapDataFromImage("weave/resources/images/ocean_background2.jpg");
-				trace(download);*/
-				
-				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
-				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
-				
-				if (visualization.layers.getNames().length == 0)
-					addGeomLayer();
-								
-				enableOverview.value = false;
-				
 			}
 			
 			/*private function handleSelectedLayerChange():void

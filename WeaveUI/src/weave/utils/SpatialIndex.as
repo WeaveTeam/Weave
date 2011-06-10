@@ -595,7 +595,7 @@ package weave.utils
 					
 					for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
 					{
-						for each (var geom:* in geoms)Object
+						for each (var geom:Object in geoms)
 						{
 							xDistance = geom.bounds.getXCenter() - xQueryCenter;
 							yDistance = geom.bounds.getYCenter() - yQueryCenter;
@@ -609,7 +609,6 @@ package weave.utils
 							{
 								var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
 								var genGeomBounds:IBounds2D = genGeom.bounds;
-
 								
 								var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
 
@@ -626,15 +625,31 @@ package weave.utils
 											overlapsQueryCenter = true;
 										}
 										else
+										{
 											distanceSq = geomDistance;
+											overlapsQueryCenter = false;
+										}
 									}
-									else if (genGeom.isLine()) 
-										distanceSq = ComputationalGeometryUtils.getDistanceFromLine(
+									else if (genGeom.isLine())
+									{
+										distanceSq = ComputationalGeometryUtils.getUnscaledDistanceFromLine(
 											part[0].x, part[0].y, part[1].x, part[1].y,
 											xQueryCenter, yQueryCenter);
+										
+										if (distanceSq <= Number.MIN_VALUE)
+											overlapsQueryCenter = true;
+										else
+											overlapsQueryCenter = false;
+									}
 									else if (genGeom.isPoint())
+									{
 										distanceSq = ComputationalGeometryUtils.getDistanceFromPointSq(
 											part[0].x, part[0].y, xQueryCenter, yQueryCenter);
+										if (distanceSq <= Number.MIN_VALUE)
+											overlapsQueryCenter = true;
+										else 
+											overlapsQueryCenter = false;										
+									}
 									
 									// Consider all keys until we have found one that overlaps the query center.
 									// After that, only consider keys that overlap query center.
@@ -664,6 +679,8 @@ package weave.utils
 							{
 								var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
 								var vertices:Array = simpleGeom.getVertices();
+								
+								// calculate the distanceSq and overlapsQueryCenter
 								if (simpleGeom.isPolygon())
 								{
 									if (ComputationalGeometryUtils.polygonOverlapsPoint(
@@ -673,15 +690,30 @@ package weave.utils
 										overlapsQueryCenter = true;
 									}
 									else 
+									{
 										distanceSq = geomDistance;
+										overlapsQueryCenter = false;
+									}
 								}
 								else if (simpleGeom.isLine())
-									distanceSq = ComputationalGeometryUtils.getDistanceFromLine(
+								{
+									distanceSq = ComputationalGeometryUtils.getUnscaledDistanceFromLine(
 										vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y,
 										xQueryCenter, yQueryCenter);
+									if (distanceSq <= Number.MIN_VALUE)
+										overlapsQueryCenter = true;
+									else
+										overlapsQueryCenter = false;
+								}
 								else if (simpleGeom.isPoint())
+								{
 									distanceSq = ComputationalGeometryUtils.getDistanceFromPointSq(
 										vertices[0].x, vertices[0].y, xQueryCenter, yQueryCenter);
+									if (distanceSq <= Number.MIN_VALUE)
+										overlapsQueryCenter = true;
+									else 
+										overlapsQueryCenter = false;
+								}
 								
 								// Consider all keys until we have found one that overlaps the query center.
 								// After that, only consider keys that overlap query center.
