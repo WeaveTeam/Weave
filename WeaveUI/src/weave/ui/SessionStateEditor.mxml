@@ -27,7 +27,7 @@
 <!--
     TODO: This class has many if else statements depending on the type of editor. It's probably a
     better idea to create some new state object whose states are either TextArea or DataGrid instead
-    of the implementation below. 
+    of the implementation below.
 -->
 <ui:DraggablePanel
     xmlns:ui ="weave.ui.*"
@@ -56,22 +56,23 @@
  					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>
  				</mx:HBox>
 			</mx:VBox>
-			<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" id="editorBox">
+			<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
 				<mx:HBox width="100%" horizontalAlign="right">
 					<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText()" change="searchTermChanged()" width="100%" minWidth="100"/>
 					<mx:Button label="Search" click="highlightSearchText()" repeatDelay="1"/>
 				</mx:HBox>
-				<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleTextAreaFocusIn()" fontAntiAliasType="normal" fontSize="11" 
-							 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
-				
-				<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleDataGridFocusIn()" fontAntiAliasType="normal" fontSize="11"
-							 fontFamily="Courier New" change="handleDataGridChange()" width="100%" height="100%" verticalScrollPolicy="auto" 
-							 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24">
-					<mx:columns>
-						<mx:DataGridColumn dataField="Name" headerText="Name" editable="false"/>
-						<mx:DataGridColumn dataField="Value" headerText="Value"/>
-					</mx:columns>
-				</mx:DataGrid>
+				<mx:Canvas id="editorBox" width="100%" height="100%">
+					<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleTextAreaFocusIn()" fontAntiAliasType="normal" fontSize="11" 
+								 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
+					<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleDataGridFocusIn()" fontAntiAliasType="normal" fontSize="11"
+								 fontFamily="Courier New" change="handleDataGridChange()" width="100%" height="100%" verticalScrollPolicy="auto" 
+								 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24">
+						<mx:columns>
+							<mx:DataGridColumn dataField="Name" headerText="Name" editable="false"/>
+							<mx:DataGridColumn dataField="Value" headerText="Value"/>
+						</mx:columns>
+					</mx:DataGrid>
+				</mx:Canvas>
 				<mx:Button id="toggleView" label="Toggle View" click="handleToggleViewClick()" toolTip="Click this button to switch the view of the session state."/>
 			</mx:VBox>
 		</mx:HDividedBox>
@@ -151,15 +152,15 @@
 				var editor:String = _viewEditor;
 				if (editor == TEXT_EDITOR)
 				{
-					editorBox.removeChild(sessionStateDataGrid);0
-					editorBox.addChildAt(sessionStateTextArea, editorBox.numChildren - 2);
+					editorBox.removeChild(sessionStateDataGrid);
+					editorBox.addChild(sessionStateTextArea);
 					sessionStateTextArea.visible = true;
 					sessionStateTextArea.enabled = true;
 				}
 				else if (editor == DATA_GRID)
 				{
 					editorBox.removeChild(sessionStateTextArea);
-					editorBox.addChildAt(sessionStateDataGrid, editorBox.numChildren - 2);
+					editorBox.addChild(sessionStateDataGrid);
 					sessionStateDataGrid.visible = true;
 					sessionStateDataGrid.enabled = true;
 				}
@@ -441,7 +442,7 @@
 					//toggleView.label = "Text Editor View";
 					_viewEditor = DATA_GRID;
 					editorBox.removeChild(sessionStateTextArea);
-					editorBox.addChildAt(sessionStateDataGrid, editorBox.numChildren - 1);
+					editorBox.addChild(sessionStateDataGrid);
 					
 					sessionStateTextArea.enabled = false;
 					sessionStateTextArea.editable = false;
@@ -458,7 +459,7 @@
 					//toggleView.label = "Data Grid View";
 					_viewEditor = TEXT_EDITOR;
 					editorBox.removeChild(sessionStateDataGrid);
-					editorBox.addChildAt(sessionStateTextArea, editorBox.numChildren - 1);
+					editorBox.addChild(sessionStateTextArea);
 					
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.editable = true;
@@ -530,6 +531,8 @@
 				}
 				else if (_viewEditor == DATA_GRID)
 				{
+					var i:int;
+					
 					// if the object is a single ILinkableVariable
 					if (_currentSelectedObject is ILinkableVariable)
 					{
@@ -539,58 +542,58 @@
 						sessionStateDataGrid.dataProvider = [ {Name: sessionNav.selectedItem.label || '', Value: value.toString() } ];
 						return;
 					} 
-					
-					// the object isn't a single variable -- check the properties
-					// there are two possibilities for the sessionState's contents
-					// 1) The objects returned from getClassInfo().properties are QName objects
-					// 2) Or the objects are just the array indices, which means the sessionState has dynamic states
-					var dataGridProvider:ArrayCollection = new ArrayCollection();
-					var propertiesArray:Array = ObjectUtil.getClassInfo(sessionState).properties;
-					for (var iProperty:int = 0; iProperty < propertiesArray.length; ++iProperty)
-					{
-						var key:Object = propertiesArray[iProperty];
-						var propertyString:String;
-						var sessionedProperty:Object; 
-						
-						if (key is QName)
-						{
-							var qKey:QName = key as QName;
-							propertyString = qKey.localName;
-							sessionedProperty = sessionState[propertyString];
-						}
-						else
-						{
-							var dynamicStateKey:DynamicState = sessionState[iProperty] as DynamicState;
-							propertyString = dynamicStateKey.objectName;
-							sessionedProperty = dynamicStateKey.sessionState; 
-							
-							//trace(dynamicStateKey.objectName, dynamicStateKey.className, typeof(sessionedProperty), sessionedProperty);
-						}
-						
-						// the property may be an arbitrary object, but it's better to show it anyway because this shows
-						// many of properties we want to see
-						if (sessionedProperty == null)
-							sessionedProperty = '';
 
-						switch (typeof(sessionedProperty))
+					var dataGridProvider:ArrayCollection = new ArrayCollection();
+					var childObject:ILinkableObject;
+					var ignoreList:Dictionary = new Dictionary(true);
+					var names:Array;
+					var sessionedObjects:Array;
+					// check for LinkableHashMap (Array of DynamicState objects)
+					if (_currentSelectedObject is ILinkableHashMap)
+					{
+						names = (_currentSelectedObject as ILinkableHashMap).getNames();
+						sessionedObjects = (_currentSelectedObject as ILinkableHashMap).getObjects();
+					
+						for (i = 0; i < names.length; ++i)
 						{
-							case "object":
-								if (!(sessionedProperty is Array))
-									break;
+							childObject = sessionedObjects[i] as ILinkableObject;
+							if (childObject is ILinkableVariable && (WeaveAPI.SessionManager as SessionManager).isChildInSessionState(_currentSelectedObject, childObject))
+							{
+								if (ignoreList[childObject] != undefined)
+									continue;
+								ignoreList[childObject] = true;
 								
-								// we want each element in the array to be a simple object
-								if (!arrayHasSimpleContents(sessionedProperty as Array))
-									break;
-							case "boolean":
-							case "number":
-							case "string":
-							case "xml":
-								dataGridProvider.addItem( {Name: propertyString || '', Value: sessionedProperty.toString() } );
-								break;
-							default:
-								break;
+								dataGridProvider.addItem( {Name: names[i], Value: getSessionState(childObject) || ''} );
+							}
 						}
 					}
+					else // an object mapping
+					{
+						if (_currentSelectedObject is ILinkableDynamicObject)
+						{
+							names = (_currentSelectedObject as ILinkableDynamicObject).globalName ? [] : ["internalObject"];
+						}
+						else if (_currentSelectedObject)
+						{
+							names = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(_currentSelectedObject);
+						}
+						for (var j:int = 0; j < names.length; j++)
+						{
+							childObject = _currentSelectedObject[names[j]];
+							if (!childObject)
+								continue;
+							if (childObject is ILinkableVariable &&(WeaveAPI.SessionManager as SessionManager).isChildInSessionState(_currentSelectedObject, childObject))
+							{
+								// don't include duplicate siblings
+								if (ignoreList[childObject] != undefined)
+									continue;
+								ignoreList[childObject] = true;
+								
+								dataGridProvider.addItem( {Name: names[j], Value: getSessionState(childObject) || ''} );
+							}
+						}
+					}
+
 					_currentSessionStateDataProvider = dataGridProvider;
 					sessionStateDataGrid.dataProvider = dataGridProvider;
 					sessionStateDataGrid.enabled = true;
@@ -623,8 +626,6 @@
 						var i:int, j:int;
 						
 						_currentSessionStateDataProvider = sessionStateDataGrid.dataProvider as ArrayCollection;
-						
-						
 						
 						// special case of just one object to set
 						if (_currentSelectedObject is ILinkableVariable && _currentSessionStateDataProvider.length == 1)
