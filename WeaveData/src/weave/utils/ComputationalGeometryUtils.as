@@ -36,74 +36,6 @@ package weave.utils
 	 */
 	public class ComputationalGeometryUtils
 	{
-		/**
-		 * This function will determine if a ray intersects a line. In this function,
-		 * the ray is treated as all possible rays originating from the origin of the point.
-		 * 
-		 * @param Ax X coordinate of A in AB
-		 * @param Ay Y coordinate of A in AB
-		 * @param Bx X coordinate of B in AB
-		 * @param By Y coordinate of B in AB
-		 * @param Cx X coordinate of C in point C
-		 * @param Cy Y coordinate of C in point C
-		 * @return A boolean indicating true or false if the ray does intersect the line.
-		 */		
-		public static function lineIntersectsRay(Ax:Number, Ay:Number, Bx:Number, By:Number, Cx:Number, Cy:Number):Boolean
-		{
-			// visual. Picture all rays as moving to the right (which we can do since we require the point to have positive slope)
-			//    . . . .           o---->
-			//               \     
-			//               B
-			//   o---->     /
-			//             /     o---->
-			//            /
-			// o---->    /  o---->
-			//          A
-			//    . . . .
-			// For a ray to intersect the segment AB, we require A.y <= rayOrigin.y <= B.y
-			// Then, we require rayOrigin.x to be between A.x and B.x.
-			// (Note that if rayOrigin.x is less than both A.x and B.x, it clearly intersects segment).
-			// Then we calculate the slope of line segment AB and the slope of line segment RA, 
-			// which is the line from the ray origin to point A. If the the slop from the ray to A is 
-			// greater or equal to the slope of segment AB, then the ray intersects.
-			// In all other cases, the ray does not intersect.
-			
-			// make sure A is lower
-			var temp:Number;
-			if (Ay > By)
-			{
-				temp = Ay;
-				Ay = By;
-				By = temp;
-				
-				temp = Ax;
-				Ax = Bx;
-				Bx = temp;
-			}
-			
-			// if the ray origin is lower than the lower point or higher than the higher point
-			if (Cy < Ay || Cy > By)
-				return false;
-			
-			// if the ray is too far to the right, clearly does not interset
-			if (Cx > Math.max(Ax, Bx))
-				return false;
-			
-			// if the ray is to the left at this point, clearly intersets 
-			if (Cx < Math.min(Ax, Bx))
-				return true;
-			
-			var m1:Number = Number.POSITIVE_INFINITY; // slope of AB, initialized to +infinity to handle division by 0 
-			var m2:Number = Number.POSITIVE_INFINITY; // slope of AR, initialized to +infinity to handle division by 0
-			// calculate m1
-			if (Ax != Bx)
-				m1 = (By - Ay) / (Bx - Ax);
-			// calculate m2
-			if (Ax != Cx)
-				m2 = (Cy - Ay) / (Cx - Ax);
-			
-			return (m2 >= m1);
-		}
 
 		/**
 		 * This function will determine whether the two lines intersect. An intersection is defined
@@ -406,6 +338,9 @@ package weave.utils
 		}
 
 		/**
+		 * Compute the distance from the line passing through A and B to the point C.
+		 * This function assumes the normal from point C to AB lies on AB.
+		 * 
 		 * @param ax The X coordinate of point A
 		 * @param ay The Y coordinate of point A
 		 * @param bx The X coordinate of point B
@@ -419,9 +354,30 @@ package weave.utils
 			var dx:Number = bx-ax;
 			var dy:Number = by-ay;
 			var dd:Number = Math.sqrt(dx*dx+dy*dy);
-			return Math.abs((cx - ax)*(dy/dd) - (cy - ay)*(dx/dd));
+			return Math.abs( ((cx - ax)*dy - (cy - ay)*dx)/dd );
 		}
 
+		/**
+		 * Compute the unscaled distance from the line to the point. This function should only be used for
+		 * comparing unscaled distances of other point to line segment distances.
+		 * This function assumes the normal from point C to AB lies on AB.
+		 * 
+		 * @param ax The X coordinate of point A
+		 * @param ay The Y coordinate of point A
+		 * @param bx The X coordinate of point B
+		 * @param by The Y coordinate of point B
+		 * @param cx The X coordinate of point C
+		 * @param cy The Y coordinate of point C
+		 * @return The distance from the line passing through A and B to the point C
+		 */
+		public static function getUnscaledDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
+		{
+			var dx:Number = bx-ax;
+			var dy:Number = by-ay;
+			var dd:Number = dx*dx + dy*dy;
+			return Math.abs( ((cx - ax)*dy - (cy - ay)*dx) / dd );
+		}
+		
 		/**
 		 * @param ax The X coordinate of point A
 		 * @param ay The Y coordinate of point A
