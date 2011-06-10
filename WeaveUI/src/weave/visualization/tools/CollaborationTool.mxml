@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:DraggablePanel xmlns="weave.visualization.tools.*" 
+			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:ui="weave.ui.*"
+			   xmlns:userControls="weave.ui.userControls.*"
+			   layout="absolute"
+			   creationPolicy="all">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.Base64Decoder;
+			import mx.utils.Base64Encoder;
+			
+			import org.igniterealtime.xiff.auth.*;
+			import org.igniterealtime.xiff.bookmark.*;
+			import org.igniterealtime.xiff.conference.*;
+			import org.igniterealtime.xiff.core.*;
+			import org.igniterealtime.xiff.data.*;
+			import org.igniterealtime.xiff.events.*;
+			import org.igniterealtime.xiff.exception.*;
+			import org.igniterealtime.xiff.filter.*;
+			import org.igniterealtime.xiff.im.*;
+			import org.igniterealtime.xiff.privatedata.*;
+			import org.igniterealtime.xiff.util.*;
+			import org.igniterealtime.xiff.vcard.*;
+			
+			public static var room:Room;
+			
+			public static var connection:XMPPConnection;
+			
+			private var selfJID:String;
+			private var ip:String = 							"129.63.17.193";
+			private var compName:String = 						"@conference.happy"
+			private var port:int = 								5222; //5223 for encrypted connections
+			private var baseEncoder:Base64Encoder = 			new Base64Encoder();
+			private var baseDecoder:Base64Decoder = 			new Base64Decoder();
+			private var roomToJoin:String =						"testing";
+			private var connectedToRoom:Boolean = 				false;
+			private var isConnected:Boolean = 					false;
+			
+  			override protected function childrenCreated():void
+			{
+				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoomPress);
+				sendButton.addEventListener(MouseEvent.CLICK, sendToRoomClick);
+				connect();
+			}
+			
+			public function connect():void
+			{
+				connection = new XMPPConnection();
+				
+				//connection.useAnonymousLogin = true;
+				connection.username = "john";
+				connection.password = "john";
+				
+				connection.server = ip;
+				connection.port = port;
+				
+				// For a full list of listeners, see XIFF/src/org/jivesoftware/xiff/events
+				connection.addEventListener(LoginEvent.LOGIN, onLogin);
+				connection.addEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
+				connection.addEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
+				connection.addEventListener(MessageEvent.MESSAGE, onReceiveMessage);
+				
+				connection.connect();
+				isConnected = true;
+			}
+			
+			/**
+			 * Called after login but before room join.
+			 */
+			private function onLogin(e:LoginEvent):void
+			{
+				joinRoom(roomToJoin);
+				connectedToRoom = true;
+			}
+			
+			/**
+			 * Assuming that connection was already created, will join the room
+			 * @parm name Name of the room
+			 */
+			private function joinRoom(name:String):void
+			{
+				room = new Room(connection);
+				room.roomJID = new UnescapedJID(name+compName);
+				
+				room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
+				room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+				room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
+				room.join();
+				trace("joining room");
+			}
+			
+			/**
+			 * Called after joining a room, used to setup the connection status
+			 * and circle pointer for the mouse. 
+			 */
+			private function onRoomJoin(e:RoomEvent):void
+			{
+				room = Room(e.target);
+				// Get the ID that everyone sees us as
+				// Used to filter out messages that we sent
+				selfJID = room.userJID.resource;
+				trace("Joined room.");
+				
+			}
+			
+			public function disconnect():void
+			{
+				connectedToRoom = false;
+				connection.disconnect();
+				clean();
+			}
+			
+			private function clean():void
+			{
+				//== Remove Event Listeners ==//
+				connection.removeEventListener(LoginEvent.LOGIN, onLogin);
+				connection.removeEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
+				connection.removeEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
+				connection.removeEventListener(MessageEvent.MESSAGE, onReceiveMessage);
+				if( room != null)
+				{
+					room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
+					room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+					room.removeEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
+				}
+				
+				//== Reset variables ==//
+				isConnected = 				false;
+				connection = 				null;
+				room = 						null;
+				selfJID = 					null;
+				
+				trace("cleaning");
+			}
+			
+			private function onDisconnect(e:DisconnectionEvent):void
+			{
+				isConnected = false;
+			}
+			
+			private function onTimeout(event:RoomEvent):void
+			{
+				if (connectedToRoom)
+					Alert.show("Would you like to reconnect?", "Disconnected", Alert.YES | Alert.NO, null, closeHandler, null, Alert.YES);
+			}
+			
+			private function closeHandler(e:CloseEvent):void
+			{
+				if(e.detail == Alert.YES )
+				{
+					clean();
+					connect();
+					if( connection == null )
+						Alert.show( "Unable to connect at this time.", "Connection Issue");
+				}
+			}
+			
+			private function onUserLeave(e:RoomEvent):void
+			{
+				trace(e.nickname);
+			}
+			
+			public function hasConnection():Boolean 
+			{
+				return isConnected;
+			}
+			
+			private function sendToRoomPress(e:KeyboardEvent):void
+			{
+				if( e.keyCode == 13 )
+				{
+					if(room != null)
+					{
+						var o:Object = { id: selfJID, type: "chat", message: input.text };
+						room.sendMessage(encodeObject(o));
+					}
+					input.text = "";
+				}
+			}
+			
+			private function sendToRoomClick(e:MouseEvent):void
+			{
+				if(room != null)
+				{
+					var o:Object = { id: selfJID, type: "chat", message: input.text };
+					room.sendMessage(encodeObject(o));
+					input.text = "";
+				}
+			}
+			private function onReceiveMessage(event:MessageEvent):void
+			{
+				try
+				{
+					var o:Object = decodeObject(event.data.body);
+					log.text = log.text + o.id + ": " + o.message + "\n";
+				} 
+				catch( e:Error )
+				{
+					trace( "Error:", e.message );
+				}
+					
+				log.verticalScrollPosition += 100;
+			}
+			
+			private function onError(e:XIFFErrorEvent):void
+			{
+				trace(e.errorMessage);
+			}
+			
+			private function encodeObject(toEncode:Object):String
+			{
+				baseEncoder.reset();
+				baseEncoder.insertNewLines = false;
+				var byteArray:ByteArray = new ByteArray();
+				byteArray.writeObject(toEncode);
+				byteArray.position = 0;
+				baseEncoder.encodeBytes(byteArray);
+				return baseEncoder.toString();
+			}
+			
+			private function decodeObject(message:String):Object
+			{
+				baseDecoder.reset();
+				baseDecoder.decode(message);
+				var byteArray:ByteArray = baseDecoder.toByteArray();
+				byteArray.position = 0;
+				return byteArray.readObject();
+			}
+		]]>
+	</mx:Script>
+
+	<mx:VBox width="100%" height="100%" paddingTop="10" paddingBottom="10" paddingLeft="10" paddingRight="10">
+		<mx:TextArea width="100%" height="100%" id="log" editable="false" />
+		<mx:HBox width="100%">
+			<mx:TextInput width="100%"  id="input" />
+			<mx:Button id="sendButton" label="Send" />
+		</mx:HBox>
+	</mx:VBox>
+	
+	<ui:ControlPanel>
+		<mx:VBox label="Visualization Controls">
+			<mx:HBox width="100%">
+				<mx:Label text="User Name:"/>
+				<mx:TextInput width="50%" id="userName" />	
+			</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:Label text="Password:"/>
+				<mx:TextInput width="50%" id="password" />	
+			</mx:HBox>
+		</mx:VBox>
+	</ui:ControlPanel>
+	
+</ui:DraggablePanel>

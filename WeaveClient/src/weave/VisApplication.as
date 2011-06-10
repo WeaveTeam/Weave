@@ -105,7 +105,8 @@ package weave
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
-	import weave.services.ProgressIndicator;
+	import weave.services.ProgressIndicator;	
+	
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
@@ -144,6 +145,7 @@ package weave
 	import weave.utils.DebugUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.NumberUtils;
+	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
@@ -669,6 +671,7 @@ package weave
 					var userUI:NewUserWizard = new NewUserWizard();
 					WizardPanel.createWizard(instance,userUI);
 				});
+				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Collaboration Tool", createGlobalObject, [CollaborationTool, "CollaborationTool"]);
 
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				
