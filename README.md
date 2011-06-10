@@ -4,7 +4,7 @@ Project website: http://ivpr.github.com/Weave/
 
 Issue Tracker: http://129.63.8.219/redmine/public
 
-Nightly build: http://www.github.com/IVPR/Weave-Binaries/
+Nightly build: https://github.com/IVPR/Weave-Binaries/zipball/master
 
 Projects in this repository:
 
