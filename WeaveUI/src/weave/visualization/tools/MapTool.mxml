@@ -103,8 +103,9 @@
 				visualization.enableFixedAspectRatio.value = true;
 				visualization.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, updateZoomSlider);
-			
+				
 				enableBackground.value = true;
+				enableOverview.value = true;
 				
 				colorColumn.addGroupedCallback(this, updateTitle);
 				toolTitle.addGroupedCallback(this, updateTitle);
@@ -114,33 +115,6 @@
 				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
 			}
 			
-				
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
-				
-				var backgroundImageCheck:CheckBox = new CheckBox();
-				backgroundImageCheck.label = "Enable ocean background image";
-				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
-				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
-				
-				//EventUtils.addBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
-				//EventUtils.addBindCallback(userControlPanel, "visible", handleControlPanelToggle);
-				
-				/*var download:BitmapData = BitmapUtils.loadBitmapDataFromImage("weave/resources/images/ocean_background2.jpg");
-				trace(download);*/
-				
-				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
-				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
-				
-				if (visualization.layers.getNames().length == 0)
-					addGeomLayer();
-								
-				enableOverview.value = false;
-				
-			}
-			
 			override public function getSelectableAttributeNames():Array
 			{
 				return ["Color"];
@@ -148,6 +122,21 @@
 			override public function getSelectableAttributes():Array
 			{
 				return [colorColumn];
+			}
+			
+			/**
+			 * This function moves the overview window in front of the visualization
+			 */
+			private function bringOverviewToTop():void
+			{
+				var names:Array = children.getNames();
+				var overviewIndex:int = names.indexOf(OVERVIEW_PANEL_NAME);
+				if( !overviewIndex ) 
+				{
+					names.splice(overviewIndex, 1);
+					names.push(OVERVIEW_PANEL_NAME);
+					children.setNameOrder(names);
+				}
 			}
 			
 			/**
@@ -228,6 +217,30 @@
 					title = "Map " + (colorColumn.internalColumn == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
 				else
 					title = toolTitle.value;
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				var backgroundImageCheck:CheckBox = new CheckBox();
+				backgroundImageCheck.label = "Enable ocean background image";
+				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
+				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
+				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
+				
+				//EventUtils.addBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
+				//EventUtils.addBindCallback(userControlPanel, "visible", handleControlPanelToggle);
+				
+				/*var download:BitmapData = BitmapUtils.loadBitmapDataFromImage("weave/resources/images/ocean_background2.jpg");
+				trace(download);*/
+				
+				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
+				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
+				
+				if (visualization.layers.getNames().length == 0)
+					addGeomLayer();											
+				
 			}
 			
 			/*private function handleSelectedLayerChange():void
@@ -465,27 +478,31 @@
 				//EventUtils.removeBindCallback(userControlPanel, "visible", handleControlPanelToggle);
 			}
 			
-			public var overviewTool:MapOverviewWindow;
-			
+			public var overviewPanel:MapOverviewWindow;
+			private var OVERVIEW_PANEL_NAME:String = null ;
 			private function updateOverviewWindow():void
-			{
-				// TODO Auto-generated method stub
+			{				
 				if(enableOverview.value)
 				{
-					if(overviewTool && !contains(overviewTool))
+					if(overviewPanel && !contains(overviewPanel))
 					{
-						addChild(overviewTool);
+						addChild(overviewPanel);
 					}
-					if(!overviewTool)
+					if(!overviewPanel)
 					{
-						overviewTool = children.requestObject(children.generateUniqueName("overview"),MapOverviewWindow,true);
-						linkSessionState(visualization.layers, overviewTool.visualization.layers); 
-						linkSessionState(visualization.dataBounds,overviewTool.parentDataBounds);						
-						visualization.layers.addGroupedCallback(this,overviewTool.drawBoundsRectangle);
+						overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME = children.generateUniqueName("overview"),MapOverviewWindow,true);
+						linkSessionState(visualization.layers, overviewPanel.visualization.layers); 
+						linkSessionState(visualization.dataBounds,overviewPanel.parentDataBounds);	
+						children.addGroupedCallback(this, bringOverviewToTop);
+						visualization.layers.addGroupedCallback(this,overviewPanel.drawBoundsRectangle);
 					}
 				} else {
-					if(overviewTool && contains(overviewTool))
-						removeChild(overviewTool) ;
+					if(overviewPanel)
+					{
+						overviewPanel.dispose();
+						disposeObjects(overviewPanel);
+						overviewPanel = null;
+					}
 				}
 				
 			} 
@@ -650,8 +667,7 @@
 		<mx:VBox label="Advanced">
 			<userControls:ControlsSubsetBox>
 				<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
-							 creationComplete="linkBindableProperty(enableOverview,overviewCheckBox,'selected')"
-							 selected="true"/>
+							 creationComplete="linkBindableProperty(enableOverview,overviewCheckBox,'selected')"/>
 			</userControls:ControlsSubsetBox>
 			<userControls:ControlsSubsetBox>
 				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
