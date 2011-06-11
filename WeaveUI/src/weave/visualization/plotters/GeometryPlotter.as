@@ -120,7 +120,7 @@ package weave.visualization.plotters
 			else if (value is GeneralizedGeometry)
 				geoms [ value as GeneralizedGeometry ];
 			
-			var results = [];
+			var results:Array = [];
 			if (geoms != null)
 				for each (var geom:GeneralizedGeometry in geoms)
 					results.push(geom);
