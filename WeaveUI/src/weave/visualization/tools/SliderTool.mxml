@@ -70,7 +70,7 @@
 	//class data
 
 	//@TODO session this so that the admin can specify a different maximum tick count
-	protected static const MAX_TICK_COUNT:int = 10;
+	protected static const MAX_LABEL_COUNT:int = 10;
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
 	public var timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
