@@ -105,7 +105,7 @@
 				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, updateZoomSlider);
 				
 				enableBackground.value = true;
-				enableOverview.value = true;
+				enableOverview.value = false;
 				
 				colorColumn.addGroupedCallback(this, updateTitle);
 				toolTitle.addGroupedCallback(this, updateTitle);
