@@ -332,7 +332,7 @@ public class GenericServlet extends HttpServlet
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		String[] argNames = exposedMethod.paramNames;
 		Class[] argTypes = exposedMethod.method.getParameterTypes();
-		Object[] argValues = new Object[argNames == null ? 0 : argNames.length];
+		Object[] argValues = new Object[argTypes.length];
 		
 		Map extraParameters = null; // parameters that weren't mapped directly to method arguments
 		
