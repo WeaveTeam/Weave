@@ -53,7 +53,7 @@
 	
 	//class data
 
-	private var values:Array = new Array();
+	private var values:Array = [];
 	
 	//overrides of abstract SliderTool functions
 	
@@ -140,20 +140,25 @@
 			return callLater(handleLabelChange);
 		var labelsString:String = labelsLinkableString.value;
 		values = labelsString.split(',');
-		if (values.length < MAX_TICK_COUNT)
+		if (values.length < MAX_LABEL_COUNT)
 			dimensionSlider.labels = values;
 		else
 		{
 			dimensionSlider.labels = new Array();
-			var interval:int = Math.ceil(values.length / MAX_TICK_COUNT);
-			for (var i:int = 0; i < values.length; i += interval)
-				dimensionSlider.labels.push(values[i]);
-			var iLast:int = values.length - 1;
-			if (i < iLast)
-				dimensionSlider.labels.push(values[iLast]);
+			
+			var interval:int = Math.ceil(values.length / MAX_LABEL_COUNT);
+			for (var i:int = 0; i < values.length; ++i)
+			{
+				if (i % interval == 0)
+					dimensionSlider.labels.push(values[i]);
+				else
+					dimensionSlider.labels.push('');
+			}			
 		}
+
 		dimensionSlider.minimum = 0;
-		dimensionSlider.maximum = values.length - 1;		
+		dimensionSlider.maximum = values.length - 1;
+		
 		//set tick interval 
 		dimensionSlider.tickInterval = 1;
 	}	

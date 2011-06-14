@@ -38,6 +38,10 @@ package weave.visualization.plotters
 		public function RamachandranBackgroundPlotter()
 		{
 		}
+		override public function getBackgroundDataBounds():IBounds2D
+		{
+			return getReusableBounds(-180,-180,180,180);
+		}
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var g:Graphics = tempShape.graphics;

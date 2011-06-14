@@ -104,6 +104,7 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
 				// END TEMPORARY SOLUTION
 				
+				visualization.includeNonSelectableLayersInAutoZoom.value = true;
 				visualization.enableZoomAndPan.value = false;
 				visualization.enableAutoZoomToExtent.value = false;
 				visualization.enableAutoZoomToExtent.lock();
