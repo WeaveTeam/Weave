@@ -154,7 +154,7 @@
 		
    		]]>
 	</mx:Script>
-	<mx:VBox horizontalAlign="left" width="100%" height="100%" backgroundColor="0xFFFFFF" paddingLeft="5" paddingBottom="5">
+	<mx:VBox id="alertVBox" horizontalAlign="left" width="100%" height="100%" backgroundColor="0xFFFFFF" paddingLeft="5" paddingBottom="5">
 		<mx:Label text="{_message}" horizontalCenter="0" width="100%"/>
 		<mx:TextInput text="{_textInput}" id="textBox" change="_textInput = textBox.text;" enter="handleOKClick()"/>
 		<mx:HBox id="alertButtons">

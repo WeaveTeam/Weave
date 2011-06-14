@@ -20,6 +20,7 @@ package weave
 {
 	import flash.display.DisplayObject;
 	import flash.events.ContextMenuEvent;
+	import flash.events.MouseEvent;
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
 	import flash.ui.ContextMenu;
@@ -28,8 +29,11 @@ package weave
 	import mx.collections.ArrayCollection;
 	import mx.containers.HBox;
 	import mx.containers.Panel;
+	import mx.controls.Button;
+	import mx.controls.CheckBox;
 	import mx.controls.ComboBox;
 	import mx.controls.Label;
+	import mx.controls.Spacer;
 	import mx.events.ListEvent;
 	
 	import weave.Weave;
@@ -91,7 +95,7 @@ package weave
 
 			
 			var sq:ContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Search for Record" + (includeData ? " and Data" : "") + " Online" + serviceName, 
+					"Search for Record" + (includeData ? " and Data" : "") + " online" + serviceName, 
 					destination, 
 					handleSearchQueryContextMenuItemSelect,
 					"3 searchMenuItems"
@@ -123,26 +127,39 @@ package weave
 				{
 					if(currentContextMenuItem.enabled)
 					{
-						var cbox:ComboBox = new ComboBox(); //ComboBox to hold the service names
-						var urlAlert:AlertTextBox = AlertTextBox.show("Custom URL", "URL: (record name automatically appended)");
+						var combobox:ComboBox = new ComboBox(); //ComboBox to hold the service names
+						var urlAlert:AlertTextBox = AlertTextBox.show("Custom URL",null);
 						var hbox:HBox = new HBox();						
 						var label:Label = new Label();
+						var detailsButton:Button = new Button();
 						
-						urlAlert.layout = "vertical";
-						urlAlert.maxHeight = 150;
-						label.text = "Service: ";
+						detailsButton.toggle = true;
+						detailsButton.label = "Show Details";
+						detailsButton.toolTip = "Click to display the URL used for this service"
+						urlAlert.alertVBox.removeChild(urlAlert.textBox);
+						detailsButton.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void {																	
+							if(detailsButton.selected) 
+								urlAlert.alertVBox.addChildAt(urlAlert.textBox,2);
+							else 								
+								urlAlert.alertVBox.removeChild(urlAlert.textBox);							
+						});
 						
-						hbox.addChild(label); hbox.addChild(cbox);
-						urlAlert.addChildAt(hbox,0 );
+						hbox.toolTip = "Please select a service from the dropdown menu";
+						urlAlert.textBox.toolTip = "This is the URL used to search for the record";
+						label.text = "Select a service: ";
+						
+						hbox.addChild(label); hbox.addChild(combobox); hbox.addChild(detailsButton);
+						urlAlert.alertVBox.addChildAt(hbox,0 );
+						urlAlert.alertVBox.addChildAt(new Spacer(),0);
 						
 						try { // don't throw error if string is empty
 							// replace any combinations of linefeeds and newlines with one newline character for consistency
 							Weave.properties.searchServiceURLs.value = Weave.properties.searchServiceURLs.value.replace(/[\r\n]+/g,"\n");
-							fillCBoxDataProvider(cbox);
-							urlAlert.textInput = cbox.selectedItem.url;
+							fillCBoxDataProvider(combobox);
+							urlAlert.textInput = combobox.selectedItem.url;
 						} catch (e:Error) {} 
-						cbox.addEventListener(ListEvent.CHANGE, function(e:ListEvent):void{
-							urlAlert.textInput = cbox.selectedItem.url;
+						combobox.addEventListener(ListEvent.CHANGE, function(e:ListEvent):void{
+							urlAlert.textInput = combobox.selectedItem.url;
 						});
 						urlAlert.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
 							if( !e.confirm ) return ;
