@@ -25,10 +25,21 @@ package weave
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
+	import mx.collections.ArrayCollection;
+	import mx.containers.HBox;
+	import mx.containers.Panel;
+	import mx.controls.ComboBox;
+	import mx.controls.Label;
+	import mx.events.ListEvent;
+	
 	import weave.Weave;
 	import weave.api.copySessionState;
 	import weave.api.core.ILinkableObject;
+	import weave.api.disposeObjects;
+	import weave.api.linkBindableProperty;
 	import weave.data.KeySets.KeySet;
+	import weave.ui.AlertTextBox;
+	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.CustomContextMenuManager;
 	import weave.utils.ProbeTextUtils;
 	
@@ -55,14 +66,8 @@ package weave
 			var destinationContextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
 			
 			destinationContextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
-			
-			
-			// Add some default context menu items to handle searching for a given record
-		    addSearchQueryContextMenuItem(<recordQuery queryServiceName="WikiPedia"     rootURL="http://en.wikipedia.org/wiki/Special:Search?search="/>, destination);
-		    addSearchQueryContextMenuItem(<recordQuery queryServiceName="Google"        rootURL="http://www.google.com/search?q="/>, destination);
-		//	addSearchQueryContextMenuItem(<recordQuery queryServiceName="Google" 	    rootURL="http://www.google.com/search?q=" includeData="true"/>, destination);
-		    addSearchQueryContextMenuItem(<recordQuery queryServiceName="Google Images" rootURL="http://images.google.com/images?q="/>, destination);
-		    addSearchQueryContextMenuItem(<recordQuery queryServiceName="Google Maps"   rootURL="http://maps.google.com/maps?t=h&q="/>, destination);
+						
+			addSearchQueryContextMenuItem(<recordQuery queryServiceName=" "	rootURL=""/>, destination);
 			
 			return true;	
 		}
@@ -86,7 +91,7 @@ package weave
 
 			
 			var sq:ContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Search for Record" + (includeData ? " and Data" : "") + " using " + serviceName, 
+					"Search for Record" + (includeData ? " and Data" : "") + " Online" + serviceName, 
 					destination, 
 					handleSearchQueryContextMenuItemSelect,
 					"3 searchMenuItems"
@@ -111,7 +116,6 @@ package weave
 				return;
 			// get first line of text only
 			var query:String = probeText.split('\n')[0];
-			
 			for each(var c:Object in _searchQueryContextMenuItems)
 			{
 				var currentContextMenuItem:ContextMenuItem = (c.contextMenu as ContextMenuItem);
@@ -119,10 +123,61 @@ package weave
 				{
 					if(currentContextMenuItem.enabled)
 					{
-						navigateToURL(new URLRequest(c.description.@rootURL + query), "_blank");
+						var cbox:ComboBox = new ComboBox(); //ComboBox to hold the service names
+						var urlAlert:AlertTextBox = AlertTextBox.show("Custom URL", "URL: (record name automatically appended)");
+						var hbox:HBox = new HBox();						
+						var label:Label = new Label();
+						
+						urlAlert.layout = "vertical";
+						urlAlert.maxHeight = 150;
+						label.text = "Service: ";
+						
+						hbox.addChild(label); hbox.addChild(cbox);
+						urlAlert.addChildAt(hbox,0 );
+						
+						try { // don't throw error if string is empty
+							// replace any combinations of linefeeds and newlines with one newline character for consistency
+							Weave.properties.searchServiceURLs.value = Weave.properties.searchServiceURLs.value.replace(/[\r\n]+/g,"\n");
+							fillCBoxDataProvider(cbox);
+							urlAlert.textInput = cbox.selectedItem.url;
+						} catch (e:Error) {} 
+						cbox.addEventListener(ListEvent.CHANGE, function(e:ListEvent):void{
+							urlAlert.textInput = cbox.selectedItem.url;
+						});
+						urlAlert.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
+							if( !e.confirm ) return ;
+							//append queried record's name to the end of the url
+							navigateToURL(new URLRequest(urlAlert.textInput + query), "_blank");							
+						});						
 					}
 				}
 			}
 		}
+		
+		private static function fillCBoxDataProvider(cbox:ComboBox):void
+		{
+			/* Example string in session state for Weave.properties.searchServiceURLs
+			<searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
+			Google|http://www.google.com/search?q=
+			Google Images|http://images.google.com/images?q=
+			Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
+			*/
+			var services:Array = Weave.properties.searchServiceURLs.value.split("\n");
+			var serviceObjects:Array = [] ;
+			var serviceString:Array;
+			for( var i:int = 0; i < services.length; i++ ) 
+			{
+				try{
+					var obj:Object = new Object();
+					serviceString = (services[i] as String).split( '|');
+					obj.name = serviceString[0];
+					obj.url = serviceString[1];
+					serviceObjects.push(obj);
+				} catch(error:Error){}
+			}						
+			cbox.dataProvider = new ArrayCollection(serviceObjects);
+			//display only service name field in combobox
+			cbox.labelField = 'name';		
+		}		
 	}
 }

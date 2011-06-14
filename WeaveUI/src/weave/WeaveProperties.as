@@ -72,6 +72,11 @@ package weave
 		public static const DATA_GRID:String = "DataGrid";
 		public static const TEXT_EDITOR:String = "TextArea";
 		
+		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
+		private static const GOOGLE_URL:String = "Google|http://www.google.com/search?q=";
+		private static const GOOGLE_MAPS_URL:String = "Google Maps|http://maps.google.com/maps?t=h&q=";
+		private static const GOOGLE_IMAGES_URL:String = "Google Images|http://images.google.com/images?q=";
+		
 		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
 		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
@@ -234,6 +239,9 @@ package weave
 		
 		// temporary?
 		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service
+		
+		//default URL
+		public const searchServiceURLs:LinkableString = new LinkableString(WIKIPEDIA_URL+"\n"+GOOGLE_URL+"\n"+GOOGLE_IMAGES_URL+"\n"+GOOGLE_MAPS_URL);
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);
