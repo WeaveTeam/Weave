@@ -4,9 +4,9 @@ Weave is a new open source web-based visualization platform enabling a range of 
 
 Weave is the collaborative effort of the University of Massachusetts Lowell and the Open Indicators Consortium bringing together technical and academic experts, data providers and data users from initially nine partner agencies across eight US regions.
 
-Project website: http://ivpr.github.com/Weave/
+Project website: http://ivpr.github.com/Weave
 
-Issue Tracker: http://129.63.8.219/redmine/public
+Issue Tracker: http://bugs.oicweave.org
 
 Nightly build: https://github.com/IVPR/Weave-Binaries/zipball/master
 
@@ -19,6 +19,7 @@ Components in this repository:
  * WeaveClient: GPLv3 license, Flex client application for visualization environment
  * WeaveAdmin: GPLv3 license, Flex application for admin activities
  * WeaveServices: GPLv3 license, back-end Java webapp for Admin and Data server features
+ * GeometryStreamConverter: GPLv3 license, Java library for converting geometries into a streaming format
 
 The bare minimum you need to build Weave is [Flex 3.5](http://fpdownload.adobe.com/pub/flex/sdk/builds/flex3/flex_sdk_3.5.0.12683_mpl.zip) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: https://github.com/IVPR/Weave/wiki/Development-Environment-Setup
 
