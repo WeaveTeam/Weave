@@ -330,9 +330,7 @@ package weave.utils
 							// if a polygon, check for polygon overlap
 							if (genGeomIsPoly)
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsPolygon(
-									_tempBoundsPolygon, /* bounds polygon */
-									part))
+								if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, part))
 								{
 									result.push(key);
 									continue keyLoop;
