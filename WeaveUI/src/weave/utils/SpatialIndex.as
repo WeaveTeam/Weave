@@ -284,10 +284,12 @@ package weave.utils
 		 */
 		public function getKeysOverlappingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
+			var keys:Array;
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			var keys:Array = getKeysOverlappingCollectiveBounds(bounds);
 			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
-				return keys; // stop now
+				return getKeysOverlappingCollectiveBounds(bounds, 0);
+			else			
+				keys = getKeysOverlappingCollectiveBounds(bounds, minImportance);
 			
 			// if there are 0 keys
 			if (keys.length == 0)
@@ -328,7 +330,9 @@ package weave.utils
 							// if a polygon, check for polygon overlap
 							if (genGeomIsPoly)
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, part))
+								if (ComputationalGeometryUtils.polygonOverlapsPolygon(
+									_tempBoundsPolygon, /* bounds polygon */
+									part))
 								{
 									result.push(key);
 									continue keyLoop;
