@@ -587,7 +587,7 @@ package weave.visualization.layers
 				if (!tempDataBounds.overlaps(queryBounds))
 					continue;
 				tempDataBounds.constrainBounds(queryBounds, false);	
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysContainingBounds(queryBounds, tempDataBounds.getArea() / tempScreenBounds.getArea());
+				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysOverlappingBounds(queryBounds, tempDataBounds.getArea() / tempScreenBounds.getArea());
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time

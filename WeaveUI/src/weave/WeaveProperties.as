@@ -29,6 +29,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.resources.fonts.EmbeddedFonts;
+	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
 
 	use namespace weave_internal;
@@ -68,13 +69,20 @@ package weave
 		public static const DEFAULT_FONT_SIZE:Number = 10;
 		public static const DEFAULT_AXIS_FONT_SIZE:Number = 11;
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
+		public static const DATA_GRID:String = "DataGrid";
+		public static const TEXT_EDITOR:String = "TextArea";
+		
+		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
+		private static const GOOGLE_URL:String = "Google|http://www.google.com/search?q=";
+		private static const GOOGLE_MAPS_URL:String = "Google Maps|http://maps.google.com/maps?t=h&q=";
+		private static const GOOGLE_IMAGES_URL:String = "Google Images|http://images.google.com/images?q=";
 		
 		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
 		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; };
 		private function verifyWindowSnapGridSize(value:Number):Boolean { return value >= 1; }
-		
+		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
@@ -127,7 +135,7 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
-		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(false); // use the geometry probing (default to off because too slow)
+		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
 		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
@@ -226,9 +234,14 @@ package weave
 		public const probeToolTipFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
+
+		public const sessionStateEditor:LinkableString = new LinkableString("", verifySessionStateEditor);
 		
 		// temporary?
 		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service
+		
+		//default URL
+		public const searchServiceURLs:LinkableString = new LinkableString(WIKIPEDIA_URL+"\n"+GOOGLE_URL+"\n"+GOOGLE_IMAGES_URL+"\n"+GOOGLE_MAPS_URL);
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);

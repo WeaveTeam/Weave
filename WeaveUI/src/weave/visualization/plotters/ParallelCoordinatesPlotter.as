@@ -38,7 +38,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.KeySets.KeySet;
-	import weave.primitives.Geometry;
+	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
@@ -175,7 +175,7 @@ package weave.visualization.plotters
 			// push three geometries between each column
 			for (var i:int = 0; i < _columns.length - 1; ++i) // fence post problem
 			{
-				var geometry:Geometry = new Geometry(Geometry.LINE);
+				var geometry:SimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
 				var pointA:Point = new Point();
 				var pointB:Point = new Point();
 				

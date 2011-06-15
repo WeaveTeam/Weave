@@ -42,8 +42,8 @@ package weave.utils
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.primitives.Geometry;
 	import weave.primitives.KDTree;
+	import weave.primitives.SimpleGeometry;
 	import weave.ui.probing.WeaveProbeTemplate;
 	import weave.visualization.plotters.DynamicPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
@@ -211,7 +211,7 @@ package weave.utils
 		 * @param bounds A bounds used to query the spatial index.
 		 * @return An array of keys with bounds that overlap the given bounds.
 		 */
-		public function getOverlappingKeys(bounds:IBounds2D, minImportance:Number = 0):Array
+		public function getKeysOverlappingCollectiveBounds(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
 			// This is a filter for bounding boxes and should be used for getting fast results
 			// during panning and zooming.
@@ -233,17 +233,17 @@ package weave.utils
 		 * @param bounds A bounds used to query the spatial index.
 		 * @return An array of keys with bounds that overlap the given bounds.
 		 */
-		public function getKeysContainingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
+		public function getKeysOverlappingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			// first get the keys whose collective bounds overlap the bounds
-			var keys:Array = getOverlappingKeys(bounds, 0);
+			var keys:Array;
+			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
+				return getKeysOverlappingCollectiveBounds(bounds, 0);
+			else			
+				keys = getKeysOverlappingCollectiveBounds(bounds, minImportance);
 			
 			// if there are 0 keys
 			if (keys.length == 0)
-				return keys;
-			
-			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
 				return keys;
 			
 			// define the bounds as a polygon
@@ -265,6 +265,9 @@ package weave.utils
 					if (geom is GeneralizedGeometry)
 					{
 						var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
+						var genGeomIsPoly:Boolean = genGeom.isPolygon();
+						var genGeomIsLine:Boolean = genGeom.isLine();
+						var genGeomIsPoint:Boolean = genGeom.isPoint();
 						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, bounds);
 						
 						// for each part, build the vertices polygon and check for the overlap
@@ -275,53 +278,60 @@ package weave.utils
 							if (part.length == 0) // if no points, continue
 								continue;
 							
-							// determine the type of the GeneralizedGeometry
-							switch (genGeom.geomType)
+							// if a polygon, check for polygon overlap
+							if (genGeomIsPoly)
 							{
-								// if a line, check for bounds intersecting the line
-								case GeneralizedGeometry.GEOM_TYPE_LINE:
-									if (ComputationalGeometryUtils.polygonOverlapsLine(
-										_tempBoundsPolygon, /* bounds polygon */ 
-										part[0].x, part[0].y,
-										part[1].x, part[1].y))
-									{
-										result.push(key);
-										continue keyLoop;
-									}
-									break;
-								
-								// if a point, check for bounds overlapping the point
-								case GeneralizedGeometry.GEOM_TYPE_POINT:
-									if (ComputationalGeometryUtils.polygonOverlapsPoint(
-										_tempBoundsPolygon, /* bounds polygon */ 
-										part[0].x, part[0].x))
-									{
-										result.push(key);
-										continue keyLoop;
-									}
-									break;
-								
-								// if a polygon, check for polygon overlap
-								case GeneralizedGeometry.GEOM_TYPE_POLYGON:
-									if (ComputationalGeometryUtils.polygonOverlapsPolygon(
-										_tempBoundsPolygon, /* bounds polygon */
-										part))
-									{
-										result.push(key);
-										continue keyLoop;
-									}
-									break;
-								
+								if (ComputationalGeometryUtils.polygonOverlapsPolygon(
+									_tempBoundsPolygon, /* bounds polygon */
+									part))
+								{
+									result.push(key);
+									continue keyLoop;
+								}
+							}								
+							else if (genGeomIsLine)
+							{
+								if (ComputationalGeometryUtils.polygonOverlapsLine(
+									_tempBoundsPolygon, /* bounds polygon */ 
+									part[0].x, part[0].y,
+									part[1].x, part[1].y))
+								{
+									result.push(key);
+									continue keyLoop;
+								}
+							}
+							else // point
+							{
+								if (ComputationalGeometryUtils.polygonOverlapsPoint(
+									_tempBoundsPolygon, /* bounds polygon */ 
+									part[0].x, part[0].x))
+								{
+									result.push(key);
+									continue keyLoop;
+								}
 							}
 						}
 					}
 					else // NOT a generalized geometry
 					{
 						var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
+						var simpleGeomIsPoly:Boolean = simpleGeom.isPolygon();
+						var simpleGeomIsLine:Boolean = simpleGeom.isLine();
+						var simpleGeomIsPoint:Boolean = simpleGeom.isPoint();
 						// get its vertices
 						var vertices:Array = simpleGeom.getVertices();
 						
-						if (simpleGeom.isLine()) // if a line, check for bounds intersect line
+						if (simpleGeomIsPoly)// a polygon, check for polygon overlap
+						{
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(
+								_tempBoundsPolygon, /* bounds polygon */
+								_tempGeometryPolygon /* vertices polygon */ ))
+							{
+								result.push(key);
+								continue keyLoop;
+							}
+						}
+						else if (simpleGeomIsLine) // if a line, check for bounds intersect line
 						{
 							if (ComputationalGeometryUtils.polygonOverlapsLine(
 								_tempBoundsPolygon, /* polygon */ 
@@ -332,7 +342,7 @@ package weave.utils
 								continue keyLoop;
 							}
 						}
-						else if (simpleGeom.isPoint()) // if a point, check for point polygon overlap
+						else
 						{
 							if (ComputationalGeometryUtils.polygonOverlapsPoint(
 								_tempBoundsPolygon, /* polygon */ 
@@ -342,165 +352,15 @@ package weave.utils
 								continue keyLoop;
 							}
 						}
-						else // a polygon, check for polygon overlap
-						{
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(
-								_tempBoundsPolygon, /* bounds polygon */
-								_tempGeometryPolygon /* vertices polygon */ ))
-							{
-								result.push(key);
-								continue keyLoop;
-							}
-						}	
+							
 					}
-				
 				} // end for each (var geom...
 			} // end for each (var key...
 
 			return result; 
 		} // end function
-		
-		/**
-		 * This function will return the keys closest to the center of the bounds object.
-		 * 
-		 * @param bounds A bounds used to query the spatial index.
-		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
-		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
-		 * @return An array of keys with bounds that overlap the given bounds and are closest to the center of the given bounds.
-		 */
-		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number = NaN, yPrecision:Number = NaN):Array
-		{			
-			// get the keys whose collective bounds overlap bounds (using importance 0)
-			var keys:Array = getOverlappingKeys(bounds, 0);
 			
-			// if no keys, return the empty array
-			if (keys.length == 0)
-				return keys;
-			
-			// if this index is not for an IPlotterWithGeometries OR the user wants legacy probing, do the old function
-			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
-				return getClosestKeys(keys, bounds, xPrecision, yPrecision);
-			
-			// the below code is only used for plotters which implement IPlotterWithGeometries and if the enableGeometryProbing property is true
-
-			// calculate the importance value
-			var importance:Number = (isNaN(xPrecision) || isNaN(yPrecision)) ? 0 : xPrecision * yPrecision;
-			
-			// get the center of the bounds which will be used for polygon and point overlap
-			var xQueryCenter:Number = bounds.getXCenter();
-			var yQueryCenter:Number = bounds.getYCenter();
-			
-			// define the _tempBoundsPolygon
-			setTempBounds(bounds);
-			
-			var result:Array = [];
-			
-			var xVerticesCenter:Number;
-			var yVerticesCenter:Number;
-			
-			// for each key, get its geometries
-			keyLoop: for (var iKey:int = keys.length - 1; iKey >= 0; --iKey)
-			{
-				var key:IQualifiedKey = keys[iKey];
-				var geoms:Array = _keyToGeometriesMap[key];
-				
-				// for each geom, check if one of its parts contains the query point using ray casting
-				for (var iGeom:int = geoms.length - 1; iGeom >= 0; --iGeom)
-				{
-					// the current geometry
-					var geom:Object = geoms[iGeom];
-
-					// if it's a generalizedGeometry
-					if (geom is GeneralizedGeometry)
-					{
-						var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
-						var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds); 
-						
-						for (var iPart:int = simplifiedGeom.length - 1; iPart >= 0; --iPart)
-						{
-							var currentPart:Vector.<BLGNode> = simplifiedGeom[iPart];
-							
-							if (currentPart.length == 0) 
-								continue;
-							
-							if (genGeom.isPolygon())
-							{
-								if (ComputationalGeometryUtils.polygonOverlapsPolygon(currentPart, _tempBoundsPolygon))
-								{
-									result.push(key);
-									continue keyLoop;
-								}
-							}
-							else if (genGeom.isLine())
-							{
-								if (ComputationalGeometryUtils.polygonOverlapsLine(
-									_tempBoundsPolygon,
-									currentPart[0].x, currentPart[0].y, currentPart[1].x, currentPart[1].y))
-								{
-									result.push(key);
-									continue keyLoop;
-								}
-							}
-							else if (genGeom.isPoint())
-							{
-								if (ComputationalGeometryUtils.polygonOverlapsPoint(
-									_tempBoundsPolygon,
-									currentPart[0].x, currentPart[0].y))
-								{
-									result.push(key);
-									continue keyLoop;
-								}
-							}
-						} 
-					} 
-					else // not a generalized geometry
-					{
-						// get the simple geometry object
-						var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
-						var vertices:Array = simpleGeom.getVertices();
-						
-						// if it's a polygon, check point in polygon with query center
-						if (simpleGeom.isPolygon())
-						{
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(
-								vertices, /* polygon */ 
-								_tempBoundsPolygon /* bounds polygon */ ))
-							{
-								result.push(key);								
-								continue keyLoop; // break because it's the closest
-							}
-						}
-						else if (simpleGeom.isLine()) // if line, check overlap with the polygon 
-						{
-							if (ComputationalGeometryUtils.polygonOverlapsLine(
-								_tempBoundsPolygon,
-								vertices[0].x, vertices[0].y,
-								vertices[1].x, vertices[1].y))
-							{
-								result.push(key);									
-								continue keyLoop; 
-							}								
-						}
-						else if (simpleGeom.isPoint()) // if point, check overlap with polygon
-						{
-							if (ComputationalGeometryUtils.polygonOverlapsPoint(
-								_tempBoundsPolygon,
-								vertices[0].x, vertices[0].y))
-							{
-								result.push(key);										
-								continue keyLoop;
-							}	
-						}
-					} 					
-				} // end geom loop
-			} // end key loop
-			
-			// get the closest using exact containment algorithms
-			return getClosestKeys(result, bounds, xPrecision, yPrecision);
-		}
-		
 		private var _keyToDistance:Dictionary = null;
-
 		private function setTempBounds(bounds:IBounds2D):void
 		{
 			var b:Bounds2D = bounds as Bounds2D;
@@ -516,18 +376,19 @@ package weave.utils
 		}
 				
 		/**
-		 * This function will get the keys closest the center of the bounds object. This function is used primarily
-		 * for plotters whose records are drawn as points, rectangles, and circles. 
+		 * This function will get the keys closest the center of the bounds object. Generally this function will
+		 * return an array of at most one key. Sometimes, it may return more than one key if there are multiple keys
+		 * with equivalent distance to the center of the bounds object.
 		 * 
-		 * @param keys An array of keys whose collective bounds overlaps the bounds.
 		 * @param bounds A bounds used to query the spatial index.
 		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of IQualifiedKey objects. 
 		 */		
-		public function getClosestKeys(keys:Array, bounds:IBounds2D, xPrecision:Number, yPrecision:Number):Array
+		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number, yPrecision:Number):Array
 		{
 			var importance:Number = xPrecision * yPrecision;
+			var keys:Array = getKeysOverlappingBounds(bounds, importance);
 			
 			// init local vars
 			var closestDistanceSq:Number = Infinity;
@@ -595,18 +456,31 @@ package weave.utils
 					
 					for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
 					{
-						for each (var geom:* in geoms)
+						for each (var geom:Object in geoms)
 						{
+							xDistance = geom.bounds.getXCenter() - xQueryCenter;
+							yDistance = geom.bounds.getYCenter() - yQueryCenter;
+							if (!isNaN(xPrecision) && xPrecision != 0)
+								xDistance = int(xDistance / xPrecision);
+							if (!isNaN(yPrecision) && yPrecision != 0)
+								yDistance = int(yDistance / yPrecision);
+							var geomDistance:Number = xDistance * xDistance + yDistance * yDistance; 
+							
 							if (geom is GeneralizedGeometry)
 							{
 								var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
+								var genGeomIsPoly:Boolean = genGeom.isPolygon();
+								var genGeomIsLine:Boolean = genGeom.isLine();
+								var genGeomIsPoint:Boolean = genGeom.isPoint();
+								var genGeomBounds:IBounds2D = genGeom.bounds;
+								
 								var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
 
 								for (var i:int = 0; i < simplifiedGeom.length; ++i)
 								{
 									var part:Vector.<BLGNode> = simplifiedGeom[i];
 									
-									if (genGeom.isPolygon())
+									if (genGeomIsPoly)
 									{
 										// if the polygon contains the point, this key is probably what we want
 										if (ComputationalGeometryUtils.polygonOverlapsPoint(part, xQueryCenter, yQueryCenter))
@@ -614,18 +488,38 @@ package weave.utils
 											distanceSq = 0;
 											overlapsQueryCenter = true;
 										}
+										else
+										{
+											distanceSq = geomDistance;
+											overlapsQueryCenter = false;
+										}
 									}
-									else if (genGeom.isLine()) 
-										distanceSq = ComputationalGeometryUtils.getDistanceFromLine(
+									else if (genGeomIsLine)
+									{
+										distanceSq = ComputationalGeometryUtils.getUnscaledDistanceFromLine(
 											part[0].x, part[0].y, part[1].x, part[1].y,
 											xQueryCenter, yQueryCenter);
-									else if (genGeom.isPoint())
+										
+										if (distanceSq <= Number.MIN_VALUE)
+											overlapsQueryCenter = true;
+										else
+											overlapsQueryCenter = false;
+									}
+									else if (genGeomIsPoint)
+									{
 										distanceSq = ComputationalGeometryUtils.getDistanceFromPointSq(
 											part[0].x, part[0].y, xQueryCenter, yQueryCenter);
+										if (distanceSq <= Number.MIN_VALUE)
+											overlapsQueryCenter = true;
+										else 
+											overlapsQueryCenter = false;										
+									}
 									
 									// Consider all keys until we have found one that overlaps the query center.
+									// Consider lines and points because although they may not overlap, it's very likely that no points or lines
+									// will overlap. If we consider all of them, we can still find the closest.
 									// After that, only consider keys that overlap query center.
-									if (!foundQueryCenterOverlap || overlapsQueryCenter)
+									if (!foundQueryCenterOverlap || overlapsQueryCenter || geom.isLine() || geom.isPoint())
 									{
 										// if this is the first record that overlaps the query center, reset the list of keys
 										if (!foundQueryCenterOverlap && overlapsQueryCenter)
@@ -650,8 +544,13 @@ package weave.utils
 							else  
 							{
 								var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
+								var simpleGeomIsPoly:Boolean = simpleGeom.isPolygon();
+								var simpleGeomIsLine:Boolean = simpleGeom.isLine();
+								var simpleGeomIsPoint:Boolean = simpleGeom.isPoint();
 								var vertices:Array = simpleGeom.getVertices();
-								if (simpleGeom.isPolygon())
+								
+								// calculate the distanceSq and overlapsQueryCenter
+								if (simpleGeomIsPoly)
 								{
 									if (ComputationalGeometryUtils.polygonOverlapsPoint(
 										vertices, xQueryCenter, yQueryCenter))
@@ -659,18 +558,37 @@ package weave.utils
 										distanceSq = 0;
 										overlapsQueryCenter = true;
 									}
+									else 
+									{
+										distanceSq = geomDistance;
+										overlapsQueryCenter = false;
+									}
 								}
-								else if (simpleGeom.isLine())
-									distanceSq = ComputationalGeometryUtils.getDistanceFromLine(
+								else if (simpleGeomIsLine)
+								{
+									distanceSq = ComputationalGeometryUtils.getUnscaledDistanceFromLine(
 										vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y,
 										xQueryCenter, yQueryCenter);
-								else if (simpleGeom.isPoint())
+									if (distanceSq <= Number.MIN_VALUE)
+										overlapsQueryCenter = true;
+									else
+										overlapsQueryCenter = false;
+								}
+								else if (simpleGeomIsPoint)
+								{
 									distanceSq = ComputationalGeometryUtils.getDistanceFromPointSq(
 										vertices[0].x, vertices[0].y, xQueryCenter, yQueryCenter);
+									if (distanceSq <= Number.MIN_VALUE)
+										overlapsQueryCenter = true;
+									else 
+										overlapsQueryCenter = false;
+								}
 								
 								// Consider all keys until we have found one that overlaps the query center.
+								// Consider lines and points because although they may not overlap, it's very likely that no points or lines
+								// will overlap. If we consider all of them, we can still find the closest.
 								// After that, only consider keys that overlap query center.
-								if (!foundQueryCenterOverlap || overlapsQueryCenter)
+								if (!foundQueryCenterOverlap || overlapsQueryCenter || simpleGeom.isLine() || simpleGeom.isPoint())
 								{
 									// if this is the first record that overlaps the query center, reset the list of keys
 									if (!foundQueryCenterOverlap && overlapsQueryCenter)
@@ -699,28 +617,6 @@ package weave.utils
 			result.length = resultCount;
 			return result;
 		}
-
-		private const _tempCenterPoint:Point = new Point();
-		private function getCenterPoint(polygon:Array, output:Point = null):Point
-		{
-			var x:Number = 0;
-			var y:Number = 0;
-			var numNodes:int = polygon.length;
-			
-			for each (var obj:Object in polygon)
-			{
-				x += obj.x;
-				y += obj.y;
-			}
-			
-			if (output == null)
-				output = new Point();
-			
-			output.x = x / numNodes;
-			output.y = y / numNodes;
-			return output;
-		}		
-		
 		
 		/**
 		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
