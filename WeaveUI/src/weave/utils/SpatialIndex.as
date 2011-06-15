@@ -235,12 +235,10 @@ package weave.utils
 		 */
 		public function getKeysOverlappingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			var keys:Array;
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
+			var keys:Array = getKeysOverlappingCollectiveBounds(bounds);
 			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
-				return getKeysOverlappingCollectiveBounds(bounds, 0);
-			else			
-				keys = getKeysOverlappingCollectiveBounds(bounds, minImportance);
+				return keys; // stop now
 			
 			// if there are 0 keys
 			if (keys.length == 0)
@@ -281,9 +279,7 @@ package weave.utils
 							// if a polygon, check for polygon overlap
 							if (genGeomIsPoly)
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsPolygon(
-									_tempBoundsPolygon, /* bounds polygon */
-									part))
+								if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, part))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -291,10 +287,10 @@ package weave.utils
 							}								
 							else if (genGeomIsLine)
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsLine(
-									_tempBoundsPolygon, /* bounds polygon */ 
-									part[0].x, part[0].y,
-									part[1].x, part[1].y))
+								if (	ComputationalGeometryUtils.polygonOverlapsLine(
+											_tempBoundsPolygon, /* bounds polygon */
+											part[0].x, part[0].y,
+											part[1].x, part[1].y	))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -302,9 +298,7 @@ package weave.utils
 							}
 							else // point
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsPoint(
-									_tempBoundsPolygon, /* bounds polygon */ 
-									part[0].x, part[0].x))
+								if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempBoundsPolygon, part[0].x, part[0].y))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -323,9 +317,7 @@ package weave.utils
 						
 						if (simpleGeomIsPoly)// a polygon, check for polygon overlap
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(
-								_tempBoundsPolygon, /* bounds polygon */
-								_tempGeometryPolygon /* vertices polygon */ ))
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, _tempGeometryPolygon))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -344,9 +336,7 @@ package weave.utils
 						}
 						else
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPoint(
-								_tempBoundsPolygon, /* polygon */ 
-								vertices[0].x, vertices[0].y /* point */))
+							if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempBoundsPolygon, vertices[0].x, vertices[0].y))
 							{
 								result.push(key);
 								continue keyLoop;
