@@ -333,7 +333,7 @@ package weave.utils
 									result.push(key);
 									continue keyLoop;
 								}
-							}								
+							}
 							else if (genGeomIsLine)
 							{
 								if (polygonOverlapsPolyLine(_tempBoundsPolygon, part))
