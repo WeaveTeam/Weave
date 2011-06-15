@@ -393,9 +393,10 @@ public class SQLConfigXML implements ISQLConfig
 		return info;
 	}
 
-	synchronized public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName)
+	synchronized public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName, String connectionName)
 	{
 		validateCache();
+		// TODO: handle connectionName
 		try
 		{
 			Map<String, String> map = geometryCollectionCache.get(geometryCollectionName);

@@ -142,7 +142,23 @@ package weave.services
 				_activeConnectionName = value;
 				if (userHasAuthenticated)
 					userHasAuthenticated = false;
+				
+				clearTables();
 			}
+		}
+
+		/**
+		 * This function will clear all the bindable array objects to prevent the user
+		 * from seeing anything while logged out.
+		 */
+		public function clearTables():void
+		{
+			connectionNames = [];
+			dataTableNames = [];
+			geometryCollectionNames = [];
+			weaveFileNames = [];
+			keyTypes = [];
+			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
 		
 		public function authenticate(connectionName:String, password:String):void

@@ -615,7 +615,13 @@ public class AdminService extends GenericServlet
 	synchronized public String[] getGeometryCollectionNames(String connectionName, String password) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return ListUtils.toStringArray(config.getGeometryCollectionNames(connectionName));
+		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+		String geometryConnection;
+		if (cInfo.privileges.equalsIgnoreCase("true"))
+			geometryConnection = null; // let it get all of the geometries
+		else
+			geometryConnection = connectionName; // get only the ones on this connection
+		return ListUtils.toStringArray(config.getGeometryCollectionNames(geometryConnection));
 	}
 
 	/**
@@ -624,7 +630,13 @@ public class AdminService extends GenericServlet
 	synchronized public GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String password, String geometryCollectionName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return config.getGeometryCollectionInfo(geometryCollectionName);
+		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+		String geometryConnection;
+		if (cInfo.privileges.equalsIgnoreCase("true"))
+			geometryConnection = null; // always get a geometry
+		else
+			geometryConnection = connectionName; // get the info only if the geometry is on this connection
+		return config.getGeometryCollectionInfo(geometryCollectionName, geometryConnection);
 	}
 
 	synchronized public String saveGeometryCollectionInfo(String connectionName, String password, String geomName, String geomConnection, String geomSchema, String geomTablePrefix, String geomKeyType, String geomImportNotes, String geomProjection) throws RemoteException

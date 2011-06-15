@@ -42,7 +42,7 @@ Author: skolman
 			 */
 			private function handleCreationComplete():void
 			{
-				passwordInput.setFocus();
+				connectionInput.setFocus();
 				//Fix to set cursor in Text Input. Though the focus is set to the password inout box the cursor is not set it till 
 				//you click anywhere in the flash application. This is because when the browser loads the page the flash object is not selected.
 				//We force the selection by passing the flash dom object to javascript and explicitly set the focus.
