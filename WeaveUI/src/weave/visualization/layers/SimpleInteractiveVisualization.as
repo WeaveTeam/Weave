@@ -619,7 +619,6 @@ package weave.visualization.layers
 		private function constrainTooltipToStage():void
 		{
 			var xMin:Number = 0;
-			var xMax:Number = stage.stageWidth;
 			
 			if( yAxisTooltip != null ) 
 			{
@@ -630,7 +629,7 @@ package weave.visualization.layers
 			else yAxisTooltipPtr = null;
 			if( xAxisTooltip != null )
 			{
-				var xMax:Number = xMax - xAxisTooltip.width;
+				var xMax:Number = stage.stageWidth - xAxisTooltip.width;
 				var xMaxTooltip:Number = xAxisTooltip.x+xAxisTooltip.width;
 				while( xMaxTooltip > xMax)
 				{
