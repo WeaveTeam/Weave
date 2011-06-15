@@ -174,7 +174,12 @@ package weave.primitives
 			if (geomType == GEOM_TYPE_POINT)
 			{
 				for (; ix + 1 < xyCoordinates.length; ix += 2)
-					coordinates.insert(ix / 2, Infinity, xyCoordinates[ix], xyCoordinates[ix + 1]);
+				{
+					x = xyCoordinates[ix];
+					y = xyCoordinates[ix + 1];
+					coordinates.insert(ix / 2, Infinity, x, y);
+					bounds.includeCoords(x, y);
+				}
 				return;
 			}			
 			// process each part of the geometry (additional parts may be islands or lakes)
