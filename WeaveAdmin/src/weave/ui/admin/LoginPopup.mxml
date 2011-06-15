@@ -90,7 +90,7 @@ Author: skolman
 			{
 				if (loginTimer == null)
 				{
-					loginTimer = new Timer(1000, 1);
+					loginTimer = new Timer(2500, 1);
 					loginTimer.addEventListener(TimerEvent.TIMER, handleLoginTimer);
 				}
 				
@@ -99,7 +99,7 @@ Author: skolman
 				loginTimer.start();
 				
 				// authenticate with server
-				AdminInterface.instance.authenticate(connectionCombo.text, passwordInput.text);
+				AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text);
 			}
 			
 			private var loginTimer:Timer = null;
@@ -114,15 +114,16 @@ Author: skolman
 	</mx:Script>
 	
 	<mx:HBox>
-			<mx:Label text="Connection Name:" width="110" textAlign="right"/>
-			<ui:CustomComboBox id="connectionCombo" minWidth="150" text="{AdminInterface.instance.activeConnectionName}" change="AdminInterface.instance.activeConnectionName = connectionCombo.text;" dataProvider="{AdminInterface.instance.connectionNames}"/>
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label text="SQL Password:" width="110" textAlign="right"/>
-			<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
-		</mx:HBox>
-		<ui:Center>
-			<mx:Button label="Log In" click="login()"/>
-		</ui:Center>
+		<mx:Label text="Connection Name:" width="110" textAlign="right"/>
+		<mx:TextInput id="connectionInput" enter="login()" minWidth="150" change="AdminInterface.instance.activeConnectionName = connectionInput.text"/>
+		<!--<ui:CustomComboBox id="connectionCombo" minWidth="150" text="{AdminInterface.instance.activeConnectionName}" change="AdminInterface.instance.activeConnectionName = connectionCombo.text;" dataProvider="{AdminInterface.instance.connectionNames}"/>-->
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="SQL Password:" width="110" textAlign="right"/>
+		<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
+	</mx:HBox>
+	<ui:Center>
+		<mx:Button label="Log In" click="login()"/>
+	</ui:Center>
 	
 </mx:Panel>

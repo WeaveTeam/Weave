@@ -61,7 +61,7 @@ package weave.services
 			}
 			else 
 			{
-				getConnectionNames(true);
+				//getConnectionNames(true);
 				sqlConfigExists = true;
 			}
 		}
@@ -96,15 +96,16 @@ package weave.services
 		
 		
 		
+		//private var currentPrivileges:String = '';
+		private var _activeConnectionName:String = '';
 		
 		// functions for managing static settings
-		
 		public function getConnectionNames(resetActiveConnection:Boolean = true):void
 		{
 			// clear current list, then request new list
 			connectionNames = [];
-			service.getConnectionNames().addAsyncResponder(handleGetConnectionNames, null, resetActiveConnection);
-			
+			service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames, null, resetActiveConnection);
+
 			// clear current info, then request new info
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 			if (userHasAuthenticated)
@@ -114,7 +115,7 @@ package weave.services
 		{
 			//trace("handleGetConnectionNames");
 			connectionNames = event.result as Array || [];
-			
+
 			var resetActiveConnection:Boolean = token as Boolean;
 			if (resetActiveConnection || connectionNames.indexOf(activeConnectionName) < 0)
 			{
@@ -130,7 +131,6 @@ package weave.services
 			databaseConfigInfo = new DatabaseConfigInfo(event.result);
 		}
 		
-		private var _activeConnectionName:String = '';
 		[Bindable] public function get activeConnectionName():String
 		{
 			return _activeConnectionName;
@@ -172,7 +172,6 @@ package weave.services
 				getKeyTypes();
 			}
 		}
-		
 	
 		
 
@@ -302,14 +301,18 @@ package weave.services
 		public function getDataTableNames():void
 		{
 			dataTableNames = [];
+			
 			if (userHasAuthenticated)
-				service.getDataTableNames().addAsyncResponder(handlegetDataTableNames);
+				service.getDataTableNames(
+					activeConnectionName, activePassword
+				).addAsyncResponder(handlegetDataTableNames);
 		}
 		private function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
 		{
 			if (userHasAuthenticated)
 				dataTableNames = event.result as Array || [];
 		}
+		
 		public function getDataTableInfo(dataTableName:String):DelayedAsyncInvocation
 		{
 			return service.getDataTableInfo(
@@ -377,7 +380,9 @@ package weave.services
 		{
 			geometryCollectionNames = [];
 			if (userHasAuthenticated)
-				service.getGeometryCollectionNames().addAsyncResponder(handleGetGeometryCollectionNames, null);
+				service.getGeometryCollectionNames(
+					activeConnectionName, activePassword
+				).addAsyncResponder(handleGetGeometryCollectionNames, null);
 		}
 		private function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
 		{
@@ -686,6 +691,21 @@ package weave.services
 			);
 		}
 		
+		public function getPrivileges(bitmask:String):String
+		{
+			if (bitmask == null || bitmask.length == 0)
+				return UNPRIVILEGED;
+			
+			var superuserBit:int = int(bitmask.charAt(0)); 
+			
+			if (superuserBit)
+				return SUPER_USER;
+			else
+				return UNPRIVILEGED;
+		}
+		
+		public static const SUPER_USER:String = "SUPER_USER";
+		public static const UNPRIVILEGED:String = "UNPRIVILEGED";
 		
 		/* ********************************************* */
 		/* Audio and Video Functions Not yet Implemented */

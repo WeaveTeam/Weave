@@ -88,8 +88,8 @@ public class DataService extends GenericServlet
 		ISQLConfig config = configManager.getConfig();
 		return new DataServiceMetadata(
 		        config.getServerName(),
-		        config.getDataTableNames().toArray(new String[0]),
-		        config.getGeometryCollectionNames().toArray(new String[0])
+		        config.getDataTableNames(null).toArray(new String[0]),
+		        config.getGeometryCollectionNames(null).toArray(new String[0])
 		    );
 	}
 	
@@ -103,7 +103,7 @@ public class DataService extends GenericServlet
 		if (dataTableName == null || dataTableName.length() == 0)
 			return null;
 		
-		boolean geometryCollectionExists = ListUtils.findString(dataTableName, config.getGeometryCollectionNames()) >= 0;
+		boolean geometryCollectionExists = ListUtils.findString(dataTableName, config.getGeometryCollectionNames(null)) >= 0;
 		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(dataTableName);
 		if (infoList.size() == 0 && !geometryCollectionExists)
 			throw new RemoteException("DataTable \""+dataTableName+"\" does not exist.");

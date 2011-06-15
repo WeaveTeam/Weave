@@ -54,6 +54,7 @@
 				</ui:Indent>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
+				<mx:CheckBox label="Super User" id="isSuperUserCheckbox"/>
 				<ui:Indent>
 					<mx:Button label="Save this database connection"
 							   click="saveConnectionInfo()"
@@ -123,12 +124,14 @@
 			
 			private function handleSQLConfigExists(val:Boolean):void
 			{
-				if(val)
+				if (val)
 				{
-					EventUtils.addBindCallback(AdminInterface.instance,"sqlConfigMigrated",forceSQLConfigMigrate);	
-				}else{
+					EventUtils.addBindCallback(AdminInterface.instance, "sqlConfigMigrated",forceSQLConfigMigrate);	
+				}
+				else
+				{
 					tabNavigator.selectedChild = simpleSetting;
-					EventUtils.removeBindCallback(AdminInterface.instance,"sqlConfigMigrated",forceSQLConfigMigrate);
+					EventUtils.removeBindCallback(AdminInterface.instance, "sqlConfigMigrated",forceSQLConfigMigrate);
 					sqlConfigMigrated = false;
 				}
 				
@@ -201,6 +204,8 @@
 						connectionUserInput.text = info.user;
 						//Password
 						connectionPasswordInput.text = info.pass;
+						// Super User
+						isSuperUserCheckbox.selected = info.privileges == true;
 					}
 				);
 				
@@ -240,6 +245,7 @@
 				info.database = connectionDatabaseInput.text;
 				info.user = connectionUserInput.text;
 				info.pass = connectionPasswordInput.text;
+				info.privileges = (isSuperUserCheckbox.selected) ? "true" : "false";
 				
 				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected);
 				dataChanged = false;

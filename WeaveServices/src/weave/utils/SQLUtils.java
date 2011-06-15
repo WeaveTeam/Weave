@@ -426,6 +426,39 @@ public class SQLUtils
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
+	public static List<Map<String,String>> getRecordsFromQuery(
+			Connection conn,
+			List<String> selectColumns,
+			String fromSchema,
+			String fromTable,
+			Map<String,String> whereParams
+		) throws SQLException
+	{
+		CallableStatement cstmt = null;
+		ResultSet rs = null;
+		List<Map<String,String>> records = null;
+		try
+		{
+			cstmt = prepareCall(conn, selectColumns, fromSchema, fromTable, whereParams);
+			rs = cstmt.executeQuery();
+			records = getRecordsFromResultSet(rs);
+		}
+		finally
+		{
+			cleanup(rs);
+			cleanup(cstmt);
+		}
+		return records;
+	}
+	
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
+	 * @param fromTable The table to perform the SELECT statement on.
+	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @return The resulting rows returned by the query.
+	 * @throws SQLException If the query fails.
+	 */
 	public static List<Map<String,String>> getRecordsFromResultSet(ResultSet rs) throws SQLException
 	{
 		// list the column names in the result
