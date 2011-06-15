@@ -227,6 +227,55 @@ package weave.utils
 			return _kdTree.queryRange(minKDKey, maxKDKey);
 		}
 		
+		private function polygonOverlapsPolyLine(polygon:Array, line:Object):Boolean
+		{
+			for (var i:int = 0; i < line.length - 1; ++i)
+			{
+				if (ComputationalGeometryUtils.polygonOverlapsLine(
+											_tempBoundsPolygon, 
+											line[i].x, line[i].y,
+											line[i + 1].x, line[i + 1].y	))
+				{
+					return true;
+				}
+			}
+			
+			return false;		
+		}
+		private function polygonOverlapsPolyPoint(polygon:Array, point:Object):Boolean
+		{
+			for (var i:int = 0; i < point.length; ++i)
+			{
+				if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempBoundsPolygon, point[i].x, point[i].y))
+					return true;
+			}
+			
+			return false;
+		}
+		private function getMinimumUnscaledDistanceFromPolyLine(line:Object, x:Number, y:Number):Number
+		{
+			var min:Number = Number.POSITIVE_INFINITY;
+			
+			for (var i:int = 0; i < line.length - 1; ++i)
+			{
+				min = Math.min(
+					ComputationalGeometryUtils.getUnscaledDistanceFromLine(line[i].x, line[i].y, line[i + 1].x, line[i + 1].y,x, y),
+					min);
+			}			
+			return min;
+		}
+		private function getMinimumUnscaledDistanceFromPolyPoint(line:Object, x:Number, y:Number):Number
+		{
+			var min:Number = Number.POSITIVE_INFINITY;
+			
+			for (var i:int = 0; i < line.length; ++i)
+			{
+				min = Math.min(
+					ComputationalGeometryUtils.getDistanceFromPointSq(line[i].x, line[i].y, x, y),
+					min);
+			}			
+			return min;
+		}
 		/**
 		 * This function will get the keys which intersect with the bounds.
 		 * 
@@ -287,10 +336,7 @@ package weave.utils
 							}								
 							else if (genGeomIsLine)
 							{
-								if (	ComputationalGeometryUtils.polygonOverlapsLine(
-											_tempBoundsPolygon, /* bounds polygon */
-											part[0].x, part[0].y,
-											part[1].x, part[1].y	))
+								if (polygonOverlapsPolyLine(_tempBoundsPolygon, part))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -298,7 +344,7 @@ package weave.utils
 							}
 							else // point
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempBoundsPolygon, part[0].x, part[0].y))
+								if (polygonOverlapsPolyPoint(_tempBoundsPolygon, part))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -317,7 +363,7 @@ package weave.utils
 						
 						if (simpleGeomIsPoly)// a polygon, check for polygon overlap
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, _tempGeometryPolygon))
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, vertices))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -325,10 +371,7 @@ package weave.utils
 						}
 						else if (simpleGeomIsLine) // if a line, check for bounds intersect line
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsLine(
-								_tempBoundsPolygon, /* polygon */ 
-								vertices[0].x, vertices[0].y, /* point A on AB */
-								vertices[1].x, vertices[1].y /* point B on AB */ ))
+							if (polygonOverlapsPolyLine(_tempBoundsPolygon, vertices))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -336,7 +379,7 @@ package weave.utils
 						}
 						else
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempBoundsPolygon, vertices[0].x, vertices[0].y))
+							if (polygonOverlapsPolyPoint(_tempBoundsPolygon, vertices))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -486,9 +529,7 @@ package weave.utils
 									}
 									else if (genGeomIsLine)
 									{
-										distanceSq = ComputationalGeometryUtils.getUnscaledDistanceFromLine(
-											part[0].x, part[0].y, part[1].x, part[1].y,
-											xQueryCenter, yQueryCenter);
+										distanceSq = getMinimumUnscaledDistanceFromPolyLine(part, xQueryCenter, yQueryCenter);
 										
 										if (distanceSq <= Number.MIN_VALUE)
 											overlapsQueryCenter = true;
@@ -497,8 +538,7 @@ package weave.utils
 									}
 									else if (genGeomIsPoint)
 									{
-										distanceSq = ComputationalGeometryUtils.getDistanceFromPointSq(
-											part[0].x, part[0].y, xQueryCenter, yQueryCenter);
+										distanceSq = getMinimumUnscaledDistanceFromPolyPoint(part, xQueryCenter, yQueryCenter);
 										if (distanceSq <= Number.MIN_VALUE)
 											overlapsQueryCenter = true;
 										else 
@@ -556,9 +596,7 @@ package weave.utils
 								}
 								else if (simpleGeomIsLine)
 								{
-									distanceSq = ComputationalGeometryUtils.getUnscaledDistanceFromLine(
-										vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y,
-										xQueryCenter, yQueryCenter);
+									distanceSq = getMinimumUnscaledDistanceFromPolyLine(vertices, xQueryCenter, yQueryCenter);
 									if (distanceSq <= Number.MIN_VALUE)
 										overlapsQueryCenter = true;
 									else
@@ -566,8 +604,7 @@ package weave.utils
 								}
 								else if (simpleGeomIsPoint)
 								{
-									distanceSq = ComputationalGeometryUtils.getDistanceFromPointSq(
-										vertices[0].x, vertices[0].y, xQueryCenter, yQueryCenter);
+									distanceSq = getMinimumUnscaledDistanceFromPolyPoint(vertices, xQueryCenter, yQueryCenter);
 									if (distanceSq <= Number.MIN_VALUE)
 										overlapsQueryCenter = true;
 									else 
