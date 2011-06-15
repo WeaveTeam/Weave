@@ -134,7 +134,7 @@
 				labelsLinkableString.value = labels.join(',');
 		}
 		updateLabelProperties();
-		dimensionSlider.value = currentSliderPosition.value;
+		linkBindableProperty(currentSliderPosition, dimensionSlider, 'value');
 	}
 
 	
@@ -159,14 +159,11 @@
 
 		if (! timerDelay.value)
 			timerDelay.value = MAX_TIMER_DELAY;
-		if (! currentSliderPosition.value)
-			currentSliderPosition.value = 0;
 		speedSlider.minimum = 0;
 		speedSlider.maximum = 2000;
 		speedSlider.toolTip = "Change the speed of the slider.";
 		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
 		//is there a timer that is still running? 
-		dimensionSlider.value = currentSliderPosition.value;
 		if ((playButton != null) && (_timer != null))
 		{
 			playButton.toolTip = "Automatically cycle through the times.";
@@ -270,7 +267,6 @@
 
 	public function dimensionSliderChange():void
 	{
-		currentSliderPosition.value = dimensionSlider.value;
 		setColsToSliderValue();
 	}
 
