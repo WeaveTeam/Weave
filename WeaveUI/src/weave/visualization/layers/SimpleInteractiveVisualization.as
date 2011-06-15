@@ -373,7 +373,7 @@ package weave.visualization.layers
 				
 					var ttPoint:Point;
 					
-					var stageWidth:int  = stage.width;
+					var stageWidth:int  = stage.stageWidth;
 					var stageHeight:int = stage.stageHeight ; //stage.height returns incorrect values
 					var createXTooltip:Boolean = false;
 					var createYTooltip:Boolean = false;
@@ -618,7 +618,8 @@ package weave.visualization.layers
 		 */		
 		private function constrainTooltipToStage():void
 		{
-			var xMin:Number = stage.x;
+			var xMin:Number = 0;
+			var xMax:Number = stage.stageWidth;
 			
 			if( yAxisTooltip != null ) 
 			{
@@ -629,9 +630,9 @@ package weave.visualization.layers
 			else yAxisTooltipPtr = null;
 			if( xAxisTooltip != null )
 			{
-				var xMax:Number = stage.width - xAxisTooltip.width;
+				var xMax:Number = xMax - xAxisTooltip.width;
 				var xMaxTooltip:Number = xAxisTooltip.x+xAxisTooltip.width;
-				while( xMaxTooltip > stage.width)
+				while( xMaxTooltip > xMax)
 				{
 					xAxisTooltip.move(--xAxisTooltip.x, xAxisTooltip.y);
 					xMaxTooltip = xAxisTooltip.x+xAxisTooltip.width;
