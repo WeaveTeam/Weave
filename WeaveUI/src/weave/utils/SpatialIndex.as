@@ -284,13 +284,10 @@ package weave.utils
 									result.push(key);
 									continue keyLoop;
 								}
-							}								
+							}
 							else if (genGeomIsLine)
 							{
-								if (	ComputationalGeometryUtils.polygonOverlapsLine(
-											_tempBoundsPolygon, /* bounds polygon */
-											part[0].x, part[0].y,
-											part[1].x, part[1].y	))
+								if (ComputationalGeometryUtils.polygonOverlapsLine(_tempBoundsPolygon, part[0].x, part[0].y, part[1].x, part[1].y))
 								{
 									result.push(key);
 									continue keyLoop;

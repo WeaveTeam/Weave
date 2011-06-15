@@ -77,7 +77,7 @@
 			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
 			var proxy:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
 			if (proxy != null)
-				proxy.addGroupedCallback(this, setColsToSliderValue);
+				proxy.addGroupedCallback(this, handleSliderChange);
 		}
 	}
 	
@@ -168,7 +168,7 @@
 	 *  is changed.  Here we update all the visualization tools to 
 	 *  the new value.  
 	 * **/
-	override public function setColsToSliderValue():void
+	override public function handleSliderChange():void
 	{
 		var newValue:String = values[dimensionSlider.value];
 		var descendants:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(Weave.root, HierarchyColumnReference);
