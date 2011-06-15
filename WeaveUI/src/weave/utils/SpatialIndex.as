@@ -286,10 +286,10 @@ package weave.utils
 		{
 			var keys:Array;
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
+			if (_keyToGeometriesMap == null || Weave.properties.enableGeometryProbing.value == false)
 				return getKeysOverlappingCollectiveBounds(bounds, 0);
 			else			
-				keys = getKeysOverlappingCollectiveBounds(bounds, minImportance);
+				keys = getKeysOverlappingCollectiveBounds(bounds, 0);
 			
 			// if there are 0 keys
 			if (keys.length == 0)
