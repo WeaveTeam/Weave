@@ -245,10 +245,12 @@ public class DatabaseConfig implements ISQLConfig
 		{
 			if (connectionName == null)
 			{
+				System.out.println("getGeometryCollectionNames:\t connectionName is null");
 				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
 			}
 			else
 			{
+				System.out.println("getGeometryCollectionNames:\t connectionName is " + connectionName);
 				Map<String, String> whereParams = new HashMap<String, String>();
 				whereParams.put(GeometryCollectionInfo.CONNECTION, connectionName);
 
@@ -421,8 +423,9 @@ public class DatabaseConfig implements ISQLConfig
 		}
 	}
 
-	public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException
+	public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName, String connectionName) throws RemoteException
 	{
+		// TODO: handle connectionName
 		Map<String, String> params = new HashMap<String, String>();
 		params.put(GeometryCollectionInfo.NAME, geometryCollectionName);
 		try
@@ -500,7 +503,7 @@ public class DatabaseConfig implements ISQLConfig
 				{
 					t.start();
 					String geomName = metadata.get(Metadata.GEOMETRYCOLLECTION.toString());
-					GeometryCollectionInfo geomInfo = getGeometryCollectionInfo(geomName);
+					GeometryCollectionInfo geomInfo = getGeometryCollectionInfo(geomName, null);
 					t.lap("get geom info "+i+" "+geomName);
 					if (geomInfo != null)
 						metadata.put(Metadata.KEYTYPE.toString(), geomInfo.keyType);

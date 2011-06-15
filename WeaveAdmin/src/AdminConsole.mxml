@@ -130,7 +130,7 @@
 				<managers:ClientConfigurationManager  id="clientConfig" enabled="{_sqlConfigMigrated }"/>
 				<managers:DataTableManager  enabled="{_sqlConfigMigrated }"/>
 				<managers:GeometryCollectionManager  enabled="{_sqlConfigMigrated }"/>
-				<managers:SQLConnectionManager id="sqlConnectionManager"/>
+				<managers:SQLConnectionManager id="sqlConnectionManager" enabled="{_sqlConfigMigrated == false || AdminInterface.instance}"/>
 							
 			</mx:TabNavigator>
 			<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false">

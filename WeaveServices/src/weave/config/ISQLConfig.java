@@ -140,12 +140,15 @@ public interface ISQLConfig
 	 * 
 	 * @param geometryCollection
 	 *            The name of a geometryCollection configuration entry.
+	 * @param connectionName
+	 *        The name of the connection which this geometry resides. If this is null, then this
+	 *        function will return the info for any geometry collection.
 	 * @return An object containing the configuration for the specified
 	 *         geometryCollection.
 	 * @throws RemoteException
 	 *             if the info could not be retrieved.
 	 */
-	GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException;
+	GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName, String connectionName) throws RemoteException;
 
 	/**
 	 * This adds an attributeColumn tag to a dataTable tag.
