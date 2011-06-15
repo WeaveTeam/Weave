@@ -299,6 +299,8 @@ public class SQLConfigXML implements ISQLConfig
 			tag.setAttribute(ConnectionInfo.USER, info.user);
 		if (info.pass != null)
 			tag.setAttribute(ConnectionInfo.PASS, info.pass);
+		if (info.privileges != null)
+			tag.setAttribute(ConnectionInfo.PRIVILEGES, info.privileges);
 
 		// add to document with formatting
 		Node parent = doc.getDocumentElement();
@@ -343,15 +345,17 @@ public class SQLConfigXML implements ISQLConfig
 		}
 	}
 
-	synchronized public List<String> getConnectionNames()
+	synchronized public List<String> getConnectionNames(String connectionName)
 	{
+		// TODO handle connectionName
 		validateCache();
 		return Arrays.asList(connectionCache.keySet().toArray(new String[0]));
 	}
 
 	// list all geometryCollections
-	synchronized public List<String> getGeometryCollectionNames()
+	synchronized public List<String> getGeometryCollectionNames(String connectionName)
 	{
+		// TODO handle connectionName
 		validateCache();
 		List<String> names = Arrays.asList(geometryCollectionCache.keySet().toArray(new String[0]));
 		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
@@ -359,8 +363,9 @@ public class SQLConfigXML implements ISQLConfig
 	}
 
 	// list all dataTables
-	synchronized public List<String> getDataTableNames()
+	synchronized public List<String> getDataTableNames(String connectionName)
 	{
+		// TODO handle connectionName
 		validateCache();
 		List<String> names = Arrays.asList(dataTableCache.keySet().toArray(new String[0]));
 		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
@@ -384,6 +389,7 @@ public class SQLConfigXML implements ISQLConfig
 		info.database = getNonNullValue(map, ConnectionInfo.DATABASE);
 		info.user = getNonNullValue(map, ConnectionInfo.USER);
 		info.pass = getNonNullValue(map, ConnectionInfo.PASS);
+		info.privileges = getNonNullValue(map, ConnectionInfo.PRIVILEGES);
 		return info;
 	}
 
@@ -463,7 +469,7 @@ public class SQLConfigXML implements ISQLConfig
 			if (dataTableName == null)
 				return;
 			// create dataTable tag if it doesn't exist
-			if (ListUtils.findString(dataTableName, getDataTableNames()) < 0)
+			if (ListUtils.findString(dataTableName, getDataTableNames(null)) < 0)
 			{
 				// create dataTable tag with formatting
 				Element tag = doc.createElement(ENTRYTYPE_DATATABLE);

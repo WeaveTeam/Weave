@@ -287,7 +287,7 @@ package weave.visualization.plotters
 					geoms = value;
 				else if (value is GeneralizedGeometry)
 					geoms = [value as GeneralizedGeometry];
-				else
+				else	
 					continue;
 				if (geoms.length == 0)
 					continue;

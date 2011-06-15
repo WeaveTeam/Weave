@@ -221,7 +221,7 @@ public class SQLConfigUtils
 //				count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_CONNECTION, connNames.get(i));
 
 			// add geometry collections
-			List<String> geoNames = source.getGeometryCollectionNames();
+			List<String> geoNames = source.getGeometryCollectionNames(null);
 			timer.report("begin "+geoNames.size()+" geom names");
 			int printInterval = Math.max(1, geoNames.size() / 50);
 			for (int i = 0; i < geoNames.size(); i++)
@@ -272,7 +272,7 @@ public class SQLConfigUtils
 		if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_CONNECTION))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getConnectionNames()) < 0)
+			if (ListUtils.findString(entryName, source.getConnectionNames(null)) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			ConnectionInfo info = source.getConnectionInfo(entryName);
@@ -283,7 +283,7 @@ public class SQLConfigUtils
 		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getGeometryCollectionNames()) < 0)
+			if (ListUtils.findString(entryName, source.getGeometryCollectionNames(null)) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			DebugTimer timer = new DebugTimer();
@@ -298,7 +298,7 @@ public class SQLConfigUtils
 		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_DATATABLE))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getDataTableNames()) < 0)
+			if (ListUtils.findString(entryName, source.getDataTableNames(null)) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			DebugTimer timer = new DebugTimer();

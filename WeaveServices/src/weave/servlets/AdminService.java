@@ -112,7 +112,7 @@ public class AdminService extends GenericServlet
 		try
 		{
 			configManager.detectConfigChanges();
-			if (configManager.getConfig().getConnectionNames().size() == 0)
+			if (configManager.getConfig().getConnectionNames(null).size() == 0)
 				return new AdminServiceResponse(false, welcomeMessage); 
 				
 			return new AdminServiceResponse(true, configFile.getName() + " exists.");
@@ -355,19 +355,29 @@ public class AdminService extends GenericServlet
 	// functions for managing SQL connection entries
 	// /////////////////////////////////////////////////
 
-	synchronized public String[] getConnectionNames() throws RemoteException
+	synchronized public String[] getConnectionNames(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getConnectionNames(), false));
+		// first check connection and password are valid
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		
+		// if the connection name is a user with privileges, return all of the connections
+		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+		if (cInfo.privileges.equalsIgnoreCase("true"))
+			return ListUtils.toStringArray(config.getConnectionNames(connectionName));
+		
+		// otherwise return just this one
+		String[] returnValue = new String[1];
+		returnValue[0] = connectionName;
+		return returnValue;
 	}
-
+	
 	synchronized public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
 		return config.getConnectionInfo(connectionNameToGet);
 	}
 
-	synchronized public String saveConnectionInfo(String connectionName, String dbms, String ip, String port, String database, String user, String password, boolean configOverwrite) throws RemoteException
+	synchronized public String saveConnectionInfo(String connectionName, String dbms, String ip, String port, String database, String user, String password, String privileges, boolean configOverwrite) throws RemoteException
 	{
 		// test the connection before we create the config file
 		if (connectionName == "")
@@ -381,6 +391,8 @@ public class AdminService extends GenericServlet
 		info.database = database;
 		info.user = user;
 		info.pass = password;
+		info.privileges = privileges;
+		
 		// test connection only - to validate parameters
 		Connection conn = null;
 		try
@@ -415,7 +427,7 @@ public class AdminService extends GenericServlet
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 
-		if (ListUtils.findString(info.name, config.getConnectionNames()) >= 0 && configOverwrite == false)
+		if (ListUtils.findString(info.name, config.getConnectionNames(null)) >= 0 && configOverwrite == false)
 		{
 			throw new RemoteException(String
 					.format("The connection named \"%s\" already exists.  Action cancelled.", info.name));
@@ -446,7 +458,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
 		try
 		{
-			if (ListUtils.findString(connectionNameToRemove, config.getConnectionNames()) < 0)
+			if (ListUtils.findString(connectionNameToRemove, config.getConnectionNames(null)) < 0)
 				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, connectionNameToRemove);
 			config.removeConnection(connectionNameToRemove);
@@ -505,12 +517,18 @@ public class AdminService extends GenericServlet
 	// functions for managing DataTable entries
 	// /////////////////////////////////////////////////
 
-	synchronized public String[] getDataTableNames() throws RemoteException
+	synchronized public String[] getDataTableNames(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getDataTableNames(), true));
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		return ListUtils.toStringArray(config.getDataTableNames(connectionName));		
 	}
 
+//	synchronized private AttributeColumnInfo[] getDataTableInfo(ISQLConfig config, String dataTableName) throws RemoteException
+//	{
+//		List<AttributeColumnInfo> info = config.getAttributeColumnInfo(dataTableName);
+//		return info.toArray(new AttributeColumnInfo[info.size()]);
+//	}
+	
 	/**
 	 * Returns metadata about columns of the given data table.
 	 */
@@ -583,7 +601,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		try
 		{
-			if (ListUtils.findString(entryName, config.getDataTableNames()) < 0)
+			if (ListUtils.findString(entryName, config.getDataTableNames(null)) < 0)
 				throw new RemoteException("DataTable \"" + entryName + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, entryName);
 			config.removeDataTable(entryName);
@@ -601,10 +619,10 @@ public class AdminService extends GenericServlet
 	// functions for managing GeometryCollection entries
 	// /////////////////////////////////////////////////////
 
-	synchronized public String[] getGeometryCollectionNames() throws RemoteException
+	synchronized public String[] getGeometryCollectionNames(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getGeometryCollectionNames(), true));
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		return ListUtils.toStringArray(config.getGeometryCollectionNames(connectionName));
 	}
 
 	/**
@@ -657,7 +675,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		try
 		{
-			if (ListUtils.findString(entryName, config.getGeometryCollectionNames()) < 0)
+			if (ListUtils.findString(entryName, config.getGeometryCollectionNames(null)) < 0)
 				throw new RemoteException("Geometry Collection \"" + entryName + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, entryName);
 			config.removeGeometryCollection(entryName);
@@ -1226,7 +1244,7 @@ public class AdminService extends GenericServlet
 
 			if (!configOverwrite)
 			{
-				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames()) >= 0)
+				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
 					throw new RemoteException(String.format("CSV not imported. DataTable \"%s\" already exists in the configuration.",
 							configDataTableName));
 			}
@@ -1332,7 +1350,7 @@ public class AdminService extends GenericServlet
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames()) >= 0)
+			if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
 				throw new RemoteException(String.format("DataTable \"%s\" already exists in the configuration.", configDataTableName));
 		}
 
@@ -1439,7 +1457,7 @@ public class AdminService extends GenericServlet
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames()) >= 0)
+			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames(null)) >= 0)
 				throw new RemoteException(String.format(
 						"Shapes not imported. SQLConfig geometryCollection \"%s\" already exists.",
 						configGeometryCollectionName));
@@ -1560,7 +1578,7 @@ public class AdminService extends GenericServlet
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames()) >= 0)
+			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames(null)) >= 0)
 				throw new RemoteException(String.format("GeometryCollection \"%s\" already exists in the configuration.",
 						configGeometryCollectionName));
 		}

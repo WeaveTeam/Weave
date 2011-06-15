@@ -276,7 +276,7 @@ package weave.visualization.plotters
 			//---------------------------------------------------------
 			// END template code
 		}
-		protected const clipRectangle:Rectangle = new Rectangle;
+		protected var clipRectangle:Rectangle = new Rectangle;
 		protected var clipDrawing:Boolean = true;
 		protected const tempShape:Shape = new Shape(); // reusable temporary object
 		/**

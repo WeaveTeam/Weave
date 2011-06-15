@@ -76,18 +76,20 @@ public interface ISQLConfig
 
 	/**
 	 * Gets the names of all connections in this configuration
+	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
-	List<String> getConnectionNames() throws RemoteException;
+	List<String> getConnectionNames(String connectionName) throws RemoteException;
 
 	/**
 	 * Gets the names of all geometry collections in this configuration
+	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
-	List<String> getGeometryCollectionNames() throws RemoteException;
+	List<String> getGeometryCollectionNames(String connectionName) throws RemoteException;
 
 	/**
 	 * Gets the names of all data tables in this configuration
 	 */
-	List<String> getDataTableNames() throws RemoteException;
+	List<String> getDataTableNames(String connectionName) throws RemoteException;
 
 	/**
 	 * Removes the connection with the given name from this configuration
@@ -205,12 +207,14 @@ public interface ISQLConfig
 		public static final String DATABASE = "database";
 		public static final String USER = "user";
 		public static final String PASS = "pass";
+		public static final String PRIVILEGES = "privileges";
+		
 
 		public ConnectionInfo()
 		{
 		}
 
-		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "";
+		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "", privileges="";
 
 		public String getConnectString()
 		{

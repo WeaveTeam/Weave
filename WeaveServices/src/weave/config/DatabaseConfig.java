@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -232,16 +233,38 @@ public class DatabaseConfig implements ISQLConfig
 		return connectionConfig.getAccessLogTable();
 	}
 
-	public List<String> getConnectionNames() throws RemoteException
+	public List<String> getConnectionNames(String connectionName) throws RemoteException
 	{
-		return connectionConfig.getConnectionNames();
+		return connectionConfig.getConnectionNames(connectionName);
 	}
 
-	public List<String> getGeometryCollectionNames() throws RemoteException
+	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
 	{
+		List<String> names;
 		try
 		{
-			List<String> names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
+			if (connectionName == null)
+			{
+				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
+			}
+			else
+			{
+				Map<String, String> whereParams = new HashMap<String, String>();
+				whereParams.put(GeometryCollectionInfo.CONNECTION, connectionName);
+
+				List<String> selectColumns = new LinkedList<String>();
+				selectColumns.add(GeometryCollectionInfo.NAME.toString());
+				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(getConnection(), selectColumns, 
+						dbInfo.schema, dbInfo.geometryConfigTable, whereParams );
+
+				HashSet<String> hashSet = new HashSet<String>();
+				for (Map<String, String> mapping : columnRecords)
+				{
+					String geomName = mapping.get(GeometryCollectionInfo.NAME.toString());	 
+					hashSet.add(geomName);
+				}
+				names = new Vector<String>(hashSet);
+			}
 			Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
 			return names;
 		}
@@ -251,14 +274,36 @@ public class DatabaseConfig implements ISQLConfig
 		}
 	}
 
-	public List<String> getDataTableNames() throws RemoteException
+	public List<String> getDataTableNames(String connectionName) throws RemoteException
 	{
+		List<String> names;
 		try
 		{
-			List<String> names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable,
-					Metadata.DATATABLE.toString());
-			// return unique names
-			names = new Vector<String>(new HashSet<String>(names));
+			if (connectionName == null)
+			{
+				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable,
+						Metadata.DATATABLE.toString());
+				// return unique names
+				names = new Vector<String>(new HashSet<String>(names));
+			}
+			else
+			{
+				Map<String, String> whereParams = new HashMap<String, String>();
+				whereParams.put(AttributeColumnInfo.CONNECTION, connectionName);
+
+				List<String> selectColumns = new LinkedList<String>();
+				selectColumns.add(Metadata.DATATABLE.toString());
+				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(getConnection(), selectColumns, 
+						dbInfo.schema, dbInfo.dataConfigTable, whereParams );
+
+				HashSet<String> hashSet = new HashSet<String>();
+				for (Map<String, String> mapping : columnRecords)
+				{
+					String tableName = mapping.get(Metadata.DATATABLE.toString());
+					hashSet.add(tableName);
+				}
+				names = new Vector<String>(hashSet);
+			}		
 			Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
 			return names;
 		}

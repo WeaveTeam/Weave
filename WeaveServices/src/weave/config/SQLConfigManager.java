@@ -157,14 +157,14 @@ public final class SQLConfigManager
 				}
 				catch (Exception e)
 				{
-					e.printStackTrace();
+					//e.printStackTrace();
 					System.out.println("Using configuration stored in "+configFileName);
 				}
 				_lastModifiedTime = new File(configFileName).lastModified();
 			}
 			catch (SAXParseException e)
 			{
-				e.printStackTrace();
+				//e.printStackTrace();
 				String msg = String.format(
 						"%s parse error: Line %d, column %d: %s",
 						configFileName,
