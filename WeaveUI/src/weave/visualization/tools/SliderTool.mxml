@@ -41,6 +41,7 @@
 			import weave.api.data.IDataSource;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -77,8 +78,8 @@
 	//dimensionsList is the dataprovider for the combo box
 	[Bindable] protected var dimensionsList:ArrayCollection = new ArrayCollection();
 	public static var dimensionsRefs:ArrayCollection = new ArrayCollection();
-	public var labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange);
-	public var currentSliderPosition:LinkableNumber = newLinkableChild(this, LinkableNumber);
+	public var labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
+	public var currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	private var _timer:Timer;
 	
 	////abstract functions that must be overridden by subclasses of this class
@@ -103,11 +104,11 @@
 	public function handleLabelChange():void {}	
 
 	/** 
-	 * This method is automatically called when the hslider
+	 * This method is automatically called when currentSliderPosition
 	 *  is changed.  Here we update all the visualization tools to 
 	 *  the new time.  
 	 * **/
-	public function setColsToSliderValue():void { }
+	public function handleSliderChange():void { }
 	
 	/**
 	 * This is specified in the HSlider - called to get the tooltip that appears when 
@@ -264,12 +265,6 @@
 		}
 	}
 	
-
-	public function dimensionSliderChange():void
-	{
-		setColsToSliderValue();
-	}
-
 	/**
 	 * playButtonPushed - There is a play button (above see id="playButton") that the user can push
 	 *   to automatically cycle through the values.
@@ -324,11 +319,10 @@
 	 * **/
 	private function moveSlider(evt:TimerEvent):void
 	{
-		if (dimensionSlider.value < dimensionSlider.maximum)
-			dimensionSlider.value = dimensionSlider.value + 1;
+		if (currentSliderPosition.value < dimensionSlider.maximum)
+			currentSliderPosition.value++;
 		else
-			dimensionSlider.value = dimensionSlider.minimum;
-		dimensionSliderChange();		
+			currentSliderPosition.value = dimensionSlider.minimum;
 		if (_timer.currentCount == (_timer.repeatCount - 1))
 		{
 			playButton.label = "Play";
@@ -374,7 +368,6 @@
 			snapInterval="1"
 			tickInterval="1"
 			liveDragging="true"
-			change="dimensionSliderChange();"
 			name="Time Slider Tool"
 			> 				
 	</mx:HSlider>

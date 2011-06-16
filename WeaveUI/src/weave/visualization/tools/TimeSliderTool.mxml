@@ -99,7 +99,7 @@
 	 *  is changed.  Here we update all the visualization tools to 
 	 *  the new time.  
 	 * **/
-	override public function setColsToSliderValue():void
+	override public function handleSliderChange():void
 	{
 		var newTime:String = dimensionSlider.labels[dimensionSlider.value];
 		var descendants:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(Weave.root, HierarchyColumnReference);
