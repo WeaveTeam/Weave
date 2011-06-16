@@ -135,7 +135,7 @@ public class AdminService extends GenericServlet
 
 	synchronized public boolean checkDatabaseConfigExists() throws RemoteException
 	{
-		configManager.detectConfigChanges();
+		try { configManager.detectConfigChanges(); } catch (Exception e) { return false; }
 		ISQLConfig config = configManager.getConfig();
 		return config.getDatabaseConfigInfo() != null;
 	}
@@ -374,10 +374,8 @@ public class AdminService extends GenericServlet
 
 	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, String privileges, boolean configOverwrite) throws RemoteException
 	{
-		if (newConnectionName == "")
+		if (newConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
-//		if (currentUserIsPrivileged == false)
-//			throw new RemoteException("User is not authorized to modify connections.");
 		
 		ConnectionInfo info = new ConnectionInfo();
 		info.name = newConnectionName;
@@ -387,7 +385,7 @@ public class AdminService extends GenericServlet
 		info.database = database;
 		info.user = sqlUser;
 		info.pass = password;
-		info.privileges = "false";//newUserIsPrivileged.toString(); 
+		info.privileges = "false";
 		
 		// test connection only - to validate parameters
 		Connection conn = null;
@@ -411,6 +409,9 @@ public class AdminService extends GenericServlet
 		Boolean newConfigCreated = false;
 		if (!new File(fileName).exists())
 		{
+			System.out.println("\n\n\n\n\n\n\n");
+			System.out.println("config does not exist\t\tfasdkljfd");			
+			System.out.println("\n\n\n\n\n\n\n");
 			try
 			{
 				XMLUtils.getStringFromXML(new SQLConfigXML().getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
@@ -426,7 +427,7 @@ public class AdminService extends GenericServlet
 		ConnectionInfo currentConnectionInfo;
 		boolean currentUserIsPrivileged;
 		Boolean newUserIsPrivileged;
-		if (newConfigCreated == false) // if we already have a config
+		if (newConfigCreated == false && !currentConnectionName.equalsIgnoreCase("")) // if we already have a config and not the default user
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
 			currentConnectionInfo = config.getConnectionInfo(currentConnectionName);
@@ -454,6 +455,25 @@ public class AdminService extends GenericServlet
 		{
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, info.name);
 
+			// do not delete if this is the last user (which must be a super user)
+			List<String> connectionNames = config.getConnectionNames(null);
+			
+			// check for number of super users
+			int numSuperUsers = 0;
+			for (String connection : connectionNames)
+			{
+				ConnectionInfo temp = config.getConnectionInfo(connection);	
+				if (temp.isSuperUser()) 
+					++numSuperUsers;
+				if (numSuperUsers >= 2)
+					break;
+			}
+			if (numSuperUsers == 1) // if this is true, then currentConnectionName is trying to modify itself
+			{                       // verify privileges setting is "true"
+				if (privileges.equalsIgnoreCase("false"))
+					throw new RemoteException("Cannot remove super user privileges from only remaining super user.");
+			}
+			
 			config.removeConnection(info.name);
 			config.addConnection(info);
 
@@ -474,11 +494,38 @@ public class AdminService extends GenericServlet
 	synchronized public String removeConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToRemove) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
+		
+		// allow only a super user to remove a connection
+		ConnectionInfo loginConnectionInfo = config.getConnectionInfo(loginConnectionName);
+		if (!loginConnectionInfo.isSuperUser())
+			throw new RemoteException("Only super users can remove connections.");
+		
 		try
 		{
 			if (ListUtils.findString(connectionNameToRemove, config.getConnectionNames(null)) < 0)
 				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, connectionNameToRemove);
+			
+			// do not delete if this is the last user (which must be a super user)
+			List<String> connectionNames = config.getConnectionNames(null);
+			if (connectionNames.size() == 1)
+				throw new RemoteException("Cannot remove the only connection.");
+			
+			// check for number of super users
+			int numSuperUsers = 0;
+			for (String connection : connectionNames)
+			{
+				ConnectionInfo temp = config.getConnectionInfo(connection);	
+				if (temp.isSuperUser()) 
+					++numSuperUsers;
+				if (numSuperUsers >= 2)
+					break;
+			}
+			if (numSuperUsers == 1) // if this is true, then loginConnectionName is trying to delete itself and is the only super user
+				throw new RemoteException("Cannot remove the only super user.");
+			
+			// also do not delete if this is the only super user
+			
 			config.removeConnection(connectionNameToRemove);
 			backupAndSaveConfig(config);
 			return "Connection \"" + connectionNameToRemove + "\" was deleted.";

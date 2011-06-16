@@ -24,13 +24,14 @@
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
 				label="{dataChanged?'Database connections*':'Database connections'}"
-				creationComplete="handleCreationComplete()">
+				creationComplete="handleCreationComplete()"
+				visible="{AdminInterface.instance.isSuperUser == true || AdminInterface.instance.sqlConfigMigrated == false}">
 	<mx:VBox height="100%">
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
 			<mx:Button label="Remove" click="handleRemoveConnection()"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
+			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames(false)"/>
 		</mx:HBox>
 	</mx:VBox>	
 	

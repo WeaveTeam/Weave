@@ -28,6 +28,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
+	import weave.StringDefinition;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.GeometryCollectionInfo;
@@ -98,19 +99,13 @@ package weave.services
 		
 		
 		//private var currentPrivileges:String = '';
-		private var _activeConnectionName:String = '';
+		private var _activeConnectionName:String = StringDefinition.DEFAULT_CONNECTION;
 		
 		// functions for managing static settings
 		public function getConnectionNames(resetActiveConnection:Boolean = true):void
 		{
 			// clear current list, then request new list
 			connectionNames = [];
-			
-			// if default connection/password, do nothing
-			if (activeConnectionName == '' || activePassword == '') 
-			{
-				return;
-			}
 			
 			service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames, null, resetActiveConnection);
 
@@ -131,7 +126,7 @@ package weave.services
 				if (connectionNames.length > 0)
 					activeConnectionName = connectionNames[0];
 				else
-					activeConnectionName = '';
+					activeConnectionName = StringDefinition.DEFAULT_CONNECTION;
 			}
 		}
 		private function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
