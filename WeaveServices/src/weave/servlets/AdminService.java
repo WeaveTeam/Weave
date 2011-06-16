@@ -106,7 +106,7 @@ public class AdminService extends GenericServlet
 
 	synchronized public AdminServiceResponse checkSQLConfigExists()
 	{
-		String welcomeMessage = "Welcome to the Weave Admin Console!\nPlease add a database connection first."; 
+		String welcomeMessage = "A database connection needs to be specified."; 
 
 		File configFile = new File(configManager.getConfigFileName());
 		try
@@ -133,19 +133,11 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public AdminServiceResponse checkSQLConfigMigrated() throws RemoteException
+	synchronized public boolean checkDatabaseConfigExists() throws RemoteException
 	{
-		try
-		{
-			if(configManager.checkSQLConfigMigrated())
-				return new AdminServiceResponse(true,"SQLConfig.xml file is migrated");
-			else
-				return new AdminServiceResponse(false,"SQLConfig.xml is not migrated");
-		}catch(RemoteException e)
-		{
-			e.printStackTrace();
-			return new AdminServiceResponse(false,"Could not check if sqlconfig.xml is migrated");
-		}
+		configManager.detectConfigChanges();
+		ISQLConfig config = configManager.getConfig();
+		return config.getDatabaseConfigInfo() != null;
 	}
 	
 	synchronized public Boolean authenticate(String connectionName, String password) throws RemoteException
@@ -470,8 +462,9 @@ public class AdminService extends GenericServlet
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException(String.format("Unable to create connection entry named \"%s\": %s", info.name, e
-					.getMessage()));
+			throw new RemoteException(
+					String.format("Unable to create connection entry named \"%s\": %s", info.name, e.getMessage())
+				);
 		}
 
 		System.out.println("Saved ConnectionInfo.");
@@ -1282,8 +1275,10 @@ public class AdminService extends GenericServlet
 			if (!configOverwrite)
 			{
 				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
-					throw new RemoteException(String.format("CSV not imported. DataTable \"%s\" already exists in the configuration.",
-							configDataTableName));
+					throw new RemoteException(String.format(
+							"CSV not imported. DataTable \"%s\" already exists in the configuration.",
+							configDataTableName
+						));
 			}
 
 			// create a table
@@ -1314,7 +1309,8 @@ public class AdminService extends GenericServlet
 				//ignoring 1st line so that we don't put the column headers as the first row of data
 				stmt.executeUpdate(String.format(
 						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
-						formatted_CSV_path, quotedTable));
+						formatted_CSV_path, quotedTable
+					));
 				stmt.close();
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
