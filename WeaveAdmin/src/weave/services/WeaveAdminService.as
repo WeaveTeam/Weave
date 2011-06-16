@@ -299,13 +299,13 @@ package weave.services
 		
 		
 		// import data
-		public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String):DelayedAsyncInvocation
+		public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("importCSV", arguments);
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}
-		public function addConfigDataTableFromDatabase(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, configDataTableName:String, configOverwrite:Boolean, geometryCollectionName:String, keyType:String):DelayedAsyncInvocation
+		public function addConfigDataTableFromDatabase(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String, configDataTableName:String, configOverwrite:Boolean, geometryCollectionName:String, keyType:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("addConfigDataTableFromDatabase", arguments);
 		    query.addAsyncResponder(alertResult);

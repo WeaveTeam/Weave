@@ -534,6 +534,7 @@ package weave.services
 		 */
 		public function importCSV(csvFileName:String,
 								  keyColumn:String,
+								  secondaryKeyColumn:String,
 								  sqlSchema:String,
 								  sqlTable:String,
 								  tableOverwriteCheck:Boolean,
@@ -548,6 +549,7 @@ package weave.services
 				activePassword,
 				csvFileName,
 				keyColumn,
+				secondaryKeyColumn,
 				sqlSchema,
 				sqlTable,
 				tableOverwriteCheck,
@@ -563,7 +565,7 @@ package weave.services
 			return asyncToken;
 		}
 		
-		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):void
+		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):void
 		{
 				service.addConfigDataTableFromDatabase(
 					activeConnectionName,
@@ -571,6 +573,7 @@ package weave.services
 					sqlSchema,
 					sqlTable,
 					keyColumn,
+					secondaryKeyColumn,
 					tableName,
 					overwrite,
 					geometryCollection,
