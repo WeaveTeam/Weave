@@ -271,8 +271,11 @@ public class AdminService extends GenericServlet
 
 	synchronized public String saveWeaveFile(String connectionName, String password, String fileContents, String xmlFile, boolean overwriteFile) throws RemoteException
 	{
-		checkPasswordAndGetConfig(connectionName, password);
-
+		// if overwriteFile is false, never overwrite
+		// if overwriteFile is true, overwrite only if use has privileges
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		overwriteFile = overwriteFile && config.getConnectionInfo(connectionName).privileges.equalsIgnoreCase("true");
+		
 		// 5.2 client web page configuration file ***.xml
 		String output = "";
 		try
@@ -369,21 +372,22 @@ public class AdminService extends GenericServlet
 		return config.getConnectionInfo(connectionNameToGet);
 	}
 
-	synchronized public String saveConnectionInfo(String connectionName, String dbms, String ip, String port, String database, String user, String password, String privileges, boolean configOverwrite) throws RemoteException
+	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, String privileges, boolean configOverwrite) throws RemoteException
 	{
-		// test the connection before we create the config file
-		if (connectionName == "")
+		if (newConnectionName == "")
 			throw new RemoteException("Connection name cannot be empty.");
-
+//		if (currentUserIsPrivileged == false)
+//			throw new RemoteException("User is not authorized to modify connections.");
+		
 		ConnectionInfo info = new ConnectionInfo();
-		info.name = connectionName;
+		info.name = newConnectionName;
 		info.dbms = dbms;
 		info.ip = ip;
 		info.port = port;
 		info.database = database;
-		info.user = user;
+		info.user = sqlUser;
 		info.pass = password;
-		info.privileges = privileges;
+		info.privileges = "false";//newUserIsPrivileged.toString(); 
 		
 		// test connection only - to validate parameters
 		Connection conn = null;
@@ -404,11 +408,13 @@ public class AdminService extends GenericServlet
 
 		// if the config file doesn't exist, create it
 		String fileName = configManager.getConfigFileName();
+		Boolean newConfigCreated = false;
 		if (!new File(fileName).exists())
 		{
 			try
 			{
 				XMLUtils.getStringFromXML(new SQLConfigXML().getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
+				newConfigCreated = true; // remember that we just created a new, empty config
 			}
 			catch (Exception e)
 			{
@@ -416,10 +422,28 @@ public class AdminService extends GenericServlet
 			}
 		}
 
-		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
-
-		if (ListUtils.findString(info.name, config.getConnectionNames(null)) >= 0 && configOverwrite == false)
+		ISQLConfig config;
+		ConnectionInfo currentConnectionInfo;
+		boolean currentUserIsPrivileged;
+		Boolean newUserIsPrivileged;
+		if (newConfigCreated == false) // if we already have a config
+		{
+			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
+			currentConnectionInfo = config.getConnectionInfo(currentConnectionName);
+			currentUserIsPrivileged = currentConnectionInfo.isSuperUser();
+			newUserIsPrivileged = Boolean.valueOf(privileges.equalsIgnoreCase("true") && currentUserIsPrivileged); 
+		}
+		else // we created a new config--must make the current connection appear as a super user
+		{
+			config = configManager.getConfig();
+			currentUserIsPrivileged = true;
+			newUserIsPrivileged = true;
+		}
+		info.privileges = newUserIsPrivileged.toString();
+		
+		// if the connection already exists AND (overwrite == false OR user lacks privileges) throw error
+		if (	(ListUtils.findString(info.name, config.getConnectionNames(null)) >= 0)
+				&& (configOverwrite == false || !currentUserIsPrivileged)	)
 		{
 			throw new RemoteException(String
 					.format("The connection named \"%s\" already exists.  Action cancelled.", info.name));
@@ -443,7 +467,8 @@ public class AdminService extends GenericServlet
 				);
 		}
 
-		return String.format("The connection named \"%s\" was created successfully.", connectionName);
+		System.out.println("Saved ConnectionInfo.");
+		return String.format("The connection named \"%s\" was created successfully.", newConnectionName);
 	}
 
 	synchronized public String removeConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToRemove) throws RemoteException
@@ -473,7 +498,7 @@ public class AdminService extends GenericServlet
 
 	synchronized public AdminServiceResponse migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
 	{
-		checkPasswordAndGetConfig(connectionName, password);
+		checkPasswordAndGetConfig(connectionName, password); 
 
 		String configFileName = configManager.getConfigFileName();
 		int count = 0;
@@ -513,15 +538,15 @@ public class AdminService extends GenericServlet
 	synchronized public String[] getDataTableNames(String connectionName, String password) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return ListUtils.toStringArray(config.getDataTableNames(connectionName));		
+		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+		String dataConnection;
+		if (cInfo.privileges.equalsIgnoreCase("true"))
+			dataConnection = null; // let it get all of the data tables
+		else
+			dataConnection = connectionName; // get only the ones on this connection
+		return ListUtils.toStringArray(config.getDataTableNames(dataConnection));		
 	}
 
-//	synchronized private AttributeColumnInfo[] getDataTableInfo(ISQLConfig config, String dataTableName) throws RemoteException
-//	{
-//		List<AttributeColumnInfo> info = config.getAttributeColumnInfo(dataTableName);
-//		return info.toArray(new AttributeColumnInfo[info.size()]);
-//	}
-	
 	/**
 	 * Returns metadata about columns of the given data table.
 	 */
@@ -792,10 +817,10 @@ public class AdminService extends GenericServlet
 	// functions for getting miscellaneous info
 	// ///////////////////////////////////////////
 
-	synchronized public String[] getKeyTypes() throws RemoteException
+	synchronized public String[] getKeyTypes(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getKeyTypes(), true));
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		return ListUtils.toStringArray(getSortedUniqueValues(config.getKeyTypes(), true));
 	}
 
 	synchronized public UploadedFile[] getUploadedCSVFiles() throws RemoteException

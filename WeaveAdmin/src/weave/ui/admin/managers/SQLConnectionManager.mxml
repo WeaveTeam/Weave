@@ -205,13 +205,13 @@
 						//Password
 						connectionPasswordInput.text = info.pass;
 						// Super User
-						isSuperUserCheckbox.selected = info.privileges == true;
+						isSuperUserCheckbox.selected = info.privileges == "true";
 					}
 				);
 				
 				dataChanged = false;
 			}
-		
+			
 			private function get hostUrl():String
 			{
 				var result:Array = mx.core.Application.application.url.split("http://");
