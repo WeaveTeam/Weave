@@ -34,7 +34,7 @@
 		<ui:CustomComboBox id="_tableCombo" editable="true" text="{activeTable}" dataProvider="{tables}" change="activeTable = _tableCombo.text;" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DROPDOWNBOX_TOOLTIP}"/>
 		<mx:TextInput id="_tableInput" editable="true" text="{activeTable}" change="activeTable = _tableInput.text;"/>
 		<mx:Button id="tablesRefreshButton" label="Refresh" click="getTables()" toolTip="{StringDefinition.DEFAULT_TABLES_REFRESH_BUTTON_TOOLTIP}"/>
-		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{visibleOfTableOverwriteCheck}"/>
+		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" enabled="{AdminInterface.instance.isSuperUser}" visible="{visibleOfTableOverwriteCheck}"/>
 	</mx:HBox>
 	<mx:Metadata>
 		[Exclude(name="_tableCombo", kind="property")]

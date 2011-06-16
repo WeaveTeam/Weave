@@ -138,17 +138,17 @@ public interface ISQLConfig
 	/**
 	 * Looks up a geometry collection in this configuration by name
 	 * 
-	 * @param geometryCollection
-	 *            The name of a geometryCollection configuration entry.
 	 * @param connectionName
 	 *        The name of the connection which this geometry resides. If this is null, then this
 	 *        function will return the info for any geometry collection.
+	 * @param geometryCollection
+	 *        The name of a geometryCollection configuration entry.
 	 * @return An object containing the configuration for the specified
 	 *         geometryCollection.
 	 * @throws RemoteException
 	 *             if the info could not be retrieved.
 	 */
-	GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName, String connectionName) throws RemoteException;
+	GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String geometryCollectionName) throws RemoteException;
 
 	/**
 	 * This adds an attributeColumn tag to a dataTable tag.
@@ -233,6 +233,11 @@ public interface ISQLConfig
 		{
 			return SQLUtils.getConnection(SQLUtils.getDriver(dbms), getConnectString());
 		}
+		
+		public boolean isSuperUser()
+		{
+			return privileges.equalsIgnoreCase("true");
+		}
 	}
 
 	/**
@@ -272,6 +277,7 @@ public interface ISQLConfig
 		public static enum Metadata
 		{
 			NAME("name"),
+			CONNECTION("connection"),
 			KEYTYPE("keyType"),
 			DATATYPE("dataType"),
 			DATATABLE("dataTable"),

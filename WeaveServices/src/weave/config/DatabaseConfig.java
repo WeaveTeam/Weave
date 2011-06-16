@@ -243,14 +243,13 @@ public class DatabaseConfig implements ISQLConfig
 		List<String> names;
 		try
 		{
+			System.out.println("getGeometryCollectionNames:\t connectionName is " + connectionName);
 			if (connectionName == null)
 			{
-				System.out.println("getGeometryCollectionNames:\t connectionName is null");
 				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
 			}
 			else
 			{
-				System.out.println("getGeometryCollectionNames:\t connectionName is " + connectionName);
 				Map<String, String> whereParams = new HashMap<String, String>();
 				whereParams.put(GeometryCollectionInfo.CONNECTION, connectionName);
 
@@ -281,6 +280,7 @@ public class DatabaseConfig implements ISQLConfig
 		List<String> names;
 		try
 		{
+			System.out.println("getDataTableNames:\tconnectionName is " + connectionName); 
 			if (connectionName == null)
 			{
 				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable,
@@ -290,6 +290,7 @@ public class DatabaseConfig implements ISQLConfig
 			}
 			else
 			{
+
 				Map<String, String> whereParams = new HashMap<String, String>();
 				whereParams.put(AttributeColumnInfo.CONNECTION, connectionName);
 
@@ -324,7 +325,7 @@ public class DatabaseConfig implements ISQLConfig
 					Metadata.KEYTYPE.toString());
 			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable,
 					GeometryCollectionInfo.KEYTYPE);
-	
+
 			Set<String> uniqueValues = new HashSet<String>();
 			uniqueValues.addAll(dtKeyTypes);
 			uniqueValues.addAll(gcKeyTypes);
@@ -423,7 +424,7 @@ public class DatabaseConfig implements ISQLConfig
 		}
 	}
 
-	public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName, String connectionName) throws RemoteException
+	public GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String geometryCollectionName) throws RemoteException
 	{
 		// TODO: handle connectionName
 		Map<String, String> params = new HashMap<String, String>();
@@ -503,7 +504,11 @@ public class DatabaseConfig implements ISQLConfig
 				{
 					t.start();
 					String geomName = metadata.get(Metadata.GEOMETRYCOLLECTION.toString());
-					GeometryCollectionInfo geomInfo = getGeometryCollectionInfo(geomName, null);
+
+					// we don't care if the below fails because we still want to return as much information as possible
+					GeometryCollectionInfo geomInfo;
+					try { geomInfo = getGeometryCollectionInfo(geomName, null); } catch (Exception e) { geomInfo = null; }
+					
 					t.lap("get geom info "+i+" "+geomName);
 					if (geomInfo != null)
 						metadata.put(Metadata.KEYTYPE.toString(), geomInfo.keyType);

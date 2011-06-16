@@ -37,6 +37,7 @@ package weave.services
 		private static var _thisInstance:AdminInterface = null;
 		[Bindable] public var sqlConfigExists:Boolean = true;
 		[Bindable] public var sqlConfigMigrated:Boolean = true;
+		[Bindable] public var isSuperUser:Boolean = true;
 		public static function get instance():AdminInterface
 		{
 			if (_thisInstance == null)
@@ -112,6 +113,13 @@ package weave.services
 		{
 			// clear current list, then request new list
 			connectionNames = [];
+			
+			// if default connection/password, do nothing
+			if (activeConnectionName == '' || activePassword == '') 
+			{
+				return;
+			}
+			
 			service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames, null, resetActiveConnection);
 
 			// clear current info, then request new info
@@ -190,13 +198,24 @@ package weave.services
 				
 			else
 			{
+				getConnectionInfo(activeConnectionName).addAsyncResponder(determinePrivileges, null);
 				getWeaveFileNames();
 				getDataTableNames();
 				getGeometryCollectionNames();
 				getKeyTypes();
+				getConnectionNames(false);
 			}
 		}
-	
+		private function determinePrivileges(event:ResultEvent, token:Object = null):void
+		{
+			if (event.result == null)
+			{
+				isSuperUser = false;
+				return;
+			}
+			
+			isSuperUser = event.result.privileges == "true";
+		}			
 		
 
 
@@ -444,7 +463,7 @@ package weave.services
 		{
 			keyTypes = [];
 			if (userHasAuthenticated)
-				service.getKeyTypes().addAsyncResponder(handleGetKeyTypes);
+				service.getKeyTypes(activeConnectionName, activePassword).addAsyncResponder(handleGetKeyTypes);
 		}
 		private function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
 		{

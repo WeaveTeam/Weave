@@ -39,7 +39,7 @@
 		<mx:HBox>
 			<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}"/>
 			<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
-			<mx:CheckBox label="Overwrite" id="tableNameOverwriteCheck" selected="false"/>
+			<mx:CheckBox label="Overwrite" id="tableNameOverwriteCheck" selected="false" enabled="{AdminInterface.instance.isSuperUser}"/>
 		</mx:HBox>
 		<admin:GeometryCollectionDialog id="geometrySelector" keyType="{tableSelector.activeTable}"/>
 	</mx:VBox>
@@ -57,7 +57,7 @@
 						tableSelector.activeTable,
 						keyColumnComboBox.text,
 						tableNameInput.text,
-						tableNameOverwriteCheck.selected,
+						tableNameOverwriteCheck.selected && AdminInterface.instance.isSuperUser,
 						geometrySelector.selectedGeometryCollection,
 						geometrySelector.selectedKeyType
 					);
