@@ -101,9 +101,9 @@ package weave.services
 			return generateQueryAndAddToQueue("checkSQLConfigExists", arguments);
 		}
 		
-		public function checkSQLConfigMigrated():DelayedAsyncInvocation
+		public function checkDatabaseConfigExists():DelayedAsyncInvocation
 		{
-			return generateQueryAndAddToQueue("checkSQLConfigMigrated", arguments);
+			return generateQueryAndAddToQueue("checkDatabaseConfigExists", arguments);
 		}
 
 		public function authenticate(connectionName:String, password:String):DelayedAsyncInvocation

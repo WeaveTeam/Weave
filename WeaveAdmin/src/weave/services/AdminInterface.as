@@ -47,7 +47,7 @@ package weave.services
 		public function AdminInterface()
 		{
 			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
-			service.checkSQLConfigMigrated().addAsyncResponder(handleCheckSQLConfigMigrated);
+			service.checkDatabaseConfigExists().addAsyncResponder(handleCheckSQLConfigMigrated);
 		}
 		
 		private function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
@@ -69,15 +69,7 @@ package weave.services
 		
 		private function handleCheckSQLConfigMigrated(event:ResultEvent, token:Object=null):void
 		{
-			if(event.result.status as Boolean == false)
-			{
-				WeaveAdminService.messageDisplay("Error",String(event.result.comment),false);
-				sqlConfigMigrated = false;
-			}else{
-				sqlConfigMigrated = true;
-				WeaveAdminService.messageDisplay("Success",String(event.result.comment),false);
-			}
-				
+			sqlConfigMigrated = Boolean(event.result);
 		}
 
 		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
