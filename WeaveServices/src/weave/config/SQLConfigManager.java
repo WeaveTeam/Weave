@@ -188,17 +188,6 @@ public final class SQLConfigManager
 		return config;
 	}
 	
-	synchronized public boolean checkSQLConfigMigrated() throws RemoteException
-	{
-		getConfig();
-		
-		if(config.getDatabaseConfigInfo() == null)
-			return false;
-		else
-			return true;
-	}
-	
-	
 	/**
 	 * detectConfigChanges:
 	 * If the configuration file modification time has changed, the new file will be loaded.

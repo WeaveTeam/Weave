@@ -35,7 +35,7 @@
 	</mx:VBox>	
 	
 	<mx:TabNavigator id="tabNavigator" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
-		<mx:Canvas id="simpleSetting" label="Add Database" width="100%" height="100%">
+		<mx:Canvas id="simpleSetting" label="Add Database Connection" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 				<mx:Label fontWeight="bold" text="Add or modify a database connection:"/>
 				<ui:Indent indent="{_indent}" label="Connection name:">
@@ -64,7 +64,7 @@
 		</mx:Canvas>
 		<mx:Canvas id="migrateTab" label="Migrate SQLConfig.XML" width="100%" height="100%">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label id="forceMigrateMessage" visible="false" color="red" text="Please migrate the sqlconfig.xml file to your database. The other options will be disabled till you finish the migration process." />
+				<mx:Label id="forceMigrateMessage" visible="false" color="red" text="Please migrate the sqlconfig.xml file to your database. The other options will be disabled until you finish the migration process." />
 				<mx:Label fontWeight="bold" text="Migrate SQLConfig.XML entries to a database:"/>
 				<ui:Indent indent="{170}" label="Connection to use">
 					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
