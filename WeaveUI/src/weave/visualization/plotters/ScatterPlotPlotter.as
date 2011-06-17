@@ -47,43 +47,36 @@ package weave.visualization.plotters
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			// sorted by color first
-			recordKeys.sort(sortByColor);
-			// then by radius
-			recordKeys.sort(sortBySize, Array.DESCENDING);
+			// sort by size, then color
+			recordKeys.sort(sortKeys, Array.DESCENDING);
 			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
 		}
 		
 		/**
-		 * This function sorts record keys based on their colorColumn values
+		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
 		 * @param key1 First record key (a)
 		 * @param key2 Second record key (b)
 		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
 		 * 
 		 */			
-		private function sortByColor(key1:IQualifiedKey, key2:IQualifiedKey):int
+		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
-			var a:Number = colorColumn.getValueFromKey(key1, Number);
-			var b:Number = colorColumn.getValueFromKey(key2, Number);
-			if( a < b ) return -1; 
-			else if( a > b ) return 1 ;
-			else return 0 ;
-		}
-		
-		/**
-		 * This function sorts record keys based on their radiusColumn values
-		 * @param key1 First record key (a)
-		 * @param key2 Second record key (b)
-		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
-		 * 
-		 */			
-		private function sortBySize(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
+			// compare size
 			var a:Number = radiusColumn.getValueFromKey(key1, Number);
 			var b:Number = radiusColumn.getValueFromKey(key2, Number);
-			if( a < b ) return -1;
-			else if( a > b ) return 1;
-			else return 0;
+			// sort descending (high radius values drawn first)
+			if( a < b )
+				return -1;
+			else if( a > b )
+				return 1;
+			
+			// size equal.. compare color
+			a = colorColumn.getValueFromKey(key1, Number);
+			b = colorColumn.getValueFromKey(key2, Number);
+			// sort ascending (high values drawn last)
+			if( a < b ) return 1; 
+			else if( a > b ) return -1 ;
+			else return 0 ;
 		}
 		// the private plotter being simplified
 		public function get defaultScreenRadius():LinkableNumber {return circlePlotter.defaultScreenRadius;}

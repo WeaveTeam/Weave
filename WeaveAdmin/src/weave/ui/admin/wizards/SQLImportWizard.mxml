@@ -34,6 +34,14 @@
 			<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_KEY_COLUMN_NAME_LABEL}"/>
 			<ui:CustomComboBox id="keyColumnComboBox" editable="true" dataProvider="{tableSelector.columns}" toolTip="{StringDefinition.DEFAULT_KEY_COLUMN_NAME_DROPDOWNBOX_TOOLTIP}"/>
 		</mx:HBox>
+		<mx:CheckBox  id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
+		<mx:VBox>
+			<mx:HBox enabled="{secondaryKeyColumnCheckBox.selected}">
+				<mx:TextArea text="Name of secondary key column" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true"/>
+				<ui:CustomComboBox id="sqlSecondaryKeyColumnCombo" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider"
+								   dataProvider="{tableSelector.columns}" creationComplete="keyColumnComboboxesCreated(event)"/>				
+			</mx:HBox>
+		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%">
 		<mx:HBox>
@@ -45,10 +53,22 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			
 			import weave.StringDefinition;
 			import weave.services.AdminInterface;
 			
 			private static const indent:int = 145;
+						
+			private function keyColumnComboboxesCreated(event:FlexEvent):void
+			{
+				// This function was created so the combobox text property will remain an empty string unless the user chooses a column
+				// collectionChange is dispatched whenever the dataProvider changes		
+				event.currentTarget.addEventListener(CollectionEvent.COLLECTION_CHANGE, function(e:CollectionEvent):void{
+					event.currentTarget.selectedIndex = -1;
+				});
+			}
 			
 			override public function finish():void
 			{
@@ -56,6 +76,7 @@
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						keyColumnComboBox.text,
+						sqlSecondaryKeyColumnCombo.text,
 						tableNameInput.text,
 						tableNameOverwriteCheck.selected,
 						geometrySelector.selectedGeometryCollection,

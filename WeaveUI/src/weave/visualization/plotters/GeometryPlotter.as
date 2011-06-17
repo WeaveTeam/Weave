@@ -112,8 +112,20 @@ package weave.visualization.plotters
 		
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
 		{
-			var geoms:Array = geometryColumn.getValueFromKey(recordKey);
-			return geoms;
+			var value:* = geometryColumn.getValueFromKey(recordKey);
+			var geoms:Array = null;
+			
+			if (value is Array)
+				geoms = value;
+			else if (value is GeneralizedGeometry)
+				geoms [ value as GeneralizedGeometry ];
+			
+			var results:Array = [];
+			if (geoms != null)
+				for each (var geom:GeneralizedGeometry in geoms)
+					results.push(geom);
+			
+			return results;
 		}
 		
 		/**

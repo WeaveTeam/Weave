@@ -47,7 +47,7 @@ package weave.services
 		public function AdminInterface()
 		{
 			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
-			service.checkSQLConfigMigrated().addAsyncResponder(handleCheckSQLConfigMigrated);
+			service.checkDatabaseConfigExists().addAsyncResponder(handleCheckSQLConfigMigrated);
 		}
 		
 		private function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
@@ -69,15 +69,7 @@ package weave.services
 		
 		private function handleCheckSQLConfigMigrated(event:ResultEvent, token:Object=null):void
 		{
-			if(event.result.status as Boolean == false)
-			{
-				WeaveAdminService.messageDisplay("Error",String(event.result.comment),false);
-				sqlConfigMigrated = false;
-			}else{
-				sqlConfigMigrated = true;
-				WeaveAdminService.messageDisplay("Success",String(event.result.comment),false);
-			}
-				
+			sqlConfigMigrated = Boolean(event.result);
 		}
 
 		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
@@ -507,6 +499,7 @@ package weave.services
 		 */
 		public function importCSV(csvFileName:String,
 								  keyColumn:String,
+								  secondaryKeyColumn:String,
 								  sqlSchema:String,
 								  sqlTable:String,
 								  tableOverwriteCheck:Boolean,
@@ -521,6 +514,7 @@ package weave.services
 				activePassword,
 				csvFileName,
 				keyColumn,
+				secondaryKeyColumn,
 				sqlSchema,
 				sqlTable,
 				tableOverwriteCheck,
@@ -536,7 +530,7 @@ package weave.services
 			return asyncToken;
 		}
 		
-		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):void
+		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):void
 		{
 				service.addConfigDataTableFromDatabase(
 					activeConnectionName,
@@ -544,6 +538,7 @@ package weave.services
 					sqlSchema,
 					sqlTable,
 					keyColumn,
+					secondaryKeyColumn,
 					tableName,
 					overwrite,
 					geometryCollection,

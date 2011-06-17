@@ -106,7 +106,7 @@ public class AdminService extends GenericServlet
 
 	synchronized public AdminServiceResponse checkSQLConfigExists()
 	{
-		String welcomeMessage = "Welcome to the Weave Admin Console!\nPlease add a database connection first."; 
+		String welcomeMessage = "A database connection needs to be specified."; 
 
 		File configFile = new File(configManager.getConfigFileName());
 		try
@@ -133,19 +133,11 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public AdminServiceResponse checkSQLConfigMigrated() throws RemoteException
+	synchronized public boolean checkDatabaseConfigExists() throws RemoteException
 	{
-		try
-		{
-			if(configManager.checkSQLConfigMigrated())
-				return new AdminServiceResponse(true,"SQLConfig.xml file is migrated");
-			else
-				return new AdminServiceResponse(false,"SQLConfig.xml is not migrated");
-		}catch(RemoteException e)
-		{
-			e.printStackTrace();
-			return new AdminServiceResponse(false,"Could not check if sqlconfig.xml is migrated");
-		}
+		configManager.detectConfigChanges();
+		ISQLConfig config = configManager.getConfig();
+		return config.getDatabaseConfigInfo() != null;
 	}
 	
 	synchronized public Boolean authenticate(String connectionName, String password) throws RemoteException
@@ -434,8 +426,9 @@ public class AdminService extends GenericServlet
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException(String.format("Unable to create connection entry named \"%s\": %s", info.name, e
-					.getMessage()));
+			throw new RemoteException(
+					String.format("Unable to create connection entry named \"%s\": %s", info.name, e.getMessage())
+				);
 		}
 
 		return String.format("The connection named \"%s\" was created successfully.", connectionName);
@@ -1044,7 +1037,7 @@ public class AdminService extends GenericServlet
 		return listOfFiles;
 	}
 
-	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues) throws RemoteException
+	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
@@ -1227,8 +1220,10 @@ public class AdminService extends GenericServlet
 			if (!configOverwrite)
 			{
 				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames()) >= 0)
-					throw new RemoteException(String.format("CSV not imported. DataTable \"%s\" already exists in the configuration.",
-							configDataTableName));
+					throw new RemoteException(String.format(
+							"CSV not imported. DataTable \"%s\" already exists in the configuration.",
+							configDataTableName
+						));
 			}
 
 			// create a table
@@ -1259,7 +1254,8 @@ public class AdminService extends GenericServlet
 				//ignoring 1st line so that we don't put the column headers as the first row of data
 				stmt.executeUpdate(String.format(
 						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
-						formatted_CSV_path, quotedTable));
+						formatted_CSV_path, quotedTable
+					));
 				stmt.close();
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
@@ -1272,7 +1268,7 @@ public class AdminService extends GenericServlet
 			}
 
 			returnMsg += addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
-					configGeometryCollectionName, configKeyType, csvKeyColumn, Arrays.asList(originalColumnNames), Arrays
+					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, Arrays.asList(originalColumnNames), Arrays
 							.asList(columnNames), sqlSchema, sqlTable);
 		}
 		catch (SQLException e)
@@ -1303,7 +1299,7 @@ public class AdminService extends GenericServlet
 		return returnMsg;
 	}
 
-	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType) throws RemoteException
+	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		tableName = tableName.toLowerCase();
@@ -1311,10 +1307,10 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		List<String> columnNames = getColumnsList(connectionName, schemaName, tableName);
 		return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName, geometryCollectionName,
-				keyType, keyColumnName, columnNames, columnNames, schemaName, tableName);
+				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName);
 	}
 
-	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable) throws RemoteException
+	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTable = sqlTable.toLowerCase();
@@ -1326,8 +1322,12 @@ public class AdminService extends GenericServlet
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
 		int i = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames);
+		
+		int j = ListUtils.findIgnoreCase(secondaryKeyColumnName, sqlColumnNames);
 		if (i >= 0)
 			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(i));
+		if (j >= 0)
+			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(j));
 		// Write SQL statements into sqlconfig.
 
 		if (!configOverwrite)
@@ -1353,7 +1353,7 @@ public class AdminService extends GenericServlet
 			for (i = 0; i < sqlColumnNames.size(); i++)
 			{
 				// test each query
-				query = generateColumnQuery(dbms, keyColumnName, sqlColumnNames.get(i), sqlSchema, sqlTable);
+				query = generateColumnQuery(dbms, keyColumnName, secondaryKeyColumnName, sqlColumnNames.get(i), sqlSchema, sqlTable);
 				rs = stmt.executeQuery(query + " LIMIT 1");
 				DataType dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
 				SQLUtils.cleanup(rs);
@@ -1412,7 +1412,7 @@ public class AdminService extends GenericServlet
 		throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName));
 	}
 
-	private String generateColumnQuery(String dbms, String keyColumn, String dataColumn, String schema, String table)
+	private String generateColumnQuery(String dbms, String keyColumn, String secondaryKeyColumn, String dataColumn, String schema, String table)
 	{
 		// return String.format(
 		// "SELECT DISTINCT w.`ISO ALPHA-3 code`, u.`%s` " +
@@ -1420,7 +1420,12 @@ public class AdminService extends GenericServlet
 		// dataColumn,
 		// SQLUtils.quoteSchemaTable(dbms, schema, table),
 		// keyColumn, keyColumn);
-		return String.format("SELECT %s,%s FROM %s", keyColumn, SQLUtils.quoteSymbol(dbms, dataColumn), SQLUtils
+		if(secondaryKeyColumn == null)
+			secondaryKeyColumn = "";
+		if(secondaryKeyColumn != "")
+			secondaryKeyColumn = "," + secondaryKeyColumn;
+
+		return String.format("SELECT %s,%s%s FROM %s", keyColumn, SQLUtils.quoteSymbol(dbms, dataColumn), secondaryKeyColumn, SQLUtils
 				.quoteSchemaTable(dbms, schema, table));
 	}
 
@@ -1513,7 +1518,7 @@ public class AdminService extends GenericServlet
 		// add SQL statements to sqlconfig
 		List<String> columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName);
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
-				configGeometryCollectionName, configKeyType, keyColumnsString, columnNames, columnNames, sqlSchema,
+				configGeometryCollectionName, configKeyType, keyColumnsString, "",columnNames, columnNames, sqlSchema,
 				dbfTableName);
 
 		return resultAddSQL

@@ -85,8 +85,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override public function next():void
 			{
 				//check if required fields are enetered
-				if(connectionIPInput.text == "" || connectionNameInput.text == "" ||
-				connectionPortInput.text == "" || connectionUserInput.text == "")
+				if (connectionIPInput.text == "" || connectionNameInput.text == "" ||
+					connectionPortInput.text == "" || connectionUserInput.text == "")
 				{
 					Alert.show("All fields makred with * are required.", "Error");
 					return;
@@ -137,7 +137,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					connectionPasswordInput.text,
 					migrateSchemaInput.text,
 					migrateGeometryConfigInput.text,
-					migrateDataConfigInput.text);
+					migrateDataConfigInput.text
+				);
 				
 				//dispatch close event if migration is successfull
 				query.addAsyncResponder(function(result:ResultEvent,token:Object = null):void{

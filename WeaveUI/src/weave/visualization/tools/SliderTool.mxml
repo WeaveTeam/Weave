@@ -41,6 +41,7 @@
 			import weave.api.data.IDataSource;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -70,15 +71,15 @@
 	//class data
 
 	//@TODO session this so that the admin can specify a different maximum tick count
-	protected static const MAX_TICK_COUNT:int = 10;
+	protected static const MAX_LABEL_COUNT:int = 10;
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
 	public var timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
 	//dimensionsList is the dataprovider for the combo box
 	[Bindable] protected var dimensionsList:ArrayCollection = new ArrayCollection();
 	public static var dimensionsRefs:ArrayCollection = new ArrayCollection();
-	public var labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange);
-	public var currentSliderPosition:LinkableNumber = newLinkableChild(this, LinkableNumber);
+	public var labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
+	public var currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	private var _timer:Timer;
 	
 	////abstract functions that must be overridden by subclasses of this class
@@ -103,11 +104,11 @@
 	public function handleLabelChange():void {}	
 
 	/** 
-	 * This method is automatically called when the hslider
+	 * This method is automatically called when currentSliderPosition
 	 *  is changed.  Here we update all the visualization tools to 
 	 *  the new time.  
 	 * **/
-	public function setColsToSliderValue():void { }
+	public function handleSliderChange():void { }
 	
 	/**
 	 * This is specified in the HSlider - called to get the tooltip that appears when 
@@ -134,7 +135,7 @@
 				labelsLinkableString.value = labels.join(',');
 		}
 		updateLabelProperties();
-		dimensionSlider.value = currentSliderPosition.value;
+		linkBindableProperty(currentSliderPosition, dimensionSlider, 'value');
 	}
 
 	
@@ -159,14 +160,11 @@
 
 		if (! timerDelay.value)
 			timerDelay.value = MAX_TIMER_DELAY;
-		if (! currentSliderPosition.value)
-			currentSliderPosition.value = 0;
 		speedSlider.minimum = 0;
 		speedSlider.maximum = 2000;
 		speedSlider.toolTip = "Change the speed of the slider.";
 		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
 		//is there a timer that is still running? 
-		dimensionSlider.value = currentSliderPosition.value;
 		if ((playButton != null) && (_timer != null))
 		{
 			playButton.toolTip = "Automatically cycle through the times.";
@@ -267,13 +265,6 @@
 		}
 	}
 	
-
-	public function dimensionSliderChange():void
-	{
-		currentSliderPosition.value = dimensionSlider.value;
-		setColsToSliderValue();
-	}
-
 	/**
 	 * playButtonPushed - There is a play button (above see id="playButton") that the user can push
 	 *   to automatically cycle through the values.
@@ -328,11 +319,10 @@
 	 * **/
 	private function moveSlider(evt:TimerEvent):void
 	{
-		if (dimensionSlider.value < dimensionSlider.maximum)
-			dimensionSlider.value = dimensionSlider.value + 1;
+		if (currentSliderPosition.value < dimensionSlider.maximum)
+			currentSliderPosition.value++;
 		else
-			dimensionSlider.value = dimensionSlider.minimum;
-		dimensionSliderChange();		
+			currentSliderPosition.value = dimensionSlider.minimum;
 		if (_timer.currentCount == (_timer.repeatCount - 1))
 		{
 			playButton.label = "Play";
@@ -378,7 +368,6 @@
 			snapInterval="1"
 			tickInterval="1"
 			liveDragging="true"
-			change="dimensionSliderChange();"
 			name="Time Slider Tool"
 			> 				
 	</mx:HSlider>

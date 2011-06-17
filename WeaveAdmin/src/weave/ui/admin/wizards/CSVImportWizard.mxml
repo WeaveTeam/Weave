@@ -42,6 +42,13 @@
 			<mx:TextArea text="Name of key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true" />
 			<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
 		</mx:HBox>
+		<mx:CheckBox  id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false" enabled="false"/>
+		<mx:VBox id="box1b" enabled="false">
+			<mx:HBox enabled="{secondaryKeyColumnCheckBox.selected}">
+				<mx:TextArea text="Name of secondary key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true"/>
+				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" text=""  selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
+			</mx:HBox>
+		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage">
 		<mx:HBox id="nullReplacement" enabled="false" toolTip="Specify flag values to treat as missing data, separated by commas">
@@ -121,6 +128,8 @@
 				var csvData:String = _csvFileReference.data.toString();
 				var firstRow:Array = WeaveAPI.CSVParser.parseCSV(csvData)[0];
 				csvKeyColumnCombo.dataProvider = firstRow;
+				csvSecondaryKeyColumnCombo.dataProvider = firstRow;
+				csvSecondaryKeyColumnCombo.selectedIndex = -1;
 				
 				var tableName:String = _csvFileReference.name;
 				
@@ -182,10 +191,11 @@
 			 * Adds the new CSV file to the server configuration, then adds the Dublin Core metadata (if any).
 			 */
 			override public function finish():void
-			{
+			{				
 				var query:DelayedAsyncInvocation = AdminInterface.instance.importCSV(
 						csvFileNameInput.text,
 						csvKeyColumnCombo.text,
+						csvSecondaryKeyColumnCombo.text,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						tableSelector.tableOverwriteCheck.selected,
@@ -232,6 +242,8 @@
 			{
 				tableSelector.enabled = enable;
 				box1.enabled = enable;
+				box1b.enabled = enable;
+				secondaryKeyColumnCheckBox.enabled = enable;
 				box2.enabled = enable;
 				nullReplacement.enabled = enable;
 				geometrySelector.enabled = enable;

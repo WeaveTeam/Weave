@@ -27,17 +27,17 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.ErrorManager;
-	import weave.api.data.AttributeColumnMetadata;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.api.data.DataTypes;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.WFSServlet;
@@ -232,9 +232,16 @@ package weave.data.DataSources
 				{
 					var defaultSRS:String = node.@defaultSRS;
 					var array:Array = defaultSRS.split(':');
+					var prevToken:String = '';
 					while (array.length > 2)
-						array.shift();
-					attrNode['@'+AttributeColumnMetadata.PROJECTION_SRS] = array.join(':');
+						prevToken = array.shift();
+					var proj:String = array.join(':');
+					var altProj:String = prevToken;
+					if (array.length > 1)
+						altProj += ':' + array[1];
+					if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
+						proj = altProj
+					attrNode['@'+AttributeColumnMetadata.PROJECTION_SRS] = proj;
 				}
 				node.appendChild(attrNode);
 			}

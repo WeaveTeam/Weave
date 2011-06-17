@@ -1288,8 +1288,8 @@
 				// update temporary admin dashboard border mode
 				updateForceEnableBorders();
 				
-				// make sure cursors dont keep changing while resizing
-				if (parent && _resizeable && !_resizing && !_minimized && !maximized.value)
+				// make sure cursors dont keep changing while resizing:  !_resizing
+				if (parent && !_resizing && !_minimized && !maximized.value)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
 					var bitmap:BitmapAsset = null;
@@ -1308,7 +1308,7 @@
 						bitmap = _resizeTBBitmap;
 					
 					CursorManager.removeCursor(draggablePanelCursorID);
-					if (bitmap != null && !event.buttonDown)
+					if (bitmap != null && !event.buttonDown && _resizeable)
 					{
 						var classDef:Class = ImageFactory.getImageClass(bitmap.bitmapData);
 						try
