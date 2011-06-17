@@ -555,10 +555,9 @@ package weave.visualization.layers
 		 * @param bounds data bounds from a record key
 		 * @param labelFunction function to generate strings from the displayValue
 		 * @param xAxis flag to specify whether this is an xAxis tooltip
-		 * @param horizontalMode flag to specify bar chart horizontal mode
-		 * 
+		 * @param useXMax flag to specify whether the toolTip should appear at the xMax of the record's bounds (as opposed to the xCenter, which positions the toolTip at the middle)
 		 */
-		public function showProbeTooltips(displayValue:Number,bounds:IBounds2D,labelFunction:Function,xAxis:Boolean=false, horizontalMode:Boolean=false):void
+		public function showProbeTooltips(displayValue:Number,bounds:IBounds2D,labelFunction:Function,xAxis:Boolean=false, useXMax:Boolean=false):void
 		{
 			var yPoint:Point = new Point();
 			var text1:String = "";
@@ -566,15 +565,11 @@ package weave.visualization.layers
 				text1=labelFunction(displayValue);
 			else text1=displayValue.toString();
 			
-			if(xAxis)
+			if(xAxis || useXMax)
 			{
-				yPoint.x = bounds.getXCenter();
-				yPoint.y = _yAxisLayer.axisPlotter.axisLineMinValue.value;
-			} else if( horizontalMode)
-			{
-				yPoint.x = bounds.getXMax() ;
-				yPoint.y = _yAxisLayer.axisPlotter.axisLineMinValue.value;
-			} else if(!xAxis && !horizontalMode)
+				yPoint.x = (xAxis) ? bounds.getXCenter() : bounds.getXMax();
+				yPoint.y = _yAxisLayer.axisPlotter.axisLineMinValue.value;					
+			} else
 			{
 				yPoint.x = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				yPoint.y = bounds.getYMax() ;
@@ -584,15 +579,15 @@ package weave.visualization.layers
 			tempDataBounds.projectPointTo(yPoint, tempScreenBounds);
 			yPoint = localToGlobal(yPoint);
 			
-			if(!xAxis && !horizontalMode)
-			{
-				yAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
-				yAxisTooltip.move(yAxisTooltip.x-yAxisTooltip.width, yAxisTooltip.y-(yAxisTooltip.height/2));
-				constrainTooltipToStage();
-			} else
+			if(xAxis || useXMax)
 			{
 				xAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
 				xAxisTooltip.move(xAxisTooltip.x-(xAxisTooltip.width/2),xAxisTooltip.y);
+				constrainTooltipToStage();
+			} else
+			{
+				yAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
+				yAxisTooltip.move(yAxisTooltip.x-yAxisTooltip.width, yAxisTooltip.y-(yAxisTooltip.height/2));
 				constrainTooltipToStage();
 			}
 			setProbeToolTipAppearance();
@@ -629,12 +624,10 @@ package weave.visualization.layers
 			else yAxisTooltipPtr = null;
 			if( xAxisTooltip != null )
 			{
-				var xMax:Number = stage.stageWidth - xAxisTooltip.width;
-				var xMaxTooltip:Number = xAxisTooltip.x+xAxisTooltip.width;
-				while( xMaxTooltip > xMax)
-				{
-					xAxisTooltip.move(--xAxisTooltip.x, xAxisTooltip.y);
-					xMaxTooltip = xAxisTooltip.x+xAxisTooltip.width;
+				var xMax:Number = stage.stageWidth- (xAxisTooltip.width/2);
+				var xMaxTooltip:Number = xAxisTooltip.x+(xAxisTooltip.width/2);
+				if(xMaxTooltip > xMax) {
+					xAxisTooltip.move(xMax-(xAxisTooltip.width/2),xAxisTooltip.y);				
 				}
 				xAxisTooltipPtr = xAxisTooltip;
 			}
