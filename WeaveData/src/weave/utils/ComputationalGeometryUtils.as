@@ -20,11 +20,20 @@
 
 package weave.utils
 {
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.display.Graphics;
+	import flash.display.Shape;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.utils.flash_proxy;
 	
+	import mx.core.Application;
+	import mx.core.mx_internal;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.primitives.IBounds2D;
+	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -228,8 +237,9 @@ package weave.utils
 				return true;
 			a = polygon1[0];
 			return polygonOverlapsPoint(polygon2, a.x, a.y);
+
 		}
-		
+
 		/**
 		 * polygonIntersectsLine
 		 * @param polygon An array of objects representing vertices, each having x and y properties.
@@ -280,6 +290,47 @@ package weave.utils
 			return false;
 		}
 		
+		private static const _tempShape:Shape = new Shape();
+		private static function polygonOverlapsPoint2(polygon:Object, x:Number, y:Number):Boolean
+		{
+			// render the polygon on the shape
+			var graphics:Graphics = _tempShape.graphics;
+			graphics.clear();
+			graphics.lineStyle(0, 0, 0, true);
+			graphics.beginFill(0, 1);
+			var numPoints:int = polygon.length;
+			var firstX:Number, firstY:Number;
+			for (var vIndex:int = 0; vIndex < numPoints; ++vIndex)
+			{
+				var vertex:Object = polygon[vIndex];
+				if (vIndex == 0)
+				{
+					firstX = vertex.x; 
+					firstY = vertex.y;
+					graphics.moveTo(firstX, firstY);
+					continue;
+				}
+				graphics.lineTo(vertex.x, vertex.y);
+			}
+			
+			graphics.lineTo(firstX, firstY);
+			graphics.endFill();
+			_tempMatrix.identity();
+			_tempMatrix.translate(180, 90);
+			//_tempMatrix.scale(4, -4);
+			_tempBitmap.bitmapData.fillRect(_tempBitmap.bitmapData.rect, 0x00000000);
+			_tempBitmap.bitmapData.draw(_tempShape, _tempMatrix);
+			
+			x = (x + 180);
+			y = (y + 90);
+			var color:int = _tempBitmap.bitmapData.getPixel32(x, y);
+			if (color != 0x00000000)
+				return true;
+			
+			return false;
+		}
+		private static const _tempBitmap:Bitmap = new Bitmap(new BitmapData(360, 180, true));
+		private static const _tempMatrix:Matrix = new Matrix();
 		/**
 		 * polygonOverlapsPoint
 		 * @param polygon An array of objects representing vertices, each having x and y properties.
@@ -291,6 +342,8 @@ package weave.utils
 		{
 			if (polygon.length == 0)
 				return false;
+			//return polygonOverlapsPoint2(polygon, x, y);
+
 			var riCount:int = 0; // number of ray intersections
 			var riIndex:int; // ray intersection index
 			var segSide:int;
