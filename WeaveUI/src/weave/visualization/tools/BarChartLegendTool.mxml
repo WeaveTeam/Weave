@@ -32,12 +32,9 @@
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableDynamicObject;
-			import weave.core.LinkableNumber;
 			import weave.core.SessionManager;
 			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -59,7 +56,6 @@
 			private const _colorLegendLayerName:String = "color legend";
 			private var _colorLegendLayer:SelectablePlotLayer;
 			private var _colorLegendPlotter:ColorBinLegendPlotter;
-			public var marginTop:LinkableNumber = newLinkableChild( this, LinkableNumber, changeHeight, true );
 			
 			override protected function constructor():void
 			{
@@ -88,7 +84,7 @@
 				panelY.value = "25%";
 
 				visualization.marginBottom.value = 5;
-				visualization.marginTop.value    = 35;
+				visualization.marginTop.value    = 25;
 				visualization.marginLeft.value   = 5;
 				visualization.marginRight.value  = 5;
 				
@@ -162,12 +158,6 @@
 				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
 				if(Weave.properties.axisFontUnderline.value) marginLabel.setStyle("textDecoration", "underline");
 				else marginLabel.setStyle("textDecoration", "none");
-				linkBindableProperty( marginTop, marginLabel, "height" );
-			}
-			
-			private function changeHeight():void
-			{
-				visualization.marginTop.value = marginLabel.height + 8; 
 			}
 			
 			private function updateTitle():void
@@ -178,27 +168,16 @@
 				}
 			}
 			
-			protected function titleControl_changeHandler(event:Event):void
-			{
-				if( titleControl.selected == true )
-					marginLabel.height = 0;
-				else
-					marginLabel.height = 35;
-			}
-			
 		]]>
 	</mx:Script>
 	
-	<mx:TextArea x="5" y="5" id="marginLabel" fontWeight="bold" click="handleMarginLabelClick()" 
-			  	text="{marginLabelText}" width="100%"  horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				wordWrap="true" selectable="false" editable="false"
-				paddingLeft="0" paddingRight="0" borderThickness="0"
-			  	toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute(s) used for the bars."
-			 	rollOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);" rollOut="CustomCursorManager.removeAllCursors();"/>
+	<mx:Label x="5" y="5" id="marginLabel" fontWeight="bold" click="handleMarginLabelClick()" 
+			  text="{marginLabelText}"
+			  toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute(s) used for the bars."
+			  rollOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);" rollOut="CustomCursorManager.removeAllCursors();"/>
 	
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Color Bin Legend">
-			<mx:CheckBox id="titleControl" label="Hide Title" change="titleControl_changeHandler(event)" toolTip="Click to hide the title of the Legend."/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

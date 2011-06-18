@@ -25,23 +25,20 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import weave.api.copySessionState;
+			import weave.utils.ColumnUtils;
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			
 			import weave.Weave;
-			import weave.api.copySessionState;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
-			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableDynamicObject;
-			import weave.core.LinkableNumber;
-			import weave.core.SessionManager;
+			import weave.api.registerLinkableChild;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.ColorRamp;
+			import weave.core.SessionManager;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.utils.ColumnUtils;
+			import weave.api.ui.IPlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 			import weave.visualization.plotters.SizeBinLegendPlotter;
@@ -50,7 +47,6 @@
 			private var _sizeBinLegendLayerName:String;
 			private const _colorLegendLayerName:String = "color legend";
 			private var _colorLegendLayer:SelectablePlotLayer;
-			public var marginTop:LinkableNumber = newLinkableChild( this, LinkableNumber, changeHeight, true );
 			
 			override protected function constructor():void
 			{
@@ -71,7 +67,7 @@
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.marginBottom.value = 5;
-				visualization.marginTop.value    = 35;
+				visualization.marginTop.value    = 25;
 				visualization.marginLeft.value   = 5;
 				visualization.marginRight.value  = 5;
 
@@ -136,12 +132,6 @@
 					marginLabelText = ColumnUtils.getTitle(colorColumn);
 				else
 					marginLabelText = "Size Legend";
-				linkBindableProperty( marginTop, marginLabel, "height" );
-			}
-			
-			private function changeHeight():void
-			{
-				visualization.marginTop.value = marginLabel.height + 8; 
 			}
 			
 			private function get colorColumn():DynamicColumn
@@ -162,22 +152,12 @@
 				resizeCheckBox.selected == true? resizeable.value = true : resizeable.value = false;
 				draggableCheckBox.selected == true? draggable.value = true : draggable.value = false;
 			}
-			
-			protected function titleControl_changeHandler(event:Event):void
-			{
-				if( titleControl.selected == true )
-					marginLabel.height = 0;
-				else
-					marginLabel.height = 35;
-			}
 		]]>
 	</mx:Script>
 	
-	<mx:TextArea x="5" y="5" id="marginLabel" fontWeight="bold" click="handleMarginLabelClick()" 
-			 	 text="{marginLabelText}" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 wordWrap="true" selectable="false" editable="false"
-				 paddingLeft="0" paddingRight="0" borderThickness="0"
-			 	 toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute used for colors."/>
+	<mx:Label x="5" y="5" id="marginLabel" fontWeight="bold" click="handleMarginLabelClick()" 
+			  text="{marginLabelText}"
+			  toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute used for colors."/>
 	
 	<ui:ControlPanel>
 			<mx:Panel id="attributesPanel" 
@@ -191,7 +171,6 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<mx:CheckBox id="titleControl" label="Hide Title" change="titleControl_changeHandler(event)" toolTip="Click to hide the title of the Legend."/>
 				
 			</mx:Panel>
 			<mx:Panel id="lookAndFeel"
