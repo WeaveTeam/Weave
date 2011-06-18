@@ -50,6 +50,14 @@
                     <zipfileset file="${basedir}/WeaveServices.war"/>
                 </zip>
         </target>
+        
+        <target name="deploy_war">
+        	<zip destfile="weave.zip">
+                    <zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
+                    <zipfileset file="${basedir}/WeaveServices.war"/>
+            </zip>
+        </target>
+        
         <target name="install" depends="build">
                 <!-- This target will install the files to WEAVE_DOCROOT. -->
                 <copy todir="${WEAVE_DOCROOT}">

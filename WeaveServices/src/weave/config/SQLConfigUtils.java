@@ -287,7 +287,7 @@ public class SQLConfigUtils
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			DebugTimer timer = new DebugTimer();
-			GeometryCollectionInfo info = source.getGeometryCollectionInfo(entryName, null);
+			GeometryCollectionInfo info = source.getGeometryCollectionInfo(entryName);
 			timer.lap("getGeometryCollectionInfo "+entryName);
 			destination.removeGeometryCollection(entryName);
 			timer.lap("removeGeometryCollection "+entryName);

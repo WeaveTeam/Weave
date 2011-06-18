@@ -58,7 +58,7 @@
 		<mx:HBox id="box2" enabled="false">
 			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}" width="{indent}"/>
 			<mx:TextInput id="dataTableNameInput" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
-			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false" enabled="{AdminInterface.instance.isSuperUser}"/>
+			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false" enabled="{AdminInterface.instance.currentUserIsManager}"/>
 		</mx:HBox>
 		<admin:GeometryCollectionDialog id="geometrySelector" enabled="false" keyType="{tableSelector.activeTable}"/>
 	</mx:VBox>
@@ -198,9 +198,9 @@
 						csvSecondaryKeyColumnCombo.text,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
-						tableSelector.tableOverwriteCheck.selected && AdminInterface.instance.isSuperUser,
+						tableSelector.tableOverwriteCheck.selected && AdminInterface.instance.currentUserIsManager,
 						dataTableNameInput.text,
-						dataTableOverwriteCheck.selected && AdminInterface.instance.isSuperUser,
+						dataTableOverwriteCheck.selected && AdminInterface.instance.currentUserIsManager,
 						geometrySelector.selectedGeometryCollection,
 						geometrySelector.selectedKeyType,
 						nullFlagInput.text

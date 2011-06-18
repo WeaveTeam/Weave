@@ -126,7 +126,7 @@
 			<mx:Button label="Import shape data..."  enabled="{_sqlConfigMigrated }" click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SHAPEFILE_DATA_BUTTON_LABEL}"/>
 			<mx:Spacer width="100%"/>
 			<mx:Label text="{'Active Connection Name: ' + ((AdminInterface.instance.activeConnectionName) ? AdminInterface.instance.activeConnectionName : 'Default')}" textAlign="right"/>
-			<mx:Button label="Change database connection" enabled="{AdminInterface.instance.connectionNames.length > 0}" 
+			<mx:Button label="Change database connection" enabled="{AdminInterface.instance.sqlConfigMigrated == true}"
 					   click="AdminInterface.instance.userHasAuthenticated = false"/>
 		</mx:HBox>
 		<mx:HRule width="100%"/>
@@ -135,7 +135,7 @@
 				<managers:ClientConfigurationManager  id="clientConfig" enabled="{_sqlConfigMigrated }"/>
 				<managers:DataTableManager  enabled="{_sqlConfigMigrated }"/>
 				<managers:GeometryCollectionManager  enabled="{_sqlConfigMigrated }"/>
-				<managers:SQLConnectionManager id="sqlConnectionManager" enabled="{_sqlConfigMigrated == false || AdminInterface.instance.isSuperUser}"/>
+				<managers:SQLConnectionManager id="sqlConnectionManager" enabled="{_sqlConfigMigrated == false || AdminInterface.instance.currentUserIsManager}"/>
 							
 			</mx:TabNavigator>
 			<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false">

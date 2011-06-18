@@ -243,7 +243,7 @@ public class DatabaseConfig implements ISQLConfig
 		List<String> names;
 		try
 		{
-			System.out.println("getGeometryCollectionNames:\t connectionName is " + connectionName);
+			//System.out.println("getGeometryCollectionNames:\t connectionName is " + connectionName);
 			if (connectionName == null)
 			{
 				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
@@ -424,9 +424,8 @@ public class DatabaseConfig implements ISQLConfig
 		}
 	}
 
-	public GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String geometryCollectionName) throws RemoteException
+	public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException
 	{
-		// TODO: handle connectionName
 		Map<String, String> params = new HashMap<String, String>();
 		params.put(GeometryCollectionInfo.NAME, geometryCollectionName);
 		try
@@ -507,7 +506,7 @@ public class DatabaseConfig implements ISQLConfig
 
 					// we don't care if the below fails because we still want to return as much information as possible
 					GeometryCollectionInfo geomInfo;
-					try { geomInfo = getGeometryCollectionInfo(geomName, null); } catch (Exception e) { geomInfo = null; }
+					try { geomInfo = getGeometryCollectionInfo(geomName); } catch (Exception e) { geomInfo = null; }
 					
 					t.lap("get geom info "+i+" "+geomName);
 					if (geomInfo != null)
