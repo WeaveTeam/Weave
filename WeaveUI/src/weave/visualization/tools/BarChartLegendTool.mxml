@@ -32,6 +32,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableDynamicObject;
@@ -84,7 +85,7 @@
 				panelY.value = "25%";
 
 				visualization.marginBottom.value = 5;
-				visualization.marginTop.value    = 25;
+				visualization.marginTop.value    = DEFAULT_MARGIN_TOP;
 				visualization.marginLeft.value   = 5;
 				visualization.marginRight.value  = 5;
 				
@@ -92,6 +93,17 @@
 				Weave.properties.axisFontColor.addGroupedCallback(this,updateMarginLabel);
 				Weave.properties.axisFontSize.addGroupedCallback(this,updateMarginLabel);
 				Weave.properties.axisFontUnderline.addGroupedCallback(this, updateMarginLabel);
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				visualization.marginTop.addGroupedCallback(this, handleMarginChange);
+				linkBindableProperty(visualization.marginTop, marginLabel, "height");
+			}
+			private static const DEFAULT_MARGIN_TOP:int = 25;
+			private function handleMarginChange():void
+			{
+				marginLabelCheckBox.selected = visualization.marginTop.value != 0;
 			}
 			
 			public const dynamicBarChartTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(CompoundBarChartTool), handleBarChartChange, true);
@@ -171,13 +183,20 @@
 		]]>
 	</mx:Script>
 	
-	<mx:Label x="5" y="5" id="marginLabel" fontWeight="bold" click="handleMarginLabelClick()" 
-			  text="{marginLabelText}"
-			  toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute(s) used for the bars."
-			  rollOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);" rollOut="CustomCursorManager.removeAllCursors();"/>
+	<mx:TextArea id="marginLabel"
+				fontWeight="bold" click="handleMarginLabelClick()" 
+				x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
+				text="{marginLabelText}" width="100%"
+				mouseOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				mouseOut="CustomCursorManager.removeCurrentCursor()"
+				wordWrap="true" selectable="false" editable="false"
+				borderThickness="0" backgroundAlpha="0"
+			  	toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute(s) used for the bars."/>
 	
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Color Bin Legend">
+			<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTop.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
