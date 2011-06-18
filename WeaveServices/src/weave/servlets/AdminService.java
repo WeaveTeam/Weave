@@ -74,6 +74,7 @@ import weave.utils.XMLUtils;
 import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
+
 import org.postgresql.PGConnection;
 
 public class AdminService extends GenericServlet
@@ -274,7 +275,7 @@ public class AdminService extends GenericServlet
 		// if overwriteFile is false, never overwrite
 		// if overwriteFile is true, overwrite only if use has privileges
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		overwriteFile = overwriteFile && config.getConnectionInfo(connectionName).privileges.equalsIgnoreCase("true");
+		overwriteFile = overwriteFile && config.getConnectionInfo(connectionName).isManager();
 		
 		// 5.2 client web page configuration file ***.xml
 		String output = "";
@@ -357,7 +358,7 @@ public class AdminService extends GenericServlet
 		
 		// if the connection name is a user with privileges, return all of the connections
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.privileges.equalsIgnoreCase("true"))
+		if (cInfo.isManager())
 			return ListUtils.toStringArray(config.getConnectionNames(connectionName));
 		
 		// otherwise return just this one
@@ -385,7 +386,7 @@ public class AdminService extends GenericServlet
 		info.database = database;
 		info.user = sqlUser;
 		info.pass = password;
-		info.privileges = "false";
+		info.is_manager = "false";
 		
 		// test connection only - to validate parameters
 		Connection conn = null;
@@ -431,7 +432,7 @@ public class AdminService extends GenericServlet
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
 			currentConnectionInfo = config.getConnectionInfo(currentConnectionName);
-			currentUserIsPrivileged = currentConnectionInfo.isSuperUser();
+			currentUserIsPrivileged = currentConnectionInfo.isManager();
 			newUserIsPrivileged = Boolean.valueOf(privileges.equalsIgnoreCase("true") && currentUserIsPrivileged); 
 		}
 		else // we created a new config--must make the current connection appear as a super user
@@ -440,7 +441,7 @@ public class AdminService extends GenericServlet
 			currentUserIsPrivileged = true;
 			newUserIsPrivileged = true;
 		}
-		info.privileges = newUserIsPrivileged.toString();
+		info.is_manager = newUserIsPrivileged.toString();
 		
 		// if the connection already exists AND (overwrite == false OR user lacks privileges) throw error
 		if (	(ListUtils.findString(info.name, config.getConnectionNames(null)) >= 0)
@@ -463,7 +464,7 @@ public class AdminService extends GenericServlet
 			for (String connection : connectionNames)
 			{
 				ConnectionInfo temp = config.getConnectionInfo(connection);	
-				if (temp.isSuperUser()) 
+				if (temp.isManager()) 
 					++numSuperUsers;
 				if (numSuperUsers >= 2)
 					break;
@@ -497,7 +498,7 @@ public class AdminService extends GenericServlet
 		
 		// allow only a super user to remove a connection
 		ConnectionInfo loginConnectionInfo = config.getConnectionInfo(loginConnectionName);
-		if (!loginConnectionInfo.isSuperUser())
+		if (!loginConnectionInfo.isManager())
 			throw new RemoteException("Only super users can remove connections.");
 		
 		try
@@ -516,7 +517,7 @@ public class AdminService extends GenericServlet
 			for (String connection : connectionNames)
 			{
 				ConnectionInfo temp = config.getConnectionInfo(connection);	
-				if (temp.isSuperUser()) 
+				if (temp.isManager()) 
 					++numSuperUsers;
 				if (numSuperUsers >= 2)
 					break;
@@ -545,8 +546,11 @@ public class AdminService extends GenericServlet
 
 	synchronized public AdminServiceResponse migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
 	{
-		checkPasswordAndGetConfig(connectionName, password); 
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password); 
 
+		if (config.getConnectionInfo(connectionName).isManager() == false)
+			throw new RemoteException("Unable to migrate config to database without manager privileges.");
+		
 		String configFileName = configManager.getConfigFileName();
 		int count = 0;
 		try
@@ -587,7 +591,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
 		String dataConnection;
-		if (cInfo.privileges.equalsIgnoreCase("true"))
+		if (cInfo.isManager())
 			dataConnection = null; // let it get all of the data tables
 		else
 			dataConnection = connectionName; // get only the ones on this connection
@@ -609,18 +613,41 @@ public class AdminService extends GenericServlet
 	synchronized public String saveDataTableInfo(String connectionName, String password, Object[] columnMetadata) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-
+		
+		// first validate the information
 		String dataTableName = null;
 		for (Object object : columnMetadata)
 		{
 			Map<String, Object> metadata = (Map<String, Object>) object;
-			String _dataTableName = (String) metadata.get("dataTable");
+			String _dataTableName = (String) metadata.get(Metadata.DATATABLE.toString());
 			if (dataTableName == null)
 				dataTableName = _dataTableName;
 			else if (dataTableName != _dataTableName)
 				throw new RemoteException("overwriteDataTableEntry(): dataTable property not consistent among column entries.");
+			
+//			String _dataTableConnection = (String) metadata.get(Metadata.CONNECTION.toString());
+//			if (dataTableConnection == null)
+//				dataTableConnection = _dataTableConnection;
+//			else if (dataTableConnection != _dataTableConnection)
+//				throw new RemoteException("overwriteDataTableEntry(): " + Metadata.CONNECTION.toString() + " property not consistent among column entries.");
 		}
-
+		
+		// information is valid and dataTableConnection holds the correct connection
+		// if this user isn't a super user, don't allow an overwrite of an existing datatableinfo
+		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
+		
+		if (!currentConnectionInfo.isManager())
+		{
+			List<AttributeColumnInfo> dataTableColumnInfo = config.getAttributeColumnInfo(dataTableName);
+			
+			for (AttributeColumnInfo obj : dataTableColumnInfo)
+			{
+				String dataTableConnection = obj.connection;
+				if (!dataTableConnection.equals(connectionName))
+					throw new RemoteException("An existing data table with the same name exists on another connection. Unable to overwrite without manager privileges.");
+			}
+		}
+		
 		try
 		{
 			// start a block of code so tempConfig will not stay in memory
@@ -689,7 +716,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
 		String geometryConnection;
-		if (cInfo.privileges.equalsIgnoreCase("true"))
+		if (cInfo.isManager())
 			geometryConnection = null; // let it get all of the geometries
 		else
 			geometryConnection = connectionName; // get only the ones on this connection
@@ -702,18 +729,23 @@ public class AdminService extends GenericServlet
 	synchronized public GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String password, String geometryCollectionName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		String geometryConnection;
-		if (cInfo.privileges.equalsIgnoreCase("true"))
-			geometryConnection = null; // always get a geometry
-		else
-			geometryConnection = connectionName; // get the info only if the geometry is on this connection
-		return config.getGeometryCollectionInfo(geometryCollectionName, geometryConnection);
+		return config.getGeometryCollectionInfo(geometryCollectionName);
 	}
 
 	synchronized public String saveGeometryCollectionInfo(String connectionName, String password, String geomName, String geomConnection, String geomSchema, String geomTablePrefix, String geomKeyType, String geomImportNotes, String geomProjection) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		
+		// if this user isn't a super user, don't allow an overwrite of an existing geometrycollection
+		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
+		if (!currentConnectionInfo.isManager())
+		{
+			GeometryCollectionInfo oldGeometry = config.getGeometryCollectionInfo(geomName);
+			
+			if (oldGeometry != null && !oldGeometry.connection.equals(connectionName))
+				throw new RemoteException("An existing geometry collection with the same name exists on another connection. Unable to overwrite without manager privileges.");
+		}
+
 		try
 		{
 			// start a block of code so tempConfig will not stay in memory

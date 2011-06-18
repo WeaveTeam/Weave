@@ -51,7 +51,7 @@
 		<mx:HBox id="geoCol" enabled="false">
 			<mx:TextArea width="{indent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name"/>
 			<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
-			<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false" enabled="{AdminInterface.instance.isSuperUser}"/>
+			<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false"/>
 			<mx:Button label="?" click="Alert.show('Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here.', 'Shape Converter Help')"/>
 		</mx:HBox>
 		<mx:HBox id="keyType" enabled="false">
@@ -211,9 +211,9 @@
 							dbfKeyColumnsCombo.text.split(","),
 							tableSelector.activeSchema,
 							tableSelector.activeTable,
-							tableSelector.tableOverwriteCheck.selected && AdminInterface.instance.isSuperUser,
+							tableSelector.tableOverwriteCheck.selected && AdminInterface.instance.currentUserIsManager,
 							geometryCollectionNameInput.text,
-							configOverwriteCheck.selected && AdminInterface.instance.isSuperUser,
+							configOverwriteCheck.selected && AdminInterface.instance.currentUserIsManager,
 							shpKeyTypeCombo.text,
 							srsProjectionTxtInput.text,
 							nullFlagInput.text

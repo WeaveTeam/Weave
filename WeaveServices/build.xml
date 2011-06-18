@@ -21,4 +21,13 @@
             <metainf dir="WebContent/META-INF"/>
         </war>
     </target>
+    <target name="deploy_war">
+        <mkdir dir="build/jar"/>
+        <war destfile="build/jar/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
+            <lib dir="lib/"/>
+            <classes dir="build/classes"/>
+            <webinf dir="WebContent/WEB-INF"/>
+            <metainf dir="WebContent/META-INF"/>
+        </war>
+    </target>
 </project>

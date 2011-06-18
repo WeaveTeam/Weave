@@ -509,7 +509,7 @@ package weave.utils
 								var genGeomIsPoint:Boolean = genGeom.isPoint();
 								var genGeomBounds:IBounds2D = genGeom.bounds;
 								
-								var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
+								var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance);
 
 								for (var i:int = 0; i < simplifiedGeom.length; ++i)
 								{

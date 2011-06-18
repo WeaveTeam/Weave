@@ -38,7 +38,7 @@ package weave.services
 		private static var _thisInstance:AdminInterface = null;
 		[Bindable] public var sqlConfigExists:Boolean = true;
 		[Bindable] public var sqlConfigMigrated:Boolean = true;
-		[Bindable] public var isSuperUser:Boolean = true;
+		[Bindable] public var currentUserIsManager:Boolean = true;
 		public static function get instance():AdminInterface
 		{
 			if (_thisInstance == null)
@@ -63,7 +63,6 @@ package weave.services
 			}
 			else 
 			{
-				//getConnectionNames(true);
 				sqlConfigExists = true;
 			}
 		}
@@ -195,13 +194,14 @@ package weave.services
 		}
 		private function determinePrivileges(event:ResultEvent, token:Object = null):void
 		{
-			if (event.result == null)
+			var cInfo:ConnectionInfo = new ConnectionInfo(event.result);
+			if (cInfo == null)
 			{
-				isSuperUser = false;
+				currentUserIsManager = false;
 				return;
 			}
 			
-			isSuperUser = event.result.privileges == "true";
+			currentUserIsManager = cInfo.is_manager == "true";
 		}			
 		
 

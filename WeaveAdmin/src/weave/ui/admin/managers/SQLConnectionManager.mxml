@@ -25,7 +25,7 @@
 				width="100%" height="100%" 
 				label="{dataChanged?'Database connections*':'Database connections'}"
 				creationComplete="handleCreationComplete()"
-				visible="{AdminInterface.instance.isSuperUser == true || AdminInterface.instance.sqlConfigMigrated == false}">
+				visible="{AdminInterface.instance.currentUserIsManager == true || AdminInterface.instance.sqlConfigMigrated == false}">
 	<mx:VBox height="100%">
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
@@ -55,7 +55,9 @@
 				</ui:Indent>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
-				<mx:CheckBox label="Super User" id="isSuperUserCheckbox"/>
+				<ui:Indent indent="{_indent}">
+					<mx:CheckBox label="Grant Manager Permissions" id="isManagerCheckbox"/>					
+				</ui:Indent>
 				<ui:Indent>
 					<mx:Button label="Save this database connection"
 							   click="saveConnectionInfo()"
@@ -206,7 +208,7 @@
 						//Password
 						connectionPasswordInput.text = info.pass;
 						// Super User
-						isSuperUserCheckbox.selected = info.privileges == "true";
+						isManagerCheckbox.selected = info.is_manager == "true";
 					}
 				);
 				
@@ -246,7 +248,7 @@
 				info.database = connectionDatabaseInput.text;
 				info.user = connectionUserInput.text;
 				info.pass = connectionPasswordInput.text;
-				info.privileges = (isSuperUserCheckbox.selected) ? "true" : "false";
+				info.is_manager = (isManagerCheckbox.selected) ? "true" : "false";
 				
 				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected);
 				dataChanged = false;

@@ -118,7 +118,7 @@ public class DataService extends GenericServlet
 		result.setGeometryCollectionExists(geometryCollectionExists);
 		if (geometryCollectionExists)
 		{
-			GeometryCollectionInfo info = config.getGeometryCollectionInfo(dataTableName, null);
+			GeometryCollectionInfo info = config.getGeometryCollectionInfo(dataTableName);
 			
 			result.setGeometryCollectionKeyType(info.keyType);
 			result.setGeometryCollectionProjectionSRS(info.projection);
@@ -466,7 +466,7 @@ public class DataService extends GenericServlet
 		ISQLConfig config = configManager.getConfig();
 		timer.lap("get config");
 	
-		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName, null);
+		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryCollectionName));
 		timer.lap("get geom info");
@@ -512,7 +512,7 @@ public class DataService extends GenericServlet
 		timer.report("getGeometryStreamMetadataTiles");
 		ISQLConfig config = configManager.getConfig();
 		timer.lap("get config");
-		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName, null);
+		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryCollectionName));
 		timer.lap("get geom info");
@@ -550,7 +550,7 @@ public class DataService extends GenericServlet
 		timer.report("getGeometryStreamGeometryTiles");
 		ISQLConfig config = configManager.getConfig();
 		timer.lap("get config");
-		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName, null);
+		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryCollectionName));
 		timer.lap("get geom info");

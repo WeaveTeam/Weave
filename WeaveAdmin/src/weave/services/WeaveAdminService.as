@@ -167,7 +167,7 @@ package weave.services
 		// save info
 		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("saveConnectionInfo", [AdminInterface.instance.activeConnectionName, AdminInterface.instance.activePassword, info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.privileges, configOverwrite]);
+			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("saveConnectionInfo", [AdminInterface.instance.activeConnectionName, AdminInterface.instance.activePassword, info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.is_manager, configOverwrite]);
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}

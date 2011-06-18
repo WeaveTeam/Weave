@@ -28,7 +28,7 @@ package weave.services.beans
 		[Bindable] public var database:String = "";
 		[Bindable] public var user:String = "";
 		[Bindable] public var pass:String = "";
-		[Bindable] public var privileges:String = "";
+		[Bindable] public var is_manager:String = "";
 		
 		public function ConnectionInfo(obj:Object)
 		{
