@@ -253,6 +253,8 @@ package weave.visualization.plotters
 			var count:int = 0;
 			graphics.clear();
 			screenBounds.getRectangle(clipRectangle);
+			clipRectangle.width++; // avoid clipping lines
+			clipRectangle.height++; // avoid clipping lines
 			for (var i:int = 0; i < recordKeys.length; i++)
 			{
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
@@ -276,7 +278,7 @@ package weave.visualization.plotters
 			//---------------------------------------------------------
 			// END template code
 		}
-		protected const clipRectangle:Rectangle = new Rectangle;
+		protected const clipRectangle:Rectangle = new Rectangle();
 		protected var clipDrawing:Boolean = true;
 		protected const tempShape:Shape = new Shape(); // reusable temporary object
 		/**

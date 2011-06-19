@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	{
 		public function AbstractGlyphPlotter()
 		{
+			clipDrawing = false;
 			setKeySource(dataX);
 			
 			// filter x and y columns so background data bounds will be correct

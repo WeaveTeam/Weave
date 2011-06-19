@@ -125,6 +125,8 @@ package weave.visualization.plotters
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
 			screenBounds.getRectangle(clipRectangle, true);
+			clipRectangle.width++; // avoid clipping lines
+			clipRectangle.height++; // avoid clipping lines
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
 			graphics.clear();
