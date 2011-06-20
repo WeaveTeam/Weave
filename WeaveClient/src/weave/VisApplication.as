@@ -105,8 +105,7 @@ package weave
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
-	import weave.services.ProgressIndicator;	
-	
+	import weave.services.ProgressIndicator;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;

@@ -39,6 +39,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import org.igniterealtime.xiff.conference.*;
 			import org.igniterealtime.xiff.core.*;
 			import org.igniterealtime.xiff.data.*;
+			import org.igniterealtime.xiff.data.register.RegisterExtension;
 			import org.igniterealtime.xiff.events.*;
 			import org.igniterealtime.xiff.exception.*;
 			import org.igniterealtime.xiff.filter.*;
@@ -51,18 +52,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public static var connection:XMPPConnection;
 			
+			private var reg:Object;
 			private var selfJID:String;
-			private var ip:String = 							"129.63.17.193";
-			private var compName:String = 						"@conference.happy"
-			private var port:int = 								5222; //5223 for encrypted connections
+			private var ip:String = 							"129.63.17.121";
+			private var compName:String = 						"@conference.129.63.17.121"
+			private var port:int = 								5222;
 			private var baseEncoder:Base64Encoder = 			new Base64Encoder();
 			private var baseDecoder:Base64Decoder = 			new Base64Decoder();
-			private var roomToJoin:String =						"testing";
+			private var roomToJoin:String =						"blah";
 			private var connectedToRoom:Boolean = 				false;
 			private var isConnected:Boolean = 					false;
 			
   			override protected function childrenCreated():void
 			{
+				
 				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoomPress);
 				sendButton.addEventListener(MouseEvent.CLICK, sendToRoomClick);
 				connect();
@@ -70,12 +73,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function connect():void
 			{
+				log.text += "connecting to " + ip + "...\n";
 				connection = new XMPPConnection();
 				
-				//connection.useAnonymousLogin = true;
-				connection.username = "john";
-				connection.password = "john";
-				
+				connection.useAnonymousLogin = true;
 				connection.server = ip;
 				connection.port = port;
 				
@@ -85,8 +86,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connection.addEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
 				connection.addEventListener(MessageEvent.MESSAGE, onReceiveMessage);
 				
+				connection.addEventListener(RegistrationFieldsEvent.REG_FIELDS, regFields);
+				
 				connection.connect();
-				isConnected = true;
+				
+			}
+		
+			private function regFields(e:RegistrationFieldsEvent):void
+			{
+				trace("this happened:" + e.fields);
 			}
 			
 			/**
@@ -94,8 +102,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			private function onLogin(e:LoginEvent):void
 			{
+				log.text += "connected as ";
+				if( connection.useAnonymousLogin == true )
+					log.text += "anonymous user: ";
+				log.text += connection.username + "\n";
+					
 				joinRoom(roomToJoin);
 				connectedToRoom = true;
+				input.enabled = true;
+				sendButton.enabled = true;
 			}
 			
 			/**
@@ -104,12 +119,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			private function joinRoom(name:String):void
 			{
+				log.text += "joined room: " + roomToJoin + "\n";
 				room = new Room(connection);
+				room.nickname = "tkiley";
+				log.text += "set alias to: " + room.nickname + "\n";
 				room.roomJID = new UnescapedJID(name+compName);
 				
 				room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
 				room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
+				room.password = "berf"
 				room.join();
 				trace("joining room");
 			}
@@ -124,8 +143,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// Get the ID that everyone sees us as
 				// Used to filter out messages that we sent
 				selfJID = room.userJID.resource;
-				trace("Joined room.");
-				
+	
+				trace("Joined room.");	
 			}
 			
 			public function disconnect():void
@@ -160,6 +179,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function onDisconnect(e:DisconnectionEvent):void
 			{
+				trace("disconnectied");
 				isConnected = false;
 			}
 			
@@ -182,7 +202,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function onUserLeave(e:RoomEvent):void
 			{
-				trace(e.nickname);
+				trace(e.nickname + " left");
 			}
 			
 			public function hasConnection():Boolean 
@@ -216,12 +236,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				try
 				{
-					var o:Object = decodeObject(event.data.body);
-					log.text = log.text + o.id + ": " + o.message + "\n";
+					if( event.data.id != null)
+					{
+						var o:Object = decodeObject(event.data.body);
+						log.text += o.id + ": " + o.message + "\n";
+					} else
+						log.text += "server: " + event.data.body + "\n";
 				} 
 				catch( e:Error )
 				{
-					trace( "Error:", e.message );
+					trace( "Error: " + e.message );
 				}
 					
 				log.verticalScrollPosition += 100;
@@ -229,7 +253,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function onError(e:XIFFErrorEvent):void
 			{
-				trace(e.errorMessage);
+				trace("Error: " + e.errorMessage);
 			}
 			
 			private function encodeObject(toEncode:Object):String
@@ -257,8 +281,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:VBox width="100%" height="100%" paddingTop="10" paddingBottom="10" paddingLeft="10" paddingRight="10">
 		<mx:TextArea width="100%" height="100%" id="log" editable="false" />
 		<mx:HBox width="100%">
-			<mx:TextInput width="100%"  id="input" />
-			<mx:Button id="sendButton" label="Send" />
+			<mx:TextInput width="100%"  id="input" enabled="false"/>
+			<mx:Button id="sendButton" label="Send" enabled="false"/>
 		</mx:HBox>
 	</mx:VBox>
 	
