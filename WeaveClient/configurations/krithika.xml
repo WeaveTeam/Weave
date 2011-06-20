@@ -2153,7 +2153,7 @@
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
   </ScatterPlotTool>
-  <CompoundBarChartTool name="CompoundBarChartTool">
+  <CompoundBarChartTool name="CompoundBarChartTool1">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
