@@ -204,8 +204,8 @@ package weave
 		public const dashedSelectionBox:LinkableString = new LinkableString("5,5", verifyDashedSelectionBox);
 		public function verifyDashedSelectionBox(csv:String):Boolean
 		{
-			if (csv == null) return false;
-
+			if (csv === null) return false;
+			
 			var parser:CSVParser = new CSVParser();
 			var rows:Array = parser.parseCSV(csv);
 			
@@ -213,9 +213,9 @@ package weave
 				return false;
 			
 			var values:Array = rows[0];
-			if (values.length % 2 == 1) // length is odd with at least 1 element--push last element
+/*			if (values.length % 2 == 1) // length is odd with at least 1 element--push last element
 			{
-				var lastValue:Number = values[values.length - 1];
+				var lastValue:String = values[values.length - 1];
 				if (lastValue == 0)
 					lastValue = 1;
 				else
@@ -223,14 +223,18 @@ package weave
 				
 				values.push(lastValue);
 			}
+*/			
+			var foundNonZero:Boolean = false;
 			for (var i:int = 0; i < values.length; ++i)
 			{
-				var value:Number = Number(values[i]);
+				var value:int = int(values[i]);
 				if (isNaN(value)) return false;
 				if (value < 0) return false;
+				if (value != 0)
+					foundNonZero = true;
 			}
 			
-			return true;
+			return foundNonZero;
 		}
 		
 		public const panelTitleFontColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
