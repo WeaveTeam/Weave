@@ -542,7 +542,6 @@ package weave.visualization.layers
 				else
 					startCorner = DashedLine.TOP_LEFT;
 			}
-			trace(startCorner);
 			
 			var xStart:Number = tempScreenBounds.getXMin();
 			var yStart:Number = tempScreenBounds.getYMin();
