@@ -28,6 +28,7 @@ package weave
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
+	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
@@ -198,7 +199,40 @@ package weave
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
-	
+
+		// dashed lines for the perimeter of the rectangle used for selection and zooming
+		public const dashedSelectionBox:LinkableString = new LinkableString("5,5", verifyDashedSelectionBox);
+		public function verifyDashedSelectionBox(csv:String):Boolean
+		{
+			if (csv == null) return false;
+
+			var parser:CSVParser = new CSVParser();
+			var rows:Array = parser.parseCSV(csv);
+			
+			if (rows.length == 0)
+				return false;
+			
+			var values:Array = rows[0];
+			if (values.length % 2 == 1) // length is odd with at least 1 element--push last element
+			{
+				var lastValue:Number = values[values.length - 1];
+				if (lastValue == 0)
+					lastValue = 1;
+				else
+					lastValue = 0;
+				
+				values.push(lastValue);
+			}
+			for (var i:int = 0; i < values.length; ++i)
+			{
+				var value:Number = Number(values[i]);
+				if (isNaN(value)) return false;
+				if (value < 0) return false;
+			}
+			
+			return true;
+		}
+		
 		public const panelTitleFontColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
 		public const panelTitleFontSize:LinkableNumber = new LinkableNumber(10, verifyFontSize);
 		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana");

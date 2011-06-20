@@ -30,6 +30,7 @@ package weave.visualization.layers
 	
 	import mx.containers.Canvas;
 	import mx.core.Application;
+	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -45,6 +46,7 @@ package weave.visualization.layers
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.CustomCursorManager;
+	import weave.utils.DashedLine;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
@@ -90,8 +92,11 @@ package weave.visualization.layers
 //			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
 //			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
+			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine);
+			
 			defaultMouseMode.value = SELECT_MODE_REPLACE;
 		}
+		
 		public function dispose():void
 		{
 			removeEventListener(MouseEvent.CLICK, handleMouseClick);
@@ -479,12 +484,12 @@ package weave.visualization.layers
 			if (dragReleased)
 				mouseDragActive = false;
 				
-			updateSelectionRectangleGraphics();
+			updateSelectionRectangleGraphics(event.stageX, event.stageY);
 			//updateMouseCursor();
 		}
 		
 		private var _selectionRectangleGraphicsCleared:Boolean = true;
-		protected function updateSelectionRectangleGraphics():void 
+		protected function updateSelectionRectangleGraphics(currentX:Number, currentY:Number):void 
 		{
 			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
 			 
@@ -507,14 +512,49 @@ package weave.visualization.layers
 			
 			tempScreenBounds.setMinPoint(localMinPoint);
 			tempScreenBounds.setMaxPoint(localMaxPoint);
-			
+		
 			// use a blue rectangle for zoom mode, green for selection
+			_dashedLine.graphics = g; 
 			if(mouseMode == ZOOM_MODE)
-				g.lineStyle(2, 0x005aff, .75);
+			{
+				_dashedLine.lineStyle(2, 0x00faff, .75);
+			}
 			else
-				g.lineStyle(2, 0x00FF00, .75);
-				
-			g.drawRect(tempScreenBounds.getXNumericMin(), tempScreenBounds.getYNumericMin(), tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
+			{
+				_dashedLine.lineStyle(2, 0x00ff00, .75);
+			}
+			
+			
+			var startCorner:int;
+			// if height < 0, then the box is dragged upward
+			// if width < 0, then the box is dragged leftward
+			if (tempScreenBounds.getHeight() < 0)
+			{
+				if (tempScreenBounds.getWidth() < 0)
+					startCorner = DashedLine.BOTTOM_RIGHT;
+				else
+					startCorner = DashedLine.BOTTOM_LEFT;
+			}
+			else 
+			{
+				if (tempScreenBounds.getWidth() < 0)
+					startCorner = DashedLine.TOP_RIGHT;
+				else
+					startCorner = DashedLine.TOP_LEFT;
+			}
+			trace(startCorner);
+			
+			var xStart:Number = tempScreenBounds.getXMin();
+			var yStart:Number = tempScreenBounds.getYMin();
+			var width:Number = tempScreenBounds.getXCoverage();
+			var height:Number = tempScreenBounds.getYCoverage();
+
+			_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+		}
+		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
+		private function validateDashedLine():void
+		{
+			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
 		protected function projectDragBoundsToDataQueryBounds(sameDirection:Boolean = true):void

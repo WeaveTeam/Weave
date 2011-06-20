@@ -25,8 +25,8 @@
 		 height="100%">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.linkBindableProperty;
 			import weave.Weave;
+			import weave.api.linkBindableProperty;
 			import weave.core.SessionManager;
 		]]>
 	</mx:Script>
@@ -56,10 +56,49 @@
 								   creationComplete="linkBindableProperty(Weave.properties.shadowAlpha, shadowAlpha, 'value' );"
 								   />
 			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Dashed Lines Parameters"
+						  width="200"
+						  textAlign="right"
+						  toolTip="Set the values the gaps and lines of the dashed lines"
+						  id="dashedLabel"/>
+				<mx:TextInput id="dashedLinesString"
+							  creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, dashedLinesString, 'text' );"
+							  />
+				<mx:Canvas id="dashedCanvas"
+						   width="200"
+						   height="{dashedLinesString.height}"
+						   />
+			</mx:HBox>
 		</mx:VBox>
 	</mx:Canvas>	
 	<mx:Canvas id="notadmin">
-		
 	</mx:Canvas>
 	</mx:ViewStack>
+	<mx:Script>
+		<![CDATA[
+			import weave.utils.DashedLine;
+			override protected function childrenCreated():void
+			{
+				Weave.properties.dashedSelectionBox.addGroupedCallback(this, drawDashedLinePreview, true);
+				xStart = 5; 
+				yStart = 10;
+				xEnd = dashedCanvas.width - 5;
+				yEnd = yStart;
+				_dashedLine.graphics = dashedCanvas.graphics;
+			}
+			
+			private function drawDashedLinePreview():void
+			{
+				_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
+				_dashedLine.clear();
+				_dashedLine.lineStyle(4, 0x00ff00, 1);
+
+				_dashedLine.moveTo(xStart, yStart);
+				_dashedLine.lineTo(xEnd, yEnd);
+			}
+			private const _dashedLine:DashedLine = new DashedLine();
+			private var xStart:Number, yStart:Number, xEnd:Number, yEnd:Number;
+		]]>
+	</mx:Script>
 </mx:VBox>

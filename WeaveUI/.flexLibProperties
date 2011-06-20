@@ -96,6 +96,7 @@
     <classEntry path="weave.utils.BitmapText"/>
     <classEntry path="weave.utils.BitmapUtils"/>
     <classEntry path="weave.utils.CustomCursorManager"/>
+    <classEntry path="weave.utils.DashedLine"/>
     <classEntry path="weave.utils.DrawUtils"/>
     <classEntry path="weave.utils.EditorManager"/>
     <classEntry path="weave.utils.PlotUtils"/>
