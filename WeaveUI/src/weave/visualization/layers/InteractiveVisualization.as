@@ -92,7 +92,7 @@ package weave.visualization.layers
 //			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
 //			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
-			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine);
+			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, null, true);
 			
 			defaultMouseMode.value = SELECT_MODE_REPLACE;
 		}
