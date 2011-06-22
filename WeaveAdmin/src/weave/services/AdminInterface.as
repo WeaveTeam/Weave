@@ -38,7 +38,7 @@ package weave.services
 		private static var _thisInstance:AdminInterface = null;
 		[Bindable] public var sqlConfigExists:Boolean = true;
 		[Bindable] public var sqlConfigMigrated:Boolean = true;
-		[Bindable] public var currentUserIsManager:Boolean = true;
+		[Bindable] public var currentUserIsSuperuser:Boolean = false;
 		public static function get instance():AdminInterface
 		{
 			if (_thisInstance == null)
@@ -97,7 +97,6 @@ package weave.services
 		
 		
 		
-		//private var currentPrivileges:String = '';
 		private var _activeConnectionName:String = StringDefinition.DEFAULT_CONNECTION;
 		
 		// functions for managing static settings
@@ -179,9 +178,10 @@ package weave.services
 			if (userHasAuthenticated != event.result as Boolean)
 				userHasAuthenticated = event.result as Boolean;
 			if (!userHasAuthenticated)
+			{
 				//Alert.show("Incorrect password.", "Login failed");
 				WeaveAdminService.messageDisplay("Login Failed","Incorrect password",false);
-				
+			}
 			else
 			{
 				getConnectionInfo(activeConnectionName).addAsyncResponder(determinePrivileges, null);
@@ -191,18 +191,13 @@ package weave.services
 				getKeyTypes();
 				getConnectionNames(false);
 			}
-		}
-		private function determinePrivileges(event:ResultEvent, token:Object = null):void
-		{
-			var cInfo:ConnectionInfo = new ConnectionInfo(event.result);
-			if (cInfo == null)
-			{
-				currentUserIsManager = false;
-				return;
-			}
 			
-			currentUserIsManager = cInfo.is_manager == "true";
-		}			
+			function determinePrivileges(event:ResultEvent, token:Object = null):void
+			{
+				var cInfo:ConnectionInfo = new ConnectionInfo(event.result);
+				currentUserIsSuperuser = cInfo.is_superuser;
+			}
+		}
 		
 
 
@@ -288,7 +283,6 @@ package weave.services
 			//this to check if the saveConnectionInfo was successful. When the user adds the database for the first time, 
 			//the Admin Console needs to know so that it can then force the user to migrate to the database.
 			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
-			
 		}
 		
 		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
@@ -333,14 +327,17 @@ package weave.services
 			dataTableNames = [];
 			
 			if (userHasAuthenticated)
+			{
 				service.getDataTableNames(
 					activeConnectionName, activePassword
 				).addAsyncResponder(handlegetDataTableNames);
-		}
-		private function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
-		{
-			if (userHasAuthenticated)
-				dataTableNames = event.result as Array || [];
+			}
+			
+			function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
+			{
+				if (userHasAuthenticated)
+					dataTableNames = event.result as Array || [];
+			}
 		}
 		
 		public function getDataTableInfo(dataTableName:String):DelayedAsyncInvocation
@@ -410,14 +407,17 @@ package weave.services
 		{
 			geometryCollectionNames = [];
 			if (userHasAuthenticated)
+			{
 				service.getGeometryCollectionNames(
 					activeConnectionName, activePassword
 				).addAsyncResponder(handleGetGeometryCollectionNames, null);
-		}
-		private function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
-		{
-			if (userHasAuthenticated)
-				geometryCollectionNames = event.result as Array || [];
+			}
+			
+			function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
+			{
+				if (userHasAuthenticated)
+					geometryCollectionNames = event.result as Array || [];
+			}
 		}
 		public function getGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
 		{
@@ -451,11 +451,12 @@ package weave.services
 			keyTypes = [];
 			if (userHasAuthenticated)
 				service.getKeyTypes(activeConnectionName, activePassword).addAsyncResponder(handleGetKeyTypes);
-		}
-		private function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
-		{
-			if (userHasAuthenticated)
-				keyTypes = event.result as Array || [];
+			
+			function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
+			{
+				if (userHasAuthenticated)
+					keyTypes = event.result as Array || [];
+			}
 		}
 
 
@@ -721,21 +722,6 @@ package weave.services
 			);
 		}
 		
-		public function getPrivileges(bitmask:String):String
-		{
-			if (bitmask == null || bitmask.length == 0)
-				return UNPRIVILEGED;
-			
-			var superuserBit:int = int(bitmask.charAt(0)); 
-			
-			if (superuserBit)
-				return SUPER_USER;
-			else
-				return UNPRIVILEGED;
-		}
-		
-		public static const SUPER_USER:String = "SUPER_USER";
-		public static const UNPRIVILEGED:String = "UNPRIVILEGED";
 		
 		/* ********************************************* */
 		/* Audio and Video Functions Not yet Implemented */

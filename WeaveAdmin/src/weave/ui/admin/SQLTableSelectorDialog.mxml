@@ -34,7 +34,7 @@
 		<ui:CustomComboBox id="_tableCombo" editable="true" text="{activeTable}" dataProvider="{tables}" change="activeTable = _tableCombo.text;" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DROPDOWNBOX_TOOLTIP}"/>
 		<mx:TextInput id="_tableInput" editable="true" text="{activeTable}" change="activeTable = _tableInput.text;"/>
 		<mx:Button id="tablesRefreshButton" label="Refresh" click="getTables()" toolTip="{StringDefinition.DEFAULT_TABLES_REFRESH_BUTTON_TOOLTIP}"/>
-		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{visibleOfTableOverwriteCheck}"/>
+		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}"/>
 	</mx:HBox>
 	<mx:Metadata>
 		[Exclude(name="_tableCombo", kind="property")]
@@ -55,7 +55,7 @@
 			public var indent:int = 145;
 			
 			[Bindable]
-			public var visibleOfTableOverwriteCheck:Boolean = true;
+			public var tableOverwriteCheckVisible:Boolean = true;
 
 			// values returned by the server that depend on the active selected values
 			[Bindable] public var schemas:Array = [];
@@ -87,13 +87,14 @@
 					AdminInterface.instance.activeConnectionName,
 					AdminInterface.instance.activePassword
 				).addAsyncResponder(handleGetSchemas);
-			}
-			private function handleGetSchemas(event:ResultEvent, token:Object = null):void
-			{
-				schemas = event.result as Array;
-				// set active schema to first result
-				if (schemas.length > 0)
-					activeSchema = schemas[0];
+				
+				function handleGetSchemas(event:ResultEvent, token:Object = null):void
+				{
+					schemas = event.result as Array;
+					// set active schema to first result
+					if (schemas.length > 0)
+						activeSchema = schemas[0];
+				}
 			}
 			
 			
@@ -124,13 +125,14 @@
 						AdminInterface.instance.activePassword,
 						activeSchema
 					).addAsyncResponder(handleGetTables);
-			}
-			private function handleGetTables(event:ResultEvent, token:Object = null):void
-			{
-				tables = event.result as Array;
-				// set active table to first result
-				if (tables.length > 0)
-					activeTable = tables[0];
+				
+				function handleGetTables(event:ResultEvent, token:Object = null):void
+				{
+					tables = event.result as Array;
+					// set active table to first result
+					if (tables.length > 0)
+						activeTable = tables[0];
+				}
 			}
 			
 			private var _activeTable:String = "";
@@ -158,10 +160,11 @@
 						activeSchema,
 						activeTable
 					).addAsyncResponder(handleGetColumns);
-			}
-			private function handleGetColumns(event:ResultEvent, token:Object = null):void
-			{
-				columns = event.result as Array;
+				
+				function handleGetColumns(event:ResultEvent, token:Object = null):void
+				{
+					columns = event.result as Array;
+				}
 			}
 		]]>
 	</mx:Script>

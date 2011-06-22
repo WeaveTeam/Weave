@@ -48,6 +48,7 @@
 				BindingUtils.bindSetter(handleSQLConfigExists, AdminInterface.instance, "sqlConfigExists");
 				BindingUtils.bindSetter(handleSQLConfigMigrated, AdminInterface.instance, "sqlConfigMigrated");
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this,handleMessageLog);
+				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
 			}
 			
 			private function handleMessageLog():void
@@ -90,6 +91,7 @@
 				if(!val)
 				{
 					_sqlConfigMigrated = false;
+					AdminInterface.instance.currentUserIsSuperuser = true;
 					tabNavigator.selectedChild = sqlConnectionManager;
 				}
 				else
@@ -98,13 +100,17 @@
 				}
 			}
 			
+			private function handlePermissionChange(isSuperuser:Boolean):void
+			{
+				if (isSuperuser && !tabNavigator.contains(sqlConnectionManager))
+					tabNavigator.addChild(sqlConnectionManager);
+				if (!isSuperuser && tabNavigator.contains(sqlConnectionManager))
+					tabNavigator.removeChild(sqlConnectionManager);
+			}
+			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup = new LoginPopup();
 			
-			public static const CLIENT_CONFIGURATIONS:String = "CLIENT_CONFIGURATIONS";
-			public static const DATA_EDITOR:String = "DATA_EDITO";
-			public static const GEOMETRY_EDITOR:String = "GEOMETRY_EDITOR";
-			public static const SQL_CONNECTION_EDITOR:String = "SQL_CONNECTION_EDITOR";
 		]]>
 	</mx:Script>
 	
@@ -132,10 +138,10 @@
 		<mx:HRule width="100%"/>
 		<mx:VDividedBox width="100%" height="100%" >
 			<mx:TabNavigator id="tabNavigator" width="100%" height="100%" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" fontSize="10">
-				<managers:ClientConfigurationManager  id="clientConfig" enabled="{_sqlConfigMigrated }"/>
-				<managers:DataTableManager  enabled="{_sqlConfigMigrated }"/>
-				<managers:GeometryCollectionManager  enabled="{_sqlConfigMigrated }"/>
-				<managers:SQLConnectionManager id="sqlConnectionManager" enabled="{_sqlConfigMigrated == false || AdminInterface.instance.currentUserIsManager}"/>
+				<managers:ClientConfigurationManager id="clientConfig" enabled="{_sqlConfigMigrated}"/>
+				<managers:DataTableManager enabled="{_sqlConfigMigrated}"/>
+				<managers:GeometryCollectionManager enabled="{_sqlConfigMigrated}"/>
+				<managers:SQLConnectionManager id="sqlConnectionManager"/>
 							
 			</mx:TabNavigator>
 			<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false">

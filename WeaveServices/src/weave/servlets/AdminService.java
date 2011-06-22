@@ -275,7 +275,7 @@ public class AdminService extends GenericServlet
 		// if overwriteFile is false, never overwrite
 		// if overwriteFile is true, overwrite only if use has privileges
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		overwriteFile = overwriteFile && config.getConnectionInfo(connectionName).isManager();
+		overwriteFile = overwriteFile && config.getConnectionInfo(connectionName).is_superuser;
 		
 		// 5.2 client web page configuration file ***.xml
 		String output = "";
@@ -358,7 +358,7 @@ public class AdminService extends GenericServlet
 		
 		// if the connection name is a user with privileges, return all of the connections
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.isManager())
+		if (cInfo.is_superuser)
 			return ListUtils.toStringArray(config.getConnectionNames(connectionName));
 		
 		// otherwise return just this one
@@ -373,7 +373,7 @@ public class AdminService extends GenericServlet
 		return config.getConnectionInfo(connectionNameToGet);
 	}
 
-	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, String privileges, boolean configOverwrite) throws RemoteException
+	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
 	{
 		if (newConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
@@ -386,7 +386,7 @@ public class AdminService extends GenericServlet
 		info.database = database;
 		info.user = sqlUser;
 		info.pass = password;
-		info.is_manager = "false";
+		info.is_superuser = false;
 		
 		// test connection only - to validate parameters
 		Connection conn = null;
@@ -410,9 +410,6 @@ public class AdminService extends GenericServlet
 		Boolean newConfigCreated = false;
 		if (!new File(fileName).exists())
 		{
-			System.out.println("\n\n\n\n\n\n\n");
-			System.out.println("config does not exist\t\tfasdkljfd");			
-			System.out.println("\n\n\n\n\n\n\n");
 			try
 			{
 				XMLUtils.getStringFromXML(new SQLConfigXML().getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
@@ -426,26 +423,26 @@ public class AdminService extends GenericServlet
 
 		ISQLConfig config;
 		ConnectionInfo currentConnectionInfo;
-		boolean currentUserIsPrivileged;
-		Boolean newUserIsPrivileged;
+		boolean currentUserIsSuperuser;
+		boolean newUserIsSuperuser;
 		if (newConfigCreated == false && !currentConnectionName.equalsIgnoreCase("")) // if we already have a config and not the default user
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
 			currentConnectionInfo = config.getConnectionInfo(currentConnectionName);
-			currentUserIsPrivileged = currentConnectionInfo.isManager();
-			newUserIsPrivileged = Boolean.valueOf(privileges.equalsIgnoreCase("true") && currentUserIsPrivileged); 
+			currentUserIsSuperuser = currentConnectionInfo.is_superuser;
+			newUserIsSuperuser = grantSuperuser && currentUserIsSuperuser;
 		}
-		else // we created a new config--must make the current connection appear as a super user
+		else // we created a new config--must make the current connection appear as a superuser
 		{
 			config = configManager.getConfig();
-			currentUserIsPrivileged = true;
-			newUserIsPrivileged = true;
+			currentUserIsSuperuser = true;
+			newUserIsSuperuser = true;
 		}
-		info.is_manager = newUserIsPrivileged.toString();
+		info.is_superuser = newUserIsSuperuser;
 		
 		// if the connection already exists AND (overwrite == false OR user lacks privileges) throw error
 		if (	(ListUtils.findString(info.name, config.getConnectionNames(null)) >= 0)
-				&& (configOverwrite == false || !currentUserIsPrivileged)	)
+				&& (configOverwrite == false || !currentUserIsSuperuser)	)
 		{
 			throw new RemoteException(String
 					.format("The connection named \"%s\" already exists.  Action cancelled.", info.name));
@@ -456,24 +453,22 @@ public class AdminService extends GenericServlet
 		{
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, info.name);
 
-			// do not delete if this is the last user (which must be a super user)
+			// do not delete if this is the last user (which must be a superuser)
 			List<String> connectionNames = config.getConnectionNames(null);
 			
-			// check for number of super users
+			// check for number of superusers
 			int numSuperUsers = 0;
 			for (String connection : connectionNames)
 			{
 				ConnectionInfo temp = config.getConnectionInfo(connection);	
-				if (temp.isManager()) 
+				if (temp.is_superuser)
 					++numSuperUsers;
 				if (numSuperUsers >= 2)
 					break;
 			}
-			if (numSuperUsers == 1) // if this is true, then currentConnectionName is trying to modify itself
-			{                       // verify privileges setting is "true"
-				if (privileges.equalsIgnoreCase("false"))
-					throw new RemoteException("Cannot remove super user privileges from only remaining super user.");
-			}
+			// sanity check
+			if (currentConnectionName == newConnectionName && numSuperUsers == 1 && !grantSuperuser)
+				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 			
 			config.removeConnection(info.name);
 			config.addConnection(info);
@@ -496,10 +491,10 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
 		
-		// allow only a super user to remove a connection
+		// allow only a superuser to remove a connection
 		ConnectionInfo loginConnectionInfo = config.getConnectionInfo(loginConnectionName);
-		if (!loginConnectionInfo.isManager())
-			throw new RemoteException("Only super users can remove connections.");
+		if (!loginConnectionInfo.is_superuser)
+			throw new RemoteException("Only superusers can remove connections.");
 		
 		try
 		{
@@ -507,25 +502,25 @@ public class AdminService extends GenericServlet
 				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, connectionNameToRemove);
 			
-			// do not delete if this is the last user (which must be a super user)
+			// do not delete if this is the last user (which must be a superuser)
 			List<String> connectionNames = config.getConnectionNames(null);
 			if (connectionNames.size() == 1)
 				throw new RemoteException("Cannot remove the only connection.");
 			
-			// check for number of super users
+			// check for number of superusers
 			int numSuperUsers = 0;
 			for (String connection : connectionNames)
 			{
 				ConnectionInfo temp = config.getConnectionInfo(connection);	
-				if (temp.isManager()) 
+				if (temp.is_superuser)
 					++numSuperUsers;
 				if (numSuperUsers >= 2)
 					break;
 			}
-			if (numSuperUsers == 1) // if this is true, then loginConnectionName is trying to delete itself and is the only super user
-				throw new RemoteException("Cannot remove the only super user.");
+			if (numSuperUsers == 1) // if this is true, then loginConnectionName is trying to delete itself and is the only superuser
+				throw new RemoteException("Cannot remove the only superuser.");
 			
-			// also do not delete if this is the only super user
+			// also do not delete if this is the only superuser
 			
 			config.removeConnection(connectionNameToRemove);
 			backupAndSaveConfig(config);
@@ -548,8 +543,8 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password); 
 
-		if (config.getConnectionInfo(connectionName).isManager() == false)
-			throw new RemoteException("Unable to migrate config to database without manager privileges.");
+		if (!config.getConnectionInfo(connectionName).is_superuser)
+			throw new RemoteException("Unable to migrate config to database without superuser privileges.");
 		
 		String configFileName = configManager.getConfigFileName();
 		int count = 0;
@@ -591,7 +586,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
 		String dataConnection;
-		if (cInfo.isManager())
+		if (cInfo.is_superuser)
 			dataConnection = null; // let it get all of the data tables
 		else
 			dataConnection = connectionName; // get only the ones on this connection
@@ -633,10 +628,10 @@ public class AdminService extends GenericServlet
 		}
 		
 		// information is valid and dataTableConnection holds the correct connection
-		// if this user isn't a super user, don't allow an overwrite of an existing datatableinfo
+		// if this user isn't a superuser, don't allow an overwrite of an existing datatableinfo
 		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
 		
-		if (!currentConnectionInfo.isManager())
+		if (!currentConnectionInfo.is_superuser)
 		{
 			List<AttributeColumnInfo> dataTableColumnInfo = config.getAttributeColumnInfo(dataTableName);
 			
@@ -644,7 +639,7 @@ public class AdminService extends GenericServlet
 			{
 				String dataTableConnection = obj.connection;
 				if (!dataTableConnection.equals(connectionName))
-					throw new RemoteException("An existing data table with the same name exists on another connection. Unable to overwrite without manager privileges.");
+					throw new RemoteException("An existing data table with the same name exists on another connection. Unable to overwrite without superuser privileges.");
 			}
 		}
 		
@@ -716,7 +711,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
 		String geometryConnection;
-		if (cInfo.isManager())
+		if (cInfo.is_superuser)
 			geometryConnection = null; // let it get all of the geometries
 		else
 			geometryConnection = connectionName; // get only the ones on this connection
@@ -736,14 +731,14 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		
-		// if this user isn't a super user, don't allow an overwrite of an existing geometrycollection
+		// if this user isn't a superuser, don't allow an overwrite of an existing geometrycollection
 		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
-		if (!currentConnectionInfo.isManager())
+		if (!currentConnectionInfo.is_superuser)
 		{
 			GeometryCollectionInfo oldGeometry = config.getGeometryCollectionInfo(geomName);
 			
 			if (oldGeometry != null && !oldGeometry.connection.equals(connectionName))
-				throw new RemoteException("An existing geometry collection with the same name exists on another connection. Unable to overwrite without manager privileges.");
+				throw new RemoteException("An existing geometry collection with the same name exists on another connection. Unable to overwrite without superuser privileges.");
 		}
 
 		try

@@ -129,7 +129,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connectionInfo.pass = connectionPasswordInput.text;
 				connectionInfo.port = connectionPortInput.text;
 				connectionInfo.user = connectionUserInput.text;
-				connectionInfo.is_manager = "true"; // this is the first user, so he must be a super user
+				connectionInfo.is_superuser = true; // this is the first user, so he must be a superuser
 				
 				AdminInterface.instance.saveConnectionInfoOnly(connectionInfo,true);
 				AdminInterface.instance.authenticate(connectionInfo.name, connectionInfo.pass);

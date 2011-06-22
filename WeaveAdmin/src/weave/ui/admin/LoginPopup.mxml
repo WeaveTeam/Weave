@@ -53,7 +53,6 @@ Author: skolman
 				//handleUserHasAuthenticatedChange() is invoked, passing as the argument
 				//the new value of AdminInterface.instance.userHasAuthenticated.
 				BindingUtils.bindSetter(handleUserHasAuthenticatedChange, AdminInterface.instance, "userHasAuthenticated");
-				handleUserHasAuthenticatedChange(AdminInterface.instance.userHasAuthenticated);
 			}
 			
 			private var _parent:DisplayObject = null;
@@ -62,7 +61,10 @@ Author: skolman
 			{
 				_parent = parent;
 				if (parent)
+				{
+					initialize();
 					handleUserHasAuthenticatedChange(false);
+				}
 			}
 			
 			private var _auth:Boolean = true;
@@ -74,7 +76,7 @@ Author: skolman
 				_auth = authenticated;
 				
 				if (passwordInput)
-					passwordInput.enabled = !authenticated;
+					enabled = !authenticated;
 				if (authenticated)
 				{
 					PopUpManager.removePopUp(this);
@@ -83,8 +85,14 @@ Author: skolman
 				{
 					if (passwordInput)
 						passwordInput.text = '';
+
 					PopUpManager.addPopUp(this, _parent, true);
 					PopUpManager.centerPopUp(this);
+					
+					if (connectionInput.text == '')
+						connectionInput.setFocus();
+					else
+						passwordInput.setFocus();
 				}
 			}
 			
@@ -92,12 +100,19 @@ Author: skolman
 			{
 				if (loginTimer == null)
 				{
-					loginTimer = new Timer(2500, 1);
+					loginTimer = new Timer(1000, 1);
 					loginTimer.addEventListener(TimerEvent.TIMER, handleLoginTimer);
+					
+					function handleLoginTimer(event:Event):void
+					{
+						// re-enable input if user has not authenticated successfully
+						if (!AdminInterface.instance.userHasAuthenticated)
+							enabled = true;
+					}
 				}
 				
-				// disable password, then re-enable after a delay if user didn't authenticate successfully.
-				passwordInput.enabled = false;
+				// disable, then re-enable after a delay if user didn't authenticate successfully.
+				enabled = false;
 				loginTimer.start();
 				
 				// authenticate with server
@@ -106,12 +121,6 @@ Author: skolman
 			
 			private var loginTimer:Timer = null;
 			
-			private function handleLoginTimer(event:Event):void
-			{
-				// re-enable password input if user has not authenticated successfully
-				if (!AdminInterface.instance.userHasAuthenticated)
-					passwordInput.enabled = true;
-			}
 		]]>
 	</mx:Script>
 	

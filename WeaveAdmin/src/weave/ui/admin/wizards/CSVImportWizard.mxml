@@ -37,7 +37,7 @@
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
 			<mx:Text text = "{fileStatus.text}" id="fileStatus"/>
 		</mx:HBox>
-		<admin:SQLTableSelectorDialog id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableOverwriteCheck.toolTip = StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP"/>
+		<admin:SQLTableSelectorDialog id="tableSelector" enabled="false" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" initialize="tableSelector.tableOverwriteCheck.toolTip = StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP"/>
 		<mx:HBox id="box1" enabled="false">
 			<mx:TextArea text="Name of key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true" />
 			<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
@@ -58,7 +58,7 @@
 		<mx:HBox id="box2" enabled="false">
 			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}" width="{indent}"/>
 			<mx:TextInput id="dataTableNameInput" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
-			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false" enabled="{AdminInterface.instance.currentUserIsManager}"/>
+			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</mx:HBox>
 		<admin:GeometryCollectionDialog id="geometrySelector" enabled="false" keyType="{tableSelector.activeTable}"/>
 	</mx:VBox>
@@ -198,9 +198,9 @@
 						csvSecondaryKeyColumnCombo.text,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
-						tableSelector.tableOverwriteCheck.selected && AdminInterface.instance.currentUserIsManager,
+						tableSelector.tableOverwriteCheck.selected,
 						dataTableNameInput.text,
-						dataTableOverwriteCheck.selected && AdminInterface.instance.currentUserIsManager,
+						dataTableOverwriteCheck.selected,
 						geometrySelector.selectedGeometryCollection,
 						geometrySelector.selectedKeyType,
 						nullFlagInput.text
