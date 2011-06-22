@@ -83,8 +83,6 @@ Author: skolman
 				}
 				else
 				{
-					if (passwordInput)
-
 					PopUpManager.addPopUp(this, _parent, true);
 					PopUpManager.centerPopUp(this);
 					

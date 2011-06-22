@@ -134,6 +134,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				AdminInterface.instance.saveConnectionInfoOnly(connectionInfo,true);
 				AdminInterface.instance.authenticate(connectionInfo.name, connectionInfo.pass);
 				
+					
 				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
 					connectionNameInput.text,
 					connectionPasswordInput.text,

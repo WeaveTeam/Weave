@@ -103,7 +103,6 @@ package weave.services
 		
 		
 		
-		
 		// functions for managing static settings
 		public function getConnectionNames(resetActiveConnection:Boolean = true):void
 		{
@@ -207,11 +206,8 @@ package weave.services
 		
 		
 
-
-
-
-
-
+		
+		
 
 
 		
@@ -342,7 +338,6 @@ package weave.services
 						dataTableNames = event.result as Array || [];
 				}
 			}
-			
 		}
 		
 		public function getDataTableInfo(dataTableName:String):DelayedAsyncInvocation
