@@ -24,7 +24,7 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 
-$('a[href$="https://github.com/IVPR/Weave-Binaries/zipball/1.0-beta"]').click(function(){
+$("a[href*='Weave-Binaries']").click(function(){
 		_gaq.push(['_trackEvent', 'Download', href.replace(/^.*\.(\w+)$/, "$1"), $(this).attr('href')])
 		});
 
