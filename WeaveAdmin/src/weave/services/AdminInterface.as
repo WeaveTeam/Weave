@@ -244,16 +244,17 @@ package weave.services
 		}
 		
 		
-		//This function only saves the connection and does not get the connection names like
+		//This function only saves the connection and does not get the connection names as defined in
 		//the saveConnectionInfo function. Incase the connection fails the user won't see the 
 		//other error messages if getConnectionNames function fails
-		public function saveConnectionInfoOnly(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
+		public function saveConnectionInfoOnly(connectionInfo:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			service.saveConnectionInfo(connectionInfo, configOverwrite);
+			var query:DelayedAsyncInvocation = service.saveConnectionInfo(connectionInfo, configOverwrite);
+			return query;
 			
 			//this to check if the saveConnectionInfo was successful. When the user adds the database for the first time, 
 			//the Admin Console needs to know so that it can then force the user to migrate to the database.
-			checkSQLConfigExists();
+//			checkSQLConfigExists();
 		}
 		
 		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void

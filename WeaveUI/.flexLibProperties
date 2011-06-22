@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="false" version="1">
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="1">
   <includeClasses>
     <classEntry path="MXClasses"/>
     <classEntry path="weave.Weave"/>
@@ -96,7 +96,6 @@
     <classEntry path="weave.utils.BitmapText"/>
     <classEntry path="weave.utils.BitmapUtils"/>
     <classEntry path="weave.utils.CustomCursorManager"/>
-    <classEntry path="weave.utils.DashedLine"/>
     <classEntry path="weave.utils.DrawUtils"/>
     <classEntry path="weave.utils.EditorManager"/>
     <classEntry path="weave.utils.PlotUtils"/>
