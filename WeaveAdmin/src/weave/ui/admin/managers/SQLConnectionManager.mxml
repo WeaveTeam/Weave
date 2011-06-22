@@ -25,7 +25,7 @@
 				width="100%" height="100%" 
 				label="{dataChanged?'Database connections*':'Database connections'}"
 				creationComplete="handleCreationComplete()"
-				visible="{AdminInterface.instance.currentUserIsManager == true || AdminInterface.instance.sqlConfigMigrated == false}">
+				>
 	<mx:VBox height="100%">
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
@@ -56,7 +56,7 @@
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
 				<ui:Indent indent="{_indent}">
-					<mx:CheckBox label="Grant Manager Permissions" id="isManagerCheckbox"/>					
+					<mx:CheckBox label="Grant Superuser Permissions" id="isSuperuserCheckbox"/>					
 				</ui:Indent>
 				<ui:Indent>
 					<mx:Button label="Save this database connection"
@@ -125,9 +125,9 @@
 				sqlConfigMigrated = AdminInterface.instance.sqlConfigMigrated;
 			}
 			
-			private function handleSQLConfigExists(val:Boolean):void
+			private function handleSQLConfigExists(exists:Boolean):void
 			{
-				if (val)
+				if (exists)
 				{
 					EventUtils.addBindCallback(AdminInterface.instance, "sqlConfigMigrated",forceSQLConfigMigrate);	
 				}
@@ -148,7 +148,8 @@
 					simpleSetting.enabled = false;
 					forceMigrateMessage.visible= true;
 					sqlConfigMigrated = false;
-				}else
+				}
+				else
 				{
 					simpleSetting.enabled = true;
 					forceMigrateMessage.visible = false;
@@ -185,32 +186,32 @@
 			{
 				
 				var query:DelayedAsyncInvocation = AdminInterface.instance.getConnectionInfo(treeWithSearch.tree.selectedItem.label);
-				query.addAsyncResponder(
-					function(event:ResultEvent, token:Object = null):void
-					{
-						var info:ConnectionInfo = new ConnectionInfo(event.result);
-						//Connection name
-						//connectionNameInput.text = tree.tree.selectedItem.label;
-						connectionNameInput.text = info.name;
-						//SQL Server Type
-						if ((info.dbms as String).toUpperCase() == "MYSQL")
-							connectionDBMSCombo.selectedIndex = 0;
-						else
-							connectionDBMSCombo.selectedIndex = 1;
-						//SQL Server Ip
-						connectionIPInput.text = info.ip;
-						//SQL Server Port
-						connectionPortInput.text = info.port;
-						//SQL Database Name
-						connectionDatabaseInput.text = info.database; 
-						//User Name
-						connectionUserInput.text = info.user;
-						//Password
-						connectionPasswordInput.text = info.pass;
-						// Super User
-						isManagerCheckbox.selected = info.is_manager == "true";
-					}
-				);
+				query.addAsyncResponder(handleResult);
+
+				function handleResult(event:ResultEvent, token:Object = null):void
+				{
+					var info:ConnectionInfo = new ConnectionInfo(event.result);
+					//Connection name
+					//connectionNameInput.text = tree.tree.selectedItem.label;
+					connectionNameInput.text = info.name;
+					//SQL Server Type
+					if ((info.dbms as String).toUpperCase() == "MYSQL")
+						connectionDBMSCombo.selectedIndex = 0;
+					else
+						connectionDBMSCombo.selectedIndex = 1;
+					//SQL Server Ip
+					connectionIPInput.text = info.ip;
+					//SQL Server Port
+					connectionPortInput.text = info.port;
+					//SQL Database Name
+					connectionDatabaseInput.text = info.database; 
+					//User Name
+					connectionUserInput.text = info.user;
+					//Password
+					connectionPasswordInput.text = info.pass;
+					// is superuser
+					isSuperuserCheckbox.selected = info.is_superuser;
+				}
 				
 				dataChanged = false;
 			}
@@ -248,7 +249,7 @@
 				info.database = connectionDatabaseInput.text;
 				info.user = connectionUserInput.text;
 				info.pass = connectionPasswordInput.text;
-				info.is_manager = (isManagerCheckbox.selected) ? "true" : "false";
+				info.is_superuser = isSuperuserCheckbox.selected;
 				
 				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected);
 				dataChanged = false;

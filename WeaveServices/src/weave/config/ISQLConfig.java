@@ -210,14 +210,15 @@ public interface ISQLConfig
 		public static final String DATABASE = "database";
 		public static final String USER = "user";
 		public static final String PASS = "pass";
-		public static final String IS_MANAGER = "is_manager";
+		public static final String IS_SUPERUSER = "is_superuser";
 		
 
 		public ConnectionInfo()
 		{
 		}
 
-		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "", is_manager="";
+		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "";
+		public boolean is_superuser = false;
 
 		public String getConnectString()
 		{
@@ -232,11 +233,6 @@ public interface ISQLConfig
 		public Connection getConnection() throws RemoteException
 		{
 			return SQLUtils.getConnection(SQLUtils.getDriver(dbms), getConnectString());
-		}
-		
-		public boolean isManager()
-		{
-			return is_manager.equalsIgnoreCase("true");
 		}
 	}
 

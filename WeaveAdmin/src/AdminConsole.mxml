@@ -42,69 +42,74 @@
 			import weave.ui.admin.wizards.SQLImportWizard;
 			import weave.utils.EventUtils;
 			
-			private function handleCreationComplete():void
-			{
-				loginPopup.show(this);
-				BindingUtils.bindSetter(handleSQLConfigExists, AdminInterface.instance, "sqlConfigExists");
-				BindingUtils.bindSetter(handleSQLConfigMigrated, AdminInterface.instance, "sqlConfigMigrated");
-				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this,handleMessageLog);
-			}
-			
-			private function handleMessageLog():void
-			{
-				messageTextArea.text = WeaveAdminService.messageLog.join('\n\n');
-				messageTextArea.validateProperties();
-				messageTextArea.verticalScrollPosition = messageTextArea.maxVerticalScrollPosition;
-				if (messageTextArea.height == 0)
-					messageTextArea.percentHeight = 15;
-			}
-			
-			private function handleSQLConfigExists(val:Boolean):void
-			{
-				if (!val)
-				{
-					var migrateViewStack:ForceMigrateWizard = new ForceMigrateWizard();
-					var migratePanel:WizardPanel = WizardPanel.createWizard(this, migrateViewStack) as WizardPanel;
-					
-					//we don't want the user to hit the close button before the migration step
-					//so we disable it.
-					migratePanel.cancelButton.visible = false;
-					
-					//When the user hits the finish button we will do a check to see if migration was sucessfull. 
-					//if yes, we close the wizard and direct the user to the client configuration tab
-					//if no, we will leave it open (in modal mode).
-					migrateViewStack.addEventListener(CloseEvent.CLOSE,function(..._):void{
-							tabNavigator.selectedChild = clientConfig;
-							PopUpManager.removePopUp(migratePanel);}
-					);
-					_sqlConfigMigrated = false;
-					//tabNavigator.selectedChild = sqlConnectionManager;
-				}
-			}
-			
 			[Bindable]
 			private var _sqlConfigMigrated:Boolean = true;
-			
-			private function handleSQLConfigMigrated(val:Boolean):void
-			{
-				if(!val)
-				{
-					_sqlConfigMigrated = false;
-					tabNavigator.selectedChild = sqlConnectionManager;
-				}
-				else
-				{
-					_sqlConfigMigrated = true;
-				}
-			}
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup = new LoginPopup();
 			
-			public static const CLIENT_CONFIGURATIONS:String = "CLIENT_CONFIGURATIONS";
-			public static const DATA_EDITOR:String = "DATA_EDITO";
-			public static const GEOMETRY_EDITOR:String = "GEOMETRY_EDITOR";
-			public static const SQL_CONNECTION_EDITOR:String = "SQL_CONNECTION_EDITOR";
+			private function handleCreationComplete():void
+			{
+				loginPopup.show(this);
+
+				BindingUtils.bindSetter(handleSQLConfigExists, AdminInterface.instance, "sqlConfigExists");
+				function handleSQLConfigExists(exists:Boolean):void
+				{
+					if (!exists)
+					{
+						var migrateViewStack:ForceMigrateWizard = new ForceMigrateWizard();
+						var migratePanel:WizardPanel = WizardPanel.createWizard(this, migrateViewStack) as WizardPanel;
+						
+						//we don't want the user to hit the close button before the migration step
+						//so we disable it.
+						migratePanel.cancelButton.visible = false;
+						
+						//When the user hits the finish button we will do a check to see if migration was sucessfull. 
+						//if yes, we close the wizard and direct the user to the client configuration tab
+						//if no, we will leave it open (in modal mode).
+						migrateViewStack.addEventListener(CloseEvent.CLOSE,function(..._):void{
+								tabNavigator.selectedChild = clientConfig;
+								PopUpManager.removePopUp(migratePanel);}
+						);
+						_sqlConfigMigrated = false;
+						//tabNavigator.selectedChild = sqlConnectionManager;
+					}
+				}
+
+				BindingUtils.bindSetter(handleSQLConfigMigrated, AdminInterface.instance, "sqlConfigMigrated");
+				function handleSQLConfigMigrated(migrated:Boolean):void
+				{
+					if (!migrated)
+					{
+						_sqlConfigMigrated = false;
+						AdminInterface.instance.currentUserIsSuperuser = true;
+						tabNavigator.selectedChild = sqlConnectionManager;
+					}
+					else
+					{
+						_sqlConfigMigrated = true;
+					}
+				}
+
+				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
+				function handleMessageLog():void
+				{
+					messageTextArea.text = WeaveAdminService.messageLog.join('\n\n');
+					messageTextArea.validateProperties();
+					messageTextArea.verticalScrollPosition = messageTextArea.maxVerticalScrollPosition;
+					if (messageTextArea.height == 0)
+						messageTextArea.percentHeight = 15;
+				}
+
+				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
+				function handlePermissionChange(isSuperuser:Boolean):void
+				{
+					if (isSuperuser && !tabNavigator.contains(sqlConnectionManager))
+						tabNavigator.addChild(sqlConnectionManager);
+					if (!isSuperuser && tabNavigator.contains(sqlConnectionManager))
+						tabNavigator.removeChild(sqlConnectionManager);
+				}
+			}
 		]]>
 	</mx:Script>
 	
@@ -132,10 +137,10 @@
 		<mx:HRule width="100%"/>
 		<mx:VDividedBox width="100%" height="100%" >
 			<mx:TabNavigator id="tabNavigator" width="100%" height="100%" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" fontSize="10">
-				<managers:ClientConfigurationManager  id="clientConfig" enabled="{_sqlConfigMigrated }"/>
-				<managers:DataTableManager  enabled="{_sqlConfigMigrated }"/>
-				<managers:GeometryCollectionManager  enabled="{_sqlConfigMigrated }"/>
-				<managers:SQLConnectionManager id="sqlConnectionManager" enabled="{_sqlConfigMigrated == false || AdminInterface.instance.currentUserIsManager}"/>
+				<managers:ClientConfigurationManager id="clientConfig" enabled="{_sqlConfigMigrated}"/>
+				<managers:DataTableManager enabled="{_sqlConfigMigrated}"/>
+				<managers:GeometryCollectionManager enabled="{_sqlConfigMigrated}"/>
+				<managers:SQLConnectionManager id="sqlConnectionManager"/>
 							
 			</mx:TabNavigator>
 			<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false">
