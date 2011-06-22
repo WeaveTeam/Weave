@@ -10,6 +10,8 @@ Issue Tracker: http://bugs.oicweave.org
 
 Nightly build: https://github.com/IVPR/Weave-Binaries/zipball/master
 
+Developer documentation: http://ivpr.github.com/Weave/asdoc/
+
 Components in this repository:
 
  * WeaveAPI: MPL tri-license, ActionScript interface classes
