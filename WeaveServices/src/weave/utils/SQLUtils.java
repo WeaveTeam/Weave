@@ -401,25 +401,12 @@ public class SQLUtils
 			Map<String,String> whereParams
 		) throws SQLException
 	{
-		CallableStatement cstmt = null;
-		ResultSet rs = null;
-		List<Map<String,String>> records = null;
-		try
-		{
-			cstmt = prepareCall(conn, null, fromSchema, fromTable, whereParams);
-			rs = cstmt.executeQuery();
-			records = getRecordsFromResultSet(rs);
-		}
-		finally
-		{
-			cleanup(rs);
-			cleanup(cstmt);
-		}
-		return records;
+		return getRecordsFromQuery(conn, null, fromSchema, fromTable, whereParams);
 	}
 	
 	/**
 	 * @param conn An existing SQL Connection
+	 * @param selectColumns The list of column names 
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
