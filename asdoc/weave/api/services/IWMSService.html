@@ -1,0 +1,411 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
+<link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
+<meta content="IWMSService,weave.api.services.IWMSService,cancelPendingRequests,clearTilingIndex,getAllowedBounds,getCreditInfo,getNumPendingRequests,getProjectionSRS,getProvider,requestImages,setProvider" name="keywords">
+<title>weave.api.services.IWMSService</title>
+</head>
+<body>
+<script type="text/javascript" language="javascript" src="../../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../../cookies.js"></script><script type="text/javascript" language="javascript">
+<!--
+				asdocTitle = 'IWMSService - Weave AS3 documentation';
+				var baseRef = '../../../';
+				window.onload = configPage;
+			--></script>
+<table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
+<tr>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../index-list.html')" href="../../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../../index.html?weave/api/services/IWMSService.html&amp;weave/api/services/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../../images/logo.jpg"></td>
+</tr>
+<tr class="titleTableRow2">
+<td align="left" id="subTitle" class="titleTableSubTitle">Interface&nbsp;IWMSService</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a></td>
+</tr>
+<tr class="titleTableRow3">
+<td colspan="2">&nbsp;</td>
+</tr>
+</table>
+<script type="text/javascript" language="javascript">
+<!--
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Interface IWMSService"); titleBar_setSubNav(false,true,false,false,false,false,true,false,false,false,false,false,false,false);}
+--></script>
+<div class="MainContent">
+<table cellspacing="0" cellpadding="0" class="classHeaderTable">
+<tr>
+<td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.api.services</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IWMSService extends <a href="../core/ICallbackCollection.html">ICallbackCollection</a>, <a href="../core/ICallbackInterface.html">ICallbackInterface</a>, <a href="../core/ILinkableObject.html">ILinkableObject</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Implementors</td><td><a href="../../services/wms/AbstractWMS.html">AbstractWMS</a>, <a href="../../services/wms/ModestMapsWMS.html">ModestMapsWMS</a>, <a href="../../services/wms/OnEarthProvider.html">OnEarthProvider</a></td>
+</tr>
+</table>
+<p></p>
+  This is the interface for WMS services. We require each WMS service to provide
+  at least two public functions. Any callbacks added to this service will run when
+  a new image is downloaded.
+  
+  <p></p>
+<br>
+<hr>
+</div>
+<a name="propertySummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Properties</div>
+<div class="showHideLinks">
+<div class="hideInheritedProperty" id="hideInheritedProperty">
+<a onclick="javascript:setInheritedVisible(false,'Property');" href="#propertySummary" class="showHideLink"><img src="../../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Public Properties</a>
+</div>
+<div class="showInheritedProperty" id="showInheritedProperty">
+<a onclick="javascript:setInheritedVisible(true,'Property');" href="#propertySummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Properties</a>
+</div>
+</div>
+<table id="summaryTableProperty" class="summaryTable hideInheritedProperty" cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../core/ICallbackCollection.html#callbacksAreDelayed">callbacksAreDelayed</a> : Boolean<div class="summaryTableDescription">
+   While this is true, it means the delay count is greater than zero and the effects of
+   triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../core/ICallbackInterface.html#callbacksWereTriggered">callbacksWereTriggered</a> : Boolean<div class="summaryTableDescription">
+   This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackInterface.html">ICallbackInterface</a></td>
+</tr>
+</table>
+</div>
+<a name="methodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Methods</div>
+<div class="showHideLinks">
+<div class="hideInheritedMethod" id="hideInheritedMethod">
+<a onclick="javascript:setInheritedVisible(false,'Method');" href="#methodSummary" class="showHideLink"><img src="../../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Public Methods</a>
+</div>
+<div class="showInheritedMethod" id="showInheritedMethod">
+<a onclick="javascript:setInheritedVisible(true,'Method');" href="#methodSummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Methods</a>
+</div>
+</div>
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="../core/ICallbackInterface.html#addGroupedCallback()">addGroupedCallback</a>(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void</div>
+<div class="summaryTableDescription">
+   This function will add a callback that will be delayed except during a scheduled time each frame.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackInterface.html">ICallbackInterface</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="../core/ICallbackInterface.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void</div>
+<div class="summaryTableDescription">
+   This function will add a callback using the given function and parameters.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackInterface.html">ICallbackInterface</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#cancelPendingRequests()">cancelPendingRequests</a>():void</div>
+<div class="summaryTableDescription">
+   This function will cancel all the pending requests.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#clearTilingIndex()">clearTilingIndex</a>():void</div>
+<div class="summaryTableDescription">
+   Reset the associated tiling index for this service.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="../core/ICallbackCollection.html#delayCallbacks()">delayCallbacks</a>():void</div>
+<div class="summaryTableDescription">
+   This will increase the delay count by 1.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getAllowedBounds()">getAllowedBounds</a>():<a href="../primitives/IBounds2D.html">IBounds2D</a>
+</div>
+<div class="summaryTableDescription">
+   Return the bounds which contains all valid tile requests.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getCreditInfo()">getCreditInfo</a>():String</div>
+<div class="summaryTableDescription">
+   Get a string which contains copyright information for the
+   service.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getNumPendingRequests()">getNumPendingRequests</a>():int</div>
+<div class="summaryTableDescription">
+   This function will return the number of pending requests.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getProjectionSRS()">getProjectionSRS</a>():String</div>
+<div class="summaryTableDescription">
+   This function will return the SRS code of the tile requests.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getProvider()">getProvider</a>():*</div>
+<div class="summaryTableDescription">
+   Gets the provider object.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="../core/ICallbackInterface.html#removeCallback()">removeCallback</a>(callback:Function):void</div>
+<div class="summaryTableDescription">
+   This function will remove a callback that was previously added.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackInterface.html">ICallbackInterface</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#requestImages()">requestImages</a>(dataBounds:<a href="../primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../primitives/IBounds2D.html">IBounds2D</a>):Array</div>
+<div class="summaryTableDescription">
+   This function will make the requests for new images.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="../core/ICallbackCollection.html#resumeCallbacks()">resumeCallbacks</a>(undoAllDelays:Boolean = false):void</div>
+<div class="summaryTableDescription">
+   This will decrease the delay count if it is greater than zero.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#setProvider()">setProvider</a>(provider:String):void</div>
+<div class="summaryTableDescription">
+   This function will set the provider of the service.</div>
+</td><td class="summaryTableOwnerCol">IWMSService</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="../core/ICallbackCollection.html#triggerCallbacks()">triggerCallbacks</a>():void</div>
+<div class="summaryTableDescription">
+   This will trigger every callback function to be called with their saved arguments.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
+</table>
+</div>
+<script type="text/javascript" language="javascript">
+<!--
+showHideInherited();
+--></script>
+<div class="MainContent">
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="cancelPendingRequests()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">cancelPendingRequests</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function cancelPendingRequests():void</code><p>
+   This function will cancel all the pending requests.
+   </p></div>
+<a name="clearTilingIndex()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">clearTilingIndex</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function clearTilingIndex():void</code><p>
+   Reset the associated tiling index for this service.
+   </p></div>
+<a name="getAllowedBounds()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getAllowedBounds</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getAllowedBounds():<a href="../primitives/IBounds2D.html">IBounds2D</a></code><p>
+   Return the bounds which contains all valid tile requests.
+   
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../primitives/IBounds2D.html">IBounds2D</a></code> &mdash; 
+                        A Bounds2D object which covers the entire bounds. If a tile request is 
+   not contained inside this bounds, the request is invalid.
+   
+                        
+                     </td>
+</tr>
+</table>
+</div>
+<a name="getCreditInfo()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getCreditInfo</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getCreditInfo():String</code><p>
+   Get a string which contains copyright information for the
+   service.
+   
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>String</code> &mdash; A string which contains the copyright information 
+   for the provider.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getNumPendingRequests()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getNumPendingRequests</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getNumPendingRequests():int</code><p>
+   This function will return the number of pending requests.
+   
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>int</code> &mdash; The number of pending requests for this service.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getProjectionSRS()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getProjectionSRS</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getProjectionSRS():String</code><p>
+   This function will return the SRS code of the tile requests.
+   
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>String</code> &mdash; A string corresponding to a projection SRS code.
+   eg) EPSG:4326
+   </td>
+</tr>
+</table>
+</div>
+<a name="getProvider()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getProvider</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getProvider():*</code><p>
+   Gets the provider object.
+   
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; An IMapProvider object if there is one.
+   </td>
+</tr>
+</table>
+</div>
+<a name="requestImages()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">requestImages</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function requestImages(dataBounds:<a href="../primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../primitives/IBounds2D.html">IBounds2D</a>):Array</code><p>
+   This function will make the requests for new images.
+   
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">dataBounds</span>:<a href="../primitives/IBounds2D.html">IBounds2D</a></code> &mdash; The bounds of the data.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">screenBounds</span>:<a href="../primitives/IBounds2D.html">IBounds2D</a></code> &mdash; The bounds of the screen. This is required to determine
+   the appropriate zoom level.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An array of downloaded images. The array is filled with lower quality images followed by
+   the requested quality. These images may overlap.
+   </td>
+</tr>
+</table>
+</div>
+<a name="setProvider()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">setProvider</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function setProvider(provider:String):void</code><p>
+   This function will set the provider of the service.
+      </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">provider</span>:String</code> &mdash; The name of the provider. 
+   </td>
+</tr>
+</table>
+</div>
+<br>
+<br>
+<hr>
+<br>
+<p></p>
+<center class="copyright"> 
+</center>
+</div>
+</body>
+</html>
+<!-- -->
