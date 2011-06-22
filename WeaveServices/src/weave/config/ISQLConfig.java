@@ -76,9 +76,8 @@ public interface ISQLConfig
 
 	/**
 	 * Gets the names of all connections in this configuration
-	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
-	List<String> getConnectionNames(String connectionName) throws RemoteException;
+	List<String> getConnectionNames() throws RemoteException;
 
 	/**
 	 * Gets the names of all geometry collections in this configuration
@@ -88,6 +87,7 @@ public interface ISQLConfig
 
 	/**
 	 * Gets the names of all data tables in this configuration
+	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
 	List<String> getDataTableNames(String connectionName) throws RemoteException;
 
@@ -139,10 +139,7 @@ public interface ISQLConfig
 	 * Looks up a geometry collection in this configuration by name
 	 * 
 	 * @param geometryCollection
-	 *        The name of a geometryCollection configuration entry.
-	 * @param connectionName
-	 *        The name of the connection which this geometry resides. If this is null, then this
-	 *        function will return the info for any geometry collection.
+	 *            The name of a geometryCollection configuration entry.
 	 * @return An object containing the configuration for the specified
 	 *         geometryCollection.
 	 * @throws RemoteException
@@ -273,7 +270,6 @@ public interface ISQLConfig
 		public static enum Metadata
 		{
 			NAME("name"),
-			CONNECTION("connection"),
 			KEYTYPE("keyType"),
 			DATATYPE("dataType"),
 			DATATABLE("dataTable"),

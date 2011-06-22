@@ -344,9 +344,8 @@ public class SQLConfigXML implements ISQLConfig
 		}
 	}
 
-	synchronized public List<String> getConnectionNames(String connectionName)
+	synchronized public List<String> getConnectionNames()
 	{
-		// TODO handle connectionName
 		validateCache();
 		return Arrays.asList(connectionCache.keySet().toArray(new String[0]));
 	}
@@ -354,7 +353,9 @@ public class SQLConfigXML implements ISQLConfig
 	// list all geometryCollections
 	synchronized public List<String> getGeometryCollectionNames(String connectionName)
 	{
-		// TODO handle connectionName
+		// don't bother filtering the results because this class will only ever
+		// be used for migrating the xml to a database, and in that case we don't
+		// want to filter out any entries
 		validateCache();
 		List<String> names = Arrays.asList(geometryCollectionCache.keySet().toArray(new String[0]));
 		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
@@ -364,7 +365,9 @@ public class SQLConfigXML implements ISQLConfig
 	// list all dataTables
 	synchronized public List<String> getDataTableNames(String connectionName)
 	{
-		// TODO handle connectionName
+		// don't bother filtering the results because this class will only ever
+		// be used for migrating the xml to a database, and in that case we don't
+		// want to filter out any entries
 		validateCache();
 		List<String> names = Arrays.asList(dataTableCache.keySet().toArray(new String[0]));
 		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);

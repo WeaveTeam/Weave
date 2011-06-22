@@ -272,7 +272,7 @@ public class SQLConfigUtils
 		if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_CONNECTION))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getConnectionNames(null)) < 0)
+			if (ListUtils.findString(entryName, source.getConnectionNames()) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			ConnectionInfo info = source.getConnectionInfo(entryName);

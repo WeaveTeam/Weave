@@ -1,21 +1,10 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Weave (Web-based Analysis and Visualization Environment) Copyright (C) 2008-2011 University of Massachusetts Lowell This file is a part of Weave.
+ * Weave is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License, Version 3, as published by the
+ * Free Software Foundation. Weave is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the
+ * GNU General Public License along with Weave. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package weave.config;
 
@@ -41,14 +30,14 @@ import weave.utils.SQLUtils;
 import org.w3c.dom.*;
 
 /**
- * DatabaseConfig This class reads from an SQL database and provides an
- * interface to retrieve strings.
+ * DatabaseConfig This class reads from an SQL database and provides an interface to retrieve strings.
  * 
  * @author Andrew Wilkinson
  * @author Andy Dufilie
  */
 
-public class DatabaseConfig implements ISQLConfig
+public class DatabaseConfig
+		implements ISQLConfig
 {
 	private DatabaseConfigInfo dbInfo = null;
 
@@ -57,8 +46,7 @@ public class DatabaseConfig implements ISQLConfig
 												// getConnection() instead.
 
 	/**
-	 * This function gets a connection to the database containing the
-	 * configuration information. This function will reuse a previously created
+	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
 	 * Connection if it is still valid.
 	 * 
 	 * @return A Connection to the SQL database.
@@ -71,24 +59,17 @@ public class DatabaseConfig implements ISQLConfig
 	}
 
 	/**
-	 * @param connectionConfig
-	 *            An ISQLConfig instance that contains connection information.
-	 *            This is required because the connection information is not
+	 * @param connectionConfig An ISQLConfig instance that contains connection information. This is required because the connection information is not
 	 *            stored in the database.
-	 * @param connection
-	 *            The name of a connection in connectionConfig to use for
-	 *            storing and retrieving the data configuration.
-	 * @param schema
-	 *            The schema that the data configuration is stored in.
-	 * @param geometryConfigTable
-	 *            The table that stores the configuration for geometry
-	 *            collections.
-	 * @param dataConfigTable
-	 *            The table that stores the configuration for data tables.
+	 * @param connection The name of a connection in connectionConfig to use for storing and retrieving the data configuration.
+	 * @param schema The schema that the data configuration is stored in.
+	 * @param geometryConfigTable The table that stores the configuration for geometry collections.
+	 * @param dataConfigTable The table that stores the configuration for data tables.
 	 * @throws SQLException
 	 * @throws InvalidParameterException
 	 */
-	public DatabaseConfig(ISQLConfig connectionConfig) throws RemoteException, SQLException, InvalidParameterException
+	public DatabaseConfig(ISQLConfig connectionConfig)
+			throws RemoteException, SQLException, InvalidParameterException
 	{
 		// save original db config info
 		dbInfo = connectionConfig.getDatabaseConfigInfo();
@@ -129,9 +110,9 @@ public class DatabaseConfig implements ISQLConfig
 	private void initGeometryCollectionSQLTable() throws SQLException, RemoteException
 	{
 		// list column names
-		List<String> columnNames = Arrays.asList(GeometryCollectionInfo.NAME, GeometryCollectionInfo.CONNECTION,
-				GeometryCollectionInfo.SCHEMA, GeometryCollectionInfo.TABLEPREFIX, GeometryCollectionInfo.KEYTYPE,
-				GeometryCollectionInfo.PROJECTION, GeometryCollectionInfo.IMPORTNOTES);
+		List<String> columnNames = Arrays.asList(
+				GeometryCollectionInfo.NAME, GeometryCollectionInfo.CONNECTION, GeometryCollectionInfo.SCHEMA, GeometryCollectionInfo.TABLEPREFIX,
+				GeometryCollectionInfo.KEYTYPE, GeometryCollectionInfo.PROJECTION, GeometryCollectionInfo.IMPORTNOTES);
 
 		// list corresponding column types
 		List<String> columnTypes = new Vector<String>();
@@ -153,7 +134,8 @@ public class DatabaseConfig implements ISQLConfig
 			}
 			catch (SQLException e)
 			{
-				// we don't care if this fails -- assume the table has the column already.
+				// we don't care if this fails -- assume the table has the
+				// column already.
 			}
 		}
 		else
@@ -198,7 +180,7 @@ public class DatabaseConfig implements ISQLConfig
 		{
 			// ignore sql errors
 		}
-		
+
 		// TODO: create auto-incrementing primary key: "id" int4 NOT NULL
 		// DEFAULT nextval('weave_attributecolumn_id_seq'::regclass)
 	}
@@ -233,9 +215,9 @@ public class DatabaseConfig implements ISQLConfig
 		return connectionConfig.getAccessLogTable();
 	}
 
-	public List<String> getConnectionNames(String connectionName) throws RemoteException
+	public List<String> getConnectionNames() throws RemoteException
 	{
-		return connectionConfig.getConnectionNames(connectionName);
+		return connectionConfig.getConnectionNames();
 	}
 
 	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
@@ -243,7 +225,6 @@ public class DatabaseConfig implements ISQLConfig
 		List<String> names;
 		try
 		{
-			//System.out.println("getGeometryCollectionNames:\t connectionName is " + connectionName);
 			if (connectionName == null)
 			{
 				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
@@ -253,15 +234,14 @@ public class DatabaseConfig implements ISQLConfig
 				Map<String, String> whereParams = new HashMap<String, String>();
 				whereParams.put(GeometryCollectionInfo.CONNECTION, connectionName);
 
-				List<String> selectColumns = new LinkedList<String>();
-				selectColumns.add(GeometryCollectionInfo.NAME.toString());
-				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(getConnection(), selectColumns, 
-						dbInfo.schema, dbInfo.geometryConfigTable, whereParams );
+				List<String> selectColumns = Arrays.asList(GeometryCollectionInfo.NAME.toString());
+				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(
+						getConnection(), selectColumns, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
 
 				HashSet<String> hashSet = new HashSet<String>();
 				for (Map<String, String> mapping : columnRecords)
 				{
-					String geomName = mapping.get(GeometryCollectionInfo.NAME.toString());	 
+					String geomName = mapping.get(GeometryCollectionInfo.NAME.toString());
 					hashSet.add(geomName);
 				}
 				names = new Vector<String>(hashSet);
@@ -280,11 +260,10 @@ public class DatabaseConfig implements ISQLConfig
 		List<String> names;
 		try
 		{
-			System.out.println("getDataTableNames:\tconnectionName is " + connectionName); 
+			System.out.println("getDataTableNames:\tconnectionName is " + connectionName);
 			if (connectionName == null)
 			{
-				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable,
-						Metadata.DATATABLE.toString());
+				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, Metadata.DATATABLE.toString());
 				// return unique names
 				names = new Vector<String>(new HashSet<String>(names));
 			}
@@ -296,8 +275,8 @@ public class DatabaseConfig implements ISQLConfig
 
 				List<String> selectColumns = new LinkedList<String>();
 				selectColumns.add(Metadata.DATATABLE.toString());
-				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(getConnection(), selectColumns, 
-						dbInfo.schema, dbInfo.dataConfigTable, whereParams );
+				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(
+						getConnection(), selectColumns, dbInfo.schema, dbInfo.dataConfigTable, whereParams);
 
 				HashSet<String> hashSet = new HashSet<String>();
 				for (Map<String, String> mapping : columnRecords)
@@ -306,7 +285,7 @@ public class DatabaseConfig implements ISQLConfig
 					hashSet.add(tableName);
 				}
 				names = new Vector<String>(hashSet);
-			}		
+			}
 			Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
 			return names;
 		}
@@ -321,10 +300,8 @@ public class DatabaseConfig implements ISQLConfig
 		try
 		{
 			Connection conn = getConnection();
-			List<String> dtKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable,
-					Metadata.KEYTYPE.toString());
-			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable,
-					GeometryCollectionInfo.KEYTYPE);
+			List<String> dtKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, Metadata.KEYTYPE.toString());
+			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.KEYTYPE);
 
 			Set<String> uniqueValues = new HashSet<String>();
 			uniqueValues.addAll(dtKeyTypes);
@@ -367,7 +344,7 @@ public class DatabaseConfig implements ISQLConfig
 			valueMap.put(GeometryCollectionInfo.KEYTYPE, info.keyType);
 			valueMap.put(GeometryCollectionInfo.PROJECTION, info.projection);
 			valueMap.put(GeometryCollectionInfo.IMPORTNOTES, info.importNotes);
-				
+
 			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, valueMap);
 		}
 		catch (Exception e)
@@ -430,10 +407,10 @@ public class DatabaseConfig implements ISQLConfig
 		params.put(GeometryCollectionInfo.NAME, geometryCollectionName);
 		try
 		{
-			List<Map<String,String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, params);
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, params);
 			if (records.size() > 0)
 			{
-				Map<String,String> record = records.get(0);
+				Map<String, String> record = records.get(0);
 				GeometryCollectionInfo info = new GeometryCollectionInfo();
 				info.name = record.get(GeometryCollectionInfo.NAME);
 				info.connection = record.get(GeometryCollectionInfo.CONNECTION);
@@ -478,8 +455,7 @@ public class DatabaseConfig implements ISQLConfig
 	}
 
 	/**
-	 * @return A list of AttributeColumnInfo objects having info that matches
-	 *         the given parameters.
+	 * @return A list of AttributeColumnInfo objects having info that matches the given parameters.
 	 */
 	public List<AttributeColumnInfo> getAttributeColumnInfo(Map<String, String> metadataQueryParams) throws RemoteException
 	{
@@ -489,8 +465,9 @@ public class DatabaseConfig implements ISQLConfig
 			DebugTimer t = new DebugTimer();
 			t.report("getAttributeColumnInfo");
 			// get rows matching given parameters
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
-			t.lap(metadataQueryParams+"; got records "+records.size());
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(
+					getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
+			t.lap(metadataQueryParams + "; got records " + records.size());
 			for (int i = 0; i < records.size(); i++)
 			{
 				Map<String, String> metadata = records.get(i);
@@ -504,22 +481,29 @@ public class DatabaseConfig implements ISQLConfig
 					t.start();
 					String geomName = metadata.get(Metadata.GEOMETRYCOLLECTION.toString());
 
-					// we don't care if the below fails because we still want to return as much information as possible
-					GeometryCollectionInfo geomInfo;
-					try { geomInfo = getGeometryCollectionInfo(geomName); } catch (Exception e) { geomInfo = null; }
-					
-					t.lap("get geom info "+i+" "+geomName);
+					GeometryCollectionInfo geomInfo = null;
+					// we don't care if the following line fails because we
+					// still want to return as much information as possible
+					try
+					{
+						geomInfo = getGeometryCollectionInfo(geomName);
+					}
+					catch (Exception e)
+					{
+					}
+
+					t.lap("get geom info " + i + " " + geomName);
 					if (geomInfo != null)
 						metadata.put(Metadata.KEYTYPE.toString(), geomInfo.keyType);
 				}
 
 				// remove null values and empty values
-//				for (String key : metadata.keySet().toArray(new String[0]))
-//				{
-//					String value = metadata.get(key);
-//					if (value == null || value.length() == 0)
-//						metadata.remove(key);
-//				}
+				// for (String key : metadata.keySet().toArray(new String[0]))
+				// {
+				// String value = metadata.get(key);
+				// if (value == null || value.length() == 0)
+				// metadata.remove(key);
+				// }
 
 				results.add(new AttributeColumnInfo(connection, sqlQuery, metadata));
 			}

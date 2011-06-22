@@ -113,7 +113,7 @@ public class AdminService extends GenericServlet
 		try
 		{
 			configManager.detectConfigChanges();
-			if (configManager.getConfig().getConnectionNames(null).size() == 0)
+			if (configManager.getConfig().getConnectionNames().size() == 0)
 				return new AdminServiceResponse(false, welcomeMessage); 
 				
 			return new AdminServiceResponse(true, configFile.getName() + " exists.");
@@ -136,7 +136,14 @@ public class AdminService extends GenericServlet
 
 	synchronized public boolean checkDatabaseConfigExists() throws RemoteException
 	{
-		try { configManager.detectConfigChanges(); } catch (Exception e) { return false; }
+		try
+		{
+			configManager.detectConfigChanges();
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
 		ISQLConfig config = configManager.getConfig();
 		return config.getDatabaseConfigInfo() != null;
 	}
@@ -359,12 +366,10 @@ public class AdminService extends GenericServlet
 		// if the connection name is a user with privileges, return all of the connections
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
 		if (cInfo.is_superuser)
-			return ListUtils.toStringArray(config.getConnectionNames(connectionName));
+			return ListUtils.toStringArray(config.getConnectionNames());
 		
 		// otherwise return just this one
-		String[] returnValue = new String[1];
-		returnValue[0] = connectionName;
-		return returnValue;
+		return new String[]{connectionName};
 	}
 	
 	synchronized public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
@@ -441,7 +446,7 @@ public class AdminService extends GenericServlet
 		info.is_superuser = newUserIsSuperuser;
 		
 		// if the connection already exists AND (overwrite == false OR user lacks privileges) throw error
-		if (	(ListUtils.findString(info.name, config.getConnectionNames(null)) >= 0)
+		if (	(ListUtils.findString(info.name, config.getConnectionNames()) >= 0)
 				&& (configOverwrite == false || !currentUserIsSuperuser)	)
 		{
 			throw new RemoteException(String
@@ -454,7 +459,7 @@ public class AdminService extends GenericServlet
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, info.name);
 
 			// do not delete if this is the last user (which must be a superuser)
-			List<String> connectionNames = config.getConnectionNames(null);
+			List<String> connectionNames = config.getConnectionNames();
 			
 			// check for number of superusers
 			int numSuperUsers = 0;
@@ -498,12 +503,12 @@ public class AdminService extends GenericServlet
 		
 		try
 		{
-			if (ListUtils.findString(connectionNameToRemove, config.getConnectionNames(null)) < 0)
+			if (ListUtils.findString(connectionNameToRemove, config.getConnectionNames()) < 0)
 				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, connectionNameToRemove);
 			
 			// do not delete if this is the last user (which must be a superuser)
-			List<String> connectionNames = config.getConnectionNames(null);
+			List<String> connectionNames = config.getConnectionNames();
 			if (connectionNames.size() == 1)
 				throw new RemoteException("Cannot remove the only connection.");
 			
