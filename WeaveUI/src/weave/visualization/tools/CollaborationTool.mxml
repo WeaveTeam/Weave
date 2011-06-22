@@ -51,6 +51,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public static var room:Room;
 			
 			public static var connection:XMPPConnection;
+			public static var roster:Roster;
 			
 			private var reg:Object;
 			private var selfJID:String;
@@ -75,6 +76,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				log.text += "connecting to " + ip + "...\n";
 				connection = new XMPPConnection();
+				roster = new Roster(connection);
 				
 				connection.useAnonymousLogin = true;
 				connection.server = ip;
@@ -86,16 +88,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connection.addEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
 				connection.addEventListener(MessageEvent.MESSAGE, onReceiveMessage);
 				
-				connection.addEventListener(RegistrationFieldsEvent.REG_FIELDS, regFields);
-				
+				roster.addEventListener(RosterEvent.ROSTER_LOADED, rosterLoad);
 				connection.connect();
-				
 			}
-		
-			private function regFields(e:RegistrationFieldsEvent):void
+	
+			private function rosterLoad(e:RosterEvent):void
 			{
-				trace("this happened:" + e.fields);
+				trace("roster loaded: ", e.toString(), roster.length, roster.source, roster.toArray());
 			}
+			
 			
 			/**
 			 * Called after login but before room join.
@@ -121,6 +122,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				log.text += "joined room: " + roomToJoin + "\n";
 				room = new Room(connection);
+
 				room.nickname = "tkiley";
 				log.text += "set alias to: " + room.nickname + "\n";
 				room.roomJID = new UnescapedJID(name+compName);
@@ -128,7 +130,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
 				room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
-				room.password = "berf"
 				room.join();
 				trace("joining room");
 			}
@@ -143,7 +144,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// Get the ID that everyone sees us as
 				// Used to filter out messages that we sent
 				selfJID = room.userJID.resource;
-	
 				trace("Joined room.");	
 			}
 			
