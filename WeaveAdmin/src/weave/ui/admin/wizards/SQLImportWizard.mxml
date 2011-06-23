@@ -76,7 +76,7 @@
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						keyColumnComboBox.text,
-						sqlSecondaryKeyColumnCombo.text,
+						secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.text : null,
 						tableNameInput.text,
 						tableNameOverwriteCheck.selected,
 						geometrySelector.selectedGeometryCollection,

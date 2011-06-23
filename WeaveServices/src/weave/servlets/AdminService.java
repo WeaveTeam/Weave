@@ -1420,13 +1420,12 @@ public class AdminService extends GenericServlet
 		// dataColumn,
 		// SQLUtils.quoteSchemaTable(dbms, schema, table),
 		// keyColumn, keyColumn);
-		if(secondaryKeyColumn == null)
+		if (secondaryKeyColumn == null)
 			secondaryKeyColumn = "";
-		if(secondaryKeyColumn != "")
+		if (secondaryKeyColumn.length() > 0)
 			secondaryKeyColumn = "," + secondaryKeyColumn;
 
-		return String.format("SELECT %s,%s%s FROM %s", keyColumn, SQLUtils.quoteSymbol(dbms, dataColumn), secondaryKeyColumn, SQLUtils
-				.quoteSchemaTable(dbms, schema, table));
+		return String.format("SELECT %s,%s%s FROM %s", keyColumn, SQLUtils.quoteSymbol(dbms, dataColumn), secondaryKeyColumn, SQLUtils.quoteSchemaTable(dbms, schema, table));
 	}
 
 	/**
@@ -1518,7 +1517,7 @@ public class AdminService extends GenericServlet
 		// add SQL statements to sqlconfig
 		List<String> columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName);
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
-				configGeometryCollectionName, configKeyType, keyColumnsString, "",columnNames, columnNames, sqlSchema,
+				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
 				dbfTableName);
 
 		return resultAddSQL

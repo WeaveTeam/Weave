@@ -184,6 +184,7 @@
 			private function handleGetCSVColumnNames(e:ResultEvent, token:Object = null):void
 			{
 				csvKeyColumnCombo.dataProvider = e.result;
+				csvSecondaryKeyColumnCombo.dataProvider = e.result;
 			}
 			
 			
@@ -191,11 +192,11 @@
 			 * Adds the new CSV file to the server configuration, then adds the Dublin Core metadata (if any).
 			 */
 			override public function finish():void
-			{				
+			{
 				var query:DelayedAsyncInvocation = AdminInterface.instance.importCSV(
 						csvFileNameInput.text,
 						csvKeyColumnCombo.text,
-						csvSecondaryKeyColumnCombo.text,
+						secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						tableSelector.tableOverwriteCheck.selected,
