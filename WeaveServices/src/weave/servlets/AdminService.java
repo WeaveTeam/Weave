@@ -459,7 +459,7 @@ public class AdminService extends GenericServlet
 		return config.getDatabaseConfigInfo();
 	}
 
-	synchronized public AdminServiceResponse migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
+	synchronized public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
 	{
 		checkPasswordAndGetConfig(connectionName, password);
 
@@ -485,13 +485,13 @@ public class AdminService extends GenericServlet
 		{
 			e.printStackTrace();
 			if (count > 0)
-				return new AdminServiceResponse(false,"Migrated " + count + " items then failed"+ e.getMessage());
-			return new AdminServiceResponse(false,"Migration failed +" + e.getMessage());
+				throw new RemoteException("Migrated " + count + " items then failed", e);
+			throw new RemoteException("Migration failed", e);
 		}
 
-		return new AdminServiceResponse(true,count
+		return count
 				+ " items were copied from " + new File(configFileName).getName()
-				+ " into the database.  The admin console will now use the specified database connection to store further configuration entries.");
+				+ " into the database.  The admin console will now use the specified database connection to store further configuration entries.";
 	}
 
 	// /////////////////////////////////////////////////

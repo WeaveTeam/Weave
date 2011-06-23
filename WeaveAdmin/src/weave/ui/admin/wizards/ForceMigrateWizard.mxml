@@ -140,10 +140,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					migrateDataConfigInput.text
 				);
 				
-				//dispatch close event if migration is successfull
-				query.addAsyncResponder(function(result:ResultEvent,token:Object = null):void{
+				//dispatch close event if migration is successful
+				query.addAsyncResponder(handleResult);
+				function handleResult(result:ResultEvent,token:Object = null):void
+				{
 					dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
-				});
+				}
 			}
 			
 		]]>
