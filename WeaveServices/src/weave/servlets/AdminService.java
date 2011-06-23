@@ -279,9 +279,8 @@ public class AdminService extends GenericServlet
 
 	synchronized public String saveWeaveFile(String connectionName, String password, String fileContents, String xmlFile, boolean overwriteFile) throws RemoteException
 	{
-		// if overwriteFile is false, never overwrite
-		// if overwriteFile is true, overwrite only if use has privileges
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		// allow overwrite only if superuser
 		overwriteFile = overwriteFile && config.getConnectionInfo(connectionName).is_superuser;
 		
 		// 5.2 client web page configuration file ***.xml
@@ -366,7 +365,7 @@ public class AdminService extends GenericServlet
 		// if the connection name is a user with privileges, return all of the connections
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
 		if (cInfo.is_superuser)
-			return ListUtils.toStringArray(config.getConnectionNames());
+			return ListUtils.toStringArray(getSortedUniqueValues(config.getConnectionNames(), false));
 		
 		// otherwise return just this one
 		return new String[]{connectionName};
