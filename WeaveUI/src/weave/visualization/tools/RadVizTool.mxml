@@ -26,20 +26,20 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.registerLinkableChild;
-			import weave.api.linkBindableProperty;
-			import weave.utils.ColumnUtils;
 			import mx.events.FlexEvent;
 			
 			import weave.Weave;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
-			import weave.api.getCallbackCollection;
-			import weave.api.newLinkableChild;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.api.data.IAttributeColumn;
 			import weave.ui.DraggablePanel;
+			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.RadVizPlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
@@ -79,16 +79,25 @@
 				super.childrenCreated();
 
 				columnList.hashMap = _plotter.columns;
+				(radiusComponent as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn;
 				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
+				
+				linkBindableProperty(_plotter.defaultScreenRadius, sizeSlider, 'value');
+			}
+			
+			public function get colorColumn():DynamicColumn
+			{
+				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				return fc.internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color","Anchor Dimensions"];
+				return ["Color","Anchor Dimensions", "Radius"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [colorColumn,_plotter.columns];
+				return [colorColumn,_plotter.columns, _plotter.radiusColumn];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -136,12 +145,6 @@
 				}
 			}
 			
-			public function get colorColumn():DynamicColumn
-			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
-			}
-			
 			private function alphaSliderFormatFunction(item:Number):String {
 				//return int(100 - (item * 100)) + "% Transparent";
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
@@ -169,10 +172,26 @@
 								liveDragging="true"
 								initialize="linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, 'value')"/>
 				</mx:HBox>
+				<mx:HBox width="100%" 
+						 borderStyle="inset" 
+						 backgroundColor="0xFFFFFF" 
+						 backgroundAlpha="0.7">
+					<mx:Label text="Point Radius:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to adjust point radius"/>
+					
+					<mx:HSlider id="sizeSlider"
+								width="100%"
+								alpha="1.0"
+								tickInterval="1" 
+								minimum="1" maximum="10" 
+								liveDragging="true"/>
+				</mx:HBox>
 			</mx:VBox>
 			
 			<mx:VBox id="attributesPanel" label="Attributes for Rad Viz">
 				<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color"/>
+				<ui:DynamicColumnComponent visTool="{this}" id="radiusComponent" label="Radius"/>
 				<userControls:ControlsSubsetBox>
 					<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 								 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"

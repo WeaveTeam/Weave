@@ -29,8 +29,10 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
@@ -50,16 +52,11 @@ package weave.visualization.plotters
 		{
 			// initialize default line & fill styles
 			lineStyle.requestLocalObject(SolidLineStyle, false);
-			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
-			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
-			
+			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			defaultScreenRadius.value = 5;
 			registerNonSpatialProperties(Weave.properties.axisFontUnderline,Weave.properties.axisFontSize,Weave.properties.axisFontColor);
 		}
-		
-		public const lineStyle:DynamicLineStyle = newNonSpatialProperty(DynamicLineStyle);
-		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
-		
+				
 		private function handleColumnsChange():void
 		{
 			var array:Array = columns.getObjects();
@@ -69,10 +66,20 @@ package weave.visualization.plotters
 				setKeySource(null);
 		}
 		
+		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
 		
-		public const fillStyle:DynamicFillStyle = newNonSpatialProperty(DynamicFillStyle)
+		public const lineStyle:DynamicLineStyle = newNonSpatialProperty(DynamicLineStyle);
+		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
+		public const defaultScreenRadius:LinkableNumber = newNonSpatialProperty(LinkableNumber);
 		
-		public const radius:Number = 5;
+		private const coordinate:Point = new Point();//reusable object
+		
+		private const _currentDataBounds:IBounds2D = new Bounds2D(); // reusable temporary object
+		private const _currentScreenBounds:IBounds2D = new Bounds2D(); // reusable temporary object
+		
+		public const radiusColumn:DynamicColumn = newNonSpatialProperty(DynamicColumn);
+		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
+		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		
 		private function getXYcoordinates(recordKey:IQualifiedKey):void
 		{
@@ -113,14 +120,15 @@ package weave.visualization.plotters
 		{
 			var graphics:Graphics = tempShape.graphics;
 
+			var radius:Number = (radiusColumn.internalColumn) ? ColumnUtils.getNorm(radiusColumn, recordKey) : 1 ;
+			// do not plot record with missing value for radiusColumn
+			if(!isNaN(radius)) radius = 2 + (radius*8);
+			if(isNaN(radius)) radius = defaultScreenRadius.value;
 			//if (DataRepository.getKeysFromColumn(keyColumn).indexOf(recordKey) > 0) return;
 			
 			_currentDataBounds.copyFrom(dataBounds);
 			_currentScreenBounds.copyFrom(screenBounds);
 			
-			var xCenter:Number = 0;
-			var yCenter:Number = 0;
-			projectPoint(xCenter, yCenter);
 			getXYcoordinates(recordKey);
 			//trace(coordinate, screenBounds, dataBounds);
 			dataBounds.projectPointTo(coordinate, screenBounds);			
@@ -128,25 +136,11 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(recordKey, graphics);				
 			fillStyle.beginFillStyle(recordKey, graphics);
 			
-			graphics.drawCircle(coordinate.x, coordinate.y, radius);
+			if(radiusColumn.internalColumn)
+				graphics.drawCircle(coordinate.x, coordinate.y, radius*defaultScreenRadius.value/3);
+			else 
+				graphics.drawCircle(coordinate.x, coordinate.y, defaultScreenRadius.value);
 			graphics.endFill();
-		}
-		
-		private const coordinate:Point = new Point();//reusable object
-		
-		private const _currentDataBounds:IBounds2D = new Bounds2D(); // reusable temporary object
-		private const _currentScreenBounds:IBounds2D = new Bounds2D(); // reusable temporary object
-		
-		public function get alphaColumn():AlwaysDefinedColumn { return (fillStyle.internalObject as SolidFillStyle).alpha; }
-		
-		/**
-		 * This function projects data coordinates to screen coordinates and stores the result in screenPoint.
-		 */
-		private function projectPoint(x:Number, y:Number): void
-		{
-			screenPoint.x = x;     
-			screenPoint.y = y;
-			_currentDataBounds.projectPointTo(screenPoint, _currentScreenBounds);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -216,9 +210,42 @@ package weave.visualization.plotters
 				graphics1.drawCircle(coordinate.x, coordinate.y, 1) ;
 				destination.draw(tempShape);
 			}
+		}		
+		
+		/**
+		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
+		 * @param key1 First record key (a)
+		 * @param key2 Second record key (b)
+		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
+		 * 
+		 */			
+		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			// compare size
+			var a:Number = radiusColumn.getValueFromKey(key1);
+			var b:Number = radiusColumn.getValueFromKey(key2);
+			// sort descending (high radius values drawn first)
+			if( a < b )
+				return -1;
+			else if( a > b )
+				return 1;
+			
+			// size equal.. compare color
+						
+			a = fillStyle.color.getValueFromKey(key1, Number);
+			b = fillStyle.color.getValueFromKey(key2, Number);
+			// sort ascending (high values drawn last)
+			if( a < b ) return 1; 
+			else if( a > b ) return -1 ;
+			
+			else return 0 ;
 		}
 		
-		private const screenPoint:Point = new Point(); // reusable object, output of projectPoints()
+		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			recordKeys.sort(sortKeys, Array.DESCENDING);
+			super.drawPlot(recordKeys, dataBounds, screenBounds, destination);
+		}
 		
 		/**
 		 * The data bounds for a glyph has width and height equal to zero.

@@ -30,15 +30,15 @@
 			import mx.events.FlexEvent;
 			
 			import weave.Weave;
-			import weave.core.LinkableNumber;
-			import weave.core.LinkableString;
-			import weave.core.SessionManager;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.api.data.IAttributeColumn;
 			import weave.primitives.ColorRamp;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
@@ -263,9 +263,9 @@
 						 borderStyle="inset" 
 						 backgroundColor="0xFFFFFF" 
 						 backgroundAlpha="0.7">
-					<mx:Label text="Constant Size Radius:" 
+					<mx:Label text="Point Radius:" 
 							  color="0x000000" fontSize="12" 
-							  toolTip="Use this control to adjust point radius when there is no size column"/>
+							  toolTip="Use this control to adjust point radius"/>
 					
 					<mx:HSlider id="sizeSlider"
 								width="100%"
@@ -283,8 +283,13 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" click="enableConstSize(event);"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="Advanced">
-			<mx:Label text="Color scale used in pie-chart glyphs:"/>
+			<mx:CheckBox id="enableWedgeColoringCkbx"
+						 label="Enable Wedge Coloring"
+						 toolTip="Enable different wedge colors for the pi-chart glyphs"
+						 creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, enableWedgeColoringCkbx, 'selected')"/>
+			<mx:Label text="Color scale used in pie-chart glyphs:" enabled="{enableWedgeColoringCkbx.selected}"/>
 			<mx:DataGrid id="colormapGrid"
+						 enabled="{enableWedgeColoringCkbx.selected}"
 						 useRollOver="false"
 						 minWidth="200" width="100%" height="100%"
 						 color="black"

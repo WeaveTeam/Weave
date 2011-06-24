@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
+	import weave.utils.DrawUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -55,16 +56,33 @@ package weave.visualization.plotters
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerNonSpatialProperty(radiusColumn);
 			setNewRandomJitterColumn();
-		}
+		}		
+		
+		public var columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
+		private const coordinate:Point = new Point();//reusable object
+		private const tempPoint:Point = new Point();//reusable object
+		
+		private const _currentDataBounds:IBounds2D = new Bounds2D(); // reusable temporary object
+		private const _currentScreenBounds:IBounds2D = new Bounds2D(); // reusable temporary object		
+		
+		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(-19));	
+		public const enableWedgeColoring:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const enableJitter:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);		
+		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
+		public var colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
+
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
 		private const screenRadius:DynamicColumn = new DynamicColumn();
 		public function get radiusColumn():DynamicColumn { return screenRadius; }
+		public const radiusConstant:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
 		
-		public var columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
+		private static var randomValueArray:Array = new Array() ;		
+		private static var hashMap:Dictionary = new Dictionary( true ) ;
 		
 		private function handleColumnsChange():void
 		{
@@ -84,12 +102,6 @@ package weave.visualization.plotters
 			else
 				setKeySource(null);
 		}
-		
-		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
-		
-		public const radiusConstant:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
-		
-		private static var randomValueArray:Array = new Array() ;
 		
 		/**
 		 * Repopulates the static randomValueArray with new random values to be used for jittering
@@ -152,7 +164,6 @@ package weave.visualization.plotters
 			if(!isNaN(xJitter))coordinate.x += xJitter ;
 			if(!isNaN(yJitter))coordinate.y += yJitter ;
 		}
-		public var colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
@@ -163,14 +174,9 @@ package weave.visualization.plotters
 			var radius:Number = ColumnUtils.getNorm(screenRadius, recordKey );
 			if(!isNaN(radius)) radius = 2 + (radius *(10-2));
 			if(isNaN(radius)) radius = 5 ;
-			//if (DataRepository.getKeysFromColumn(keyColumn).indexOf(recordKey) > 0) return;
+			
 			_currentDataBounds.copyFrom(dataBounds);
 			_currentScreenBounds.copyFrom(screenBounds);
-			
-			var xCenter:Number = 0;
-			var yCenter:Number = 0;
-			
-			projectPoint(xCenter, yCenter);
 			
 			// Get coordinates of record and add jitter (if specified)
 			getXYcoordinates(recordKey);
@@ -192,16 +198,20 @@ package weave.visualization.plotters
 				beginRadians += spanRadians;
 				spanRadians = (value/sum) * 2 * Math.PI;
 				
-				lineStyle.beginLineStyle(recordKey, graphics);				
-				graphics.beginFill(colorMap.getColorFromNorm(j / (columnArray.length - 1)), alphaColumn.defaultValue.value as Number);
+				lineStyle.beginLineStyle(recordKey, graphics);
+				if(enableWedgeColoring.value)
+					graphics.beginFill(colorMap.getColorFromNorm(j / (columnArray.length - 1)), alphaColumn.defaultValue.value as Number);
+				else
+					fillStyle.beginFillStyle(recordKey, graphics);
 
 				if( screenRadius.internalColumn ) {
-					if(!isNaN(spanRadians))
-						WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y, radius*radiusConstant.value*0.0025);
+					if(!isNaN(spanRadians)) //missing values skipped
+						drawWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y, radius*radiusConstant.value/3);
 				}
 				else
 				{
-					WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y,radiusConstant.value*.005);
+					if(!isNaN(spanRadians)) //missing values skipped
+						drawWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y,radiusConstant.value);
 				}
 				graphics.endFill();
 			}
@@ -210,26 +220,19 @@ package weave.visualization.plotters
 			dataBounds.projectPointTo(coordinate, screenBounds);			
 		}
 		
-		private const coordinate:Point = new Point();//reusable object
-		
-		private const _currentDataBounds:IBounds2D = new Bounds2D(); // reusable temporary object
-		private const _currentScreenBounds:IBounds2D = new Bounds2D(); // reusable temporary object
-		
-		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
-		
-		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(-19));
-		
-		/**
-		 * This function projects data coordinates to screen coordinates and stores the result in screenPoint.
-		 */
-		private function projectPoint(x:Number, y:Number): void
+		public function drawWedge(destination:Graphics, dataBounds:IBounds2D, screenBounds:IBounds2D, beginRadians:Number, spanRadians:Number, xDataCenter:Number = 0, yDataCenter:Number = 0, radius:Number = 1):void
 		{
-			screenPoint.x = x;     
-			screenPoint.y = y;
-			_currentDataBounds.projectPointTo(screenPoint, _currentScreenBounds);
+			tempPoint.x = xDataCenter;
+			tempPoint.y = yDataCenter;
+			dataBounds.projectPointTo(tempPoint, screenBounds);
+			// move to center point
+			destination.moveTo(tempPoint.x, tempPoint.y);
+			// line to beginning of arc, draw arc
+			DrawUtils.arcTo(destination, true, tempPoint.x, tempPoint.y, beginRadians, beginRadians + spanRadians, radius);
+			// line back to center point
+			destination.lineTo(tempPoint.x, tempPoint.y);
 		}
 		
-		public const enableJitter:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var g:Graphics = tempShape.graphics;
@@ -295,8 +298,43 @@ package weave.visualization.plotters
 				destination.draw(tempShape);
 			}
 		}
+			
+		/**
+		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
+		 * @param key1 First record key (a)
+		 * @param key2 Second record key (b)
+		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
+		 * 
+		 */			
+		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			// compare size
+			var a:Number = radiusColumn.getValueFromKey(key1, Number);
+			var b:Number = radiusColumn.getValueFromKey(key2, Number);
+			// sort descending (high radius values drawn first)
+			if( radiusColumn.internalColumn )
+			{
+				if( a < b )	return -1;
+				else if( a > b ) return 1;
+			}
+			// size equal.. compare color (if global colorColumn is used)
+			if( !enableWedgeColoring.value)
+			{
+				a = fillStyle.color.internalDynamicColumn.getValueFromKey(key1, Number);
+				b = fillStyle.color.internalDynamicColumn.getValueFromKey(key2, Number);
+				// sort ascending (high values drawn last)
+				if( a < b ) return 1;
+				else if (a > b) return -1 ;
+			}
+			
+			return 0 ;
+		}
 		
-		private const screenPoint:Point = new Point(); // reusable object, output of projectPoints()
+		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			recordKeys.sort(sortKeys, Array.DESCENDING);
+			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
+		}
 		
 		/**
 		 * The data bounds for a glyph has width and height equal to zero.
@@ -320,10 +358,7 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			return getReusableBounds(-1, -1.1, 1, 1.1);
-		}
-		
-		private static var hashMap:Dictionary = new Dictionary( true ) ;
-		private static var reusableNumber:LinkableNumber = new LinkableNumber() ;
+		}		
 		
 		private var S:Array ; // global similarity matrix 
 		private var N:Array ; // neighborhood matrix
