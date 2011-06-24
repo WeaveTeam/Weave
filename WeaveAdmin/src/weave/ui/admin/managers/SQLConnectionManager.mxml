@@ -31,7 +31,7 @@
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
 			<mx:Button label="Remove" click="handleRemoveConnection()"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames(false)"/>
+			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
 		</mx:HBox>
 	</mx:VBox>	
 	
@@ -113,48 +113,10 @@
 			[Bindable]
 			private var dataChanged:Boolean = false;
 			
-			[Bindable]
-			public var sqlConfigMigrated:Boolean = false;
-			
-			
 			private function handleCreationComplete():void
 			{
 				EventUtils.addBindCallback(AdminInterface.instance,"connectionNames",loadDataSource);
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
-				BindingUtils.bindSetter(handleSQLConfigExists,AdminInterface.instance,"sqlConfigExists");
-				sqlConfigMigrated = AdminInterface.instance.sqlConfigMigrated;
-			}
-			
-			private function handleSQLConfigExists(exists:Boolean):void
-			{
-				if (exists)
-				{
-					EventUtils.addBindCallback(AdminInterface.instance, "sqlConfigMigrated",forceSQLConfigMigrate);	
-				}
-				else
-				{
-					tabNavigator.selectedChild = simpleSetting;
-					EventUtils.removeBindCallback(AdminInterface.instance, "sqlConfigMigrated",forceSQLConfigMigrate);
-					sqlConfigMigrated = false;
-				}
-				
-			}
-			
-			private function forceSQLConfigMigrate():void
-			{
-				if(!AdminInterface.instance.sqlConfigMigrated)
-				{
-					tabNavigator.selectedChild = migrateTab;
-					simpleSetting.enabled = false;
-					forceMigrateMessage.visible= true;
-					sqlConfigMigrated = false;
-				}
-				else
-				{
-					simpleSetting.enabled = true;
-					forceMigrateMessage.visible = false;
-					sqlConfigMigrated = true;
-				}
 			}
 			
 			public function loadDataSource():void
@@ -164,9 +126,7 @@
 			
 			private function handleItemClick(event:ListEvent):void
 			{
-				if(sqlConfigMigrated)
-					tabNavigator.selectedChild = simpleSetting;
-				if(dataChanged)
+				if (dataChanged)
 				{
 					// ask user to confirm
 					PopUpUtils.confirm(
@@ -179,11 +139,13 @@
 						}
 					);
 				}
-				else loadDatabaseInfo();
+				else
+					loadDatabaseInfo();
 			}
 			
 			private function loadDatabaseInfo():void
 			{
+				tabNavigator.selectedChild = simpleSetting;
 				
 				var query:DelayedAsyncInvocation = AdminInterface.instance.getConnectionInfo(treeWithSearch.tree.selectedItem.label);
 				query.addAsyncResponder(handleResult);
@@ -271,8 +233,7 @@
 			private function enableMigrateButton(..._):void
 			{
 				migrateButton.enabled = true;
-				forceSQLConfigMigrate();
-				dataChanged= false;
+				dataChanged = false;
 			}
 			
 			private function handleRemoveConnection():void

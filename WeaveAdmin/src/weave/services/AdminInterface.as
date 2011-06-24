@@ -37,7 +37,6 @@ package weave.services
 	{
 		private static var _thisInstance:AdminInterface = null;
 		[Bindable] public var sqlConfigExists:Boolean = true;
-		[Bindable] public var sqlConfigMigrated:Boolean = true;
 		[Bindable] public var currentUserIsSuperuser:Boolean = false;
 		public static function get instance():AdminInterface
 		{
@@ -49,7 +48,6 @@ package weave.services
 		public function AdminInterface()
 		{
 			checkSQLConfigExists();
-			checkDatabaseConfigExists();
 		}
 		
 		private function checkSQLConfigExists():void
@@ -68,14 +66,6 @@ package weave.services
 				{
 					sqlConfigExists = true;
 				}
-			}
-		}
-		private function checkDatabaseConfigExists():void
-		{
-			service.checkDatabaseConfigExists().addAsyncResponder(handleCheckDatabaseConfigExists);
-			function handleCheckDatabaseConfigExists(event:ResultEvent, token:Object=null):void
-			{
-				sqlConfigMigrated = Boolean(event.result);
 			}
 		}
 
@@ -104,31 +94,21 @@ package weave.services
 		
 		
 		// functions for managing static settings
-		public function getConnectionNames(resetActiveConnection:Boolean = true):void
+		public function getConnectionNames():void
 		{
-			// clear current list, then request new list
-			connectionNames = [];
-			
-			service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames);
-			function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
-			{
-				//trace("handleGetConnectionNames");
-				connectionNames = event.result as Array || [];
-	
-				if (resetActiveConnection || connectionNames.indexOf(activeConnectionName) < 0)
-				{
-					// set activeConnectionName to first result
-					if (connectionNames.length > 0)
-						activeConnectionName = connectionNames[0];
-					else
-						activeConnectionName = StringDefinition.DEFAULT_CONNECTION;
-				}
-			}
-
 			// clear current info, then request new info
+			connectionNames = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
+			
 			if (userHasAuthenticated)
 			{
+				service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames);
+				function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
+				{
+					//trace("handleGetConnectionNames");
+					connectionNames = event.result as Array || [];
+				}
+
 				service.getDatabaseConfigInfo(activeConnectionName, activePassword).addAsyncResponder(handleGetDatabaseConfigInfo);
 				function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
 				{
@@ -137,29 +117,20 @@ package weave.services
 			}
 		}
 		
-		private var _activeConnectionName:String = StringDefinition.DEFAULT_CONNECTION;
+		private var _activeConnectionName:String = '';
 		[Bindable] public function get activeConnectionName():String
 		{
 			return _activeConnectionName;
 		}
 		public function set activeConnectionName(value:String):void
 		{
-			if (_activeConnectionName != value)
-			{
-				_activeConnectionName = value;
-				if (userHasAuthenticated)
-					userHasAuthenticated = false;
-				
-				clearTables();
-			}
-		}
-
-		/**
-		 * This function will clear all the bindable array objects to prevent the user
-		 * from seeing anything while logged out.
-		 */
-		public function clearTables():void
-		{
+			if (_activeConnectionName == value)
+				return;
+			_activeConnectionName = value;
+			
+			// log out and prevent the user from seeing anything while logged out.
+			userHasAuthenticated = false;
+			currentUserIsSuperuser = false;
 			connectionNames = [];
 			dataTableNames = [];
 			geometryCollectionNames = [];
@@ -168,14 +139,15 @@ package weave.services
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
 		
-		public function authenticate(connectionName:String, password:String):void
+		public function authenticate(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 			if (userHasAuthenticated)
 				userHasAuthenticated = false;
 			activeConnectionName = connectionName;
 			activePassword = password;
 
-			service.authenticate(activeConnectionName, activePassword).addAsyncResponder(handleAuthenticate);
+			var query:DelayedAsyncInvocation = service.authenticate(activeConnectionName, activePassword);
+			query.addAsyncResponder(handleAuthenticate);
 			function handleAuthenticate(event:ResultEvent, token:Object = null):void
 			{
 				if (userHasAuthenticated != event.result as Boolean)
@@ -198,10 +170,10 @@ package weave.services
 					getDataTableNames();
 					getGeometryCollectionNames();
 					getKeyTypes();
-					getConnectionNames(false);
+					getConnectionNames();
 				}
-				
 			}
+			return query;
 		}
 		
 		
@@ -308,7 +280,7 @@ package weave.services
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void
 			{
-				sqlConfigMigrated = Boolean(event.result);
+				sqlConfigExists = Boolean(event.result);
 			}
 			return query;
 		}

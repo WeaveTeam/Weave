@@ -322,4 +322,27 @@ public class SQLConfigUtils
 		private static final long serialVersionUID = 6290284095499981871L;
 		public InvalidParameterException(String msg) { super(msg); }
 	}
+
+	
+	/**
+	 * This will return true if the specified connection has permission to modify the specified dataTable entry.
+	 */
+	public static boolean userCanModifyDataTable(ISQLConfig config, String connectionName, String dataTableName) throws RemoteException
+	{
+		// true if entry doesn't exist or if user has permission
+		return config.getConnectionInfo(connectionName).is_superuser
+			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(null)) < 0
+			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(connectionName)) >= 0;
+	}
+	
+	/**
+	 * This will return true if the specified connection has permission to modify the specified dataTable entry.
+	 */
+	public static boolean userCanModifyGeometryCollection(ISQLConfig config, String connectionName, String geometryCollectionName) throws RemoteException
+	{
+		// true if entry doesn't exist or if user has permission
+		return config.getConnectionInfo(connectionName).is_superuser
+		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(null)) < 0
+		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(connectionName)) >= 0;
+	}
 }

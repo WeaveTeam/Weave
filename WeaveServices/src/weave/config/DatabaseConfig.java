@@ -260,7 +260,6 @@ public class DatabaseConfig
 		List<String> names;
 		try
 		{
-			System.out.println("getDataTableNames:\tconnectionName is " + connectionName);
 			if (connectionName == null)
 			{
 				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, Metadata.DATATABLE.toString());

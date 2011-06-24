@@ -34,6 +34,10 @@ import org.w3c.dom.Document;
  * 
  * @author Andy Dufilie
  */
+/**
+ * @author Administrator
+ *
+ */
 public interface ISQLConfig
 {
 	/**

@@ -33,6 +33,7 @@ Author: skolman
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.AdminInterface;
 
@@ -67,16 +68,14 @@ Author: skolman
 				}
 			}
 			
-			private var _auth:Boolean = true;
+			private var _previouslyAuthenticated:Boolean = true;
 			private function handleUserHasAuthenticatedChange(authenticated:Boolean):void
 			{
-				if (_auth == authenticated)
+				if (_previouslyAuthenticated == authenticated)
 					return;
 				
-				_auth = authenticated;
+				_previouslyAuthenticated = authenticated;
 				
-				if (passwordInput)
-					enabled = !authenticated;
 				if (authenticated)
 				{
 					PopUpManager.removePopUp(this);
@@ -89,34 +88,22 @@ Author: skolman
 					passwordInput.text = '';
 					connectionInput.setFocus();
 					connectionInput.setSelection(0, connectionInput.text.length);
+					enabled = true;
 				}
 			}
 			
 			private function login():void
 			{
-				if (loginTimer == null)
-				{
-					loginTimer = new Timer(1000, 1);
-					loginTimer.addEventListener(TimerEvent.TIMER, handleLoginTimer);
-					
-					function handleLoginTimer(event:Event):void
-					{
-						// re-enable input if user has not authenticated successfully
-						if (!AdminInterface.instance.userHasAuthenticated)
-							enabled = true;
-					}
-				}
-				
-				// disable, then re-enable after a delay if user didn't authenticate successfully.
+				// disable while authenticating
 				enabled = false;
-				loginTimer.start();
 				
 				// authenticate with server
-				AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text);
+				AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text).addAsyncResponder(setEnabled, setEnabled);
+				function setEnabled(..._):void
+				{
+					enabled = true;
+				}
 			}
-			
-			private var loginTimer:Timer = null;
-			
 		]]>
 	</mx:Script>
 	

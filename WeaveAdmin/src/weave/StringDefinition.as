@@ -83,7 +83,5 @@ package weave
 		
 		public static const DEFAULT_SHAPE_KEY_TYPE_DROPDOWNBOX_TOOLTIP:String = "Choose a key type that corresponds to the type of the column that was chosen for the DBF key column name(s). " +
 																				"For example US State Fips codes or US State Abbreviations.";
-		
-		public static const DEFAULT_CONNECTION:String = '';
 	}
 }

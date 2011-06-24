@@ -32,8 +32,7 @@ package weave.data.KeySets
 	import weave.core.LinkableVariable;
 	
 	/**
-	 * This class contains a set of keys and functions for adding/removing keys from the set.
-	 * This key set has the restriction that each key in the set must have the same key type.
+	 * This class contains a set of IQualifiedKeys and functions for adding/removing keys from the set.
 	 * 
 	 * @author adufilie
 	 */
