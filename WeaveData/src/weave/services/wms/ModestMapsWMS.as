@@ -136,7 +136,7 @@ package weave.services.wms
 		private const _tempBounds3:Bounds2D = new Bounds2D();
 		private const _tempBounds4:Bounds2D = new Bounds2D();
 
-		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D):Array
+		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array
 		{
 			if(_currentTileIndex == null || _mapProvider == null)
 				return [];
@@ -145,7 +145,7 @@ package weave.services.wms
 			var latLonCopyDataBounds:Bounds2D = _tempBounds4;
 			
 			// first determine zoom level using all of the data bounds in lat/lon
-			setTempCoordZoomLevel(dataBounds, screenBounds); // this sets _tempCoord.zoom 
+			setTempCoordZoomLevel(dataBounds, screenBounds, lowerQuality); // this sets _tempCoord.zoom 
 			
 			// cancel all pending requests which aren't of this zoom level
 			for (i = 0; i < _pendingTiles.length; ++i)
@@ -261,9 +261,12 @@ package weave.services.wms
 		/**
 		 * This function sets the value of _tempCoord.zoom.
 		 */
-		private function setTempCoordZoomLevel(dataBounds:IBounds2D, screenBounds:IBounds2D):void
+		private function setTempCoordZoomLevel(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean):void
 		{
 			var requestedPrecision:Number = dataBounds.getArea() / screenBounds.getArea(); 
+			if (lowerQuality == true)
+				requestedPrecision *= 4; // go one level higher, which means twice the data width and height => 4 times
+			
 			var imageArea:int = _imageWidth * _imageHeight;
 			var worldArea:Number = _worldBoundsMercator.getArea();
 			var higherQualZoomLevel:int = Number.POSITIVE_INFINITY;
