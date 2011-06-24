@@ -459,7 +459,7 @@ public class AdminService extends GenericServlet
 		return config.getDatabaseConfigInfo();
 	}
 
-	synchronized public AdminServiceResponse migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
+	synchronized public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
 	{
 		checkPasswordAndGetConfig(connectionName, password);
 
@@ -485,13 +485,13 @@ public class AdminService extends GenericServlet
 		{
 			e.printStackTrace();
 			if (count > 0)
-				return new AdminServiceResponse(false,"Migrated " + count + " items then failed"+ e.getMessage());
-			return new AdminServiceResponse(false,"Migration failed +" + e.getMessage());
+				throw new RemoteException("Migrated " + count + " items then failed", e);
+			throw new RemoteException("Migration failed", e);
 		}
 
-		return new AdminServiceResponse(true,count
+		return count
 				+ " items were copied from " + new File(configFileName).getName()
-				+ " into the database.  The admin console will now use the specified database connection to store further configuration entries.");
+				+ " into the database.  The admin console will now use the specified database connection to store further configuration entries.";
 	}
 
 	// /////////////////////////////////////////////////
@@ -1420,13 +1420,12 @@ public class AdminService extends GenericServlet
 		// dataColumn,
 		// SQLUtils.quoteSchemaTable(dbms, schema, table),
 		// keyColumn, keyColumn);
-		if(secondaryKeyColumn == null)
+		if (secondaryKeyColumn == null)
 			secondaryKeyColumn = "";
-		if(secondaryKeyColumn != "")
+		if (secondaryKeyColumn.length() > 0)
 			secondaryKeyColumn = "," + secondaryKeyColumn;
 
-		return String.format("SELECT %s,%s%s FROM %s", keyColumn, SQLUtils.quoteSymbol(dbms, dataColumn), secondaryKeyColumn, SQLUtils
-				.quoteSchemaTable(dbms, schema, table));
+		return String.format("SELECT %s,%s%s FROM %s", keyColumn, SQLUtils.quoteSymbol(dbms, dataColumn), secondaryKeyColumn, SQLUtils.quoteSchemaTable(dbms, schema, table));
 	}
 
 	/**
@@ -1518,7 +1517,7 @@ public class AdminService extends GenericServlet
 		// add SQL statements to sqlconfig
 		List<String> columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName);
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
-				configGeometryCollectionName, configKeyType, keyColumnsString, "",columnNames, columnNames, sqlSchema,
+				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
 				dbfTableName);
 
 		return resultAddSQL

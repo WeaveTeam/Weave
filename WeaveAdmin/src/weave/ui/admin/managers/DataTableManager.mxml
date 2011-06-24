@@ -23,7 +23,7 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="{metaDataChanged?'Data tables*':'Data tables'}"
+				label="Data tables{metaDataChanged?'*':''}"
 				creationComplete="handleCreationComplete()">
 	<mx:VBox height="100%">
 		<mx:HBox width="100%">

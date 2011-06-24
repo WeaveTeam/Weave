@@ -115,9 +115,7 @@ package weave.services
 		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String, geometryConfigTable:String, dataConfigTable:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("migrateConfigToDatabase", arguments);
-			
-			//query.addAsyncResponder(alertResult);  //this is commented because migrateConfigToDatabase now returns an AdminServiceResponse
-			
+		    query.addAsyncResponder(alertResult);
 		    return query;
 		}
 

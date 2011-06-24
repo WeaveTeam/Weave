@@ -139,8 +139,11 @@ public class ListUtils
 	public static int findString(String needle, String[] haystack)
 	{
 		for (int index = 0; index < haystack.length; index++)
-			if (needle.equals(haystack[index]))
+		{
+			String straw = haystack[index];
+			if (needle == straw || (needle != null && needle.equals(straw)))
 				return index;
+		}
 		return -1;
 	}
 	/**
@@ -151,6 +154,9 @@ public class ListUtils
 	 */
 	public static int findString(String needle, List<String> haystack)
 	{
+		if (needle == null)
+			return haystack.indexOf(null);
+
 		for (int index = 0; index < haystack.size(); index++)
 			if (needle.equals(haystack.get(index)))
 				return index;
@@ -164,6 +170,9 @@ public class ListUtils
 	 */
 	public static int findIgnoreCase(String needle, List<String> haystack)
 	{
+		if (needle == null)
+			return haystack.indexOf(null);
+		
 		for (int index = 0; index < haystack.size(); index++)
 			if (needle.equalsIgnoreCase(haystack.get(index)))
 				return index;

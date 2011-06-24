@@ -23,8 +23,9 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="{dataChanged?'Database connections*':'Database connections'}"
-				creationComplete="handleCreationComplete()">
+				label="Database connections{dataChanged ? '*' : ''}"
+				creationComplete="handleCreationComplete()"
+				>
 	<mx:VBox height="100%">
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
@@ -62,10 +63,9 @@
 				</ui:Indent>
 			</mx:VBox>
 		</mx:Canvas>
-		<mx:Canvas id="migrateTab" label="Migrate SQLConfig.XML" width="100%" height="100%">
+		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label id="forceMigrateMessage" visible="false" color="red" text="Please migrate the sqlconfig.xml file to your database. The other options will be disabled until you finish the migration process." />
-				<mx:Label fontWeight="bold" text="Migrate SQLConfig.XML entries to a database:"/>
+				<mx:Label fontWeight="bold" text="Set the location of the SQL tables where Weave will store configuration data:"/>
 				<ui:Indent indent="{170}" label="Connection to use">
 					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
 				</ui:Indent>
@@ -74,7 +74,7 @@
 				<ui:TextBox indent="{170}" label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
 				<ui:TextBox indent="{170}" label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
 				<ui:Indent>
-					<mx:Button id="migrateButton" label="Migrate SQLConfig.XML entries to this database location" click="migrateToDatabase()" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+					<mx:Button id="migrateButton" label="Use these SQL tables to store Weave's configuration" click="migrateToDatabase()" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
 				</ui:Indent>
 			</mx:VBox>
 		</mx:Canvas>
@@ -109,45 +109,10 @@
 			[Bindable]
 			private var dataChanged:Boolean = false;
 			
-			[Bindable]
-			public var sqlConfigMigrated:Boolean = false;
-			
-			
 			private function handleCreationComplete():void
 			{
 				EventUtils.addBindCallback(AdminInterface.instance,"connectionNames",loadDataSource);
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
-				BindingUtils.bindSetter(handleSQLConfigExists,AdminInterface.instance,"sqlConfigExists");
-				sqlConfigMigrated = AdminInterface.instance.sqlConfigMigrated;
-			}
-			
-			private function handleSQLConfigExists(val:Boolean):void
-			{
-				if(val)
-				{
-					EventUtils.addBindCallback(AdminInterface.instance,"sqlConfigMigrated",forceSQLConfigMigrate);	
-				}else{
-					tabNavigator.selectedChild = simpleSetting;
-					EventUtils.removeBindCallback(AdminInterface.instance,"sqlConfigMigrated",forceSQLConfigMigrate);
-					sqlConfigMigrated = false;
-				}
-				
-			}
-			
-			private function forceSQLConfigMigrate():void
-			{
-				if(!AdminInterface.instance.sqlConfigMigrated)
-				{
-					tabNavigator.selectedChild = migrateTab;
-					simpleSetting.enabled = false;
-					forceMigrateMessage.visible= true;
-					sqlConfigMigrated = false;
-				}else
-				{
-					simpleSetting.enabled = true;
-					forceMigrateMessage.visible = false;
-					sqlConfigMigrated = true;
-				}
 			}
 			
 			public function loadDataSource():void
@@ -157,8 +122,6 @@
 			
 			private function handleItemClick(event:ListEvent):void
 			{
-				if(sqlConfigMigrated)
-					tabNavigator.selectedChild = simpleSetting;
 				if(dataChanged)
 				{
 					// ask user to confirm
@@ -256,13 +219,10 @@
 					   migrateDataConfigInput.text
 					);
 				query.addAsyncResponder(enableMigrateButton, enableMigrateButton);
-			}
-			
-			private function enableMigrateButton(..._):void
-			{
-				migrateButton.enabled = true;
-				forceSQLConfigMigrate();
-				dataChanged= false;
+				function enableMigrateButton(..._):void
+				{
+					migrateButton.enabled = true;
+				}
 			}
 			
 			private function handleRemoveConnection():void
