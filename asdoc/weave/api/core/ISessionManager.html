@@ -1,0 +1,646 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
+<link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
+<meta content="ISessionManager,weave.api.core.ISessionManager,copySessionState,disposeObjects,getCallbackCollection,getLinkableObjectOwner,getSessionState,linkBindableProperty,linkSessionState,newDisposableChild,newLinkableChild,registerDisposableChild,registerLinkableChild,setSessionState,unlinkBindableProperty,unlinkSessionState" name="keywords">
+<title>weave.api.core.ISessionManager</title>
+</head>
+<body>
+<script type="text/javascript" language="javascript" src="../../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../../cookies.js"></script><script type="text/javascript" language="javascript">
+<!--
+				asdocTitle = 'ISessionManager - Weave AS3 documentation';
+				var baseRef = '../../../';
+				window.onload = configPage;
+			--></script>
+<table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
+<tr>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../index-list.html')" href="../../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../../index.html?weave/api/core/ISessionManager.html&amp;weave/api/core/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../../images/logo.jpg"></td>
+</tr>
+<tr class="titleTableRow2">
+<td align="left" id="subTitle" class="titleTableSubTitle">Interface&nbsp;ISessionManager</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a></td>
+</tr>
+<tr class="titleTableRow3">
+<td colspan="2">&nbsp;</td>
+</tr>
+</table>
+<script type="text/javascript" language="javascript">
+<!--
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Interface ISessionManager"); titleBar_setSubNav(false,false,false,false,false,false,true,false,false,false,false,false,false,false);}
+--></script>
+<div class="MainContent">
+<table cellspacing="0" cellpadding="0" class="classHeaderTable">
+<tr>
+<td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.api.core</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface ISessionManager</td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Implementors</td><td><a href="../../core/SessionManager.html">SessionManager</a></td>
+</tr>
+</table>
+<p></p>
+  This is a collection of static core functions for Weave.
+  
+  <p></p>
+<br>
+<hr>
+</div>
+<a name="methodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Methods</div>
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#copySessionState()">copySessionState</a>(source:<a href="ILinkableObject.html">ILinkableObject</a>, destination:<a href="ILinkableObject.html">ILinkableObject</a>):void</div>
+<div class="summaryTableDescription">
+   This function will copy the session state from one sessioned object to another.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#disposeObjects()">disposeObjects</a>(object:Object, ... moreObjects):void</div>
+<div class="summaryTableDescription">
+   This function should be called when an ILinkableObject or IDisposableObject is no longer needed.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getCallbackCollection()">getCallbackCollection</a>(linkableObject:<a href="ILinkableObject.html">ILinkableObject</a>):<a href="../core/ICallbackCollection.html">ICallbackCollection</a>
+</div>
+<div class="summaryTableDescription">
+   This function gets the ICallbackCollection associated with an ILinkableObject.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getLinkableObjectOwner()">getLinkableObjectOwner</a>(child:<a href="ILinkableObject.html">ILinkableObject</a>):<a href="../core/ILinkableObject.html">ILinkableObject</a>
+</div>
+<div class="summaryTableDescription">
+   This function gets the owner of a linkable object.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getSessionState()">getSessionState</a>(linkableObject:<a href="ILinkableObject.html">ILinkableObject</a>):Object</div>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#linkBindableProperty()">linkBindableProperty</a>(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String):void</div>
+<div class="summaryTableDescription">
+   This function will link the session state of an ILinkableVariable to a bindable property of an object.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#linkSessionState()">linkSessionState</a>(primary:<a href="ILinkableObject.html">ILinkableObject</a>, secondary:<a href="ILinkableObject.html">ILinkableObject</a>):void</div>
+<div class="summaryTableDescription">
+   This will link the session state of two ILinkableObjects.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#newDisposableChild()">newDisposableChild</a>(disposableParent:Object, disposableChildType:Class):*</div>
+<div class="summaryTableDescription">
+   This function will create a new instance of the specified child class and register it as a child of the parent.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#newLinkableChild()">newLinkableChild</a>(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*</div>
+<div class="summaryTableDescription">
+   This function will create a new instance of the specified child class and register it as a child of the parent.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#registerDisposableChild()">registerDisposableChild</a>(disposableParent:Object, disposableChild:Object):*</div>
+<div class="summaryTableDescription">
+   This will register a child of a parent and cause the child to be disposed when the parent is disposed.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#registerLinkableChild()">registerLinkableChild</a>(linkableParent:Object, linkableChild:<a href="ILinkableObject.html">ILinkableObject</a>, callback:Function = null, useGroupedCallback:Boolean = false):*</div>
+<div class="summaryTableDescription">
+   This function tells the SessionManager that the session state of the specified child should appear in the
+   session state of the specified parent, and the child should be disposed of when the parent is disposed.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#setSessionState()">setSessionState</a>(linkableObject:<a href="ILinkableObject.html">ILinkableObject</a>, newState:Object, removeMissingDynamicObjects:Boolean):void</div>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#unlinkBindableProperty()">unlinkBindableProperty</a>(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String):void</div>
+<div class="summaryTableDescription">
+   This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#unlinkSessionState()">unlinkSessionState</a>(first:<a href="ILinkableObject.html">ILinkableObject</a>, second:<a href="ILinkableObject.html">ILinkableObject</a>):void</div>
+<div class="summaryTableDescription">
+   This will unlink the session state of two ILinkableObjects that were previously linked with linkSessionState().</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
+</tr>
+</table>
+</div>
+<script type="text/javascript" language="javascript">
+<!--
+showHideInherited();
+--></script>
+<div class="MainContent">
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="copySessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">copySessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function copySessionState(source:<a href="ILinkableObject.html">ILinkableObject</a>, destination:<a href="ILinkableObject.html">ILinkableObject</a>):void</code><p>
+   This function will copy the session state from one sessioned object to another.
+   If the two objects are of different types, the behavior of this function is undefined.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">source</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; A sessioned object to copy the session state from.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">destination</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; A sessioned object to copy the session state to.
+   </td>
+</tr>
+</table>
+</div>
+<a name="disposeObjects()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">disposeObjects</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function disposeObjects(object:Object, ... moreObjects):void</code><p>
+   This function should be called when an ILinkableObject or IDisposableObject is no longer needed.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">object</span>:Object</code> &mdash; An ILinkableObject or an IDisposableObject to clean up.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code>... <span class="label">moreObjects</span></code> &mdash; More objects to clean up.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getCallbackCollection()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getCallbackCollection</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getCallbackCollection(linkableObject:<a href="ILinkableObject.html">ILinkableObject</a>):<a href="../core/ICallbackCollection.html">ICallbackCollection</a></code><p>
+   This function gets the ICallbackCollection associated with an ILinkableObject.
+   If there is no ICallbackCollection defined for the object, one will be created.
+   This ICallbackCollection is used for reporting changes in the session state
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableObject</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; An ILinkableObject to get the associated ICallbackCollection for.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../core/ICallbackCollection.html">ICallbackCollection</a></code> &mdash; 
+                        The ICallbackCollection associated with the given object.
+   
+                        
+                     </td>
+</tr>
+</table>
+</div>
+<a name="getLinkableObjectOwner()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getLinkableObjectOwner</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getLinkableObjectOwner(child:<a href="ILinkableObject.html">ILinkableObject</a>):<a href="../core/ILinkableObject.html">ILinkableObject</a></code><p>
+   This function gets the owner of a linkable object.  The owner of an object is defined as its first registered parent.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">child</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; An ILinkableObject that was registered as a child of another ILinkableObject.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../core/ILinkableObject.html">ILinkableObject</a></code> &mdash; 
+                        The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
+   
+                        
+                     </td>
+</tr>
+</table>
+</div>
+<a name="getSessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getSessionState(linkableObject:<a href="ILinkableObject.html">ILinkableObject</a>):Object</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableObject</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; An object containing sessioned properties (sessioned objects may be nested).
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Object</code> &mdash; An object containing the values from the sessioned properties.
+   </td>
+</tr>
+</table>
+</div>
+<a name="linkBindableProperty()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">linkBindableProperty</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function linkBindableProperty(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String):void</code><p>
+   This function will link the session state of an ILinkableVariable to a bindable property of an object.
+   Prior to linking, the value of the ILinkableVariable will be copied over to the bindable property.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableVariable</span>:<a href="ILinkableVariable.html">ILinkableVariable</a></code> &mdash; An ILinkableVariable to link to a bindable property.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">bindableParent</span>:Object</code> &mdash; An object with a bindable property.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">bindablePropertyName</span>:String</code> &mdash; The variable name of the bindable property.
+   </td>
+</tr>
+</table>
+</div>
+<a name="linkSessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">linkSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function linkSessionState(primary:<a href="ILinkableObject.html">ILinkableObject</a>, secondary:<a href="ILinkableObject.html">ILinkableObject</a>):void</code><p>
+   This will link the session state of two ILinkableObjects.
+   The session state of 'primary' will be copied over to 'secondary' after linking them.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">primary</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; An ILinkableObject to give authority over the initial shared value.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">secondary</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; The ILinkableObject to link with 'primary' via session state.
+   </td>
+</tr>
+</table>
+</div>
+<a name="newDisposableChild()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">newDisposableChild</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function newDisposableChild(disposableParent:Object, disposableChildType:Class):*</code><p>
+   This function will create a new instance of the specified child class and register it as a child of the parent.
+   Use this function when a child object can be disposed of but you do not want to link the callbacks.
+   The child will be disposed when the parent is disposed.
+   
+   Example usage:   public const foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
+   
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">disposableParent</span>:Object</code> &mdash; A parent ILinkableObject to create a new child for.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">disposableChildType</span>:Class</code> &mdash; The class definition that implements ILinkableObject used to create the new child.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The new child object.
+   </td>
+</tr>
+</table>
+</div>
+<a name="newLinkableChild()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">newLinkableChild</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*</code><p>
+   This function will create a new instance of the specified child class and register it as a child of the parent.
+   If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
+   
+   Example usage:   public const foo:LinkableNumber = newLinkableChild(this, LinkableNumber, handleFooChange);
+   
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableParent</span>:Object</code> &mdash; A parent ILinkableObject to create a new child for.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableChildType</span>:Class</code> &mdash; The class definition that implements ILinkableObject used to create the new child.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">callback</span>:Function</code> (default = <code>null</code>)<code></code> &mdash; A callback with no parameters that will be added to the child that will run before the parent callbacks are triggered, or during the next ENTER_FRAME event if a grouped callback is used.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">useGroupedCallback</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true, addGroupedCallback() will be used instead of addImmediateCallback().
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The new child object.
+   </td>
+</tr>
+</table>
+</div>
+<a name="registerDisposableChild()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">registerDisposableChild</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*</code><p>
+   This will register a child of a parent and cause the child to be disposed when the parent is disposed.
+   Use this function when a child object can be disposed of but you do not want to link the callbacks.
+   The child will be disposed when the parent is disposed.
+   
+   Example usage:   public const foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
+   
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">disposableParent</span>:Object</code> &mdash; A parent disposable object that the child will be registered with.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">disposableChild</span>:Object</code> &mdash; The disposable object to register as a child of the parent.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The linkableChild object that was passed to the function.
+   </td>
+</tr>
+</table>
+</div>
+<a name="registerLinkableChild()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">registerLinkableChild</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function registerLinkableChild(linkableParent:Object, linkableChild:<a href="ILinkableObject.html">ILinkableObject</a>, callback:Function = null, useGroupedCallback:Boolean = false):*</code><p>
+   This function tells the SessionManager that the session state of the specified child should appear in the
+   session state of the specified parent, and the child should be disposed of when the parent is disposed.
+   
+   There is one other requirement for the child session state to appear in the parent session state -- the child
+   must be accessible through a public variable of the parent or through an accessor function of the parent.
+   
+   This function will add callbacks to the sessioned children that cause the parent callbacks to run.
+   
+   If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
+   
+   Example usage:   public const foo:LinkableNumber = registerLinkableChild(this, someLinkableNumber, handleFooChange);
+   
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableParent</span>:Object</code> &mdash; A parent ILinkableObject that the child will be registered with.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableChild</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; The child ILinkableObject to register as a child.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">callback</span>:Function</code> (default = <code>null</code>)<code></code> &mdash; A callback with no parameters that will be added to the child that will run before the parent callbacks are triggered, or during the next ENTER_FRAME event if a grouped callback is used.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">useGroupedCallback</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true, addGroupedCallback() will be used instead of addImmediateCallback().
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The linkableChild object that was passed to the function.
+   </td>
+</tr>
+</table>
+</div>
+<a name="setSessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">setSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function setSessionState(linkableObject:<a href="ILinkableObject.html">ILinkableObject</a>, newState:Object, removeMissingDynamicObjects:Boolean):void</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableObject</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; An object containing sessioned properties (sessioned objects may be nested).
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">newState</span>:Object</code> &mdash; An object containing the new values for sessioned properties in the sessioned object.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">removeMissingDynamicObjects</span>:Boolean</code> &mdash; If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
+   </td>
+</tr>
+</table>
+</div>
+<a name="unlinkBindableProperty()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">unlinkBindableProperty</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function unlinkBindableProperty(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String):void</code><p>
+   This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">linkableVariable</span>:<a href="ILinkableVariable.html">ILinkableVariable</a></code> &mdash; An ILinkableVariable to unlink from a bindable property.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">bindableParent</span>:Object</code> &mdash; An object with a bindable property.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">bindablePropertyName</span>:String</code> &mdash; The variable name of the bindable property.
+   </td>
+</tr>
+</table>
+</div>
+<a name="unlinkSessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">unlinkSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function unlinkSessionState(first:<a href="ILinkableObject.html">ILinkableObject</a>, second:<a href="ILinkableObject.html">ILinkableObject</a>):void</code><p>
+   This will unlink the session state of two ILinkableObjects that were previously linked with linkSessionState().
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">first</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; The ILinkableObject to unlink from 'second'
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">second</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; The ILinkableObject to unlink from 'first'
+   </td>
+</tr>
+</table>
+</div>
+<br>
+<br>
+<hr>
+<br>
+<p></p>
+<center class="copyright"> 
+</center>
+</div>
+</body>
+</html>
+<!-- -->
