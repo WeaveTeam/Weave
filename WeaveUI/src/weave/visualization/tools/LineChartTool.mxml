@@ -359,7 +359,6 @@
 									enabled="{!(shapeCombo.selectedItem == ParallelCoordinatesPlotter.NO_SHAPE || 
 									shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_CIRCLE ||
 									shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_SQUARE ||
-									shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_TRIANGLE || 
 									shapeBorderSizeSlider.value == 0) }"/>
 				</mx:HBox>
 				

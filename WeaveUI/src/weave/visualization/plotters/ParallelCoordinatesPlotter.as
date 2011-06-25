@@ -58,6 +58,9 @@ package weave.visualization.plotters
 			setKeySource(_combinedKeySet);
 			
 			zoomToSubset.value = true;
+			
+			// bounds need to be re-indexed when this option changes
+			registerSpatialProperty(Weave.properties.enableGeometryProbing);
 		}
 
 		/*
@@ -119,15 +122,13 @@ package weave.visualization.plotters
 			return types.indexOf(type) >= 0;
 		}
 
-		public static const shapesAvailable:Array = [NO_SHAPE, SOLID_CIRCLE, EMPTY_CIRCLE, SOLID_SQUARE, EMPTY_SQUARE, SOLID_TRIANGLE, EMPTY_TRIANGLE];
+		public static const shapesAvailable:Array = [NO_SHAPE, SOLID_CIRCLE, EMPTY_CIRCLE, SOLID_SQUARE, EMPTY_SQUARE];
 		
 		public static const NO_SHAPE:String 	  = "No Shape";
 		public static const SOLID_CIRCLE:String   = "Solid Circle";
 		public static const EMPTY_CIRCLE:String   = "Empty Circle";
 		public static const SOLID_SQUARE:String   = "Solid Square";
 		public static const EMPTY_SQUARE:String   = "Empty Square";
-		public static const SOLID_TRIANGLE:String = "Solid Triangle";
-		public static const EMPTY_TRIANGLE:String = "Empty Triangle";
 		private function shapeTypeVerifier(type:String):Boolean
 		{
 			return shapesAvailable.indexOf(type) >= 0;
@@ -142,7 +143,7 @@ package weave.visualization.plotters
 			var results:Array = [];
 			var i:int;
 			var _normalize:Boolean = normalize.value;
-			for (i = 0; i < _columns.length - 1; ++i)
+			for (i = 0; i < _columns.length; ++i)
 			{
 				var x:Number;
 				var y:Number;
@@ -153,45 +154,58 @@ package weave.visualization.plotters
 				else
 					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
 				
-				var bounds:IBounds2D = getReusableBounds();
-				bounds.setCenteredRectangle(x, y, 0, 0);
-				
-				if (_normalize)
-					y = ColumnUtils.getNorm(_columns[i+1], recordKey);
+				// Disable geometry probing when we're in parallel coordinates (normalize) mode
+				// because line segment intersection means nothing in parallel coordinates.
+				if (Weave.properties.enableGeometryProbing.value && !_normalize)
+				{
+					if (i < _columns.length - 1)
+					{
+						// include a bounds for the line segment
+						var bounds:IBounds2D = getReusableBounds(x, y, x, y);
+						if (_normalize)
+							y = ColumnUtils.getNorm(_columns[i+1], recordKey);
+						else
+							y = (_columns[i+1] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+						bounds.includeCoords(x + 1, y);
+						
+						results.push(bounds);
+					}
+				}
 				else
-					y = (_columns[i+1] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
-				bounds.includeCoords(x + 1, y);
-				
-				results.push(bounds);
+				{
+					// include a bounds for the point on the axis
+					results.push(getReusableBounds(x, y, x, y));
+				}
 			}
+				
 			return results;
 		}
 		
-		private const _tempArray:Array = [];
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
 		{
 			var results:Array = [];
+			var _normalize:Boolean = normalize.value;
 			
 			// push three geometries between each column
-			for (var i:int = 0; i < _columns.length - 1; ++i) // fence post problem
+			var x:Number, y:Number;
+			var prevX:Number, prevY:Number;
+			for (var i:int = 0; i < _columns.length; ++i)
 			{
-				var geometry:SimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
-				var pointA:Point = new Point();
-				var pointB:Point = new Point();
+				x = i;
+				if (_normalize)
+					y = ColumnUtils.getNorm(_columns[i], recordKey);
+				else
+					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
 				
-				_tempArray.length = 0;
+				if (i > 0)
+				{
+					var geometry:SimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
+					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
+					results.push(geometry);
+				}
 				
-				// get the first point and set it
-				pointA.x = i;
-				pointA.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
-				_tempArray.push(pointA);
-				
-				// get the second point
-				pointB.x = i + 1;
-				pointB.y = (_columns[i + 1] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
-				_tempArray.push(pointB);
-				geometry.setVertices(_tempArray);		
-				results.push(geometry);				
+				prevX = x;
+				prevY = y;
 			}
 
 			return results;
@@ -230,13 +244,12 @@ package weave.visualization.plotters
 				dataBounds.projectPointTo(tempPoint, screenBounds);				
 				var x:Number = tempPoint.x;
 				var y:Number = tempPoint.y;
-
 				
 				// thickness of the line around each shape
 				var shapeLineThickness:int = shapeBorderThickness.value;
 				if(_shapeSize > 0)
 				{
-					var shapeSize:Number = _shapeSize;// - (shapeLineThickness*2) + 1;
+					var shapeSize:Number = _shapeSize;
 					
 					// use a gray border around each shape
 					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : 1);
@@ -252,7 +265,6 @@ package weave.visualization.plotters
 						// empty circle
 						case EMPTY_CIRCLE:
 							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey), shapeLineThickness == 0 ? 0 : 1);
-							graphics.beginFill(0xFFFFFF);
 							graphics.drawCircle(x, y, shapeSize/2);
 							
 							break;
@@ -264,19 +276,7 @@ package weave.visualization.plotters
 						// empty square
 						case EMPTY_SQUARE:
 							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey), shapeLineThickness == 0 ? 0 : 1);
-							graphics.beginFill(0xFFFFFF);
 							graphics.drawRect(x-_shapeSize/2, y-_shapeSize/2, _shapeSize, _shapeSize);
-							break;
-						// solid triangle
-						case SOLID_TRIANGLE:
-							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey));
-							drawTriangleShape(graphics, x,y, shapeSize);
-							break;
-						// empty triangle
-						case EMPTY_TRIANGLE:
-							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey), shapeLineThickness == 0 ? 0 : 1);
-							graphics.beginFill(0xFFFFFF);
-							drawTriangleShape(graphics, x,y, shapeSize);
 							break;
 					}
 					
@@ -288,65 +288,27 @@ package weave.visualization.plotters
 				// (rather than just a border of another shape)
 				lineStyle.beginLineStyle(recordKey, graphics);
 				
-				// uncomment this to fill in area the line creates -- works well with curved lines
-				//graphics.beginFill(lineStyle.color.getValueFromKey(recordKey), 0.3);
-				
-				/** We want to draw the lines up to the left of a shape, and from the right of the shape. **/
-				// get half of the shape size (distance it goes right or left of the center point for that shape)
-				var halfSize:Number = _shapeSize/2; 
-				
-				// if the shape is a triangle, we have to push the lines in further since the triangle is 1/2 its width at the center
-				if(shapeToDraw.value == EMPTY_TRIANGLE || shapeToDraw.value == SOLID_TRIANGLE)
-					halfSize = _shapeSize/4;
-				
-				// the coordinate to the left of the shape
-				var xBeforeShape:Number 	= x - halfSize;	
-				// the coorinate to the right of the shape
-				var xAfterShape:Number  	= x + halfSize;
-				// the previous coordinate to the left of the shape
-				var prevXBeforeShape:Number = _prevX - halfSize;
-				// the previous coorinate to the right of the shape	
-				var prevXAfterShape:Number  = _prevX + halfSize;
-				
 				// if we aren't continuing a new line (it is a new line segment)	
 				if (!continueLine)
 				{
 					// set the previous X and Y locations to be this new coordinate
-					prevXAfterShape = x;
+					_prevX = x;
 					_prevY = y;
-					
-					// move the pen to this location
-					graphics.moveTo(x, y);
-				}
-				else
-				{
-					// otherwise move to the previous coordinate to the right of the shape and previous Y
-					graphics.moveTo(prevXAfterShape, _prevY);	
 				}
 				
-				// this is to avoid drawing any lines to the left of the y-axis
-				if( (xBeforeShape - prevXAfterShape) >= 0)
+				if (curveType.value == CURVE_NONE)
 				{
-					// if it is a straight line, just do a line to the next coordinate to the left of the shape
-					if (curveType.value == CURVE_NONE)
-					{
-						graphics.lineTo(xBeforeShape, y);
-						//DrawUtils.drawDashedLine(tempShape.graphics, _prevX, _prevY, x, y, 3, 2); 
-					}
-					// otherwise for curves, curve from the coordinate to the right of the previous point to the 
-					// coordinate before the next shape
-					else if (curveType.value == CURVE_DOUBLE)
-						DrawUtils.drawDoubleCurve(graphics, prevXAfterShape, _prevY, xBeforeShape, y, true, 1);
-					else if(curveType.value == CURVE_TOWARDS)
-						DrawUtils.drawCurvedLine(graphics, prevXAfterShape,  _prevY, xBeforeShape, y, -1);
-					else if(curveType.value == CURVE_AWAY)
-						DrawUtils.drawCurvedLine(graphics, prevXAfterShape,  _prevY, xBeforeShape, y,  1);
+					graphics.moveTo(_prevX, _prevY);
+					graphics.lineTo(x, y);
+					//DrawUtils.drawDashedLine(tempShape.graphics, _prevX, _prevY, x, y, 3, 2); 
 				}
+				else if (curveType.value == CURVE_DOUBLE)
+					DrawUtils.drawDoubleCurve(graphics, _prevX, _prevY, x, y, true, 1);
+				else if (curveType.value == CURVE_TOWARDS)
+					DrawUtils.drawCurvedLine(graphics, _prevX,  _prevY, x, y, -1);
+				else if (curveType.value == CURVE_AWAY)
+					DrawUtils.drawCurvedLine(graphics, _prevX,  _prevY, x, y,  1);
 				
-				// move the pen to the point following the next shape
-				if (_shapeSize > 0)
-					graphics.moveTo(xAfterShape, y);
-					
 				continueLine = true;
 
 				_prevX = x;
