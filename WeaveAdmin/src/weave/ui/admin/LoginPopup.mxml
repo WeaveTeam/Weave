@@ -33,6 +33,7 @@ Author: skolman
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.AdminInterface;
 
@@ -42,7 +43,7 @@ Author: skolman
 			 */
 			private function handleCreationComplete():void
 			{
-				passwordInput.setFocus();
+				connectionInput.setFocus();
 				//Fix to set cursor in Text Input. Though the focus is set to the password inout box the cursor is not set it till 
 				//you click anywhere in the flash application. This is because when the browser loads the page the flash object is not selected.
 				//We force the selection by passing the flash dom object to javascript and explicitly set the focus.
@@ -53,7 +54,6 @@ Author: skolman
 				//handleUserHasAuthenticatedChange() is invoked, passing as the argument
 				//the new value of AdminInterface.instance.userHasAuthenticated.
 				BindingUtils.bindSetter(handleUserHasAuthenticatedChange, AdminInterface.instance, "userHasAuthenticated");
-				handleUserHasAuthenticatedChange(AdminInterface.instance.userHasAuthenticated);
 			}
 			
 			private var _parent:DisplayObject = null;
@@ -62,19 +62,20 @@ Author: skolman
 			{
 				_parent = parent;
 				if (parent)
+				{
+					initialize();
 					handleUserHasAuthenticatedChange(false);
+				}
 			}
 			
-			private var _auth:Boolean = true;
+			private var _previouslyAuthenticated:Boolean = true;
 			private function handleUserHasAuthenticatedChange(authenticated:Boolean):void
 			{
-				if (_auth == authenticated)
+				if (_previouslyAuthenticated == authenticated)
 					return;
 				
-				_auth = authenticated;
+				_previouslyAuthenticated = authenticated;
 				
-				if (passwordInput)
-					passwordInput.enabled = !authenticated;
 				if (authenticated)
 				{
 					PopUpManager.removePopUp(this);
@@ -83,46 +84,40 @@ Author: skolman
 				{
 					PopUpManager.addPopUp(this, _parent, true);
 					PopUpManager.centerPopUp(this);
+					
+					passwordInput.text = '';
+					connectionInput.setFocus();
+					connectionInput.setSelection(0, connectionInput.text.length);
+					enabled = true;
 				}
 			}
 			
 			private function login():void
 			{
-				if (loginTimer == null)
-				{
-					loginTimer = new Timer(1000, 1);
-					loginTimer.addEventListener(TimerEvent.TIMER, handleLoginTimer);
-				}
-				
-				// disable password, then re-enable after a delay if user didn't authenticate successfully.
-				passwordInput.enabled = false;
-				loginTimer.start();
+				// disable while authenticating
+				enabled = false;
 				
 				// authenticate with server
-				AdminInterface.instance.authenticate(connectionCombo.text, passwordInput.text);
-			}
-			
-			private var loginTimer:Timer = null;
-			
-			private function handleLoginTimer(event:Event):void
-			{
-				// re-enable password input if user has not authenticated successfully
-				if (!AdminInterface.instance.userHasAuthenticated)
-					passwordInput.enabled = true;
+				AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text).addAsyncResponder(setEnabled, setEnabled);
+				function setEnabled(..._):void
+				{
+					enabled = true;
+				}
 			}
 		]]>
 	</mx:Script>
 	
 	<mx:HBox>
-			<mx:Label text="Connection Name:" width="110" textAlign="right"/>
-			<ui:CustomComboBox id="connectionCombo" minWidth="150" text="{AdminInterface.instance.activeConnectionName}" change="AdminInterface.instance.activeConnectionName = connectionCombo.text;" dataProvider="{AdminInterface.instance.connectionNames}"/>
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label text="SQL Password:" width="110" textAlign="right"/>
-			<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
-		</mx:HBox>
-		<ui:Center>
-			<mx:Button label="Log In" click="login()"/>
-		</ui:Center>
+		<mx:Label text="Connection Name:" width="110" textAlign="right"/>
+		<mx:TextInput id="connectionInput" enter="login()" minWidth="150" change="AdminInterface.instance.activeConnectionName = connectionInput.text"/>
+		<!--<ui:CustomComboBox id="connectionCombo" minWidth="150" text="{AdminInterface.instance.activeConnectionName}" change="AdminInterface.instance.activeConnectionName = connectionCombo.text;" dataProvider="{AdminInterface.instance.connectionNames}"/>-->
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="SQL Password:" width="110" textAlign="right"/>
+		<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
+	</mx:HBox>
+	<ui:Center>
+		<mx:Button label="Log In" click="login()"/>
+	</ui:Center>
 	
 </mx:Panel>

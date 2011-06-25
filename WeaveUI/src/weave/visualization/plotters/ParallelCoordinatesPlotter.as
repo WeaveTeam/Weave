@@ -43,7 +43,7 @@ package weave.visualization.plotters
 	import weave.utils.DrawUtils;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	
-	/**
+	/**	
 	 * @author heather byrne
 	 * @author adufilie
 	 * @author abaumann

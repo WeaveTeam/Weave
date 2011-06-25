@@ -221,7 +221,7 @@ public class SQLConfigUtils
 //				count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_CONNECTION, connNames.get(i));
 
 			// add geometry collections
-			List<String> geoNames = source.getGeometryCollectionNames();
+			List<String> geoNames = source.getGeometryCollectionNames(null);
 			timer.report("begin "+geoNames.size()+" geom names");
 			int printInterval = Math.max(1, geoNames.size() / 50);
 			for (int i = 0; i < geoNames.size(); i++)
@@ -283,7 +283,7 @@ public class SQLConfigUtils
 		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getGeometryCollectionNames()) < 0)
+			if (ListUtils.findString(entryName, source.getGeometryCollectionNames(null)) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			DebugTimer timer = new DebugTimer();
@@ -298,7 +298,7 @@ public class SQLConfigUtils
 		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_DATATABLE))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getDataTableNames()) < 0)
+			if (ListUtils.findString(entryName, source.getDataTableNames(null)) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			DebugTimer timer = new DebugTimer();
@@ -321,5 +321,28 @@ public class SQLConfigUtils
 	{
 		private static final long serialVersionUID = 6290284095499981871L;
 		public InvalidParameterException(String msg) { super(msg); }
+	}
+
+	
+	/**
+	 * This will return true if the specified connection has permission to modify the specified dataTable entry.
+	 */
+	public static boolean userCanModifyDataTable(ISQLConfig config, String connectionName, String dataTableName) throws RemoteException
+	{
+		// true if entry doesn't exist or if user has permission
+		return config.getConnectionInfo(connectionName).is_superuser
+			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(null)) < 0
+			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(connectionName)) >= 0;
+	}
+	
+	/**
+	 * This will return true if the specified connection has permission to modify the specified dataTable entry.
+	 */
+	public static boolean userCanModifyGeometryCollection(ISQLConfig config, String connectionName, String geometryCollectionName) throws RemoteException
+	{
+		// true if entry doesn't exist or if user has permission
+		return config.getConnectionInfo(connectionName).is_superuser
+		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(null)) < 0
+		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(connectionName)) >= 0;
 	}
 }

@@ -401,12 +401,32 @@ public class SQLUtils
 			Map<String,String> whereParams
 		) throws SQLException
 	{
+		return getRecordsFromQuery(conn, null, fromSchema, fromTable, whereParams);
+	}
+	
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param selectColumns The list of column names 
+	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
+	 * @param fromTable The table to perform the SELECT statement on.
+	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @return The resulting rows returned by the query.
+	 * @throws SQLException If the query fails.
+	 */
+	public static List<Map<String,String>> getRecordsFromQuery(
+			Connection conn,
+			List<String> selectColumns,
+			String fromSchema,
+			String fromTable,
+			Map<String,String> whereParams
+		) throws SQLException
+	{
 		CallableStatement cstmt = null;
 		ResultSet rs = null;
 		List<Map<String,String>> records = null;
 		try
 		{
-			cstmt = prepareCall(conn, null, fromSchema, fromTable, whereParams);
+			cstmt = prepareCall(conn, selectColumns, fromSchema, fromTable, whereParams);
 			rs = cstmt.executeQuery();
 			records = getRecordsFromResultSet(rs);
 		}

@@ -152,6 +152,9 @@
 				if(tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView))
 					loadDublinCoreElements();
 				
+				if (treeWithSearch.tree.selectedItem == null) 
+					return;
+				
 				var tableName:String = treeWithSearch.tree.selectedItem.label;
 				AdminInterface.instance.getDataTableInfo(tableName).addAsyncResponder(handleDataTableInfo, null, tableName);
 			}

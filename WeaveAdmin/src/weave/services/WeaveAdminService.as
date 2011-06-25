@@ -101,11 +101,6 @@ package weave.services
 			return generateQueryAndAddToQueue("checkSQLConfigExists", arguments);
 		}
 		
-		public function checkDatabaseConfigExists():DelayedAsyncInvocation
-		{
-			return generateQueryAndAddToQueue("checkDatabaseConfigExists", arguments);
-		}
-
 		public function authenticate(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 			return generateQueryAndAddToQueue("authenticate", arguments);
@@ -121,15 +116,15 @@ package weave.services
 
 
 		// list entry names
-		public function getConnectionNames():DelayedAsyncInvocation
+		public function getConnectionNames(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 			return generateQueryAndAddToQueue("getConnectionNames", arguments);
 		}
-		public function getDataTableNames():DelayedAsyncInvocation
+		public function getDataTableNames(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 		    return generateQueryAndAddToQueue("getDataTableNames", arguments);
 		}
-		public function getGeometryCollectionNames():DelayedAsyncInvocation
+		public function getGeometryCollectionNames(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 		    return generateQueryAndAddToQueue("getGeometryCollectionNames", arguments);
 		}
@@ -137,7 +132,7 @@ package weave.services
 		{
 			return generateQueryAndAddToQueue("getWeaveFileNames", arguments);
 		}
-		public function getKeyTypes():DelayedAsyncInvocation
+		public function getKeyTypes(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 			return generateQueryAndAddToQueue("getKeyTypes", arguments);
 		}
@@ -165,7 +160,7 @@ package weave.services
 		// save info
 		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("saveConnectionInfo", [info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, configOverwrite]);
+			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("saveConnectionInfo", [AdminInterface.instance.activeConnectionName, AdminInterface.instance.activePassword, info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.is_superuser, configOverwrite]);
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}

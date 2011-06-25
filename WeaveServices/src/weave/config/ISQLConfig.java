@@ -34,6 +34,10 @@ import org.w3c.dom.Document;
  * 
  * @author Andy Dufilie
  */
+/**
+ * @author Administrator
+ *
+ */
 public interface ISQLConfig
 {
 	/**
@@ -81,13 +85,15 @@ public interface ISQLConfig
 
 	/**
 	 * Gets the names of all geometry collections in this configuration
+	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
-	List<String> getGeometryCollectionNames() throws RemoteException;
+	List<String> getGeometryCollectionNames(String connectionName) throws RemoteException;
 
 	/**
 	 * Gets the names of all data tables in this configuration
+	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
-	List<String> getDataTableNames() throws RemoteException;
+	List<String> getDataTableNames(String connectionName) throws RemoteException;
 
 	/**
 	 * Removes the connection with the given name from this configuration
@@ -205,12 +211,15 @@ public interface ISQLConfig
 		public static final String DATABASE = "database";
 		public static final String USER = "user";
 		public static final String PASS = "pass";
+		public static final String IS_SUPERUSER = "is_superuser";
+		
 
 		public ConnectionInfo()
 		{
 		}
 
 		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "";
+		public boolean is_superuser = false;
 
 		public String getConnectString()
 		{

@@ -74,6 +74,7 @@ import weave.utils.XMLUtils;
 import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
+
 import org.postgresql.PGConnection;
 
 public class AdminService extends GenericServlet
@@ -106,57 +107,34 @@ public class AdminService extends GenericServlet
 
 	synchronized public AdminServiceResponse checkSQLConfigExists()
 	{
-		String welcomeMessage = "A database connection needs to be specified."; 
-
 		File configFile = new File(configManager.getConfigFileName());
 		try
 		{
 			configManager.detectConfigChanges();
-			if (configManager.getConfig().getConnectionNames().size() == 0)
-				return new AdminServiceResponse(false, welcomeMessage); 
-				
-			return new AdminServiceResponse(true, configFile.getName() + " exists.");
+			ISQLConfig config = configManager.getConfig();
+			List<String> connectionNames = config.getConnectionNames();
+			DatabaseConfigInfo dbInfo = config.getDatabaseConfigInfo();
+			if (dbInfo != null && ListUtils.findString(dbInfo.connection, connectionNames) >= 0)
+				return new AdminServiceResponse(true, "Configuration file exists.");
 		}
 		catch (RemoteException se)
 		{
 			se.printStackTrace();
-			try
-			{
-				if (configFile.exists())
-					return new AdminServiceResponse(false, configFile.getName() + " is invalid. Please edit the file and fix the problem"
-							+ " or delete it and create a new one through the admin console.\n" + "\n" + se.getMessage());
-			}
-			catch (Exception e)
-			{
-			}
-			return new AdminServiceResponse(false, welcomeMessage);
+			if (configFile.exists())
+				return new AdminServiceResponse(false, String.format("%s is invalid. Please edit the file and fix the problem"
+						+ " or delete it and create a new one through the admin console.\n\n%s", configFile.getName(), se.getMessage()));
 		}
+		return new AdminServiceResponse(false, "The configuration storage location must be specified.");
 	}
 
-	synchronized public boolean checkDatabaseConfigExists() throws RemoteException
+	synchronized public boolean authenticate(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
-		return config.getDatabaseConfigInfo() != null;
-	}
-	
-	synchronized public Boolean authenticate(String connectionName, String password) throws RemoteException
-	{
-		ISQLConfig config = null;
-		try
-		{
-			configManager.detectConfigChanges();
-			config = configManager.getConfig();
-		}
-		catch (RemoteException e)
-		{
-			return true; // accept anything if config file fails
-		}
-
-		ConnectionInfo info = config.getConnectionInfo(connectionName);
-		boolean result = password.equals(info.pass);
+		
+		boolean result = checkPasswordAndGetConfig(connectionName, password) != null;
+		
 		if (!result)
 			System.out.println(String.format("authenticate(\"%s\",\"%s\") == %s", connectionName, password, result));
+		
 		return result;
 	}
 
@@ -167,7 +145,7 @@ public class AdminService extends GenericServlet
 
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (!password.equals(info.pass))
-			throw new RemoteException("Incorrect password.");
+			throw new RemoteException("Incorrect username or password.");
 
 		return config;
 	}
@@ -271,8 +249,9 @@ public class AdminService extends GenericServlet
 
 	synchronized public String saveWeaveFile(String connectionName, String password, String fileContents, String xmlFile, boolean overwriteFile) throws RemoteException
 	{
-		checkPasswordAndGetConfig(connectionName, password);
-
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		
 		// 5.2 client web page configuration file ***.xml
 		String output = "";
 		try
@@ -284,10 +263,12 @@ public class AdminService extends GenericServlet
 			
 			File file = new File(docrootPath + xmlFile);
 			
-			if (!overwriteFile)
+			if (file.exists())
 			{
-				if (file.exists())
-					return String.format("File already exists: %s", xmlFile);
+				if (!overwriteFile)
+					return String.format("File already exists and was not changed: \"%s\"", xmlFile);
+				if (!info.is_superuser)
+					return String.format("User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.", connectionName);
 			}
 			
 			BufferedWriter out = new BufferedWriter(new FileWriter(file));
@@ -313,7 +294,9 @@ public class AdminService extends GenericServlet
 	 */
 	synchronized public String removeWeaveFile(String configConnectionName, String password, String fileName) throws RemoteException, IllegalArgumentException
 	{
-		checkPasswordAndGetConfig(configConnectionName, password);
+		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
+		if (!config.getConnectionInfo(configConnectionName).is_superuser)
+			return String.format("User \"%s\" does not have permission to remove configuration files.", configConnectionName);
 
 		File f = new File(docrootPath + fileName);
 		try
@@ -347,56 +330,49 @@ public class AdminService extends GenericServlet
 	// functions for managing SQL connection entries
 	// /////////////////////////////////////////////////
 
-	synchronized public String[] getConnectionNames() throws RemoteException
+	synchronized public String[] getConnectionNames(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getConnectionNames(), false));
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		if (config.getConnectionInfo(connectionName).is_superuser)
+			return ListUtils.toStringArray(getSortedUniqueValues(config.getConnectionNames(), false));
+		
+		// non-superusers can't get connection info
+		return new String[0];
 	}
-
+	
 	synchronized public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
-		return config.getConnectionInfo(connectionNameToGet);
+		if (config.getConnectionInfo(loginConnectionName).is_superuser)
+			return config.getConnectionInfo(connectionNameToGet);
+		// non-superusers can't get connection info
+		return null;
 	}
 
-	synchronized public String saveConnectionInfo(String connectionName, String dbms, String ip, String port, String database, String user, String password, boolean configOverwrite) throws RemoteException
+	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
 	{
-		// test the connection before we create the config file
-		if (connectionName == "")
+		if (newConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
-
-		ConnectionInfo info = new ConnectionInfo();
-		info.name = connectionName;
-		info.dbms = dbms;
-		info.ip = ip;
-		info.port = port;
-		info.database = database;
-		info.user = user;
-		info.pass = password;
-		// test connection only - to validate parameters
-		Connection conn = null;
-		try
-		{
-			conn = info.getConnection();
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(String.format("The connection named \"%s\" was not created because the server could not"
-					+ " connect to the specified database with the given parameters.", info.name), e);
-		}
-		finally
-		{
-			// close the connection, as we will not use it later
-			SQLUtils.cleanup(conn);
-		}
-
+		
+		ConnectionInfo newConnectionInfo = new ConnectionInfo();
+		newConnectionInfo.name = newConnectionName;
+		newConnectionInfo.dbms = dbms;
+		newConnectionInfo.ip = ip;
+		newConnectionInfo.port = port;
+		newConnectionInfo.database = database;
+		newConnectionInfo.user = sqlUser;
+		newConnectionInfo.pass = password;
+		newConnectionInfo.is_superuser = true;
+		
 		// if the config file doesn't exist, create it
 		String fileName = configManager.getConfigFileName();
+		Boolean newConfigCreated = false;
 		if (!new File(fileName).exists())
 		{
 			try
 			{
 				XMLUtils.getStringFromXML(new SQLConfigXML().getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
+				newConfigCreated = true; // remember that we just created a new, empty config
 			}
 			catch (Exception e)
 			{
@@ -404,22 +380,67 @@ public class AdminService extends GenericServlet
 			}
 		}
 
-		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
-
-		if (ListUtils.findString(info.name, config.getConnectionNames()) >= 0 && configOverwrite == false)
+		ISQLConfig config;
+		if (newConfigCreated) // we created a new config
 		{
-			throw new RemoteException(String
-					.format("The connection named \"%s\" already exists.  Action cancelled.", info.name));
+			config = configManager.getConfig();
+		}
+		else // we already had a config
+		{
+			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
+			// non-superusers can't save connection info
+			if (!config.getConnectionInfo(currentConnectionName).is_superuser)
+				throw new RemoteException(String.format("User \"%s\" does not have permission to modify connections.", currentConnectionName));
+			newConnectionInfo.is_superuser = grantSuperuser;
+		}
+		
+		// test connection only - to validate parameters
+		Connection conn = null;
+		try
+		{
+			conn = newConnectionInfo.getConnection();
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException(String.format("The connection named \"%s\" was not created because the server could not"
+					+ " connect to the specified database with the given parameters.", newConnectionInfo.name), e);
+		}
+		finally
+		{
+			// close the connection, as we will not use it later
+			SQLUtils.cleanup(conn);
+		}
+
+		// if the connection already exists AND overwrite == false throw error
+		if (!configOverwrite && ListUtils.findString(newConnectionInfo.name, config.getConnectionNames()) >= 0)
+		{
+			throw new RemoteException(String.format("The connection named \"%s\" already exists.  Action cancelled.", newConnectionInfo.name));
 		}
 
 		// generate config connection entry
 		try
 		{
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, info.name);
+			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, newConnectionInfo.name);
 
-			config.removeConnection(info.name);
-			config.addConnection(info);
+			// do not delete if this is the last user (which must be a superuser)
+			List<String> connectionNames = config.getConnectionNames();
+			
+			// check for number of superusers
+			int numSuperUsers = 0;
+			for (String connection : connectionNames)
+			{
+				ConnectionInfo temp = config.getConnectionInfo(connection);	
+				if (temp.is_superuser)
+					++numSuperUsers;
+				if (numSuperUsers >= 2)
+					break;
+			}
+			// sanity check
+			if (currentConnectionName == newConnectionName && numSuperUsers == 1 && !grantSuperuser)
+				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
+			
+			config.removeConnection(newConnectionInfo.name);
+			config.addConnection(newConnectionInfo);
 
 			backupAndSaveConfig(config);
 		}
@@ -427,21 +448,48 @@ public class AdminService extends GenericServlet
 		{
 			e.printStackTrace();
 			throw new RemoteException(
-					String.format("Unable to create connection entry named \"%s\": %s", info.name, e.getMessage())
+					String.format("Unable to create connection entry named \"%s\": %s", newConnectionInfo.name, e.getMessage())
 				);
 		}
 
-		return String.format("The connection named \"%s\" was created successfully.", connectionName);
+		return String.format("The connection named \"%s\" was created successfully.", newConnectionName);
 	}
 
 	synchronized public String removeConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToRemove) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
+		
+		// allow only a superuser to remove a connection
+		ConnectionInfo loginConnectionInfo = config.getConnectionInfo(loginConnectionName);
+		if (!loginConnectionInfo.is_superuser)
+			throw new RemoteException("Only superusers can remove connections.");
+		
 		try
 		{
 			if (ListUtils.findString(connectionNameToRemove, config.getConnectionNames()) < 0)
 				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, connectionNameToRemove);
+			
+			// do not delete if this is the last user (which must be a superuser)
+			List<String> connectionNames = config.getConnectionNames();
+			if (connectionNames.size() == 1)
+				throw new RemoteException("Cannot remove the only connection.");
+			
+			// check for number of superusers
+			int numSuperUsers = 0;
+			for (String connection : connectionNames)
+			{
+				ConnectionInfo temp = config.getConnectionInfo(connection);	
+				if (temp.is_superuser)
+					++numSuperUsers;
+				if (numSuperUsers >= 2)
+					break;
+			}
+			if (numSuperUsers == 1) // if this is true, then loginConnectionName is trying to delete itself and is the only superuser
+				throw new RemoteException("Cannot remove the only superuser.");
+			
+			// also do not delete if this is the only superuser
+			
 			config.removeConnection(connectionNameToRemove);
 			backupAndSaveConfig(config);
 			return "Connection \"" + connectionNameToRemove + "\" was deleted.";
@@ -461,8 +509,11 @@ public class AdminService extends GenericServlet
 
 	synchronized public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
 	{
-		checkPasswordAndGetConfig(connectionName, password);
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password); 
 
+		if (!config.getConnectionInfo(connectionName).is_superuser)
+			throw new RemoteException("Unable to migrate config to database without superuser privileges.");
+		
 		String configFileName = configManager.getConfigFileName();
 		int count = 0;
 		try
@@ -498,10 +549,16 @@ public class AdminService extends GenericServlet
 	// functions for managing DataTable entries
 	// /////////////////////////////////////////////////
 
-	synchronized public String[] getDataTableNames() throws RemoteException
+	synchronized public String[] getDataTableNames(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getDataTableNames(), true));
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+		String dataConnection;
+		if (cInfo.is_superuser)
+			dataConnection = null; // let it get all of the data tables
+		else
+			dataConnection = connectionName; // get only the ones on this connection
+		return ListUtils.toStringArray(config.getDataTableNames(dataConnection));		
 	}
 
 	/**
@@ -519,18 +576,43 @@ public class AdminService extends GenericServlet
 	synchronized public String saveDataTableInfo(String connectionName, String password, Object[] columnMetadata) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-
+		
+		// first validate the information
 		String dataTableName = null;
 		for (Object object : columnMetadata)
 		{
 			Map<String, Object> metadata = (Map<String, Object>) object;
-			String _dataTableName = (String) metadata.get("dataTable");
+			String _dataTableName = (String) metadata.get(Metadata.DATATABLE.toString());
 			if (dataTableName == null)
 				dataTableName = _dataTableName;
 			else if (dataTableName != _dataTableName)
 				throw new RemoteException("overwriteDataTableEntry(): dataTable property not consistent among column entries.");
+			
+//			String _dataTableConnection = (String) metadata.get(Metadata.CONNECTION.toString());
+//			if (dataTableConnection == null)
+//				dataTableConnection = _dataTableConnection;
+//			else if (dataTableConnection != _dataTableConnection)
+//				throw new RemoteException("overwriteDataTableEntry(): " + Metadata.CONNECTION.toString() + " property not consistent among column entries.");
 		}
-
+		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
+		
+		// information is valid and dataTableConnection holds the correct connection
+		// if this user isn't a superuser, don't allow an overwrite of an existing datatableinfo
+		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
+		
+		if (!currentConnectionInfo.is_superuser)
+		{
+			List<AttributeColumnInfo> dataTableColumnInfo = config.getAttributeColumnInfo(dataTableName);
+			
+			for (AttributeColumnInfo obj : dataTableColumnInfo)
+			{
+				String dataTableConnection = obj.connection;
+				if (!dataTableConnection.equals(connectionName))
+					throw new RemoteException("An existing data table with the same name exists on another connection. Unable to overwrite without superuser privileges.");
+			}
+		}
+		
 		try
 		{
 			// start a block of code so tempConfig will not stay in memory
@@ -571,17 +653,19 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public String removeDataTableInfo(String connectionName, String password, String entryName) throws RemoteException
+	synchronized public String removeDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
 		try
 		{
-			if (ListUtils.findString(entryName, config.getDataTableNames()) < 0)
-				throw new RemoteException("DataTable \"" + entryName + "\" does not exist.");
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, entryName);
-			config.removeDataTable(entryName);
+			if (ListUtils.findString(dataTableName, config.getDataTableNames(null)) < 0)
+				throw new RemoteException("DataTable \"" + dataTableName + "\" does not exist.");
+			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, dataTableName);
+			config.removeDataTable(dataTableName);
 			backupAndSaveConfig(config);
-			return "DataTable \"" + entryName + "\" was deleted.";
+			return "DataTable \"" + dataTableName + "\" was deleted.";
 		}
 		catch (Exception e)
 		{
@@ -594,10 +678,16 @@ public class AdminService extends GenericServlet
 	// functions for managing GeometryCollection entries
 	// /////////////////////////////////////////////////////
 
-	synchronized public String[] getGeometryCollectionNames() throws RemoteException
+	synchronized public String[] getGeometryCollectionNames(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getGeometryCollectionNames(), true));
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+		String geometryConnection;
+		if (cInfo.is_superuser)
+			geometryConnection = null; // let it get all of the geometries
+		else
+			geometryConnection = connectionName; // get only the ones on this connection
+		return ListUtils.toStringArray(config.getGeometryCollectionNames(geometryConnection));
 	}
 
 	/**
@@ -612,6 +702,19 @@ public class AdminService extends GenericServlet
 	synchronized public String saveGeometryCollectionInfo(String connectionName, String password, String geomName, String geomConnection, String geomSchema, String geomTablePrefix, String geomKeyType, String geomImportNotes, String geomProjection) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		if (!SQLConfigUtils.userCanModifyGeometryCollection(config, connectionName, geomName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to modify GeometryCollection \"%s\".", connectionName, geomName));
+		
+		// if this user isn't a superuser, don't allow an overwrite of an existing geometrycollection
+		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
+		if (!currentConnectionInfo.is_superuser)
+		{
+			GeometryCollectionInfo oldGeometry = config.getGeometryCollectionInfo(geomName);
+			
+			if (oldGeometry != null && !oldGeometry.connection.equals(connectionName))
+				throw new RemoteException("An existing geometry collection with the same name exists on another connection. Unable to overwrite without superuser privileges.");
+		}
+
 		try
 		{
 			// start a block of code so tempConfig will not stay in memory
@@ -645,17 +748,19 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public String removeGeometryCollectionInfo(String connectionName, String password, String entryName) throws RemoteException
+	synchronized public String removeGeometryCollectionInfo(String connectionName, String password, String geometryCollectionName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		if (!SQLConfigUtils.userCanModifyGeometryCollection(config, connectionName, geometryCollectionName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to remove GeometryCollection \"%s\".", connectionName, geometryCollectionName));
 		try
 		{
-			if (ListUtils.findString(entryName, config.getGeometryCollectionNames()) < 0)
-				throw new RemoteException("Geometry Collection \"" + entryName + "\" does not exist.");
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, entryName);
-			config.removeGeometryCollection(entryName);
+			if (ListUtils.findString(geometryCollectionName, config.getGeometryCollectionNames(null)) < 0)
+				throw new RemoteException("Geometry Collection \"" + geometryCollectionName + "\" does not exist.");
+			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geometryCollectionName);
+			config.removeGeometryCollection(geometryCollectionName);
 			backupAndSaveConfig(config);
-			return "Geometry Collection \"" + entryName + "\" was deleted.";
+			return "Geometry Collection \"" + geometryCollectionName + "\" was deleted.";
 		}
 		catch (Exception e)
 		{
@@ -762,10 +867,10 @@ public class AdminService extends GenericServlet
 	// functions for getting miscellaneous info
 	// ///////////////////////////////////////////
 
-	synchronized public String[] getKeyTypes() throws RemoteException
+	synchronized public String[] getKeyTypes(String connectionName, String password) throws RemoteException
 	{
-		configManager.detectConfigChanges();
-		return ListUtils.toStringArray(getSortedUniqueValues(configManager.getConfig().getKeyTypes(), true));
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		return ListUtils.toStringArray(getSortedUniqueValues(config.getKeyTypes(), true));
 	}
 
 	synchronized public UploadedFile[] getUploadedCSVFiles() throws RemoteException
@@ -1040,6 +1145,11 @@ public class AdminService extends GenericServlet
 	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
+		if (sqlOverwrite && !connInfo.is_superuser)
+			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite SQL tables.", connectionName));
+		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, configDataTableName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 
 		Connection conn = null;
 		try
@@ -1050,7 +1160,7 @@ public class AdminService extends GenericServlet
 		{
 			throw new RemoteException(e.getMessage(), e);
 		}
-		String dbms = config.getConnectionInfo(connectionName).dbms;
+		String dbms = connInfo.dbms;
 
 		sqlTable = sqlTable.toLowerCase(); // fix for MySQL running under Linux
 
@@ -1219,11 +1329,10 @@ public class AdminService extends GenericServlet
 
 			if (!configOverwrite)
 			{
-				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames()) >= 0)
+				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
 					throw new RemoteException(String.format(
 							"CSV not imported. DataTable \"%s\" already exists in the configuration.",
-							configDataTableName
-						));
+							configDataTableName));
 			}
 
 			// create a table
@@ -1332,8 +1441,13 @@ public class AdminService extends GenericServlet
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames()) >= 0)
+			if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
 				throw new RemoteException(String.format("DataTable \"%s\" already exists in the configuration.", configDataTableName));
+		}
+		else
+		{
+			if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, configDataTableName))
+				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 		}
 
 		boolean dataTableCreated = false;
@@ -1439,11 +1553,15 @@ public class AdminService extends GenericServlet
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
 
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
-
+		ConnectionInfo connInfo = config.getConnectionInfo(configConnectionName);
+		if (sqlOverwrite && !connInfo.is_superuser)
+			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
+		if (!SQLConfigUtils.userCanModifyGeometryCollection(config, configConnectionName, configGeometryCollectionName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite GeometryCollection \"%s\".", configConnectionName, configGeometryCollectionName));
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames()) >= 0)
+			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames(null)) >= 0)
 				throw new RemoteException(String.format(
 						"Shapes not imported. SQLConfig geometryCollection \"%s\" already exists.",
 						configGeometryCollectionName));
@@ -1532,6 +1650,9 @@ public class AdminService extends GenericServlet
 		sqlTableName = sqlTableName.toLowerCase();
 
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
+		ConnectionInfo connInfo = config.getConnectionInfo(configConnectionName);
+		if (sqlOverwrite && !connInfo.is_superuser)
+			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
 
 		Connection conn = null;
 		try
@@ -1564,9 +1685,14 @@ public class AdminService extends GenericServlet
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames()) >= 0)
+			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames(null)) >= 0)
 				throw new RemoteException(String.format("GeometryCollection \"%s\" already exists in the configuration.",
 						configGeometryCollectionName));
+		}
+		else
+		{
+			if (!SQLConfigUtils.userCanModifyGeometryCollection(config, configConnectionName, configGeometryCollectionName))
+				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite GeometryCollection \"%s\".", configConnectionName, configGeometryCollectionName));
 		}
 
 		// add geometry collection
@@ -1611,11 +1737,10 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
-		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		if (configInfo == null)
-			throw new RemoteException(
-					"No configuration database found. This is necessary to store the Dublin Core properties. Please migrate your configuration into a database (see the Database connections tab).");
+		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 
+		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
 		String configConnectionName = configInfo.connection;
 		Connection conn = null;
 		try
@@ -1652,10 +1777,6 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		if (configInfo == null)
-			throw new RemoteException(
-					"No configuration database found. This is necessary to store the Dublin Core properties. Please migrate your configuration into a database (see the Database connections tab).");
-
 		String configConnectionName = configInfo.connection;
 		Connection conn = null;
 		try
@@ -1689,12 +1810,10 @@ public class AdminService extends GenericServlet
 	synchronized public void deleteDCElements(String connectionName, String password, String dataTableName, List<Map<String, String>> elements) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		if (configInfo == null)
-			throw new RemoteException(
-					"No configuration database found. This is necessary to store the Dublin Core properties. Please migrate your configuration into a database (see the Database connections tab).");
-
 		String configConnectionName = configInfo.connection;
 		Connection conn = null;
 		try
@@ -1716,12 +1835,10 @@ public class AdminService extends GenericServlet
 	synchronized public void updateEditedDCElement(String connectionName, String password, String dataTableName, Map<String, String> object) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		if (configInfo == null)
-			throw new RemoteException(
-					"No configuration database found. This is necessary to store the Dublin Core properties. Please migrate your configuration into a database (see the Database connections tab).");
-
 		String configConnectionName = configInfo.connection;
 		Connection conn = null;
 		try
