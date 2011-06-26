@@ -30,7 +30,6 @@ import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.sql.rowset.CachedRowSet;
 
 import weave.beans.AttributeColumnDataWithKeys;
 import weave.beans.DataServiceMetadata;
@@ -41,6 +40,7 @@ import weave.reports.WeaveReport;
 import weave.servlets.GenericServlet;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
+import weave.utils.SQLResult;
 import weave.config.ISQLConfig;
 import weave.config.SQLConfigManager;
 import weave.config.SQLConfigUtils;
@@ -153,7 +153,7 @@ public class DataService extends GenericServlet
 		Object recordData[][] =  new Object[keys.size()][infoList.size()];
 		
 		Map<String,String> metadataList[] = new Map[infoList.size()];
-		for(int colIndex = 0; colIndex < infoList.size(); colIndex++){
+		for (int colIndex = 0; colIndex < infoList.size(); colIndex++){
 			AttributeColumnInfo info = infoList.get(colIndex);
 			String dataWithKeysQuery = info.sqlQuery;
 			metadataList[colIndex] = info.metadata;
@@ -190,12 +190,12 @@ public class DataService extends GenericServlet
 			try
 			{
 				//timer.start();
-				CachedRowSet rowset = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
 				//timer.lap("get row set");
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.
 				if (dataType.length() == 0)
-					dataType = DataType.fromSQLType(rowset.getMetaData().getColumnType(2)).toString();
+					dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
 				if (dataType.equalsIgnoreCase(DataType.NUMBER.toString()))
 					numericData = new ArrayList<Double>();
 				else
@@ -204,26 +204,26 @@ public class DataService extends GenericServlet
 				Object keyObj, dataObj;
 				double value;
 				
-				while (rowset.next())
+				for( int i = 0; i < result.rows.length; i++)
 				{
-					keyObj = rowset.getObject(1);
+					keyObj = result.rows[i][0];
 					if(keyMap.get(keyObj)!= null){
 						rowIndex = keyMap.get(keyObj);
-						if (rowset.wasNull())
+						if (keyObj == null)
 							continue;
 			
 						if (numericData != null)
 						{
+							if (result.rows[i][1] == null)
+								continue;
 							try
 							{
-								value = rowset.getDouble(2);
+								value = ((Double)result.rows[i][1]).doubleValue();
 							}
 							catch (Exception e)
 							{
 								continue;
 							}
-							if (rowset.wasNull())
-								continue;
 
 							// filter the data based on the min,max values
 							if (minValue <= value && value <= maxValue){
@@ -235,15 +235,15 @@ public class DataService extends GenericServlet
 						}
 						else
 						{
-							dataObj = rowset.getObject(2);
-							if (rowset.wasNull())
+							dataObj = result.rows[i][1];
+							if (dataObj == null)
 								continue;
 							
 							stringData.add(dataObj.toString());
 							recordData[rowIndex][colIndex] =  dataObj;
 						}
 						if (hasSecondaryKey)
-							hasSecondaryKey = getSecKeys(rowset, secKeys);
+							hasSecondaryKey = getSecKeys(result, secKeys, i);
 					}
 				}
 				//timer.lap("get rows");
@@ -330,12 +330,12 @@ public class DataService extends GenericServlet
 		try
 		{
 			timer.start();
-			CachedRowSet rowset = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
 			timer.lap("get row set");
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
 			if (dataType.length() == 0)
-				dataType = DataType.fromSQLType(rowset.getMetaData().getColumnType(2)).toString();
+				dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
 			if (dataType.equalsIgnoreCase(DataType.NUMBER.toString()))
 				numericData = new ArrayList<Double>();
 			else
@@ -343,23 +343,23 @@ public class DataService extends GenericServlet
 			
 			Object keyObj, dataObj;
 			double value;
-			while (rowset.next())
+			for( int i = 0; i < result.rows.length; i++)
 			{
-				keyObj = rowset.getObject(1);
-				if (rowset.wasNull())
+				keyObj = result.rows[i][0];
+				if (keyObj == null)
 					continue;
 	
 				if (numericData != null)
 				{
 					try
 					{
-						value = rowset.getDouble(2);
+						value = ((Double)result.rows[i][1]).doubleValue();
 					}
 					catch (Exception e)
 					{
 						continue;
 					}
-					if (rowset.wasNull())
+					if (result.rows[i][1] == null)
 						continue;
 
 					// filter the data based on the min,max values
@@ -370,15 +370,15 @@ public class DataService extends GenericServlet
 				}
 				else
 				{
-					dataObj = rowset.getObject(2);
-					if (rowset.wasNull())
+					dataObj = result.rows[i][1];
+					if (dataObj == null)
 						continue;
 					
 					stringData.add(dataObj.toString());
 				}
 				keys.add(keyObj.toString());
 				if (hasSecondaryKey)
-					hasSecondaryKey = getSecKeys(rowset, secKeys);
+					hasSecondaryKey = getSecKeys(result, secKeys, i);
 			}
 			timer.lap("get rows");
 		}
@@ -413,11 +413,11 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
-	private boolean getSecKeys(CachedRowSet rowset, List<String> secKeys)
+	private boolean getSecKeys(SQLResult rowset, List<String> secKeys, int rownum)
 	{
 		try
 		{
-			Object secKeyValueObject = rowset.getObject(3);
+			Object secKeyValueObject = rowset.rows[rownum][2];
 			if (! secKeyValueObject.equals(null))
 				secKeys.add(secKeyValueObject.toString());	
 		}
@@ -428,7 +428,7 @@ public class DataService extends GenericServlet
 		return true;
 	}
 	
-	public CachedRowSet getRowSetFromAttributeColumn(Map<String, String> params)
+	public SQLResult getRowSetFromAttributeColumn(Map<String, String> params)
 		throws RemoteException
 	{
 		DebugTimer timer = new DebugTimer();
@@ -445,9 +445,9 @@ public class DataService extends GenericServlet
 		AttributeColumnInfo info = infoList.get(0);
 		try
 		{
-			CachedRowSet crs = SQLConfigUtils.getRowSetFromQuery(config, info.connection, info.sqlQuery);
+			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, info.sqlQuery);
 			timer.report("get row set");
-			return crs;
+			return result;
 		}
 		catch (SQLException e)
 		{

@@ -25,14 +25,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.rowset.CachedRowSet;
-
 import junit.framework.Assert;
 
 import weave.config.ISQLConfig;
 import weave.config.SQLConfigUtils;
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
+import weave.utils.SQLResult;
 
 public class AttributeColumnData
 {
@@ -77,10 +76,10 @@ public class AttributeColumnData
 		String dataWithKeysQuery = info.sqlQuery;
 		
 		//run query to get resulting rowset
-		CachedRowSet rowset;
+		SQLResult result;
 		try
 		{
-			rowset = SQLConfigUtils.getRowSetFromQuery(config, connection, dataWithKeysQuery);
+			result = SQLConfigUtils.getRowSetFromQuery(config, connection, dataWithKeysQuery);
 		}
 		catch (SQLException e)
 		{
@@ -91,25 +90,18 @@ public class AttributeColumnData
 		//loop through rowset putting data into this column
 		Object keyValueObj = null;
 		Object dataValueObj = null;
-		try 
+		for (int i = 0; i < result.rows.length; i++)
 		{
-			while (rowset.next())
+			keyValueObj = result.rows[i][0];
+			if ((reportKeys == null) || (reportKeys.contains(keyValueObj)))
 			{
-				keyValueObj = rowset.getObject(1);
-				if ((reportKeys == null) || (reportKeys.contains(keyValueObj)))
+				dataValueObj = result.rows[i][1];
+				if ((keyValueObj != null) && (dataValueObj != null))
 				{
-					dataValueObj = rowset.getObject(2);
-					if ((keyValueObj != null) && (dataValueObj != null))
-					{
-						keys.add(keyValueObj.toString());
-						data.add(dataValueObj.toString());
-					}
+					keys.add(keyValueObj.toString());
+					data.add(dataValueObj.toString());
 				}
 			}
-		} 
-		catch (SQLException e) 
-		{
-			e.printStackTrace();
 		}
 		return keys.size();
 	}

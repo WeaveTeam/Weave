@@ -38,10 +38,6 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import javax.sql.rowset.CachedRowSet;
-
-import com.sun.rowset.CachedRowSetImpl;
-
 /**
  * SQLUtils
  * 
@@ -352,23 +348,22 @@ public class SQLUtils
 	/**
 	 * @param connection An SQL Connection
 	 * @param query An SQL query
-	 * @return A CachedRowSet object containing the result of the query
+	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
 	 */
-	public static CachedRowSet getRowSetFromQuery(Connection connection, String query)
+	public static SQLResult getRowSetFromQuery(Connection connection, String query)
 		throws SQLException
 	{
 		Statement stmt = null;
 		ResultSet rs = null;
-		CachedRowSet crs = null;
+		SQLResult result = null;
 		try
 		{
 			stmt = connection.createStatement();
 			rs = stmt.executeQuery(query);
 			
 			// make a copy of the query result
-			crs = new CachedRowSetImpl();
-			crs.populate(rs);
+			result = new SQLResult(rs);
 		}
 		catch (SQLException e)
 		{
@@ -383,7 +378,7 @@ public class SQLUtils
 		}
 		
 		// return the copy of the query result
-		return crs;
+		return result;
 	}
 	
 	/**
@@ -476,7 +471,7 @@ public class SQLUtils
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static CachedRowSet getRowSetFromQuery(
+	public static SQLResult getRowSetFromQuery(
 			Connection conn,
 			String fromSchema,
 			String fromTable,
@@ -568,7 +563,7 @@ public class SQLUtils
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static CachedRowSet getRowSetFromQuery(
+	public static SQLResult getRowSetFromQuery(
 			Connection conn,
 			List<String> selectColumns,
 			String fromSchema,
@@ -579,7 +574,7 @@ public class SQLUtils
 		DebugTimer t = new DebugTimer();
 		CallableStatement cstmt = null;
 		ResultSet rs = null;
-		CachedRowSet crs = null;
+		SQLResult result = null;
 		String query = null;
 		try
 		{
@@ -635,8 +630,7 @@ public class SQLUtils
 			t.lap(query);
 			
 			// make a copy of the query result
-			crs = new CachedRowSetImpl();
-			crs.populate(rs);
+			result = new SQLResult(rs);
 			t.lap("cache row set");
 		}
 		catch (SQLException e)
@@ -654,14 +648,14 @@ public class SQLUtils
 		
 		t.report();
 		// return the copy of the query result
-		return crs;
+		return result;
 	}
 	
 
 	/**
 	 * @param connection An SQL Connection
 	 * @param query An SQL query
-	 * @return A CachedRowSet object containing the result of the query
+	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
 	 */
 	public static int getRowCountFromUpdateQuery(Connection connection, String query)
