@@ -353,7 +353,11 @@ public class DataService extends GenericServlet
 				{
 					try
 					{
-						value = ((Double)result.rows[i][1]).doubleValue();
+						Object valueObject = result.rows[i][1];
+						if (valueObject instanceof Integer)
+							value = ((Integer)valueObject).doubleValue();
+						else
+							value = ((Double)valueObject).doubleValue();
 					}
 					catch (Exception e)
 					{
