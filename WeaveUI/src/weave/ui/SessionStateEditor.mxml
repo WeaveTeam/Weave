@@ -35,7 +35,7 @@
     <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
 			 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
 		<mx:HBox width="100%">
-			<mx:Button label="Reload" toolTip="Reloads to previous save state" click="handleReloadClick()" paddingLeft="5" paddingRight="5"/>
+			<mx:Button label="Reload" toolTip="Reloads to previous save state" click="refresh()" paddingLeft="5" paddingRight="5"/>
 			<mx:Button label="Apply" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
 			<mx:Button label="Save &amp; Close" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
 			<mx:Button label="Cancel" click="removePanel()" paddingLeft="5" paddingRight="5"/>
@@ -217,7 +217,7 @@
 		    	_textModified = true;
 		    }
 		    
-			private function askToSave():void
+			public function refresh():void
 			{
 				if (_textModified == false)
 				{
@@ -226,7 +226,7 @@
 				}
 				
 				_textModified = false;
-				var functionSave:Function = function():void { saveAndLoadNewItem(); sessionNav.refresh(); };
+				var functionSave:Function = function():void { saveSessionState(); sessionNav.refresh(); };
 				var functionDontSave:Function = function():void { loadSelectedSessionObjectInView(); sessionNav.refresh(); };
 				PopUpUtils.confirm(
 					this,
@@ -235,11 +235,6 @@
 					functionSave,
 					functionDontSave
 				);
-			}
-
-			private function refreshAndLoadSessionState():void
-			{
-				askToSave(); // ask the user to save and set _textModified to false
 			}
 
 			private function loadSelectedSessionObjectInView(sessObj:ILinkableObject = null):void
@@ -271,7 +266,7 @@
 		    	if (dynamicObject)
 		    	{
 		    		dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
-		    		refreshAndLoadSessionState();
+		    		refresh();
 		    	}
 		    }
 			private function handleSessionNavSelect():void
@@ -289,15 +284,9 @@
 				}
 				
 				if(_textModified)
-					askToSave();
+					refresh();
 				else
 					loadSelectedSessionObjectInView();
-			}
-			
-			private function saveAndLoadNewItem():void
-			{
-				saveSessionState();
-				refreshAndLoadSessionState();
 			}
 			
 		    private function alertError(e:Error):void
@@ -310,15 +299,11 @@
 		    		);
 		    }
 		    
-		    private function handleReloadClick():void
-		    {
-	    		refreshAndLoadSessionState();
-		    }
 		    private function handleApplyClick():void
 		    {
 		    	try {
 			    	saveSessionState();
-			    	refreshAndLoadSessionState();
+			    	refresh();
 				} catch (e:Error) { alertError(e); }
 		    }
 
@@ -426,7 +411,7 @@
 						dynamicObject.removeObject();
 					
 					if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(oldObject))
-						refreshAndLoadSessionState();
+						refresh();
 					else
 						Alert.show("Object is locked and cannot be deleted.", "Delete Failed");
 				}
@@ -617,9 +602,7 @@
 								ignoreList[childObject] = true;
 								
 								tempValue = getSessionState(childObject);
-								if (tempValue === null || (tempValue as String) === ' ')
-									tempValue = ' ';
-								dataGridProvider.addItem( {Name: names[i], Value: tempValue.toString() } );
+								dataGridProvider.addItem( {Name: names[i], Value: tempValue } );
 							}
 						}
 					}
@@ -653,7 +636,7 @@
 					{
 						var newSessionState:Object;
 						var i:int, j:int;
-						
+
 						_currentSessionStateDataProvider = sessionStateDataGrid.dataProvider as ArrayCollection;
 						
 						// special case of just one object to set
@@ -676,7 +659,7 @@
 								{
 									if ((newSessionState[i] as DynamicState).objectName == lookupName)
 									{
-										(newSessionState[i] as DynamicState).sessionState = _currentSessionStateDataProvider[j].value;
+										(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{_currentSessionStateDataProvider[j].value}</tag>);
 										break;
 									}
 								}
@@ -733,7 +716,7 @@
 					rootObject = Weave.root;
 				
 				defaultEditor.sessionNav.rootObject = rootObject;
-
+				//defaultEditor.refresh();
 				defaultEditor.restorePanel();
 			}
 			
