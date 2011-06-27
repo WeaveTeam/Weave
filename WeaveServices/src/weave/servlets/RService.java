@@ -33,15 +33,47 @@ import weave.beans.RResult;
 import weave.config.WeaveContextParams;
 import weave.servlets.GenericServlet;
 import weave.utils.ListUtils;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPInteger;
-import org.rosuda.REngine.REXPString;
-import org.rosuda.REngine.REXPDouble;
+import org.rosuda.JRI.Rengine;
+import org.rosuda.JRI.RMainLoopCallbacks;
+import org.rosuda.JRI.REXP;
 import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
-//import org.rosuda.JRclient.REXP
+class RCallbacks implements RMainLoopCallbacks
+{
+	public void rBusy(Rengine arg0, int arg1)
+	{
+	}
+
+	public String rChooseFile(Rengine arg0, int arg1)
+	{
+		return null;
+	}
+
+	public void rFlushConsole(Rengine arg0)
+	{
+	}
+
+	public void rLoadHistory(Rengine arg0, String arg1)
+	{
+	}
+
+	public String rReadConsole(Rengine arg0, String arg1, int arg2)
+	{
+		return null;
+	}
+
+	public void rSaveHistory(Rengine arg0, String arg1)
+	{
+	}
+
+	public void rShowMessage(Rengine arg0, String arg1)
+	{
+	}
+
+	public void rWriteConsole(Rengine arg0, String arg1, int arg2)
+	{
+	}
+}
 
 public class RService extends GenericServlet
 {
@@ -62,52 +94,54 @@ public class RService extends GenericServlet
 
 	// write separate class to start Rserve (TBD)
 
-	private RConnection getRConnection() throws RemoteException
+	private Rengine getRengine()
 	{
-		RConnection rConnection = null; // establishing R connection
+		Rengine rEngine = null;
+		String args[] = { "--save" };
+		RCallbacks rCalls = new RCallbacks();
 		try
 		{
-			rConnection = new RConnection();
-			// rConnection.eval(readFile("Rscripts/MRegress.R"));
+			rEngine = new Rengine(args, true, rCalls);
 		}
-		catch (RserveException e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException("Unable to connect to RServe");
 		}
-		return rConnection;
+		return rEngine;
 	}
 
-	private String plotEvalScript(RConnection rConnection, String script,boolean showWarnings) throws RserveException, REXPMismatchException
+	private String plotEvalScript(Rengine rEngine, String script, boolean showWarnings) throws REXPMismatchException
 	{
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();
 		String str = String.format("jpeg(\"%s\")", dir + file);
-		evalScript(rConnection,str,showWarnings);
-		rConnection.eval(script);
-		rConnection.eval("dev.off()");
+		evalScript(rEngine, str, showWarnings);
+		rEngine.eval(script);
+		rEngine.eval("dev.off()");
 		return rFolderName + "/" + file;
 	}
 
-	private REXP evalScript(RConnection rConnection, String script,boolean showWarnings) throws RserveException, REXPMismatchException
+	private REXP evalScript(Rengine rEngine, String script, boolean showWarnings) throws REXPMismatchException
 	{
+		// rConnection.voidEval("");
 		REXP evalValue;
 		if(showWarnings)
-			evalValue = rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
+			evalValue = rEngine.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
 		else
-			evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+			evalValue = rEngine.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		
-		if (evalValue.inherits("try-error"))
-			throw new RuntimeException(evalValue.asString());
+		//TODO: find REngine equivalent code
+//		if (evalValue.inherits("try-error"))
+//			throw new RuntimeException(evalValue.asString());
 		return evalValue;
 	}
 
-	public RResult[] runScript(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults,boolean showWarnings) throws RemoteException
+	public RResult[] runScript(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws RemoteException
 	{
 
 		String output = "";
-		RConnection rConnection = getRConnection();
+		Rengine rEngine = getRengine();
 		RResult[] results = null;
 		REXP evalValue;
 		try
@@ -119,12 +153,12 @@ public class RService extends GenericServlet
 				if (inputValues[i][0] instanceof String)
 				{
 					String[] value = ListUtils.copyStringArray(inputValues[i], new String[inputValues[i].length]);
-					rConnection.assign(name, value);
+					rEngine.assign(name, value);
 				}
 				else
 				{
 					double[] value = ListUtils.copyDoubleArray(inputValues[i], new double[inputValues[i].length]);
-					rConnection.assign(name, value);
+					rEngine.assign(name, value);
 				}
 				// double[] value = inputValues[i];
 				System.out.println("input " + name);
@@ -137,9 +171,9 @@ public class RService extends GenericServlet
 				String[] rScript = script.split("\n");
 				for (int i = 0; i < rScript.length; i++)
 				{
-					REXP individualEvalValue = evalScript(rConnection, rScript[i],showWarnings);
+					REXP individualEvalValue = evalScript(rEngine, rScript[i], showWarnings);
 					// to-do remove debug information from string
-					String trimedString = individualEvalValue.toDebugString();
+					String trimedString = individualEvalValue.toString();
 					while (trimedString.indexOf('[') > 0)
 					{
 						int pos = trimedString.indexOf('[');
@@ -159,13 +193,14 @@ public class RService extends GenericServlet
 			}
 			else
 			{
-				REXP completeEvalValue = evalScript(rConnection, script,showWarnings);
+				REXP completeEvalValue = evalScript(rEngine, script, showWarnings);
 				// print debug info
-				output = completeEvalValue.toDebugString();
+				output = completeEvalValue.toString();
 				System.out.println("output: " + output);
 			}
 
 			// R Script to EVALUATE outputTA(from R Script Output TextArea)
+
 			if (showIntermediateResults)
 			{
 				int i;
@@ -173,7 +208,7 @@ public class RService extends GenericServlet
 				if (plotScript != "")
 				{
 					results = new RResult[outputNames.length + 2];
-					String plotEvalValue = plotEvalScript(rConnection, plotScript,showWarnings);
+					String plotEvalValue = plotEvalScript(rEngine, plotScript, showWarnings);
 					results[0] = new RResult("Plot Results", plotEvalValue);
 					results[1] = new RResult("Intermediate Results", output);
 					i = 2;
@@ -204,42 +239,37 @@ public class RService extends GenericServlet
 					}
 
 					// Script to get R - output
-					evalValue = evalScript(rConnection, name,showWarnings);
+					evalValue = evalScript(rEngine, name, showWarnings);
 
-					if (evalValue.isVector())
+					int type = evalValue.getType();
+					if (type == REXP.XT_ARRAY_STR)
 					{
-						if (evalValue instanceof REXPString)
-						{
-							results[i] = new RResult(name, evalValue.asStrings());
-						}
-						else if (evalValue instanceof REXPInteger)
-						{
-							results[i] = new RResult(name, evalValue.asIntegers());
-						}
-						else if (evalValue instanceof REXPDouble)
-						{
-							if (evalValue.dim() == null)
-							{
-								results[i] = new RResult(name, evalValue.asDoubles());
-							}
-							else
-							{
-								results[i] = new RResult(name, evalValue.asDoubleMatrix());
-							}
-
-						}
-						else
-						{
-							// if no previous cases were true, return debug
-							// string
-							results[i] = new RResult(name, evalValue.toDebugString());
-						}
+						results[i] = new RResult(name, evalValue.asStringArray());
 					}
+					else if (type == REXP.XT_ARRAY_INT)
+					{
+						results[i] = new RResult(name, evalValue.asIntArray());
+					}
+					else if (type == REXP.XT_ARRAY_DOUBLE)
+					{
+						double[][] asDoubleMatrix = null;
+						try
+						{
+							asDoubleMatrix = evalValue.asDoubleMatrix();
+						}
+						catch (Exception e)
+						{
+						}
 
+						if (asDoubleMatrix != null)
+							results[i] = new RResult(name, asDoubleMatrix);
+						else
+							results[i] = new RResult(name, evalValue.asDoubleArray());
+					}
 					else
-						results[i] = new RResult(name, evalValue.toDebugString());
+						results[i] = new RResult(name, evalValue.toString());
 
-					System.out.println(name + " = " + evalValue.toDebugString() + "\n");
+					System.out.println(name + " = " + evalValue.toString() + "\n");
 				}
 			}
 			else
@@ -250,7 +280,7 @@ public class RService extends GenericServlet
 				if (plotScript != "")
 				{
 					results = new RResult[outputNames.length + 1];
-					String plotEvalValue = plotEvalScript(rConnection, plotScript,showWarnings);
+					String plotEvalValue = plotEvalScript(rEngine, plotScript, showWarnings);
 					System.out.println(plotEvalValue);
 					results[0] = new RResult("Plot Results", plotEvalValue);
 					i = 1;
@@ -266,7 +296,6 @@ public class RService extends GenericServlet
 				// results = new RResult[outputNames.length];
 				for (; i < iterationTimes; i++)
 				{
-
 					String name;
 					// Boolean addedTolist = false;
 					if (iterationTimes == outputNames.length + 1)
@@ -278,44 +307,35 @@ public class RService extends GenericServlet
 						name = outputNames[i];
 					}
 					// Script to get R - output
-					evalValue = evalScript(rConnection, name,showWarnings);
+					evalValue = evalScript(rEngine, name, showWarnings);
 					System.out.println(evalValue);
+					int type = evalValue.getType();
 
-					if (evalValue.isVector())
+					if (type == REXP.XT_ARRAY_STR)
+						results[i] = new RResult(name, evalValue.asStringArray());
+					else if (type == REXP.XT_ARRAY_INT)
+						results[i] = new RResult(name, evalValue.asIntArray());
+					else if (type == REXP.XT_ARRAY_DOUBLE)
 					{
-						if (evalValue instanceof REXPString)
+						double[][] asDoubleMatrix = null;
+						try
 						{
-							results[i] = new RResult(name, evalValue.asStrings());
+							asDoubleMatrix = evalValue.asDoubleMatrix();
 						}
-						else if (evalValue instanceof REXPInteger)
+						catch (Exception e)
 						{
-							results[i] = new RResult(name, evalValue.asIntegers());
 						}
-						else if (evalValue instanceof REXPDouble)
-						{
-							if (evalValue.dim() == null)
-							{
-								results[i] = new RResult(name, evalValue.asDoubles());
-							}
-							else
-							{
-								results[i] = new RResult(name, evalValue.asDoubleMatrix());
-							}
 
-						}
+						if (asDoubleMatrix != null)
+							results[i] = new RResult(name, asDoubleMatrix);
 						else
-						{
-							// if no previous cases were true, return debug
-							// string
-							results[i] = new RResult(name, evalValue.toDebugString());
-						}
+							results[i] = new RResult(name, evalValue.asDoubleArray());
 					}
+					// if no previous cases were true, return debug string
 					else
-					{
-						results[i] = new RResult(name, evalValue.toDebugString());
-					}
+						results[i] = new RResult(name, evalValue.toString());
 
-					System.out.println(name + " = " + evalValue.toDebugString() + "\n");
+					System.out.println(name + " = " + evalValue.toString() + "\n");
 				}
 			}
 		}
@@ -331,7 +351,7 @@ public class RService extends GenericServlet
 		}
 		finally
 		{
-			rConnection.close();
+			rEngine.end();
 		}
 		return results;
 	}
@@ -344,32 +364,32 @@ public class RService extends GenericServlet
 			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
 					+ " != " + dataY.length + ").");
 		// System.out.println("entering linearRegression()");
-		RConnection rConnection = getRConnection();
+		Rengine rEngine = getRengine();
 		// System.out.println("got r connection");
 		LinearRegressionResult result = new LinearRegressionResult();
 		try
 		{
 
 			// Push the data to R
-			rConnection.assign("x", dataX);
-			rConnection.assign("y", dataY);
+			rEngine.assign("x", dataX);
+			rEngine.assign("y", dataY);
 
 			// Perform the calculation
-			rConnection.eval("fit <- lm(y~x)");
+			rEngine.eval("fit <- lm(y~x)");
 
 			// option to draw the plot, regression line and store the image
 
-			rConnection.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Linear_Regression.jpg"));
-			rConnection.eval("plot(x,y)");
-			rConnection.eval("abline(fit)");
-			rConnection.eval("dev.off()");
+			rEngine.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Linear_Regression.jpg"));
+			rEngine.eval("plot(x,y)");
+			rEngine.eval("abline(fit)");
+			rEngine.eval("dev.off()");
 
 			// Get the data from R
-			result.setIntercept(rConnection.eval("coefficients(fit)[1]").asDouble());
-			result.setSlope(rConnection.eval("coefficients(fit)[2]").asDouble());
-			result.setRSquared(rConnection.eval("summary(fit)$r.squared").asDouble());
+			result.setIntercept(rEngine.eval("coefficients(fit)[1]").asDouble());
+			result.setSlope(rEngine.eval("coefficients(fit)[2]").asDouble());
+			result.setRSquared(rEngine.eval("summary(fit)$r.squared").asDouble());
 			result.setSummary("");// rConnection.eval("summary(fit)").asString());
-			result.setResidual(rConnection.eval("resid(fit)").asDoubles());
+			result.setResidual(rEngine.eval("resid(fit)").asDoubleArray());
 
 		}
 		catch (Exception e)
@@ -379,12 +399,12 @@ public class RService extends GenericServlet
 		}
 		finally
 		{
-			rConnection.close();
+			rEngine.end();
 		}
 		return result;
 	}
 
-	public KMeansClusteringResult kMeansClustering(double[] dataX, double[] dataY, int numberOfClusters) throws RemoteException
+	public KMeansClusteringResult kMeansClustering(double[] dataX, double[] dataY, int numberOfClusters, boolean showWarnings) throws RemoteException
 	{
 		int[] clusterNumber = new int[1];
 		clusterNumber[0] = numberOfClusters;
@@ -397,46 +417,46 @@ public class RService extends GenericServlet
 			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
 					+ " != " + dataY.length + ").");
 
-		RConnection rConnection = getRConnection();
+		Rengine rEngine = getRengine();
 		KMeansClusteringResult kclresult = new KMeansClusteringResult();
 
 		try
 		{
 
 			// Push the data to R
-			rConnection.assign("x", dataX);
-			rConnection.assign("y", dataY);
-			rConnection.assign("clusternumber", clusterNumber);
-			rConnection.assign("iter.max", iterations);
+			rEngine.assign("x", dataX);
+			rEngine.assign("y", dataY);
+			rEngine.assign("clusternumber", clusterNumber);
+			rEngine.assign("iter.max", iterations);
 
 			// Performing the calculation
-			rConnection.eval("dataframe1 <- data.frame(x,y)");
+			rEngine.eval("dataframe1 <- data.frame(x,y)");
 			// Each run of the algorithm gives a different result, thus continue
 			// till results are constant
-			rConnection
+			rEngine
 					.eval("Clustering <- function(clusternumber, iter.max)\n{result1 <- kmeans(dataframe1, clusternumber, iter.max)\n result2 <- kmeans(dataframe1, clusternumber, (iter.max-1))\n while(result1$centers != result2$centers){ iter.max <- iter.max + 1 \n result1 <- kmeans(dataframe1, clusternumber, iter.max) \n result2 <- kmeans(dataframe1, clusternumber, (iter.max-1))} \n print(result1) \n print(result2)}");
-			rConnection.eval("Cluster <- Clustering(clusternumber, iter.max)");
+			rEngine.eval("Cluster <- Clustering(clusternumber, iter.max)");
 
 			// option for drawing a graph, shows centroids
 
 			// Get the data from R
 			// Returns a vector indicating which cluster each data point belongs
 			// to
-			kclresult.setClusterGroup(rConnection.eval("Cluster$cluster").asDoubles());
+			kclresult.setClusterGroup(rEngine.eval("Cluster$cluster").asDoubleArray());
 			// Returns the means of each of the clusters
-			kclresult.setClusterMeans(rConnection.eval("Cluster$centers").asDoubleMatrix());
+			kclresult.setClusterMeans(rEngine.eval("Cluster$centers").asDoubleMatrix());
 			// Returns the size of each cluster
-			kclresult.setClusterSize(rConnection.eval("Cluster$size").asDoubles());
+			kclresult.setClusterSize(rEngine.eval("Cluster$size").asDoubleArray());
 			// Returns the sum of squares within each cluster
-			kclresult.setWithinSumOfSquares(rConnection.eval("Cluster$withinss").asDoubles());
+			kclresult.setWithinSumOfSquares(rEngine.eval("Cluster$withinss").asDoubleArray());
 			// Returns the image from R
 			// option for storing the image of the graphic output from R
 			String str = String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Kmeans_Clustering.jpg");
 			System.out.println(str);
-			evalScript(rConnection, str,false);
-			rConnection
+			evalScript(rEngine, str, showWarnings);
+			rEngine
 					.eval("plot(dataframe1,xlab= \"x\", ylab= \"y\", main = \"Kmeans Clustering\", col = Cluster$cluster) \n points(Cluster$centers, col = 1:5, pch = 10)");
-			rConnection.eval("dev.off()");
+			rEngine.eval("dev.off()");
 			kclresult.setRImageFilePath("Kmeans_Clustering.jpg");
 
 		}
@@ -447,7 +467,7 @@ public class RService extends GenericServlet
 		}
 		finally
 		{
-			rConnection.close();
+			rEngine.end();
 		}
 		return kclresult;
 	}
@@ -470,38 +490,38 @@ public class RService extends GenericServlet
 			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
 					+ " != " + dataY.length + ").");
 
-		RConnection rConnection = getRConnection();
+		Rengine rEngine = getRengine();
 		HierarchicalClusteringResult hclresult = new HierarchicalClusteringResult();
 		try
 		{
 
 			// Push the data to R
-			rConnection.assign("x", dataX);
-			rConnection.assign("y", dataY);
+			rEngine.assign("x", dataX);
+			rEngine.assign("y", dataY);
 
 			// checking for user method match
 			for (int j = 0; j < agglomerationMethod.length; j++)
 			{
 				if (agglomerationMethod[j].equals(agglomerationMethodType))
 				{
-					rConnection.assign("method", agglomerationMethod[j]);
+					rEngine.assign("method", agglomerationMethod[j]);
 				}
 			}
 
 			// Performing the calculations
-			rConnection.eval("dataframe1 <- data.frame(x,y)");
-			rConnection.eval("HCluster <- hclust(d = dist(dataframe1), method)");
+			rEngine.eval("dataframe1 <- data.frame(x,y)");
+			rEngine.eval("HCluster <- hclust(d = dist(dataframe1), method)");
 
 			// option for drawing the hierarchical tree and storing the image
-			rConnection.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Hierarchical_Clustering.jpg"));
-			rConnection.eval("plot(HCluster, main = \"Hierarchical Clustering\")");
-			rConnection.eval("dev.off()");
+			rEngine.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Hierarchical_Clustering.jpg"));
+			rEngine.eval("plot(HCluster, main = \"Hierarchical Clustering\")");
+			rEngine.eval("dev.off()");
 
 			// Get the data from R
-			hclresult.setClusterSequence(rConnection.eval("HCluster$merge").asDoubleMatrix());
-			hclresult.setClusterMethod(rConnection.eval("HCluster$method").asStrings());
+			hclresult.setClusterSequence(rEngine.eval("HCluster$merge").asDoubleMatrix());
+			hclresult.setClusterMethod(rEngine.eval("HCluster$method").asStringArray());
 			// hclresult.setClusterLabels(rConnection.eval("HCluster$labels").asStrings());
-			hclresult.setClusterDistanceMeasure(rConnection.eval("HCluster$dist.method").asStrings());
+			hclresult.setClusterDistanceMeasure(rEngine.eval("HCluster$dist.method").asStringArray());
 
 		}
 		catch (Exception e)
@@ -511,7 +531,7 @@ public class RService extends GenericServlet
 		}
 		finally
 		{
-			rConnection.close();
+			rEngine.end();
 		}
 		return hclresult;
 	}
