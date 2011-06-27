@@ -271,7 +271,7 @@ package weave.visualization.plotters
 			}
 
 			// expand the data bounds so some surrounding tiles are downloaded to improve panning
-			var allTiles:Array = _service.requestImages(_tempDataBounds, _tempScreenBounds);
+			var allTiles:Array = _service.requestImages(_tempDataBounds, _tempScreenBounds, preferLowerQuality.value);
 			
 			// constants used many times inside the drawing loop
 			var xMinData:Number = dataBounds.getXMin();
@@ -315,7 +315,7 @@ package weave.visualization.plotters
 			if (_service == null)
 				return;
 
-			var allTiles:Array = _service.requestImages(dataBounds, screenBounds);
+			var allTiles:Array = _service.requestImages(dataBounds, screenBounds, preferLowerQuality.value);
 				
 			for (var i:int = 0; i < allTiles.length; i++)
 			{

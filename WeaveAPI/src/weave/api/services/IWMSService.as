@@ -66,10 +66,12 @@ package weave.api.services
 		 * @param dataBounds The bounds of the data.
 		 * @param screenBounds The bounds of the screen. This is required to determine
 		 * the appropriate zoom level.
+		 * @param lowerQuality A boolean indicating whether the service should request images
+		 * which are one quality level lower.
 		 * @return An array of downloaded images. The array is filled with lower quality images followed by
 		 * the requested quality. These images may overlap.
 		 */
-		function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D):Array;
+		function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array;
 		
 		/**
 		 * Return the bounds which contains all valid tile requests.

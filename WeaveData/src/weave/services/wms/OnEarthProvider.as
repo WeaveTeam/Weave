@@ -28,6 +28,8 @@ package weave.services.wms
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import org.openscales.proj4as.ProjConstants;
+	
 	import weave.api.primitives.IBounds2D;
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
@@ -35,7 +37,6 @@ package weave.services.wms
 	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 	import weave.services.URLRequestUtils;
-	import org.openscales.proj4as.ProjConstants;
 
 	/**
 	 * This class handles the requests for tiles from NASA's OnEarth WMS.
@@ -254,12 +255,15 @@ package weave.services.wms
 		private var _maxZoomLevel:Number = 0;
 		private const thisBounds:IBounds2D = new Bounds2D();
 		
-		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D):Array
+		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array
 		{
 			if (_tiledPatternXML == null)
 				return null;
 
-			var actualZoomLevel:Number = dataBounds.getArea() / screenBounds.getArea();
+			var actualZoomLevel:Number = dataBounds.getArea() / screenBounds.getArea(); 
+			if (lowerQuality == true)
+				actualZoomLevel *= 4; // double the bounds' dimensions to get 4 * area, while not requesting extra tiles
+			
 			var i:int;
 			var j:int;
 			var thisZoomLevel:Number;

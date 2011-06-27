@@ -124,7 +124,7 @@
     <classEntry path="weave.primitives.Bounds2D"/>
     <classEntry path="weave.primitives.ColorRamp"/>
     <classEntry path="weave.primitives.GeneralizedGeometry"/>
-    <classEntry path="weave.primitives.SimpleGeometry"/>
+    <classEntry path="weave.primitives.Geometry"/>
     <classEntry path="weave.primitives.ImageFactory"/>
     <classEntry path="weave.primitives.KDNode"/>
     <classEntry path="weave.primitives.KDTree"/>
@@ -132,6 +132,7 @@
     <classEntry path="weave.primitives.LinkableNumberFormatter"/>
     <classEntry path="weave.primitives.LooseAxisDescription"/>
     <classEntry path="weave.primitives.Range"/>
+    <classEntry path="weave.primitives.SimpleGeometry"/>
     <classEntry path="weave.primitives.VertexChainLink"/>
     <classEntry path="weave.primitives.WeakReference"/>
     <classEntry path="weave.primitives.WeaveMatrix"/>

@@ -239,8 +239,8 @@
 				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
 				
 				if (visualization.layers.getNames().length == 0)
-					addGeomLayer();											
-				
+					addGeomLayer();
+				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, handleBoundsChange, true);
 			}
 			
 			/*private function handleSelectedLayerChange():void

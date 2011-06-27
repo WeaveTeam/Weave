@@ -206,6 +206,7 @@ package weave.data.DataSources
 				{
 					case "gml:MultiSurfacePropertyType":
 					case "gml:MultiLineStringPropertyType":
+					case "gml:MultiCurvePropertyType":
 					case "gml:PointPropertyType":
 						dataType = DataTypes.GEOMETRY;
 						break;
@@ -374,7 +375,7 @@ package weave.data.DataSources
 					var geomType:String = firstFeatureData.children()[0].name().toString();
 					if (geomType == (gmlURI + "::Point"))
 						geomType = GeneralizedGeometry.GEOM_TYPE_POINT;
-					else if (geomType.indexOf(gmlURI + "::") == 0 && geomType.indexOf('LineString') >= 0)
+					else if (geomType.indexOf(gmlURI + "::") == 0 && (geomType.indexOf('LineString') >= 0 || geomType.indexOf('Curve') >= 0))
 						geomType = GeneralizedGeometry.GEOM_TYPE_LINE;
 					else
 						geomType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
