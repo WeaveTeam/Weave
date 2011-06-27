@@ -61,11 +61,11 @@
 								 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
 					<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleDataGridFocusIn()" fontAntiAliasType="normal" fontSize="11"
 								 fontFamily="Courier New" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
-								 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24" columnWidth="192">
-						<mx:columns>
-							<mx:DataGridColumn dataField="Name" headerText="Name" editable="false"/>
+								 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24" >
+						<!--<mx:columns>
+							<mx:DataGridColumn width="200" dataField="Name" headerText="Name" editable="false"/>
 							<mx:DataGridColumn dataField="Value" headerText="Value"/>
-						</mx:columns>
+						</mx:columns>-->
 					</mx:DataGrid>
 				</mx:Canvas>
 				<mx:Button id="toggleView" label="Toggle View" click="handleToggleViewClick()" toolTip="Click this button to switch the view of the session state."/>
@@ -80,6 +80,7 @@
 			import mx.containers.VBox;
 			import mx.controls.Alert;
 			import mx.controls.Label;
+			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.mx_internal;
 			import mx.effects.Resize;
@@ -168,7 +169,7 @@
 				}
 				
 				_nameColumn.editable = false;
-				
+				_nameColumn.width = 192;
 				loadSelectedSessionObjectInView();
 				
 		    }
