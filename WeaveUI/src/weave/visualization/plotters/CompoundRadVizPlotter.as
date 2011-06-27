@@ -35,6 +35,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableWrapper;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -47,20 +48,26 @@ package weave.visualization.plotters
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
-	 * RadViz2Plotter
+	 * CompoundRadVizPlotter
 	 * 
 	 * @author kmanohar
 	 */
-	public class RadViz2Plotter extends AbstractPlotter
+	public class CompoundRadVizPlotter extends AbstractPlotter
 	{
-		public function RadViz2Plotter()
+		public function CompoundRadVizPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerNonSpatialProperty(radiusColumn);
 			setNewRandomJitterColumn();
 		}		
 		
-		public var columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
+		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
+		
+		/**
+		 * LinkableHashMap of RadViz dimension locations: 
+		 * <br/>contains the location of each column as a Point Object inside a LinkableWrapper
+		 */		
+		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(LinkableWrapper));
 		private const coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 		
@@ -100,9 +107,27 @@ package weave.visualization.plotters
 					var string:String = (keySet.keys[j] as IQualifiedKey).localName;
 					hashMap[string] = j ;
 				}
+				setAnchorLocations(array);
 			}
 			else
 				setKeySource(null);
+		}
+		
+		private function setAnchorLocations(columnsArray:Array):void
+		{
+			var theta:Number = (2*Math.PI)/columnsArray.length;
+			var anchor:LinkableWrapper;
+			anchors.removeAllObjects();
+			for( var i:int = 0; i < columnsArray.length; i++ )
+			{
+				anchor = anchors.copyObject(ColumnUtils.getTitle(columnsArray[i]),new LinkableWrapper(Point)) as LinkableWrapper;
+				anchor.objectType.value = "Point";				
+				var obj:Object = new Point();
+				obj.x = Math.cos(theta*i);
+				obj.y = Math.sin(theta*i);				
+				anchor.properties.value = obj;
+				
+			}
 		}
 		
 		/**
@@ -131,20 +156,21 @@ package weave.visualization.plotters
 			var denominatorY:Number = 0;
 			
 			var columnArray:Array = columns.getObjects();
-			var columnArrayLength:int = columnArray.length;
-			//CORRECT this function so the coordinate is accurate
-			var j:int;
+			
 			var value:Number = 0;
-			var theta:Number = (2 * Math.PI) / columnArrayLength; 
-			for (j=0; j<columnArrayLength; j++) {
-				
-				value = ColumnUtils.getNorm(columnArray[j], recordKey);
-				
-				numeratorX += value * Math.cos(theta * j);
+			var theta:Number = (2 * Math.PI) / columnArray.length; 
+			var name:String;
+			var anchor:LinkableWrapper;
+			
+			for (var i:int=0; i<columnArray.length; i++) {
+				value = ColumnUtils.getNorm(columnArray[i], recordKey);
+				name = ColumnUtils.getTitle(columnArray[i]);
+				anchor = anchors.getObject(name) as LinkableWrapper;
+				numeratorX += value * anchor.properties.value.x;
 				denominatorX += value;
-				numeratorY += value * Math.sin(theta * j);
+				numeratorY += value * anchor.properties.value.y;
 				denominatorY += value;
-				//trace(numeratorX, numeratorY, denominatorX, denominatorY);
+				
 				
 			}
 			if(denominatorX) coordinate.x = (numeratorX/denominatorX);
@@ -249,24 +275,25 @@ package weave.visualization.plotters
 			coordinate.y = 1;
 			dataBounds.projectPointTo(coordinate, screenBounds);
 			
+			// draw RadViz circle
 			try {
 				g.lineStyle(2, 0, .2);
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
 			} catch (e:Error) { }
 			
 			destination.draw(tempShape);
-			var column1:Array = columns.getObjects(IAttributeColumn);
-			var i:int = column1.length;
 			
-			var theta:Number = ( 2 * Math.PI )/column1.length ;
-			for( i = 0 ; i < column1.length ; i++ )
+			var array:Array = anchors.getObjects(LinkableWrapper);
+			// loop through anchors hash map and draw dimensional anchors and labels
+			var theta:Number = ( 2 * Math.PI )/array.length ;
+			for( var i:int = 0 ; i < array.length ; i++ )
 			{
-				coordinate.x = Math.cos( theta * i ) ;
-				coordinate.y = Math.sin( theta * i ) ;
+				coordinate.x = array[i].properties.value.x;
+				coordinate.y = array[i].properties.value.y;
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var graphics1:Graphics = tempShape.graphics;
 				var labelText:BitmapText = new BitmapText();
-				labelText.text =("  " + ColumnUtils.getTitle(column1[i]) + "  ");
+				labelText.text =("  " + anchors.getName(array[i]) + "  ");
 				if(((theta*i) < (Math.PI/2)) || ((theta*i) > ((3*Math.PI)/2)))
 				{
 					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;

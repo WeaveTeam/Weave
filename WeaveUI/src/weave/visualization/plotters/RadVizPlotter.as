@@ -24,6 +24,8 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -222,14 +224,16 @@ package weave.visualization.plotters
 		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
 			// compare size
-			var a:Number = radiusColumn.getValueFromKey(key1);
-			var b:Number = radiusColumn.getValueFromKey(key2);
-			// sort descending (high radius values drawn first)
-			if( a < b )
-				return -1;
-			else if( a > b )
-				return 1;
-			
+			if(radiusColumn.internalColumn)
+			{
+				var a:Number = radiusColumn.getValueFromKey(key1);
+				var b:Number = radiusColumn.getValueFromKey(key2);
+				// sort descending (high radius values drawn first)
+				if( a < b )
+					return -1;
+				else if( a > b )
+					return 1;
+			}			
 			// size equal.. compare color
 						
 			a = fillStyle.color.getValueFromKey(key1, Number);
@@ -244,6 +248,7 @@ package weave.visualization.plotters
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			recordKeys.sort(sortKeys, Array.DESCENDING);
+			//trace(ObjectUtil.toString(recordKeys));
 			super.drawPlot(recordKeys, dataBounds, screenBounds, destination);
 		}
 		

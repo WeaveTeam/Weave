@@ -122,6 +122,7 @@
     <classEntry path="weave.visualization.plotters.ColorBinLegendPlotter"/>
     <classEntry path="weave.visualization.plotters.CompoundBarChartPlotter"/>
     <classEntry path="weave.visualization.plotters.CompoundPlotter"/>
+    <classEntry path="weave.visualization.plotters.CompoundRadVizPlotter"/>
     <classEntry path="weave.visualization.plotters.DynamicPlotter"/>
     <classEntry path="weave.visualization.plotters.GaugePlotter"/>
     <classEntry path="weave.visualization.plotters.GeometryLabelPlotter"/>
@@ -162,6 +163,7 @@
     <classEntry path="weave.visualization.tools.ColorBinLegendTool"/>
     <classEntry path="weave.visualization.tools.ColormapHistogramTool"/>
     <classEntry path="weave.visualization.tools.CompoundBarChartTool"/>
+    <classEntry path="weave.visualization.tools.CompoundRadVizTool"/>
     <classEntry path="weave.visualization.tools.DataItemRenderer"/>
     <classEntry path="weave.visualization.tools.DataTableTool"/>
     <classEntry path="weave.visualization.tools.DimensionSliderTool"/>
