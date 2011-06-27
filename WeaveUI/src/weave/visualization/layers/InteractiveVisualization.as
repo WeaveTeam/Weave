@@ -762,9 +762,9 @@ package weave.visualization.layers
 		{
 			var spls:Array = layers.getObjects(SelectablePlotLayer);
 			for (var i:int = 0; i < spls.length; i++)
-				setProbeKeys(spls[i], []);
+				setProbeKeys(spls[i], emptyArray);
 		}
-		
+		private const emptyArray:Array = [];
 		protected const queryBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		protected const tempDataBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		protected const tempScreenBounds:IBounds2D = new Bounds2D(); // reusable temporary object
