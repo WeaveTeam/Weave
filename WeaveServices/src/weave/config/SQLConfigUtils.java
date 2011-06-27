@@ -27,13 +27,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.rowset.CachedRowSet;
-
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.GeometryCollectionInfo;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
 /**
@@ -72,41 +71,15 @@ public class SQLConfigUtils
 	 * @param config An ISQLConfig interface to a config file
 	 * @param connectionName The name of a connection in the config file
 	 * @param query An SQL Query
-	 * @return A CachedRowSet object containing the result of the SQL query
+	 * @return A SQLResult object containing the result of the SQL query
 	 * @throws RemoteException
 	 * @throws SQLException
 	 */
-	public static CachedRowSet getRowSetFromQuery(ISQLConfig config, String connectionName, String query) throws SQLException, RemoteException
+	public static SQLResult getRowSetFromQuery(ISQLConfig config, String connectionName, String query) throws SQLException, RemoteException
 	{
 		Connection conn = getStaticReadOnlyConnection(config, connectionName);
 		return SQLUtils.getRowSetFromQuery(conn, query);
 	}
-
-//	private static CachedRowSet getRowSetFromQuery(ISQLConfig config, String query, String dataTableName, String attributeColumnName)
-//		throws RemoteException
-//	{
-//		if (query.length() == 0)
-//		{
-//			throw new RemoteException(String.format("AttributeColumn \"%s\" does not exist in DataTable \"%s\"", attributeColumnName, dataTableName));
-//		}
-//		
-//		String connectionName = config.getDataTableInfo(dataTableName).connection;
-//		CachedRowSet crs = null;
-//		try
-//		{
-//			crs = getRowSetFromQuery(config, connectionName, query);
-//	
-//			//System.out.println(String.format("`%s`,`%s`", crs.getMetaData().getColumnName(1), crs.getMetaData().getColumnName(2)));
-//		}
-//		catch (SQLException e)
-//		{
-//			e.printStackTrace();
-//			throw new RemoteException(String.format("Unable to execute dataWithKeysQuery for AttributeColumn \"%s\" in DataTable \"%s\"", attributeColumnName, dataTableName));
-//		}
-//		
-//		// return the copy of the query result
-//		return crs;
-//	}
 
 	public static String getJoinQueryForAttributeColumns(ISQLConfig config, Map<String, String> metadataQueryParams1, Map<String, String> metadataQueryParams2)
 		throws RemoteException, SQLException
@@ -131,7 +104,7 @@ public class SQLConfigUtils
 			throw new RemoteException("getJoinQueryForAttributeColumns() only supports MySQL.");
 		Connection conn = getStaticReadOnlyConnection(config, info1.connection);
 		
-		CachedRowSet crs1, crs2;
+		SQLResult crs1, crs2;
 		String keyCol1, dataCol1, query1;
 		String keyCol2, dataCol2, query2;
 		
@@ -140,16 +113,16 @@ public class SQLConfigUtils
 		if (query1.endsWith(";"))
 			query1 = query1.substring(0, query1.length() - 1);
 		crs1 = SQLUtils.getRowSetFromQuery(conn, query1);
-		keyCol1 = crs1.getMetaData().getColumnName(1);
-		dataCol1 = crs1.getMetaData().getColumnName(2);
+		keyCol1 = crs1.columnNames[0];
+		dataCol1 = crs1.columnNames[1];
 
 		query2 = info2.sqlQuery;
 		query2 = query2.trim();
 		if (query2.endsWith(";"))
 			query2 = query2.substring(0, query2.length() - 1);
 		crs2 = SQLUtils.getRowSetFromQuery(conn, query2);
-		keyCol2 = crs2.getMetaData().getColumnName(1);
-		dataCol2 = crs2.getMetaData().getColumnName(2);
+		keyCol2 = crs2.columnNames[0];
+		dataCol2 = crs2.columnNames[1];
 
 		String combinedQuery = String.format(
 				"select a.`%s` as keyCode, a.`%s` as data1, b.`%s` as data2"
@@ -162,14 +135,14 @@ public class SQLConfigUtils
 		return combinedQuery;
 	}
 
-	public static CachedRowSet getRowSetFromJoinedAttributeColumns(ISQLConfig config, Map<String, String> metadataQueryParams1, Map<String, String> metadataQueryParams2)
+	public static SQLResult getRowSetFromJoinedAttributeColumns(ISQLConfig config, Map<String, String> metadataQueryParams1, Map<String, String> metadataQueryParams2)
 		throws RemoteException, SQLException
 	{
 		String combinedQuery = getJoinQueryForAttributeColumns(config, metadataQueryParams1, metadataQueryParams2);
 
 		List<AttributeColumnInfo> infoList1 = config.getAttributeColumnInfo(metadataQueryParams1);
 		
-		CachedRowSet crs = getRowSetFromQuery(config, infoList1.get(0).connection, combinedQuery);
+		SQLResult result = getRowSetFromQuery(config, infoList1.get(0).connection, combinedQuery);
 		
 		/*
 		//for debugging
@@ -188,7 +161,7 @@ public class SQLConfigUtils
 		}
 		*/
 		
-		return crs;
+		return result;
 	}
 	/**
 	 * This function copies all connections, dataTables, and geometryCollections from one ISQLConfig to another.
@@ -221,7 +194,7 @@ public class SQLConfigUtils
 //				count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_CONNECTION, connNames.get(i));
 
 			// add geometry collections
-			List<String> geoNames = source.getGeometryCollectionNames();
+			List<String> geoNames = source.getGeometryCollectionNames(null);
 			timer.report("begin "+geoNames.size()+" geom names");
 			int printInterval = Math.max(1, geoNames.size() / 50);
 			for (int i = 0; i < geoNames.size(); i++)
@@ -283,7 +256,7 @@ public class SQLConfigUtils
 		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getGeometryCollectionNames()) < 0)
+			if (ListUtils.findString(entryName, source.getGeometryCollectionNames(null)) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			DebugTimer timer = new DebugTimer();
@@ -298,7 +271,7 @@ public class SQLConfigUtils
 		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_DATATABLE))
 		{
 			// do nothing if entry doesn't exist in source
-			if (ListUtils.findString(entryName, source.getDataTableNames()) < 0)
+			if (ListUtils.findString(entryName, source.getDataTableNames(null)) < 0)
 				return 0;
 			// save info from source before removing from destination, just in case source==destination
 			DebugTimer timer = new DebugTimer();
@@ -321,5 +294,28 @@ public class SQLConfigUtils
 	{
 		private static final long serialVersionUID = 6290284095499981871L;
 		public InvalidParameterException(String msg) { super(msg); }
+	}
+
+	
+	/**
+	 * This will return true if the specified connection has permission to modify the specified dataTable entry.
+	 */
+	public static boolean userCanModifyDataTable(ISQLConfig config, String connectionName, String dataTableName) throws RemoteException
+	{
+		// true if entry doesn't exist or if user has permission
+		return config.getConnectionInfo(connectionName).is_superuser
+			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(null)) < 0
+			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(connectionName)) >= 0;
+	}
+	
+	/**
+	 * This will return true if the specified connection has permission to modify the specified dataTable entry.
+	 */
+	public static boolean userCanModifyGeometryCollection(ISQLConfig config, String connectionName, String geometryCollectionName) throws RemoteException
+	{
+		// true if entry doesn't exist or if user has permission
+		return config.getConnectionInfo(connectionName).is_superuser
+		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(null)) < 0
+		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(connectionName)) >= 0;
 	}
 }

@@ -92,11 +92,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				}
 				
+				var connectionInfo:ConnectionInfo = new ConnectionInfo(null);
 				
-				super.next();
-				finishEnabled = true;				
+				connectionInfo.database = connectionDatabaseInput.text;
+				connectionInfo.dbms = connectionDBMSCombo.text;
+				connectionInfo.ip = connectionIPInput.text;
+				connectionInfo.name = connectionNameInput.text;
+				connectionInfo.pass = connectionPasswordInput.text;
+				connectionInfo.port = connectionPortInput.text;
+				connectionInfo.user = connectionUserInput.text;
+				connectionInfo.is_superuser = true; // this is the first user, so he must be a superuser
+				
+				AdminInterface.instance.saveConnectionInfoOnly(connectionInfo,true).addAsyncResponder(resultSuccessHandler);
+				
+				
 			}
 			
+			private function resultSuccessHandler(event:ResultEvent,token:Object=null):void
+			{
+				super.next();
+				finishEnabled = true;					
+			}
+
 			override public function back():void
 			{
 				finishEnabled = false;
@@ -120,18 +137,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 **/
 			override public function finish():void
 			{
-				var connectionInfo:ConnectionInfo = new ConnectionInfo(null);
 				
-				connectionInfo.database = connectionDatabaseInput.text;
-				connectionInfo.dbms = connectionDBMSCombo.text;
-				connectionInfo.ip = connectionIPInput.text;
-				connectionInfo.name = connectionNameInput.text;
-				connectionInfo.pass = connectionPasswordInput.text;
-				connectionInfo.port = connectionPortInput.text;
-				connectionInfo.user = connectionUserInput.text;
 				
-				AdminInterface.instance.saveConnectionInfoOnly(connectionInfo,true);
-				
+				AdminInterface.instance.authenticate(connectionNameInput.text, connectionPasswordInput.text);
+					
 				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
 					connectionNameInput.text,
 					connectionPasswordInput.text,

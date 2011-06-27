@@ -330,7 +330,7 @@ package weave.data.AttributeColumns
 			if (_keyToNumericDataMapping[primaryQKey] && (_keyToNumericDataMapping[primaryQKey][secondaryKeyString] != null))
 				return (_keyToNumericDataMapping[primaryQKey][secondaryKeyString]);
 			else
-				return Number.NEGATIVE_INFINITY;			
+				return NaN;			
 		}
 		/**
 		 * get data from key value

@@ -41,7 +41,7 @@
 			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" editable="true"/>
 			<mx:Button label="?" click="Alert.show('Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.', 'Shape Converter Help')"/>
 		</mx:HBox>
-		<admin:SQLTableSelectorDialog indent="{indent}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableLabel.text = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}"/>
+		<admin:SQLTableSelectorDialog indent="{indent}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableLabel.text = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%">
 		<mx:HBox id="nullReplacement" enabled="false" toolTip="Specify flag values to treat as missing data, separated by commas">

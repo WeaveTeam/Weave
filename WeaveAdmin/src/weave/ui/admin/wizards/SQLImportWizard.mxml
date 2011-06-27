@@ -29,7 +29,7 @@
 			>
 	<mx:VBox width="100%" height="100%">
 		<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
-		<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="true" visibleOfTableOverwriteCheck="false"/>
+		<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="true" tableOverwriteCheckVisible="false"/>
 		<mx:HBox>
 			<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_KEY_COLUMN_NAME_LABEL}"/>
 			<ui:CustomComboBox id="keyColumnComboBox" editable="true" dataProvider="{tableSelector.columns}" toolTip="{StringDefinition.DEFAULT_KEY_COLUMN_NAME_DROPDOWNBOX_TOOLTIP}"/>

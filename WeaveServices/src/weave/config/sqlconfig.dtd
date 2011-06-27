@@ -15,6 +15,7 @@
 <!ATTLIST connection database CDATA ""><!-- name of database to connect to -->
 <!ATTLIST connection user CDATA ""><!-- username to use when connecting to SQL server -->
 <!ATTLIST connection pass CDATA ""><!-- password for SQL server -->
+<!ATTLIST connection is_superuser CDATA "true"><!-- when true, grants permission to manage everything. default true for backwards compatibility -->
 
 <!ELEMENT accessLog EMPTY><!-- defines the location of a SQL table used to store logging information -->
 <!ATTLIST accessLog connection CDATA ""><!-- the name of the connection to use when logging access information -->

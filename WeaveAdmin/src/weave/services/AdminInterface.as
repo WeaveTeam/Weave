@@ -28,6 +28,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
+	import weave.StringDefinition;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.GeometryCollectionInfo;
@@ -36,7 +37,7 @@ package weave.services
 	{
 		private static var _thisInstance:AdminInterface = null;
 		[Bindable] public var sqlConfigExists:Boolean = true;
-		[Bindable] public var sqlConfigMigrated:Boolean = true;
+		[Bindable] public var currentUserIsSuperuser:Boolean = false;
 		public static function get instance():AdminInterface
 		{
 			if (_thisInstance == null)
@@ -46,30 +47,26 @@ package weave.services
 		
 		public function AdminInterface()
 		{
+			checkSQLConfigExists();
+		}
+		
+		private function checkSQLConfigExists():void
+		{
 			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
-			service.checkDatabaseConfigExists().addAsyncResponder(handleCheckSQLConfigMigrated);
-		}
-		
-		private function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
-		{
-			if (event.result.status as Boolean == false)
+			function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
 			{
-				userHasAuthenticated = true;
-				WeaveAdminService.messageDisplay("Configuration problem",String(event.result.comment), false);
-				//Alert.show(event.result.comment, "Configuration problem");
-				sqlConfigExists = false;
+				if (event.result.status as Boolean == false)
+				{
+					userHasAuthenticated = true;
+					WeaveAdminService.messageDisplay("Configuration problem", String(event.result.comment), false);
+					//Alert.show(event.result.comment, "Configuration problem");
+					sqlConfigExists = false;
+				}
+				else 
+				{
+					sqlConfigExists = true;
+				}
 			}
-			else 
-			{
-				getConnectionNames(true);
-				sqlConfigExists = true;
-			}
-		}
-		
-		
-		private function handleCheckSQLConfigMigrated(event:ResultEvent, token:Object=null):void
-		{
-			sqlConfigMigrated = Boolean(event.result);
 		}
 
 		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
@@ -96,38 +93,28 @@ package weave.services
 		
 		
 		
-		
 		// functions for managing static settings
-		
-		public function getConnectionNames(resetActiveConnection:Boolean = true):void
+		public function getConnectionNames():void
 		{
-			// clear current list, then request new list
-			connectionNames = [];
-			service.getConnectionNames().addAsyncResponder(handleGetConnectionNames, null, resetActiveConnection);
-			
 			// clear current info, then request new info
+			connectionNames = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
-			if (userHasAuthenticated)
-				service.getDatabaseConfigInfo(activeConnectionName, activePassword).addAsyncResponder(handleGetDatabaseConfigInfo);
-		}
-		private function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
-		{
-			//trace("handleGetConnectionNames");
-			connectionNames = event.result as Array || [];
 			
-			var resetActiveConnection:Boolean = token as Boolean;
-			if (resetActiveConnection || connectionNames.indexOf(activeConnectionName) < 0)
+			if (userHasAuthenticated)
 			{
-				// set activeConnectionName to first result
-				if (connectionNames.length > 0)
-					activeConnectionName = connectionNames[0];
-				else
-					activeConnectionName = '';
+				service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames);
+				function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
+				{
+					//trace("handleGetConnectionNames");
+					connectionNames = event.result as Array || [];
+				}
+
+				service.getDatabaseConfigInfo(activeConnectionName, activePassword).addAsyncResponder(handleGetDatabaseConfigInfo);
+				function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
+				{
+					databaseConfigInfo = new DatabaseConfigInfo(event.result);
+				}
 			}
-		}
-		private function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
-		{
-			databaseConfigInfo = new DatabaseConfigInfo(event.result);
 		}
 		
 		private var _activeConnectionName:String = '';
@@ -137,50 +124,62 @@ package weave.services
 		}
 		public function set activeConnectionName(value:String):void
 		{
-			if (_activeConnectionName != value)
-			{
-				_activeConnectionName = value;
-				if (userHasAuthenticated)
-					userHasAuthenticated = false;
-			}
+			if (_activeConnectionName == value)
+				return;
+			_activeConnectionName = value;
+			
+			// log out and prevent the user from seeing anything while logged out.
+			userHasAuthenticated = false;
+			currentUserIsSuperuser = false;
+			connectionNames = [];
+			dataTableNames = [];
+			geometryCollectionNames = [];
+			weaveFileNames = [];
+			keyTypes = [];
+			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
 		
-		public function authenticate(connectionName:String, password:String):void
+		public function authenticate(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 			if (userHasAuthenticated)
 				userHasAuthenticated = false;
 			activeConnectionName = connectionName;
 			activePassword = password;
-			service.authenticate(
-				activeConnectionName, activePassword
-			).addAsyncResponder(handleAuthenticate);
-		}
-		
-		private function handleAuthenticate(event:ResultEvent, token:Object = null):void
-		{
-			if (userHasAuthenticated != event.result as Boolean)
-				userHasAuthenticated = event.result as Boolean;
-			if (!userHasAuthenticated)
-				//Alert.show("Incorrect password.", "Login failed");
-				WeaveAdminService.messageDisplay("Login Failed","Incorrect password",false);
-				
-			else
+
+			var query:DelayedAsyncInvocation = service.authenticate(activeConnectionName, activePassword);
+			query.addAsyncResponder(handleAuthenticate);
+			function handleAuthenticate(event:ResultEvent, token:Object = null):void
 			{
-				getWeaveFileNames();
-				getDataTableNames();
-				getGeometryCollectionNames();
-				getKeyTypes();
+				if (userHasAuthenticated != event.result as Boolean)
+					userHasAuthenticated = event.result as Boolean;
+				if (!userHasAuthenticated)
+				{
+					//Alert.show("Incorrect password.", "Login failed");
+					WeaveAdminService.messageDisplay("Login Failed","Incorrect password",false);
+				}
+				else
+				{
+					getConnectionInfo(activeConnectionName).addAsyncResponder(handleConnectionInfo);
+					function handleConnectionInfo(event:ResultEvent, token:Object = null):void
+					{
+						var cInfo:ConnectionInfo = new ConnectionInfo(event.result);
+						currentUserIsSuperuser = cInfo.is_superuser;
+					}
+					
+					getWeaveFileNames();
+					getDataTableNames();
+					getGeometryCollectionNames();
+					getKeyTypes();
+					getConnectionNames();
+				}
 			}
+			return query;
 		}
 		
-	
 		
 
-
-
-
-
-
+		
+		
 
 
 		
@@ -189,13 +188,11 @@ package weave.services
 		public function getWeaveFileNames():void
 		{
 			weaveFileNames = [];
-			service.getWeaveFileNames(
-				activeConnectionName, activePassword
-			).addAsyncResponder(handleGetWeaveFileNames);
-		}
-		private function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
-		{
-			weaveFileNames = event.result as Array || [];
+			service.getWeaveFileNames(activeConnectionName, activePassword).addAsyncResponder(handleGetWeaveFileNames);
+			function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
+			{
+				weaveFileNames = event.result as Array || [];
+			}
 		}
 		public function removeWeaveFile(fileName:String):void
 		{
@@ -218,19 +215,17 @@ package weave.services
 					<ProbeToolTipEditor name="ProbeToolTipEditor"/>
 				</weave>;
 			// save new file if it doesn't exist (no overwrite)
-			var query:DelayedAsyncInvocation = saveWeaveFile(
+			saveWeaveFile(
 					sessionStateXML.toXMLString(),
 					fileName,
 					false
-				);
+				).addAsyncResponder(handleSaveWeaveFile);
 			// when file is initialized, load Weave to edit the session state.
-			query.addAsyncResponder(
-				function(e:Event, token:Object = null):void
-				{
-					getWeaveFileNames();
-					openWeavePreview(fileName);
-				}
-			);
+			function handleSaveWeaveFile(e:ResultEvent, token:Object = null):void
+			{
+				getWeaveFileNames();
+				openWeavePreview(fileName);
+			}
 		}
 
 
@@ -249,17 +244,17 @@ package weave.services
 		}
 		
 		
-		//This function only saves the connection and does not get the connection names like
+		//This function only saves the connection and does not get the connection names as defined in
 		//the saveConnectionInfo function. Incase the connection fails the user won't see the 
 		//other error messages if getConnectionNames function fails
-		public function saveConnectionInfoOnly(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
+		public function saveConnectionInfoOnly(connectionInfo:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			service.saveConnectionInfo(connectionInfo, configOverwrite);
+			var query:DelayedAsyncInvocation = service.saveConnectionInfo(connectionInfo, configOverwrite);
+			return query;
 			
 			//this to check if the saveConnectionInfo was successful. When the user adds the database for the first time, 
 			//the Admin Console needs to know so that it can then force the user to migrate to the database.
-			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
-			
+//			checkSQLConfigExists();
 		}
 		
 		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
@@ -283,7 +278,11 @@ package weave.services
 				geometryConfig,
 				dataConfig
 			);
-			query.addAsyncResponder(handleCheckSQLConfigMigrated);
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				sqlConfigExists = Boolean(event.result);
+			}
 			return query;
 		}
 
@@ -302,14 +301,18 @@ package weave.services
 		public function getDataTableNames():void
 		{
 			dataTableNames = [];
+			
 			if (userHasAuthenticated)
-				service.getDataTableNames().addAsyncResponder(handlegetDataTableNames);
+			{
+				service.getDataTableNames(activeConnectionName, activePassword).addAsyncResponder(handlegetDataTableNames);
+				function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
+				{
+					if (userHasAuthenticated)
+						dataTableNames = event.result as Array || [];
+				}
+			}
 		}
-		private function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
-		{
-			if (userHasAuthenticated)
-				dataTableNames = event.result as Array || [];
-		}
+		
 		public function getDataTableInfo(dataTableName:String):DelayedAsyncInvocation
 		{
 			return service.getDataTableInfo(
@@ -354,19 +357,19 @@ package weave.services
 		{
 			uploadedCSVFiles = [];
 			service.getUploadedCSVFiles().addAsyncResponder(handleUploadedCSVFiles);
-		}
-		private function handleUploadedCSVFiles(event:ResultEvent, token:Object = null):void
-		{
-			uploadedCSVFiles = event.result as Array || [];
+			function handleUploadedCSVFiles(event:ResultEvent, token:Object = null):void
+			{
+				uploadedCSVFiles = event.result as Array || [];
+			}
 		}
 		public function getUploadedShapeFiles():void
 		{
 			uploadedShapeFiles = [];
 			service.getUploadedShapeFiles().addAsyncResponder(handleUploadedShapeFiles);
-		}
-		private function handleUploadedShapeFiles(event:ResultEvent, token:Object = null):void
-		{
-			uploadedShapeFiles = event.result as Array || [];
+			function handleUploadedShapeFiles(event:ResultEvent, token:Object = null):void
+			{
+				uploadedShapeFiles = event.result as Array || [];
+			}
 		}
 
 
@@ -377,12 +380,14 @@ package weave.services
 		{
 			geometryCollectionNames = [];
 			if (userHasAuthenticated)
-				service.getGeometryCollectionNames().addAsyncResponder(handleGetGeometryCollectionNames, null);
-		}
-		private function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
-		{
-			if (userHasAuthenticated)
-				geometryCollectionNames = event.result as Array || [];
+			{
+				service.getGeometryCollectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetGeometryCollectionNames);
+				function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
+				{
+					if (userHasAuthenticated)
+						geometryCollectionNames = event.result as Array || [];
+				}
+			}
 		}
 		public function getGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
 		{
@@ -415,12 +420,14 @@ package weave.services
 		{
 			keyTypes = [];
 			if (userHasAuthenticated)
-				service.getKeyTypes().addAsyncResponder(handleGetKeyTypes);
-		}
-		private function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
-		{
-			if (userHasAuthenticated)
-				keyTypes = event.result as Array || [];
+			{
+				service.getKeyTypes(activeConnectionName, activePassword).addAsyncResponder(handleGetKeyTypes);
+				function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
+				{
+					if (userHasAuthenticated)
+						keyTypes = event.result as Array || [];
+				}
+			}
 		}
 
 
@@ -585,12 +592,12 @@ package weave.services
 				fileOverwrite
 			);
 			query.addAsyncResponder(displayFileSaveStatus);
+			function displayFileSaveStatus(event:ResultEvent, token:Object = null):void
+			{
+				adminActivityText += event.result + '\n';
+			}
 			getWeaveFileNames();
 			return query;
-		}
-		private function displayFileSaveStatus(event:ResultEvent, token:Object = null):void
-		{
-			adminActivityText += event.result + '\n';
 		}
 
 		private var weaveService:LocalAsyncService = null; // the current service object
