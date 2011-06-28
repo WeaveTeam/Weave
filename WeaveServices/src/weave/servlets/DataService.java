@@ -348,23 +348,21 @@ public class DataService extends GenericServlet
 				keyObj = result.rows[i][0];
 				if (keyObj == null)
 					continue;
+				
+				dataObj = result.rows[i][1];
+				if (dataObj == null)
+					continue;
 	
 				if (numericData != null)
 				{
 					try
 					{
-						Object valueObject = result.rows[i][1];
-						if (valueObject instanceof Integer)
-							value = ((Integer)valueObject).doubleValue();
-						else
-							value = ((Double)valueObject).doubleValue();
+						value = ((Number)dataObj).doubleValue();
 					}
 					catch (Exception e)
 					{
 						continue;
 					}
-					if (result.rows[i][1] == null)
-						continue;
 
 					// filter the data based on the min,max values
 					if (minValue <= value && value <= maxValue)
@@ -374,10 +372,6 @@ public class DataService extends GenericServlet
 				}
 				else
 				{
-					dataObj = result.rows[i][1];
-					if (dataObj == null)
-						continue;
-					
 					stringData.add(dataObj.toString());
 				}
 				keys.add(keyObj.toString());
