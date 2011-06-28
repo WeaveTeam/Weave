@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SimpleInteractiveVisualization,weave.visualization.layers.SimpleInteractiveVisualization,axesAlpha,axesColor,axesThickness,axisFontBold,axisFontColor,axisFontFamily,axisFontItalic,axisFontSize,axisFontUnderline,barChartGroupMode,barChartHorizontalMode,bottomMarginClickCallbacks,enableAutoZoomXToNiceNumbers,enableAutoZoomYToNiceNumbers,enableXAxisProbing,enableYAxisProbing,gridLineAlpha,gridLineColor,gridLineThickness,leftMarginClickCallbacks,rightMarginClickCallbacks,topMarginClickCallbacks,xAxisTooltipPtr,yAxisTooltipPtr,plotterClass,xAxisEnabled,yAxisEnabled,destroyProbeLineTooltips,disableProbelines,enableProbeLine,getDefaultPlotter,getPlotLayer,getProbeLineLayer,getXAxisLayer,getYAxisLayer,handleMouseClick,handleMouseMove,handleRollOut,linkToAxisProperties,putAxesOnBottom,setXAxisColumn,setYAxisColumn,showProbeTooltips,updateFullDataBounds" name="keywords">
+<meta content="SimpleInteractiveVisualization,weave.visualization.layers.SimpleInteractiveVisualization,PLOT_LAYER_NAME,PROBE_LINE_LAYER_NAME,X_AXIS_LAYER_NAME,Y_AXIS_LAYER_NAME,axesAlpha,axesColor,axesThickness,axisFontBold,axisFontColor,axisFontFamily,axisFontItalic,axisFontSize,axisFontUnderline,barChartGroupMode,barChartHorizontalMode,bottomMarginClickCallbacks,enableAutoZoomXToNiceNumbers,enableAutoZoomYToNiceNumbers,enableXAxisProbing,enableYAxisProbing,gridLineAlpha,gridLineColor,gridLineThickness,leftMarginClickCallbacks,rightMarginClickCallbacks,topMarginClickCallbacks,xAxisTooltipPtr,yAxisTooltipPtr,plotterClass,xAxisEnabled,yAxisEnabled,destroyProbeLineTooltips,disableProbelines,enableProbeLine,getDefaultPlotter,getPlotLayer,getProbeLineLayer,getXAxisLayer,getYAxisLayer,handleMouseClick,handleMouseMove,handleRollOut,linkToAxisProperties,putAxesOnBottom,setXAxisColumn,setYAxisColumn,showProbeTooltips,updateFullDataBounds" name="keywords">
 <title>weave.visualization.layers.SimpleInteractiveVisualization</title>
 </head>
 <body>
@@ -693,6 +693,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="InteractiveVisualization.html">InteractiveVisualization</a></td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#PLOT_LAYER_NAME">PLOT_LAYER_NAME</a> : String = "plot"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#PROBE_LINE_LAYER_NAME">PROBE_LINE_LAYER_NAME</a> : String = "probeLine"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#rightMarginClickCallbacks">rightMarginClickCallbacks</a> : <a href="../../api/core/ICallbackCollection.html">ICallbackCollection</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
@@ -717,6 +725,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#topMarginClickCallbacks">topMarginClickCallbacks</a> : <a href="../../api/core/ICallbackCollection.html">ICallbackCollection</a>
 <div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#X_AXIS_LAYER_NAME">X_AXIS_LAYER_NAME</a> : String = "xAxis"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#Y_AXIS_LAYER_NAME">Y_AXIS_LAYER_NAME</a> : String = "yAxis"<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="hideInheritedConstant">
@@ -1305,6 +1321,24 @@ showHideInherited();
 <div class="detailBody">
 <code>public const leftMarginClickCallbacks:<a href="../../api/core/ICallbackCollection.html">ICallbackCollection</a></code>
 </div>
+<a name="PLOT_LAYER_NAME"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">PLOT_LAYER_NAME</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const PLOT_LAYER_NAME:String = "plot"</code>
+</div>
+<a name="PROBE_LINE_LAYER_NAME"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">PROBE_LINE_LAYER_NAME</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const PROBE_LINE_LAYER_NAME:String = "probeLine"</code>
+</div>
 <a name="rightMarginClickCallbacks"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -1322,6 +1356,24 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const topMarginClickCallbacks:<a href="../../api/core/ICallbackCollection.html">ICallbackCollection</a></code>
+</div>
+<a name="X_AXIS_LAYER_NAME"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">X_AXIS_LAYER_NAME</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const X_AXIS_LAYER_NAME:String = "xAxis"</code>
+</div>
+<a name="Y_AXIS_LAYER_NAME"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">Y_AXIS_LAYER_NAME</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const Y_AXIS_LAYER_NAME:String = "yAxis"</code>
 </div>
 <br>
 <br>
