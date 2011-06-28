@@ -27,11 +27,6 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.primitives.IBounds2D;
-			import weave.api.data.IColumnWrapper;
-			import weave.api.data.IPrimitiveColumn;
-			import weave.compiler.MathLib;
-			import weave.utils.NumberUtils;
 			import mx.controls.TextArea;
 			import mx.core.UIComponent;
 			import mx.events.ChildExistenceChangedEvent;
@@ -41,24 +36,26 @@
 			import mx.events.SliderEvent;
 			
 			import weave.Weave;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.data.IKeyFilter;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IPrimitiveColumn;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
+			import weave.api.newLinkableChild;
+			import weave.api.primitives.IBounds2D;
+			import weave.api.registerLinkableChild;
+			import weave.compiler.MathLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
 			import weave.core.UIUtils;
-			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
-			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IColumnWrapper;
-			import weave.api.data.IPrimitiveColumn;
-			import weave.api.data.IKeyFilter;
-			import weave.api.data.IKeySet;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DraggablePanel;
@@ -66,9 +63,11 @@
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.DebugUtils;
+			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.AxisPlotter;
 			import weave.visualization.plotters.CircleGlyphPlotter;
 			import weave.visualization.plotters.ProbeLinePlotter;
@@ -89,6 +88,16 @@
 				visualization.enableProbeLine(true, true, labelFunctionY, labelFunctionX);
 				
 				initRegressionLayer() ;
+				
+				visualization.layers.childListCallbacks.addImmediateCallback(this, putRegressionLineOnTop);
+				function putRegressionLineOnTop():void
+				{
+					var names:Array = visualization.layers.getNames();
+					// move reg line after plot layer
+					names.splice(names.indexOf(SimpleInteractiveVisualization.PLOT_LAYER_NAME) + 1, 0, names.splice(names.indexOf(REGRESSION_LAYER_NAME), 1));
+					// set new name order
+					visualization.layers.setNameOrder(names);
+				}
 				
 				xAxisEnabled = true;
 				yAxisEnabled = true;

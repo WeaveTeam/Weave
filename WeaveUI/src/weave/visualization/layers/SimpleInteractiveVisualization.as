@@ -88,10 +88,10 @@ package weave.visualization.layers
 			enableAutoZoomToExtent.addImmediateCallback(this, handleDataBoundsChange);
 		}
 
-		private const PROBE_LINE_LAYER_NAME:String = "probeLine";
-		private const xAxisLayerName:String = "xAxis";
-		private const yAxisLayerName:String = "yAxis";
-		private const plotLayerName:String = "plot";
+		public static const PROBE_LINE_LAYER_NAME:String = "probeLine";
+		public static const X_AXIS_LAYER_NAME:String = "xAxis";
+		public static const Y_AXIS_LAYER_NAME:String = "yAxis";
+		public static const PLOT_LAYER_NAME:String = "plot";
 		
 		private var _probeLineLayer:PlotLayer ;
 		private var _plotLayer:SelectablePlotLayer;
@@ -126,7 +126,7 @@ package weave.visualization.layers
 		{
 			if (classDef && !_plotLayer)
 			{
-				_plotLayer = layers.requestObject(plotLayerName, SelectablePlotLayer, true);
+				_plotLayer = layers.requestObject(PLOT_LAYER_NAME, SelectablePlotLayer, true);
 				_plotLayer.getDynamicPlotter().requestLocalObject(classDef, true);
 				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
 			}
@@ -169,7 +169,7 @@ package weave.visualization.layers
 		{
 			if (value && !_xAxisLayer)
 			{
-				_xAxisLayer = layers.requestObject(xAxisLayerName, AxisLayer, true);
+				_xAxisLayer = layers.requestObject(X_AXIS_LAYER_NAME, AxisLayer, true);
 				_xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
 				_xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
 				
@@ -183,7 +183,7 @@ package weave.visualization.layers
 		{
 			if (value && !_yAxisLayer)
 			{
-				_yAxisLayer = layers.requestObject(yAxisLayerName, AxisLayer, true);
+				_yAxisLayer = layers.requestObject(Y_AXIS_LAYER_NAME, AxisLayer, true);
 				_yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				_yAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
 				
@@ -203,19 +203,19 @@ package weave.visualization.layers
 		public function putAxesOnBottom():void
 		{
 			var names:Array = layers.getNames();
-			var xAxisIndex:int = names.indexOf(xAxisLayerName);
-			var yAxisIndex:int = names.indexOf(yAxisLayerName);
-			var probeIndex:int = names.indexOf(PROBE_LINE_LAYER_NAME);
-			if (xAxisIndex >= 0)
-				names.splice(xAxisIndex, 1);
-			if (yAxisIndex >= 0)
-				names.splice(yAxisIndex, 1);
-			if( probeIndex >= 0)
-				names.splice(probeIndex, 1);
-			names.unshift(xAxisLayerName); // default axes first
-			names.unshift(yAxisLayerName); // default axes first
-			names.push(plotLayerName); // plot before last
-			names.push(PROBE_LINE_LAYER_NAME); // probe layer last
+			
+			// remove axis layer names so they can be put in front.
+			var i:int;
+			for each (var name:String in [X_AXIS_LAYER_NAME, Y_AXIS_LAYER_NAME])
+			{
+				i = names.indexOf(name)
+				if (i >= 0)
+					names.splice(i, 1);
+			}
+			
+			names.unshift(X_AXIS_LAYER_NAME); // default axes first
+			names.unshift(Y_AXIS_LAYER_NAME); // default axes first
+			names.push(PROBE_LINE_LAYER_NAME); // probe line layer last
 			
 			layers.setNameOrder(names);
 		}
