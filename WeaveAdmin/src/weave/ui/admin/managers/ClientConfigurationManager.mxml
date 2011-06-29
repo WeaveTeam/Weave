@@ -107,11 +107,13 @@
 						this,
 						"Confirm Delete",
 						'Delete file "'+fileName+'"?',
-						function():void
-						{
-							AdminInterface.instance.removeWeaveFile(fileName);
-						}
+						del
 					);
+					
+					function del():void
+					{
+						AdminInterface.instance.removeWeaveFile(fileName);
+					}
 				}
 				else
 				{

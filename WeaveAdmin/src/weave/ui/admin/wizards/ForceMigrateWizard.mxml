@@ -88,7 +88,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (connectionIPInput.text == "" || connectionNameInput.text == "" ||
 					connectionPortInput.text == "" || connectionUserInput.text == "")
 				{
-					Alert.show("All fields makred with * are required.", "Error");
+					Alert.show("All fields marked with * are required.", "Error");
 					return;
 				}
 				

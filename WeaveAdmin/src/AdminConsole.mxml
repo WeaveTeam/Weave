@@ -50,25 +50,6 @@
 				loginPopup.show(this);
 
 				BindingUtils.bindSetter(handleSQLConfigExists, AdminInterface.instance, "sqlConfigExists");
-				function handleSQLConfigExists(exists:Boolean):void
-				{
-					if (!exists)
-					{
-						var migrateViewStack:ForceMigrateWizard = new ForceMigrateWizard();
-						var migratePanel:WizardPanel = WizardPanel.createWizard(this, migrateViewStack) as WizardPanel;
-						
-						//we don't want the user to hit the close button before the migration step, so we disable it.
-						migratePanel.cancelButton.visible = false;
-						
-						//When the user hits the finish button we will do a check to see if migration was sucessful. 
-						//if yes, we close the wizard and direct the user to the client configuration tab
-						//if no, we will leave it open (in modal mode).
-						migrateViewStack.addEventListener(CloseEvent.CLOSE,function(..._):void{
-								tabNavigator.selectedChild = clientConfig;
-								PopUpManager.removePopUp(migratePanel);}
-						);
-					}
-				}
 
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
 				function handleMessageLog():void
@@ -87,6 +68,25 @@
 						tabNavigator.addChild(sqlConnectionManager);
 					if (!isSuperuser && tabNavigator.contains(sqlConnectionManager))
 						tabNavigator.removeChild(sqlConnectionManager);
+				}
+			}
+			private function handleSQLConfigExists(exists:Boolean):void
+			{
+				if (!exists)
+				{
+					var migrateViewStack:ForceMigrateWizard = new ForceMigrateWizard();
+					var migratePanel:WizardPanel = WizardPanel.createWizard(this, migrateViewStack) as WizardPanel;
+					
+					//we don't want the user to hit the close button before the migration step, so we disable it.
+					migratePanel.cancelButton.visible = false;
+					
+					//When the user hits the finish button we will do a check to see if migration was sucessful. 
+					//if yes, we close the wizard and direct the user to the client configuration tab
+					//if no, we will leave it open (in modal mode).
+					migrateViewStack.addEventListener(CloseEvent.CLOSE,function(..._):void{
+							tabNavigator.selectedChild = clientConfig;
+							PopUpManager.removePopUp(migratePanel);}
+					);
 				}
 			}
 		]]>

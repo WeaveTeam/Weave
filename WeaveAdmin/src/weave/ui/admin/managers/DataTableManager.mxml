@@ -172,12 +172,13 @@
 						this,
 						"Leave current DataTable",
 						'Are you sure you want to leave the current DataTable? Any unsaved changes will be lost.',
-						function():void
-						{
-							changeSelectedTreeItem();
-							metaDataChanged = false;
-						}
+						leave
 					);
+					function leave():void
+					{
+						changeSelectedTreeItem();
+						metaDataChanged = false;
+					}
 				}
 				else changeSelectedTreeItem();
 			}
@@ -269,12 +270,13 @@
 						this,
 						"Confirm overwrite",
 						'Overwrite DataTable entry "'+dataTableName+'"?',
-						function():void
-						{
-							AdminInterface.instance.saveDataTableInfo(metadataArray);
-							metaDataChanged = false;
-						}
+						overwrite
 					);
+				function overwrite():void
+				{
+					AdminInterface.instance.saveDataTableInfo(metadataArray);
+					metaDataChanged = false;
+				}
 			}
 			
 			private function deleteDataTable():void
@@ -287,12 +289,14 @@
 						this,
 						"Confirm delete",
 						'Delete DataTable entry "'+dataTableName+'"?',
-						function():void
-						{
-							AdminInterface.instance.removeDataTableInfo(dataTableName);
-							metaDataChanged = false;
-						}
+						del
 					);
+				
+				function del():void
+				{
+					AdminInterface.instance.removeDataTableInfo(dataTableName);
+					metaDataChanged = false;
+				}
 			}
 			
 			private function loadData(metadata_CSVString_or_Array:*):void
@@ -469,28 +473,29 @@
 					this,
 					"Confirm delete",
 					'Delete selected Dublin Core element'+(dcElementsEditor.selectedItems.length>1?'s':'')+'?',
-					function():void
-					{
-						var elements:Array = dcElementsEditor.selectedItems;
-						
-						var tableName:String = getCurrentTableName();
-						var query:DelayedAsyncInvocation = AdminInterface.instance.deleteDCElements(tableName,elements);
-						query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
-							loadDublinCoreElements();
-						});
-						
-//						var elementsToDelete:Array = new Array();
-//						for each( var item:Object in selectedItems){
-//							var elementToDelete:Object = {
-//								"dataTable": 
-//							};
-//							elementsToDelete.push(elementToDelete);
-//							trace( "item.element = "+item.element+", item.value = "+item.value );
-//						}
-//						
-//						Alert.show("in deleteSelectedElement");
-					}
+					del
 				);
+				function del():void
+				{
+					var elements:Array = dcElementsEditor.selectedItems;
+					
+					var tableName:String = getCurrentTableName();
+					var query:DelayedAsyncInvocation = AdminInterface.instance.deleteDCElements(tableName,elements);
+					query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
+						loadDublinCoreElements();
+					});
+					
+//					var elementsToDelete:Array = new Array();
+//					for each( var item:Object in selectedItems){
+//						var elementToDelete:Object = {
+//							"dataTable": 
+//						};
+//						elementsToDelete.push(elementToDelete);
+//						trace( "item.element = "+item.element+", item.value = "+item.value );
+//					}
+//					
+//					Alert.show("in deleteSelectedElement");
+				}
 			}
 			
 			/**
@@ -541,27 +546,32 @@
 				var oldValue:String = dcElementsEditor.dataProvider.getItemAt(row)[FIELD];
 				var newValue:String = dcElementsEditor.itemEditorInstance[dcElementsEditor.columns[event.columnIndex].editorDataField];
 				
-				if( oldValue != newValue ) {
+				if (oldValue != newValue)
+				{
 					PopUpUtils.confirm(
 						this,
 						"Confirm Update",
 						'Update Dublin Core element?',
-						function():void
+						yes,
+						no
+					);
+					function yes():void
+					{
+						var o:Object = {element:element, oldValue:oldValue, newValue:newValue};
+						
+						var query:DelayedAsyncInvocation = AdminInterface.instance.updateEditedDCElement(tableName, o);
+						query.addAsyncResponder(handleUpdate);
+						function handleUpdate(e:ResultEvent, o:Object = null):void
 						{
-							var o:Object = {element:element, oldValue:oldValue, newValue:newValue};
-							
-							var query:DelayedAsyncInvocation = AdminInterface.instance.updateEditedDCElement(tableName, o);
-							query.addAsyncResponder(function( e:ResultEvent, o:Object=null):void{
-								loadDublinCoreElements();
-							});
-						},
-						function():void
-						{
-							// This might need to be fixed
-							dcElementsEditor.dataProvider.getItemAt(row)[FIELD] = oldValue;
 							loadDublinCoreElements();
 						}
-					);
+					}
+					function no():void
+					{
+						// This might need to be fixed
+						dcElementsEditor.dataProvider.getItemAt(row)[FIELD] = oldValue;
+						loadDublinCoreElements();
+					}
 				}
 			}
 			
