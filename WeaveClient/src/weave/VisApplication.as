@@ -38,8 +38,8 @@ package weave
 	import flash.text.TextField;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
-	import flash.utils.Timer;
 	import flash.ui.MouseCursor;
+	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
@@ -114,8 +114,8 @@ package weave
 	import weave.ui.JRITextEditor;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
-	import weave.ui.PrintPanel;
 	import weave.ui.PenTool;
+	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
@@ -129,6 +129,7 @@ package weave
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
+	import weave.ui.infomap.InfoMapPanel;
 	import weave.ui.settings.GlobalUISettings;
 	import weave.ui.settings.InteractivitySubMenu;
 	import weave.utils.BitmapUtils;
@@ -1522,6 +1523,14 @@ package weave
 				
 				PenTool.createContextMenuItems(this);
 					
+
+				
+					
+				if(Weave.properties.enableInfoMap.value)
+				{
+					InfoMapPanel.createContextMenuItems(this);
+				}
+
 				//HelpPanel.createContextMenuItems(this);
 				if (Weave.properties.dataInfoURL.value)
 					addLinkContextMenuItem("Show Information About This Dataset...", Weave.properties.dataInfoURL.value);

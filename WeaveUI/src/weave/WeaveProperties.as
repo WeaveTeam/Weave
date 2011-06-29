@@ -191,6 +191,8 @@ package weave
 		
 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
 		
+		public const enableInfoMap:LinkableBoolean = new LinkableBoolean(true);//enable/disable InfoMap
+		
 		public function get enableDebugAlert():LinkableBoolean { return DebugUtils.enableDebugAlert; } // show debug_trace strings in alert boxes
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
 		
