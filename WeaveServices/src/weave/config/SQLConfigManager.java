@@ -242,6 +242,8 @@ public final class SQLConfigManager
 			ISQLConfig config = getConfig();
 			String connectionName = config.getAccessLogConnectionName();
 			ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
+			if (connInfo == null)
+				return;
 
 			// get connection
 			conn = connInfo.getStaticReadOnlyConnection();

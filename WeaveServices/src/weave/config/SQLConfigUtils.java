@@ -52,6 +52,8 @@ public class SQLConfigUtils
 	public static Connection getStaticReadOnlyConnection(ISQLConfig config, String connectionName) throws SQLException, RemoteException
 	{
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		if (info == null)
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist", connectionName));
 		return info.getStaticReadOnlyConnection();
 	}
 	
@@ -64,6 +66,8 @@ public class SQLConfigUtils
 	public static Connection getConnection(ISQLConfig config, String connectionName) throws SQLException, RemoteException
 	{
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		if (info == null)
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist", connectionName));
 		return info.getConnection();
 	}
 	
@@ -98,9 +102,12 @@ public class SQLConfigUtils
 		
 		AttributeColumnInfo info1 = infoList1.get(0);
 		AttributeColumnInfo info2 = infoList2.get(0);
+		ConnectionInfo connInfo = config.getConnectionInfo(info1.connection);
 		if (info1.connection != info2.connection)
-			throw new RemoteException("SQL Connection for two columns must be the same to join them.");
-		if (config.getConnectionInfo(info1.connection).dbms != SQLUtils.MYSQL)
+			throw new RemoteException("SQL connection for two columns must be the same to join them.");
+		if (connInfo == null)
+			throw new RemoteException(String.format("The SQL connection for the columns does not exist.", info1.connection));
+		if (connInfo.dbms != SQLUtils.MYSQL)
 			throw new RemoteException("getJoinQueryForAttributeColumns() only supports MySQL.");
 		Connection conn = getStaticReadOnlyConnection(config, info1.connection);
 		
@@ -216,7 +223,7 @@ public class SQLConfigUtils
 				destination.addAttributeColumn(columnInfo.get(i));
 			}
 			count += columnInfo.size();
-			System.out.println("done!");
+			timer.report("done migrating columns");
 			
 			if (conn != null)
 			{
@@ -303,7 +310,10 @@ public class SQLConfigUtils
 	public static boolean userCanModifyDataTable(ISQLConfig config, String connectionName, String dataTableName) throws RemoteException
 	{
 		// true if entry doesn't exist or if user has permission
-		return config.getConnectionInfo(connectionName).is_superuser
+		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		if (info == null)
+			return false;
+		return info.is_superuser
 			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(null)) < 0
 			|| ListUtils.findIgnoreCase(dataTableName, config.getDataTableNames(connectionName)) >= 0;
 	}
@@ -314,7 +324,10 @@ public class SQLConfigUtils
 	public static boolean userCanModifyGeometryCollection(ISQLConfig config, String connectionName, String geometryCollectionName) throws RemoteException
 	{
 		// true if entry doesn't exist or if user has permission
-		return config.getConnectionInfo(connectionName).is_superuser
+		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		if (info == null)
+			return false;
+		return info.is_superuser
 		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(null)) < 0
 		|| ListUtils.findIgnoreCase(geometryCollectionName, config.getGeometryCollectionNames(connectionName)) >= 0;
 	}
