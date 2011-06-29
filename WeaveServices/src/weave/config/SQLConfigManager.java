@@ -148,7 +148,17 @@ public final class SQLConfigManager
 			{
 				_lastModifiedTime = 0L;
 				new File(configFileName).getAbsoluteFile().getParentFile().mkdirs();
-				config = new DatabaseConfig(new SQLConfigXML(configFileName));
+				config = new SQLConfigXML(configFileName);
+				try
+				{
+					config = new DatabaseConfig(config);
+					//System.out.println("Using configuration stored in database instead of "+configFileName);
+				}
+				catch (Exception e)
+				{
+					//e.printStackTrace();
+					//System.out.println("Using configuration stored in "+configFileName);
+				}
 				_lastModifiedTime = new File(configFileName).lastModified();
 			}
 			catch (SAXParseException e)
