@@ -28,270 +28,76 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   creationPolicy="all">
 	<mx:Script>
 		<![CDATA[
-			import com.hurlant.util.asn1.parser.integer;
+			import weave.services.CollaborationEvent;
+			import weave.services.CollaborationService;
 			
-			import mx.controls.Alert;
-			import mx.events.CloseEvent;
-			import mx.events.FlexEvent;
-			import mx.managers.PopUpManager;
-			import mx.utils.Base64Decoder;
-			import mx.utils.Base64Encoder;
-			
-			import org.igniterealtime.xiff.auth.*;
-			import org.igniterealtime.xiff.bookmark.*;
-			import org.igniterealtime.xiff.conference.*;
-			import org.igniterealtime.xiff.core.*;
-			import org.igniterealtime.xiff.data.*;
-			import org.igniterealtime.xiff.data.register.RegisterExtension;
-			import org.igniterealtime.xiff.events.*;
-			import org.igniterealtime.xiff.exception.*;
-			import org.igniterealtime.xiff.filter.*;
-			import org.igniterealtime.xiff.im.*;
-			import org.igniterealtime.xiff.privatedata.*;
-			import org.igniterealtime.xiff.util.*;
-			import org.igniterealtime.xiff.vcard.*;
-			
-			public static var room:Room;
-			
-			public static var connection:XMPPConnection;
-			
-			//Contains a user's "Buddy List"
-			/* public static var roster:Roster; */
-			
-			private var selfJID:String;
-			//private var server:String = 						"129.63.17.121";
-			private var compName:String = 						"@conference";
-			
-			//The port defines a secure connection
-			//5222(unsecure) , 5223(secure)
-			private var baseEncoder:Base64Encoder = 			new Base64Encoder();
-			private var baseDecoder:Base64Decoder = 			new Base64Decoder();
-			
-			//setting a room that doesn't exist will register that
-			//new room with the server
-			private var connectedToRoom:Boolean = 				false;
-			private var isConnected:Boolean = 					false;
-			
-			private function sendToRoomPress(e:KeyboardEvent):void
-			{
-				if( e.keyCode == 13 )
-				{
-					if(room != null)
-					{
-						var o:Object = { id: selfJID, type: "chat", message: input.text };
-						room.sendMessage(encodeObject(o));
-					}
-					input.text = "";
-				}
-			}
-			
-			private function sendToRoomClick(e:MouseEvent):void
-			{
-				if(room != null)
-				{
-					var o:Object = { id: selfJID, type: "chat", message: input.text };
-					room.sendMessage(encodeObject(o));
-					input.text = "";
-				}
-			}
-			
-			/**
-			 * connection callbacks
-			 **/
-			private function onLogin(event:LoginEvent):void
-			{
-				log.text += "connected as ";
-				if( connection.useAnonymousLogin == true )
-					log.text += "anonymous user: ";
-				log.text += connection.username + "\n";
-				
-				joinRoom(roomToJoin.text);
-				connectedToRoom = true;
-				input.enabled = true;
-				sendButton.enabled = true;
-			}
-			
-			private function onReceiveMessage(event:MessageEvent):void
-			{
-				try
-				{
-					if( event.data.id != null)
-					{
-						var o:Object = decodeObject(event.data.body);
-						log.text += o.id + ": " + o.message + "\n";
-					} else
-						log.text += "server: " + event.data.body + "\n";
-				} 
-				catch( e:Error )
-				{
-					trace( "Error: " + e.message );
-				}
-				
-				log.verticalScrollPosition += 100;
-			}
-			
-			private function onDisconnect(e:DisconnectionEvent):void
-			{
-				trace("disconnectied");
-				isConnected = false;
-			}
-			private function onError(e:XIFFErrorEvent):void
-			{
-				trace("Error: " + e.errorMessage);
-			}
-			
-			public function connect(e:MouseEvent):void
-			{
-				log.text += "connecting to " + server.text + "...\n";
-				connection = new XMPPConnection();
-				
-				connection.useAnonymousLogin = true;
-				/* connection.username = "admin";
-				connection.password = "admin"; */
-
-				connection.server = server.text;
-				connection.port = int(port.text);
-				
-				// For a full list of listeners, see XIFF/src/org/jivesoftware/xiff/events
-				connection.addEventListener(LoginEvent.LOGIN, onLogin);
-				connection.addEventListener(MessageEvent.MESSAGE, onReceiveMessage);
-				connection.addEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
-				connection.addEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
-				
-				connection.connect();
-			}
+			private var collabService:CollaborationService = new CollaborationService();
 			
 			override protected function childrenCreated():void
-			{		
-				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoomPress);
-				sendButton.addEventListener(MouseEvent.CLICK, sendToRoomClick);
+			{	
+				toggleUserControlPanel();
+				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
+				collabService.addEventListener(CollaborationEvent.USERS_LIST, handleUserList);
+				collabService.addEventListener(CollaborationEvent.CLEAR_LOG, handleLogClear);
+				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoom);
+				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
+				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);		
 			}
 			
-			private function joinRoom(roomName:String):void
+			override public function dispose():void
 			{
-				log.text += "joined room: " + roomToJoin.text + "\n";
-				room = new Room(connection);
-
-				room.nickname = username.text;
-				log.text += "set alias to: " + room.nickname + "\n";
-				room.roomJID = new UnescapedJID(roomName + compName + '.' + server.text);
-				
-				room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
-				room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
-				room.addEventListener(RoomEvent.USER_JOIN, onUserJoin);
-				room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
-				room.join();
-				trace("joining room");
+				if( collabService.hasConnection() == true) collabService.disconnect();
+				super.dispose();
 			}
 			
-			private function onRoomJoin(e:RoomEvent):void
+			private function sendToRoom(e:Event):void
 			{
-				room = Room(e.target);
-				selfJID = room.userJID.resource;
-				updateUsers();
-				trace("Joined room.");	
+				if( e is KeyboardEvent && (e as KeyboardEvent).keyCode != Keyboard.ENTER)
+					return;
+				collabService.sendMessage( input.text );
+				input.text = "";		
 			}
 			
-			private function onTimeout(event:RoomEvent):void
+			private function connect(e:MouseEvent):void
 			{
-				if (connectedToRoom)
-					Alert.show("Would you like to reconnect?", "Disconnected", Alert.YES | Alert.NO, null, closeHandler, null, Alert.YES);
+				collabService.connect(server.text, int(port.text), roomToJoin.text, username.text);
+				cPanel.removePanel();
+				input.enabled = true;
+				sendButton.enabled = true;
+				disconnectButton.enabled = true;
 			}
 			
-			private function onUserJoin(event:RoomEvent):void
+			private function disconnect(e:MouseEvent):void
 			{
-				log.text += event.nickname + " has joined the room.\n";
-				updateUsers();
-			}
-			
-			private function onUserLeave(event:RoomEvent):void
-			{
-				log.text += event.nickname + " has left the room.\n";
-				updateUsers();
-			}
-			
-			
-			public function disconnect():void
-			{
-				connectedToRoom = false;
-				connection.disconnect();
-				clean();
-			}
-			
-			private function clean():void
-			{
-				//== Remove Event Listeners ==//
-				connection.removeEventListener(LoginEvent.LOGIN, onLogin);
-				connection.removeEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
-				connection.removeEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
-				connection.removeEventListener(MessageEvent.MESSAGE, onReceiveMessage);
-				if( room != null)
-				{
-					room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
-					room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
-					room.removeEventListener(RoomEvent.USER_JOIN, onUserJoin);
-					room.removeEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
-				}
-				
-				//== Reset variables ==//
-				isConnected = 				false;
-				connection = 				null;
-				room = 						null;
-				selfJID = 					null;
-				
-				trace("cleaning");
-			}
-			
-			private function closeHandler(e:CloseEvent):void
-			{
-				if(e.detail == Alert.YES )
-				{
-					clean();
-					if( connection == null )
-						Alert.show( "Unable to connect at this time.", "Connection Issue");
-				}
+				collabService.disconnect();
+				input.enabled = false;
+				sendButton.enabled = false;
+				disconnectButton.enabled = false;
 			}
 
-			public function hasConnection():Boolean 
+			private function handleText(e:CollaborationEvent):void
 			{
-				return isConnected;
+				log.text += e.getText();
 			}
 			
-			private function updateUsers():void
+			private function handleUserList( e:CollaborationEvent):void
 			{
-				var s:String = "";
-				for each (var occ:RoomOccupant in room)	
-					s += occ.displayName + '\n';
-				users.text = s;
+				users.text = e.getText();
 			}
 			
-			private function encodeObject(toEncode:Object):String
+			private function handleLogClear( e:CollaborationEvent):void
 			{
-				baseEncoder.reset();
-				baseEncoder.insertNewLines = false;
-				var byteArray:ByteArray = new ByteArray();
-				byteArray.writeObject(toEncode);
-				byteArray.position = 0;
-				baseEncoder.encodeBytes(byteArray);
-				return baseEncoder.toString();
+				log.text = "";
 			}
 			
-			private function decodeObject(message:String):Object
-			{
-				baseDecoder.reset();
-				baseDecoder.decode(message);
-				var byteArray:ByteArray = baseDecoder.toByteArray();
-				byteArray.position = 0;
-				return byteArray.readObject();
-			}
 		]]>
 	</mx:Script>
 
 	
 	<mx:VBox width="100%" height="100%" paddingTop="10" paddingBottom="10" paddingLeft="10" paddingRight="10">
 		<mx:HBox width="100%" height="90%">
-			<mx:TextArea width="80%" height="100%" id="log" editable="false" />
+			<mx:TextArea width="80%" height="100%" id="log" editable="false" liveScrolling="true" />
 			<mx:TextArea height="100%" id="users" editable="false" />
 		</mx:HBox>
 		<mx:HBox width="100%">
@@ -300,15 +106,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:HBox>
 	</mx:VBox>
 	
-	<ui:ControlPanel>
+	<ui:ControlPanel id="cPanel">
 		<mx:VBox label="Visualization Controls">
 			<mx:HBox width="100%">
 				<mx:Label text="Server:"/>
-				<mx:TextInput width="50%" id="server" />	
+				<mx:TextInput width="50%" id="server" text="129.63.17.121"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:"/>
-				<mx:TextInput width="50%" id="port" />	
+				<mx:TextInput width="50%" id="port" text="5222"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Username:"/>
@@ -316,9 +122,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Room Name:"/>
-				<mx:TextInput width="50%" id="roomToJoin" />	
+				<mx:TextInput width="50%" id="roomToJoin" text="Test"/>	
 			</mx:HBox>
 			<mx:Button id="connectButton" label="Connect" enabled="true"/>
+			<mx:Button id="disconnectButton" label="Disconnect" enabled="false"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 	
