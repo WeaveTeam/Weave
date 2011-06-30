@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.SortedIndexColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
@@ -82,20 +83,21 @@ package weave.visualization.plotters
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
 		public const lineStyle:DynamicLineStyle = registerNonSpatialProperty(new DynamicLineStyle(SolidLineStyle));
-		
 		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
 		// for now it is a solid fill style -- needs to be updated to be dynamic fill style later
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
 		
 		private var _sortedIndexColumn:SortedIndexColumn = newDisposableChild(this, SortedIndexColumn); // this sorts the records
 		private var _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
-		
+		public const errorPlusColumn:DynamicColumn = newNonSpatialProperty(DynamicColumn);
+		public const errorMinusColumn:DynamicColumn = newNonSpatialProperty(DynamicColumn);
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		
 		public function getSortedKeys():Array { return _sortedIndexColumn.keys; }
 		
 		public const chartColors:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		
 		public const horizontalMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 		public const groupMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
@@ -284,7 +286,61 @@ package weave.visualization.plotters
 				//------------------------------------
 				// END code to draw one compound bar
 				//------------------------------------
-				
+				//------------------------------------
+				// BEGIN code to draw one error bar
+				//------------------------------------
+				if (this.errorPlusColumn.internalColumn != null)
+				{
+					var errorPlusVal:Number = this.errorPlusColumn.getValueFromKey( recordKey, Number) as Number;
+					if (this.errorMinusColumn.internalColumn != null)
+					{
+						var errorMinusVal:Number = this.errorMinusColumn.getValueFromKey( recordKey , Number) as Number;
+					}
+					else
+					{
+						var errorMinusVal:Number = errorPlusVal;
+					}
+					if (!_horizontalMode && !isNaN(errorPlusVal) && !isNaN(errorMinusVal))
+					{
+						var center:Number = (barStart+barEnd)/2;
+						var width:Number = barEnd-barStart; 
+						var left:Number = center-width/4;
+						var right:Number = center+width/4;
+						
+						var top:Number = yMax + errorPlusVal;
+						var bottom:Number = yMax - errorMinusVal;
+						
+						var points:Array = []
+						points.push(new Point(left, top));
+						points.push(new Point(right, top));
+						points.push(new Point(center, top));
+						points.push(new Point(center, bottom));
+						points.push(new Point(left, bottom));
+						points.push(new Point(right, bottom));
+						
+						
+						points.forEach(function(p) { 
+							dataBounds.projectPointTo(p, screenBounds)}
+						);
+						
+						
+						while (points.length != 0)
+						{
+							var a,b:Point;
+							a = points.pop() as Point;
+							b = points.pop() as Point;
+							graphics.moveTo(a.x, a.y);
+							graphics.lineTo(b.x, b.y);
+						}
+					}
+					else
+					{
+						var center:Number = (dataBounds.getYMin()+dataBounds.getYMax())/2;
+					}
+				}
+				//------------------------------------
+				// END code to draw one error bar
+				//------------------------------------
 				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
 				if (++count > AbstractPlotter.recordsPerDraw)
 				{
