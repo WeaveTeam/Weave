@@ -344,7 +344,11 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
 		if (config.getConnectionInfo(loginConnectionName).is_superuser)
-			return config.getConnectionInfo(connectionNameToGet);
+		{
+			ConnectionInfo info = config.getConnectionInfo(connectionNameToGet);
+			info.pass = ""; // don't send password
+			return info;
+		}
 		// non-superusers can't get connection info
 		return null;
 	}
