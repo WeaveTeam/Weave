@@ -300,8 +300,9 @@ package weave.visualization.plotters
 					{
 						var errorMinusVal:Number = errorPlusVal;
 					}
-					if (!_horizontalMode && !isNaN(errorPlusVal) && !isNaN(errorMinusVal))
+					if (!isNaN(errorPlusVal) && !isNaN(errorMinusVal))
 					{
+						
 						var center:Number = (barStart+barEnd)/2;
 						var width:Number = barEnd-barStart; 
 						var left:Number = center-width/4;
@@ -311,19 +312,30 @@ package weave.visualization.plotters
 						var bottom:Number = yMax - errorMinusVal;
 						
 						var points:Array = []
-						points.push(new Point(left, top));
-						points.push(new Point(right, top));
-						points.push(new Point(center, top));
-						points.push(new Point(center, bottom));
-						points.push(new Point(left, bottom));
-						points.push(new Point(right, bottom));
+						if (!_horizontalMode)
+						{
+							points.push(new Point(left, top));
+							points.push(new Point(right, top));
+							points.push(new Point(center, top));
+							points.push(new Point(center, bottom));
+							points.push(new Point(left, bottom));
+							points.push(new Point(right, bottom));
+						}
+						else
+						{
+							points.push(new Point(top, left));
+							points.push(new Point(top, right));
+							points.push(new Point(top, center));
+							points.push(new Point(bottom, center));
+							points.push(new Point(bottom, left));
+							points.push(new Point(bottom, right));
+						}
 						
 						
-						points.forEach(function(p) { 
-							dataBounds.projectPointTo(p, screenBounds)}
-						);
-						
-						
+						for each (var p:Point in points)
+						{
+							dataBounds.projectPointTo(p, screenBounds)
+						}
 						while (points.length != 0)
 						{
 							var a,b:Point;
@@ -332,10 +344,6 @@ package weave.visualization.plotters
 							graphics.moveTo(a.x, a.y);
 							graphics.lineTo(b.x, b.y);
 						}
-					}
-					else
-					{
-						var center:Number = (dataBounds.getYMin()+dataBounds.getYMax())/2;
 					}
 				}
 				//------------------------------------
