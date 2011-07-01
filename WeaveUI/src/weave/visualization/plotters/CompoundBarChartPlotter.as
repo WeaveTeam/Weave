@@ -307,10 +307,17 @@ package weave.visualization.plotters
 						var width:Number = barEnd-barStart; 
 						var left:Number = center-width/4;
 						var right:Number = center+width/4;
-						
-						var top:Number = yMax + errorPlusVal;
-						var bottom:Number = yMax - errorMinusVal;
-						
+						if (height >= 0)
+						{
+							var top:Number = yMax + errorPlusVal;
+							var bottom:Number = yMax - errorMinusVal;
+						}
+						else
+						{
+							var top:Number = yNegativeMax + errorPlusVal;
+							var bottom:Number = yNegativeMax - errorMinusVal;
+						}
+						}
 						var points:Array = []
 						if (!_horizontalMode)
 						{
