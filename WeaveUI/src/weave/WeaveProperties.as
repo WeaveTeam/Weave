@@ -121,8 +121,9 @@ package weave
 		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
 		
 //		public const enableAddStickFigurePlot:LinkableBoolean = new LinkableBoolean(true); // Add Stick Figure Plot option tools menu
-//		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu
-//		public const enableAddRadViz2:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu
+		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu
+		public const enableAddRadViz2:LinkableBoolean = new LinkableBoolean(true); // Add RadViz2 option tools menu
+		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 //		public const enableAddSP2:LinkableBoolean = new LinkableBoolean(true); // Add SP2 option tools menu
 //		public const enableAddWordle:LinkableBoolean = new LinkableBoolean(true); // Add Wordle option tools menu		
 //		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(true); // Add RamachandranPlot option tools menu		

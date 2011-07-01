@@ -35,7 +35,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
-	import weave.core.LinkableWrapper;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -58,16 +57,16 @@ package weave.visualization.plotters
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerNonSpatialProperty(radiusColumn);
-			setNewRandomJitterColumn();
+			setNewRandomJitterColumn();			
 		}		
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
 		
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
-		 * <br/>contains the location of each column as a Point Object inside a LinkableWrapper
+		 * <br/>contains the location of each column as an AnchorPoint object
 		 */		
-		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(LinkableWrapper));
+		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(AnchorPoint));
 		private const coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 		
@@ -106,26 +105,23 @@ package weave.visualization.plotters
 				{
 					var string:String = (keySet.keys[j] as IQualifiedKey).localName;
 					hashMap[string] = j ;
-				}
-				setAnchorLocations(array);
+				}				
 			}
 			else
 				setKeySource(null);
 		}
 		
-		private function setAnchorLocations(columnsArray:Array):void
+		public function setAnchorLocations():void
 		{
+			var columnsArray:Array = columns.getObjects(IAttributeColumn);
 			var theta:Number = (2*Math.PI)/columnsArray.length;
-			var anchor:LinkableWrapper;
+			var anchor:AnchorPoint;
 			anchors.removeAllObjects();
 			for( var i:int = 0; i < columnsArray.length; i++ )
 			{
-				anchor = anchors.copyObject(ColumnUtils.getTitle(columnsArray[i]),new LinkableWrapper(Point)) as LinkableWrapper;
-				anchor.objectType.value = "Point";				
-				var obj:Object = new Point();
-				obj.x = Math.cos(theta*i);
-				obj.y = Math.sin(theta*i);				
-				anchor.properties.value = obj;
+				anchor = anchors.copyObject(ColumnUtils.getTitle(columnsArray[i]),new AnchorPoint()) as AnchorPoint ;								
+				anchor.x.value = Math.cos(theta*i);
+				anchor.y.value = Math.sin(theta*i);
 				
 			}
 		}
@@ -156,22 +152,21 @@ package weave.visualization.plotters
 			var denominatorY:Number = 0;
 			
 			var columnArray:Array = columns.getObjects();
+			var anchorArray:Array = anchors.getObjects();
 			
 			var value:Number = 0;
 			var theta:Number = (2 * Math.PI) / columnArray.length; 
 			var name:String;
-			var anchor:LinkableWrapper;
+			var anchor:AnchorPoint;
 			
-			for (var i:int=0; i<columnArray.length; i++) {
+			for (var i:int=0; i<anchorArray.length; i++) {
 				value = ColumnUtils.getNorm(columnArray[i], recordKey);
 				name = ColumnUtils.getTitle(columnArray[i]);
-				anchor = anchors.getObject(name) as LinkableWrapper;
-				numeratorX += value * anchor.properties.value.x;
+				anchor = anchors.getObject(name) as AnchorPoint;
+				numeratorX += value * anchor.x.value;
 				denominatorX += value;
-				numeratorY += value * anchor.properties.value.y;
-				denominatorY += value;
-				
-				
+				numeratorY += value * anchor.y.value;
+				denominatorY += value;								
 			}
 			if(denominatorX) coordinate.x = (numeratorX/denominatorX);
 			else coordinate.x = 0;
@@ -283,13 +278,13 @@ package weave.visualization.plotters
 			
 			destination.draw(tempShape);
 			
-			var array:Array = anchors.getObjects(LinkableWrapper);
+			var array:Array = anchors.getObjects(AnchorPoint);
 			// loop through anchors hash map and draw dimensional anchors and labels
 			var theta:Number = ( 2 * Math.PI )/array.length ;
 			for( var i:int = 0 ; i < array.length ; i++ )
 			{
-				coordinate.x = array[i].properties.value.x;
-				coordinate.y = array[i].properties.value.y;
+				coordinate.x = array[i].x.value;
+				coordinate.y = array[i].y.value;
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var graphics1:Graphics = tempShape.graphics;
 				var labelText:BitmapText = new BitmapText();

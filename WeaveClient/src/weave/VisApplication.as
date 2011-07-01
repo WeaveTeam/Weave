@@ -110,6 +110,7 @@ package weave
 	import weave.utils.NumberUtils;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
+	import weave.visualization.tools.CompoundRadVizTool;
 	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
@@ -770,8 +771,9 @@ package weave
 
 //				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 //				
-//				createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
-//				createToolMenuItem(Weave.properties.enableAddRadViz2, "Add RadViz2", createGlobalObject, [RadViz2Tool]);
+				createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
+				createToolMenuItem(Weave.properties.enableAddRadViz2, "Add RadViz2", createGlobalObject, [RadViz2Tool]);
+				createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
 //				createToolMenuItem(Weave.properties.enableAddWordle, "Add Wordle", createGlobalObject, [WeaveWordleTool]);
 //				createToolMenuItem(Weave.properties.enableAddStickFigurePlot, "Add Stick Figure Plot", createGlobalObject, [StickFigureGlyphTool]);
 //				createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
