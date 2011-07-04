@@ -106,10 +106,10 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var x:Number = xData.getValueFromKey(recordKey, Number) as Number;
-			var y:Number = yData.getValueFromKey(recordKey, Number) as Number;
-			var width:Number = widthData.getValueFromKey(recordKey, Number) as Number;
-			var height:Number = heightData.getValueFromKey(recordKey, Number) as Number;
+			var x:Number = xData.getValueFromKey(recordKey, Number);
+			var y:Number = yData.getValueFromKey(recordKey, Number);
+			var width:Number = widthData.getValueFromKey(recordKey, Number);
+			var height:Number = heightData.getValueFromKey(recordKey, Number);
 			return [getReusableBounds(x, y, x + width, y + height)];
 		}
 
@@ -122,18 +122,18 @@ package weave.visualization.plotters
 
 			// project data coordinates to screen coordinates and draw graphics onto tempShape
 
-			var x:Number = xData.getValueFromKey(recordKey, Number) as Number;
-			var y:Number = yData.getValueFromKey(recordKey, Number) as Number;
-			var width:Number = widthData.getValueFromKey(recordKey, Number) as Number;
-			var height:Number = heightData.getValueFromKey(recordKey, Number) as Number;
+			var x:Number = xData.getValueFromKey(recordKey, Number);
+			var y:Number = yData.getValueFromKey(recordKey, Number);
+			var width:Number = widthData.getValueFromKey(recordKey, Number);
+			var height:Number = heightData.getValueFromKey(recordKey, Number);
 			
 			// project x,y data coordinates to screen coordinates
 			tempPoint.x = x;
 			tempPoint.y = y;
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			// add screen offsets
-			tempPoint.x += xMinScreenOffset.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y += yMinScreenOffset.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x += xMinScreenOffset.getValueFromKey(recordKey, Number);
+			tempPoint.y += yMinScreenOffset.getValueFromKey(recordKey, Number);
 			// save x,y screen coordinates
 			tempBounds.setMinPoint(tempPoint);
 			
@@ -142,8 +142,8 @@ package weave.visualization.plotters
 			tempPoint.y = y + height;
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			// add screen offsets
-			tempPoint.x += xMaxScreenOffset.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y += yMaxScreenOffset.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x += xMaxScreenOffset.getValueFromKey(recordKey, Number);
+			tempPoint.y += yMaxScreenOffset.getValueFromKey(recordKey, Number);
 			// save x+w,y+h screen coordinates
 			tempBounds.setMaxPoint(tempPoint);
 			

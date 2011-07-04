@@ -226,7 +226,7 @@ package weave.data.AttributeColumns
 			{
 				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
 				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(key, Number) as Number;
+				var value:Number = column.getValueFromKey(key, Number);
 				result = (value - min) / (max - min);
 			}
 
@@ -270,7 +270,7 @@ package weave.data.AttributeColumns
 			{
 				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
 				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(previousKey, Number) as Number;
+				var value:Number = column.getValueFromKey(previousKey, Number);
 				result = ramp.getColorFromNorm((value - min) / (max - min));
 			}
 			else

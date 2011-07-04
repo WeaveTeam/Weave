@@ -177,7 +177,7 @@ package weave.visualization.plotters
 				colorToBitmapMap = new Dictionary();
 			invalidateCachedBitmaps();
 			
-			var weight:Number = line.weight.getValueFromKey(null, Number) as Number;
+			var weight:Number = line.weight.getValueFromKey(null, Number);
 			pointOffset = Math.ceil(pointShapeSize.value) + weight / 2;
 			circleBitmapSize = Math.ceil(pointOffset * 2 + 1);
 			circleBitmapDataRectangle.width = circleBitmapSize;
@@ -228,7 +228,7 @@ package weave.visualization.plotters
 				}
 				else if (fill.enabled.defaultValue.value)
 				{
-					g.beginFill(color, fill.alpha.getValueFromKey(null, Number) as Number);
+					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
 				}
 				line.beginLineStyle(null, g);
 				g.drawCircle(pointOffset, pointOffset, pointShapeSize.value);
@@ -342,7 +342,7 @@ package weave.visualization.plotters
 					tempPoint.x = currentNode.x;
 					tempPoint.y = currentNode.y;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
-					drawCircle(bitmapData, fill.color.getValueFromKey(key, Number) as Number, tempPoint.x, tempPoint.y);
+					drawCircle(bitmapData, fill.color.getValueFromKey(key, Number), tempPoint.x, tempPoint.y);
 				}
 				return;
 			}

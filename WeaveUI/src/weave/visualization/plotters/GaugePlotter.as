@@ -133,12 +133,12 @@ package weave.visualization.plotters
 		private function getMeterValue(recordKeys:Array):Number{
 			var n:Number = recordKeys.length;
 			if(n == 1)
-				return meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number) as Number
+				return meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number)
 			else{
 				//compute the meter value by averaging record values
 				var meterValueSum:Number = 0;
 				for (var i:int = 0; i < n; i++)//TODO handle missing values
-					meterValueSum += meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number) as Number;
+					meterValueSum += meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number);
 				return meterValueSum / n;
 			}
 		}

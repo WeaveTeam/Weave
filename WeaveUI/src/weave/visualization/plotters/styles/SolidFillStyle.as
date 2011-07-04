@@ -57,14 +57,14 @@ package weave.visualization.plotters.styles
 		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
 			var fillEnabled:Boolean = BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
-			var fillColor:Number = color.getValueFromKey(recordKey, Number) as Number;
+			var fillColor:Number = color.getValueFromKey(recordKey, Number);
 			if (!fillEnabled)
 			{
 				target.endFill();
 			}
 			else if (!isNaN(fillColor)) // if color is defined, use basic Graphics.beginFill() function
 			{
-				var fillAlpha:Number = alpha.getValueFromKey(recordKey, Number) as Number;
+				var fillAlpha:Number = alpha.getValueFromKey(recordKey, Number);
 				target.beginFill(fillColor, fillAlpha);
 				//trace("beginFill(",fillColor, fillAlpha,");");
 			}

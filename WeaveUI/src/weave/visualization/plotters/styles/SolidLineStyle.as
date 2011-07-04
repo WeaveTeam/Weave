@@ -124,8 +124,8 @@ package weave.visualization.plotters.styles
 			}
 			else
 			{
-				var lineWeight:Number = _weight != undefined ? _weight : weight.getValueFromKey(recordKey, Number) as Number;
-				var lineColor:Number = _color != undefined ? _color : color.getValueFromKey(recordKey, Number) as Number;
+				var lineWeight:Number = _weight != undefined ? _weight : weight.getValueFromKey(recordKey, Number);
+				var lineColor:Number = _color != undefined ? _color : color.getValueFromKey(recordKey, Number);
 				if (!isNaN(lineColor)) // if color is defined, use basic Graphics.lineStyle() function
 				{
 					if (lineWeight == 0) // treat lineWeight 0 as no line
@@ -134,12 +134,12 @@ package weave.visualization.plotters.styles
 					}
 					else
 					{
-						var         lineAlpha:Number = _alpha != undefined ? _alpha               :      alpha.getValueFromKey(recordKey, Number) as Number;
+						var         lineAlpha:Number = _alpha != undefined ? _alpha               :      alpha.getValueFromKey(recordKey, Number);
 						var linePixelHinting:Boolean = _pixelHinting != undefined ? _pixelHinting : ColumnUtils.getBoolean(pixelHinting, recordKey);
 						var     lineScaleMode:String = _scaleMode != undefined ? _scaleMode       :  scaleMode.getValueFromKey(recordKey, String) as String;
 						var          lineCaps:String = _caps != undefined ? _caps                 :       caps.getValueFromKey(recordKey, String) as String;
 						var        lineJoints:String = _joints != undefined ? _joints             :     joints.getValueFromKey(recordKey, String) as String;
-						var    lineMiterLimit:Number = _miterLimit != undefined ? _miterLimit     : miterLimit.getValueFromKey(recordKey, Number) as Number;
+						var    lineMiterLimit:Number = _miterLimit != undefined ? _miterLimit     : miterLimit.getValueFromKey(recordKey, Number);
 
 						target.lineStyle(lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit);
 						//trace("target.lineStyle(",lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit,");");

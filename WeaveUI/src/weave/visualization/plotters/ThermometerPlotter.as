@@ -66,10 +66,10 @@ package weave.visualization.plotters
 			
 			if(n > 0){
 				if(n == 1)
-					meterValue = meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number) as Number
+					meterValue = meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number)
 				else{
 					for (var i:int = 0; i < n; i++)//TODO handle missing values
-						meterValue += meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number) as Number;
+						meterValue += meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number);
 					meterValue /= n;
 				}
 				

@@ -100,7 +100,7 @@ package weave.utils
 		public static function getNumber(column:IAttributeColumn, key:IQualifiedKey):Number
 		{
 			if (column != null)
-				return column.getValueFromKey(key, Number) as Number;
+				return column.getValueFromKey(key, Number);
 			return NaN;
 		}
 		/**
@@ -136,7 +136,7 @@ package weave.utils
 			{
 				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
 				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(key, Number) as Number;
+				var value:Number = column.getValueFromKey(key, Number);
 				return (value - min) / (max - min);
 			}
 			return NaN;

@@ -152,7 +152,7 @@ package weave.visualization.plotters
 				if (_normalize)
 					y = ColumnUtils.getNorm(_columns[i], recordKey);
 				else
-					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
 				
 				// Disable geometry probing when we're in parallel coordinates (normalize) mode
 				// because line segment intersection means nothing in parallel coordinates.
@@ -165,7 +165,7 @@ package weave.visualization.plotters
 						if (_normalize)
 							y = ColumnUtils.getNorm(_columns[i+1], recordKey);
 						else
-							y = (_columns[i+1] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+							y = (_columns[i+1] as IAttributeColumn).getValueFromKey(recordKey, Number);
 						bounds.includeCoords(x + 1, y);
 						
 						results.push(bounds);
@@ -195,7 +195,7 @@ package weave.visualization.plotters
 				if (_normalize)
 					y = ColumnUtils.getNorm(_columns[i], recordKey);
 				else
-					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
 				
 				if (i > 0)
 				{
@@ -233,7 +233,7 @@ package weave.visualization.plotters
 				if (_normalize)
 					tempPoint.y = ColumnUtils.getNorm(_columns[i], recordKey);
 				else
-					tempPoint.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number) as Number;
+					tempPoint.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
 				
 				if (isNaN(tempPoint.y))
 				{

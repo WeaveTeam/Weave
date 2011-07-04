@@ -59,7 +59,7 @@ package weave.data.AttributeColumns
 				for (var i:int = 0; i < keys.length; i++)
 				{
 					var _key:IQualifiedKey = keys[i];
-					sum += (internalColumn.getValueFromKey(_key, Number) as Number);
+					sum += internalColumn.getValueFromKey(_key, Number);
 					_runningTotalMap[_key] = sum;
 					//trace("RunningTotalColumn "+_key+"("+i+") -> "+sum);
 				}

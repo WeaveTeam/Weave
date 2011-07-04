@@ -45,7 +45,7 @@ package weave.data.AttributeColumns
 			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
 			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
 
-			var value:Number = column ? column.getValueFromKey(key, Number) as Number : NaN;
+			var value:Number = column ? column.getValueFromKey(key, Number) : NaN;
 			if (isNaN(value) || value < dataMin || value > dataMax)
 				return NaN;
 				

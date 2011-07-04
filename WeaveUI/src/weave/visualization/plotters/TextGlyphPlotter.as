@@ -101,8 +101,8 @@ package weave.visualization.plotters
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
 				
 				// project data coordinates to screen coordinates and draw graphics onto tempShape
-				tempPoint.x = dataX.getValueFromKey(recordKey, Number) as Number;
-				tempPoint.y = dataY.getValueFromKey(recordKey, Number) as Number;
+				tempPoint.x = dataX.getValueFromKey(recordKey, Number);
+				tempPoint.y = dataY.getValueFromKey(recordKey, Number);
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				
 				// round to nearest pixel to get clearer text
@@ -111,13 +111,13 @@ package weave.visualization.plotters
 				bitmapText.text = text.getValueFromKey(recordKey, String) as String;
 				bitmapText.verticalAlign = vAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.horizontalAlign = hAlign.getValueFromKey(recordKey, String) as String;
-				bitmapText.angle = angle.getValueFromKey(recordKey, Number) as Number;
+				bitmapText.angle = angle.getValueFromKey(recordKey, Number);
 				
 				// init text format			
 				var f:TextFormat = bitmapText.textFormat;
 				f.font = font.getValueFromKey(recordKey, String) as String;
-				f.size = size.getValueFromKey(recordKey, Number) as Number;
-				f.color = color.getValueFromKey(recordKey, Number) as Number;
+				f.size = size.getValueFromKey(recordKey, Number);
+				f.color = color.getValueFromKey(recordKey, Number);
 				f.bold = bold.getValueFromKey(recordKey, Boolean) as Boolean;
 				f.italic = italic.getValueFromKey(recordKey, Boolean) as Boolean;
 				f.underline = underline.getValueFromKey(recordKey, Boolean) as Boolean;

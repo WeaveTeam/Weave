@@ -63,8 +63,8 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
 			// project data coordinates to screen coordinates and draw graphics
-			var _beginRadians:Number = beginRadians.getValueFromKey(recordKey, Number) as Number;
-			var _spanRadians:Number = spanRadians.getValueFromKey(recordKey, Number) as Number;
+			var _beginRadians:Number = beginRadians.getValueFromKey(recordKey, Number);
+			var _spanRadians:Number = spanRadians.getValueFromKey(recordKey, Number);
 
 			var graphics:Graphics = tempShape.graphics;
 			// begin line & fill
@@ -86,8 +86,8 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var _beginRadians:Number = beginRadians.getValueFromKey(recordKey, Number) as Number;
-			var _pieWidthRadians:Number = spanRadians.getValueFromKey(recordKey, Number) as Number;
+			var _beginRadians:Number = beginRadians.getValueFromKey(recordKey, Number);
+			var _pieWidthRadians:Number = spanRadians.getValueFromKey(recordKey, Number);
 			
 			var bounds:IBounds2D = getReusableBounds();
 			getWedgeBounds(bounds, _beginRadians, _pieWidthRadians);

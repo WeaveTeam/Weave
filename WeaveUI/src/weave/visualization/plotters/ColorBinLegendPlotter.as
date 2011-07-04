@@ -202,7 +202,7 @@ package weave.visualization.plotters
 			
 			if (internalColorColumn.internalColumn)
 			{
-				var y:Number = internalColorColumn.internalColumn.getValueFromKey(recordKey, Number) as Number;
+				var y:Number = internalColorColumn.internalColumn.getValueFromKey(recordKey, Number);
 				bounds.setBounds(XMIN, y, XMAX, y);
 				if (internalColorColumn.internalColumn is BinnedColumn)
 					bounds.setHeight(1); // include 0.5 beyond binIndex

@@ -44,8 +44,8 @@ package weave.visualization.plotters.styles
 		override public function beginLineStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
 			var lineEnabled:Boolean = BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
-			var lineWeight:Number = weight.getValueFromKey(recordKey, Number) as Number;
-			var lineColor:Number = color.getValueFromKey(recordKey, Number) as Number;
+			var lineWeight:Number = weight.getValueFromKey(recordKey, Number);
+			var lineColor:Number = color.getValueFromKey(recordKey, Number);
 
 			
 			if (lineEnabled && lineWeight > 0 && isNaN(lineColor))

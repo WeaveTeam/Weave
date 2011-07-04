@@ -88,8 +88,8 @@ package weave.visualization.plotters
 			// project data coordinates to screen coordinates and draw graphics
 			var radius:Number = ColumnUtils.getNorm(screenRadius, recordKey);
 
-			tempPoint.x = dataX.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y = dataY.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x = dataX.getValueFromKey(recordKey, Number);
+			tempPoint.y = dataY.getValueFromKey(recordKey, Number);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 
 			lineStyle.beginLineStyle(recordKey, graphics);

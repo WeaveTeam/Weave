@@ -106,8 +106,8 @@ package weave.data.AttributeColumns
 			
 			var column:IAttributeColumn = internalDynamicColumn.internalColumn;
 			
-			var val1:Number = column ? column.getValueFromKey(key1, Number) as Number : NaN;
-			var val2:Number = column ? column.getValueFromKey(key2, Number) as Number : NaN;
+			var val1:Number = column ? column.getValueFromKey(key1, Number) : NaN;
+			var val2:Number = column ? column.getValueFromKey(key2, Number) : NaN;
 			// if numeric values are equal, compare the keys
 			return ObjectUtil.numericCompare(val1, val2) || ObjectUtil.compare(key1, key2);
 		}

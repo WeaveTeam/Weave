@@ -109,7 +109,7 @@ package weave.data.AttributeColumns
 					_uniqueStringValues.push(stringValue);
 				}
 				// save the mapping from the String value to the corresponding Number value
-				var numberValue:Number = internalColumn.getValueFromKey(key, Number) as Number;
+				var numberValue:Number = internalColumn.getValueFromKey(key, Number);
 				if (_stringToNumberMap[stringValue] == undefined) // no number stored yet
 				{
 					_stringToNumberMap[stringValue] = numberValue;
