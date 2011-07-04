@@ -1,0 +1,554 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
+<link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
+<meta content="BoundsPlotter,weave.visualization.plotters.BoundsPlotter,fillStyle,lineStyle,xMaxData,xMaxScreenOffset,xMinData,xMinScreenOffset,yMaxData,yMaxScreenOffset,yMinData,yMinScreenOffset,addRecordGraphicsToTempShape,getDataBoundsFromRecordKey" name="keywords">
+<title>weave.visualization.plotters.BoundsPlotter</title>
+</head>
+<body>
+<script type="text/javascript" language="javascript" src="../../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../../cookies.js"></script><script type="text/javascript" language="javascript">
+<!--
+				asdocTitle = 'BoundsPlotter - Weave AS3 documentation';
+				var baseRef = '../../../';
+				window.onload = configPage;
+			--></script>
+<table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
+<tr>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../index-list.html')" href="../../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../../index.html?weave/visualization/plotters/BoundsPlotter.html&amp;weave/visualization/plotters/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../../images/logo.jpg"></td>
+</tr>
+<tr class="titleTableRow2">
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;BoundsPlotter</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
+</tr>
+<tr class="titleTableRow3">
+<td colspan="2">&nbsp;</td>
+</tr>
+</table>
+<script type="text/javascript" language="javascript">
+<!--
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class BoundsPlotter"); titleBar_setSubNav(true,true,false,false,false,false,true,false,false,false,false,false,false,false);}
+--></script>
+<div class="MainContent">
+<table cellspacing="0" cellpadding="0" class="classHeaderTable">
+<tr>
+<td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.visualization.plotters</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class BoundsPlotter</td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">BoundsPlotter <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> <a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+</table>
+<p></p>
+  This plotter plots rectangles using xMin,yMin,xMax,yMax values.
+  There is a set of data coordinates and a set of screen offset coordinates.
+  
+  <p></p>
+<br>
+<hr>
+</div>
+<a name="propertySummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Properties</div>
+<div class="showHideLinks">
+<div class="hideInheritedProperty" id="hideInheritedProperty">
+<a onclick="javascript:setInheritedVisible(false,'Property');" href="#propertySummary" class="showHideLink"><img src="../../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Public Properties</a>
+</div>
+<div class="showInheritedProperty" id="showInheritedProperty">
+<a onclick="javascript:setInheritedVisible(true,'Property');" href="#propertySummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Properties</a>
+</div>
+</div>
+<table id="summaryTableProperty" class="summaryTable hideInheritedProperty" cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#keySet">keySet</a> : <a href="../../api/data/IFilteredKeySet.html">IFilteredKeySet</a>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#spatialCallbacks">spatialCallbacks</a> : <a href="../../api/core/ICallbackInterface.html">ICallbackInterface</a>
+<div class="summaryTableDescription">
+   This is an interface for adding callbacks that get called when any spatial properties of the plotter change.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+</table>
+</div>
+<a name="protectedPropertySummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Protected Properties</div>
+<div class="showHideLinks">
+<div class="hideInheritedProtectedProperty" id="hideInheritedProtectedProperty">
+<a onclick="javascript:setInheritedVisible(false,'ProtectedProperty');" href="#protectedPropertySummary" class="showHideLink"><img src="../../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Protected Properties</a>
+</div>
+<div class="showInheritedProtectedProperty" id="showInheritedProtectedProperty">
+<a onclick="javascript:setInheritedVisible(true,'ProtectedProperty');" href="#protectedPropertySummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Properties</a>
+</div>
+</div>
+<table id="summaryTableProtectedProperty" class="summaryTable hideInheritedProtectedProperty" cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProtectedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#clipDrawing">clipDrawing</a> : Boolean = true<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+</table>
+</div>
+<a name="methodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Methods</div>
+<div class="showHideLinks">
+<div class="hideInheritedMethod" id="hideInheritedMethod">
+<a onclick="javascript:setInheritedVisible(false,'Method');" href="#methodSummary" class="showHideLink"><img src="../../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Public Methods</a>
+</div>
+<div class="showInheritedMethod" id="showInheritedMethod">
+<a onclick="javascript:setInheritedVisible(true,'Method');" href="#methodSummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Methods</a>
+</div>
+</div>
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#BoundsPlotter()">BoundsPlotter</a>()</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#dispose()">dispose</a>():void</div>
+<div class="summaryTableDescription">
+   This function gets called when the SessionManager disposes of this sessioned object.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#drawBackground()">drawBackground</a>(dataBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, destination:BitmapData):void</div>
+<div class="summaryTableDescription">
+   This function draws the background graphics for this plotter, if applicable.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#drawPlot()">drawPlot</a>(recordKeys:Array, dataBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, destination:BitmapData):void</div>
+<div class="summaryTableDescription">
+   This function must be defined with override by classes that extend AbstractPlotter.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#getBackgroundDataBounds()">getBackgroundDataBounds</a>():<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>
+</div>
+<div class="summaryTableDescription">
+   This function returns a Bounds2D object set to the data bounds associated with the background.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getDataBoundsFromRecordKey()">getDataBoundsFromRecordKey</a>(recordKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>):Array</div>
+<div class="summaryTableDescription">
+   This function returns a Bounds2D object set to the data bounds associated with the given record key.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+</table>
+</div>
+<a name="protectedMethodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Protected Methods</div>
+<div class="showHideLinks">
+<div class="hideInheritedProtectedMethod" id="hideInheritedProtectedMethod">
+<a onclick="javascript:setInheritedVisible(false,'ProtectedMethod');" href="#protectedMethodSummary" class="showHideLink"><img src="../../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Protected Methods</a>
+</div>
+<div class="showInheritedProtectedMethod" id="showInheritedProtectedMethod">
+<a onclick="javascript:setInheritedVisible(true,'ProtectedMethod');" href="#protectedMethodSummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Methods</a>
+</div>
+</div>
+<table id="summaryTableProtectedMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#addRecordGraphicsToTempShape()">addRecordGraphicsToTempShape</a>(recordKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, tempShape:Shape):void</div>
+<div class="summaryTableDescription">
+   This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#getReusableBounds()">getReusableBounds</a>(xMin:Number, yMin:Number, xMax:Number, yMax:Number):<a href="../../primitives/Bounds2D.html">Bounds2D</a>
+</div>
+<div class="summaryTableDescription">
+   This function gets a Bounds2D object that can only be used until the spatial callbacks run.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#newNonSpatialProperty()">newNonSpatialProperty</a>(linkableChildClass:Class, callback:Function = null, useGroupedCallback:Boolean = false):*</div>
+<div class="summaryTableDescription">
+   This function creates a new registered linkable child of the plotter.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#newSpatialProperty()">newSpatialProperty</a>(linkableChildClass:Class, callback:Function = null):*</div>
+<div class="summaryTableDescription">
+   This function creates a new registered linkable child of the plotter whose callbacks will also trigger the spatial callbacks.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#registerNonSpatialProperties()">registerNonSpatialProperties</a>(firstProperty:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a>, ... moreProperties):void</div>
+<div class="summaryTableDescription">
+   This function will cause the spatialCallbacks and plotter callbacks to trigger when the given sessioned properties run their callbacks.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#registerNonSpatialProperty()">registerNonSpatialProperty</a>(child:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a>, callback:Function = null):*</div>
+<div class="summaryTableDescription">
+   This function registers a linkable child of the plotter.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#registerSpatialProperties()">registerSpatialProperties</a>(firstProperty:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a>, ... moreProperties):void</div>
+<div class="summaryTableDescription">
+   This function will cause the spatialCallbacks and plotter callbacks to trigger when the given sessioned properties run their callbacks.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#registerSpatialProperty()">registerSpatialProperty</a>(child:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a>, callback:Function = null):*</div>
+<div class="summaryTableDescription">
+   This function registers a linkable child of the plotter whose callbacks will also trigger the spatial callbacks.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractPlotter.html#setKeySource()">setKeySource</a>(source:<a href="../../api/data/IKeySet.html">IKeySet</a>):void</div>
+<div class="summaryTableDescription">
+   This function can be used by classes that extend AbstractPlotter to control the results of the get keySet() function.</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+</table>
+</div>
+<a name="constantSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Constants</div>
+<table id="summaryTableConstant" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#fillStyle">fillStyle</a> : <a href="styles/DynamicFillStyle.html">DynamicFillStyle</a>
+<div class="summaryTableDescription">
+   This is the fill style used to fill the rectangle.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lineStyle">lineStyle</a> : <a href="styles/DynamicLineStyle.html">DynamicLineStyle</a>
+<div class="summaryTableDescription">
+   This is the line style used to draw the outline of the rectangle.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xMaxData">xMaxData</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription">
+   This is the maximum X data value associated with the rectangle.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xMaxScreenOffset">xMaxScreenOffset</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
+<div class="summaryTableDescription">
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xMinData">xMinData</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription">
+   This is the minimum X data value associated with the rectangle.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xMinScreenOffset">xMinScreenOffset</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
+<div class="summaryTableDescription">
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#yMaxData">yMaxData</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription">
+   This is the maximum Y data value associated with the rectangle.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#yMaxScreenOffset">yMaxScreenOffset</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
+<div class="summaryTableDescription">
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#yMinData">yMinData</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription">
+   This is the minimum Y data value associated with the rectangle.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#yMinScreenOffset">yMinScreenOffset</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
+<div class="summaryTableDescription">
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.</div>
+</td><td class="summaryTableOwnerCol">BoundsPlotter</td>
+</tr>
+</table>
+</div>
+<a name="protectedConstantSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Protected Constants</div>
+<div class="showHideLinks">
+<div class="hideInheritedProtectedConstant" id="hideInheritedProtectedConstant">
+<a onclick="javascript:setInheritedVisible(false,'ProtectedConstant');" href="#protectedConstantSummary" class="showHideLink"><img src="../../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Protected Constants</a>
+</div>
+<div class="showInheritedProtectedConstant" id="showInheritedProtectedConstant">
+<a onclick="javascript:setInheritedVisible(true,'ProtectedConstant');" href="#protectedConstantSummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Constants</a>
+</div>
+</div>
+<table id="summaryTableProtectedConstant" class="summaryTable hideInheritedProtectedConstant" cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProtectedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#clipRectangle">clipRectangle</a> : Rectangle<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#_filteredKeySet">_filteredKeySet</a> : <a href="../../data/KeySets/FilteredKeySet.html">FilteredKeySet</a>
+<div class="summaryTableDescription"> 
+   This variable is returned by get keySet().</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#recordsPerDraw">recordsPerDraw</a> : int = 200<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#_spatialCallbacks">_spatialCallbacks</a> : <a href="../../api/core/ICallbackCollection.html">ICallbackCollection</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+<tr class="hideInheritedProtectedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#tempShape">tempShape</a> : Shape<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+</tr>
+</table>
+</div>
+<script type="text/javascript" language="javascript">
+<!--
+showHideInherited();
+--></script>
+<div class="MainContent">
+<a name="constructorDetail"></a>
+<div class="detailSectionHeader">Constructor detail</div>
+<a name="BoundsPlotter()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">BoundsPlotter</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">constructor</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function BoundsPlotter()</code>
+</div>
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="addRecordGraphicsToTempShape()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">addRecordGraphicsToTempShape</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected override function addRecordGraphicsToTempShape(recordKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, tempShape:Shape):void</code><p>
+   This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">recordKey</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">dataBounds</span>:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">screenBounds</span>:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">tempShape</span>:Shape</code></td>
+</tr>
+</table>
+</div>
+<a name="getDataBoundsFromRecordKey()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getDataBoundsFromRecordKey</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public override function getDataBoundsFromRecordKey(recordKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>):Array</code><p>
+   This function returns a Bounds2D object set to the data bounds associated with the given record key.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">recordKey</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code> &mdash; The key of a data record.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code></td>
+</tr>
+</table>
+</div>
+<a name="constantDetail"></a>
+<div class="detailSectionHeader">Constant detail</div>
+<a name="fillStyle"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">fillStyle</td><td class="detailHeaderType">constant</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const fillStyle:<a href="styles/DynamicFillStyle.html">DynamicFillStyle</a></code><p>
+   This is the fill style used to fill the rectangle.
+   </p></div>
+<a name="lineStyle"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">lineStyle</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const lineStyle:<a href="styles/DynamicLineStyle.html">DynamicLineStyle</a></code><p>
+   This is the line style used to draw the outline of the rectangle.
+   </p></div>
+<a name="xMaxData"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">xMaxData</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const xMaxData:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code><p>
+   This is the maximum X data value associated with the rectangle.
+   </p></div>
+<a name="xMaxScreenOffset"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">xMaxScreenOffset</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const xMaxScreenOffset:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code><p>
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.
+   </p></div>
+<a name="xMinData"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">xMinData</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const xMinData:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code><p>
+   This is the minimum X data value associated with the rectangle.
+   </p></div>
+<a name="xMinScreenOffset"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">xMinScreenOffset</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const xMinScreenOffset:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code><p>
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.
+   </p></div>
+<a name="yMaxData"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">yMaxData</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const yMaxData:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code><p>
+   This is the maximum Y data value associated with the rectangle.
+   </p></div>
+<a name="yMaxScreenOffset"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">yMaxScreenOffset</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const yMaxScreenOffset:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code><p>
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.
+   </p></div>
+<a name="yMinData"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">yMinData</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const yMinData:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code><p>
+   This is the minimum Y data value associated with the rectangle.
+   </p></div>
+<a name="yMinScreenOffset"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">yMinScreenOffset</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const yMinScreenOffset:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code><p>
+   This is an offset in screen coordinates when projecting the data rectangle onto the screen.
+   </p></div>
+<br>
+<br>
+<hr>
+<br>
+<p></p>
+<center class="copyright"> 
+</center>
+</div>
+</body>
+</html>
+<!-- -->
