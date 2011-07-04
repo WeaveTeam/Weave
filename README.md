@@ -1,8 +1,4 @@
-Weave: Web-based Analysis and Visualization Environment
-
-Weave is a new open source web-based visualization platform enabling a range of users to explore, analyze, visualize and disseminate any data on-line from any location at any time. The new platform supports the development of visualizations for novices or advanced researchers and the ability to integrate, disseminate and visualize both data and indicators (economic, social and environmental) with various nested levels of geography (micro to macro).
-
-Weave is the collaborative effort of the University of Massachusetts Lowell and the Open Indicators Consortium bringing together technical and academic experts, data providers and data users from initially nine partner agencies across eight US regions.
+Weave: Web-based Analysis and Visualization Environment - http://www.oicweave.org/
 
 Project website: http://ivpr.github.com/Weave
 
