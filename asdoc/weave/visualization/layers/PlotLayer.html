@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="PlotLayer,weave.visualization.layers.PlotLayer,aggregateBitmap,backgroundBitmap,isOverlay,layerIsVisible,plotBitmap,backgroundFilters,graphicsAreValid,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getDataBounds,getDynamicPlotter,getScreenBounds,getSelectedKeys,handleSizeChange,invalidateGraphics,setDataBounds,setScreenBounds,updateDisplayList,validateGraphics" name="keywords">
+<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,plotBitmap,backgroundFilters,graphicsAreValid,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getDataBounds,getDynamicPlotter,getScreenBounds,getSelectedKeys,handleSizeChange,invalidateGraphics,setDataBounds,setScreenBounds,updateDisplayList,validateGraphics" name="keywords">
 <title>weave.visualization.layers.PlotLayer</title>
 </head>
 <body>
@@ -112,7 +112,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#PlotLayer()">PlotLayer</a>(externalPlotter:<a href="../plotters/DynamicPlotter.html">DynamicPlotter</a> = null, externalSpatialIndex:<a href="../../utils/SpatialIndex.html">SpatialIndex</a> = null, parent:Object = null)</div>
+<a class="signatureLink" href="#PlotLayer()">PlotLayer</a>(externalPlotter:<a href="../plotters/DynamicPlotter.html">DynamicPlotter</a> = null, externalSpatialIndex:<a href="../../utils/SpatialIndex.html">SpatialIndex</a> = null)</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
@@ -242,10 +242,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#aggregateBitmap">aggregateBitmap</a> : Bitmap<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">PlotLayer</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#backgroundBitmap">backgroundBitmap</a> : Bitmap<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
@@ -368,7 +364,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function PlotLayer(externalPlotter:<a href="../plotters/DynamicPlotter.html">DynamicPlotter</a> = null, externalSpatialIndex:<a href="../../utils/SpatialIndex.html">SpatialIndex</a> = null, parent:Object = null)</code><span class="label">Parameters</span>
+<code>public function PlotLayer(externalPlotter:<a href="../plotters/DynamicPlotter.html">DynamicPlotter</a> = null, externalSpatialIndex:<a href="../../utils/SpatialIndex.html">SpatialIndex</a> = null)</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">externalPlotter</span>:<a href="../plotters/DynamicPlotter.html">DynamicPlotter</a></code> (default = <code>null</code>)<code></code></td>
@@ -378,12 +374,6 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">externalSpatialIndex</span>:<a href="../../utils/SpatialIndex.html">SpatialIndex</a></code> (default = <code>null</code>)<code></code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">parent</span>:Object</code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 </div>
@@ -561,19 +551,10 @@ showHideInherited();
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
-<a name="aggregateBitmap"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">aggregateBitmap</td><td class="detailHeaderType">constant</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected const aggregateBitmap:Bitmap</code>
-</div>
 <a name="backgroundBitmap"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">backgroundBitmap</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">backgroundBitmap</td><td class="detailHeaderType">constant</td>
 </tr>
 </table>
 <div class="detailBody">
