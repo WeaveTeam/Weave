@@ -22,6 +22,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.geom.Point;
+	import flash.net.getClassByAlias;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -42,6 +43,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.SortedIndexColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
+	import weave.primitives.Range;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -89,8 +91,8 @@ package weave.visualization.plotters
 		
 		private var _sortedIndexColumn:SortedIndexColumn = newDisposableChild(this, SortedIndexColumn); // this sorts the records
 		private var _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
-		public const errorPlusColumn:DynamicColumn = newNonSpatialProperty(DynamicColumn);
-		public const errorMinusColumn:DynamicColumn = newNonSpatialProperty(DynamicColumn);
+		public const positiveError:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const negativeError:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		
 		public function getSortedKeys():Array { return _sortedIndexColumn.keys; }
@@ -140,14 +142,10 @@ package weave.visualization.plotters
 				// BEGIN code to draw one compound bar
 				//------------------------------------
 				
-				
-				
-				var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number) as Number;
+				var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
 				
 				// x coordinates depend on sorted index
 				var xMin:Number = sortedIndex;
-				/*if (_groupMode)
-				xMin *= _heightColumns.length;*/
 				var xMax:Number = xMin + 1;
 				
 				// y coordinates depend on height columns
@@ -167,7 +165,7 @@ package weave.visualization.plotters
 				{
 					var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 					// add this height to the current bar
-					var height:Number = heightColumn.getValueFromKey(recordKey, Number) as Number;
+					var height:Number = heightColumn.getValueFromKey(recordKey, Number);
 					var heightMissing:Boolean = isNaN(height);
 					
 					if (heightMissing)
@@ -175,7 +173,7 @@ package weave.visualization.plotters
 					if (isNaN(height))
 						height = 0;
 					// avoid adding NaN to y coordinate (because result will be NaN).
-					if(height >= 0) 
+					if (height >= 0)
 					{
 						yMax = yMin + height;
 					}
@@ -183,17 +181,18 @@ package weave.visualization.plotters
 					{
 						yNegativeMax = yNegativeMin + height;
 					}
-					var halfXRange:Number = (xMax - xMin)/2;
-					var halfColumnWidth:Number = (_heightColumns.length-1)/2;
+					var halfXRange:Number = (xMax - xMin) / 2;
+					var halfColumnWidth:Number = (_heightColumns.length - 1) / 2;
 					
-					if( !heightMissing)
+					if (!heightMissing)
 					{
 						// bar starts at bar center - half width of the bar, plus the spacing between this and previous bar
 						var barStart:Number = xMin + halfSpacing - halfXRange;
 						if (_groupMode)
-							barStart = xMin + (i - halfColumnWidth) * groupedBarWidth - groupedBarWidth/2;
+							barStart = xMin + (i - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
 						
-						if( height >= 0) {
+						if ( height >= 0)
+						{
 							// project data coordinates to screen coordinates
 							if (_horizontalMode)
 							{
@@ -205,7 +204,9 @@ package weave.visualization.plotters
 								tempPoint.x = barStart;
 								tempPoint.y = yMin;
 							}
-						} else {
+						}
+						else
+						{
 							if (_horizontalMode)
 							{
 								tempPoint.x = yNegativeMax; // swapped
@@ -219,8 +220,8 @@ package weave.visualization.plotters
 						}
 						// bar ends at bar center + half width of the bar, less the spacing between this and next bar
 						var barEnd:Number = xMin - halfSpacing + halfXRange;
-						if(_groupMode)
-							barEnd = xMin + (i+1 - halfColumnWidth) * groupedBarWidth - groupedBarWidth/2;
+						if (_groupMode)
+							barEnd = xMin + (i+1 - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
 						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						tempBounds.setMinPoint(tempPoint);
@@ -237,7 +238,9 @@ package weave.visualization.plotters
 								tempPoint.x = barEnd;
 								tempPoint.y = yMax;
 							}
-						} else {
+						}
+						else
+						{
 							
 							if (_horizontalMode)
 							{
@@ -257,7 +260,7 @@ package weave.visualization.plotters
 						var color:Number = chartColors.getColorFromNorm(i / (_heightColumns.length - 1));
 						
 						// if there is one column, act like a regular bar chart and color in with a chosen color
-						if(_heightColumns.length == 1)
+						if (_heightColumns.length == 1)
 							fillStyle.beginFillStyle(recordKey, graphics);
 							// otherwise use a pre-defined set of colors for each bar segment
 						else
@@ -276,86 +279,79 @@ package weave.visualization.plotters
 					if (!_groupMode)
 					{
 						// the next bar starts on top of this bar
-						if(height>=0)yMin = yMax;
-						else yNegativeMin = yNegativeMax;
+						if (height >= 0)
+							yMin = yMax;
+						else
+							yNegativeMin = yNegativeMax;
 					}
 					
 				}
-				
-				
 				//------------------------------------
 				// END code to draw one compound bar
 				//------------------------------------
+				
 				//------------------------------------
 				// BEGIN code to draw one error bar
 				//------------------------------------
-				if (this.errorPlusColumn.internalColumn != null)
+				if (_heightColumns.length == 1 && this.positiveError.internalColumn != null)
 				{
-					var errorPlusVal:Number = this.errorPlusColumn.getValueFromKey( recordKey, Number) as Number;
-					if (this.errorMinusColumn.internalColumn != null)
+					var errorPlusVal:Number = this.positiveError.getValueFromKey( recordKey, Number);
+					var errorMinusVal:Number;
+					if (this.negativeError.internalColumn != null)
 					{
-						var errorMinusVal:Number = this.errorMinusColumn.getValueFromKey( recordKey , Number) as Number;
+						errorMinusVal = this.negativeError.getValueFromKey( recordKey , Number);
 					}
 					else
 					{
-						var errorMinusVal:Number = errorPlusVal;
+						errorMinusVal = errorPlusVal;
 					}
-					if (!isNaN(errorPlusVal) && !isNaN(errorMinusVal))
+					if (isFinite(errorPlusVal) && isFinite(errorMinusVal))
 					{
-						
-						var center:Number = (barStart+barEnd)/2;
-						var width:Number = barEnd-barStart; 
-						var left:Number = center-width/4;
-						var right:Number = center+width/4;
+						var center:Number = (barStart + barEnd) / 2;
+						var width:Number = barEnd - barStart; 
+						var left:Number = center - width / 4;
+						var right:Number = center + width / 4;
+						var top:Number, bottom:Number;
 						if (height >= 0)
 						{
-							var top:Number = yMax + errorPlusVal;
-							var bottom:Number = yMax - errorMinusVal;
+							top = yMax + errorPlusVal;
+							bottom = yMax - errorMinusVal;
 						}
 						else
 						{
-							var top:Number = yNegativeMax + errorPlusVal;
-							var bottom:Number = yNegativeMax - errorMinusVal;
+							top = yNegativeMax + errorPlusVal;
+							bottom = yNegativeMax - errorMinusVal;
 						}
-						}
-						var points:Array = []
+						var coords:Array = []; // each pair of 4 numbers represents a line segment to draw
 						if (!_horizontalMode)
 						{
-							points.push(new Point(left, top));
-							points.push(new Point(right, top));
-							points.push(new Point(center, top));
-							points.push(new Point(center, bottom));
-							points.push(new Point(left, bottom));
-							points.push(new Point(right, bottom));
+							coords.push(left, top, right, top);
+							coords.push(center, top, center, bottom);
+							coords.push(left, bottom, right, bottom);
 						}
 						else
 						{
-							points.push(new Point(top, left));
-							points.push(new Point(top, right));
-							points.push(new Point(top, center));
-							points.push(new Point(bottom, center));
-							points.push(new Point(bottom, left));
-							points.push(new Point(bottom, right));
+							coords.push(top, left, top, right);
+							coords.push(top, center, bottom, center);
+							coords.push(bottom, left, bottom, right);
 						}
 						
-						
-						for each (var p:Point in points)
+						for (i = 0; i < coords.length; i += 2) // loop over x,y coordinate pairs
 						{
-							dataBounds.projectPointTo(p, screenBounds)
-						}
-						while (points.length != 0)
-						{
-							var a,b:Point;
-							a = points.pop() as Point;
-							b = points.pop() as Point;
-							graphics.moveTo(a.x, a.y);
-							graphics.lineTo(b.x, b.y);
+							tempPoint.x = coords[i];
+							tempPoint.y = coords[i + 1];
+							dataBounds.projectPointTo(tempPoint, screenBounds);
+							if (i % 4 == 0) // every other pair
+								graphics.moveTo(tempPoint.x, tempPoint.y);
+							else
+								graphics.lineTo(tempPoint.x, tempPoint.y);
 						}
 					}
 				}
 				//------------------------------------
 				// END code to draw one error bar
 				//------------------------------------
+				
 				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
 				if (++count > AbstractPlotter.recordsPerDraw)
 				{
@@ -376,82 +372,113 @@ package weave.visualization.plotters
 		{
 			var _groupMode:Boolean = groupMode.value;
 			var _heightColumns:Array = heightColumns.getObjects();
+			if (_heightColumns.length == 1)
+			{
+				_heightColumns.push(positiveError);
+				_heightColumns.push(negativeError);
+			}
 			
-			// x coordinates depend on sorted index
-			var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number) as Number;
-			var xMin:Number = sortedIndex - 0.5;
-			/*if (_groupMode)
-			xMin *= _heightColumns.length;*/
-			var xMax:Number = xMin + 1;//(_groupMode ? _heightColumns.length : 1);
-			
-			// y coordinates depend on height columns
-			var yMin:Number = 0; // start first bar at zero
-			var yMax:Number = 0;
-			var negativeHeight:Number = 0; 
+			tempRange.setRange(0, 0); // bar starts at zero
 			
 			// loop over height columns, incrementing y coordinates
 			for (var i:int = 0; i < _heightColumns.length; i++)
 			{
 				var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
-				var height:Number = heightColumn.getValueFromKey(recordKey, Number) as Number;
+				var height:Number = heightColumn.getValueFromKey(recordKey, Number);
+
+				if (heightColumn == positiveError)
+				{
+					if (tempRange.end == 0)
+						continue;
+				}
+				if (heightColumn == negativeError)
+				{
+					if (isNaN(height))
+						height = positiveError.getValueFromKey(recordKey, Number);
+					if (tempRange.begin < 0)
+						height = -height;
+					else
+						continue;
+				}
+					
 				if (isNaN(height))
 					height = WeaveAPI.StatisticsCache.getMean(heightColumn);
 				if (isNaN(height))
 					height = 0;
 				if (_groupMode)
 				{
-					// the next bar starts next to this bar, so use max y value
-					if (height > yMax)
-						yMax = height;
+					tempRange.includeInRange(height);
 				}
 				else
 				{
 					// add this height to the current bar, so add to y value
 					// avoid adding NaN to y coordinate (because result will be NaN).
-					if (!isNaN(height))
+					if (isFinite(height))
 					{
-						if( height >= 0 )yMax += height;
-						else negativeHeight += height;
+						if (height >= 0)
+							tempRange.end += height;
+						else
+							tempRange.begin += height;
 					}
 				}
 			}
 			
+			// bar position depends on sorted index
+			var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
+			var minPos:Number = sortedIndex - 0.5;
+			var maxPos:Number = minPos + 1;
+
 			if (horizontalMode.value)
-			{
-				return [getReusableBounds(negativeHeight, xMin, yMax, xMax)]; // x,y swapped
-			}
+				return [getReusableBounds(tempRange.begin, minPos, tempRange.end, maxPos)]; // x,y swapped
 			else
-			{
-				return [getReusableBounds(xMin, negativeHeight, xMax, yMax)];
-			}
+				return [getReusableBounds(minPos, tempRange.begin, maxPos, tempRange.end)];
 		}
 		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			var bounds:IBounds2D = getReusableBounds(NaN, 0, NaN, 0);
-			if(!zoomToSubset.value)
+			var bounds:IBounds2D = getReusableBounds();
+			if (!zoomToSubset.value)
 			{
-				for each (var column:IAttributeColumn in heightColumns.getObjects())
+				tempRange.setRange(0, 0);
+				var _heightColumns:Array = heightColumns.getObjects();
+				for each (var column:IAttributeColumn in _heightColumns)
 				{
 					if (groupMode.value)
 					{
-						bounds.includeCoords(NaN, WeaveAPI.StatisticsCache.getMin(column));
-						bounds.includeCoords(NaN, WeaveAPI.StatisticsCache.getMax(column));
+						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMin(column));
+						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMax(column));
 					}
 					else
 					{
-						if (!isNaN(WeaveAPI.StatisticsCache.getMax(column)))
-							bounds.setYMax(bounds.getYMax() + WeaveAPI.StatisticsCache.getMax(column));
+						var max:Number = WeaveAPI.StatisticsCache.getMax(column);
+						var min:Number = WeaveAPI.StatisticsCache.getMin(column);
+						if (_heightColumns.length == 1)
+						{
+							var errorMax:Number = WeaveAPI.StatisticsCache.getMax(positiveError);
+							var errorMin:Number = -WeaveAPI.StatisticsCache.getMax(negativeError);
+							if (isNaN(errorMin))
+								errorMin = errorMax;
+							if (max > 0 && errorMax > 0)
+								max += errorMax;
+							if (min < 0 && errorMin > 0)
+								min -= errorMin;
+						}
+						if (max > 0)
+							tempRange.end += max;
+						if (min < 0)
+							tempRange.begin += min;
 					}
 				}
 				
-				// swap x,y if in horizontal mode
-				if (horizontalMode.value)
-					bounds.setBounds(bounds.getYMin(), bounds.getXMin(), bounds.getYMax(), bounds.getXMax());
+				if (horizontalMode.value) // x range
+					bounds.setBounds(tempRange.begin, NaN, tempRange.end, NaN);
+				else // y range
+					bounds.setBounds(NaN, tempRange.begin, NaN, tempRange.end);
 			}
 			return bounds;
 		}
 		
+		private const tempRange:Range = new Range(); // reusable temporary object
 		private const tempPoint:Point = new Point(); // reusable temporary object
 		private const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 	}

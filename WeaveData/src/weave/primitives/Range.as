@@ -185,6 +185,28 @@ package weave.primitives
 			}
 		}
 		
+		/**
+		 * This function will expand the range as necessary to include the specified value.
+		 * @param value The value to include in the range.
+		 */		
+		public function includeInRange(value:Number):void
+		{
+			if (end < begin)
+			{
+				if (value < end)
+					end = value;
+				if (value > begin)
+					begin = value;
+			}
+			else // begin <= end)
+			{
+				if (value < begin)
+					begin = value;
+				if (value > end)
+					end = value;
+			}
+		}
+		
 		public function toString():String
 		{
 			return "["+begin.toFixed(2)+" to "+end.toFixed(2)+"]";
