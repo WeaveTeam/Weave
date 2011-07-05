@@ -260,10 +260,14 @@ public class CSVParser
 		for (int i = 0, j; i < rows.size(); i++)
 		{
 			Vector<StringBuilder> rowVector = rows.get(i);
+			rows.set(i, null); // free the memory
 			String[] rowArray = new String[columnCount];
 			// the row may not have all the columns
 			for (j = 0; j < rowVector.size(); j++)
+			{
 				rowArray[j] = rowVector.get(j).toString();
+				rowVector.set(j, null); // free the memory
+			}
 			// fill remaining columns with empty Strings
 			for (; j < columnCount; j++)
 				rowArray[j] = "";

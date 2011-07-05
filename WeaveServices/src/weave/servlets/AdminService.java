@@ -944,9 +944,10 @@ public class AdminService extends GenericServlet
 		try
 		{
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
-			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
-
 			// Read first line only (header line).
+			String header = csvData.substring(0, Math.min(csvData.indexOf("\r"), csvData.indexOf("\n")));
+			csvData = null; // don't need this in memory anymore
+			String[][] rows = CSVParser.defaultParser.parseCSV(header);
 			headerLine = rows[0];
 		}
 		catch (FileNotFoundException e)
