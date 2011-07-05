@@ -57,109 +57,40 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(keywords,keywordsInput,"text");
 			}
 			
+			public const keywords:LinkableString = registerLinkableChild(this,new LinkableString(),parseSolrResponseFromURL);
 			
 			
-			private static const INFOMAP_CAPTION:String = "Open InfoMap";
-			private static var _infoMapMenuItem:ContextMenuItem = null;
-			private static var _selectedKeySet:KeySet = null;
-			
-			/**
-			 * this function is called when the menu is opened. Use this function to change the menu 
-			 * text based on the context it is opened it
-			 **/
-			private static function handleContextMenuOpened(e:ContextMenuEvent):void
-			{	
-				_infoMapMenuItem.enabled = _selectedKeySet.keys.length > 0;
-			}
-			
-			/**
-			 * Creates a menu item
-			 **/
-			public static function createContextMenuItems(destination:DisplayObject):Boolean
-			{
-				if(!destination.hasOwnProperty("contextMenu") )
-					return false;
-				
-				_selectedKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-				
-				// Add a listener to this destination context menu for when it is opened
-				var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
-				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
-				
-				_infoMapMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(INFOMAP_CAPTION,destination,handleMenutItemClick,"3 searchMenuItems");				
-				return true;
-			}
-			
-			
-			public const keywords:LinkableString = registerLinkableChild(this,new LinkableString(),handleKeywordsChange);
-			
-			private static var _keywords:String = "";
-			private static function handleMenutItemClick(event:ContextMenuEvent):void
-			{
-				var className:String = getQualifiedClassName(InfoMapPanel).split("::")[1];
-				var panelName:String = Weave.root.generateUniqueName(className);
-				var panel:InfoMapPanel = Weave.root.requestObject(panelName,InfoMapPanel,false);
-				
-				var keys:Array = _selectedKeySet.keys;
-				var probeString:String = "";
-				var temp:Array = [];
-				probeString = ProbeTextUtils.getProbeText(_selectedKeySet);
-				
-				//TODO: May want to consider removing numbers
-				var regEx:RegExp = /[a-zA-Z]+/g;				
-				temp =  probeString.match(regEx);
-				
-				var dict:Dictionary = new Dictionary();
-				
-				for each(var word:String in temp)
-				{
-					if(dict[word] == undefined)
-						dict[word] = word;
-				}
-				
-				var uniqueTemp:Array = []
-				for each(var prop:String in dict)
-				{
-					uniqueTemp.push(prop);	
-				}
-				// joins all keywords using comma
-				_keywords = uniqueTemp.join(",");
-				
-				panel.keywords.value = _keywords;
-				
-				//show infomap panel
-				
-				
-				panel.restorePanel();
-				
-				Weave.root.setNameOrder([panelName]);
-				
-				parseSolrResponseFromURL();
-				
-				
-			}
 			
 			
 			private var loader:URLLoader = null;
 			
-			private static function parseSolrResponseFromURL():void
+			private function parseSolrResponseFromURL():void
 			{
 				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=10&indent=on&q=";	
 				
-				var query:String = (keywordsInput.text as String).replace(","," OR ");
+				var query:String = (keywords.value as String);
 				
-				solrURL += solrURL + query;
+				if(query=="")
+					return;
+				
+				var temp:Array = query.split(",");
+				
+				if(temp.length != 0 || temp.length != 1)
+					query = temp.join(" OR ");
+				
+				var url:String = solrURL + query;
 				loader = new URLLoader();
 				var request:URLRequest = new URLRequest(url);
 				loader.addEventListener(Event.COMPLETE, xmlLoadCompleteHandler);
+				loader.load(request);
 			}
 			
-			private static function xmlLoadCompleteHandler(event:Event):void {
+			private function xmlLoadCompleteHandler(event:Event):void {
 				// checks to avoid null point error
 				if(loader){
 					// checks for data presence
 					if(loader.data){
-						var xml:XML = loader.data;
+						var xml:XML = new XML(loader.data);
 						parseSolrResponsefromXML(xml);
 					}
 				}
@@ -167,43 +98,53 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			[Bindable]
-			private static var response:ArrayCollection = new ArrayCollection();
+			private var response:ArrayCollection = null;
 			
-			private static function parseSolrResponsefromXML(xml:XML):void{
-				var responseNodeChildren:XMLList = xml.children();
-				var resultNode:XML = responseNodeChildren[1];
-				var resultNodeChildren:XMLList = resultNode.children();
+			private function parseSolrResponsefromXML(result:XML):void{
 				
-				for each (var docNode:XML in resultNodeChildren){			
-					var docNodeChildren:XMLList = docNode.children();					
-					var docNodeObject:Object = new Object();
+				response = new ArrayCollection();
+				for each(var doc:XML in result.result.doc)
+				{
+					trace(doc.str.(@name=="title").text().toXMLString());
 					
-					// Object is a Dynamic Class
-					// so property name is added from XML "name" attribute value
-					// respective property value is added from node value
-					// <date name="date_published">2011-02-13T15:26:37Z</date>
-					// date_published becomes object property
-					// 2011-02-13T15:26:37Z becomes value for -date_published- property	
-					for each (var node:XML in docNodeChildren){
-						var attributeValue:String = node.@name;
-						docNodeObject[attributeValue] = node.toString();
-					}
-					response.addItem(docNodeObject);					 
+					var docObject:Object = new Object();
+					
+					docObject.title = doc.str.(@name=="title").text().toXMLString();
+					docObject.link = doc.str.(@name=="link").text().toXMLString();
+					docObject.description = doc.str.(@name=="description").text().toXMLString();
+					docObject.datePub = doc.date.text().toXMLString();
+					
+					response.addItem(docObject);
 				}
-			}
-			
-			private function handleKeywordsChange():void
-			{
+				
 				
 			}
+			
+		
 			
 		]]>
 	</mx:Script>
-	<mx:VBox width="100%">
-		<mx:HBox>
+	<mx:VBox width="100%" height="100%">
+		<mx:HBox paddingTop="5" paddingLeft="5" paddingBottom="5">
 			<mx:Label text="Keywords:"/>
-			<mx:TextInput id="keywordsInput" enabled="true"/>
+			<mx:TextInput id="keywordsInput" enabled="true" cornerRadius="5"/>
 		</mx:HBox>
-		<mx:DataGrid height="100%" width="100%" id="resultView" dataProvider="{response}" />
+		<mx:List verticalScrollPolicy="on" variableRowHeight="true" height="100%" width="100%" id="resultView" dataProvider="{response}">
+		
+		<mx:itemRenderer>
+			
+			<mx:Component>
+				<mx:VBox width="100%" verticalScrollPolicy="off">
+					
+					<mx:Text width="100%" fontWeight="bold" fontSize="10" htmlText="{data.title}"/>
+					<mx:TextArea borderThickness="0" width="100%" height="100%" htmlText="{data.description}"/>
+					<mx:Text id="link" htmlText="{data.link}" width="100%">
+						
+					</mx:Text>
+					<mx:HRule width="100%" strokeColor="#000"/>
+				</mx:VBox>
+			</mx:Component>
+		</mx:itemRenderer>	
+		</mx:List>
 	</mx:VBox>
 </ui:DraggablePanel>
