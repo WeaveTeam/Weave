@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<<<<<<< HEAD
 <actionScriptProperties mainApplicationPath="StandardVisPage.mxml" projectUUID="f20aa7de-91e2-40fb-838d-e211f4b96c20" version="6">
   <compiler additionalCompilerArguments="-target-player=10.0.0 -compiler.debug=true -incremental=true" autoRSLOrdering="true" copyDependentFiles="false" flexSDK="Flex 3.6" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin" sourceFolderPath="src" strict="true" targetPlayerVersion="10.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+=======
+<<<<<<< HEAD
+<actionScriptProperties analytics="false" mainApplicationPath="StandardVisPage.mxml" projectUUID="f20aa7de-91e2-40fb-838d-e211f4b96c20" version="10">
+  <compiler additionalCompilerArguments="-target-player=10.0.0 -compiler.debug=true -incremental=true" autoRSLOrdering="true" copyDependentFiles="false" flexSDK="Flex 3.6" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="10.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+=======
+<actionScriptProperties mainApplicationPath="StandardVisPage.mxml" projectUUID="f20aa7de-91e2-40fb-838d-e211f4b96c20" version="6">
+  <compiler additionalCompilerArguments="-target-player=10.0.0 -compiler.debug=true -incremental=true" autoRSLOrdering="true" copyDependentFiles="false" flexSDK="Flex 3.5" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+>>>>>>> Added a InfoMapLoader to load a InfoMapPanel
+>>>>>>> Added a InfoMapLoader to load a InfoMapPanel
     <compilerSourcePath/>
     <libraryPath defaultLinkType="1">
       <libraryPathEntry kind="4" path="">
@@ -21,4 +31,11 @@
   <applications/>
   <modules/>
   <buildCSSFiles/>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+  <flashCatalyst validateFlashCatalystCompatibility="false"/>
+=======
+>>>>>>> Added a InfoMapLoader to load a InfoMapPanel
+>>>>>>> Added a InfoMapLoader to load a InfoMapPanel
 </actionScriptProperties>
