@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<<<<<<< HEAD
 <flexLibProperties includeAllClasses="true" version="3">
   <includeClasses>
     <classEntry path="MXClasses"/>
@@ -203,6 +204,10 @@
     <classEntry path="weave.ui.infomap.layout.RadialLayout"/>
     <classEntry path="weave.ui.infomap.layout.CascadeLayout"/>
   </includeClasses>
+=======
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses/>
+>>>>>>> replacing .flexLibProperties with upstream version
   <includeResources/>
   <namespaceManifests/>
 </flexLibProperties>
