@@ -19,7 +19,7 @@
 		<mkdir dir="${output.dir}"/>
 	</target>
 	<target name="compile" depends="clean">
-		<exec executable='"${FLEX_HOME}/bin/asdoc.exe"' failonerror="true">
+		<exec executable='${FLEX_HOME}/bin/asdoc' failonerror="true">
 			<arg line='-show-actionscript-warnings=false'/>
 			<arg line='-external-library-path="${proj2.dir}/libs"'/>
 			<arg line='-external-library-path="${proj3.dir}/libs"'/>
@@ -30,7 +30,7 @@
 			<arg line='-source-path="${proj3.dir}/src"'/>
 			<arg line='-source-path="${proj4.dir}/src"'/>
 			<arg line='-source-path="${proj5.dir}/src"'/>
-			<arg line='-doc-sources="${proj0.dir}/src/org","${proj1.dir}/src/org","${proj2.dir}/src/org","${proj3.dir}/src/org","${proj4.dir}/src/org","${proj5.dir}/src/org"'/>
+			<arg line='-doc-sources="${proj0.dir}/src/weave","${proj1.dir}/src/weave","${proj2.dir}/src/weave","${proj3.dir}/src/weave","${proj4.dir}/src/weave","${proj5.dir}/src/weave"'/>
 			<arg line='-target-player=10.0.0'/>
 			<arg line='-output="${output.dir}"'/>
 			<arg line='-main-title="${title}"'/>
