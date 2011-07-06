@@ -623,10 +623,14 @@ package weave.visualization.layers
 				// calculate minImportance
 				layer.getDataBounds(tempDataBounds);
 				layer.getScreenBounds(tempScreenBounds);
+				var minImportance:Number = tempDataBounds.getArea() / tempScreenBounds.getArea();
+				
+				// don't query outside visible data bounds
 				if (!tempDataBounds.overlaps(queryBounds))
 					continue;
-				tempDataBounds.constrainBounds(queryBounds, false);	
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysOverlappingBounds(queryBounds, tempDataBounds.getArea() / tempScreenBounds.getArea());
+				tempDataBounds.constrainBounds(queryBounds, false);
+				
+				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false);
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time
