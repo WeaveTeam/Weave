@@ -484,12 +484,12 @@ package weave.visualization.layers
 			if (dragReleased)
 				mouseDragActive = false;
 				
-			updateSelectionRectangleGraphics(event.stageX, event.stageY);
+			updateSelectionRectangleGraphics();
 			//updateMouseCursor();
 		}
 		
 		private var _selectionRectangleGraphicsCleared:Boolean = true;
-		protected function updateSelectionRectangleGraphics(currentX:Number, currentY:Number):void 
+		protected function updateSelectionRectangleGraphics():void 
 		{
 			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
 			 
