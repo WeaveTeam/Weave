@@ -105,8 +105,8 @@ package weave.data.AttributeColumns
 		 */
 		private function sortByNumericValue(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
-			var val1:Number = internalColumn.getValueFromKey(key1, Number) as Number;
-			var val2:Number = internalColumn.getValueFromKey(key2, Number) as Number;
+			var val1:Number = internalColumn.getValueFromKey(key1, Number);
+			var val2:Number = internalColumn.getValueFromKey(key2, Number);
 			// if numeric values are equal, compare the keys
 			return ObjectUtil.numericCompare(val1, val2) || ObjectUtil.compare(key1, key2);
 		}

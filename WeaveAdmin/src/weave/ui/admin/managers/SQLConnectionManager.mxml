@@ -132,10 +132,7 @@
 						this,
 						"Leave current Database Connection",
 						'Are you sure you want to leave the current Database Connection? Any unsaved changes will be lost.',
-						function():void
-						{
-							loadDatabaseInfo();
-						}
+						loadDatabaseInfo
 					);
 				}
 				else
@@ -249,13 +246,13 @@
 				PopUpUtils.confirm(
 					this,
 					"Confirm delete",
-					'Delete connection "' + connectionLabel + '"?', 
-					function():void
-					{
-						AdminInterface.instance.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
-					}
+					'Delete connection "' + connectionLabel + '"?',
+					del
 				);
-
+				function del():void
+				{
+					AdminInterface.instance.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
+				}
 			}
 			
 		]]>

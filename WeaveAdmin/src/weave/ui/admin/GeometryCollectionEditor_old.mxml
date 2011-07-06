@@ -66,22 +66,22 @@
 						this,
 						"Confirm overwrite",
 						'Overwrite GeometryCollection entry "'+nameInput.text+'"?',
-						function():void
-						{
-							var info:GeometryCollectionInfo = new GeometryCollectionInfo(null);
-							info.name = nameInput.text;
-							info.connection = connectionCombo.text;
-							info.schema = schemaInput.text;
-							info.tablePrefix = tablePrefixInput.text;
-							info.keyType = keyTypeCombo.text;
-							info.importNotes = importNotesInput.text;
-							info.projection = projectionInput.text;
-							
-							AdminInterface.instance.saveGeometryCollectionInfo(info);
-							dataChanged=false;
-							
-						}
+						save
 					);
+				function save():void
+				{
+					var info:GeometryCollectionInfo = new GeometryCollectionInfo();
+					info.name = nameInput.text;
+					info.connection = connectionCombo.text;
+					info.schema = schemaInput.text;
+					info.tablePrefix = tablePrefixInput.text;
+					info.keyType = keyTypeCombo.text;
+					info.importNotes = importNotesInput.text;
+					info.projection = projectionInput.text;
+					
+					AdminInterface.instance.saveGeometryCollectionInfo(info);
+					dataChanged = false;
+				}
 			}
 			
 			private function deleteGeometryCollection():void

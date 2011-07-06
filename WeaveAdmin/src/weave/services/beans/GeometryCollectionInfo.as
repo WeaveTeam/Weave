@@ -29,7 +29,7 @@ package weave.services.beans
 		[Bindable] public var importNotes:String;
 		[Bindable] public var projection:String;
 		
-		public function GeometryCollectionInfo(obj:Object)
+		public function GeometryCollectionInfo(obj:Object = null)
 		{
 			for (var name:String in obj)
 				if (this.hasOwnProperty(name))

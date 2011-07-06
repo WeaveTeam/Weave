@@ -658,10 +658,9 @@ package weave.services
 		 * and whose values are the (String) values for those elements, applied to the dataset with the given name.
 		 * @param callback (optional) a function called when the server returns (of signature function(e:Event, token:Object = null):void)
 		 */ 
-		public function addDCElements(datasetName:String,elements:Object,callback:Function = null):void{
-			var query:DelayedAsyncInvocation = service.addDCElements(activeConnectionName,activePassword,datasetName,elements);
-			if(callback != null)
-				query.addAsyncResponder(callback);
+		public function addDCElements(datasetName:String,elements:Object):DelayedAsyncInvocation
+		{
+			return service.addDCElements(activeConnectionName,activePassword,datasetName,elements);
 		}
 
 		/**
@@ -669,9 +668,7 @@ package weave.services
 		 */
 		public function listDCElements(dataTableName:String):DelayedAsyncInvocation
 		{
-			return service.listDCElements(
-				activeConnectionName, activePassword, dataTableName
-			);
+			return service.listDCElements(activeConnectionName, activePassword, dataTableName);
 		}
 		
 		/**
@@ -679,25 +676,14 @@ package weave.services
 		 */
 		public function deleteDCElements(dataTableName:String,elements:Array):DelayedAsyncInvocation
 		{
-			return service.deleteDCElements(
-				activeConnectionName, activePassword, dataTableName, elements
-			);
+			return service.deleteDCElements(activeConnectionName, activePassword, dataTableName, elements);
 		}
 		/**
 		 * Updates the edited Dublin Core element entry.
 		 */
 		public function updateEditedDCElement(dataTableName:String, object:Object):DelayedAsyncInvocation
 		{
-			return service.updateEditedDCElement(
-				activeConnectionName, activePassword, dataTableName, object
-			);
+			return service.updateEditedDCElement(activeConnectionName, activePassword, dataTableName, object);
 		}
-		
-		
-		/* ********************************************* */
-		/* Audio and Video Functions Not yet Implemented */
-		/* ********************************************* */
-		
-		
 	}
 }

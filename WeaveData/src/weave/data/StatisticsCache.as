@@ -217,7 +217,7 @@ package weave.data
 				for (var i:int = 0; i < keys.length; i++)
 				{
 					var key:IQualifiedKey = keys[i];
-					value = column.getValueFromKey(key, Number) as Number;
+					value = column.getValueFromKey(key, Number);
 					// skip keys that do not have an associated numeric value in the column.
 					if (isNaN(value) || value == Infinity || value == -Infinity)
 						continue;

@@ -154,12 +154,14 @@
 				// clear current list, then request new list
 				columns = [];
 				if (activeSchema != '' && activeTable != '')
+				{
 					AdminInterface.instance.service.getColumns(
 						AdminInterface.instance.activeConnectionName,
 						AdminInterface.instance.activePassword,
 						activeSchema,
 						activeTable
 					).addAsyncResponder(handleGetColumns);
+				}
 				
 				function handleGetColumns(event:ResultEvent, token:Object = null):void
 				{

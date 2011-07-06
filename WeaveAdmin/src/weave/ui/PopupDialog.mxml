@@ -54,13 +54,19 @@
 			private var closePopupFunction:Function = null;
 
 			[Inspectable]
-			public function set dialogClass(clazz:Class):void
+			public function set dialogClass(classDef:Class):void
 			{
-				var instanze:Object = new clazz();
-				if(instanze.hasOwnProperty("getWizardButtons")){
+				var instance:Object = new classDef();
+				if (instance.hasOwnProperty("getWizardButtons"))
+				{
 					bar.removeChild(finishButton);
-					var buttons:Object = instanze.getWizardButtons();
-					for(label in buttons){
+					
+					//TODO: the type of instance should be checked before we try to access this function
+					var buttons:Object = instance.getWizardButtons();
+					
+					//TODO: this for..in loop doesn't make sense because the buttons may appear in different order than desired
+					for (label in buttons)
+					{
 						var callback:Function = buttons[label];
 						var button:Button = new Button();
 						button.label = label;
@@ -71,7 +77,7 @@
 						bar.addChild(button);
 					}
 				}
-				dialog = instanze as Container;
+				dialog = instance as Container;
 				this.addChild(dialog);
 			}
 		]]>

@@ -107,10 +107,10 @@ package weave.visualization.plotters
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
 			var bounds:IBounds2D = getReusableBounds(
-					xMinData.getValueFromKey(recordKey, Number) as Number,
-					yMinData.getValueFromKey(recordKey, Number) as Number,
-					xMaxData.getValueFromKey(recordKey, Number) as Number,
-					yMaxData.getValueFromKey(recordKey, Number) as Number
+					xMinData.getValueFromKey(recordKey, Number),
+					yMinData.getValueFromKey(recordKey, Number),
+					xMaxData.getValueFromKey(recordKey, Number),
+					yMaxData.getValueFromKey(recordKey, Number)
 				);
 			return [bounds];
 		}
@@ -121,18 +121,18 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
 			// project data coordinates to screen coordinates and draw graphics
-			tempPoint.x = xMinData.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y = yMinData.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x = xMinData.getValueFromKey(recordKey, Number);
+			tempPoint.y = yMinData.getValueFromKey(recordKey, Number);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
-			tempPoint.x += xMinScreenOffset.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y += yMinScreenOffset.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x += xMinScreenOffset.getValueFromKey(recordKey, Number);
+			tempPoint.y += yMinScreenOffset.getValueFromKey(recordKey, Number);
 			tempBounds.setMinPoint(tempPoint);
 			
-			tempPoint.x = xMaxData.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y = yMaxData.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x = xMaxData.getValueFromKey(recordKey, Number);
+			tempPoint.y = yMaxData.getValueFromKey(recordKey, Number);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
-			tempPoint.x += xMaxScreenOffset.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y += yMaxScreenOffset.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x += xMaxScreenOffset.getValueFromKey(recordKey, Number);
+			tempPoint.y += yMaxScreenOffset.getValueFromKey(recordKey, Number);
 			tempBounds.setMaxPoint(tempPoint);
 				
 			// draw graphics

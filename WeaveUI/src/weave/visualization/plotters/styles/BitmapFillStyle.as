@@ -19,8 +19,11 @@
 
 package weave.visualization.plotters.styles
 {
+	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.net.URLRequest;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IFillStyle;
@@ -28,26 +31,32 @@ package weave.visualization.plotters.styles
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 
 	/**
-	 * SolidFillStyle
+	 * BitmapFillStyle
 	 * 
 	 * @author adufilie
 	 */
-	public class SolidFillStyle implements IFillStyle
+	public class BitmapFillStyle implements IFillStyle
 	{
-		public function SolidFillStyle()
+		public function BitmapFillStyle()
 		{
 		}
 
 		/**
-		 * Used to enable or disable fill patterns.
+		 * enable or disable fill on a per-record basis
 		 */
 		public const enabled:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(true));
-		
 		/**
-		 * These properties are used with a basic Graphics.setFill() function call.
+		 * enable or disable repeat on a per-record basis
 		 */
-		public const color:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(NaN));
-		public const alpha:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(1.0));
+		public const repeat:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(true));
+		/**
+		 * enable or disable smooth on a per-record basis
+		 */
+		public const smooth:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
+		/**
+		 * set image URL on a per-record basis
+		 */
+		public const imageURL:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(null));
 		
 		/**
 		 * This function sets the fill on a Graphics object using the saved fill properties.
@@ -56,17 +65,16 @@ package weave.visualization.plotters.styles
 		 */
 		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
-			var fillEnabled:Boolean = BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
-			var fillColor:Number = color.getValueFromKey(recordKey, Number);
-			if (!fillEnabled)
+			var _bitmapData:BitmapData = null;
+			//TODO: fill _bitmapData
+			//WeaveAPI.URLRequestUtils.getContent(new URLRequest(url), handleResult);
+			
+			var fillEnabled:Boolean = _bitmapData && BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
+			if (fillEnabled)
 			{
-				target.endFill();
-			}
-			else if (!isNaN(fillColor)) // if color is defined, use basic Graphics.beginFill() function
-			{
-				var fillAlpha:Number = alpha.getValueFromKey(recordKey, Number);
-				target.beginFill(fillColor, fillAlpha);
-				//trace("beginFill(",fillColor, fillAlpha,");");
+				var _repeat:Boolean = BooleanLib.toBoolean( repeat.getValueFromKey(recordKey, Boolean) );
+				var _smooth:Boolean = BooleanLib.toBoolean( smooth.getValueFromKey(recordKey, Boolean) );
+				target.beginBitmapFill(_bitmapData, null, _repeat, _smooth);
 			}
 			else
 			{

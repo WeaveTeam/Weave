@@ -70,10 +70,7 @@
 						this,
 						"Leave current Geometry Collection",
 						'Are you sure you want to leave the current Geometry Collection? Any unsaved changes will be lost.',
-						function():void
-						{
-							loadGeometryInfo();
-						}
+						loadGeometryInfo
 					);
 				}
 				else loadGeometryInfo();
@@ -85,13 +82,12 @@
 				geomEditor.geometryCollectionInfo = new GeometryCollectionInfo(null);
 				
 				var query:DelayedAsyncInvocation = AdminInterface.instance.getGeometryCollectionInfo(treeWithSearch.tree.selectedItem.label);
-				query.addAsyncResponder(
-					function(e:ResultEvent, t:Object=null):void
-					{
-						geomEditor.geometryCollectionInfo = new GeometryCollectionInfo(e.result);
-						//						geomEditor.xmlTextArea.text = XML(e.result).toXMLString();
-					}
-				);
+				query.addAsyncResponder(handleInfo);
+				function handleInfo(e:ResultEvent, t:Object=null):void
+				{
+					geomEditor.geometryCollectionInfo = new GeometryCollectionInfo(e.result);
+					//geomEditor.xmlTextArea.text = XML(e.result).toXMLString();
+				}
 				
 				geomEditor.dataChanged = false;
 			}

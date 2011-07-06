@@ -41,18 +41,21 @@
 			private var datasetName:String = null;
 			private var successCallback:Function = null;
 			
-			public function setElement(elementName:String):void{
+			public function setElement(elementName:String):void
+			{
 				this.elementName = elementName;
 				elementLabel.text = "Please enter the "+elementName+" value below:";
 			}
-			public function setDataset(datasetName:String):void{
+			public function setDataset(datasetName:String):void
+			{
 				this.datasetName = datasetName;
 			}
 			/**
 			 * Sets the callback which is invoked when the dialog closes upon successful
 			 * writing of the new element to the server.
 			 */ 
-			public function setSuccessCallback(successCallback:Function):void{
+			public function setSuccessCallback(successCallback:Function):void
+			{
 				this.successCallback = successCallback;
 			}
 			/**
@@ -61,21 +64,22 @@
 			 * Callbacks take a single argument, which is a function which will close the outer popup when called.
 			 * See PopupDialog.mxml
 			 */
-			public function getWizardButtons():Object{
-				return {"Ok":function(closePopupFunction:Function):void{
+ 			public function getWizardButtons():Object
+			{
+				return {"Ok": ok};
+				function ok(closePopupFunction:Function):void
+				{
 					elementLabel.text = "Submitting data to server...";
 					
 					var elements:Object = new Object();
 					elements[elementName] = textArea.text;
-					AdminInterface.instance.addDCElements(datasetName,elements,
-						function(event:ResultEvent, token:Object = null):void
-						{
-							successCallback();
-							closePopupFunction();
-						}
-					);
-					
-				}};
+					AdminInterface.instance.addDCElements(datasetName, elements).addAsyncResponder(handleAdd);
+					function handleAdd(event:ResultEvent, token:Object = null):void
+					{
+						successCallback();
+						closePopupFunction();
+					}
+				}
 			}
 		]]>
 	</mx:Script>

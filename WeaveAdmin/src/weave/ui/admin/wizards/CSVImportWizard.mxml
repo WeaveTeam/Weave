@@ -206,16 +206,16 @@
 						geometrySelector.selectedKeyType,
 						nullFlagInput.text
 					);
-				query.addAsyncResponder(
-						function(event:ResultEvent, token:Object = null):void
-						{
-							selectedChild = dublinCorePage;
-							commitDublinCoreElements();
-						}
-					);
+				query.addAsyncResponder(handleImportCSV);
+				function handleImportCSV(event:ResultEvent, token:Object = null):void
+				{
+					selectedChild = dublinCorePage;
+					commitDublinCoreElements();
+				}
 			}
 			
-			private function commitDublinCoreElements():void{
+			private function commitDublinCoreElements():void
+			{
 				var elements:Object = new Object();
 				if(dcTitleTextInput.text.length != 0)
 					elements["title"] = dcTitleTextInput.text;
@@ -228,15 +228,7 @@
 				//and still represents the correct dataset name at the time this code is run. -Curran
 				var datasetName:String = dataTableNameInput.text;
 				
-				AdminInterface.instance.addDCElements(datasetName,elements,
-					function(event:ResultEvent, token:Object = null):void
-					{
-						//show nothing, as another "success" popup comes at the same time from another piece of code 
-//						Alert.show("CSV file successfully imported!");
-						//close the outer wizard
-						
-					}
-				);
+				AdminInterface.instance.addDCElements(datasetName, elements);
 			}
 			
 			private function enableAllWidgets(enable:Boolean = true):void

@@ -275,7 +275,7 @@ package weave.visualization.layers
 			}
 			else
 			{
-				keys = _spatialIndex.getKeysOverlappingCollectiveBounds(_dataBounds, 0);
+				keys = _spatialIndex.getKeysBoundingBoxOverlap(_dataBounds); // all keys within visible data bounds
 				//keys = plotter.keySet.keys;
 			}
 			

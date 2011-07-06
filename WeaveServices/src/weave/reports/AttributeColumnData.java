@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.Assert;
+//import junit.framework.Assert;
 
 import weave.config.ISQLConfig;
 import weave.config.SQLConfigUtils;
@@ -69,7 +69,7 @@ public class AttributeColumnData
 		params.put(Metadata.NAME.toString(), attributeColumnName);
 		if ((year != null) && (year.length() > 0))
 			params.put(Metadata.YEAR.toString(), year);
-		Assert.assertTrue(config != null);
+//		Assert.assertTrue(config != null);
 		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(params);
 		AttributeColumnInfo info = infoList.get(0);
 		String connection = info.connection;

@@ -24,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
-import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -374,13 +373,13 @@ public class SQLConfigXML implements ISQLConfig
 		return names;
 	}
 
-	synchronized public ConnectionInfo getConnectionInfo(String connectionName) throws RemoteException
+	synchronized public ConnectionInfo getConnectionInfo(String connectionName)
 	{
 		validateCache();
 		
 		Map<String, String> map = connectionCache.get(connectionName);
 		if (map == null)
-			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
+			return null;
 
 		// System.out.println("connection "+connectionName+map);
 		ConnectionInfo info = new ConnectionInfo();

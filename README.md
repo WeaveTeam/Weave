@@ -1,8 +1,4 @@
-Weave: Web-based Analysis and Visualization Environment
-
-Weave is a new open source web-based visualization platform enabling a range of users to explore, analyze, visualize and disseminate any data on-line from any location at any time. The new platform supports the development of visualizations for novices or advanced researchers and the ability to integrate, disseminate and visualize both data and indicators (economic, social and environmental) with various nested levels of geography (micro to macro).
-
-Weave is the collaborative effort of the University of Massachusetts Lowell and the Open Indicators Consortium bringing together technical and academic experts, data providers and data users from initially nine partner agencies across eight US regions.
+Weave: Web-based Analysis and Visualization Environment - http://www.oicweave.org/
 
 Project website: http://ivpr.github.com/Weave
 
@@ -23,8 +19,8 @@ Components in this repository:
  * WeaveServices: GPLv3 license, back-end Java webapp for Admin and Data server features
  * GeometryStreamConverter: GPLv3 license, Java library for converting geometries into a streaming format
 
-The bare minimum you need to build Weave is [Flex 3.5](http://fpdownload.adobe.com/pub/flex/sdk/builds/flex3/flex_sdk_3.5.0.12683_mpl.zip) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: https://github.com/IVPR/Weave/wiki/Development-Environment-Setup
+The bare minimum you need to build Weave is [Flex 3.6](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: https://github.com/IVPR/Weave/wiki/Development-Environment-Setup
 
 To build the projects on the command line, use the **WeaveClient/buildall.xml** and **WeaveServices/build.xml** Ant scripts.
 
-See INSTALL.md for more detailed instructions.
+See install-linux.md for detailed linux install instructions.

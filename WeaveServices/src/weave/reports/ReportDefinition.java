@@ -18,7 +18,7 @@
 */
 package weave.reports;
 
-import static org.junit.Assert.assertTrue;
+//import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,16 +134,16 @@ public class ReportDefinition {
 		javax.xml.xpath.XPathExpression expr = _xpath.compile(path);
 		Object result = expr.evaluate(_doc, XPathConstants.NODESET);
 		NodeList rptNodes = (NodeList) result;
-		assertTrue("No nodes found at path: " + path, rptNodes != null);
-		assertTrue("No nodes found at path: " + path, rptNodes.getLength() > 0);
+//		assertTrue("No nodes found at path: " + path, rptNodes != null);
+//		assertTrue("No nodes found at path: " + path, rptNodes.getLength() > 0);
 		return rptNodes;
 	}
 	
 	private Node getNode(String path) throws XPathExpressionException
 	{
 		NodeList list = getNodes(path);
-		assertTrue("No nodes found at path: " + path, list != null);
-		assertTrue("No nodes found at path: " + path, list.getLength() > 0);
+//		assertTrue("No nodes found at path: " + path, list != null);
+//		assertTrue("No nodes found at path: " + path, list.getLength() > 0);
 		Node node = list.item(0);
 		return node;
 	}
@@ -151,7 +151,7 @@ public class ReportDefinition {
 	private String getAttr(String attr, Node node)
 	{
 		NamedNodeMap attrs = node.getAttributes();
-		assertTrue(attrs != null);
+//		assertTrue(attrs != null);
 		Node attrNode = attrs.getNamedItem(attr);
 		String attrValue = null;
 		if (attrNode != null)

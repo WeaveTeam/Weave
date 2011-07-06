@@ -1,24 +1,13 @@
-# Weave
+# End-user requirements
 
+* Adobe Flash Player 10.0+
 
-Weave is an open source web-based visualization platform, written in Actionscript and Java.
+# Server requirements
 
-## Requirements
+* Java Servlet Container (Tomcat or Glassfish)
+* MySQL or PostgreSQL
 
-### Weave client
-
-* Internet browser
-* Adobe Flash plugin 10.0+
-
-### Weave server
-
-* Windows, Linux or Unix based OS
-* Java Servlet Container (Oracle Glassfish 3+, Apache Tomcat 6+)
-* MySQL, PostgreSQL database server
-
-## Installation
-
-### Linux
+# Installation
 
 1. Install the following packages (Ubuntu/Debian):
  * sun-java6-jdk
@@ -27,7 +16,7 @@ Weave is an open source web-based visualization platform, written in Actionscrip
  * git
  * junit4
  * libservlet2.4-java
-2. Download the [Adobe Flex 3.5 SDK](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and extract it to a directory in your home dir, something like 
+2. Download the [Adobe Flex 3.6 SDK](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and extract it to a directory in your home dir, something like 
 
  ``~/bin/flex``.
 

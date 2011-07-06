@@ -204,37 +204,11 @@ package weave.utils
 			resumeCallbacks();
 		}
 
-		
-		/**
-		 * This function will get all keys whose collective bounds overlap the given bounds.
-		 * 
-		 * @param bounds A bounds used to query the spatial index.
-		 * @return An array of keys with bounds that overlap the given bounds.
-		 */
-		public function getKeysOverlappingCollectiveBounds(bounds:IBounds2D, minImportance:Number = 0):Array
-		{
-			// This is a filter for bounding boxes and should be used for getting fast results
-			// during panning and zooming.
-			
-			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
-			minKDKey[XMAX_INDEX] = bounds.getXNumericMin(); // enforce result.XMAX >= query.xNumericMin
-			minKDKey[YMAX_INDEX] = bounds.getYNumericMin(); // enforce result.YMAX >= query.yNumericMin
-			minKDKey[IMPORTANCE_INDEX] = minImportance; // enforce result.IMPORTANCE >= minImportance
-			// set the maximum query values for shape.bounds.xMin, shape.bounds.yMin
-			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax(); // enforce result.XMIN <= query.xNumericMax
-			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
-			
-			return _kdTree.queryRange(minKDKey, maxKDKey);
-		}
-		
 		private function polygonOverlapsPolyLine(polygon:Array, line:Object):Boolean
 		{
 			for (var i:int = 0; i < line.length - 1; ++i)
 			{
-				if (ComputationalGeometryUtils.polygonOverlapsLine(
-											_tempBoundsPolygon, 
-											line[i].x, line[i].y,
-											line[i + 1].x, line[i + 1].y	))
+				if (ComputationalGeometryUtils.polygonOverlapsLine(_tempBoundsPolygon, line[i].x, line[i].y, line[i + 1].x, line[i + 1].y))
 				{
 					return true;
 				}
@@ -255,38 +229,60 @@ package weave.utils
 		private function getMinimumUnscaledDistanceFromPolyLine(line:Object, x:Number, y:Number):Number
 		{
 			var min:Number = Number.POSITIVE_INFINITY;
-			
 			for (var i:int = 0; i < line.length - 1; ++i)
 			{
-				min = Math.min(
-					ComputationalGeometryUtils.getUnscaledDistanceFromLine(line[i].x, line[i].y, line[i + 1].x, line[i + 1].y,x, y),
-					min);
+				var distance:Number = ComputationalGeometryUtils.getUnscaledDistanceFromLine(line[i].x, line[i].y, line[i + 1].x, line[i + 1].y, x, y);
+				min = Math.min(distance, min);
 			}			
 			return min;
 		}
 		private function getMinimumUnscaledDistanceFromPolyPoint(line:Object, x:Number, y:Number):Number
 		{
 			var min:Number = Number.POSITIVE_INFINITY;
-			
 			for (var i:int = 0; i < line.length; ++i)
 			{
-				min = Math.min(
-					ComputationalGeometryUtils.getDistanceFromPointSq(line[i].x, line[i].y, x, y),
-					min);
+				var distance:Number = ComputationalGeometryUtils.getDistanceFromPointSq(line[i].x, line[i].y, x, y);
+				min = Math.min(distance, min);
 			}			
 			return min;
 		}
 		/**
-		 * This function will get the keys which intersect with the bounds.
+		 * This function will get the keys whose bounding boxes intersect with the given bounds.
 		 * 
 		 * @param bounds A bounds used to query the spatial index.
-		 * @return An array of keys with bounds that overlap the given bounds.
+		 * @param minImportance The minimum importance value imposed on the resulting keys. 
+		 * @return An array of keys.
 		 */
-		public function getKeysOverlappingBounds(bounds:IBounds2D, minImportance:Number = 0):Array
+		public function getKeysBoundingBoxOverlap(bounds:IBounds2D, minImportance:Number = 0):Array
 		{
-			var keys:Array = getKeysOverlappingCollectiveBounds(bounds);
+			// This is a filter for bounding boxes and should be used for getting fast results
+			// during panning and zooming.
+			
+			// set the minimum query values for shape.bounds.xMax, shape.bounds.yMax
+			minKDKey[XMAX_INDEX] = bounds.getXNumericMin(); // enforce result.XMAX >= query.xNumericMin
+			minKDKey[YMAX_INDEX] = bounds.getYNumericMin(); // enforce result.YMAX >= query.yNumericMin
+			minKDKey[IMPORTANCE_INDEX] = minImportance; // enforce result.IMPORTANCE >= minImportance
+			// set the maximum query values for shape.bounds.xMin, shape.bounds.yMin
+			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax(); // enforce result.XMIN <= query.xNumericMax
+			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
+			
+			return _kdTree.queryRange(minKDKey, maxKDKey);
+		}
+		
+		/**
+		 * This function will get the keys whose geometries intersect with the given bounds.
+		 * 
+		 * @param bounds A bounds used to query the spatial index.
+		 * @param minImportance The minimum importance value to use when determining geometry overlap.
+		 * @param filterBoundingBoxesByImportance If true, bounding boxes will be pre-filtered by importance before checking geometry overlap.
+		 * @return An array of keys.
+		 */
+		public function getKeysGeometryOverlap(bounds:IBounds2D, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array
+		{
+			var keys:Array = getKeysBoundingBoxOverlap(bounds, filterBoundingBoxesByImportance ? minImportance : 0);
+			
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value == true)
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
 				return keys;
 			
 			// if there are 0 keys
@@ -421,7 +417,7 @@ package weave.utils
 		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number, yPrecision:Number):Array
 		{
 			var importance:Number = xPrecision * yPrecision;
-			var keys:Array = getKeysOverlappingBounds(bounds, importance);
+			var keys:Array = getKeysGeometryOverlap(bounds, importance, false);
 			
 			// init local vars
 			var closestDistanceSq:Number = Infinity;
@@ -444,9 +440,9 @@ package weave.utils
 				var overlapsQueryCenter:Boolean = false;
 				
 				// if the plotter wasn't an IPlotterWithGeometries or if the user wants the old probing
-				if (_keyToGeometriesMap == null || Weave.properties.enableGeometryProbing.value == false)
+				if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
 				{
-					for each (recordBounds in _keyToBoundsMap[key])
+ 					for each (recordBounds in _keyToBoundsMap[key])
 					{
 						// find the distance squared from the query point to the center of the shape
 						xDistance = recordBounds.getXCenter() - xQueryCenter;

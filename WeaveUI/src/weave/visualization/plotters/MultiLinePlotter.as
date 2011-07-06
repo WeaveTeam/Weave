@@ -111,12 +111,12 @@ package weave.visualization.plotters
 			var b1:IBounds2D = getReusableBounds();
 			var b2:IBounds2D = getReusableBounds();
 			b1.includeCoords(
-					x1Data.getValueFromKey(recordKey, Number) as Number,
-					y1Data.getValueFromKey(recordKey, Number) as Number
+					x1Data.getValueFromKey(recordKey, Number),
+					y1Data.getValueFromKey(recordKey, Number)
 				);
 			b2.includeCoords(
-					x2Data.getValueFromKey(recordKey, Number) as Number,
-					y2Data.getValueFromKey(recordKey, Number) as Number
+					x2Data.getValueFromKey(recordKey, Number),
+					y2Data.getValueFromKey(recordKey, Number)
 				);
 			return [b1,b2];
 		}
@@ -200,19 +200,19 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(recordKey, graphics);				
 			
 			// project data coordinates to screen coordinates and draw graphics
-			tempPoint.x = x1Data.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y = y1Data.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x = x1Data.getValueFromKey(recordKey, Number);
+			tempPoint.y = y1Data.getValueFromKey(recordKey, Number);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
-			tempPoint.x += x1ScreenOffset.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y += y1ScreenOffset.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x += x1ScreenOffset.getValueFromKey(recordKey, Number);
+			tempPoint.y += y1ScreenOffset.getValueFromKey(recordKey, Number);
 
 			graphics.moveTo(tempPoint.x, tempPoint.y);
 			
-			tempPoint.x = x2Data.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y = y2Data.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x = x2Data.getValueFromKey(recordKey, Number);
+			tempPoint.y = y2Data.getValueFromKey(recordKey, Number);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
-			tempPoint.x += x2ScreenOffset.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y += y2ScreenOffset.getValueFromKey(recordKey, Number) as Number;
+			tempPoint.x += x2ScreenOffset.getValueFromKey(recordKey, Number);
+			tempPoint.y += y2ScreenOffset.getValueFromKey(recordKey, Number);
 			
 			graphics.lineTo(tempPoint.x, tempPoint.y);
 		}

@@ -120,7 +120,7 @@ package weave.visualization.plotters
 			if (binCol == null)
 				return [];
 			
-			var binIndex:Number = binCol.getValueFromKey(recordKey, Number) as Number;
+			var binIndex:Number = binCol.getValueFromKey(recordKey, Number);
 			if (isNaN(binIndex))
 				return [];
 			var binHeight:int = binCol.getKeysFromBinIndex(binIndex).length;

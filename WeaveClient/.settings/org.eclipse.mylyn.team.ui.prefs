@@ -1,3 +1,0 @@
-#Fri May 08 13:19:47 EDT 2009
-commit.comment.template=${task.status} - ${connector.task.prefix} ${task.key}\: ${task.description} \n${task.url}
-eclipse.preferences.version=1

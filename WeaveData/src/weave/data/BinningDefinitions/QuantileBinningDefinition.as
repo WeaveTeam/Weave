@@ -109,7 +109,7 @@ package weave.data.BinningDefinitions
 			var i:uint = 0;
 			for each (var key:IQualifiedKey in keys)	
 			{
-				_sortedColumn[i] = column.getValueFromKey(key,Number) as Number;
+				_sortedColumn[i] = column.getValueFromKey(key,Number);
 				i = i+1;
 			}
 			_sortedColumn.sort(Array.NUMERIC);				

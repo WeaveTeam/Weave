@@ -76,11 +76,11 @@ package weave.visualization.plotters
 			{
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
 				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
-				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number) as Number;
+				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number);
 				if (isNaN(_imageSize))
 					_imageSize = 32;
-				tempPoint.x = dataX.getValueFromKey(recordKey, Number) as Number;
-				tempPoint.y = dataY.getValueFromKey(recordKey, Number) as Number;
+				tempPoint.x = dataX.getValueFromKey(recordKey, Number);
+				tempPoint.y = dataY.getValueFromKey(recordKey, Number);
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				
 				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;

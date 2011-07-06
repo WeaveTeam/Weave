@@ -71,12 +71,8 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var x:* = dataX.getValueFromKey(recordKey, Number) as Number;
-			var y:* = dataY.getValueFromKey(recordKey, Number) as Number;
-			if (x === null)
-				x = NaN;
-			if (y === null)
-				y = NaN;
+			var x:Number = dataX.getValueFromKey(recordKey, Number);
+			var y:Number = dataY.getValueFromKey(recordKey, Number);
 			
 			var bounds:IBounds2D = getReusableBounds();
 			bounds.setCenteredRectangle(x, y, 0, 0);

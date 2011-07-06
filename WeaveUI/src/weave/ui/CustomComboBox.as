@@ -20,8 +20,10 @@
 package weave.ui
 {
 	import mx.collections.CursorBookmark;
+	import mx.controls.Alert;
 	import mx.controls.ComboBox;
 	
+	import weave.core.ErrorManager;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 
@@ -46,15 +48,27 @@ package weave.ui
 		 */		
 		override public function set dataProvider(value:Object):void
 		{
-			// TEMPORARY SOLUTION
-			// Sometimes this code crashes with a null reference error.
-			// So, until this is fully debugged, only attempt this fix when running the debug player.
-//			if (SessionManager.runningDebugFlashPlayer)
-//			{
-//				// The dropdown will not be properly reset unless it is currently shown.
-//				validateNow();
-//				downArrowButton_buttonDownHandler(null);
-//			}
+			// The dropdown will not be properly reset unless it is currently shown.
+			
+			if (SessionManager.runningDebugFlashPlayer)
+			{
+				// when running debug player, allow the code to crash so developers take notice.
+				// If this ever crashes, please send the stack trace to andy.dufilie@gmail.com
+				validateNow();
+				downArrowButton_buttonDownHandler(null);
+			}
+			else
+			{
+				// when not running debug player, ignore error
+				try
+				{
+					validateNow();
+					downArrowButton_buttonDownHandler(null);
+				}
+				catch (e:Error)
+				{
+				}
+			}
 			super.dataProvider = value;
 		}
 		

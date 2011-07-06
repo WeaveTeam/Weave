@@ -484,12 +484,12 @@ package weave.visualization.layers
 			if (dragReleased)
 				mouseDragActive = false;
 				
-			updateSelectionRectangleGraphics(event.stageX, event.stageY);
+			updateSelectionRectangleGraphics();
 			//updateMouseCursor();
 		}
 		
 		private var _selectionRectangleGraphicsCleared:Boolean = true;
-		protected function updateSelectionRectangleGraphics(currentX:Number, currentY:Number):void 
+		protected function updateSelectionRectangleGraphics():void 
 		{
 			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
 			 
@@ -623,10 +623,14 @@ package weave.visualization.layers
 				// calculate minImportance
 				layer.getDataBounds(tempDataBounds);
 				layer.getScreenBounds(tempScreenBounds);
+				var minImportance:Number = tempDataBounds.getArea() / tempScreenBounds.getArea();
+				
+				// don't query outside visible data bounds
 				if (!tempDataBounds.overlaps(queryBounds))
 					continue;
-				tempDataBounds.constrainBounds(queryBounds, false);	
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysOverlappingBounds(queryBounds, tempDataBounds.getArea() / tempScreenBounds.getArea());
+				tempDataBounds.constrainBounds(queryBounds, false);
+				
+				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false);
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time
@@ -762,9 +766,9 @@ package weave.visualization.layers
 		{
 			var spls:Array = layers.getObjects(SelectablePlotLayer);
 			for (var i:int = 0; i < spls.length; i++)
-				setProbeKeys(spls[i], []);
+				setProbeKeys(spls[i], emptyArray);
 		}
-		
+		private const emptyArray:Array = [];
 		protected const queryBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		protected const tempDataBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		protected const tempScreenBounds:IBounds2D = new Bounds2D(); // reusable temporary object

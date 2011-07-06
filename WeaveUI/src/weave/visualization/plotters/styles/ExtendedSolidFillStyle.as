@@ -56,7 +56,7 @@ package weave.visualization.plotters.styles
 			if (enableMissingDataFillPattern.value)
 			{
 				var fillEnabled:Boolean = BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
-				var fillColor:Number = color.getValueFromKey(recordKey, Number) as Number;
+				var fillColor:Number = color.getValueFromKey(recordKey, Number);
 				if (fillEnabled && isNaN(fillColor))
 				{
 					target.beginGradientFill(

@@ -142,9 +142,9 @@ public class AdminService extends GenericServlet
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-
+		
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
-		if (!password.equals(info.pass))
+		if (info == null || !password.equals(info.pass))
 			throw new RemoteException("Incorrect username or password.");
 
 		return config;
@@ -344,7 +344,11 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
 		if (config.getConnectionInfo(loginConnectionName).is_superuser)
-			return config.getConnectionInfo(connectionNameToGet);
+		{
+			ConnectionInfo info = config.getConnectionInfo(connectionNameToGet);
+			info.pass = ""; // don't send password
+			return info;
+		}
 		// non-superusers can't get connection info
 		return null;
 	}
@@ -366,13 +370,11 @@ public class AdminService extends GenericServlet
 		
 		// if the config file doesn't exist, create it
 		String fileName = configManager.getConfigFileName();
-		Boolean newConfigCreated = false;
 		if (!new File(fileName).exists())
 		{
 			try
 			{
 				XMLUtils.getStringFromXML(new SQLConfigXML().getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
-				newConfigCreated = true; // remember that we just created a new, empty config
 			}
 			catch (Exception e)
 			{
@@ -380,17 +382,15 @@ public class AdminService extends GenericServlet
 			}
 		}
 
-		ISQLConfig config;
-		if (newConfigCreated) // we created a new config
-		{
-			config = configManager.getConfig();
-		}
-		else // we already had a config
+		ISQLConfig config = configManager.getConfig();
+		// see if there are existing connections, we need to check the password
+		if (config.getConnectionNames().size() > 0)
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
 			// non-superusers can't save connection info
 			if (!config.getConnectionInfo(currentConnectionName).is_superuser)
 				throw new RemoteException(String.format("User \"%s\" does not have permission to modify connections.", currentConnectionName));
+			// is_superuser for the new connection will only be false if there is an existing superuser connection and grantSuperuser is false.
 			newConnectionInfo.is_superuser = grantSuperuser;
 		}
 		
@@ -427,10 +427,9 @@ public class AdminService extends GenericServlet
 			
 			// check for number of superusers
 			int numSuperUsers = 0;
-			for (String connection : connectionNames)
+			for (String name : connectionNames)
 			{
-				ConnectionInfo temp = config.getConnectionInfo(connection);	
-				if (temp.is_superuser)
+				if (config.getConnectionInfo(name).is_superuser)
 					++numSuperUsers;
 				if (numSuperUsers >= 2)
 					break;
@@ -477,10 +476,9 @@ public class AdminService extends GenericServlet
 			
 			// check for number of superusers
 			int numSuperUsers = 0;
-			for (String connection : connectionNames)
+			for (String name : connectionNames)
 			{
-				ConnectionInfo temp = config.getConnectionInfo(connection);	
-				if (temp.is_superuser)
+				if (config.getConnectionInfo(name).is_superuser)
 					++numSuperUsers;
 				if (numSuperUsers >= 2)
 					break;
@@ -540,9 +538,10 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("Migration failed", e);
 		}
 
-		return count
-				+ " items were copied from " + new File(configFileName).getName()
-				+ " into the database.  The admin console will now use the specified database connection to store further configuration entries.";
+		String result = String.format("The admin console will now use the \"%s\" connection to store configuration information.", connectionName);
+		if (count > 0)
+			result = String.format("%s items were copied from %s into the database.  %s", count, new File(configFileName).getName(), result);
+		return result;
 	}
 
 	// /////////////////////////////////////////////////
@@ -945,9 +944,10 @@ public class AdminService extends GenericServlet
 		try
 		{
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
-			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
-
 			// Read first line only (header line).
+			String header = csvData.substring(0, Math.min(csvData.indexOf("\r"), csvData.indexOf("\n")));
+			csvData = null; // don't need this in memory anymore
+			String[][] rows = CSVParser.defaultParser.parseCSV(header);
 			headerLine = rows[0];
 		}
 		catch (FileNotFoundException e)
@@ -1425,6 +1425,8 @@ public class AdminService extends GenericServlet
 		sqlTable = sqlTable.toLowerCase();
 
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		if (info == null)
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 		String dbms = info.dbms;
 		if (sqlColumnNames == null)
 			sqlColumnNames = new Vector<String>();

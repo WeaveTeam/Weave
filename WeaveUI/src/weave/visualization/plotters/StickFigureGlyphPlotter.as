@@ -87,9 +87,9 @@ package weave.visualization.plotters
 			var theta2:Number = Math.PI*ColumnUtils.getNorm(this.theta2, recordKey);
 			var theta3:Number = Math.PI*ColumnUtils.getNorm(this.theta3, recordKey);
 			var theta4:Number = Math.PI*ColumnUtils.getNorm(this.theta4, recordKey);
-			var limbLength:Number = this.limbLength.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.x = dataX.getValueFromKey(recordKey, Number) as Number;
-			tempPoint.y = dataY.getValueFromKey(recordKey, Number) as Number;
+			var limbLength:Number = this.limbLength.getValueFromKey(recordKey, Number);
+			tempPoint.x = dataX.getValueFromKey(recordKey, Number);
+			tempPoint.y = dataY.getValueFromKey(recordKey, Number);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 
 			// draw graphics
