@@ -64,7 +64,9 @@ package weave.visualization.plotters
 			// compare size
 			var a:Number = radiusColumn.getValueFromKey(key1, Number);
 			var b:Number = radiusColumn.getValueFromKey(key2, Number);
-			// sort descending (high radius values drawn first)
+			// sort descending (high radius values and missing radius values drawn first)
+			if(isNaN(a)) return -1;
+			if(isNaN(b)) return 1;
 			if( a < b )
 				return -1;
 			else if( a > b )
