@@ -22,7 +22,9 @@ package weave.services
 	import com.hurlant.util.asn1.parser.integer;
 	
 	import flash.events.EventDispatcher;
+	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.controls.Alert;
 	import mx.events.CloseEvent;
@@ -30,6 +32,7 @@ package weave.services
 	import mx.managers.PopUpManager;
 	import mx.utils.Base64Decoder;
 	import mx.utils.Base64Encoder;
+	import mx.utils.ObjectUtil;
 	
 	import org.igniterealtime.xiff.auth.*;
 	import org.igniterealtime.xiff.bookmark.*;
@@ -45,14 +48,29 @@ package weave.services
 	import org.igniterealtime.xiff.util.*;
 	import org.igniterealtime.xiff.vcard.*;
 	
+	import weave.core.ErrorManager;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	
 	public class CollaborationService extends EventDispatcher
-	{	
-		public var room:Room;
-		public var connection:XMPPConnection;
+	{
+		public function CollaborationService()
+		{
+			// register these classes so they will not lose their type when they get serialized and then deserialized.
+			for each (var c:Class in [SessionStateMessage, TextMessage])
+				registerClassAlias(getQualifiedClassName(c), c);
+		}
+	
 		
+		private var _room:Room;
+		private function get room():Room
+		{
+			if( _room == null)
+				throw new Error("Not Connected to Collaboration Server");
+			return _room;
+		}
 		
+		private var connection:XMPPConnection;
+	
 		//Contains a user's "Buddy List"
 		/* public static var roster:Roster; */
 		private var selfJID:String;
@@ -78,7 +96,8 @@ package weave.services
 		public function connect( server:String, port:int, roomToJoin:String, username:String ):void
 		{
 			if (isConnected == true) disconnect();
-		
+			isConnected = true;
+			
 			this.server = server;
 			this.port =	port;
 			this.roomToJoin = roomToJoin;
@@ -103,22 +122,27 @@ package weave.services
 			connection.connect();
 		}
 		
-		public function sendMessage( message:String ):void
-		{
-			var o:Object = { id: selfJID, type: "chat", message: message };
-			room.sendMessage(encodeObject(o));
-		}
-		
 		public function disconnect():void
 		{
 			connectedToRoom = false;
 			connection.disconnect();
-			clean();
 		}
 		
 		public function hasConnection():Boolean 
 		{
-			return isConnected;
+			return connectedToRoom;
+		}
+		
+		public function sendMessage( message:String ):void
+		{
+			room.sendMessage(encodeObject(new TextMessage(selfJID, message)));
+		}
+		
+		public function sendSessionState( state:Object ):void
+		{
+			//send the state to the Host, or conflicting diff resolver.
+			room.sendMessage( encodeObject(new SessionStateMessage(selfJID, state)) );
+			//room.sendPrivateMessage( "Host", encodeObject(new SessionStateMessage(selfJID, state)) );
 		}
 		
 		private function postMessageToUser( message:String ) :void
@@ -135,15 +159,11 @@ package weave.services
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.USERS_LIST, s));
 		}
 		
-		private function sendSessionStateDiff():void
-		{
-			//Need to Implement
-		}
 		
 		private function joinRoom(roomName:String):void
 		{
 			postMessageToUser( "joined room: " + roomToJoin + "\n" );
-			room = new Room(connection);
+			_room = new Room(connection);
 			
 			room.nickname = username;
 			postMessageToUser( "set alias to: " + room.nickname + "\n" );
@@ -173,18 +193,31 @@ package weave.services
 		
 		private function onReceiveMessage(e:MessageEvent):void
 		{
-			try
+
+			if( e.data.id != null)
 			{
-				if( e.data.id != null)
+				// handle a message from a user
+				var o:Object = decodeObject(e.data.body);
+				if (o is SessionStateMessage)
 				{
-					var o:Object = decodeObject(e.data.body);
-					postMessageToUser( o.id + ": " + o.message + "\n" );
-				} else
-					postMessageToUser( "server: " + e.data.body + "\n" );
-			} 
-			catch( err:Error )
+					var ssm:SessionStateMessage = o as SessionStateMessage;
+					if( ssm.id != selfJID )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.STATE, ssm.state));
+				}
+				else if (o is TextMessage)
+				{
+					var tm:TextMessage = o as TextMessage;
+					postMessageToUser( tm.id + ": " + tm.message + "\n" );
+				}
+				else
+				{
+					ErrorManager.reportError(new Error("Unable to determine message type: ", ObjectUtil.toString(o)));
+				}
+			}
+			else
 			{
-				trace( "Error: " + err.message );
+				// messages from the server are always strings
+				postMessageToUser( "server: " + e.data.body + "\n" );
 			}
 		}
 		
@@ -201,7 +234,7 @@ package weave.services
 		
 		private function onRoomJoin(e:RoomEvent):void
 		{
-			room = Room(e.target);
+			//_room = Room(e.target);
 			selfJID = room.userJID.resource;
 			updateUsersList();
 			trace("Joined room.");	
@@ -211,6 +244,7 @@ package weave.services
 		{
 			if (connectedToRoom)
 				Alert.show("Would you like to reconnect?", "Disconnected", Alert.YES | Alert.NO, null, closeHandler, null, Alert.YES);
+			clean();
 		}
 		
 		private function onUserJoin(event:RoomEvent):void
@@ -227,8 +261,8 @@ package weave.services
 			
 		private function clean():void
 		{
-			dispatchEvent( new CollaborationEvent(CollaborationEvent.CLEAR_LOG, null));
-			updateUsersList();
+			dispatchEvent( new CollaborationEvent(CollaborationEvent.CLEAR_LOG, null) );
+			dispatchEvent( new CollaborationEvent(CollaborationEvent.USERS_LIST, "") );
 			
 			//== Remove Event Listeners ==//
 			connection.removeEventListener(LoginEvent.LOGIN, onLogin);
@@ -246,7 +280,7 @@ package weave.services
 			//== Reset variables ==//
 			isConnected = 				false;
 			connection = 				null;
-			room = 						null;
+			_room =						null;
 			selfJID = 					null;
 			
 			trace("cleaning");
@@ -284,11 +318,27 @@ package weave.services
 	}
 }
 
-internal class CollaborationMessage
+internal class SessionStateMessage
 {
-	public var id:String;
-	
-	public function CollaborationMessage()
+	public function SessionStateMessage(id:String=null, state:Object=null)
 	{
+		this.id = id;
+		this.state = state;
 	}
+
+	public var id:String;
+	public var state:Object;
+}
+
+
+internal class TextMessage
+{
+	public function TextMessage(id:String=null, message:String=null)
+	{
+		this.id = id;
+		this.message = message;
+	}
+	
+	public var id:String;
+	public var message:String;
 }

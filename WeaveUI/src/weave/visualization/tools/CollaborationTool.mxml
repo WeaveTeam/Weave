@@ -28,6 +28,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   creationPolicy="all">
 	<mx:Script>
 		<![CDATA[
+			import weave.Weave;
+			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
+			import weave.api.setSessionState;
 			import weave.services.CollaborationEvent;
 			import weave.services.CollaborationService;
 			
@@ -39,10 +43,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
 				collabService.addEventListener(CollaborationEvent.USERS_LIST, handleUserList);
 				collabService.addEventListener(CollaborationEvent.CLEAR_LOG, handleLogClear);
+				collabService.addEventListener(CollaborationEvent.STATE, handleRemoteSessionState);
+				
 				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoom);
 				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
-				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);		
+				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
+				
+				getCallbackCollection(Weave.root).addGroupedCallback(this, sendSessionState);
 			}
 			
 			override public function dispose():void
@@ -53,7 +61,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function sendToRoom(e:Event):void
 			{
-				if( e is KeyboardEvent && (e as KeyboardEvent).keyCode != Keyboard.ENTER)
+				if( e is KeyboardEvent && (e as KeyboardEvent).keyCode != Keyboard.ENTER || input.text=="")
 					return;
 				collabService.sendMessage( input.text );
 				input.text = "";		
@@ -66,14 +74,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				input.enabled = true;
 				sendButton.enabled = true;
 				disconnectButton.enabled = true;
+				connectButton.enabled = false;
 			}
 			
 			private function disconnect(e:MouseEvent):void
 			{
-				collabService.disconnect();
-				input.enabled = false;
-				sendButton.enabled = false;
-				disconnectButton.enabled = false;
+				if( collabService.hasConnection() == true)
+				{
+					collabService.disconnect();
+					input.enabled = false;
+					sendButton.enabled = false;
+					disconnectButton.enabled = false;
+					connectButton.enabled = true;
+				}
 			}
 
 			private function handleText(e:CollaborationEvent):void
@@ -91,13 +104,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				log.text = "";
 			}
 			
+			private function sendSessionState():void
+			{
+				if (collabService.hasConnection() == true)
+					collabService.sendSessionState(Weave.root.getSessionState());
+			}
+			
+			private function handleRemoteSessionState( e:CollaborationEvent):void
+			{
+				setSessionState(Weave.root, e.getState());
+			}
+			
 		]]>
 	</mx:Script>
 
 	
 	<mx:VBox width="100%" height="100%" paddingTop="10" paddingBottom="10" paddingLeft="10" paddingRight="10">
 		<mx:HBox width="100%" height="90%">
-			<mx:TextArea width="80%" height="100%" id="log" editable="false" liveScrolling="true" />
+			<mx:TextArea width="80%" height="100%" id="log" editable="false"/>
 			<mx:TextArea height="100%" id="users" editable="false" />
 		</mx:HBox>
 		<mx:HBox width="100%">
