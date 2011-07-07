@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.MathLib;
 	import weave.core.LinkableBoolean;
@@ -57,7 +58,8 @@ package weave.visualization.plotters
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerNonSpatialProperty(radiusColumn);
-			setNewRandomJitterColumn();			
+			setNewRandomJitterColumn();		
+			iterations.value = 50;
 		}		
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -76,6 +78,7 @@ package weave.visualization.plotters
 		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(-19));	
 		public const enableWedgeColoring:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const enableJitter:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const iterations:LinkableNumber = newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);		
@@ -279,38 +282,46 @@ package weave.visualization.plotters
 			destination.draw(tempShape);
 			
 			var array:Array = anchors.getObjects(AnchorPoint);
-			// loop through anchors hash map and draw dimensional anchors and labels
-			var theta:Number = ( 2 * Math.PI )/array.length ;
+			
+			// loop through anchors hash map and draw dimensional anchors and labels					
 			for( var i:int = 0 ; i < array.length ; i++ )
 			{
-				coordinate.x = array[i].x.value;
-				coordinate.y = array[i].y.value;
+				coordinate.x = x = array[i].x.value;
+				coordinate.y = y = array[i].y.value;
+				
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var graphics1:Graphics = tempShape.graphics;
 				var labelText:BitmapText = new BitmapText();
-				labelText.text =("  " + anchors.getName(array[i]) + "  ");
-				if(((theta*i) < (Math.PI/2)) || ((theta*i) > ((3*Math.PI)/2)))
+				labelText.text =( anchors.getName(array[i]));
+				
+				if(x > 0) // right half of unit circle
 				{
 					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;
 					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
+					labelText.x = coordinate.x + 10;
+					labelText.y = coordinate.y;
 				}
-					//else if( theta <= ((55*Math.PI)/36) && theta >= ((53*Math.PI)/36))
-				else if ((theta*i) == ((3*Math.PI)/2) )
+				
+				else if ( x == 0 && y <= 0 ) // exact bottom of circle
 				{
 					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
+					labelText.x = coordinate.x ;
+					labelText.y = coordinate.y + 10;
 				}
-				else if((theta*i) == (Math.PI/2))
+				else if( x == 0 && y > 0) // exact top of circle
 				{
 					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;
+					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;					
+					labelText.x = coordinate.x;
+					labelText.y = coordinate.y - 10;
 				}
-				else
+				else // left half of circle
 				{
 					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT ;
 					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
+					labelText.x = coordinate.x - 10;
+					labelText.y = coordinate.y;
 				}
-				labelText.x = coordinate.x ;
-				labelText.y = coordinate.y ;
 				labelText.draw(destination) ;
 				graphics1.clear();
 				graphics1.lineStyle(3);
@@ -386,21 +397,20 @@ package weave.visualization.plotters
 		private var dimensionReorderLabels:Array ; // stores the list of reordered dimensions to apply to the columns LinkableHashMap
 		
 		/** 
-		 * Creates a new global similarity matrix (private var) dxd matrix (where d is the number of dimensions) 
+		 * Creates a new dxd global similarity matrix (where d is the number of dimensions) 
 		 * everytime the DA ordering algorithm is run
 		 */
 		private function getGlobalSimilarityMatrix(column:IAttributeColumn):void
 		{
 			var colArray:Array  = columns.getObjects(IAttributeColumn) ;
 			var colArraylength:uint = colArray.length ;
-			S = null;
-			S = new Array();
+			S = [];
 			for( var i:int = 0; i < colArraylength ;i++ )
 			{
 				var tempRowArray:Array = []; 
 				for( var j:int = 0; j < colArraylength; j++ )
 				{
-					tempRowArray.push(getCosineDistance( column.keys, colArray[i], colArray[j] ));
+					tempRowArray.push(getCosineDistance( keySet.keys, colArray[i], colArray[j] ));
 				}
 				S.push(tempRowArray) ;
 				tempRowArray = null ;
@@ -441,9 +451,7 @@ package weave.visualization.plotters
 				
 				for( var j:int = 0; j < columns1length; j++)
 				{
-					var s1:String = ColumnUtils.getTitle(columns1[i]);
-					var s2:String = ColumnUtils.getTitle(columns1[j]);
-					if( isAdjacent(s1, s2, array))
+					if( isAdjacent(columns1[i], columns1[j], array))
 						tempArray.push(1);
 					else tempArray.push(0);
 				}
@@ -452,23 +460,23 @@ package weave.visualization.plotters
 			}
 		}
 		
-		private function isAdjacent(dim1:String, dim2:String, array:Array):Boolean
+		private function isAdjacent(dim1:IAttributeColumn, dim2:IAttributeColumn, array:Array):Boolean
 		{
-			if(ColumnUtils.getTitle(array[0]) == dim1 && ColumnUtils.getTitle(array[array.length-1]) == dim2)
+			if(array[0] == dim1 && array[array.length-1] == dim2)
 				return true;
-			if(ColumnUtils.getTitle(array[0]) == dim2 && ColumnUtils.getTitle(array[array.length-1]) == dim1)
+			if(array[0] == dim2 && array[array.length-1] == dim1)
 				return true;
 			for( var i:int = 0; i < array.length-1; i++ )
 			{
-				if(ColumnUtils.getTitle(array[i]) == dim1 && ColumnUtils.getTitle(array[i+1]) == dim2)
+				if(array[i] == dim1 && array[i+1] == dim2)
 					return true ;
-				if(ColumnUtils.getTitle(array[i]) == dim2 && ColumnUtils.getTitle(array[i+1]) == dim1)
+				if(array[i] == dim2 && array[i+1] == dim1)
 					return true ;
 			}
 			return false ;
 		}
 		
-		public function applyDimensionReordering():void
+		public function applyRandomAnchorLayout():void
 		{
 			trace(this, timer1.start());
 			timer1.debug("start");
@@ -488,12 +496,9 @@ package weave.visualization.plotters
 			getNeighborhoodMatrix(columns1);
 			var min:Number = getSimilarityMeasure();
 			var sim:Number = 0 ;
-			var iterations:int ;
-			trace(this, "change" );
-			if( columns1.length <= 6 ) iterations = 50;
-			else if (columns1.length > 6 && columns1.length < 11) iterations = 500 ;
-			else iterations = 1000;
-			for( var i:int = 0; i < iterations; i++ )
+			trace(this, "change new" );
+
+			for( var i:int = 0; i < iterations.value; i++ )
 			{
 				// get 2 random column numbers
 				do{
@@ -515,6 +520,7 @@ package weave.visualization.plotters
 					storeDimensionReorder( columns1 );
 				}
 			}
+			trace( min );
 			reorderColumnsHashMap(columns1);
 		}
 		
@@ -548,10 +554,179 @@ package weave.visualization.plotters
 		 */
 		private function reorderColumnsHashMap(array:Array):void
 		{
-			columns.setNameOrder(dimensionReorderLabels);
 			timer1.debug("end");
 			timer1.stop();
-			//trace( columns.getNames() );
+			columns.setNameOrder(dimensionReorderLabels);
 		}
+				
+		public function applyNearestNeighborAlgorithm():void
+		{
+			var tempColumns:Array = columns.getObjects(IAttributeColumn);
+			if( !tempColumns.length ) return;
+			getSortedSimilarityMatrix(tempColumns[0]);
+			performNearestNeighborSearch();
+		}
+				
+		public function applyGreedyLayoutAlgorithm():void
+		{
+			var tempColumns:Array = columns.getObjects(IAttributeColumn);
+			if( !tempColumns.length ) return;
+			getSortedSimilarityMatrix(tempColumns[0]);
+			performGreedyLayout(tempColumns);
+		}
+		
+		private function performGreedyLayout(originalColumns:Array):void
+		{
+			var orderedColumns:Array = [];
+			var i:int = 0; 
+			orderedColumns.push(S[0].dimension1, S[0].dimension2);
+			var columnBegin:IAttributeColumn = orderedColumns[0];
+			var columnEnd:IAttributeColumn = orderedColumns[1];
+			var column1:IAttributeColumn; 
+			var column2:IAttributeColumn ;
+			while( orderedColumns.length < originalColumns.length )
+			{
+				column1 = searchForColumn( S[i].dimension1, orderedColumns );
+				column2 = searchForColumn( S[i].dimension2, orderedColumns );
+				
+				if(column1 && column2) {i++; continue;} 
+				else if( column1 ) {					
+					if( columnEnd == column1 ) {
+						orderedColumns.push(column2);
+						columnEnd = column2;
+					} else if( columnBegin == column1 )
+					{
+						orderedColumns.unshift(column2);
+						columnBegin = column2;
+					} else {i++; continue;}
+				} else if( column2 ) {
+					if( columnEnd == column2 ) {
+						orderedColumns.push(column1);
+						columnEnd = column1 ;
+					} else if (columnBegin == column2 ) {
+						orderedColumns.unshift(column1);
+						columnBegin = column1 ;
+					} else {i++; continue ;}
+				} else {
+					orderedColumns.push(S[i].dimension1, S[i].dimension2 );
+					columnEnd = S[i].dimension2 ;
+				}
+				i++;
+			}
+			storeDimensionReorder(orderedColumns);
+			columns.setNameOrder(dimensionReorderLabels);
+			
+			// debugging
+			getGlobalSimilarityMatrix(orderedColumns[0]);
+			getNeighborhoodMatrix(orderedColumns);
+			trace( getSimilarityMeasure());
+		}
+		
+		/**
+		 * Searches for parameter IAttributeColumn inside the array parameter 
+		 * @param column column to search for
+		 * @param orderedColumns array of IAttributeColumns to search for column parameter
+		 * @return true: column is found
+		 * 
+		 */		
+		private function searchForColumn(column:IAttributeColumn, orderedColumns:Array ):IAttributeColumn
+		{
+			for each (var col:IAttributeColumn in orderedColumns ) {
+				if( col == column ) return col;
+			}
+			return null;
+		}
+		
+		private function performNearestNeighborSearch():void
+		{
+			var orderedColumns:Array = [];
+			var originalColumns:Array = columns.getObjects(IAttributeColumn);
+			
+			// push the two columns that are least similar into new column order
+			orderedColumns.push(S[0].dimension1,S[0].dimension2);
+			while( orderedColumns.length < originalColumns.length)
+			{
+				var column:IAttributeColumn = searchForAnchorMatch( orderedColumns[orderedColumns.length-1], 
+					orderedColumns[orderedColumns.length-2], orderedColumns);				
+				orderedColumns.push(column);
+			}
+			storeDimensionReorder(orderedColumns);
+			columns.setNameOrder(dimensionReorderLabels);
+			
+			// debugging
+			getGlobalSimilarityMatrix(orderedColumns[0]);
+			getNeighborhoodMatrix(orderedColumns);
+			trace( getSimilarityMeasure());
+		}
+		
+		private function searchForAnchorMatch(matchTo:IAttributeColumn, ignore:IAttributeColumn, orderedColumns:Array):IAttributeColumn
+		{
+			loop:for( var i:int = 0; i < S.length; i++ )
+			{
+				if(S[i].dimension1 == matchTo || S[i].dimension2 == matchTo)
+					if(S[i].dimension1 != ignore && S[i].dimension2 != ignore)
+					{
+						var matched:IAttributeColumn = (S[i].dimension1 == matchTo) ? S[i].dimension2 : S[i].dimension1;
+						for each( var column:IAttributeColumn in orderedColumns)
+						{
+							if( column == matched ) continue loop; 
+						}
+						return matched;
+					}
+			}
+			return null;
+		}
+		
+		/** 
+		 * Creates a dxd global similarity matrix (where d is the number of dimensions) 
+		 * everytime the DA ordering algorithm is run
+		 */
+		private function getSortedSimilarityMatrix(column:IAttributeColumn):void
+		{
+			var colArray:Array  = columns.getObjects(IAttributeColumn) ;
+			var colArraylength:uint = colArray.length ;
+			S = [];
+			for( var i:int = 0; i < colArraylength ;i++ )
+			{				
+				for( var j:int = 0; j < i; j++ )
+				{					
+					var entry:MatrixEntry = new MatrixEntry();
+					entry.similarity = getCosineDistance( column.keys, colArray[i], colArray[j] );
+					entry.dimension1 = colArray[i];
+					entry.dimension2 = colArray[j];
+					S.push(entry);
+				}
+			}	
+			// sort by increasing similarity values 
+			// we want the least similar dimensions at index 0
+			S.sort(sortEntries);
+		}
+		
+		/**
+		 * This function sorts matrix entries based on their similarity values 
+		 * @param entry1 First MatrixEntry (a)
+		 * @param entry2 Second MatrixEntry (b)
+		 * @return Sort value: 0: (a==b); -1:(a < b); 1:(a > b)
+		 * 
+		 */		
+		private function sortEntries( entry1:MatrixEntry, entry2:MatrixEntry):int
+		{
+			if( entry1.similarity > entry2.similarity) return 1;
+			if( entry1.similarity < entry2.similarity) return -1;
+			return 0;
+		}
+		
 	}
+}
+
+import weave.api.data.IAttributeColumn;
+
+class MatrixEntry
+{
+	public function MatrixEntry()
+	{		
+	}
+	public var similarity:Number;
+	public var dimension1:IAttributeColumn;
+	public var dimension2:IAttributeColumn;
 }

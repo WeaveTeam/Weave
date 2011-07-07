@@ -491,7 +491,6 @@ package weave.visualization.plotters
 				{	
 					min = sim ;
 					storeDimensionReorder( columns1 );
-					reorderColumnsHashMap(columns1);
 				}
 			}
 			reorderColumnsHashMap(columns1);
@@ -527,9 +526,9 @@ package weave.visualization.plotters
 		 */
 		private function reorderColumnsHashMap(array:Array):void
 		{
-			columns.setNameOrder(dimensionReorderLabels);
 			timer1.debug("end");
 			timer1.stop();
+			columns.setNameOrder(dimensionReorderLabels);
 			//trace( columns.getNames() );
 		}
 	}

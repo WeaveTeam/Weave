@@ -25,12 +25,13 @@
 	     layout="absolute"
 		 dragEnter="handleDragEnter(event)"
 		 dragDrop="handleDragDrop(event)"
-		 resize="handleResize(event)">		 
+		 resize="handleResize(event)" xmlns:userControls="weave.ui.userControls.*">		 
 	<mx:Script>
 		<![CDATA[
 			import flash.utils.getQualifiedClassName;
 			
 			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.DragManager;
 			
@@ -88,12 +89,11 @@
 				super.childrenCreated();
 
 				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn ;
-				columnList.hashMap = _plotter.columns;
 				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
+				columnList.hashMap = _plotter.columns;
 
 				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
-				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');
-				
+				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );
 				
@@ -179,7 +179,17 @@
 			
 			private function handleAnchorReorderButtonClick(event:MouseEvent = null):void
 			{
-				_plotter.applyDimensionReordering();
+				switch( algorithmComboBox.selectedIndex )
+				{
+					case 0: 
+						_plotter.applyRandomAnchorLayout(); break;
+					case 1:
+						_plotter.applyNearestNeighborAlgorithm(); break;
+					case 2:
+						_plotter.applyGreedyLayoutAlgorithm(); break;
+					default:
+						break;
+				}
 				anchorReorderButton.selected = false; 
 			}
 						
@@ -260,6 +270,7 @@
 					anchor.drawAnchor();
 				}
 			}
+			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -267,7 +278,7 @@
 			<mx:VBox width="100%" 
 					 id="controls">
 				<mx:HBox width="100%" 
-						 borderStyle="inset" 
+						 borderStyle="solid" 
 						 backgroundColor="0xFFFFFF" 
 						 backgroundAlpha="0.7">
 					<mx:Label text="Point Opacity:" 
@@ -283,86 +294,9 @@
 								minimum="0.1" maximum="1.0" value="1.0"
 								liveDragging="true"/>
 				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox width="100%" 
-					 id="controls2">
+				<mx:Spacer height="10"/>
 				<mx:HBox width="100%" 
-						 borderStyle="inset" 
-						 backgroundColor="0xFFFFFF" 
-						 backgroundAlpha="0.7">
-					<mx:Label text="Apply Jitter:" 
-							  color="0x000000" fontSize="12" 
-							  toolTip="Use this control to change record coordinates by a random number"/>
-					
-					<mx:CheckBox id="jitterckbx"
-								 />
-				</mx:HBox>
-				<mx:HBox width="100%" 
-						 borderStyle="inset" 
-						 backgroundColor="0xFFFFFF" 
-						 backgroundAlpha="0.7">
-					<mx:Label text="Jitter Level:" 
-							  color="0x000000" fontSize="12" 
-							  toolTip="Use slider to adjust the jitter level"/>
-					
-					<mx:HSlider id="jitterSlider"
-								enabled="{jitterckbx.selected}"
-								width="100%"
-								alpha="1.0"
-								snapInterval="1"
-								tickInterval="1"
-								labels="{['1','2','3','4','5','6','7','8','9','10']}"
-								showDataTip="false"
-								minimum="-19" maximum="-10"
-								liveDragging="true"/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox width="100%" 
-					 id="controls3">
-				<mx:HBox width="100%" 
-						 borderStyle="inset" 
-						 backgroundColor="0xFFFFFF" 
-						 backgroundAlpha="0.7">
-					<mx:Label text="Re-randomize jitter:" 
-							  color="0x000000" fontSize="12" 
-							  toolTip="Use this control to reseed jitter with new random values"/>
-					
-					<mx:HBox backgroundColor="0xFFFFFF" 
-							 cornerRadius="5" 
-							 borderStyle="solid" borderThickness="1" borderColor="0x222222"
-							 >
-						<mx:LinkButton id="reseedJitterButton" click="handleReseedJitterButtonClick(event)" 
-									   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00"/>
-					</mx:HBox>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox width="100%" 
-					 id="controls4">
-				<mx:HBox width="100%" 
-						 borderStyle="inset" 
-						 backgroundColor="0xFFFFFF" 
-						 backgroundAlpha="0.7">
-					<mx:Label text="Apply Dimensional Anchor Reordering Algorithm:" 
-							  color="0x000000" fontSize="12" 
-							  toolTip="Use this control to reorder the dimensional anchors"/>
-					
-					<mx:HBox backgroundColor="0xFFFFFF" 
-							 cornerRadius="5" 
-							 borderStyle="solid" borderThickness="1" borderColor="0x222222"
-							 >
-						<mx:LinkButton id="anchorReorderButton" click="handleAnchorReorderButtonClick(event)" 
-									   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00"
-									   />
-					</mx:HBox>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:VBox width="100%" 
-					 >
-				<mx:HBox width="100%" 
-						 borderStyle="inset" 
+						 borderStyle="solid" 
 						 backgroundColor="0xFFFFFF" 
 						 backgroundAlpha="0.7">
 					<mx:Label text="Point Radius:" 
@@ -377,12 +311,80 @@
 								liveDragging="true"/>
 				</mx:HBox>
 			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox
+				borderStyle="solid" 
+				backgroundColor="0xFFFFFF" 
+				backgroundAlpha="0.7"
+				id="controls2">
+				<mx:HBox>
+					<mx:Label text="Apply Jitter:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to change record coordinates by a random number"/>					
+					<mx:CheckBox id="jitterckbx"/>					
+					<mx:HBox backgroundColor="0xFFFFFF" 
+							 cornerRadius="5" 
+							 borderStyle="solid" borderThickness="1" borderColor="0x222222"
+							 >
+						<mx:LinkButton id="reseedJitterButton" click="handleReseedJitterButtonClick(event)" 
+									   toolTip="Use this control to reseed jitter with new random values"
+									   label="Randomize Jitter" rollOverColor="0x80dbff" selectionColor="0xaaff00"/>
+					</mx:HBox>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Jitter Level:" 
+							  color="0x000000" fontSize="12" 
+							  enabled="{jitterckbx.selected}"
+							  toolTip="Use slider to adjust the jitter level"/>					
+					<mx:HSlider id="jitterSlider"
+								enabled="{jitterckbx.selected}"
+								width="100%"
+								alpha="1.0"
+								snapInterval="1"
+								tickInterval="1"
+								labels="{['1','2','3','4','5','6','7','8','9','10']}"
+								showDataTip="false"
+								minimum="-19" maximum="-10"
+								liveDragging="true"/>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox borderStyle="solid" 
+					 backgroundColor="0xFFFFFF" 
+					 backgroundAlpha="0.7"
+					 id="controls4">
+				<mx:HBox>
+					<mx:Label text="Dimensional Anchor Reordering Algorithm:" 
+							  color="0x000000" fontSize="12" 
+							  toolTip="Use this control to reorder the dimensional anchors"/>					
+				</mx:HBox>
+
+					<mx:ComboBox id="algorithmComboBox" labelField="label">
+						<mx:ArrayCollection>
+							<mx:Object label="Random Swapping" />
+							<mx:Object label="Nearest Neighbor" />
+							<mx:Object label="Greedy Layout"/>
+						</mx:ArrayCollection>
+					</mx:ComboBox>
+				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
+					<mx:Label text="Number of Iterations"/>
+					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
+								  initialize="linkBindableProperty(_plotter.iterations, iterationsTextInput, 'text')"/>
+				</mx:HBox>
+					<mx:HBox backgroundColor="0xFFFFFF" 
+							 cornerRadius="5" 
+							 borderStyle="solid" borderThickness="1" borderColor="0x222222">
+						<mx:LinkButton id="anchorReorderButton" click="handleAnchorReorderButtonClick(event)" 
+									   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00" />
+					</mx:HBox>
+
+			</mx:VBox>
 		</mx:VBox>
 		
-		<mx:VBox id="attributesPanel" label="Attributes for Rad Viz">
+		<mx:VBox id="attributesPanel" label="Attributes for RadViz">
 			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" />
+			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="Advanced">
 			<mx:CheckBox id="enableWedgeColoringCkbx"
