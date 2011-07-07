@@ -29,6 +29,7 @@ package weave.core
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -119,7 +120,7 @@ package weave.core
 			registerDisposableChild(linkableParent, linkableChild);
 
 			// only continue if the child is not already registered with the parent
-			if (childToParentDictionaryMap[linkableChild][linkableParent] == undefined)
+			if (childToParentDictionaryMap[linkableChild][linkableParent] === undefined)
 			{
 				// remember this child-parent relationship
 				childToParentDictionaryMap[linkableChild][linkableParent] = true;
@@ -161,13 +162,13 @@ package weave.core
 		public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 		{
 			// if this parent has no owner-to-child mapping, initialize it now with parent-to-child mapping
-			if (ownerToChildDictionaryMap[disposableParent] == undefined)
+			if (ownerToChildDictionaryMap[disposableParent] === undefined)
 			{
 				ownerToChildDictionaryMap[disposableParent] = new Dictionary(true); // weak links to be GC-friendly
 				parentToChildDictionaryMap[disposableParent] = new Dictionary(true); // weak links to be GC-friendly
 			}
 			// if this child has no owner yet...
-			if (childToOwnerMap[disposableChild] == undefined)
+			if (childToOwnerMap[disposableChild] === undefined)
 			{
 				// make this first parent the owner
 				childToOwnerMap[disposableChild] = disposableParent;
@@ -321,7 +322,7 @@ package weave.core
 						continue;
 
 					// skip this property if it was not registered as a linkable child of the sessionedObject.
-					if (childToParentDictionaryMap[property] == undefined || childToParentDictionaryMap[property][linkableObject] == undefined)
+					if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
 						continue;
 						
 					setSessionState(property, newState[name], removeMissingDynamicObjects);
@@ -386,10 +387,10 @@ package weave.core
 					trace('SessionManager.internalGetSessionState(): Unable to get property "'+name+'" of class "'+getQualifiedClassName(sessionedObject)+'"',e.getStackTrace());
 				}
 				// first pass: set result[name] to the ILinkableObject
-				if (property != null && ignoreList[property] == undefined)
+				if (property != null && ignoreList[property] === undefined)
 				{
 					// skip this property if it was not registered as a linkable child of the sessionedObject.
-					if (childToParentDictionaryMap[property] == undefined || childToParentDictionaryMap[property][sessionedObject] == undefined)
+					if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][sessionedObject] === undefined)
 						continue;
 					// only include this property in the session state once
 					ignoreList[property] = true;
@@ -814,7 +815,7 @@ package weave.core
 //		private function getSiblings(child:ILinkableObject, filter:Class = null):Array
 //		{
 //			// if this child has no parents, it has no siblings.
-//			if (childToParentDictionaryMap[child] == undefined)
+//			if (childToParentDictionaryMap[child] === undefined)
 //				return [];
 //			
 //			var owner:ILinkableObject = getOwner(child);
@@ -861,11 +862,11 @@ package weave.core
 				return;
 			}
 			
-			if (objectToSetterMap[primary] == undefined)
+			if (objectToSetterMap[primary] === undefined)
 				objectToSetterMap[primary] = function(source:ILinkableObject):void {
 					setSessionState(primary, getSessionState(source), true);
 				};
-			if (objectToSetterMap[secondary] == undefined)
+			if (objectToSetterMap[secondary] === undefined)
 				objectToSetterMap[secondary] = function(source:ILinkableObject):void {
 					setSessionState(secondary, getSessionState(source), true);
 				};
@@ -878,9 +879,9 @@ package weave.core
 			primaryCC.addImmediateCallback(secondary, objectToSetterMap[secondary], [primary], true); // copy from primary now
 
 			// initialize linkedObjectsDictionaryMap entries if necessary
-			if (linkedObjectsDictionaryMap[primary] == undefined)
+			if (linkedObjectsDictionaryMap[primary] === undefined)
 				linkedObjectsDictionaryMap[primary] = new Dictionary(true);
-			if (linkedObjectsDictionaryMap[secondary] == undefined)
+			if (linkedObjectsDictionaryMap[secondary] === undefined)
 				linkedObjectsDictionaryMap[secondary] = new Dictionary(true);
 			// remember that these two objects are linked.
 			linkedObjectsDictionaryMap[primary][secondary] = true;
@@ -976,9 +977,9 @@ package weave.core
 			};
 			var watcher:ChangeWatcher = BindingUtils.bindSetter(setLinkableVariable, bindableParent, bindablePropertyName);
 			// save a mapping from the linkableVariable,bindableParent,bindablePropertyName parameters to the watcher for the property
-			if (_changeWatcherMap[linkableVariable] == undefined)
+			if (_changeWatcherMap[linkableVariable] === undefined)
 				_changeWatcherMap[linkableVariable] = new Dictionary(true);
-			if (_changeWatcherMap[linkableVariable][bindableParent] == undefined)
+			if (_changeWatcherMap[linkableVariable][bindableParent] === undefined)
 				_changeWatcherMap[linkableVariable][bindableParent] = new Object();
 			_changeWatcherMap[linkableVariable][bindableParent][bindablePropertyName] = watcher;
 			// when session state changes, set bindable property
@@ -1028,5 +1029,149 @@ package weave.core
 		 * This value is true if the user is running the debug version of the flash player.
 		 */		
 		public static const runningDebugFlashPlayer:Boolean = (new Error()).getStackTrace() != null;
+		
+		/**
+		 * This function computes the diff of two session states.
+		 * @param oldState The source session state.
+		 * @param newState The destination session state.
+		 * @return The diff that generates the destination session state when applied to the source session state.
+		 */
+		public function computeDiff(oldState:Object, newState:Object):*
+		{
+			var type:String = typeof(oldState); // the type of null is 'object'
+			var diffValue:*;
+
+			// special case if types differ
+			if (typeof(newState) != type)
+				return newState;
+			
+			if (type == 'xml')
+			{
+				if ((oldState as XML).toXMLString() != (newState as XML).toXMLString())
+					return newState;
+				
+				return undefined; // no diff
+			}
+			else if (type == 'number')
+			{
+				if (ObjectUtil.numericCompare(oldState as Number, newState as Number) != 0)
+					return newState;
+				
+				return undefined; // no diff
+			}
+			else if (oldState === null || newState === null || type != 'object') // other primitive value
+			{
+				if (oldState !== newState) // no type-casting
+					return newState;
+				
+				return undefined; // no diff
+			}
+			else if (oldState is Array && newState is Array)
+			{
+				// create an array of new DynamicState objects for all new names followed by missing old names
+				var i:int;
+				var typedState:DynamicState;
+				
+				// create oldLookup
+				var oldLookup:Object = {};
+				for (i = 0; i < oldState.length; i++)
+				{
+					typedState = DynamicState.cast(oldState[i]);
+					//TODO: error checking in case typedState is null
+					oldLookup[typedState.objectName] = typedState;
+				}
+				
+				// create new Array with new DynamicState objects
+				var result:Array = [];
+				for (i = 0; i < newState.length; i++)
+				{
+					// create a new DynamicState object so we won't be modifying the one from newState
+					typedState = DynamicState.cast(newState[i], true);
+					var oldTypedState:DynamicState = oldLookup[typedState.objectName] as DynamicState;
+					delete oldLookup[typedState.objectName]; // remove it from the lookup because it's already been handled
+					
+					// If the object specified in newState does not exist in oldState, we don't need to do anything further.
+					// If the class is the same as before, then we can save a diff instead of the entire session state.
+					// If the class DID change, we can't save only a diff -- we need to keep the entire session state.
+					// Replace the sessionState in the new DynamicState object with the diff.
+					if (oldTypedState != null && oldTypedState.className == typedState.className)
+					{
+						diffValue = computeDiff(oldTypedState.sessionState, typedState.sessionState);
+						if (diffValue === undefined && typedState.objectName)
+						{
+							// Since the class name is the same and the session state is the same,
+							// we only need to specify that this name is still present.
+							result.push(typedState.objectName);
+							continue;
+						}
+						typedState.sessionState = diffValue;
+					}
+					
+					// save in new array and remove from lookup
+					result.push(typedState);
+				}
+				
+				// Anything remaining in the lookup does not appear in newState.
+				// Add DynamicState entries with a null className to convey that each of these objects should be removed.
+				for (var removedName:String in oldLookup)
+					result.push(new DynamicState(removedName, null));
+				
+				if (result.length == 0)
+					return undefined; // no diff
+
+				//TODO: if nothing changed, including name order, then return undefined
+				
+				return result;
+			}
+			else // nested object
+			{
+				var diff:* = undefined; // start with no diff
+				
+				// find old properties that changed value
+				for (var oldName:String in oldState)
+				{
+					diffValue = computeDiff(oldState[oldName], newState[oldName]);
+					if (diffValue != undefined)
+					{
+						if (!diff)
+							diff = {};
+						diff[oldName] = diffValue;
+					}
+				}
+
+				// find new properties
+				for (var newName:String in newState)
+				{
+					if (oldState[newName] === undefined)
+					{
+						if (!diff)
+							diff = {};
+						diff[newName] = newState[newName];
+					}
+				}
+
+				return diff;
+			}
+		}
 	}
 }
+
+//	override protected function childrenCreated():void
+//	{
+//		super.childrenCreated();
+//		
+//		// TESTING
+//		
+//		getCallbackCollection(Weave.root).addGroupedCallback(this, test, true);
+//	}
+//	private function test():void
+//	{
+//		var state:Object = getSessionState(Weave.root);
+//		
+//		var diff:* = (WeaveAPI.SessionManager as SessionManager).computeDiff(_prevState, state);
+//		if (diff != undefined)
+//			trace(ObjectUtil.toString(diff),"\n\n###############################################################\n\n");
+//		
+//		_prevState = state;
+//	}
+//	private var _prevState:Object = null;

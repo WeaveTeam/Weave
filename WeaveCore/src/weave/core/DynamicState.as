@@ -54,14 +54,20 @@ package weave.core
 		 * return a DynamicState object having those values.  Otherwise, null is returned because the object is
 		 * assumed to be incompatible.
 		 * @param object An object that has all the properties that DynamicState has.
+		 * @param createNewObject If this is set to true, this function will return a new DynamicState object even if the given object is already a DynamicState.
 		 * @return Either a DynamicState object or null if the cast failed.
 		 */
-		public static function cast(object:Object):DynamicState
+		public static function cast(object:Object, createNewObject:Boolean = false):DynamicState
 		{
 			try
 			{
 				if (object is DynamicState)
-					return object as DynamicState;
+				{
+					var original:DynamicState = object as DynamicState;
+					if (createNewObject)
+						return new DynamicState(original.objectName, original.className, original.sessionState);
+					return original;
+				}
 				
 				var matchCount:int = 0;
 				for (var name:String in object)
