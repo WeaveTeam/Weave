@@ -49,6 +49,7 @@ package weave
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.KeySetContextMenuItems;
 	import weave.Reports.WeaveReport;
@@ -67,6 +68,7 @@ package weave
 	import weave.core.DynamicState;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
+	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.core.WeaveJavaScriptAPI;
 	import weave.core.weave_internal;
@@ -494,7 +496,29 @@ package weave
 			//drawConnection();
 			loadPage();
 		}
+
+//		override protected function childrenCreated():void
+//		{
+//			super.childrenCreated();
+//			
+//			// TESTING
+//			
+//			getCallbackCollection(Weave.root).addGroupedCallback(this, test, true);
+//		}
+//		private function test():void
+//		{
+//			var state:Object = getSessionState(Weave.root);
+//			
+//			var diff:* = (WeaveAPI.SessionManager as SessionManager).computeDiff(_prevState, state);
+//			if (diff != undefined)
+//				trace(ObjectUtil.toString(diff),"\n\n###############################################################\n\n");
+//			
+//			_prevState = state;
+//		}
+//		private var _prevState:Object = null;
+//		private var history:Array = [];
 		
+
 //		private function handleTabBarResize(event:ResizeEvent):void
 //		{
 //			_viewTabBar.move(0,this.height);
@@ -813,14 +837,12 @@ package weave
 				{
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
-				}
-				
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				
-				if (Weave.properties.enableSessionImport.value)
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state ...", handleImportSessionState, null, true));
-				if (Weave.properties.enableSessionExport.value)
+					
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state ...", handleImportSessionState));
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
+				}
 
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 
@@ -1410,8 +1432,6 @@ package weave
 				Weave.properties.enableMenuBar.value = true;
 				Weave.properties.enableSessionMenu.value = true;
 				Weave.properties.enableSessionEdit.value = true;
-				Weave.properties.enableSessionImport.value = true;
-				Weave.properties.enableSessionExport.value = true;
 				Weave.properties.enableUserPreferences.value = true;
 			}
 			

@@ -355,18 +355,8 @@
 						<mx:CheckBox toolTip="Checking this box will allow the user to edit the current session state"
 									 enabled="{sessionMenu.selected == true}"
 									 id="editCurrentSessionState"
-									 label="Edit/Copy Current Session State"
+									 label="Copy/edit/import/export current session state"
 									 creationComplete="linkBindableProperty(Weave.properties.enableSessionEdit,editCurrentSessionState,'selected')"/>  
-						<mx:CheckBox toolTip="Checking this box will allow the user to import a session state"
-									 enabled="{sessionMenu.selected == true}"
-									 id="importSessionState"
-									 label="Import Session State"
-									 creationComplete="linkBindableProperty(Weave.properties.enableSessionImport,importSessionState,'selected')"/> 
-						<mx:CheckBox toolTip="Checking this box will allow the user to export the Session State"
-									 enabled="{sessionMenu.selected == true}"
-									 id="exportSessionState"
-									 label="Export Session State"
-									 creationComplete="linkBindableProperty(Weave.properties.enableSessionExport,exportSessionState,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the User Interface Preferences Panel"
 									 enabled="{sessionMenu.selected == true}"
 									 id="userInterfacePreferences"

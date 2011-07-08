@@ -140,8 +140,6 @@ package weave
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
 		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
-		public const enableSessionImport:LinkableBoolean = new LinkableBoolean(true);
-		public const enableSessionExport:LinkableBoolean = new LinkableBoolean(true);
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
 		
@@ -298,7 +296,6 @@ package weave
 			return registerLinkableChild(this, temp, callback);
 		}
 		[Deprecated(replacement="dashboardMode")] public function get enableBorders():LinkableBoolean { return this['enableToolBorders']; }
-		[Deprecated(replacement="enableSessionExport")] public function get enableExportSessionState():LinkableBoolean { return enableSessionExport; }
 		[Deprecated(replacement="enableSessionBookmarks")] public function get enableSavePoint():LinkableBoolean { return enableSessionBookmarks; }
 		[Deprecated(replacement="showProbeToolTipEditor")] public function get showProbeColumnEditor():LinkableBoolean { return showProbeToolTipEditor; }
 		[Deprecated(replacement="enableAddWeaveDataSource")] public function get enableAddOpenIndicatorsDataSource():LinkableBoolean { return enableAddWeaveDataSource; }
