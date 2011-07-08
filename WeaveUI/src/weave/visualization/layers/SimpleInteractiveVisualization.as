@@ -502,7 +502,13 @@ package weave.visualization.layers
 			destroyProbeLineTooltips();
 			if(!Weave.properties.enableProbeLines.value)
 				return;
-			var recordKeys:Array = (_plotLayer.probeFilter.internalObject as IKeySet).keys;
+			var keySet:IKeySet = _plotLayer.probeFilter.internalObject as IKeySet;
+			if (keySet == null)
+			{
+				trace('WARNING: keySet is null',new Error().getStackTrace());
+				return;
+			}
+			var recordKeys:Array = keySet.keys;
 			
 			if( (recordKeys.length == 0) || ((this.parent as DraggablePanel) != DraggablePanel.activePanel))
 			{

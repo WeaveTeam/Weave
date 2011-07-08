@@ -135,7 +135,11 @@
 				if (!parent)
 					return callLater(handleDynamicColorColumnChange);
 				
-				cRampEditor.colorRamp = plotter.internalColorColumn.ramp;
+				if (plotter.internalColorColumn)
+					cRampEditor.colorRamp = plotter.internalColorColumn.ramp;
+				else
+					cRampEditor.colorRamp = null;
+				
 				if (_prevBinnedColumn)
 					unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
 				
