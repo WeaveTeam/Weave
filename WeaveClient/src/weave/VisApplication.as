@@ -23,6 +23,7 @@ package weave
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
 	import flash.geom.Point;
 	import flash.net.FileFilter;
@@ -33,11 +34,13 @@ package weave
 	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
+	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.VDividedBox;
 	import mx.controls.Alert;
+	import mx.controls.Button;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.TabBar;
@@ -63,6 +66,7 @@ package weave
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.services.IURLRequestUtils;
+	import weave.api.setSessionState;
 	import weave.compiler.BooleanLib;
 	import weave.compiler.MathLib;
 	import weave.core.DynamicState;
@@ -495,28 +499,81 @@ package weave
 			
 			//drawConnection();
 			loadPage();
+			
+//			var undoButton:Button = new Button();
+//			undoButton.label="UNDO";
+//			undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ undo(); });
+//			addChild(undoButton);
+//			var redoButton:Button = new Button();
+//			redoButton.label="REDO";
+//			redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ redo(); });
+//			addChild(redoButton);
 		}
 
-//		override protected function childrenCreated():void
-//		{
-//			super.childrenCreated();
-//			
-//			// TESTING
-//			
-//			getCallbackCollection(Weave.root).addGroupedCallback(this, test, true);
-//		}
-//		private function test():void
-//		{
-//			var state:Object = getSessionState(Weave.root);
-//			
-//			var diff:* = (WeaveAPI.SessionManager as SessionManager).computeDiff(_prevState, state);
-//			if (diff != undefined)
-//				trace(ObjectUtil.toString(diff),"\n\n###############################################################\n\n");
-//			
-//			_prevState = state;
-//		}
-//		private var _prevState:Object = null;
-//		private var history:Array = [];
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+//			getCallbackCollection(Weave.root).addGroupedCallback(this, historyTimer.start, true);
+//			historyTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function(..._):void{ handleDiff(); });
+		}
+		// BEGIN SESSION HISTORY CODE
+		private function handleDiff():void
+		{
+			var state:Object = getSessionState(Weave.root);
+			
+			var diff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+			if (diff != undefined)
+			{
+				var backDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
+				history.push({id: serial++, forward: diff, backward:backDiff});
+				
+				//trace(ObjectUtil.toString(diff),"\n\n###############################################################\n\n");
+				debugHistory();
+			}
+			
+			_prevState = state;
+		}
+		private function debugHistory():void
+		{
+			var h:Array = history.concat();
+			for (var i:int = 0; i < h.length; i++)
+				h[i] = h[i].id;
+			var f:Array = future.concat();
+			for (i = 0; i < f.length; i++)
+				f[i] = f[i].id;
+//			trace('last history item:',ObjectUtil.toString(history[history.length-1].forward));
+//			trace('['+h+']','['+f+']');
+		}
+		private var historyTimer:Timer = new Timer(1000, 1);
+		private var serial:int = 0;
+		private var _prevState:Object = null;
+		private var history:Array = [];
+		private var future:Array = [];
+		private function undo():void
+		{
+			handleDiff(); // handle any change up to this point
+			if (history.length > 0)
+			{
+				var item:Object = history.pop();
+				future.unshift(item);
+//				trace('apply undo:',ObjectUtil.toString(item.backward));
+				setSessionState(Weave.root, item.backward, false);
+			}
+			_prevState = getSessionState(Weave.root); // prevent the undo from being recorded in the history
+			debugHistory();
+		}
+		private function redo():void
+		{
+			if (future.length > 0)
+			{
+				var item:Object = future.shift();
+//				trace('apply redo:',ObjectUtil.toString(item.forward));
+				setSessionState(Weave.root, item.forward, false);
+			}
+			debugHistory();
+		}
+		// END SESSION HISTORY CODE
 		
 
 //		private function handleTabBarResize(event:ResizeEvent):void
@@ -825,6 +882,7 @@ package weave
 			if (Weave.properties.enableSessionMenu.value)
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar("Session", false);
+				
 				if (Weave.properties.enableSessionBookmarks.value)
 				{
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Create session state save point", saveAction));
