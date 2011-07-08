@@ -29,9 +29,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.setSessionState;
+			import weave.core.SessionManager;
 			import weave.services.CollaborationEvent;
 			import weave.services.CollaborationService;
 			
@@ -50,8 +52,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
 				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
 				
-				getCallbackCollection(Weave.root).addGroupedCallback(this, sendSessionState);
+				getCallbackCollection(Weave.root).addGroupedCallback(this, diffHandler);
 			}
+			
+			private function diffHandler():void
+			{
+				var state:Object = getSessionState(Weave.root);
+				
+				var diff:* = (WeaveAPI.SessionManager as SessionManager).computeDiff(_prevState, state);
+				if (diff != undefined)
+				{
+					if (collabService.hasConnection() == true)
+						collabService.sendSessionState( diff );
+				}
+				
+				_prevState = state;
+			}
+			
+			private var _prevState:Object = null;
 			
 			override public function dispose():void
 			{
@@ -104,15 +122,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				log.text = "";
 			}
 			
-			private function sendSessionState():void
-			{
-				if (collabService.hasConnection() == true)
-					collabService.sendSessionState(Weave.root.getSessionState());
-			}
+//			private function sendSessionState():void
+//			{
+//				
+//				if (collabService.hasConnection() == true)
+//					collabService.sendSessionState(Weave.root.getSessionState());
+//			}
 			
 			private function handleRemoteSessionState( e:CollaborationEvent):void
 			{
-				setSessionState(Weave.root, e.getState());
+				setSessionState( Weave.root, e.getState(), false );
 			}
 			
 		]]>
