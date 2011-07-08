@@ -86,7 +86,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#cast()">cast</a>(object:Object):<a href="../core/DynamicState.html">DynamicState</a>
+<a class="signatureLink" href="#cast()">cast</a>(object:Object, createNewObject:Boolean = false):<a href="../core/DynamicState.html">DynamicState</a>
 </div>
 <div class="summaryTableDescription">[static]
    This function can be used to detect DynamicState objects within nested, untyped session state objects.</div>
@@ -168,7 +168,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function cast(object:Object):<a href="../core/DynamicState.html">DynamicState</a></code><p>
+<code>public static function cast(object:Object, createNewObject:Boolean = false):<a href="../core/DynamicState.html">DynamicState</a></code><p>
    This function can be used to detect DynamicState objects within nested, untyped session state objects.
    If an object has only three properties (objectName, className, sessionState), this function will
    return a DynamicState object having those values.  Otherwise, null is returned because the object is
@@ -177,6 +177,13 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">object</span>:Object</code> &mdash; An object that has all the properties that DynamicState has.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">createNewObject</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is set to true, this function will return a new DynamicState object even if the given object is already a DynamicState.
    </td>
 </tr>
 </table>
