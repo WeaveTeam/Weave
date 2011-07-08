@@ -40,7 +40,7 @@ package weave
 	 */
 	public class WeaveProperties implements ILinkableObject
 	{
-		public const version:LinkableString = new LinkableString("1.0 Beta 1"); // Weave version
+		public const version:LinkableString = new LinkableString("1.0 Beta Nightly Build"); // Weave version
 		
 		public function WeaveProperties()
 		{

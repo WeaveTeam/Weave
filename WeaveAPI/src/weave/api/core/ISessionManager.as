@@ -135,6 +135,14 @@ package weave.api.core
 		function getSessionState(linkableObject:ILinkableObject):Object;
 		
 		/**
+		 * This function computes the diff of two session states.
+		 * @param oldState The source session state.
+		 * @param newState The destination session state.
+		 * @return A patch that generates the destination session state when applied to the source session state, or undefined if the two states are equivalent.
+		 */
+		function computeDiff(oldState:Object, newState:Object):*;
+
+		/**
 		 * This function will copy the session state from one sessioned object to another.
 		 * If the two objects are of different types, the behavior of this function is undefined.
 		 * @param source A sessioned object to copy the session state from.
