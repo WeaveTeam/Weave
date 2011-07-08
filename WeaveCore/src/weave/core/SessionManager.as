@@ -1034,7 +1034,7 @@ package weave.core
 		 * This function computes the diff of two session states.
 		 * @param oldState The source session state.
 		 * @param newState The destination session state.
-		 * @return The diff that generates the destination session state when applied to the source session state.
+		 * @return A patch that generates the destination session state when applied to the source session state, or undefined if the two states are equivalent.
 		 */
 		public function computeDiff(oldState:Object, newState:Object):*
 		{
@@ -1054,7 +1054,10 @@ package weave.core
 			}
 			else if (type == 'number')
 			{
-				if (ObjectUtil.numericCompare(oldState as Number, newState as Number) != 0)
+				if (isNaN(oldState as Number) && isNaN(newState as Number))
+					return undefined; // no diff
+				
+				if (oldState != newState)
 					return newState;
 				
 				return undefined; // no diff
@@ -1071,15 +1074,20 @@ package weave.core
 				// create an array of new DynamicState objects for all new names followed by missing old names
 				var i:int;
 				var typedState:DynamicState;
+				var changeDetected:Boolean = false;
 				
 				// create oldLookup
+				var oldNameOrder:Array = new Array(oldState.length);
 				var oldLookup:Object = {};
 				for (i = 0; i < oldState.length; i++)
 				{
 					typedState = DynamicState.cast(oldState[i]);
 					//TODO: error checking in case typedState is null
 					oldLookup[typedState.objectName] = typedState;
+					oldNameOrder[i] = typedState.objectName;
 				}
+				if (oldState.length != newState.length)
+					changeDetected = true;
 				
 				// create new Array with new DynamicState objects
 				var result:Array = [];
@@ -1097,11 +1105,15 @@ package weave.core
 					if (oldTypedState != null && oldTypedState.className == typedState.className)
 					{
 						diffValue = computeDiff(oldTypedState.sessionState, typedState.sessionState);
-						if (diffValue === undefined && typedState.objectName)
+						if (diffValue === undefined)
 						{
 							// Since the class name is the same and the session state is the same,
 							// we only need to specify that this name is still present.
 							result.push(typedState.objectName);
+							
+							if (!changeDetected && oldNameOrder[i] != typedState.objectName)
+								changeDetected = true;
+							
 							continue;
 						}
 						typedState.sessionState = diffValue;
@@ -1109,19 +1121,21 @@ package weave.core
 					
 					// save in new array and remove from lookup
 					result.push(typedState);
+					changeDetected = true;
 				}
 				
 				// Anything remaining in the lookup does not appear in newState.
 				// Add DynamicState entries with a null className to convey that each of these objects should be removed.
 				for (var removedName:String in oldLookup)
+				{
 					result.push(new DynamicState(removedName, null));
+					changeDetected = true;
+				}
 				
-				if (result.length == 0)
-					return undefined; // no diff
-
-				//TODO: if nothing changed, including name order, then return undefined
+				if (changeDetected)
+					return result;
 				
-				return result;
+				return undefined; // no diff
 			}
 			else // nested object
 			{
