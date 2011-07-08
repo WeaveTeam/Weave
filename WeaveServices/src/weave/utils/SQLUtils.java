@@ -19,6 +19,8 @@
 
 package weave.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -83,6 +85,7 @@ public class SQLUtils
 	 * @param user The username to use when connecting.
 	 * @param pass The password associated with the username.
 	 * @return A connect string that can be used in the getConnection() function.
+	 * @throws UnsupportedEncodingException 
 	 */
 	public static String getConnectString(String dbms, String ip, String port, String database, String user, String pass)
 	{
@@ -91,7 +94,16 @@ public class SQLUtils
 			host = ip; // default port for specific dbms will be used
 		else
 			host = ip + ":" + port;
-		return "jdbc:" + dbms.toLowerCase() + "://" + host + "/" + database + "?user=" + user + "&password=" + pass;
+		
+		try
+		{
+			String enc = "UTF-8";
+			return "jdbc:" + dbms.toLowerCase() + "://" + host + "/" + URLEncoder.encode(database, enc) + "?user=" + URLEncoder.encode(user, enc) + "&password=" + URLEncoder.encode(pass, enc);
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 	
 	/**
