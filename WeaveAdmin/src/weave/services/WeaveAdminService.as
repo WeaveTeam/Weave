@@ -158,9 +158,9 @@ package weave.services
 
 		
 		// save info
-		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
+		public function saveConnectionInfo(activeConnectionName:String, activePassword:String, info:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("saveConnectionInfo", [AdminInterface.instance.activeConnectionName, AdminInterface.instance.activePassword, info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.is_superuser, configOverwrite]);
+			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("saveConnectionInfo", [activeConnectionName, activePassword, info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.is_superuser, configOverwrite]);
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}

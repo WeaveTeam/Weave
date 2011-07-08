@@ -196,12 +196,16 @@ package weave.services
 		}
 		public function removeWeaveFile(fileName:String):void
 		{
-			service.removeWeaveFile(
+			var query:DelayedAsyncInvocation = service.removeWeaveFile(
 					activeConnectionName,
 					activePassword,
 					fileName
 				);
-			getWeaveFileNames();
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getWeaveFileNames();
+			}
 		}
 		public function initWeaveFileAndOpenWeave(fileName:String = ""):void
 		{
@@ -243,29 +247,31 @@ package weave.services
 			return service.getConnectionInfo(activeConnectionName, activePassword, connectionName);
 		}
 		
-		
-		//This function only saves the connection and does not get the connection names as defined in
-		//the saveConnectionInfo function. Incase the connection fails the user won't see the 
-		//other error messages if getConnectionNames function fails
-		public function saveConnectionInfoOnly(connectionInfo:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
+		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = service.saveConnectionInfo(connectionInfo, configOverwrite);
+			if (activeConnectionName == '')
+			{
+				activeConnectionName = connectionInfo.name;
+				activePassword = connectionInfo.pass;
+				userHasAuthenticated = true;
+			}
+			var query:DelayedAsyncInvocation = service.saveConnectionInfo(activeConnectionName, activePassword, connectionInfo, configOverwrite);
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getConnectionNames();
+			}
 			return query;
-			
-			//this to check if the saveConnectionInfo was successful. When the user adds the database for the first time, 
-			//the Admin Console needs to know so that it can then force the user to migrate to the database.
-//			checkSQLConfigExists();
 		}
-		
-		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):void
-		{
-			saveConnectionInfoOnly(connectionInfo,configOverwrite);			
-			getConnectionNames();
-		}
+
 		public function removeConnectionInfo(connectionName:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.removeConnectionInfo(activeConnectionName, activePassword, connectionName);
-			getConnectionNames();
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getConnectionNames();
+			}
 			return query;
 		}
 		
@@ -321,21 +327,29 @@ package weave.services
 		}
 		public function saveDataTableInfo(metadata:Array):void
 		{
-			service.saveDataTableInfo(
+			var query:DelayedAsyncInvocation = service.saveDataTableInfo(
 				activeConnectionName,
 				activePassword,
 				metadata
 			);
-			getDataTableNames();
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getDataTableNames();
+			}
 		}
 		public function removeDataTableInfo(tableName:String):void
 		{
-			service.removeDataTableInfo(
+			var query:DelayedAsyncInvocation = service.removeDataTableInfo(
 				activeConnectionName,
 				activePassword,
 				tableName
 			);
-			getDataTableNames();
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getDataTableNames();
+			}
 		}
 
 
@@ -397,17 +411,25 @@ package weave.services
 		}
 		public function saveGeometryCollectionInfo(info:GeometryCollectionInfo):void
 		{
-			service.saveGeometryCollectionInfo(activeConnectionName, activePassword, info);
-			getGeometryCollectionNames();
+			var query:DelayedAsyncInvocation = service.saveGeometryCollectionInfo(activeConnectionName, activePassword, info);
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getGeometryCollectionNames();
+			}
 		}
 		public function removeGeometryCollectionInfo(geometryCollectionName:String):void
 		{
-			service.removeGeometryCollectionInfo(
+			var query:DelayedAsyncInvocation = service.removeGeometryCollectionInfo(
 				activeConnectionName,
 				activePassword,
 				geometryCollectionName
 			);
-			getGeometryCollectionNames();
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getGeometryCollectionNames();
+			}
 		}
 
 
@@ -457,11 +479,7 @@ package weave.services
 					else
 					{
 						importDBFButton.enabled = false;
-						var enableImportDBFButton:Function = function(...args):void
-						{
-							importDBFButton.enabled = true;
-						};
-						service.storeDBFDataToDatabase(
+						var query:DelayedAsyncInvocation = service.storeDBFDataToDatabase(
 							activeConnectionName,
 							activePassword,
 							importDBFFileNameInputToStore,
@@ -469,7 +487,12 @@ package weave.services
 							importDBFTableInputToStore,
 							importDBFDataToSQLOverwriteCheck,
 							nullValues
-						).addAsyncResponder(enableImportDBFButton, enableImportDBFButton);
+						);
+						query.addAsyncResponder(enableImportDBFButton, enableImportDBFButton);
+						function enableImportDBFButton(..._):void
+						{
+							importDBFButton.enabled = true;
+						}
 					}
 		}
 		public function listDBFFileColumns(dbfFileName:String):void
@@ -516,7 +539,7 @@ package weave.services
 								  keyType:String,
 								  nullValues:String	):DelayedAsyncInvocation
 		{
-			var asyncToken:DelayedAsyncInvocation = service.importCSV(
+			var query:DelayedAsyncInvocation = service.importCSV(
 				activeConnectionName,
 				activePassword,
 				csvFileName,
@@ -532,26 +555,34 @@ package weave.services
 				nullValues
 			);
 			
-			getDataTableNames();
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
+				getDataTableNames();
+			}
 			
-			return asyncToken;
+			return query;
 		}
 		
 		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):void
 		{
-				service.addConfigDataTableFromDatabase(
-					activeConnectionName,
-					activePassword,
-					sqlSchema,
-					sqlTable,
-					keyColumn,
-					secondaryKeyColumn,
-					tableName,
-					overwrite,
-					geometryCollection,
-					keyType
-				);
+			var query:DelayedAsyncInvocation = service.addConfigDataTableFromDatabase(
+				activeConnectionName,
+				activePassword,
+				sqlSchema,
+				sqlTable,
+				keyColumn,
+				secondaryKeyColumn,
+				tableName,
+				overwrite,
+				geometryCollection,
+				keyType
+			);
+			query.addAsyncResponder(handler);
+			function handler(event:ResultEvent, token:Object=null):void
+			{
 				getDataTableNames();
+			}
 		}
 		
 
@@ -595,8 +626,8 @@ package weave.services
 			function displayFileSaveStatus(event:ResultEvent, token:Object = null):void
 			{
 				adminActivityText += event.result + '\n';
+				getWeaveFileNames();
 			}
-			getWeaveFileNames();
 			return query;
 		}
 
