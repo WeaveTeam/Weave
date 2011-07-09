@@ -510,31 +510,52 @@ package weave
 //			addChild(redoButton);
 		}
 
-		override protected function childrenCreated():void
-		{
-			super.childrenCreated();
-			
-//			getCallbackCollection(Weave.root).addGroupedCallback(this, historyTimer.start, true);
-//			historyTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function(..._):void{ handleDiff(); });
-		}
+//		override protected function childrenCreated():void
+//		{
+//			super.childrenCreated();
+//			
+//			_prevState = getSessionState(Weave.root);
+//			getCallbackCollection(Weave.root).addGroupedCallback(this, handleDiff, true);
+//		}
 		// BEGIN SESSION HISTORY CODE
-		private function handleDiff():void
+		private var lastDiffID:Number = 0;
+		private function handleDiff(diffID:Number = Infinity):void
 		{
+			if (diffID < lastDiffID) // more than one diff per frame
+			{
+				return;
+			}
+			if (diffID == Infinity) // called as a grouped callback
+			{
+				StageUtils.callLater(this, handleDiff, [++lastDiffID]);
+				return;
+			}
+			if (diffID == lastDiffID) // called 1 frame after grouped callback
+			{
+				StageUtils.callLater(this, handleDiff, [++lastDiffID + 1]);
+				return;
+			}
+			
+			// diff > lastDiff means it is now 2 frames after the last diff
+			
 			var state:Object = getSessionState(Weave.root);
 			
 			var diff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
 			if (diff != undefined)
 			{
 				var backDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
-				history.push({id: serial++, forward: diff, backward:backDiff});
+				if (undoActive)
+					future.unshift({id: serial++, forward: backDiff, backward: diff});
+				else
+					history.push({id: serial++, forward: diff, backward: backDiff});
 				
-				//trace(ObjectUtil.toString(diff),"\n\n###############################################################\n\n");
-				debugHistory();
+				debugHistory(true);
 			}
 			
 			_prevState = state;
+			undoActive = false;
 		}
-		private function debugHistory():void
+		private function debugHistory(showLastDiff:Boolean):void
 		{
 			var h:Array = history.concat();
 			for (var i:int = 0; i < h.length; i++)
@@ -542,36 +563,41 @@ package weave
 			var f:Array = future.concat();
 			for (i = 0; i < f.length; i++)
 				f[i] = f[i].id;
-//			trace('last history item:',ObjectUtil.toString(history[history.length-1].forward));
-//			trace('['+h+']','['+f+']');
+			if (history.length > 0)
+			{
+				var item:Object = history[history.length - 1];
+				trace("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+				trace('NEW HISTORY (backward) ' + item.id + ':', ObjectUtil.toString(item.backward));
+				trace("===============================================================");
+				trace('NEW HISTORY (forward) ' + item.id + ':', ObjectUtil.toString(item.forward));
+				trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			}
+			trace('history ['+h+']','future ['+f+']');
 		}
 		private var historyTimer:Timer = new Timer(1000, 1);
 		private var serial:int = 0;
 		private var _prevState:Object = null;
 		private var history:Array = [];
 		private var future:Array = [];
+		private var undoActive:Boolean = false;
 		private function undo():void
 		{
-			handleDiff(); // handle any change up to this point
 			if (history.length > 0)
 			{
+				undoActive = true;
 				var item:Object = history.pop();
-				future.unshift(item);
-//				trace('apply undo:',ObjectUtil.toString(item.backward));
+				trace('apply undo ' + item.id + ':', ObjectUtil.toString(item.backward));
 				setSessionState(Weave.root, item.backward, false);
 			}
-			_prevState = getSessionState(Weave.root); // prevent the undo from being recorded in the history
-			debugHistory();
 		}
 		private function redo():void
 		{
 			if (future.length > 0)
 			{
 				var item:Object = future.shift();
-//				trace('apply redo:',ObjectUtil.toString(item.forward));
+				trace('apply redo ' + item.id + ':',ObjectUtil.toString(item.forward));
 				setSessionState(Weave.root, item.forward, false);
 			}
-			debugHistory();
 		}
 		// END SESSION HISTORY CODE
 		

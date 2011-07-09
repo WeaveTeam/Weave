@@ -387,7 +387,8 @@ package weave.core
 			var objectName:String;
 			var className:String;
 			var typedState:DynamicState;
-			var remainingObjects:Object = new Object(); // maps an objectName to a value of true
+			var remainingObjects:Object = {}; // maps an objectName to a value of true
+			var newObjects:Object = {}; // maps an objectName to a value of true if the object is newly created as a result of setting the session state
 			var newNameOrder:Array = []; // the order the object names appear in the vector
 			if (newStateArray != null)
 			{
@@ -410,11 +411,10 @@ package weave.core
 
 					// the object should only remain if the className is not null
 					remainingObjects[objectName] = (className != null);
-
-					if (getObject(objectName) == null)
-						initObjectByClassName(objectName, className);
-					else
-						initObjectByClassName(objectName, className);
+					
+					// initialize object and remember if a new one was just created
+					if (_nameToObjectMap[objectName] != initObjectByClassName(objectName, className))
+						newObjects[objectName] = true;
 				}
 				// second pass: copy the session state for each property that is defined.
 				// Also remember the ordered list of names that appear in the session state.
@@ -438,7 +438,8 @@ package weave.core
 					var object:ILinkableObject = _nameToObjectMap[objectName] as ILinkableObject;
 					if (object == null)
 						continue;
-					WeaveAPI.SessionManager.setSessionState(object, typedState.sessionState, removeMissingDynamicObjects);
+					// if object is newly created, we want to apply an absolute session state
+					WeaveAPI.SessionManager.setSessionState(object, typedState.sessionState, newObjects[objectName] || removeMissingDynamicObjects);
 					newNameOrder.push(objectName);
 				}
 			}
