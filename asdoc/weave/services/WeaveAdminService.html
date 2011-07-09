@@ -314,7 +314,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#saveConnectionInfo()">saveConnectionInfo</a>(info:<a href="beans/ConnectionInfo.html">ConnectionInfo</a>, configOverwrite:Boolean):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
+<a class="signatureLink" href="#saveConnectionInfo()">saveConnectionInfo</a>(activeConnectionName:String, activePassword:String, info:<a href="beans/ConnectionInfo.html">ConnectionInfo</a>, configOverwrite:Boolean):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
 </div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">WeaveAdminService</td>
@@ -1511,8 +1511,20 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function saveConnectionInfo(info:<a href="beans/ConnectionInfo.html">ConnectionInfo</a>, configOverwrite:Boolean):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><span class="label">Parameters</span>
+<code>public function saveConnectionInfo(activeConnectionName:String, activePassword:String, info:<a href="beans/ConnectionInfo.html">ConnectionInfo</a>, configOverwrite:Boolean):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">activeConnectionName</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">activePassword</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">info</span>:<a href="beans/ConnectionInfo.html">ConnectionInfo</a></code></td>
 </tr>

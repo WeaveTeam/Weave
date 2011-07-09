@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="ISessionManager,weave.api.core.ISessionManager,copySessionState,disposeObjects,getCallbackCollection,getLinkableObjectOwner,getSessionState,linkBindableProperty,linkSessionState,newDisposableChild,newLinkableChild,registerDisposableChild,registerLinkableChild,setSessionState,unlinkBindableProperty,unlinkSessionState" name="keywords">
+<meta content="ISessionManager,weave.api.core.ISessionManager,computeDiff,copySessionState,disposeObjects,getCallbackCollection,getLinkableObjectOwner,getSessionState,linkBindableProperty,linkSessionState,newDisposableChild,newLinkableChild,registerDisposableChild,registerLinkableChild,setSessionState,unlinkBindableProperty,unlinkSessionState" name="keywords">
 <title>weave.api.core.ISessionManager</title>
 </head>
 <body>
@@ -54,6 +54,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#computeDiff()">computeDiff</a>(oldState:Object, newState:Object):*</div>
+<div class="summaryTableDescription">
+   This function computes the diff of two session states.</div>
+</td><td class="summaryTableOwnerCol">ISessionManager</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -179,10 +187,42 @@ showHideInherited();
 <div class="MainContent">
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
+<a name="computeDiff()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">computeDiff</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function computeDiff(oldState:Object, newState:Object):*</code><p>
+   This function computes the diff of two session states.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">oldState</span>:Object</code> &mdash; The source session state.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">newState</span>:Object</code> &mdash; The destination session state.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; A patch that generates the destination session state when applied to the source session state, or undefined if the two states are equivalent.
+   </td>
+</tr>
+</table>
+</div>
 <a name="copySessionState()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">copySessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">copySessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
