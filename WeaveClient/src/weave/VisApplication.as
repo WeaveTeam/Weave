@@ -38,9 +38,11 @@ package weave
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
+	import mx.containers.HBox;
 	import mx.containers.VDividedBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
+	import mx.controls.HSlider;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.TabBar;
@@ -52,6 +54,7 @@ package weave
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.skins.halo.HaloBorder;
 	import mx.utils.ObjectUtil;
 	
 	import weave.KeySetContextMenuItems;
@@ -73,6 +76,7 @@ package weave
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionManager;
+	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
 	import weave.core.WeaveJavaScriptAPI;
 	import weave.core.weave_internal;
@@ -499,108 +503,60 @@ package weave
 			
 			//drawConnection();
 			loadPage();
-			
-//			var undoButton:Button = new Button();
-//			undoButton.label="UNDO";
-//			undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ undo(); });
-//			addChild(undoButton);
-//			var redoButton:Button = new Button();
-//			redoButton.label="REDO";
-//			redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ redo(); });
-//			addChild(redoButton);
-		}
 
-//		override protected function childrenCreated():void
-//		{
-//			super.childrenCreated();
-//			
-//			_prevState = getSessionState(Weave.root);
-//			getCallbackCollection(Weave.root).addGroupedCallback(this, handleDiff, true);
-//		}
-		// BEGIN SESSION HISTORY CODE
-		private var lastDiffID:Number = 0;
-		private function handleDiff(diffID:Number = Infinity):void
-		{
-			if (diffID < lastDiffID) // more than one diff per frame
+			// beta undo/redo feature
+			if (getEditableSettingFromURL())
 			{
-				return;
-			}
-			if (diffID == Infinity) // called as a grouped callback
-			{
-				StageUtils.callLater(this, handleDiff, [++lastDiffID]);
-				return;
-			}
-			if (diffID == lastDiffID) // called 1 frame after grouped callback
-			{
-				StageUtils.callLater(this, handleDiff, [++lastDiffID + 1]);
-				return;
-			}
-			
-			// diff > lastDiff means it is now 2 frames after the last diff
-			
-			var state:Object = getSessionState(Weave.root);
-			
-			var diff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
-			if (diff != undefined)
-			{
-				var backDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
-				if (undoActive)
-					future.unshift({id: serial++, forward: backDiff, backward: diff});
-				else
-					history.push({id: serial++, forward: diff, backward: backDiff});
+				log = new SessionStateLog(Weave.root);
 				
-				debugHistory(true);
-			}
-			
-			_prevState = state;
-			undoActive = false;
-		}
-		private function debugHistory(showLastDiff:Boolean):void
-		{
-			var h:Array = history.concat();
-			for (var i:int = 0; i < h.length; i++)
-				h[i] = h[i].id;
-			var f:Array = future.concat();
-			for (i = 0; i < f.length; i++)
-				f[i] = f[i].id;
-			if (history.length > 0)
-			{
-				var item:Object = history[history.length - 1];
-				trace("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-				trace('NEW HISTORY (backward) ' + item.id + ':', ObjectUtil.toString(item.backward));
-				trace("===============================================================");
-				trace('NEW HISTORY (forward) ' + item.id + ':', ObjectUtil.toString(item.forward));
-				trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-			}
-			trace('history ['+h+']','future ['+f+']');
-		}
-		private var historyTimer:Timer = new Timer(1000, 1);
-		private var serial:int = 0;
-		private var _prevState:Object = null;
-		private var history:Array = [];
-		private var future:Array = [];
-		private var undoActive:Boolean = false;
-		private function undo():void
-		{
-			if (history.length > 0)
-			{
-				undoActive = true;
-				var item:Object = history.pop();
-				trace('apply undo ' + item.id + ':', ObjectUtil.toString(item.backward));
-				setSessionState(Weave.root, item.backward, false);
-			}
-		}
-		private function redo():void
-		{
-			if (future.length > 0)
-			{
-				var item:Object = future.shift();
-				trace('apply redo ' + item.id + ':',ObjectUtil.toString(item.forward));
-				setSessionState(Weave.root, item.forward, false);
+				var hb:HBox = new HBox();
+				hb.percentWidth = 100;
+				addChildAt(hb, 0);
+				
+				var undoButton:Button = new Button();
+				undoButton.label="<";
+				undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.undo(); });
+				hb.addChild(undoButton);
+				
+				var redoButton:Button = new Button();
+				redoButton.label=">";
+				redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.redo(); });
+				hb.addChild(redoButton);
+				
+				var hs:HSlider = new HSlider();
+				hb.addChild(hs);
+				hs.percentWidth = 100;
+				hs.setStyle("bottom", 0);
+				hs.minimum = 0;
+				hs.liveDragging = true;
+				hs.tickInterval = 1;
+				hs.snapInterval = 1;
+				hs.addEventListener(Event.CHANGE, handleHistorySlider);
+				function handleHistorySlider():void
+				{
+					var delta:int = hs.value - log.history.length;
+					while (delta < 0)
+					{
+						log.undo();
+						delta++;
+					}
+					while (delta > 0)
+					{
+						log.redo();
+						delta--;
+					}
+				}
+				hs.enabled = false; // temporary
+				
+				getCallbackCollection(log).addImmediateCallback(this, updateHistorySlider, null, true);
+				function updateHistorySlider():void
+				{
+					hs.maximum = log.history.length + log.future.length;
+					hs.value = log.history.length;
+				}
 			}
 		}
-		// END SESSION HISTORY CODE
-		
+		private var log:SessionStateLog;
 
 //		private function handleTabBarResize(event:ResizeEvent):void
 //		{
