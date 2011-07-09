@@ -116,7 +116,8 @@
 				
 				if (_plotter.internalColorColumn == null)
 				{
-					ErrorManager.reportError(new Error("ColorBinLegendPlotter.internalColorColumn is null"));
+					cRampEditor.colorRamp = null;
+					trace(this, "WARNING: ColorBinLegendPlotter.internalColorColumn is null");
 				}
 				else
 				{

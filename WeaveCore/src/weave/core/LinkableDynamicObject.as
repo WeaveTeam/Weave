@@ -22,6 +22,7 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
@@ -45,6 +46,7 @@ package weave.core
 		{
 			// set up the local hash map which automatically enforces the type restriction
 			_localHashMap = registerDisposableChild(this, new LinkableHashMap(typeRestriction)); // won't trigger callbacks
+			_localHashMap.childListCallbacks.addImmediateCallback(this, childListCallback); // handle when internal object is added or removed
 			if (typeRestriction)
 			{
 				_typeRestrictionClass = typeRestriction;
@@ -234,16 +236,8 @@ package weave.core
 			
 			if (newGlobalName == null) // local object
 			{
-				// if the current object is global, remove the link
-				if (_globalName != null)
-					removeObject();
-				// initialize the local object
-				var newLocalObject:ILinkableObject = _localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
-				if (newLocalObject != _internalObject)
-				{
-					_internalObject = registerLinkableChild(this, newLocalObject);
-					triggerCallbacks();
-				}
+				// initialize the local object -- this may trigger childListCallback()
+				_localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
 			}
 			else // global object
 			{
@@ -387,14 +381,8 @@ package weave.core
 			
 			if (_globalName == null)
 			{
-				if (_internalObject)
-				{
-					// clean up variables
-					_internalObject = null;
-					// dispose of the local object and trigger callbacks
-					_localHashMap.removeObject(LOCAL_OBJECT_NAME);
-					triggerCallbacks();
-				}
+				// remove the local object -- this may trigger childListCallback()
+				_localHashMap.removeObject(LOCAL_OBJECT_NAME);
 			}
 			else
 			{
@@ -416,6 +404,39 @@ package weave.core
 				}
 				
 				// notify the listeners
+				triggerCallbacks();
+			}
+		}
+
+		
+		/**
+		 * This function will be called when the _localHashMap runs its child list callbacks.
+		 * This callback is needed in case _localHashMap is manipulated directly via getLinkableObjectOwner().
+		 */		
+		private function childListCallback():void
+		{
+			var childListCallbacks:IChildListCallbackInterface = _localHashMap.childListCallbacks;
+			if (childListCallbacks.lastNameAdded)
+			{
+				if (childListCallbacks.lastNameAdded != LOCAL_OBJECT_NAME)
+				{
+					// don't allow other object names
+					_localHashMap.removeObject(childListCallbacks.lastNameAdded);
+				}
+				else if (childListCallbacks.lastObjectAdded != _internalObject)
+				{
+					// handle new local object
+					// if the current object is global, remove the link
+					if (_globalName != null)
+						removeObject();
+					_internalObject = registerLinkableChild(this, childListCallbacks.lastObjectAdded);
+					triggerCallbacks();
+				}
+			}
+			if (childListCallbacks.lastNameRemoved == LOCAL_OBJECT_NAME)
+			{
+				// handle local object removed
+				_internalObject = null;
 				triggerCallbacks();
 			}
 		}
