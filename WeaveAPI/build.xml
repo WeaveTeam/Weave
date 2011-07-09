@@ -12,6 +12,7 @@
 	<taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 
+	<property name="DEBUG" value="false"/>
 	<property name="PROJECT_DIR" value="${basedir}"/>
 	<property name="SOURCE_DIR" value="${PROJECT_DIR}/src"/>
 	<property name="OUTPUT_DIR" value="${PROJECT_DIR}/bin"/>
@@ -29,16 +30,16 @@
 	</target>
 
 	<target name="compile">
-		<mkdir dir="${OUTPUT_DIR}" />
+		<mkdir dir="${OUTPUT_DIR}"/>
 		<compc 
 			output="${OUTPUT_DIR}/WeaveAPI.swc"
 			target-player="10.0.0"
-			debug="true"
+			debug="${DEBUG}"
 			incremental="true"
 		>
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>
-			<!--include-classes="weave.api.WeaveAPI weave.api.compiler.ICompiledObject weave.api.copySessionState weave.api.core.ICallbackCollection weave.api.core.ICallbackInterface weave.api.core.IChildListCallbackInterface weave.api.core.IDisposableObject weave.api.core.IExternalSessionStateInterface weave.api.core.ILinkableCompositeObject weave.api.core.ILinkableContainer weave.api.core.ILinkableDisplayObject weave.api.core.ILinkableDynamicObject weave.api.core.ILinkableHashMap weave.api.core.ILinkableObject weave.api.core.ILinkableVariable weave.api.core.ISessionManager weave.api.data.AttributeColumnMetadata weave.api.data.DataTypes weave.api.data.IAttributeColumn weave.api.data.IAttributeColumnCache weave.api.data.IAttributeHierarchy weave.api.data.IBinClassifier weave.api.data.IBinningDefinition weave.api.data.ICSVParser weave.api.data.IColumnReference weave.api.data.IColumnWrapper weave.api.data.IDataRowSource weave.api.data.IDataSource weave.api.data.IDynamicKeyFilter weave.api.data.IFilteredKeySet weave.api.data.IKeyFilter weave.api.data.IKeySet weave.api.data.IPrimitiveColumn weave.api.data.IProjectionManager weave.api.data.IQualifiedKey weave.api.data.IQualifiedKeyManager weave.api.data.IStatisticsCache weave.api.data.IStreamedColumn weave.api.disposeObjects weave.api.getCallbackCollection weave.api.getSessionState weave.api.linkBindableProperty weave.api.linkSessionState weave.api.newDisposableChild weave.api.newLinkableChild weave.api.primitives.IBounds2D weave.api.registerDisposableChild weave.api.registerLinkableChild weave.api.services.IAsyncService weave.api.services.IWMSService weave.api.services.IWeaveDataService weave.api.services.IWeaveGeometryTileService weave.api.services.IWeaveStatisticsService weave.api.setSessionState weave.api.ui.IFillStyle weave.api.ui.ILineStyle weave.api.ui.ILinkableObjectEditor weave.api.ui.IPlotLayer weave.api.ui.IPlotter weave.api.ui.IProbeDisplay weave.api.ui.ISpatialIndex weave.api.ui.IZoomView weave.api.unlinkBindableProperty weave.api.unlinkSessionState"-->
 			<source-path path-element="${SOURCE_DIR}"/>
+
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
@@ -46,20 +47,10 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/locale/${LOCALE}" append="true"/>
-
+			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
-
-			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*" append="true"/>
 
 		</compc>
 	</target>

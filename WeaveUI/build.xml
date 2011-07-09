@@ -12,14 +12,15 @@
 	<taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 
+	<property name="DEBUG" value="false"/>
 	<property name="PROJECT_DIR" value="${basedir}"/>
 	<property name="SOURCE_DIR" value="${PROJECT_DIR}/src"/>
 	<property name="OUTPUT_DIR" value="${PROJECT_DIR}/bin"/>
-	<property name="OUTLIB_DIR" value="${PROJECT_DIR}/libs"/>
 	<property name="LOCALE" value="en_US"/>
 	<property name="API" value="WeaveAPI"/>
 	<property name="CORE" value="WeaveCore"/>
 	<property name="DATA" value="WeaveData"/>
+
 	<target name="build">
 		<antcall target="clean"/>
 		<antcall target="compile"/>
@@ -28,17 +29,15 @@
 	<target name="clean">
 		<delete quiet="true" includeemptydirs="true">
 			<fileset dir="${OUTPUT_DIR}" includes="**/*"/>
-			<fileset dir="${OUTLIB_DIR}" includes="**/*"/>
 		</delete>
 	</target>
 
 	<target name="compile">
 		<mkdir dir="${OUTPUT_DIR}"/>
-		<mkdir dir="${OUTLIB_DIR}"/>
 		<compc 
 			output="${OUTPUT_DIR}/WeaveUI.swc"
 			target-player="10.0.0"
-			debug="true"
+			debug="${DEBUG}"
 			incremental="true"
 		>
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>			
@@ -52,24 +51,16 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/locale/${LOCALE}" append="true"/>
-
+			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
+
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>			
 
-			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*" append="true"/>
-			<external-library-path dir="${PROJECT_DIR}/libs" includes="*" append="true"/>
+			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>
 
 		</compc>
 	</target>
