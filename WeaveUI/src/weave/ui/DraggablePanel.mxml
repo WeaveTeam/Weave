@@ -98,6 +98,7 @@
 			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableObjectOwner;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
@@ -1093,6 +1094,9 @@
 			
 			private function effectDoneHandler(event:Event):void
 			{
+				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
+					return;
+				
 				if(_minimizeEffect)
 					_minimizeEffect.stop();	
 				if(_maximizeEffect)
