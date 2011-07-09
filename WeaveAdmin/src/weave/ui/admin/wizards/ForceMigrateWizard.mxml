@@ -103,9 +103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connectionInfo.user = connectionUserInput.text;
 				connectionInfo.is_superuser = true; // this is the first user, so he must be a superuser
 				
-				AdminInterface.instance.saveConnectionInfoOnly(connectionInfo,true).addAsyncResponder(resultSuccessHandler);
-				
-				
+				AdminInterface.instance.saveConnectionInfo(connectionInfo,true).addAsyncResponder(resultSuccessHandler);
 			}
 			
 			private function resultSuccessHandler(event:ResultEvent,token:Object=null):void
@@ -137,10 +135,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 **/
 			override public function finish():void
 			{
-				
-				
 				AdminInterface.instance.authenticate(connectionNameInput.text, connectionPasswordInput.text);
-					
+				AdminInterface.instance.userHasAuthenticated = true;
+				
 				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
 					connectionNameInput.text,
 					connectionPasswordInput.text,

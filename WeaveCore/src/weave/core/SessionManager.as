@@ -1169,23 +1169,3 @@ package weave.core
 		}
 	}
 }
-
-//	override protected function childrenCreated():void
-//	{
-//		super.childrenCreated();
-//		
-//		// TESTING
-//		
-//		getCallbackCollection(Weave.root).addGroupedCallback(this, test, true);
-//	}
-//	private function test():void
-//	{
-//		var state:Object = getSessionState(Weave.root);
-//		
-//		var diff:* = (WeaveAPI.SessionManager as SessionManager).computeDiff(_prevState, state);
-//		if (diff != undefined)
-//			trace(ObjectUtil.toString(diff),"\n\n###############################################################\n\n");
-//		
-//		_prevState = state;
-//	}
-//	private var _prevState:Object = null;

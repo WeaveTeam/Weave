@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.MathLib;
+	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -122,7 +123,12 @@ package weave.visualization.plotters
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			if (internalColorColumn == null)
+				return;
+			
 			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			if (binnedColumn == null)
+				return;
 			
 			// convert record keys to bin keys
 			// save a mapping of each bin key found to a value of true
@@ -219,6 +225,11 @@ package weave.visualization.plotters
 		{
 			var bounds:IBounds2D = getReusableBounds();
 			
+			if (internalColorColumn == null)
+			{
+				trace(this, 'WARNING: ColorBinLegendPlotter.internalColorColumn is null');
+				return bounds;
+			}
 			var min:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalColumn);
 			var max:Number = WeaveAPI.StatisticsCache.getMax(internalColorColumn.internalColumn);
 			bounds.setBounds(XMIN, min, XMAX, max);

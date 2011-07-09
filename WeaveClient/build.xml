@@ -12,6 +12,7 @@
 	<taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 
+	<property name="DEBUG" value="false"/>
 	<property name="PROJECT_DIR" value="${basedir}"/>
 	<property name="SOURCE_DIR" value="${PROJECT_DIR}/src"/>
 	<property name="OUTPUT_DIR" value="${PROJECT_DIR}/bin"/>
@@ -20,6 +21,7 @@
 	<property name="CORE" value="WeaveCore"/>
 	<property name="DATA" value="WeaveData"/>
 	<property name="UI" value="WeaveUI"/>
+
 	<target name="build">
 		<antcall target="clean"/>
 		<antcall target="compile"/>
@@ -39,9 +41,9 @@
 			output="${OUTPUT_DIR}/WeaveClient.swf"
 			locale="${LOCALE}"
 			static-rsls="false"
-			accessible="false"
-			debug="true"
 			incremental="true"
+			accessible="false"
+			debug="${DEBUG}"
 		>
 			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
 
@@ -49,39 +51,31 @@
 
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
+			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
+			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/>
+			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
+			<library-path file="${FLEX_HOME}/frameworks/libs/flex.swc" append="true"/>
+			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
+			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
+			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
 			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/framework.swc">
 				<url rsl-url="framework.swf" policy-file-url=""/>
 			</runtime-shared-library-path>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
 			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/rpc.swc">
 				<url rsl-url="rpc.swf" policy-file-url=""/>
 			</runtime-shared-library-path>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/flex.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/locale/${LOCALE}" append="true"/>
-			<runtime-shared-libraries url="${API}.swf"/>
+
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
-			<runtime-shared-libraries url="${CORE}.swf"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
-			<runtime-shared-libraries url="${DATA}.swf"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
-			<runtime-shared-libraries url="${UI}.swf"/>
 			<external-library-path file="../${UI}/bin/${UI}.swc" append="true"/>
+			
+			<runtime-shared-libraries url="${API}.swf"/>
+			<runtime-shared-libraries url="${CORE}.swf"/>
+			<runtime-shared-libraries url="${DATA}.swf"/>
+			<runtime-shared-libraries url="${UI}.swf"/>
 
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/flex.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
-
-			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*" append="true"/>
 
 		</mxmlc>
 	</target>

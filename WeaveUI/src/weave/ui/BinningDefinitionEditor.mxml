@@ -21,34 +21,6 @@
 -->
 
 <!--
-* Institute for Visualization and Perception Research
-* Indicator Visualization Platform Framework
-*
-* Web-based data visualization and mapping framework.
-*
-*
-*
-* Copyright (c) 2009-10 Institute for Visualization and Perception Research
-* Department of Computer Science
-* University of Massachusetts Lowell
-* One University Ave.
-* Lowell, Massachusetts  01854
-* U.S.A.
-* All rights reserved.
-*
-* Warning: This computer software program, including all text, graphics, the
-* selection and arrangement thereof, the algorithms, the process, and all
-* other materials in this file, including its compilation are protected by
-* copyright law and international treaties. Unauthorized copying or altering
-* thereof, in hard or soft copy, or distribution of this program or any
-* portion thereof, is expressly forbidden without prior written consent and
-* may result in severe civil and criminal penalties, and will be prosecuted
-* to the maximum extent possible under the law. Additionally, all software
-* packages, compilations, and derivatives thereof, which include this file,
-* are protected as well. Use is subject to license terms.
--->
-
-<!--
 BinningDefinitionEditor
 
 @sanbalagan

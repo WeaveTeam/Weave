@@ -108,7 +108,7 @@
 			<!--mx:Button label="Import shape data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="open dialog with wizard to import shape data (shapes and raw data like dbf)"/-->
 			<mx:Button label="Import shape data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SHAPEFILE_DATA_BUTTON_LABEL}"/>
 			<mx:Spacer width="100%"/>
-			<mx:Label text="{'Active Connection Name: ' + ((AdminInterface.instance.activeConnectionName) ? AdminInterface.instance.activeConnectionName : 'Default')}" textAlign="right"/>
+			<mx:Label text="{'Active Connection Name: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
 			<mx:Button label="Change database connection" enabled="{AdminInterface.instance.sqlConfigExists == true}"
 					   click="AdminInterface.instance.userHasAuthenticated = false"/>
 		</mx:HBox>

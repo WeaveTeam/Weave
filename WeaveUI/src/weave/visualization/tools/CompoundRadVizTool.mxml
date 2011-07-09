@@ -81,7 +81,7 @@
 				
 				if(columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
-				_plotter.setAnchorLocations();
+				_plotter.setAnchorLocations();						
 			}
 
 			override protected function childrenCreated():void

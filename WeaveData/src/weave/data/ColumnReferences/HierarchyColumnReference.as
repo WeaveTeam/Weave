@@ -51,7 +51,7 @@ package weave.data.ColumnReferences
 				var attrs:XMLList = HierarchyUtils.getLeafNodeFromPath(hierarchyPath.value || <tag/>).attributes();
 				for each (var attr:XML in attrs)
 					properties.push(attr.localName() + ': "' + attr.toXMLString() + '"');
-				_hash = _hashPrefix + '{' + properties.sort().join(', ') + '}';
+				_hash = _hashPrefix + ';' + dataSourceName.value + '{' + properties.sort().join(', ') + '}';
 			}
 			return _hash;
 		}

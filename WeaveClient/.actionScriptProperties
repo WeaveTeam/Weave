@@ -6,7 +6,15 @@
       <compilerSourcePathEntry kind="1" linkType="1" path="configurations"/>
     </compilerSourcePath>
     <libraryPath defaultLinkType="3">
-      <libraryPathEntry kind="4" path=""/>
+      <libraryPathEntry kind="4" path="">
+        <modifiedEntries>
+          <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="${PROJECT_FRAMEWORKS}/libs/rpc.swc" useDefaultLinkType="true">
+            <crossDomainRsls>
+              <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="rpc.swf"/>
+            </crossDomainRsls>
+          </libraryPathEntry>
+        </modifiedEntries>
+      </libraryPathEntry>
       <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveAPI/bin/WeaveAPI.swc" useDefaultLinkType="false">
         <crossDomainRsls>
           <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveAPI.swf"/>
