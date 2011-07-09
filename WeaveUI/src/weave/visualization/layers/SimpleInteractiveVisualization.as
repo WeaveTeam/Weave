@@ -505,7 +505,7 @@ package weave.visualization.layers
 			var keySet:IKeySet = _plotLayer.probeFilter.internalObject as IKeySet;
 			if (keySet == null)
 			{
-				trace('WARNING: keySet is null',new Error().getStackTrace());
+				trace(this, 'WARNING: keySet is null',new Error().getStackTrace());
 				return;
 			}
 			var recordKeys:Array = keySet.keys;

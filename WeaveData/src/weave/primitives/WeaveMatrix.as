@@ -1,30 +1,21 @@
-/**
- * Institute for Visualization and Perception Research
- * Indicator Visualization Platform Framework
- *
- * Web-based data visualization and mapping framework.
- *
- *
- *
- * Copyright (c) 2009-10 Institute for Visualization and Perception Research
- * Department of Computer Science
- * University of Massachusetts Lowell
- * One University Ave.
- * Lowell, Massachusetts  01854
- * U.S.A.
- * All rights reserved.
- *
- * Warning: This computer software program, including all text, graphics, the
- * selection and arrangement thereof, the algorithms, the process, and all
- * other materials in this file, including its compilation are protected by
- * copyright law and international treaties. Unauthorized copying or altering
- * thereof, in hard or soft copy, or distribution of this program or any
- * portion thereof, is expressly forbidden without prior written consent and
- * may result in severe civil and criminal penalties, and will be prosecuted
- * to the maximum extent possible under the law. Additionally, all software
- * packages, compilations, and derivatives thereof, which include this file,
- * are protected as well. Use is subject to license terms.
- */
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 package weave.primitives
 {

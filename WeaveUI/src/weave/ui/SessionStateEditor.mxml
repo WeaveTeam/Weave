@@ -406,7 +406,7 @@
 					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 					
 					var oldObject:ILinkableObject = sessionNav.selectedItem.object;
-					if(hashMap)
+					if (hashMap)
 						hashMap.removeObject(hashMap.getName(oldObject));
 					else if (dynamicObject)
 						dynamicObject.removeObject();

@@ -227,7 +227,7 @@ package weave.visualization.plotters
 			
 			if (internalColorColumn == null)
 			{
-				ErrorManager.reportError(new Error("ColorBinLegendPlotter.internalColorColumn is null"));
+				trace(this, 'WARNING: ColorBinLegendPlotter.internalColorColumn is null');
 				return bounds;
 			}
 			var min:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalColumn);
