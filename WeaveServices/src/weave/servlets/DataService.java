@@ -19,6 +19,8 @@
 
 package weave.servlets;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -30,6 +32,7 @@ import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 
 import weave.beans.AttributeColumnDataWithKeys;
 import weave.beans.DataServiceMetadata;
@@ -597,5 +600,26 @@ public class DataService extends GenericServlet
 		WeaveReport rpt = new WeaveReport(configManager.getContextParams().getDocrootPath());
 		String result = rpt.createReport(configManager.getConfig(), this, reportDefinitionFileName, keys);
 		return result;
+	}
+	
+	
+	
+	
+	/**
+	 * Attempt at streaming...
+	 * @throws Exception 
+	 */
+	public void Pat(String uri, int offset, int length) throws Exception
+	{
+		ServletOutputStream stream = getServletOutputStream();
+		FileInputStream fileInputStream = new FileInputStream(new File(uri));
+		byte buffer[] = new byte[length];
+		
+		fileInputStream.read(buffer, offset, length);
+		stream.write(buffer);
+
+		stream.flush();
+		fileInputStream.close();
+		stream.close();
 	}
 }

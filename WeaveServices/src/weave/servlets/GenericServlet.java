@@ -414,7 +414,9 @@ public class GenericServlet extends HttpServlet
 	    		// if given value is a String, check if the function is expecting a different type
 				if (value instanceof String)
 				{
-					if (expectedArgTypes[index] == boolean.class || expectedArgTypes[index] == Boolean.class)
+					if (expectedArgTypes[index] == int.class || expectedArgTypes[index] == Integer.class)
+						value = Integer.parseInt((String)value);
+					else if (expectedArgTypes[index] == boolean.class || expectedArgTypes[index] == Boolean.class)
 						value = ((String)(value)).equalsIgnoreCase("true");
 					else if (expectedArgTypes[index] == String[].class)
 					{
