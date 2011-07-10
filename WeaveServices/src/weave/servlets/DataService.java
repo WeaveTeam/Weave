@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import weave.beans.AttributeColumnDataWithKeys;
 import weave.beans.DataServiceMetadata;
@@ -611,14 +612,15 @@ public class DataService extends GenericServlet
 	 */
 	public void Pat(String uri, int offset, int length) throws Exception
 	{
-		ServletOutputStream stream = getServletOutputStream();
+		HttpServletResponse response = getHttpServletResponse();
+		ServletOutputStream stream = response.getOutputStream();
 		FileInputStream fileInputStream = new FileInputStream(new File(uri));
 		byte buffer[] = new byte[length];
 		
 		fileInputStream.read(buffer, offset, length);
 		stream.write(buffer);
 
-		stream.flush();
+		response.flushBuffer(); // use this instead of stream.flush()
 		fileInputStream.close();
 		stream.close();
 	}
