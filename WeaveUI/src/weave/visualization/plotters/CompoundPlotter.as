@@ -62,7 +62,7 @@ package weave.visualization.plotters
 			if (oldPlotter)
 			{
 				unlinkSessionState(keySet.keyFilter, oldPlotter.keySet.keyFilter);
-				oldPlotter.spatialCallbacks.removeCallback(_spatialCallbacks.triggerCallbacks);
+				oldPlotter.spatialCallbacks.removeCallback(spatialCallbacks.triggerCallbacks);
 			}
 			var newPlotter:IPlotter = plotters.childListCallbacks.lastObjectAdded as IPlotter;
 			if (newPlotter)
@@ -70,7 +70,7 @@ package weave.visualization.plotters
 				//TODO: allow multiple key sets to be linked (using a union of key sets)
 				
 				linkSessionState(keySet.keyFilter, newPlotter.keySet.keyFilter);
-				newPlotter.spatialCallbacks.addImmediateCallback(this, _spatialCallbacks.triggerCallbacks);
+				newPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks);
 			}
 			// temporary solution -- just use the first plotter as the key source
 			var _plotters:Array = plotters.getObjects(IPlotter);

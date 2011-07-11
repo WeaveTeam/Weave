@@ -26,6 +26,8 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.registerDisposableChild;
+	import weave.api.setSessionState;
 
 	/**
 	 * This class records the session history of an ILinkableObject.
@@ -37,9 +39,9 @@ package weave.core
 		public function SessionStateLog(subject:ILinkableObject)
 		{
 			_subject = subject;
-			_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
-			WeaveAPI.SessionManager.registerDisposableChild(_subject, this);
-			WeaveAPI.SessionManager.getCallbackCollection(_subject).addGroupedCallback(this, handleDiff);
+			_prevState = getSessionState(_subject);
+			registerDisposableChild(_subject, this);
+			getCallbackCollection(_subject).addGroupedCallback(this, handleDiff);
 		}
 		
 		public function dispose():void
@@ -76,7 +78,7 @@ package weave.core
 			
 			// diff > lastDiff means it is now 2 frames after the last diff
 			
-			var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
+			var state:Object = getSessionState(_subject);
 			
 			var diff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
 			if (diff != undefined)
@@ -89,7 +91,7 @@ package weave.core
 				
 				debugHistory(true);
 				
-				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+				getCallbackCollection(this).triggerCallbacks();
 			}
 			
 			_prevState = state;
@@ -122,8 +124,13 @@ package weave.core
 			{
 				_undoActive = true;
 				var item:LogEntry = _history.pop();
+				_future.unshift(item);
+				
 				trace('apply undo ' + item.id + ':', ObjectUtil.toString(item.backward));
-				WeaveAPI.SessionManager.setSessionState(_subject, item.backward, false);
+				setSessionState(_subject, item.backward, false);
+				_prevState = getSessionState(_subject);
+				
+				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		
@@ -132,8 +139,13 @@ package weave.core
 			if (_future.length > 0)
 			{
 				var item:LogEntry = _future.shift();
+				history.push(item);
+				
 				trace('apply redo ' + item.id + ':',ObjectUtil.toString(item.forward));
-				WeaveAPI.SessionManager.setSessionState(_subject, item.forward, false);
+				setSessionState(_subject, item.forward, false);
+				_prevState = getSessionState(_subject);
+				
+				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		

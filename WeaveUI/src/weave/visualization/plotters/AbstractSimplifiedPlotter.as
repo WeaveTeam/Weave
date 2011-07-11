@@ -60,7 +60,7 @@ package weave.visualization.plotters
 				throw new Error("AbstractSimplifiedPlotter: Class does not implement IPlotter: " + plotterClassName);
 			
 			_internalPlotter = newLinkableChild(this, plotterClass); // create the internal plotter
-			_internalPlotter.spatialCallbacks.addImmediateCallback(this, _spatialCallbacks.triggerCallbacks);
+			_internalPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks);
 			// the base key set is the key set of the internal plotter
 			_filteredKeySet.setBaseKeySet(_internalPlotter.keySet);
 			// link the filters so the internal plotter filters its keys before generating graphics

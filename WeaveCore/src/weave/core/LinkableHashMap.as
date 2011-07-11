@@ -54,7 +54,7 @@ package weave.core
 		private const _nameToObjectMap:Object = {}; // maps an identifying name to an object
 		private const _objectToNameMap:Dictionary = new Dictionary(true); // maps an object to an identifying name
 		private const _nameIsLocked:Object = {}; // maps an identifying name to a value of true if that name is locked.
-		private const _previousNameMap:Object = {}; // the keys in this object are object names that were previously used.
+		private const _previousNameMap:Object = {}; // maps a previously used name to a value of true.  used when generating unique names.
 		private var _hashMapIsLocked:Boolean = false; // true if the LinkableHashMap is locked.
 		private var _typeRestriction:Class = null; // restricts the type of object that can be stored
 		private var _typeRestrictionClassName:String = null; // qualified class name of _typeRestriction
@@ -266,7 +266,7 @@ package weave.core
 			_objectToNameMap[object] = name;
 			// add the name to the end of _orderedNames
 			_orderedNames.push(name);
-			// remember that this name was used
+			// remember that this name was used.
 			_previousNameMap[name] = true;
 
 			// make sure the callback variables signal that the object was added
@@ -344,7 +344,7 @@ package weave.core
 		}
 
 		/**
-		 * This will generate a new name for an object that is different from all the names of objects in this LinkableHashMap.
+		 * This will generate a new name for an object that is different from all the names of objects previously used in this LinkableHashMap.
 		 * @param baseName The name to start with.  If the name is already in use, an integer will be appended to create a unique name.
 		 */
 		public function generateUniqueName(baseName:String):String

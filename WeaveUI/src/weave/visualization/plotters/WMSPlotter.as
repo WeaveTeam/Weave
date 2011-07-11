@@ -410,7 +410,7 @@ package weave.visualization.plotters
 			// determine maximum bounds for reprojecting images
 			_allowedTileReprojBounds.copyFrom(_latLonBounds);
 			projManager.transformBounds("EPSG:4326", WMSProviders.getSRS(provider), _allowedTileReprojBounds);
-			_spatialCallbacks.triggerCallbacks();
+			spatialCallbacks.triggerCallbacks();
 		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void

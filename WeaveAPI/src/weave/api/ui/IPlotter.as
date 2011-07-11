@@ -38,6 +38,7 @@ package weave.api.ui
 {
 	import flash.display.BitmapData;
 	
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ICallbackInterface;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IFilteredKeySet;
@@ -55,10 +56,10 @@ package weave.api.ui
 	{
 		/**
 		 * This is an interface for adding callbacks that get called when any spatial properties of the plotter change.
-		 * Spatial properties are those that affect the data bounds of visual elements.
-		 * Whenever these callbacks get called, data bounds values returned from getDataBoundsFromRecordKey() become invalid.
+		 * Spatial properties are those that affect the data bounds of visual elements.  Whenever these callbacks get
+		 * called, data bounds values previously returned from getDataBoundsFromRecordKey() become invalid.
 		 */
-		function get spatialCallbacks():ICallbackInterface;
+		function get spatialCallbacks():ICallbackCollection;
 		
 		/**
 		 * This is the set of record keys relevant to this IPlotter.

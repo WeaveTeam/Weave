@@ -546,7 +546,6 @@ package weave
 						delta--;
 					}
 				}
-				hs.enabled = false; // temporary
 				
 				getCallbackCollection(log).addImmediateCallback(this, updateHistorySlider, null, true);
 				function updateHistorySlider():void
