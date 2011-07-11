@@ -134,6 +134,7 @@
 					  borderStyle="none">
 				<ui:DynamicColumnComponent visTool="{this}" label="Meter column:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
 				<tools:MeterToolInputSelector/>
+				<settings:GridLineSettings tool="{this}"/>
 				
 			</mx:Panel>
 	</ui:ControlPanel>

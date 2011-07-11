@@ -240,9 +240,9 @@ public class GenericServlet extends HttpServlet
 	{
     	try
     	{
-    		synchronized (servletOutputStreamMap)
+    		synchronized (servletResponseMap)
     		{
-    			servletOutputStreamMap.put(Thread.currentThread(), response.getOutputStream());
+    			servletResponseMap.put(Thread.currentThread(), response);
     		}
 
     		try
@@ -265,9 +265,9 @@ public class GenericServlet extends HttpServlet
     	}
     	finally
     	{
-    		synchronized (servletOutputStreamMap)
+    		synchronized (servletResponseMap)
     		{
-    			servletOutputStreamMap.remove(Thread.currentThread());
+    			servletResponseMap.remove(Thread.currentThread());
     		}
     	}
 	}
@@ -277,9 +277,9 @@ public class GenericServlet extends HttpServlet
 	{
     	try
     	{
-    		synchronized (servletOutputStreamMap)
+    		synchronized (servletResponseMap)
     		{
-    			servletOutputStreamMap.put(Thread.currentThread(), response.getOutputStream());
+    			servletResponseMap.put(Thread.currentThread(), response);
     		}
 
     		List<String> urlParamNames = Collections.list(request.getParameterNames());
@@ -296,9 +296,9 @@ public class GenericServlet extends HttpServlet
 		}
 		finally
 		{
-			synchronized (servletOutputStreamMap)
+			synchronized (servletResponseMap)
 			{
-				servletOutputStreamMap.remove(Thread.currentThread());
+				servletResponseMap.remove(Thread.currentThread());
 			}
 		}
 	}
@@ -306,17 +306,17 @@ public class GenericServlet extends HttpServlet
     /**
      * This maps a thread to the corresponding ServletOutputStream for the doGet() or doPost() call that thread is handling.
      */
-    private Map<Thread,ServletOutputStream> servletOutputStreamMap = new HashMap<Thread,ServletOutputStream>();
+    private Map<Thread,HttpServletResponse> servletResponseMap = new HashMap<Thread,HttpServletResponse>();
     
     /**
      * This function retrieves the ServletOutputStream associated with the current thread's doGet() or doPost() call.
      * In a public function with a void return type, you can use this ServletOutputStream for full control over the output.
      */
-    protected ServletOutputStream getServletOutputStream()
+    protected HttpServletResponse getHttpServletResponse()
     {
-    	synchronized (servletOutputStreamMap)
+    	synchronized (servletResponseMap)
     	{
-    		return servletOutputStreamMap.get(Thread.currentThread());
+    		return servletResponseMap.get(Thread.currentThread());
     	}
     }
 	
@@ -414,7 +414,9 @@ public class GenericServlet extends HttpServlet
 	    		// if given value is a String, check if the function is expecting a different type
 				if (value instanceof String)
 				{
-					if (expectedArgTypes[index] == boolean.class || expectedArgTypes[index] == Boolean.class)
+					if (expectedArgTypes[index] == int.class || expectedArgTypes[index] == Integer.class)
+						value = Integer.parseInt((String)value);
+					else if (expectedArgTypes[index] == boolean.class || expectedArgTypes[index] == Boolean.class)
 						value = ((String)(value)).equalsIgnoreCase("true");
 					else if (expectedArgTypes[index] == String[].class)
 					{

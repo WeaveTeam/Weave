@@ -23,6 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
+		 xmlns:settings="weave.ui.settings.*"
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
@@ -198,6 +199,7 @@
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<ui:ColorRampEditor id="cRampEditor"/>
+			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

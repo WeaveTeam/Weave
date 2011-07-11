@@ -60,8 +60,8 @@
 	</mx:HBox>
 	<mx:HBox
 			width="100%"
-			borderStyle="outset"
-			paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5">
+			borderStyle="solid"
+			paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5" cornerRadius="5">
 		<mx:VBox width="100%" height="100%">
 			<mx:CheckBox id="windowBorderToggle"
 						 label="Show Borders" 
@@ -124,11 +124,12 @@
 		</mx:VBox>
 	</mx:HBox>
 
-	<mx:VBox borderStyle="outset"
+	<mx:VBox borderStyle="solid"
 			 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
 			 backgroundAlpha="0.8" backgroundColor="white"
-			 id="visBackgroundProperties"
+			 id="visBackgroundProperties" cornerRadius="5"
 			 width="100%">
+		
 		<mx:HBox>
 			<mx:ColorPicker id="borderColorPicker"
 							toolTip="Select a color for the border of this visualization - this will have no effect if the border is not enabled"
@@ -246,6 +247,7 @@
 			{
 				_tool.panelBorderColor.value = borderColorPicker.selectedColor;
 			}
+			
 			
 			private function backgroundColorCallback():void
 			{
