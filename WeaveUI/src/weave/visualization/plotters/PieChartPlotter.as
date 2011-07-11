@@ -123,8 +123,9 @@ package weave.visualization.plotters
 				coordinate.x = Math.cos(midRadians);
 				coordinate.y = Math.sin(midRadians);
 				dataBounds.projectPointTo(coordinate, screenBounds);
-				coordinate.x += Math.cos(midRadians) * 10;
-				coordinate.y -= Math.sin(midRadians) * 10;
+				coordinate.x += Math.cos(midRadians) * 10 * screenBounds.getXDirection();
+				coordinate.y += Math.sin(midRadians) * 10 * screenBounds.getYDirection();
+				
 				var labelText:BitmapText = new BitmapText();
 				labelText.text = ("  " + _labelColumn.getValueFromKey((_filteredData.keys[i] as IQualifiedKey)) + "  ");
 				if (midRadians < (Math.PI / 2) || midRadians > ((3 * Math.PI) / 2))
