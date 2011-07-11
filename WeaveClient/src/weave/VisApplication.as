@@ -32,6 +32,7 @@ package weave
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
 	import flash.system.System;
+	import flash.text.TextField;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.Timer;
@@ -43,9 +44,12 @@ package weave
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.controls.HSlider;
+	import mx.controls.Label;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.TabBar;
+	import mx.controls.Text;
+	import mx.controls.TextArea;
 	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.events.ChildExistenceChangedEvent;
@@ -80,7 +84,11 @@ package weave
 	import weave.core.StageUtils;
 	import weave.core.WeaveJavaScriptAPI;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.AttributeColumns.KeyColumn;
 	import weave.data.KeySets.KeyFilter;
+	import weave.data.KeySets.KeySet;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
@@ -412,7 +420,20 @@ package weave
 			
 		}
 		
-
+		private var _selectionIndicatorText:Text = new Text;
+		private static var selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		// ToDo How to get the total number of records?
+		private function handleSelectionIndicatorCounterChange():void
+		{
+			if (selection.keys.length == 0)
+				_selectionIndicatorText.visible = false;
+			else
+			{
+				_selectionIndicatorText.visible = true;
+				_selectionIndicatorText.text = selection.keys.length.toString() + " Records Selected";
+			}
+		}
+		
 		override protected function createChildren():void
 		{
 			super.createChildren();
@@ -458,6 +479,15 @@ package weave
 //			addViewBar();
 //			_viewTabBar.addEventListener(ItemClickEvent.ITEM_CLICK, handleTabSelected);
 //			addEventListener(ResizeEvent.RESIZE,handleTabBarResize);
+			
+			// Code for selection indicator
+			getCallbackCollection(selection).addGroupedCallback(this, handleSelectionIndicatorCounterChange, true);
+			visDesktop.addChild(_selectionIndicatorText);
+			_selectionIndicatorText.visible = false;
+			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
+			_selectionIndicatorText.opaqueBackground = 0x000000;
+			_selectionIndicatorText.setStyle("bottom", 0);
+			_selectionIndicatorText.setStyle("right", 0);
 			
 			getCallbackCollection(WeaveAPI.ProgressIndicator).addGroupedCallback(this, handleProgressIndicatorCounterChange, true);
 			visDesktop.addChild(_progressBar);

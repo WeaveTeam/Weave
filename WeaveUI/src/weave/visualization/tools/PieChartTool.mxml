@@ -42,6 +42,7 @@
 			import weave.visualization.plotters.PieChartPlotter;
 
 			public var _plotter:PieChartPlotter = null;
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -61,8 +62,8 @@
 				toolTitle.addImmediateCallback(this, updateTitle);
 				_plotter.data.addImmediateCallback(this,updateProbeColumns,null,true);
 				
-				visualization.marginTop.value = 20;
-				visualization.marginBottom.value = 20;
+				visualization.marginTop.value = 25;
+				visualization.marginBottom.value = 25;
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -92,11 +93,11 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Wedge Size","Wedge Color"];
+				return ["Wedge Size","Wedge Color","Label"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.data,colorColumn];
+				return [_plotter.data,colorColumn,_plotter.label];
 			}
 			
 			private function invalidateAxes():void
@@ -120,6 +121,7 @@
 			</userControls:ControlsSubsetBox>
 			<ui:DynamicColumnComponent visTool="{this}" label="Wedge size" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Wedge color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

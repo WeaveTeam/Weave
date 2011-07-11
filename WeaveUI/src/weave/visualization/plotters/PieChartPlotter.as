@@ -19,10 +19,15 @@
 
 package weave.visualization.plotters
 {
+	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.geom.Point;
+	
+	import mx.controls.Alert;
 	
 	import weave.Weave;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
@@ -31,6 +36,8 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.SortedColumn;
 	import weave.primitives.Bounds2D;
+	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -51,7 +58,10 @@ package weave.visualization.plotters
 		private var _beginRadians:EquationColumn;
 		private var _spanRadians:EquationColumn;
 		private var _filteredData:FilteredColumn;
+		private var _labelColumn:DynamicColumn = new DynamicColumn();
+		
 		public function get data():DynamicColumn { return _filteredData.internalDynamicColumn; }
+		public function get label():DynamicColumn {return _labelColumn;}
 		
 		public const lineStyle:DynamicLineStyle = new DynamicLineStyle(SolidLineStyle);
 		public const fillStyle:DynamicFillStyle = new DynamicFillStyle(SolidFillStyle);
@@ -70,7 +80,7 @@ package weave.visualization.plotters
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
 			
 			registerSpatialProperties(data);
-			registerNonSpatialProperties(fillStyle, lineStyle);
+			registerNonSpatialProperties(fillStyle, lineStyle, label);
 			setKeySource(_filteredData);
 		}
 
@@ -88,6 +98,62 @@ package weave.visualization.plotters
 			WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians);
 			// end fill
 			graphics.endFill();
+		}
+		
+		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			if (_labelColumn.keys.length == 0) return;
+				
+			var recordKey:IQualifiedKey;
+			var beginRadians:Number;
+			var spanRadians:Number;
+			var midRadians:Number;
+			var xScreenRadius:Number;
+			var yScreenRadius:Number;
+			var coordinate:Point = new Point();
+			
+			for (var i:int ; i < _filteredData.keys.length ; i++)
+			{
+				if (_labelColumn.containsKey(_filteredData.keys[i] as IQualifiedKey) == false) return;
+				recordKey = _filteredData.keys[i] as IQualifiedKey;
+				beginRadians = _beginRadians.getValueFromKey(recordKey, Number) as Number;
+				spanRadians = _spanRadians.getValueFromKey(recordKey, Number) as Number;
+				midRadians = beginRadians + (spanRadians / 2);
+				
+				coordinate.x = Math.cos(midRadians);
+				coordinate.y = Math.sin(midRadians);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				coordinate.x += Math.cos(midRadians) * 10;
+				coordinate.y -= Math.sin(midRadians) * 10;
+				var labelText:BitmapText = new BitmapText();
+				labelText.text = ("  " + _labelColumn.getValueFromKey((_filteredData.keys[i] as IQualifiedKey)) + "  ");
+				if (midRadians < (Math.PI / 2) || midRadians > ((3 * Math.PI) / 2))
+				{
+					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				}
+				else if (midRadians == ((3 * Math.PI) / 2))
+				{
+					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
+				}
+				else if (midRadians == (Math.PI / 2))
+				{
+					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
+					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;
+				}
+				else
+				{
+					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				}
+				
+				labelText.textFormat.color=Weave.properties.axisFontColor.value;
+				labelText.textFormat.size=Weave.properties.axisFontSize.value;
+				labelText.textFormat.underline=Weave.properties.axisFontUnderline.value;
+				labelText.x = coordinate.x;
+				labelText.y = coordinate.y;
+				labelText.draw(destination);
+			}
 		}
 		
 		/**
