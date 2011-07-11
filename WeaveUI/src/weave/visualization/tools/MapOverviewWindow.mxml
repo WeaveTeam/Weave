@@ -139,15 +139,15 @@
 			
 			private function handleMouseOver(e:MouseEvent):void 
 			{ 
-				//disable global selection while mouse is over overviewPanel
-				enableSelection = Weave.properties.enableToolSelection.value;
-				Weave.properties.enableToolSelection.value = false;
+				//disable tool selection while mouse is over overviewPanel
+				enableSelection = visualization.enableSelection.value;
+				visualization.enableSelection.value = false;
 			}
 			
 			private function handleMouseOut(e:MouseEvent):void
 			{ 
-				// when mouse leaves panel reset global selection to its old value
-				Weave.properties.enableToolSelection.value = enableSelection; 
+				// when mouse leaves panel reset tool selection to its old value
+				visualization.enableSelection.value = enableSelection; 
 			}
 			
 			private function handleMouseEvent(e:MouseEvent):void

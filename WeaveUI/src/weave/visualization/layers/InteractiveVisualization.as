@@ -70,6 +70,7 @@ package weave.visualization.layers
 			doubleClickEnabled = true;
 			
 			enableZoomAndPan.value = true;
+			enableSelection.value = true;
 			enableAutoZoomToExtent.value = true;
 			// adding a canvas as child gets the selection rectangle on top of the vis
 			addChild(selectionRectangleCanvas);
@@ -136,6 +137,7 @@ package weave.visualization.layers
 		}
 		
 		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		protected var activeKeyType:String = null;
 		protected var mouseDragActive:Boolean = false;
@@ -432,19 +434,23 @@ package weave.visualization.layers
 
 				if ( isModeSelection(mode) )
 				{
-					// handle selection
-					if (mode == SELECT_MODE_REPLACE && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
+					// only if selection is enabled
+					if (enableSelection.value)
 					{
-						_layers = layers.getObjects(SelectablePlotLayer);
-						for (i = 0; i < _layers.length; i++)
+						// handle selection
+						if (mode == SELECT_MODE_REPLACE && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
 						{
-							// clear selection when drag area is empty
-							setSelectionKeys(_layers[i], []);
+							_layers = layers.getObjects(SelectablePlotLayer);
+							for (i = 0; i < _layers.length; i++)
+							{
+								// clear selection when drag area is empty
+								setSelectionKeys(_layers[i], []);
+							}
 						}
-					}
-					else
-					{
-						delayedHandleSelection();
+						else
+						{
+							delayedHandleSelection();
+						}
 					}
 				}
 				else if (mode == PAN_MODE)
@@ -493,7 +499,7 @@ package weave.visualization.layers
 		{
 			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
 			 
-			if(!Weave.properties.enableToolSelection.value) return;
+			if (!Weave.properties.enableToolSelection.value || !enableSelection.value) return;
 			var g:Graphics = selectionRectangleCanvas.graphics;
 			if (!_selectionRectangleGraphicsCleared)
 				g.clear(); 
@@ -603,6 +609,10 @@ package weave.visualization.layers
 		
 		protected function immediateHandleSelection():void
 		{
+			// don't set a selection or clear the probe keys if selection is disabled
+			if (!enableSelection.value)
+				return;
+			
 			var _layers:Array = layers.getObjects(SelectablePlotLayer); // bottom to top
 			// loop from bottom layer to top layer
 			for (var index:int = 0; index < _layers.length; index++)
@@ -612,7 +622,7 @@ package weave.visualization.layers
 				if (!layer.layerIsVisible.value || !layer.layerIsSelectable.value)
 					continue;
 				// skip this layer if it does not contain lastProbedQKey
-				if (lastProbedQKey && !layer.plotter.keySet.containsKey(lastProbedQKey))
+				if (_lastProbedQKey && !layer.plotter.keySet.containsKey(_lastProbedQKey))
 					continue;
 
 				// when using the selection layer, clear the probe
@@ -637,10 +647,12 @@ package weave.visualization.layers
 			}
 		}
 		
+		public function get lastProbedKey():IQualifiedKey { return _lastProbedQKey; }
+		
 		/**
 		 * This is the last IQualifiedKey (record identifier) that was probed.
 		 */
-		private var lastProbedQKey:IQualifiedKey = null;
+		private var _lastProbedQKey:IQualifiedKey = null;
 		
 		protected function handleProbe(allowCallLater:Boolean = true):void
 		{
@@ -702,7 +714,7 @@ package weave.visualization.layers
 					if (keys.length > 0)
 					{
 						setProbeKeys(layer, keys);
-						lastProbedQKey = keys[0] as IQualifiedKey;
+						_lastProbedQKey = keys[0] as IQualifiedKey;
 						
 						return;
 					}
@@ -711,13 +723,23 @@ package weave.visualization.layers
 				// NOTE: this code is hacked to work with only one global probe KeySet
 				if (lastActiveLayer)
 					setProbeKeys(lastActiveLayer, []);
-				lastProbedQKey = null;
+				_lastProbedQKey = null;
 			}
+		}
+		
+		private var _lastSelectedKeys:Array = null;
+		public function set lastSelectedKeys(a:Array):void
+		{
+			_lastSelectedKeys = a;
+		}
+		public function get lastSelectedKeys():Array
+		{
+			return _lastSelectedKeys ? _lastSelectedKeys.concat() : [];
 		}
 		
 		protected function setSelectionKeys(layer:SelectablePlotLayer, keys:Array, useMouseMode:Boolean = false):void
 		{
-			if (!Weave.properties.enableToolSelection.value)
+			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
 
 			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
@@ -732,6 +754,7 @@ package weave.visualization.layers
 					keySet.removeKeys(keys);
 				else
 					keySet.replaceKeys(keys);
+				_lastSelectedKeys = keySet.keys.concat();
 			}
 		}
 		
@@ -764,6 +787,10 @@ package weave.visualization.layers
 		
 		protected function clearProbe():void
 		{
+			// don't clear the probe if selection is disabled
+			if (!enableSelection.value)
+				return;
+			
 			var spls:Array = layers.getObjects(SelectablePlotLayer);
 			for (var i:int = 0; i < spls.length; i++)
 				setProbeKeys(spls[i], emptyArray);

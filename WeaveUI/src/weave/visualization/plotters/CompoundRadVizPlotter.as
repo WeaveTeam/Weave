@@ -114,6 +114,7 @@ package weave.visualization.plotters
 			}
 			else
 				setKeySource(null);
+			setAnchorLocations();
 		}
 		
 		public function setAnchorLocations():void
@@ -277,55 +278,7 @@ package weave.visualization.plotters
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
 			} catch (e:Error) { }
 			
-			destination.draw(tempShape);
-			
-			var array:Array = anchors.getObjects(AnchorPoint);
-			
-			// loop through anchors hash map and draw dimensional anchors and labels					
-			for( var i:int = 0 ; i < array.length ; i++ )
-			{
-				coordinate.x = x = array[i].x.value;
-				coordinate.y = y = array[i].y.value;
-				
-				dataBounds.projectPointTo(coordinate, screenBounds);
-				var graphics1:Graphics = tempShape.graphics;
-				var labelText:BitmapText = new BitmapText();
-				labelText.text =( anchors.getName(array[i]));
-				
-				if(x > 0) // right half of unit circle
-				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
-					labelText.x = coordinate.x + 10;
-					labelText.y = coordinate.y;
-				}
-				
-				else if ( x == 0 && y <= 0 ) // exact bottom of circle
-				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					labelText.x = coordinate.x ;
-					labelText.y = coordinate.y + 10;
-				}
-				else if( x == 0 && y > 0) // exact top of circle
-				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;					
-					labelText.x = coordinate.x;
-					labelText.y = coordinate.y - 10;
-				}
-				else // left half of circle
-				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
-					labelText.x = coordinate.x - 10;
-					labelText.y = coordinate.y;
-				}
-				labelText.draw(destination) ;
-				graphics1.clear();
-				graphics1.lineStyle(3);
-				graphics1.drawCircle(coordinate.x, coordinate.y, 1) ;
-				destination.draw(tempShape);
-			}
+			destination.draw(tempShape);					
 		}
 			
 		/**
@@ -365,23 +318,27 @@ package weave.visualization.plotters
 			var probedKeys:Array = _globalProbeKeySet.keys;
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
-			for each( var key:IQualifiedKey in probedKeys )
-			{
-				getXYcoordinates(key);
-				dataBounds.projectPointTo(coordinate, screenBounds);
-				for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
-				{
-					tempPoint.x = anchor.x.value;
-					tempPoint.y = anchor.y.value;
-					dataBounds.projectPointTo(tempPoint, screenBounds);
-					graphics.lineStyle(.5, 0xff0000);
-					graphics.moveTo(coordinate.x, coordinate.y);
-					graphics.lineTo(tempPoint.x, tempPoint.y);					
+			if(probedKeys.length && recordKeys.length)
+				if((probedKeys[0] as IQualifiedKey).keyType == (recordKeys[0] as IQualifiedKey).keyType)
+				{					
+					for each( var key:IQualifiedKey in probedKeys )
+					{
+						getXYcoordinates(key);
+						dataBounds.projectPointTo(coordinate, screenBounds);
+						for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
+						{
+							tempPoint.x = anchor.x.value;
+							tempPoint.y = anchor.y.value;
+							dataBounds.projectPointTo(tempPoint, screenBounds);
+							graphics.lineStyle(.5, 0xff0000);
+							graphics.moveTo(coordinate.x, coordinate.y);
+							graphics.lineTo(tempPoint.x, tempPoint.y);					
+						}
+						addRecordGraphicsToTempShape(key, dataBounds, screenBounds, tempShape);
+					}
+					destination.draw(tempShape);
+					graphics.clear();
 				}
-				addRecordGraphicsToTempShape(key, dataBounds, screenBounds, tempShape);
-			}
-			destination.draw(tempShape);
-			graphics.clear();
 			
 			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
 		}
@@ -524,11 +481,11 @@ package weave.visualization.plotters
 		 * Stores the DA ordering with the max similarity so far 
 		 * into private array DimensionReorderLabels
 		 */
-		private function storeDimensionReorder():void
+		private function storeDimensionReorder(array:Array):void
 		{
 			dimensionReorderLabels = [];
-			for( var i:int = 0; i < orderedColumns.length; i++ )
-				dimensionReorderLabels.push(columns.getName(orderedColumns[i])) ;
+			for( var i:int = 0; i < array.length; i++ )
+				dimensionReorderLabels.push(columns.getName(array[i])) ;
 		}
 		
 		/**
@@ -597,7 +554,7 @@ package weave.visualization.plotters
 			getGlobalSimilarityMatrix();
 			
 			var r1:Number; var r2:Number;
-			getNeighborhoodMatrix(orderedColumns);
+			getNeighborhoodMatrix(unorderedColumns);
 			var min:Number = getSimilarityMeasure();
 			var sim:Number = 0 ;
 			trace(this, "change new" );
@@ -606,22 +563,22 @@ package weave.visualization.plotters
 			{
 				// get 2 random column numbers
 				do{
-					r1=Math.floor(Math.random()*100) % orderedColumns.length;	
-					r2=Math.floor(Math.random()*100) % orderedColumns.length;	
+					r1=Math.floor(Math.random()*100) % unorderedColumns.length;	
+					r2=Math.floor(Math.random()*100) % unorderedColumns.length;	
 				} while(r1 == r2);
 				
 				// swap columns r2 and r1
 				var temp1:IAttributeColumn = new DynamicColumn() ; 
 				var temp2:IAttributeColumn = new DynamicColumn() ;
-				temp1 = orderedColumns[r1];
-				orderedColumns.splice(r1, 1, orderedColumns[r2] );
-				orderedColumns.splice(r2, 1, temp1);
+				temp1 = unorderedColumns[r1];
+				unorderedColumns.splice(r1, 1, unorderedColumns[r2] );
+				unorderedColumns.splice(r2, 1, temp1);
 				
-				getNeighborhoodMatrix(orderedColumns);
+				getNeighborhoodMatrix(unorderedColumns);
 				if((sim = getSimilarityMeasure()) <= min) 
 				{	
 					min = sim ;
-					storeDimensionReorder();
+					storeDimensionReorder(unorderedColumns);
 				}
 			}
 			trace( min );
@@ -665,7 +622,7 @@ package weave.visualization.plotters
 				}
 				i++;
 			}
-			storeDimensionReorder();
+			storeDimensionReorder(orderedColumns);
 			columns.setNameOrder(dimensionReorderLabels);
 			
 			// debugging
@@ -684,7 +641,7 @@ package weave.visualization.plotters
 					orderedColumns[orderedColumns.length-2], orderedColumns);				
 				orderedColumns.push(column);
 			}
-			storeDimensionReorder();
+			storeDimensionReorder(orderedColumns);
 			columns.setNameOrder(dimensionReorderLabels);
 			
 			// debugging

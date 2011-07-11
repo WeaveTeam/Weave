@@ -22,10 +22,10 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
-	     layout="absolute"
-		 dragEnter="handleDragEnter(event)"
-		 dragDrop="handleDragDrop(event)"
-		 resize="handleResize(event)" xmlns:userControls="weave.ui.userControls.*">		 
+		 xmlns:userControls="weave.ui.userControls.*"		 
+	     layout="absolute" 
+		 mouseDown="handleMouseDown(event)"
+		 mouseUp="handleMouseUp(event)">
 	<mx:Script>
 		<![CDATA[
 			import flash.utils.getQualifiedClassName;
@@ -34,14 +34,18 @@
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.DragManager;
+			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.primitives.IBounds2D;
 			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
@@ -54,16 +58,22 @@
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
-			import weave.visualization.plotters.AnchorDisplayObject;
+			import weave.utils.SpatialIndex;
+			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.CompoundRadVizPlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
 
 			
-			public var _plotter:CompoundRadVizPlotter = null;
+			public var _plotter:CompoundRadVizPlotter ;
+			private var _anchorPlotter:AnchorPlotter ;
+			private var _anchorLayer:SelectablePlotLayer ;
+			
 			override protected function constructor():void
 			{
 				super.constructor();
+				
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(CompoundRadVizPlotter) as CompoundRadVizPlotter;
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateTitle);
@@ -81,9 +91,16 @@
 				
 				if(columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
-				_plotter.setAnchorLocations();						
+								
+				_plotter.setAnchorLocations();
+				_anchorLayer = visualization.layers.requestObject("anchorLayer", SelectablePlotLayer, false );
+				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, false) ;
+				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
+				
+				visualization.marginTop.value =	visualization.marginBottom.value = 20;
+				visualization.marginLeft.value = visualization.marginRight.value = 20;
 			}
-
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -96,23 +113,51 @@
 				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );
-				
-				_plotter.anchors.addGroupedCallback(this, drawAnchors );
-				
-				// TEMPORARY SOLUTION: draws anchors after the tool appears on screen so screenBounds are not undefined
-				addEventListener(Event.RENDER, handleRenderEvent);
 			}
 						
-			private function handleRenderEvent(event:Event):void
-			{								
-				getScreenBounds(screenBounds);				
+			private var tempBounds:Bounds2D = new Bounds2D();
+			private var screenBounds:Bounds2D = new Bounds2D();			
+			private var tempPoint:Point = new Point();					
+			
+			private var _probedKeys:Array ;
+			private var dataBounds:Bounds2D = new Bounds2D();
+			private var isDragging:Boolean = false;
+			
+			private function handleMouseDown(event:MouseEvent):void
+			{
+				tempPoint = visualization.globalToLocal(new Point(event.stageX,event.stageY));
+				tempBounds.reset();
+				tempBounds.setCenter(tempPoint.x, tempPoint.y);
+				tempBounds.centeredResize(10,10);
 				
-				if(!(screenBounds.isEmpty() || screenBounds.isUndefined()))
-				{
-					_plotter.columns.addGroupedCallback(this, _plotter.setAnchorLocations);
- 					drawAnchors();
-					removeEventListener(Event.RENDER, handleRenderEvent);
-				}
+				visualization.dataBounds.copyTo(dataBounds);
+				getScreenBounds(screenBounds);
+				screenBounds.projectCoordsTo(tempBounds, dataBounds);
+				
+				_probedKeys = (_anchorLayer.spatialIndex as SpatialIndex).getKeysBoundingBoxOverlap(tempBounds);
+				
+				if( !_probedKeys.length ) return;
+				visualization.enableSelection.value = false;
+				isDragging = true;
+			}
+						
+			private function handleMouseUp(event:MouseEvent):void
+			{
+				if(!isDragging) return;
+				isDragging = false;
+				
+				var keys:Array = _probedKeys ;
+				
+				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
+				getScreenBounds(screenBounds);
+				visualization.dataBounds.copyTo(dataBounds);
+				screenBounds.projectPointTo(tempPoint, dataBounds);
+				
+				var key:IQualifiedKey = _probedKeys[0];
+				var anchor:AnchorPoint = _anchorPlotter.anchors.getObject(key.localName) as AnchorPoint;
+				anchor.x.value = tempPoint.x;
+				anchor.y.value = tempPoint.y;
+				visualization.enableSelection.value = true;
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -192,45 +237,7 @@
 				}
 				anchorReorderButton.selected = false; 
 			}
-						
-			private var tempBounds:Bounds2D = new Bounds2D();
-			private var screenBounds:Bounds2D = new Bounds2D();			
-			private var tempPoint:Point = new Point();
 			
-			private const anchorShapes:Vector.<AnchorDisplayObject> = new Vector.<AnchorDisplayObject>();
-			
-			private function drawAnchors():void
-			{				
-				visualization.dataBounds.copyTo(tempBounds);
-				getScreenBounds(screenBounds);
-				if( tempBounds.isEmpty() || tempBounds.isUndefined() || screenBounds.isEmpty() || screenBounds.isUndefined()) return;
-				
-				var anchors:Array = _plotter.anchors.getObjects(AnchorPoint);
-				if( !(anchors.length)) return;				
-				
-				var anchorShape:AnchorDisplayObject;
-				while(anchorShapes.length)
-				{
-					anchorShape = anchorShapes.pop();					
-					disposeObjects(anchorShape);
-				}
-				
-				for each( var anchor:AnchorPoint in anchors)
-				{
-					anchorShape = new AnchorDisplayObject();
-					anchorShape.anchor = anchor;
-					anchor.x.addGroupedCallback(this, anchorShape.drawAnchor);
-					anchor.y.addGroupedCallback(this, anchorShape.drawAnchor);
-					anchorShapes.push(anchorShape);
-										
-					getScreenBounds(anchorShape.screenBounds);
-					
-					linkSessionState(visualization.dataBounds, anchorShape.parentDataBounds);
-					
-					if(!this.contains(anchorShape)) this.addChild(anchorShape);										
-				}				
-			}			
-						
 			public function getScreenBounds(outputBounds:Bounds2D):void
 			{
 				for each( var plotlayer:IPlotLayer in visualization.layers.getObjects(IPlotLayer))
@@ -239,38 +246,6 @@
 					break;
 				}
 			}
-			
-			private function handleDragEnter(event:DragEvent):void 
-			{
-                if (event.dragSource.hasFormat("canv"))
-                {
-                    DragManager.acceptDragDrop(CompoundRadVizTool(event.currentTarget));
-                }
-            }
-			
-			private function handleDragDrop(event:DragEvent):void 
-			{
-				var anchor:AnchorDisplayObject = AnchorDisplayObject(event.dragInitiator);
-				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
-								
-				visualization.dataBounds.copyTo(tempBounds);
-				getScreenBounds(anchor.screenBounds);
-				
-				anchor.screenBounds.projectPointTo(tempPoint, tempBounds);
-				
-                anchor.anchor.x.value = tempPoint.x;
-                anchor.anchor.y.value = tempPoint.y;                
-            }
-			
-			private function handleResize(event:ResizeEvent):void
-			{
-				for each( var anchor:AnchorDisplayObject in anchorShapes)
-				{
-					getScreenBounds(anchor.screenBounds);
-					anchor.drawAnchor();
-				}
-			}
-			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
