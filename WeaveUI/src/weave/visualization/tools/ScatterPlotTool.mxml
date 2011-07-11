@@ -18,6 +18,7 @@
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -433,6 +434,7 @@
 					</mx:HBox>
 				</mx:VBox>
 			</userControls:ControlsSubsetBox>
+			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

@@ -23,7 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
-	     layout="absolute">
+	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
@@ -390,6 +390,7 @@
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Positive Error:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Negative Error:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
+			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

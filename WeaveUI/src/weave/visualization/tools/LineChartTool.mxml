@@ -23,7 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
-	     layout="absolute">
+		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
 			import flash.utils.flash_proxy;
@@ -425,6 +425,7 @@
 							 toolTip="Enables automatic zooming to the subset of data currently displayed"
 							 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
 			</userControls:ControlsSubsetBox>
+			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
