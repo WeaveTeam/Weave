@@ -22,6 +22,7 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
@@ -39,9 +40,12 @@ package weave.core
 		public function SessionStateLog(subject:ILinkableObject)
 		{
 			_subject = subject;
-			_prevState = getSessionState(_subject);
-			registerDisposableChild(_subject, this);
-			getCallbackCollection(_subject).addGroupedCallback(this, handleDiff);
+			_prevState = getSessionState(_subject); // remember the initial state
+			registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
+			
+			var cc:ICallbackCollection = getCallbackCollection(_subject);
+			cc.addImmediateCallback(this, immediateCallback);
+			cc.addGroupedCallback(this, groupedCallback);
 		}
 		
 		public function dispose():void
@@ -56,46 +60,63 @@ package weave.core
 		private var _history:Array = [];
 		private var _future:Array = [];
 		private var _serial:int = 0;
-		private var _lastDiffID:Number = 0;
 		private var _undoActive:Boolean = false;
 		
-		private function handleDiff(diffID:Number = Infinity):void
+		private var _recordLater:Boolean = false;
+		private var _pendingRecord:Boolean = false;
+		
+		private function immediateCallback():void
 		{
-			if (diffID < _lastDiffID) // more than one diff per frame
+			// we have to wait until grouped callbacks are called before we record the diff
+			_recordLater = true;
+			
+			// make sure only one call to recordDiff() is pending
+			if (!_pendingRecord)
 			{
-				return;
+				_pendingRecord = true;
+				recordDiff();
 			}
-			if (diffID == Infinity) // called as a grouped callback
+		}
+		
+		private function groupedCallback():void
+		{
+			// It is ok to record a diff the frame after grouped callbacks are called.
+			// If callbacks are triggered again before the next frame, the immediateCallback will set this flag back to true.
+			_recordLater = false;
+		}
+		
+		private function recordDiff():void
+		{
+			if (_recordLater)
 			{
-				StageUtils.callLater(this, handleDiff, [++_lastDiffID]);
-				return;
-			}
-			if (diffID == _lastDiffID) // called 1 frame after grouped callback
-			{
-				StageUtils.callLater(this, handleDiff, [++_lastDiffID + 1]);
+				// we have to wait until the next frame to record the diff because grouped callbacks haven't finished.
+				StageUtils.callLater(this, recordDiff, null, false);
 				return;
 			}
 			
-			// diff > lastDiff means it is now 2 frames after the last diff
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
 			
 			var state:Object = getSessionState(_subject);
-			
-			var diff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
-			if (diff != undefined)
+			var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+			if (forwardDiff !== undefined)
 			{
-				var backDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
+				var backwardDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
 				if (_undoActive)
-					_future.unshift(new LogEntry(_serial++, backDiff, diff)); // reverse
+					_future.unshift(new LogEntry(_serial++, backwardDiff, forwardDiff)); // reverse
 				else
-					_history.push(new LogEntry(_serial++, diff, backDiff));
+					_history.push(new LogEntry(_serial++, forwardDiff, backwardDiff));
 				
 				debugHistory(true);
 				
-				getCallbackCollection(this).triggerCallbacks();
+				cc.triggerCallbacks();
 			}
 			
 			_prevState = state;
 			_undoActive = false;
+			_pendingRecord = false;
+			
+			cc.resumeCallbacks();
 		}
 
 		private function debugHistory(showLastDiff:Boolean):void
