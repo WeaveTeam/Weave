@@ -172,17 +172,31 @@
 					linkSessionState(otherVariable, projectionSRS);
 			}
 			
+			[Bindable] private var _projComboBoxData:Array = [];
 			private function handleLayersChange():void
 			{
+				_projComboBoxData.length = 0;
+				var projString:String;
+				
 				// make sure wms layer projections are identical
 				var wmsPlotters:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(visualization.layers, WMSPlotter);
 				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
+				{
 					linkProjection(wmsPlotter.srs);
+					projString = WMSProviders.getSRS(wmsPlotter.serviceName.value);
+					if (projString && _projComboBoxData.indexOf(projString) < 0)
+						_projComboBoxData.push(projString);
+				}
 				
 				// make sure all geometry column projections are identical
 				var reprojectedColumns:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(visualization.layers, ReprojectedGeometryColumn);
 				for each (var column:ReprojectedGeometryColumn in reprojectedColumns)
+				{
 					linkProjection(column.projectionSRS);
+					projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
+					if (projString && _projComboBoxData.indexOf(projString) < 0)
+						_projComboBoxData.push(projString);					
+				}
 				
 				// force label plotters to use text bitmap filters
 				for each (var layer:SelectablePlotLayer in visualization.layers.getObjects(SelectablePlotLayer))
@@ -506,7 +520,7 @@
 				}
 				
 			} 
-			
+
 		]]>
 	</mx:Script>
 
@@ -687,11 +701,19 @@
 			<userControls:ControlsSubsetBox>
 				<mx:HBox verticalAlign="center" horizontalAlign="center">
 					<mx:Label text="Projection"/> 
-					<mx:TextInput id="projTextInput"
+					<ui:CustomComboBox id="projComboBox"
+									   dataProvider="{_projComboBoxData}"
+									   initialize="linkBindableProperty(projectionSRS, projComboBox, 'text');"
+									   change="projValidLabel.text = projectionVerifier(projComboBox.text) ? 'Valid' : 'Invalid';"
+									   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
+									   editable="true"
+									   width="120"
+									   />
+					<!--<mx:TextInput id="projTextInput"
 						initialize="linkBindableProperty(projectionSRS, projTextInput, 'text');"
 						change="projValidLabel.text = projectionVerifier(projTextInput.text) ? 'Valid' : 'Invalid';"
 						focusOut="projTextInput.text = projectionSRS.value; projValidLabel.text = '';"
-						/>
+						/>-->
 					<mx:Label id="projValidLabel" fontWeight="bold"/>
 				</mx:HBox>
 			</userControls:ControlsSubsetBox>
