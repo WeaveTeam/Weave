@@ -102,7 +102,7 @@
 				
 				visualization.enableFixedAspectRatio.value = true;
 				visualization.enableAutoZoomToExtent.value = false;
-				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, updateZoomSlider);
+				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
 				
 				enableBackground.value = true;
 				enableOverview.value = false;
