@@ -271,8 +271,6 @@ package weave
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
-		public const sessionStateEditor:LinkableString = new LinkableString("", verifySessionStateEditor);
-		
 		// temporary?
 		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service
 		
