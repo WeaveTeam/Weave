@@ -504,58 +504,8 @@ package weave
 			//drawConnection();
 			loadPage();
 
-			// beta undo/redo feature
-			if (getEditableSettingFromURL())
-			{
-				log = new SessionStateLog(Weave.root);
-				
-				var hb:HBox = new HBox();
-				hb.percentWidth = 100;
-				addChildAt(hb, 0);
-				
-				var undoButton:Button = new Button();
-				undoButton.label="<";
-				undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.undo(); });
-				hb.addChild(undoButton);
-				
-				var redoButton:Button = new Button();
-				redoButton.label=">";
-				redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.redo(); });
-				hb.addChild(redoButton);
-				
-				var hs:HSlider = new HSlider();
-				hb.addChild(hs);
-				hs.percentWidth = 100;
-				hs.setStyle("bottom", 0);
-				hs.minimum = 0;
-				hs.liveDragging = true;
-				hs.tickInterval = 1;
-				hs.snapInterval = 1;
-				hs.addEventListener(Event.CHANGE, handleHistorySlider);
-				function handleHistorySlider():void
-				{
-					var delta:int = hs.value - log.history.length;
-					while (delta < 0)
-					{
-						log.undo();
-						delta++;
-					}
-					while (delta > 0)
-					{
-						log.redo();
-						delta--;
-					}
-				}
-				
-				getCallbackCollection(log).addImmediateCallback(this, updateHistorySlider, null, true);
-				function updateHistorySlider():void
-				{
-					hs.maximum = log.history.length + log.future.length;
-					hs.value = log.history.length;
-				}
-			}
 		}
-		private var log:SessionStateLog;
+		
 
 //		private function handleTabBarResize(event:ResizeEvent):void
 //		{
@@ -1476,8 +1426,62 @@ package weave
 			
 			// enable JavaScript API after initial session state has loaded.
 			WeaveAPI.initializeExternalInterface();
+			
+			if (getEditableSettingFromURL())
+				addHistorySlider();
 		}
 		
+		private var log:SessionStateLog;
+		private function addHistorySlider():void
+		{
+			// beta undo/redo feature
+			log = new SessionStateLog(Weave.root);
+			
+			var hb:HBox = new HBox();
+			hb.percentWidth = 100;
+			addChildAt(hb, 0);
+			
+			var undoButton:Button = new Button();
+			undoButton.label="<";
+			undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.undo(); });
+			hb.addChild(undoButton);
+			
+			var redoButton:Button = new Button();
+			redoButton.label=">";
+			redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.redo(); });
+			hb.addChild(redoButton);
+			
+			var hs:HSlider = new HSlider();
+			hb.addChild(hs);
+			hs.percentWidth = 100;
+			hs.setStyle("bottom", 0);
+			hs.minimum = 0;
+			hs.liveDragging = true;
+			hs.tickInterval = 1;
+			hs.snapInterval = 1;
+			hs.addEventListener(Event.CHANGE, handleHistorySlider);
+			function handleHistorySlider():void
+			{
+				var delta:int = hs.value - log.undoHistory.length;
+				while (delta < 0)
+				{
+					log.undo();
+					delta++;
+				}
+				while (delta > 0)
+				{
+					log.redo();
+					delta--;
+				}
+			}
+			
+			getCallbackCollection(log).addImmediateCallback(this, updateHistorySlider, null, true);
+			function updateHistorySlider():void
+			{
+				hs.maximum = log.undoHistory.length + log.redoHistory.length;
+				hs.value = log.undoHistory.length;
+			}
+		}
 
 		
 		/** BEGIN CONTEXT MENU CODE **/
