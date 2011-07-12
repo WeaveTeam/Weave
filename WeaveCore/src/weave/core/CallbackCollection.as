@@ -419,7 +419,7 @@ package weave.core
 			// make sure the actual function is not already added as a callback.
 			removeCallback(groupedCallback);
 			
-			// prevent grouped callback from running immediately
+			// prevent grouped callback from running immediately because that is unexpected
 			var _previouslyRunningGroupedCallbacks:Boolean = _runningGroupedCallbacksNow;
 			_runningGroupedCallbacksNow = false;
 			
