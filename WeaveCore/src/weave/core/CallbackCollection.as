@@ -179,7 +179,8 @@ package weave.core
 					_callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
 					continue;
 				}
-				if (entry.recursionCount <= entry.recursionLimit)
+				// if preCallbackParams are specified, we don't want to limit recursion because that would cause a loss of information.
+				if (entry.recursionCount <= entry.recursionLimit || preCallbackParams.length > 0)
 				{
 					entry.recursionCount++; // increase count to signal that we are currently running this callback.
 					if (_preCallback != null)
@@ -418,7 +419,7 @@ package weave.core
 			// make sure the actual function is not already added as a callback.
 			removeCallback(groupedCallback);
 			
-			// prevent grouped callback from running immediately
+			// prevent grouped callback from running immediately because that is unexpected
 			var _previouslyRunningGroupedCallbacks:Boolean = _runningGroupedCallbacksNow;
 			_runningGroupedCallbacksNow = false;
 			

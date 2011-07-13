@@ -269,7 +269,7 @@
 
 				// bar axis auto min,max would be -0.5, numBars-0.5.  we don't want that.
 				barAxisLayer.axisPlotter.tickMinValue.value = 0;
-				barAxisLayer.axisPlotter.tickMaxValue.value = _plotter.numBarsShown-1;
+				barAxisLayer.axisPlotter.tickMaxValue.value = _plotter.numBarsShown - 1;
 				barAxisLayer.axisPlotter.forceTickCount.value = showAllLabels.value;
 				if (showAllLabels.value)
 					barAxisLayer.axisPlotter.tickCountRequested.value = _plotter.numBarsShown;

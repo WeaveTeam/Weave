@@ -81,7 +81,7 @@ package weave.data.KeySets
 				return;
 			
 			// from the IQualifiedKey objects, generate the session state
-			var _keyTypeToKeysMap:Object = new Object();
+			var _keyTypeToKeysMap:Object = {};
 			for each (var key:IQualifiedKey in _keys)
 			{
 				if (_keyTypeToKeysMap[key.keyType] == undefined)
@@ -128,7 +128,7 @@ package weave.data.KeySets
 		public function replaceKeys(newKeys:Array):Boolean
 		{
 			if (newKeys == _keys)
-				return false;
+				_keys = _keys.concat();
 			
 			var key:Object;
 			var changeDetected:Boolean = false;
@@ -159,9 +159,17 @@ package weave.data.KeySets
 			}
 			_keys.length = outputIndex; // trim to actual length
 			// loop through old keys and see if any were removed
-			for (key in prevKeyIndex)
-				if (_keyIndex[key] == undefined) // if this previous key is gone now, change detected
-					changeDetected = true;
+			if (!changeDetected)
+			{
+				for (key in prevKeyIndex)
+				{
+					if (_keyIndex[key] == undefined) // if this previous key is gone now, change detected
+					{
+						changeDetected = true;
+						break;
+					}
+				}
+			}
 
 			if (changeDetected)
 				updateSessionState();

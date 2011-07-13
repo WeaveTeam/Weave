@@ -79,7 +79,7 @@ package weave.visualization.plotters
 		// the service and its parameters
 		private var _service:IWMSService = null;
 		public const preferLowerQuality:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.NASA), setProvider);
+		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.NASA, verifyServiceName), setProvider);
 		public const srs:LinkableString = newSpatialProperty(LinkableString); // needed for linking MapTool settings
 		public const styles:LinkableString = newNonSpatialProperty(LinkableString, setStyle); // needed for changing seasons
 		public const displayMissingImage:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
@@ -384,9 +384,10 @@ package weave.visualization.plotters
 				disposeObjects(_service);
 			}
 			
-			// TEMPORARY SOLUTION
-			// if there is no provider (which may happen due to ComboBox issue), default to NASA
-			if (provider == '' || provider == null)
+			// TEMPORARY SOLUTION (this should be handled by the verifyServiceName() function)
+			// if there is no valid provider (which may happen due to ComboBox issue or manual change in session state),
+			// default to NASA
+			if (provider == '' || provider == null) // || WMSProviders.providers.indexOf(provider) < 0)
 			{
 				serviceName.delayCallbacks(); // prevent a recursive callback call for next line
 				serviceName.value = WMSProviders.NASA;
@@ -410,7 +411,7 @@ package weave.visualization.plotters
 			// determine maximum bounds for reprojecting images
 			_allowedTileReprojBounds.copyFrom(_latLonBounds);
 			projManager.transformBounds("EPSG:4326", WMSProviders.getSRS(provider), _allowedTileReprojBounds);
-			_spatialCallbacks.triggerCallbacks();
+			spatialCallbacks.triggerCallbacks();
 		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -458,6 +459,14 @@ package weave.visualization.plotters
 				return;
 			
 			nasaService.changeStyleToMonth(style);
+		}
+		
+		private function verifyServiceName(s:String):Boolean
+		{
+			if (s == null || s == '')
+				return false;
+			
+			return WMSProviders.providers.indexOf(s) >= 0;
 		}
 	}
 }

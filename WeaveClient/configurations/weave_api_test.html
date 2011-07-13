@@ -1,14 +1,14 @@
 <!-- saved from url=(0014)about:internet -->
 <html lang="en">
 
-<!-- 
-Smart developers always View Source. 
+<!--
+Smart developers always View Source.
 
 This application was built using Adobe Flex, an open source framework
 for building rich Internet applications that get delivered via the
-Flash Player or to desktops via Adobe AIR. 
+Flash Player or to desktops via Adobe AIR.
 
-Learn more about Flex at http://flex.org 
+Learn more about Flex at http://flex.org
 // -->
 
 <head>
@@ -42,26 +42,34 @@ var requiredRevision = 124;
 		<option>setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean</option>
 		<option>getObjectType(objectPath:Array):String</option>
 		<option>getChildNames(objectPath:Array):Array</option>
-		<option>setChildNameOrder(hashMapPath:Array, orderedChildNames:Array):Boolean</option>
+		<option>setChildNameOrder(objectMapPath:Array, orderedChildNames:Array):Boolean</option>
 		<option>requestObject(objectPath:Array, objectType:String):Boolean</option>
 		<option>removeObject(objectPath:Array):Boolean</option>
-		<!-- 
+		<!--
 		<option>convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):XML</option>
 		<option>convertSessionStateXMLToObject(sessionStateXML:*):Object</option>
 		 -->
 	</select><br>
 	param1: <input id="input1" type="text" size="40" value="defaultSelectionKeySet"/><br>
-	param2: <input id="input2" type="text" size="40" value="Burlington,Provincetown"/><br>
+	param2: <input id="input2" type="text" size="40" value="US State FIPS Code,01,28"/><br>
 	<button onclick="testWeaveAPI()">Test API Function</button><br>
 	<br>
 	<button onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button><br>
 	<button onclick="testSwap()">Swap x,y on ScatterPlot</button><br>
-	<button onclick="weave.setChildNameOrder([], ['ColorBinLegendTool'])">Bring legend to foreground</button><br>
+	<button onclick="showLegend()">Bring legend to foreground</button><br>
 </td><td width="100%" height="100%">
 	<textarea id="resultTextArea" cols="80" rows="10"></textarea>
 </td></tr></table>
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
+
+function showLegend()
+{
+	weave.requestObject(['ColorBinLegendTool'],'ColorBinLegendTool');
+	weave.setSessionState(['ColorBinLegendTool'], {panelX:'40%',panelY:'30%'});
+	weave.setChildNameOrder([], ['ColorBinLegendTool'])
+}
+
 // this function counts the number of required parameters in the selected api function
 function countRequiredParams()
 {

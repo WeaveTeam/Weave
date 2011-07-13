@@ -116,7 +116,7 @@ package weave.visualization.plotters
 		 * Spatial properties are those that affect the data bounds of visual elements.
 		 * Whenever these callbacks get called, data bounds values returned from getDataBoundsFromRecordKey() become invalid.
 		 */
-		public function get spatialCallbacks():ICallbackInterface
+		public function get spatialCallbacks():ICallbackCollection
 		{
 			return _spatialCallbacks;
 		}

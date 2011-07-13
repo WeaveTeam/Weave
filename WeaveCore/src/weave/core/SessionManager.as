@@ -961,7 +961,15 @@ package weave.core
 			// copySessionState is a function that takes zero parameters and sets the bindable value.
 			var setBindableProperty:Function = function():void
 			{
-				bindableParent[bindablePropertyName] = linkableVariable.getSessionState();
+				var value:Object = linkableVariable.getSessionState();
+				if (bindableParent[bindablePropertyName] is Number && !(value is Number))
+				{
+					try {
+						linkableVariable.setSessionState(Number(value));
+						value = linkableVariable.getSessionState();
+					} catch (e:Error) { }
+				}
+				bindableParent[bindablePropertyName] = value;
 			};
 			// copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
 			// because that will copy from the bindable property to the sessioned property.

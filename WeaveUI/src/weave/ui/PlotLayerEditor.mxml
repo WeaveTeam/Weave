@@ -314,6 +314,7 @@
 						import weave.Weave;
 						import weave.api.core.ILinkableHashMap;
 						import weave.api.core.ILinkableObject;
+						import weave.api.data.AttributeColumnMetadata;
 						import weave.api.getCallbackCollection;
 						import weave.api.linkBindableProperty;
 						import weave.api.ui.IPlotLayer;
@@ -325,6 +326,8 @@
 						import weave.core.SessionManager;
 						import weave.core.weave_internal;
 						import weave.data.AttributeColumns.GeometryColumn;
+						import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+						import weave.primitives.Geometry;
 						import weave.services.wms.AbstractWMS;
 						import weave.services.wms.WMSProviders;
 						import weave.ui.AttributeSelectorPanel;
@@ -522,7 +525,33 @@
 						
 						private function updateLabel(value:Object = null):void
 						{
-							_label = getLabel((value || data) as IPlotLayer);
+							var layer:IPlotLayer = (value || data) as IPlotLayer;
+							_label = getLabel(layer);
+							if (!layer)
+								return;
+							if (layer.plotter is DynamicPlotter)
+							{
+								var dynPlotter:DynamicPlotter = layer.plotter as DynamicPlotter;
+								var plotter:IPlotter = dynPlotter.internalObject as IPlotter;
+								var projLabel:String = '';
+								var projString:String;
+								if (plotter is GeometryPlotter)
+								{
+									// use the column as a geometry column to get the source projection
+									var column:ReprojectedGeometryColumn = (plotter as GeometryPlotter).geometryColumn as ReprojectedGeometryColumn;
+									if (column)
+									{
+										projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
+										if (projString != null)
+											projLabel = ' (' + projString + ')';
+									}
+								}
+								else if (plotter is WMSPlotter)
+								{
+									projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).serviceName.value) + ')'; 
+								}
+								_label += projLabel;
+							}
 						}
 						
 						[Bindable]private var _label:String = "";

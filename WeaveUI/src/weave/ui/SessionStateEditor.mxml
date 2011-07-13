@@ -120,7 +120,7 @@
 			use namespace weave_internal;
 
 		    private var selectors:Array = null;
-		    
+
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -144,28 +144,19 @@
 		    	
 				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
 				
-				var editor:String = Weave.properties.sessionStateEditor.value;
-				if (editor == TEXT_EDITOR)
+				if (_editor == TEXT_EDITOR)
 				{
 					editorBox.removeChild(sessionStateDataGrid);
 					editorBox.addChild(sessionStateTextArea);
 					sessionStateTextArea.visible = true;
 					sessionStateTextArea.enabled = true;
 				}
-				else if (editor == DATA_GRID)
+				else 
 				{
 					editorBox.removeChild(sessionStateTextArea);
 					editorBox.addChild(sessionStateDataGrid);
 					sessionStateDataGrid.visible = true;
 					sessionStateDataGrid.enabled = true;
-				}
-				else // invalid value--set to default
-				{
-					editorBox.removeChild(sessionStateTextArea);
-					editorBox.addChild(sessionStateDataGrid);
-					sessionStateDataGrid.visible = true;
-					sessionStateDataGrid.enabled = true;
-					Weave.properties.sessionStateEditor.value = DATA_GRID;
 				}
 				
 				_nameColumn.editable = false;
@@ -312,7 +303,7 @@
 			{
 				var i:int;
 				var searchTerm:String = search.text.toLowerCase();
-				if (Weave.properties.sessionStateEditor.value == TEXT_EDITOR)
+				if (_editor == TEXT_EDITOR)
 				{
 					var text:String = sessionStateTextArea.text.toLowerCase();
 					// search through the text
@@ -328,7 +319,7 @@
 						//end of file reached. start search again.
 					}
 				}
-				else if (Weave.properties.sessionStateEditor.value == DATA_GRID)
+				else if (_editor == DATA_GRID)
 				{
 					// this loop is to make sure we wrap around to find it
 					for (var j:int = 0; j < 2; ++j)
@@ -438,11 +429,11 @@
 
 			private function handleToggleViewClick():void
 			{
-				var oldValue:String = Weave.properties.sessionStateEditor.value;
+				var oldValue:String = _editor;
 				if (oldValue == TEXT_EDITOR)
 				{
 					//toggleView.label = "Text Editor View";
-					Weave.properties.sessionStateEditor.value = DATA_GRID;
+					_editor = DATA_GRID;
 					editorBox.removeChild(sessionStateTextArea);
 					editorBox.addChild(sessionStateDataGrid);
 					
@@ -459,7 +450,7 @@
 				else if (oldValue == DATA_GRID)
 				{
 					//toggleView.label = "Data Grid View";
-					Weave.properties.sessionStateEditor.value = TEXT_EDITOR;
+					_editor = TEXT_EDITOR;
 					editorBox.removeChild(sessionStateDataGrid);
 					editorBox.addChild(sessionStateTextArea);
 					
@@ -476,12 +467,12 @@
 			
 			private function clearAndDisableView():void
 			{
-				if (Weave.properties.sessionStateEditor.value == TEXT_EDITOR)
+				if (_editor == TEXT_EDITOR)
 				{
 					sessionStateTextArea.text = '';
 					sessionStateTextArea.enabled = false;
 				}
-				else if (Weave.properties.sessionStateEditor.value == DATA_GRID)
+				else if (_editor == DATA_GRID)
 				{
 					sessionStateDataGrid.dataProvider = [ {Name: '', Value: ' '} ];
 					sessionStateDataGrid.enabled = false;
@@ -489,13 +480,13 @@
 			}
 			private function enableView():void
 			{
-				if (Weave.properties.sessionStateEditor.value == TEXT_EDITOR)
+				if (_editor == TEXT_EDITOR)
 				{
 					sessionStateTextArea.text = ' ';
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.visible = true;
 				}
-				else if (Weave.properties.sessionStateEditor.value == DATA_GRID)
+				else if (_editor == DATA_GRID)
 				{
 					sessionStateDataGrid.dataProvider = [ {Name: ' ', Value: ' '} ];
 					sessionStateDataGrid.enabled = true;
@@ -503,6 +494,7 @@
 				}
 			}
 			
+			private var _editor:String = DATA_GRID;
 			private const _nameColumn:DataGridColumn = new DataGridColumn("Name");
 			private const _valueColumn:DataGridColumn = new DataGridColumn("Value");
 			public static const TEXT_EDITOR:String = WeaveProperties.TEXT_EDITOR;
@@ -521,7 +513,7 @@
 					vsp = 0;
 				}
 
-				if (Weave.properties.sessionStateEditor.value == TEXT_EDITOR)
+				if (_editor == TEXT_EDITOR)
 				{
 					var vsp:Number = sessionStateTextArea.verticalScrollPosition;
 					var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
@@ -533,7 +525,7 @@
 					sessionStateTextArea.verticalScrollPosition = vsp;
 					sessionStateTextArea.horizontalScrollPosition = hsp;
 				}
-				else if (Weave.properties.sessionStateEditor.value == DATA_GRID)
+				else if (_editor == DATA_GRID)
 				{
 					var i:int;
 					
@@ -625,7 +617,7 @@
 				
 				if (_currentSelectedObject != null)
 				{
-					if (Weave.properties.sessionStateEditor.value == TEXT_EDITOR && _currentSessionStateXML != null)
+					if (_editor == TEXT_EDITOR && _currentSessionStateXML != null)
 					{
 						_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
 						
@@ -633,7 +625,7 @@
 						
 						setSessionState(_currentSelectedObject, decodedStateObject, true);
 					}
-					else if (Weave.properties.sessionStateEditor.value == DATA_GRID && _currentSessionStateDataProvider != null)
+					else if (_editor == DATA_GRID && _currentSessionStateDataProvider != null)
 					{
 						var newSessionState:Object;
 						var i:int, j:int;

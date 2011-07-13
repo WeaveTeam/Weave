@@ -170,16 +170,23 @@ package weave.core
 			
 			var args:Array;
 			var stackTrace:String;
+			var calls:Array;
+			var i:int;
 
 			// first run the functions that cannot be delayed more than one frame.
-			while (_callLaterSingleFrameDelayArray.length > 0)
+			if (_callLaterSingleFrameDelayArray.length > 0)
 			{
-				// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
-				args = _callLaterSingleFrameDelayArray.shift();
-				stackTrace = _stackTraceMap[args];
-				// don't call the function if the relevantContext was disposed of.
-				if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(args[0]))
-					(args[1] as Function).apply(null, args[2]);
+				calls = _callLaterSingleFrameDelayArray;
+				_callLaterSingleFrameDelayArray = [];
+				for (i = 0; i < calls.length; i++)
+				{
+					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
+					args = calls[i] as Array;
+					stackTrace = _stackTraceMap[args];
+					// don't call the function if the relevantContext was disposed of.
+					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(args[0]))
+						(args[1] as Function).apply(null, args[2]);
+				}
 			}
 			
 			if (_callLaterArray.length > 0)
@@ -188,9 +195,9 @@ package weave.core
 				// Make a copy of the function calls and clear the static array before executing any functions.
 				// This allows the static array to be filled up as a result of executing the functions,
 				// and prevents from newly added functions from being called until the next frame.
-				var calls:Array = _callLaterArray;
+				calls = _callLaterArray;
 				_callLaterArray = [];
-				for (var i:int = 0; i < calls.length; i++)
+				for (i = 0; i < calls.length; i++)
 				{
 					// if elapsed time reaches threshold, call everything else later
 					if (getTimer() - _currentFrameStartTime > maxComputationTimePerFrame)
@@ -238,7 +245,7 @@ package weave.core
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
 		 * This array gets populated by callLater().
 		 */
-		private static const _callLaterSingleFrameDelayArray:Array = [];
+		private static var _callLaterSingleFrameDelayArray:Array = [];
 		
 		/**
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
@@ -295,7 +302,7 @@ package weave.core
 		 * This is a mapping from an event type to a callback collection associated with it.
 		 * Event types are those defined in static constants of the MouseEvent class.
 		 */
-		private static const _callbackCollections:Object = new Object();
+		private static const _callbackCollections:Object = {};
 		
 		/**
 		 * initialize static callback collections.

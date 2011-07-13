@@ -62,6 +62,7 @@ package weave.visualization.plotters
 			linkSessionState(Weave.properties.axisFontBold, axisFontBold);
 			linkSessionState(Weave.properties.axisFontItalic, axisFontItalic);
 			linkSessionState(Weave.properties.axisFontUnderline, axisFontUnderline);
+			spatialCallbacks.addImmediateCallback(this, updateLabels);
 			
 			setKeySource(_keySet);
 		}
@@ -85,21 +86,21 @@ package weave.visualization.plotters
 		// the axis line beginning and end data coordinates
 		public const axisLineDataBounds:LinkableBounds2D = newSpatialProperty(LinkableBounds2D);
 		// the value corresponding to the beginning of the axis line
-		public const axisLineMinValue:LinkableNumber = newSpatialProperty(LinkableNumber, updateLabels);
+		public const axisLineMinValue:LinkableNumber = newSpatialProperty(LinkableNumber);
 		// the value corresponding to the end of the axis line
-		public const axisLineMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber, updateLabels);
+		public const axisLineMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber);
 		// the value corresponding to the beginning of the axis line.  If not specified, axisLineMinValue will be used.
-		public const tickMinValue:LinkableNumber = newSpatialProperty(LinkableNumber, updateLabels);
+		public const tickMinValue:LinkableNumber = newSpatialProperty(LinkableNumber);
 		// the value corresponding to the end of the axis line.  If not specified, axisLineMaxValue will be used.
-		public const tickMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber, updateLabels);
+		public const tickMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
 		public const overrideAxisName:LinkableString = newNonSpatialProperty(LinkableString);
 		// show or hide the axis name
 		public const showAxisName:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
 		// number of requested tick marks
-		public const tickCountRequested:LinkableNumber = registerSpatialProperty(new LinkableNumber(10), updateLabels);
+		public const tickCountRequested:LinkableNumber = registerSpatialProperty(new LinkableNumber(10));
 		// This option forces the axis to generate the exact number of requested tick marks between tick min and max values (inclusive)
-		public const forceTickCount:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateLabels);
+		public const forceTickCount:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		// formatter to use when generating tick mark labels
 		public const labelNumberFormatter:LinkableNumberFormatter = newNonSpatialProperty(LinkableNumberFormatter);
@@ -148,14 +149,12 @@ package weave.visualization.plotters
 				if (axisLineMinValue.value <= tickValue && tickValue <= axisLineMaxValue.value)
 					newKeys.push(WeaveAPI.QKeyManager.getQKey(null, String(i)));
 			}
-			if(showRealMinAndMax)
+			if (showRealMinAndMax)
 				newKeys.push(MAX_LABEL_KEY);
 			
 			var keysChanged:Boolean = _keySet.replaceKeys(newKeys);
 			
-			// make sure callbacks run whether or not keys changed
-			for each (cc in callbackCollections)
-				cc.triggerCallbacks();
+			// allow callbacks to run now
 			for each (cc in callbackCollections)
 				cc.resumeCallbacks();
 		}

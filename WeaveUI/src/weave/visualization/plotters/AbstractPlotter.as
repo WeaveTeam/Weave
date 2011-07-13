@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -53,10 +54,6 @@ package weave.visualization.plotters
 		public function AbstractPlotter()
 		{
 			spatialCallbacks.addImmediateCallback(this, returnPooledObjects);
-			
-			// add callbacks to the spatial properties that were created before spatialCallbackCollection was created.
-			while (pendingSpatialProperties != null && pendingSpatialProperties.length > 0)
-				registerLinkableChild(spatialCallbacks, pendingSpatialProperties.shift());
 		}
 		
 		/**
@@ -96,18 +93,14 @@ package weave.visualization.plotters
 		}
 
 		/**
-		 * This is a list of spatial properties that we haven't added callbacks to yet.
-		 */
-		private var pendingSpatialProperties:Array;
-		
-		/**
 		 * This function creates a new registered linkable child of the plotter whose callbacks will also trigger the spatial callbacks.
 		 * @return A new instance of the specified class that is registered as a spatial property.
 		 */
 		protected function newSpatialProperty(linkableChildClass:Class, callback:Function = null):*
 		{
 			var child:ILinkableObject = newLinkableChild(this, linkableChildClass, callback);
-			_registerSpatialChild(child);
+			getCallbackCollection(child).removeCallback(getCallbackCollection(this).triggerCallbacks); // avoid unnecessary duplicate trigger
+			registerLinkableChild(spatialCallbacks, child, callback);
 			return child;
 		}
 		
@@ -119,22 +112,9 @@ package weave.visualization.plotters
 		protected function registerSpatialProperty(child:ILinkableObject, callback:Function = null):*
 		{
 			registerLinkableChild(this, child, callback);
-			_registerSpatialChild(child);
+			getCallbackCollection(child).removeCallback(getCallbackCollection(this).triggerCallbacks); // avoid unnecessary duplicate trigger
+			registerLinkableChild(spatialCallbacks, child, callback);
 			return child;
-		}
-		
-		private function _registerSpatialChild(child:ILinkableObject):void
-		{
-			if (spatialCallbacks)
-			{
-				registerLinkableChild(spatialCallbacks, child);
-			}
-			else
-			{
-				if (pendingSpatialProperties == null)
-					pendingSpatialProperties = []
-				pendingSpatialProperties.push(child);
-			}
 		}
 		
 		/**
@@ -186,14 +166,20 @@ package weave.visualization.plotters
 			returnPooledObjects();
 		}
 		
-		protected const _spatialCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
+		/**
+		 * This variable should not be set manually.  It cannot be made constant because we cannot guarantee that it will be initialized
+		 * before other properties are initialized, which means it may be null when someone wants to call registerSpatialProperty().
+		 */		
+		private var _spatialCallbacks:ICallbackCollection = null;
 
 		/**
 		 * This is an interface for adding callbacks that get called when any spatial properties of the plotter change.
 		 * Spatial properties are those that affect the data bounds of visual elements.
 		 */
-		public function get spatialCallbacks():ICallbackInterface
+		public function get spatialCallbacks():ICallbackCollection
 		{
+			if (_spatialCallbacks == null)
+				_spatialCallbacks = newLinkableChild(this, CallbackCollection);
 			return _spatialCallbacks;
 		}
 

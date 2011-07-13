@@ -22,13 +22,16 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.registerDisposableChild;
+	import weave.api.setSessionState;
 
 	/**
-	 * This class records the session history of an ILinkableObject.
+	 * This class saves the session history of an ILinkableObject.
 	 * 
 	 * @author adufilie
 	 */
@@ -37,114 +40,179 @@ package weave.core
 		public function SessionStateLog(subject:ILinkableObject)
 		{
 			_subject = subject;
-			_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
-			WeaveAPI.SessionManager.registerDisposableChild(_subject, this);
-			WeaveAPI.SessionManager.getCallbackCollection(_subject).addGroupedCallback(this, handleDiff);
+			_prevState = getSessionState(_subject); // remember the initial state
+			registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
+			
+			var cc:ICallbackCollection = getCallbackCollection(_subject);
+			cc.addImmediateCallback(this, immediateCallback);
+			cc.addGroupedCallback(this, groupedCallback);
 		}
+		
+		private var debug:Boolean = false;
 		
 		public function dispose():void
 		{
 			_subject = null;
-			_history = null;
-			_future = null;
+			_undoHistory = null;
+			_redoHistory = null;
 		}
 		
 		private var _subject:ILinkableObject;
 		private var _prevState:Object = null;
-		private var _history:Array = [];
-		private var _future:Array = [];
+		private var _undoHistory:Array = [];
+		private var _redoHistory:Array = [];
 		private var _serial:int = 0;
-		private var _lastDiffID:Number = 0;
 		private var _undoActive:Boolean = false;
+		private var _redoActive:Boolean = false;
 		
-		private function handleDiff(diffID:Number = Infinity):void
+		private var _saveLater:Boolean = false;
+		private var _savePending:Boolean = false;
+		
+		private function immediateCallback():void
 		{
-			if (diffID < _lastDiffID) // more than one diff per frame
+			// we have to wait until grouped callbacks are called before we save the diff
+			_saveLater = true;
+			
+			// make sure only one call to saveDiff() is pending
+			if (!_savePending)
 			{
-				return;
+				_savePending = true;
+				saveDiff();
 			}
-			if (diffID == Infinity) // called as a grouped callback
+		}
+		
+		private function groupedCallback():void
+		{
+			// Since grouped callbacks are currently running, it means something changed, so make sure the diff is saved.
+			immediateCallback();
+			// It is ok to save a diff the frame after grouped callbacks are called.
+			// If callbacks are triggered again before the next frame, the immediateCallback will set this flag back to true.
+			_saveLater = false;
+		}
+		
+		private function saveDiff(immediately:Boolean = false):void
+		{
+			if (_saveLater && !immediately)
 			{
-				StageUtils.callLater(this, handleDiff, [++_lastDiffID]);
-				return;
-			}
-			if (diffID == _lastDiffID) // called 1 frame after grouped callback
-			{
-				StageUtils.callLater(this, handleDiff, [++_lastDiffID + 1]);
+				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
+				StageUtils.callLater(this, saveDiff, null, false);
 				return;
 			}
 			
-			// diff > lastDiff means it is now 2 frames after the last diff
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
 			
-			var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
-			
-			var diff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
-			if (diff != undefined)
+			var state:Object = getSessionState(_subject);
+			var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+			if (forwardDiff !== undefined)
 			{
-				var backDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
+				var backwardDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
+				var item:LogEntry;
 				if (_undoActive)
-					_future.unshift(new LogEntry(_serial++, backDiff, diff)); // reverse
+				{
+					item = new LogEntry(_serial++, backwardDiff, forwardDiff);
+					// overwrite first redo entry because grouped callbacks may have behaved differently
+					_redoHistory[0] = item;
+				}
 				else
-					_history.push(new LogEntry(_serial++, diff, backDiff));
+				{
+					item = new LogEntry(_serial++, forwardDiff, backwardDiff);
+					if (_redoActive)
+					{
+						// overwrite last undo entry because grouped callbacks may have behaved differently
+						_undoHistory[_undoHistory.length - 1] = item;
+					}
+					else
+					{
+						// save new undo entry
+						_undoHistory.push(item);
+					}
+				}
 				
-				debugHistory(true);
+				if (debug)
+					debugHistory(item);
 				
-				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+				cc.triggerCallbacks();
 			}
 			
 			_prevState = state;
 			_undoActive = false;
+			_redoActive = false;
+			_savePending = false;
+			
+			cc.resumeCallbacks();
 		}
 
-		private function debugHistory(showLastDiff:Boolean):void
-		{
-			var h:Array = _history.concat();
-			for (var i:int = 0; i < h.length; i++)
-				h[i] = h[i].id;
-			var f:Array = _future.concat();
-			for (i = 0; i < f.length; i++)
-				f[i] = f[i].id;
-			if (_history.length > 0)
-			{
-				var item:LogEntry = _history[_history.length - 1];
-				trace("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-				trace('NEW HISTORY (backward) ' + item.id + ':', ObjectUtil.toString(item.backward));
-				trace("===============================================================");
-				trace('NEW HISTORY (forward) ' + item.id + ':', ObjectUtil.toString(item.forward));
-				trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-			}
-			trace('history ['+h+']','future ['+f+']');
-		}
-		
 		public function undo():void
 		{
-			if (_history.length > 0)
+			if (_undoHistory.length > 0)
 			{
-				_undoActive = true;
-				var item:LogEntry = _history.pop();
-				trace('apply undo ' + item.id + ':', ObjectUtil.toString(item.backward));
-				WeaveAPI.SessionManager.setSessionState(_subject, item.backward, false);
+				if (_undoActive || _redoActive) // if we are performing several consecutive undo/redo actions, avoid computing intermediate diffs
+					_prevState = getSessionState(_subject);
+				else if (_savePending) // otherwise, if the session state changed, compute the diff now
+					saveDiff(true);
+				
+				var item:LogEntry = _undoHistory.pop();
+				_redoHistory.unshift(item);
+				if (debug)
+					trace('apply undo ' + item.id + ':', ObjectUtil.toString(item.backward));
+				setSessionState(_subject, item.backward, false);
+				_undoActive = _savePending;
+				_redoActive = false;
+				
+				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		
 		public function redo():void
 		{
-			if (_future.length > 0)
+			if (_redoHistory.length > 0)
 			{
-				var item:LogEntry = _future.shift();
-				trace('apply redo ' + item.id + ':',ObjectUtil.toString(item.forward));
-				WeaveAPI.SessionManager.setSessionState(_subject, item.forward, false);
+				if (_undoActive || _redoActive) // if we are performing several consecutive undo/redo actions, avoid computing intermediate diffs
+					_prevState = getSessionState(_subject);
+				else if (_savePending) // otherwise, if session state changed, compute the diff now
+					saveDiff(true);
+				
+				var item:LogEntry = _redoHistory.shift();
+				_undoHistory.push(item);
+				if (debug)
+					trace('apply redo ' + item.id + ':',ObjectUtil.toString(item.forward));
+				setSessionState(_subject, item.forward, false);
+				_redoActive = _savePending;
+				_undoActive = false;
+				
+				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		
-		public function get history():Array
+		public function get undoHistory():Array
 		{
-			return _history;
+			return _undoHistory;
 		}
 		
-		public function get future():Array
+		public function get redoHistory():Array
 		{
-			return _future;
+			return _redoHistory;
+		}
+
+		private function debugHistory(logEntry:LogEntry):void
+		{
+			var h:Array = _undoHistory.concat();
+			for (var i:int = 0; i < h.length; i++)
+				h[i] = h[i].id;
+			var f:Array = _redoHistory.concat();
+			for (i = 0; i < f.length; i++)
+				f[i] = f[i].id;
+			if (logEntry)
+			{
+				var type:String = _redoActive ? "REDO" : "UNDO";
+				trace("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+				trace('NEW ' + type + ' ENTRY (backward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.backward));
+				trace("===============================================================");
+				trace('NEW ' + type + ' ENTRY (forward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.forward));
+				trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			}
+			trace('undo ['+h+']','redo ['+f+']');
 		}
 	}
 }
