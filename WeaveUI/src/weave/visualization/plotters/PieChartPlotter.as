@@ -30,7 +30,9 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
@@ -55,17 +57,6 @@ package weave.visualization.plotters
 			init();
 		}
 		
-		private var _beginRadians:EquationColumn;
-		private var _spanRadians:EquationColumn;
-		private var _filteredData:FilteredColumn;
-		private var _labelColumn:DynamicColumn = new DynamicColumn();
-		
-		public function get data():DynamicColumn { return _filteredData.internalDynamicColumn; }
-		public function get label():DynamicColumn {return _labelColumn;}
-		
-		public const lineStyle:DynamicLineStyle = new DynamicLineStyle(SolidLineStyle);
-		public const fillStyle:DynamicFillStyle = new DynamicFillStyle(SolidFillStyle);
-		
 		private function init():void
 		{
 			var fill:SolidFillStyle = fillStyle.internalObject as SolidFillStyle;
@@ -79,11 +70,26 @@ package weave.visualization.plotters
 			_filteredData = sortedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
 			
-			registerSpatialProperties(data);
-			registerNonSpatialProperties(fillStyle, lineStyle, label);
+			registerSpatialProperty(data);
 			setKeySource(_filteredData);
 		}
 
+		private var _beginRadians:EquationColumn;
+		private var _spanRadians:EquationColumn;
+		private var _filteredData:FilteredColumn;
+		
+		public function get data():DynamicColumn { return _filteredData.internalDynamicColumn; }
+		public const label:DynamicColumn = newNonSpatialProperty(DynamicColumn);
+		
+		public const lineStyle:DynamicLineStyle = registerNonSpatialProperty(new DynamicLineStyle(SolidLineStyle));
+		public const fillStyle:DynamicFillStyle = registerNonSpatialProperty(new DynamicFillStyle(SolidFillStyle));
+		public const labelAngleRatio:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
+		
+		private function verifyLabelAngleRatio(value:Number):Boolean
+		{
+			return 0 <= value && value <= 1;
+		}
+		
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
 			// project data coordinates to screen coordinates and draw graphics
@@ -102,60 +108,63 @@ package weave.visualization.plotters
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (_labelColumn.keys.length == 0) return;
-				
+			if (label.keys.length == 0)
+				return;
+			
 			var recordKey:IQualifiedKey;
 			var beginRadians:Number;
 			var spanRadians:Number;
 			var midRadians:Number;
 			var xScreenRadius:Number;
 			var yScreenRadius:Number;
-			var coordinate:Point = new Point();
 			
-			for (var i:int ; i < _filteredData.keys.length ; i++)
+			for (var i:int; i < _filteredData.keys.length; i++)
 			{
-				if (_labelColumn.containsKey(_filteredData.keys[i] as IQualifiedKey) == false) return;
+				if (!label.containsKey(_filteredData.keys[i] as IQualifiedKey))
+					continue;
 				recordKey = _filteredData.keys[i] as IQualifiedKey;
 				beginRadians = _beginRadians.getValueFromKey(recordKey, Number) as Number;
 				spanRadians = _spanRadians.getValueFromKey(recordKey, Number) as Number;
 				midRadians = beginRadians + (spanRadians / 2);
 				
-				coordinate.x = Math.cos(midRadians);
-				coordinate.y = Math.sin(midRadians);
-				dataBounds.projectPointTo(coordinate, screenBounds);
-				coordinate.x += Math.cos(midRadians) * 10 * screenBounds.getXDirection();
-				coordinate.y += Math.sin(midRadians) * 10 * screenBounds.getYDirection();
+				var cos:Number = Math.cos(midRadians);
+				var sin:Number = Math.sin(midRadians);
 				
-				var labelText:BitmapText = new BitmapText();
-				labelText.text = ("  " + _labelColumn.getValueFromKey((_filteredData.keys[i] as IQualifiedKey)) + "  ");
-				if (midRadians < (Math.PI / 2) || midRadians > ((3 * Math.PI) / 2))
+				_tempPoint.x = cos;
+				_tempPoint.y = sin;
+				dataBounds.projectPointTo(_tempPoint, screenBounds);
+				_tempPoint.x += cos * 10 * screenBounds.getXDirection();
+				_tempPoint.y += sin * 10 * screenBounds.getYDirection();
+				
+				_bitmapText.text = label.getValueFromKey((_filteredData.keys[i] as IQualifiedKey));
+				
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				
+				_bitmapText.angle = screenBounds.getYDirection() * (midRadians * 180 / Math.PI);
+				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
+				if (cos > -0.000001) // the label exactly at the bottom will have left align
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
-				}
-				else if (midRadians == ((3 * Math.PI) / 2))
-				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
-				}
-				else if (midRadians == (Math.PI / 2))
-				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = ((_bitmapText.angle + 90) % 360 - 90) * labelAngleRatio.value;
 				}
 				else
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
-				
-				labelText.textFormat.color=Weave.properties.axisFontColor.value;
-				labelText.textFormat.size=Weave.properties.axisFontSize.value;
-				labelText.textFormat.underline=Weave.properties.axisFontUnderline.value;
-				labelText.x = coordinate.x;
-				labelText.y = coordinate.y;
-				labelText.draw(destination);
+				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+				_bitmapText.x = _tempPoint.x;
+				_bitmapText.y = _tempPoint.y;
+				_bitmapText.draw(destination);
 			}
 		}
+		
+		private const _tempPoint:Point = new Point();
+		private const _bitmapText:BitmapText = new BitmapText();
 		
 		/**
 		 * This gets the data bounds of the bin that a record key falls into.

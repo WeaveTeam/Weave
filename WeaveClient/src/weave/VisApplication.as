@@ -421,17 +421,24 @@ package weave
 		}
 		
 		private var _selectionIndicatorText:Text = new Text;
-		private static var selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-		// ToDo How to get the total number of records?
-		private function handleSelectionIndicatorCounterChange():void
+		private var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		private function handleSelectionChange():void
 		{
-			if (selection.keys.length == 0)
-				_selectionIndicatorText.visible = false;
-			else
+			_selectionIndicatorText.text = selectionKeySet.keys.length.toString() + " Records Selected";
+			try
 			{
-				_selectionIndicatorText.visible = true;
-				_selectionIndicatorText.text = selection.keys.length.toString() + " Records Selected";
+				if (selectionKeySet.keys.length == 0)
+				{
+					if (visDesktop.contains(_selectionIndicatorText))
+						visDesktop.removeChild(_selectionIndicatorText);
+				}
+				else
+				{
+					if (!visDesktop.contains(_selectionIndicatorText))
+						visDesktop.addChild(_selectionIndicatorText);
+				}
 			}
+			catch (e:Error) { }
 		}
 		
 		override protected function createChildren():void
@@ -481,9 +488,7 @@ package weave
 //			addEventListener(ResizeEvent.RESIZE,handleTabBarResize);
 			
 			// Code for selection indicator
-			getCallbackCollection(selection).addGroupedCallback(this, handleSelectionIndicatorCounterChange, true);
-			visDesktop.addChild(_selectionIndicatorText);
-			_selectionIndicatorText.visible = false;
+			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
 			_selectionIndicatorText.opaqueBackground = 0x000000;
 			_selectionIndicatorText.setStyle("bottom", 0);
