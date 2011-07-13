@@ -48,14 +48,14 @@ package weave.core
 			cc.addGroupedCallback(this, groupedCallback);
 		}
 		
-		private var debug:Boolean = false;
-		
 		public function dispose():void
 		{
 			_subject = null;
 			_undoHistory = null;
 			_redoHistory = null;
 		}
+		
+		private var debug:Boolean = false;
 		
 		private var _subject:ILinkableObject;
 		private var _prevState:Object = null;
@@ -143,44 +143,56 @@ package weave.core
 			cc.resumeCallbacks();
 		}
 
-		public function undo():void
+		public function undo(numberOfSteps:int = 1):void
 		{
-			if (_undoHistory.length > 0)
-			{
-				if (_undoActive || _redoActive) // if we are performing several consecutive undo/redo actions, avoid computing intermediate diffs
-					_prevState = getSessionState(_subject);
-				else if (_savePending) // otherwise, if the session state changed, compute the diff now
-					saveDiff(true);
-				
-				var item:LogEntry = _undoHistory.pop();
-				_redoHistory.unshift(item);
-				if (debug)
-					trace('apply undo ' + item.id + ':', ObjectUtil.toString(item.backward));
-				setSessionState(_subject, item.backward, false);
-				_undoActive = _savePending;
-				_redoActive = false;
-				
-				getCallbackCollection(this).triggerCallbacks();
-			}
+			applyDiffs(-numberOfSteps);
 		}
 		
-		public function redo():void
+		public function redo(numberOfSteps:int = 1):void
 		{
-			if (_redoHistory.length > 0)
+			applyDiffs(numberOfSteps);
+		}
+		
+		private function applyDiffs(delta:int):void
+		{
+			var stepsRemaining:int = Math.min(Math.abs(delta), delta < 0 ? _undoHistory.length : _redoHistory.length);
+			if (stepsRemaining > 0)
 			{
-				if (_undoActive || _redoActive) // if we are performing several consecutive undo/redo actions, avoid computing intermediate diffs
-					_prevState = getSessionState(_subject);
-				else if (_savePending) // otherwise, if session state changed, compute the diff now
+				var logEntry:LogEntry;
+				var diff:Object;
+				var debug:Boolean = this.debug && stepsRemaining == 1;
+				
+				// if something changed and we're not currently undoing/redoing, save the diff now
+				if (_savePending && !_undoActive && !_redoActive)
 					saveDiff(true);
 				
-				var item:LogEntry = _redoHistory.shift();
-				_undoHistory.push(item);
-				if (debug)
-					trace('apply redo ' + item.id + ':',ObjectUtil.toString(item.forward));
-				setSessionState(_subject, item.forward, false);
-				_redoActive = _savePending;
-				_undoActive = false;
+				getCallbackCollection(_subject).delayCallbacks();
+				while (stepsRemaining-- > 0)
+				{
+					if (delta < 0)
+					{
+						logEntry = _undoHistory.pop();
+						_redoHistory.unshift(logEntry);
+						diff = logEntry.backward;
+					}
+					else
+					{
+						logEntry = _redoHistory.shift();
+						_undoHistory.push(logEntry);
+						diff = logEntry.forward;
+					}
+					if (debug)
+						trace('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', ObjectUtil.toString(diff));
+					
+					// remember the session state right before applying the last step
+					if (stepsRemaining == 0)
+						_prevState = getSessionState(_subject);
+					setSessionState(_subject, diff, false);
+				}
+				getCallbackCollection(_subject).resumeCallbacks();
 				
+				_undoActive = delta < 0 && _savePending;
+				_redoActive = delta > 0 && _savePending;
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
@@ -205,11 +217,10 @@ package weave.core
 				f[i] = f[i].id;
 			if (logEntry)
 			{
-				var type:String = _redoActive ? "REDO" : "UNDO";
 				trace("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-				trace('NEW ' + type + ' ENTRY (backward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.backward));
+				trace('NEW HISTORY (backward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.backward));
 				trace("===============================================================");
-				trace('NEW ' + type + ' ENTRY (forward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.forward));
+				trace('NEW HISTORY (forward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.forward));
 				trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 			}
 			trace('undo ['+h+']','redo ['+f+']');

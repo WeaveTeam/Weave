@@ -1465,16 +1465,10 @@ package weave
 			function handleHistorySlider():void
 			{
 				var delta:int = hs.value - log.undoHistory.length;
-				while (delta < 0)
-				{
-					log.undo();
-					delta++;
-				}
-				while (delta > 0)
-				{
-					log.redo();
-					delta--;
-				}
+				if (delta < 0)
+					log.undo(-delta);
+				else
+					log.redo(delta);
 			}
 			
 			getCallbackCollection(log).addImmediateCallback(this, updateHistorySlider, null, true);
