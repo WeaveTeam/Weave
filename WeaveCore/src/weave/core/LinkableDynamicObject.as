@@ -209,20 +209,6 @@ package weave.core
 			if (_locked)
 				return;
 			
-			// handle both class names and class definitions
-			var newClassName:String;
-			var newClassDef:Class;
-			if (newClassNameOrDef is Class)
-			{
-				newClassDef = newClassNameOrDef as Class;
-				newClassName = getQualifiedClassName(newClassDef);
-			}
-			else
-			{
-				newClassName = String(newClassNameOrDef);
-				newClassDef = ClassUtils.getClassDefinition(newClassName);
-			}
-			
 			// lock if necessary
 			if (lockObject)
 				_locked = true;
@@ -233,6 +219,9 @@ package weave.core
 
 			// make sure callbacks only run once when initializing the internal object
 			delayCallbacks();
+			
+			// handle both class definitions and class names
+			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(String(newClassNameOrDef));
 			
 			if (newGlobalName == null) // local object
 			{

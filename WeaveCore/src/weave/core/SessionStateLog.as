@@ -48,14 +48,14 @@ package weave.core
 			cc.addGroupedCallback(this, groupedCallback);
 		}
 		
-		private var debug:Boolean = false;
-		
 		public function dispose():void
 		{
 			_subject = null;
 			_undoHistory = null;
 			_redoHistory = null;
 		}
+		
+		private var debug:Boolean = false;
 		
 		private var _subject:ILinkableObject;
 		private var _prevState:Object = null;
@@ -205,11 +205,10 @@ package weave.core
 				f[i] = f[i].id;
 			if (logEntry)
 			{
-				var type:String = _redoActive ? "REDO" : "UNDO";
 				trace("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-				trace('NEW ' + type + ' ENTRY (backward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.backward));
+				trace('NEW HISTORY (backward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.backward));
 				trace("===============================================================");
-				trace('NEW ' + type + ' ENTRY (forward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.forward));
+				trace('NEW HISTORY (forward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.forward));
 				trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 			}
 			trace('undo ['+h+']','redo ['+f+']');

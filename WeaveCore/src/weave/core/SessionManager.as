@@ -1108,10 +1108,11 @@ package weave.core
 					
 					// If the object specified in newState does not exist in oldState, we don't need to do anything further.
 					// If the class is the same as before, then we can save a diff instead of the entire session state.
-					// If the class DID change, we can't save only a diff -- we need to keep the entire session state.
+					// If the class changed, we can't save only a diff -- we need to keep the entire session state.
 					// Replace the sessionState in the new DynamicState object with the diff.
 					if (oldTypedState != null && oldTypedState.className == typedState.className)
 					{
+						typedState.className = null; // no change
 						diffValue = computeDiff(oldTypedState.sessionState, typedState.sessionState);
 						if (diffValue === undefined)
 						{
@@ -1133,10 +1134,10 @@ package weave.core
 				}
 				
 				// Anything remaining in the lookup does not appear in newState.
-				// Add DynamicState entries with a null className to convey that each of these objects should be removed.
+				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
 				for (var removedName:String in oldLookup)
 				{
-					result.push(new DynamicState(removedName, null));
+					result.push(new DynamicState(removedName, 'delete'));
 					changeDetected = true;
 				}
 				

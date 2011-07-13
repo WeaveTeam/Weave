@@ -174,10 +174,13 @@ package weave.core
 		 */
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
 		{
-			var result:ILinkableObject = initObjectByClassName(name, getQualifiedClassName(classDef), lockObject);
-			if (classDef != null)
-				return result as classDef;
-			return result;
+			if (classDef == null)
+			{
+				if (lockObject)
+					this.lockObject(name);
+				return getObject(name);
+			}
+			return initObjectByClassName(name, getQualifiedClassName(classDef), lockObject) as classDef;
 		}
 		
 		/**
@@ -210,16 +213,17 @@ package weave.core
 		 */
 		private function initObjectByClassName(name:String, className:String, lockObject:Boolean = false):ILinkableObject
 		{
-			// if no name is specified, generate a unique one now.
-			if (name == null)
+			// do nothing if locked or className is null
+			if (!_hashMapIsLocked && className != null)
 			{
-				if (className.indexOf("::") >= 0)
-					name = generateUniqueName(className.split("::")[1]);
-				else
-					name = generateUniqueName(className);
-			}
-			if (!_hashMapIsLocked)
-			{
+				// if no name is specified, generate a unique one now.
+				if (name == null)
+				{
+					if (className.indexOf("::") >= 0)
+						name = generateUniqueName(className.split("::")[1]);
+					else
+						name = generateUniqueName(className);
+				}
 				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
 					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 				{
@@ -391,16 +395,11 @@ package weave.core
 			var objectName:String;
 			var className:String;
 			var typedState:DynamicState;
-			var remainingObjects:Object = {}; // maps an objectName to a value of true
+			var remainingObjects:Object = removeMissingDynamicObjects ? {} : null; // maps an objectName to a value of true
 			var newObjects:Object = {}; // maps an objectName to a value of true if the object is newly created as a result of setting the session state
 			var newNameOrder:Array = []; // the order the object names appear in the vector
 			if (newStateArray != null)
 			{
-				// if this flag is false, it means anything not appearing in newStateArray should remain
-				if (!removeMissingDynamicObjects)
-					for (objectName in _nameToObjectMap)
-						remainingObjects[objectName] = true;
-				
 				// initialize all the objects before setting their session states because they may refer to each other.
 				for (i = 0; i < newStateArray.length; i++)
 				{
@@ -412,10 +411,9 @@ package weave.core
 					// ignore objects that do not have a name because they may not load the same way on different application instances.
 					if (objectName == null)
 						continue;
-
-					// the object should only remain if the className is not null
-					remainingObjects[objectName] = (className != null);
-					
+					// if className is not specified, make no change
+					if (className == null)
+						continue;
 					// initialize object and remember if a new one was just created
 					if (_nameToObjectMap[objectName] != initObjectByClassName(objectName, className))
 						newObjects[objectName] = true;
@@ -428,7 +426,8 @@ package weave.core
 					if (newState is String)
 					{
 						objectName = newState as String;
-						remainingObjects[objectName] = true;
+						if (removeMissingDynamicObjects)
+							remainingObjects[objectName] = true;
 						newNameOrder.push(objectName);
 						continue;
 					}
@@ -444,17 +443,22 @@ package weave.core
 						continue;
 					// if object is newly created, we want to apply an absolute session state
 					WeaveAPI.SessionManager.setSessionState(object, typedState.sessionState, newObjects[objectName] || removeMissingDynamicObjects);
+					if (removeMissingDynamicObjects)
+						remainingObjects[objectName] = true;
 					newNameOrder.push(objectName);
 				}
 			}
-			// third pass: remove objects based on the Boolean flags in remainingObjects.
-			for (i = _orderedNames.length - 1; i >= 0; i--)
+			if (removeMissingDynamicObjects)
 			{
-				objectName = _orderedNames[i];
-				if (remainingObjects[objectName] !== true)
+				// third pass: remove objects based on the Boolean flags in remainingObjects.
+				for (i = _orderedNames.length - 1; i >= 0; i--)
 				{
-					//trace(LinkableHashMap, "missing value: "+objectName);
-					removeObject(objectName);
+					objectName = _orderedNames[i];
+					if (remainingObjects[objectName] !== true)
+					{
+						//trace(LinkableHashMap, "missing value: "+objectName);
+						removeObject(objectName);
+					}
 				}
 			}
 			// update name order AFTER objects have been added and removed.
