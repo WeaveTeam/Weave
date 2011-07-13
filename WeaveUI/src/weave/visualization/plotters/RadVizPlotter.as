@@ -183,34 +183,33 @@ package weave.visualization.plotters
 				coordinate.y = Math.sin( theta * i ) ;
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var graphics1:Graphics = tempShape.graphics;
-				var labelText:BitmapText = new BitmapText();
-				labelText.text = ("  " + ColumnUtils.getTitle(column1[i] as IAttributeColumn) + "  ");
+				_bitmapText.text = ("  " + ColumnUtils.getTitle(column1[i] as IAttributeColumn) + "  ");
 				if (((theta*i) < (Math.PI/2)) || ((theta*i) > ((3*Math.PI)/2)))
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;
+					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
 				}
 					//else if( theta <= ((55*Math.PI)/36) && theta >= ((53*Math.PI)/36))
 				else if ((theta*i) == ((3*Math.PI)/2) )
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
 				}
 				else if ((theta*i) == (Math.PI/2))
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
+					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;
 				}
 				else
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT ;
+					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
 				}
-				labelText.textFormat.color=Weave.properties.axisFontColor.value;
-				labelText.textFormat.size=Weave.properties.axisFontSize.value;
-				labelText.textFormat.underline=Weave.properties.axisFontUnderline.value;
-				labelText.x = coordinate.x ;
-				labelText.y = coordinate.y ;
-				labelText.draw(destination) ;
+				_bitmapText.textFormat.color=Weave.properties.axisFontColor.value;
+				_bitmapText.textFormat.size=Weave.properties.axisFontSize.value;
+				_bitmapText.textFormat.underline=Weave.properties.axisFontUnderline.value;
+				_bitmapText.x = coordinate.x ;
+				_bitmapText.y = coordinate.y ;
+				_bitmapText.draw(destination) ;
 				graphics1.clear();
 				graphics1.lineStyle(3);
 				graphics1.drawCircle(coordinate.x, coordinate.y, 1) ;
@@ -218,6 +217,7 @@ package weave.visualization.plotters
 			}
 		}
 		
+		private const _bitmapText:BitmapText = new BitmapText();
 		private const screenPoint:Point = new Point(); // reusable object, output of projectPoints()
 		
 		/**
