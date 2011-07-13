@@ -55,6 +55,10 @@ package weave.utils
 		public static const ZOOM_CURSOR:String = "CustomCursorManager.ZOOM_CURSOR";
         [Embed(source="/weave/resources/images/cursor_zoom.png")]
         private static var zoomCursor:Class;
+		
+		public static const PEN_CURSOR:String = "CustomCursorManager.PEN_CURSOR";
+		[Embed(source="/weave/resources/images/penpointer.png")]
+		private static var penCursor:Class;
         
         
 		public static function showCursor(type:String, priority:int = 2, xOffset:int = 0, yOffset:int = 0):void
@@ -89,6 +93,10 @@ package weave.utils
 					
 				case ZOOM_CURSOR:
 					CursorManager.setCursor(zoomCursor, priority, xOffset, yOffset);
+					break;
+				
+				case PEN_CURSOR:
+					CursorManager.setCursor(penCursor, priority, xOffset, yOffset);
 					break;
 			}
 			
