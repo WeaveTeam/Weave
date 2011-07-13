@@ -16,20 +16,18 @@
       <GlobalObjectReference name="defaultSubsetKeyFilter"/>
     </filter>
     <internalDynamicColumn encoding="dynamic">
-      <DynamicColumn encoding="dynamic">
-        <ReferencedColumn>
-          <dynamicColumnReference encoding="dynamic">
-            <HierarchyColumnReference>
-              <dataSourceName>IrisDataset</dataSourceName>
-              <hierarchyPath encoding="xml">
-                <hierarchy>
-                  <attribute keyType="IrisDataset" csvColumn="Species" title="Species"/>
-                </hierarchy>
-              </hierarchyPath>
-            </HierarchyColumnReference>
-          </dynamicColumnReference>
-        </ReferencedColumn>
-      </DynamicColumn>
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>IrisDataset</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <attribute keyType="IrisDataset" csvColumn="Sepal Length" title="Sepal Length"/>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
     </internalDynamicColumn>
   </FilteredColumn>
   <KeyFilter name="defaultSubsetKeyFilter">
@@ -162,7 +160,6 @@ Google Images|http://images.google.com/images?q=
 Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <selectionAlphaAmount>0.5</selectionAlphaAmount>
     <selectionBlurringAmount>4</selectionBlurringAmount>
-    <sessionStateEditor>TextArea</sessionStateEditor>
     <shadowAlpha>0.5</shadowAlpha>
     <shadowAngle>45</shadowAngle>
     <shadowBlur>4</shadowBlur>
@@ -380,7 +377,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Country Name" keyType="Country Code" csvColumn="Country Name" title="Country Name"/>
+              <attribute keyType="Country Code" csvColumn="Country Name" name="Country Name" title="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -392,7 +389,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
+              <attribute keyType="Country Code" csvColumn="Population, female (% of total)" name="Population, female (% of total)" title="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -404,7 +401,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
+              <attribute keyType="Country Code" csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" title="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -416,7 +413,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
+              <attribute keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -428,7 +425,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
+              <attribute keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -440,7 +437,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
+              <attribute keyType="Country Code" csvColumn="Urban population (% of total)" name="Urban population (% of total)" title="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -452,7 +449,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
+              <attribute keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -1439,17 +1436,17 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <x>1</x>
                     <y>0</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Petal Width">
+                  <AnchorPoint name="Sepal Length">
                     <x>6.123233995736766e-17</x>
                     <y>1</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Sepal Length">
+                  <AnchorPoint name="Petal Width">
                     <x>-1</x>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
                   <AnchorPoint name="Sepal Width">
-                    <x>0.17543859649122817</x>
-                    <y>-0.9614035087719299</y>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
                   </AnchorPoint>
                 </anchors>
                 <colorMap encoding="xml">
@@ -1476,19 +1473,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>IrisDataset</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute keyType="IrisDataset" csvColumn="Petal Length" title="Petal Length"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                  <ReferencedColumn name="ReferencedColumn4">
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>IrisDataset</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <attribute keyType="IrisDataset" csvColumn="Petal Width" title="Petal Width"/>
+                            <attribute keyType="IrisDataset" title="Petal Length" csvColumn="Petal Length"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1500,7 +1485,19 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>IrisDataset</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute keyType="IrisDataset" csvColumn="Sepal Length" title="Sepal Length"/>
+                            <attribute keyType="IrisDataset" title="Sepal Length" csvColumn="Sepal Length"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn4">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>IrisDataset</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute keyType="IrisDataset" title="Petal Width" csvColumn="Petal Width"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1512,7 +1509,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>IrisDataset</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute keyType="IrisDataset" csvColumn="Sepal Width" title="Sepal Width"/>
+                            <attribute keyType="IrisDataset" title="Sepal Width" csvColumn="Sepal Width"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1582,8 +1579,22 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
                 </lineStyle>
-                <radiusColumn encoding="dynamic"/>
+                <radiusColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>IrisDataset</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute keyType="IrisDataset" csvColumn="Sepal Length" title="Sepal Length"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </radiusColumn>
                 <radiusConstant>5</radiusConstant>
+                <spatialCallbacks/>
               </CompoundRadVizPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -1609,17 +1620,17 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <x>1</x>
                     <y>0</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Petal Width">
+                  <AnchorPoint name="Sepal Length">
                     <x>6.123233995736766e-17</x>
                     <y>1</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Sepal Length">
+                  <AnchorPoint name="Petal Width">
                     <x>-1</x>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
                   <AnchorPoint name="Sepal Width">
-                    <x>0.17543859649122817</x>
-                    <y>-0.9614035087719299</y>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
                   </AnchorPoint>
                 </anchors>
                 <keySet>
@@ -1627,6 +1638,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
+                <spatialCallbacks/>
               </AnchorPlotter>
             </plotter>
             <probeFilter encoding="dynamic">

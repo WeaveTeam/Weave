@@ -189,6 +189,9 @@ package weave.visualization.layers
  		protected const backgroundBitmap:Bitmap = new Bitmap(null, PixelSnapping.AUTO, true);
 		protected const plotBitmap:Bitmap = new Bitmap(null, PixelSnapping.AUTO, true);
 
+		public function getPlotBitmap():Bitmap { return plotBitmap; }
+		public function getBackgroundBitmap():Bitmap { return backgroundBitmap; }
+		
 		// access the filters of the background layer only
 		public function get backgroundFilters():Array 			 { return backgroundBitmap.filters;  }
 		public function set backgroundFilters(value:Array):void  { backgroundBitmap.filters = value; }

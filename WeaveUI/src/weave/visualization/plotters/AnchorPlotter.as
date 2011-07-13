@@ -55,7 +55,7 @@ package weave.visualization.plotters
 		public function handleAnchorsChange():void
 		{		
 			var keys:Array = anchors.getNames(AnchorPoint);
-			var keyArray:Array = WeaveAPI.QKeyManager.getQKeys('km',keys);
+			var keyArray:Array = WeaveAPI.QKeyManager.getQKeys('dimensionalAnchors',keys);
 
 			_keySet = new KeySet();
 			_keySet.replaceKeys(keyArray);

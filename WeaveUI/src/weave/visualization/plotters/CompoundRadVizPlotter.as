@@ -24,12 +24,14 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
+	import flash.utils.describeType;
 	
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -40,6 +42,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.KeySets.FilteredKeySet;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
@@ -66,8 +69,7 @@ package weave.visualization.plotters
 			iterations.value = 50;
 		}		
 		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
-		private static var _globalProbeKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as KeySet;
+		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);		
 		
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
@@ -77,10 +79,10 @@ package weave.visualization.plotters
 		private const coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 				
-		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(-19));	
-		public const enableWedgeColoring:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
-		public const enableJitter:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
-		public const iterations:LinkableNumber = newLinkableChild(this,LinkableNumber);
+		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));	
+		public const enableWedgeColoring:LinkableBoolean = 	registerSpatialProperty(new LinkableBoolean(false));
+		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
+		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);		
@@ -94,83 +96,121 @@ package weave.visualization.plotters
 		public function get radiusColumn():DynamicColumn { return screenRadius; }
 		public const radiusConstant:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
 		
-		private static var randomValueArray:Array = new Array() ;		
-		private static var hashMap:Dictionary = new Dictionary( true ) ;
+		private static var randomValueArray:Array = new Array();		
+		private static var randomArrayIndexMap:Dictionary;
+		private var keyNumberMap:Dictionary;		
+		private var keyRadiusMap:Dictionary;
+		private var keyNormedRadiusMap:Dictionary;
+		private var keyColorMap:Dictionary;
+		private var keyNormMap:Dictionary;
+		private var columnTitleMap:Dictionary;
 		
 		private function handleColumnsChange():void
 		{
-			var i:int ;
-			var array:Array = columns.getObjects();
-			if (array.length > 0) 
+			var i:int = 0;
+			var columnNormArray:Array;
+			var columnNumberArray:Array;
+			unorderedColumns = columns.getObjects(IAttributeColumn);
+			var sum:Number = 0;
+			
+			if (unorderedColumns.length > 0) 
 			{
-				setKeySource(array[0]);
-				hashMap = null ;
-				hashMap = new Dictionary( true ) ;
-				for (var j:int = 0; j < keySet.keys.length; j++)
-				{
-					var string:String = (keySet.keys[j] as IQualifiedKey).localName;
-					hashMap[string] = j ;
-				}				
+				setKeySource(unorderedColumns[0]);
+			
+				randomArrayIndexMap = 	new Dictionary(true);				
+				keyRadiusMap = 			new Dictionary(true);
+				keyNormedRadiusMap = 	new Dictionary(true);
+				keyColorMap = 			new Dictionary(true);
+				keyNormMap = 			new Dictionary(true);
+				keyNumberMap = 			new Dictionary(true);
+				columnTitleMap = 		new Dictionary(true);
+				
+				for each( var key:IQualifiedKey in keySet.keys)
+				{					
+					randomArrayIndexMap[key] = i ;
+					keyNormedRadiusMap[key] = ColumnUtils.getNorm(screenRadius,key);
+					keyRadiusMap[key] = screenRadius.getValueFromKey(key, Number);
+					keyColorMap[key] = fillStyle.color.internalDynamicColumn.getValueFromKey(key, Number);
+
+					columnNormArray = [];
+					columnNumberArray = [];
+					sum = 0;
+					for each( var column:IAttributeColumn in unorderedColumns)
+					{
+						if(i == 0)
+							columnTitleMap[column] = ColumnUtils.getTitle(column);
+						columnNormArray.push(ColumnUtils.getNorm(column, key));	
+						columnNumberArray.push(column.getValueFromKey(key, Number));
+					}
+					keyNumberMap[key] = columnNumberArray ;
+					keyNormMap[key] = columnNormArray ;					
+					i++
+				}
 			}
 			else
 				setKeySource(null);
+			
 			setAnchorLocations();
 		}
 		
 		public function setAnchorLocations():void
-		{
-			var columnsArray:Array = columns.getObjects(IAttributeColumn);
-			var theta:Number = (2*Math.PI)/columnsArray.length;
+		{			
+			unorderedColumns = columns.getObjects(IAttributeColumn);
+			var theta:Number = (2*Math.PI)/unorderedColumns.length;
 			var anchor:AnchorPoint;
 			anchors.removeAllObjects();
-			for( var i:int = 0; i < columnsArray.length; i++ )
+			for( var i:int = 0; i < unorderedColumns.length; i++ )
 			{
-				anchor = anchors.copyObject(ColumnUtils.getTitle(columnsArray[i]),new AnchorPoint()) as AnchorPoint ;								
+				anchor = anchors.copyObject(ColumnUtils.getTitle(unorderedColumns[i]),new AnchorPoint()) as AnchorPoint ;								
 				anchor.x.value = Math.cos(theta*i);
-				anchor.y.value = Math.sin(theta*i);
-				
+				anchor.y.value = Math.sin(theta*i);				
 			}
 		}			
 				
 		/**
 		 * Applies the RadViz algorithm to a record specified by a recordKey
 		 */
-		private function getXYcoordinates(recordKey:IQualifiedKey):void
+		private function getXYcoordinates(recordKey:IQualifiedKey):Number
 		{
 			//implements RadViz algorithm for x and y coordinates of a record
 			var numeratorX:Number = 0;
-			var denominatorX:Number = 0;
 			var numeratorY:Number = 0;
-			var denominatorY:Number = 0;
+			var denominator:Number = 0;
 			
-			var columnArray:Array = columns.getObjects();
-			var anchorArray:Array = anchors.getObjects();
+			var anchorArray:Array = anchors.getObjects();			
 			
-			var value:Number = 0;
-			var theta:Number = (2 * Math.PI) / columnArray.length; 
+			var sum:Number = 0;			
+			var value:Number = 0;			
 			var name:String;
 			var anchor:AnchorPoint;
-			
-			for (var i:int=0; i<anchorArray.length; i++) {
-				value = ColumnUtils.getNorm(columnArray[i], recordKey);
-				name = ColumnUtils.getTitle(columnArray[i]);
+			var array:Array = keyNormMap[recordKey];
+			var array2:Array = keyNumberMap[recordKey];
+			for (var i:int=0; i<unorderedColumns.length; i++) {
+				
+				value = array[i];
+				name = columnTitleMap[unorderedColumns[i]];	
+				sum += array2[i];
 				anchor = anchors.getObject(name) as AnchorPoint;
 				numeratorX += value * anchor.x.value;
-				denominatorX += value;
-				numeratorY += value * anchor.y.value;
-				denominatorY += value;								
+				numeratorY += value * anchor.y.value;						
+				denominator += value;
 			}
-			if(denominatorX) coordinate.x = (numeratorX/denominatorX);
-			else coordinate.x = 0;
-			if(denominatorY) coordinate.y = (numeratorY/denominatorY);
-			else coordinate.y = 0;
+			if(denominator) {
+				coordinate.x = (numeratorX/denominator);
+				coordinate.y = (numeratorY/denominator);
+			}
+			else {
+				coordinate.x = 0;
+				coordinate.y = 0;
+			}
 			if( enableJitter.value )
-				jitterRecords(recordKey);
+				jitterRecords(recordKey);			
+			return sum;
 		}
 		
 		private function jitterRecords(recordKey:IQualifiedKey):void
 		{
-			var index:Number = hashMap[recordKey.localName];
+			var index:Number = randomArrayIndexMap[recordKey];
 			var jitter:Number = Math.abs(MathLib.toNumber(jitterLevel.value));
 			var xJitter:Number = (randomValueArray[index])/(jitter);
 			if(randomValueArray[index+1] % 2) xJitter *= -1;
@@ -213,33 +253,31 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{			
 			var graphics:Graphics = tempShape.graphics;
-			var radius:Number = ColumnUtils.getNorm(screenRadius, recordKey );
+			var radius:Number = keyNormedRadiusMap[recordKey];
 			if(!isNaN(radius)) radius = 2 + (radius *(10-2));
 			if(isNaN(radius)) radius = 5 ;
 						
 			// Get coordinates of record and add jitter (if specified)
-			getXYcoordinates(recordKey);
+			var sum:Number= getXYcoordinates(recordKey);
+						
+			sum = (1/sum) *2 * Math.PI ;
 			
 			// Plot pie charts of each record
 			var beginRadians:Number = 0;
 			var spanRadians:Number = 0;
-			var sum:Number = 0; var value:Number = 0;
-			var columnArray:Array = columns.getObjects();
-			
-			for( var i:int = 0; i < columnArray.length; i++ )
-				sum += ColumnUtils.getNumber(columnArray[i], recordKey);
+			var value:Number = 0;
+			var numArray:Array = keyNumberMap[recordKey];
 			
 			var defaultAlpha:Number = MathLib.toNumber(alphaColumn.defaultValue.value);
-			for( var j:int = 0; j < columnArray.length; j++ )
+			for( var i:int = 0; i < unorderedColumns.length; i++ )
 			{
-				var norm:Number = ColumnUtils.getNorm(columnArray[j], recordKey );
-				value = ColumnUtils.getNumber( columnArray[j], recordKey );
+				value = numArray[i];
 				beginRadians += spanRadians;
-				spanRadians = (value/sum) * 2 * Math.PI;
+				spanRadians = value * sum;
 				
 				lineStyle.beginLineStyle(recordKey, graphics);
 				if(enableWedgeColoring.value)
-					graphics.beginFill(colorMap.getColorFromNorm(j / (columnArray.length - 1)), alphaColumn.defaultValue.value as Number);
+					graphics.beginFill(colorMap.getColorFromNorm(i / (unorderedColumns.length - 1)), alphaColumn.defaultValue.value as Number);
 				else
 					fillStyle.beginFillStyle(recordKey, graphics);
 
@@ -254,8 +292,6 @@ package weave.visualization.plotters
 				}
 				graphics.endFill();
 			}
-						
-			dataBounds.projectPointTo(coordinate, screenBounds);			
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -278,7 +314,8 @@ package weave.visualization.plotters
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
 			} catch (e:Error) { }
 			
-			destination.draw(tempShape);					
+			destination.draw(tempShape);
+			_destination = destination;
 		}
 			
 		/**
@@ -289,10 +326,10 @@ package weave.visualization.plotters
 		 * 
 		 */			
 		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
+		{			
 			// compare size
-			var a:Number = radiusColumn.getValueFromKey(key1, Number);
-			var b:Number = radiusColumn.getValueFromKey(key2, Number);
+			var a:Number = keyRadiusMap[key1];
+			var b:Number = keyRadiusMap[key2];
 			// sort descending (high radius values drawn first)
 			if( radiusColumn.internalColumn )
 			{
@@ -302,8 +339,8 @@ package weave.visualization.plotters
 			// size equal.. compare color (if global colorColumn is used)
 			if( !enableWedgeColoring.value)
 			{
-				a = fillStyle.color.internalDynamicColumn.getValueFromKey(key1, Number);
-				b = fillStyle.color.internalDynamicColumn.getValueFromKey(key2, Number);
+				a = keyColorMap[key1];
+				b = keyColorMap[key2];
 				// sort ascending (high values drawn last)
 				if( a < b ) return 1;
 				else if (a > b) return -1 ;
@@ -314,37 +351,16 @@ package weave.visualization.plotters
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			recordKeys.sort(sortKeys, Array.DESCENDING);
-			var probedKeys:Array = _globalProbeKeySet.keys;
-			var graphics:Graphics = tempShape.graphics;
-			graphics.clear();
-			if(probedKeys.length && recordKeys.length)
-				if((probedKeys[0] as IQualifiedKey).keyType == (recordKeys[0] as IQualifiedKey).keyType)
-				{					
-					for each( var key:IQualifiedKey in probedKeys )
-					{
-						getXYcoordinates(key);
-						dataBounds.projectPointTo(coordinate, screenBounds);
-						for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
-						{
-							tempPoint.x = anchor.x.value;
-							tempPoint.y = anchor.y.value;
-							dataBounds.projectPointTo(tempPoint, screenBounds);
-							graphics.lineStyle(.5, 0xff0000);
-							graphics.moveTo(coordinate.x, coordinate.y);
-							graphics.lineTo(tempPoint.x, tempPoint.y);					
-						}
-						addRecordGraphicsToTempShape(key, dataBounds, screenBounds, tempShape);
-					}
-					destination.draw(tempShape);
-					graphics.clear();
-				}
-			
+			//timer1.start();
+			recordKeys.sort(sortKeys, Array.DESCENDING);			
 			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
+			/*timer1.debug("endplot");
+			timer1.stop();*/
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
+			unorderedColumns = columns.getObjects(IAttributeColumn);
 			getXYcoordinates(recordKey);
 			
 			var bounds:IBounds2D = getReusableBounds();
@@ -356,6 +372,39 @@ package weave.visualization.plotters
 		{
 			return getReusableBounds(-1, -1.1, 1, 1.1);
 		}		
+		
+		public var drawProbe:Boolean = false;
+		public var probedKeys:Array = null;
+		private var _destination:BitmapData = null;
+		
+		public function drawProbeLines(dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		{						
+			if(!drawProbe) return;
+			if(!probedKeys) return;
+			try {
+				//PlotterUtils.clear(destination);
+			} catch(e:Error) {return;}
+			var graphics:Graphics = destination;
+			graphics.clear();
+			if(probedKeys.length)
+				if(probedKeys[0].keyType != keySet.keys[0].keyType) return;
+			
+			for each( var key:IQualifiedKey in probedKeys)
+			{
+				getXYcoordinates(key);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				
+				for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
+				{
+					tempPoint.x = anchor.x.value;
+					tempPoint.y = anchor.y.value;
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					graphics.lineStyle(.5, 0xff0000);
+					graphics.moveTo(coordinate.x, coordinate.y);
+					graphics.lineTo(tempPoint.x, tempPoint.y);					
+				}
+			}
+		}
 		
 		private var timer1:DebugTimer = new DebugTimer(false);
 		private var S:Array ; // global similarity matrix 
@@ -395,9 +444,8 @@ package weave.visualization.plotters
 					dist2 += (value2 * value2);
 				}
 			}
-			if( !isNaN(sum) && !isNaN(dist1) && !isNaN(dist2))
-				dist = 1-(sum/((Math.sqrt(dist1)*Math.sqrt(dist2))));
-			return ((isNaN(dist))?0:dist);
+			dist = sum/Math.sqrt(dist1*dist2);			
+			return dist;
 		}		
 		/** 
 		 * Creates a new dxd global similarity matrix (where d is the number of dimensions) 
@@ -556,8 +604,7 @@ package weave.visualization.plotters
 			var r1:Number; var r2:Number;
 			getNeighborhoodMatrix(unorderedColumns);
 			var min:Number = getSimilarityMeasure();
-			var sim:Number = 0 ;
-			trace(this, "change new" );
+			var sim:Number = 0 ;			
 
 			for( var i:int = 0; i < iterations.value; i++ )
 			{
@@ -581,7 +628,7 @@ package weave.visualization.plotters
 					storeDimensionReorder(unorderedColumns);
 				}
 			}
-			trace( min );
+			trace( "random swap ", min );
 			reorderColumnsHashMap();
 		}
 		
@@ -628,7 +675,7 @@ package weave.visualization.plotters
 			// debugging
 			getGlobalSimilarityMatrix();
 			getNeighborhoodMatrix(orderedColumns);
-			trace( getSimilarityMeasure());
+			trace( "greedy ",getSimilarityMeasure());
 		}
 		
 		private function performNearestNeighborSearch():void
@@ -647,7 +694,7 @@ package weave.visualization.plotters
 			// debugging
 			getGlobalSimilarityMatrix();
 			getNeighborhoodMatrix(orderedColumns);
-			trace( getSimilarityMeasure());
+			trace( "nearest neighbor ", getSimilarityMeasure());
 		}
 		
 		public function applyRandomAnchorLayout():void
@@ -655,7 +702,7 @@ package weave.visualization.plotters
 			unorderedColumns = columns.getObjects(IAttributeColumn);
 			if(!unorderedColumns.length) return;
 			orderedColumns = [];
-			trace(this, timer1.start());
+			trace(timer1.start());
 			timer1.debug("start");
 			applyRandomReorder();
 			orderedColumns = null;

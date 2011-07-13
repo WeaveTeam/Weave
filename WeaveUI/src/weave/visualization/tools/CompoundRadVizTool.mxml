@@ -23,7 +23,8 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"		 
-	     layout="absolute" 
+	     layout="absolute"
+		 mouseMove="handleMouseMove(event)"
 		 mouseDown="handleMouseDown(event)"
 		 mouseUp="handleMouseUp(event)">
 	<mx:Script>
@@ -55,14 +56,17 @@
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.ColorRamp;
+			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.SpatialIndex;
+			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.CompoundRadVizPlotter;
+			import weave.visualization.plotters.ProbeLinePlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
 
 			
@@ -97,8 +101,10 @@
 				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, false) ;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
 				
+				getCallbackCollection(plotLayer.probeFilter).addGroupedCallback(this,drawProbeLines);
+				
 				visualization.marginTop.value =	visualization.marginBottom.value = 20;
-				visualization.marginLeft.value = visualization.marginRight.value = 20;
+				visualization.marginLeft.value = visualization.marginRight.value = 20;				
 			}
 			
 			override protected function childrenCreated():void
@@ -112,7 +118,9 @@
 				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
 				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
-				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );
+				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );	
+				
+				plotLayer.rawChildren.addChild(probeSprite);
 			}
 						
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -121,8 +129,25 @@
 			
 			private var _probedKeys:Array ;
 			private var dataBounds:Bounds2D = new Bounds2D();
-			private var isDragging:Boolean = false;
+			private var isDragging:Boolean = false;						
 			
+			private var probeSprite:Sprite = new Sprite() ;
+			
+			private function drawProbeLines():void
+			{ 
+				var probeKeySet:IKeySet = (plotLayer.probeFilter.internalObject) as IKeySet;
+				if(!probeKeySet) return;
+				
+				visualization.dataBounds.copyTo(dataBounds);
+				getScreenBounds(screenBounds);
+				
+				_plotter.probedKeys = probeKeySet.keys ;
+				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
+				
+				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);		 		
+			
+			}
+						
 			private function handleMouseDown(event:MouseEvent):void
 			{
 				tempPoint = visualization.globalToLocal(new Point(event.stageX,event.stageY));
@@ -143,21 +168,25 @@
 						
 			private function handleMouseUp(event:MouseEvent):void
 			{
+				if(!isDragging) return;				
+				handleMouseMove(event);
+				visualization.enableSelection.value = true;
+				isDragging = false;							
+			}
+			
+			private function handleMouseMove(event:MouseEvent):void
+			{
 				if(!isDragging) return;
-				isDragging = false;
-				
-				var keys:Array = _probedKeys ;
-				
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
 				getScreenBounds(screenBounds);
 				visualization.dataBounds.copyTo(dataBounds);
 				screenBounds.projectPointTo(tempPoint, dataBounds);
 				
-				var key:IQualifiedKey = _probedKeys[0];
+				var key:IQualifiedKey = _probedKeys[0];	
+				if(!key) return ;
 				var anchor:AnchorPoint = _anchorPlotter.anchors.getObject(key.localName) as AnchorPoint;
 				anchor.x.value = tempPoint.x;
-				anchor.y.value = tempPoint.y;
-				visualization.enableSelection.value = true;
+				anchor.y.value = tempPoint.y;				
 			}
 			
 			public function get colorColumn():DynamicColumn

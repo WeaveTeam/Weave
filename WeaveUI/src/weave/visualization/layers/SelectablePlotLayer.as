@@ -316,6 +316,10 @@ package weave.visualization.layers
 		private var _selectionLayer:PlotLayer;
 		private var _probeLayer:PlotLayer;
 		
+		public function get plotLayer():PlotLayer { return _plotLayer; }
+		public function get selectionLayer():PlotLayer { return _selectionLayer; }
+		public function get probeLayer():PlotLayer { return _probeLayer; }
+		
 		public function getDynamicPlotter():DynamicPlotter { return _plotLayer.getDynamicPlotter(); }
 		
 		/**
