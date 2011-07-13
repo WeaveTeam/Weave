@@ -103,6 +103,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connectionInfo.user = connectionUserInput.text;
 				connectionInfo.is_superuser = true; // this is the first user, so he must be a superuser
 				
+				AdminInterface.instance.activeConnectionName = connectionInfo.name;
+				AdminInterface.instance.activePassword = connectionInfo.pass;
+				AdminInterface.instance.userHasAuthenticated = true;
 				AdminInterface.instance.saveConnectionInfo(connectionInfo,true).addAsyncResponder(resultSuccessHandler);
 			}
 			

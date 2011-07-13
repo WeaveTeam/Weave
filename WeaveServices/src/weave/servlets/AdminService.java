@@ -355,7 +355,7 @@ public class AdminService extends GenericServlet
 
 	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
 	{
-		if (newConnectionName.equals(""))
+		if (newConnectionName.equals("") || currentConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
 		
 		ConnectionInfo newConnectionInfo = new ConnectionInfo();
