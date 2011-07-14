@@ -75,8 +75,6 @@
 			<runtime-shared-libraries url="${CORE}.swf"/>
 			<runtime-shared-libraries url="${DATA}.swf"/>
 			<runtime-shared-libraries url="${UI}.swf"/>
-
-
 		</mxmlc>
 	</target>
 </project>

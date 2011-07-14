@@ -76,8 +76,6 @@
 			<runtime-shared-libraries url="${DATA}.swf"/>
 			<runtime-shared-libraries url="${UI}.swf"/>
 
-			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>
-
 		</mxmlc>
 	</target>
 </project>
