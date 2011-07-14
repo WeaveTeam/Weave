@@ -33,6 +33,8 @@ package weave.ui
 	import mx.managers.CursorManagerPriority;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
@@ -40,6 +42,8 @@ package weave.ui
 	import weave.core.StageUtils;
 	import weave.data.CSVParser;
 	import weave.utils.CustomCursorManager;
+	import weave.utils.EventUtils;
+	import weave.utils.VectorUtils;
 
 	
 	/**
@@ -48,20 +52,63 @@ package weave.ui
 	 * 
 	 * @author jfallon
 	 */	
-	public class PenMouse extends UIComponent implements ILinkableObject
+	public class PenMouse extends UIComponent implements ILinkableObject, IDisposableObject
 	{
-		
-		public var drawing:Boolean = false;
-		public const coords:LinkableString = newLinkableChild( this, LinkableString, drawSprite ); //This is used for sessiong all of the coordinates.
-		public const lineWidth:LinkableNumber = newLinkableChild( this, LinkableNumber, changeWidth ); //Allows user to change the size of the line.
-		private var placeholder:int = new int(0); //This is necessary for drawing the lines. The placeholder keeps track of what has been drawn so there is no re-drawing.
-		
 		public function PenMouse()
 		{
 			//Initial setup
 			coords.value = "";
 			lineWidth.value = 2;
-			graphics.lineStyle(lineWidth.value, 0x000000);
+		}
+		
+		public function dispose():void
+		{
+			editMode = false; // cleans up event listeners and cursor
+		}
+		
+		public var drawing:Boolean = false;
+		public const coords:LinkableString = newLinkableChild( this, LinkableString, handleCoordsChange ); //This is used for sessiong all of the coordinates.
+		public const lineWidth:LinkableNumber = newLinkableChild( this, LinkableNumber, invalidateDisplayList ); //Allows user to change the size of the line.
+		private var placeholder:int = 0; //This is necessary for drawing the lines. The placeholder keeps track of what has been drawn so there is no re-drawing.
+		private var _coordsArrays:Array = []; // parsed from coords LinkableString
+		private var _editMode:Boolean = false; // true when editing
+		
+		public function get editMode():Boolean
+		{
+			return _editMode;
+		}
+		public function set editMode(value:Boolean):void
+		{
+			if (_editMode == value)
+				return;
+
+			_editMode = value;
+			
+			if (value)
+			{
+				// enable pen
+				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+				
+				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown );
+				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp );
+				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove );
+			}
+			else
+			{
+				removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown );
+				removeEventListener(MouseEvent.MOUSE_UP, handleMouseUp );
+				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove );
+				
+				CustomCursorManager.removeAllCursors();
+			}
+			invalidateDisplayList();
+		}
+		
+		private function handleCoordsChange():void
+		{
+			if (!drawing)
+				_coordsArrays = WeaveAPI.CSVParser.parseCSV( coords.value );
+			invalidateDisplayList();
 		}
 		
 		/**
@@ -69,53 +116,72 @@ package weave.ui
 		 * It adds the initial mouse position cooardinate to the session state so it knows where
 		 * to start from for the following lineTo's added to it. 
 		 */
-		public function beginDraw():void
+		public function handleMouseDown(event:MouseEvent):void
 		{
 			drawing = true;
-			coords.value += "m," + mouseX + "," + mouseY + ",";
+			// new line in CSV means "moveTo"
+			_coordsArrays.push([mouseX, mouseY]);
+			coords.value += '\n' + mouseX + "," + mouseY + ",";
+			invalidateDisplayList();
 		}
 		
-		public function stop():void
+		public function handleMouseUp(event:MouseEvent):void
 		{
 			drawing = false;
+			invalidateDisplayList();
 		}
 		
 		/**
 		 * This function is called when the tool is enabled and the mouse is being held down.
-		 * It adds coordinates for lineTo to the session state in the form of ( "l,500,450" ).		 * 
+		 * It adds coordinates for lineTo to the session state in the form of ( "l,500,450" ).
 		 */		
-		public function draw():void
+		public function handleMouseMove(event:MouseEvent):void
 		{
 			if( drawing ){
-				coords.value += "l," + mouseX + "," + mouseY + ",";
+				_coordsArrays[_coordsArrays.length - 1].push(mouseX, mouseY);
+				coords.value += '' + mouseX + "," + mouseY + ",";
+				invalidateDisplayList();
 			}
 		}
 		
-		public function drawSprite():void
+		override public function validateSize(recursive:Boolean=false):void
 		{
-			var i:int = new int(0);
-			var parse:CSVParser = new CSVParser();
-			var test:Array = new Array( parse.parseCSV( coords.value ) );
-			if( test[0][0] != null ){
-				i = placeholder;
-				for( i; i < test[0][0].length ; i++ )
+			if (parent)
+			{
+				width = parent.width;
+				height = parent.height;
+			}
+		}
+		
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+		{
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
+			
+			graphics.clear();
+			
+			if (editMode)
+			{
+				// draw invisible transparent rectangle to capture mouse events
+				graphics.lineStyle(0, 0, 0);
+				graphics.beginFill(0, 0);
+				graphics.drawRect(0, 0, width, height);
+				graphics.endFill();
+			}
+				
+			graphics.lineStyle(lineWidth.value, 0x000000);
+			for (var line:int = 0; line < _coordsArrays.length; line++)
+			{
+				var lineArray:Array = _coordsArrays[line];
+				for(var i:int = 0; i < lineArray.length - 1 ; i += 2 )
 				{
-					if( test[0][0][i] == "m" ){
-						graphics.moveTo( test[0][0][i+1], test[0][0][i+2] );
-						i += 2;
+					if( i == 0 ){
+						graphics.moveTo( lineArray[i], lineArray[i+1] );
 					}
-					else if( test[0][0][i] == "l" ){
-						graphics.lineTo( test[0][0][i+1], test[0][0][i+2] );
-						i += 2;
+					else {
+						graphics.lineTo( lineArray[i], lineArray[i+1] );
 					}
-					placeholder = i;
 				}
 			}
-		}
-		
-		public function changeWidth():void
-		{
-			graphics.lineStyle( lineWidth.value, 0x000000 );
 		}
 		
 		/*************************************************
@@ -126,6 +192,7 @@ package weave.ui
 		private static var _removeDrawingsMenuItem:ContextMenuItem = null;
 		private static const ENABLE_PEN:String		= "Enable Pen Tool";
 		private static const DISABLE_PEN:String  = "Disable Pen Tool";
+		private static const PEN_OBJECT_NAME:String = "penTool";
 		
 		public static function createContextMenuItems(destination:DisplayObject):Boolean
 		{
@@ -140,7 +207,7 @@ package weave.ui
 			// Create a context menu item for printing of a single tool with title and logo
 			_penToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(ENABLE_PEN, destination, drawFunction, "5 drawingMenuItems");
 			_removeDrawingsMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Remove All Drawings", destination, eraseDrawings, "5 drawingMenuItems");
-			if( !Weave.root.getName( penTool ) )
+			if( !Weave.root.getObject( PEN_OBJECT_NAME ) )
 				_removeDrawingsMenuItem.enabled = false;
 			
 			return true;
@@ -158,11 +225,9 @@ package weave.ui
 				return;
 			CustomCursorManager.removeCurrentCursor();
 			//If session state is imported need to detect if there already is drawings.
-			if( Weave.root.getName( penTool ) )
+			if( Weave.root.getObject( PEN_OBJECT_NAME ) )
 				_removeDrawingsMenuItem.enabled = true;
 		}
-		
-		public static var penTool:PenMouse = null;
 		
 		/**
 		 * This function gets called whenever Enable/Disable Pen Tool is clicked in the Context Menu.
@@ -172,26 +237,21 @@ package weave.ui
 		 */				
 		public static function drawFunction(e:ContextMenuEvent):void
 		{
+			var penTool:PenMouse = Weave.root.requestObject(PEN_OBJECT_NAME, PenMouse, false ) as PenMouse;
 			if( _penToolMenuItem.caption == ENABLE_PEN )
 			{
-				if( penTool == null )
-				{
-					penTool = Weave.root.requestObject("penTool", PenMouse, false ) as PenMouse;
-				}
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
-				StageUtils.addEventCallback(MouseEvent.MOUSE_DOWN, e.contextMenuOwner, penTool.beginDraw );
-				StageUtils.addEventCallback(MouseEvent.MOUSE_UP, e.contextMenuOwner, penTool.stop );
-				StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, e.contextMenuOwner, penTool.draw );
+				// enable pen
+				
+				penTool.editMode = true;
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 			}
 			else
 			{
+				// disable pen
+				penTool.editMode = false;
+				
 				_penToolMenuItem.caption = ENABLE_PEN;
-				StageUtils.removeEventCallback(MouseEvent.MOUSE_DOWN, penTool.beginDraw );
-				StageUtils.removeEventCallback(MouseEvent.MOUSE_UP, penTool.stop );
-				StageUtils.removeEventCallback(MouseEvent.MOUSE_MOVE, penTool.draw );
-				CustomCursorManager.removeAllCursors();
 			}
 		}
 		
@@ -201,17 +261,9 @@ package weave.ui
 		 */		
 		public static function eraseDrawings(e:ContextMenuEvent):void
 		{
-			if( penTool )
-			{
-				StageUtils.removeEventCallback(MouseEvent.MOUSE_DOWN, penTool.beginDraw );
-				StageUtils.removeEventCallback(MouseEvent.MOUSE_UP, penTool.stop );
-				StageUtils.removeEventCallback(MouseEvent.MOUSE_MOVE, penTool.draw );
-				CustomCursorManager.removeAllCursors();
-				Weave.root.removeObject( "penTool" );
-				penTool = null;
-				_penToolMenuItem.caption = ENABLE_PEN;
-				_removeDrawingsMenuItem.enabled = false;
-			}
+			Weave.root.removeObject(PEN_OBJECT_NAME);
+			_penToolMenuItem.caption = ENABLE_PEN;
+			_removeDrawingsMenuItem.enabled = false;
 		}
 	}
 }
