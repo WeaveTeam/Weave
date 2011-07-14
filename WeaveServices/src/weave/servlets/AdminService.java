@@ -368,6 +368,8 @@ public class AdminService extends GenericServlet
 		newConnectionInfo.pass = password;
 		newConnectionInfo.is_superuser = true;
 		
+		configManager.detectConfigChanges();
+		
 		// if the config file doesn't exist, create it
 		String fileName = configManager.getConfigFileName();
 		if (!new File(fileName).exists())
@@ -383,10 +385,12 @@ public class AdminService extends GenericServlet
 		}
 
 		ISQLConfig config = configManager.getConfig();
-		// see if there are existing connections, we need to check the password
-		if (config.getConnectionNames().size() > 0)
+		// if there are existing connections and DatabaseConfigInfo exists, check the password.
+		// otherwise, allow anything.
+		if (config.getConnectionNames().size() > 0 && config.getDatabaseConfigInfo() != null)
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
+			
 			// non-superusers can't save connection info
 			if (!config.getConnectionInfo(currentConnectionName).is_superuser)
 				throw new RemoteException(String.format("User \"%s\" does not have permission to modify connections.", currentConnectionName));
@@ -435,7 +439,7 @@ public class AdminService extends GenericServlet
 					break;
 			}
 			// sanity check
-			if (currentConnectionName == newConnectionName && numSuperUsers == 1 && !grantSuperuser)
+			if (currentConnectionName == newConnectionName && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
 				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 			
 			config.removeConnection(newConnectionInfo.name);
