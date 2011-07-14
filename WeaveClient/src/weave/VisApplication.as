@@ -166,7 +166,6 @@ package weave
 		// Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
 		// view to add new tools, manage windows, do advanced tasks, etc.
 		private var _weaveMenu:WeaveMenuBar = null;
-		private var _visTaskbar:VisTaskbar = null;
 		
 		
 		// The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
@@ -198,7 +197,6 @@ package weave
 			this.setStyle('backgroundColor',0xCCCCCC);
 			this.pageTitle = "Open Indicators Weave";
 
-			_visTaskbar = new VisTaskbar();
 			visDesktop = new VisDesktop();
 			
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
@@ -943,22 +941,22 @@ package weave
 		{
 			if (Weave.properties.enableTaskbar.value)
 			{
-				_visTaskbar.percentWidth = 100;
+				VisTaskbar.instance.percentWidth = 100;
 					
 				// The task bar should be at the bottom of the page
-				if (!_visTaskbar.parent)
+				if (!VisTaskbar.instance.parent)
 				{
-					addChild(_visTaskbar);
+					addChild(VisTaskbar.instance);
 //					PopUpManager.addPopUp(_visTaskbar, this);
 				}
 			}
 			else
 			{
-				_visTaskbar.restoreAllComponents();
+				VisTaskbar.instance.restoreAllComponents();
 
-				if (_visTaskbar.parent)
+				if (VisTaskbar.instance.parent)
 				{
-					removeChild(_visTaskbar);
+					removeChild(VisTaskbar.instance);
 //					PopUpManager.removePopUp(_visTaskbar);
 				}
 			}
@@ -1678,10 +1676,10 @@ package weave
 				return;
 			
 			var visMenuVisible:Boolean    = (_weaveMenu ? _weaveMenu.visible : false);
-			var visTaskbarVisible:Boolean = (_visTaskbar ? _visTaskbar.visible : false);
+			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
 			
 			if (_weaveMenu)    _weaveMenu.visible    = false;
-			if (_visTaskbar) _visTaskbar.visible = false;
+			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;
 
 			//initialize the print format
 			var printPopUp:PrintFormat = new PrintFormat();
@@ -1692,7 +1690,7 @@ package weave
 			printPopUp.componentToScreenshot = component;
 			
 			if (_weaveMenu)  _weaveMenu.visible    = visMenuVisible;
-			if (_visTaskbar) _visTaskbar.visible = visTaskbarVisible;	
+			if (VisTaskbar.instance) VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
 		
 		public function updatePageTitle():void

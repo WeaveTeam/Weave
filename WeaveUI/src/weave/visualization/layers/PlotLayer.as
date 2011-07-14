@@ -325,10 +325,11 @@ package weave.visualization.layers
 		protected function handleSizeChange():void
 		{
 			//trace("sizeChanged",unscaledWidth,unscaledHeight);
+			
 			var bitmapChanged:Boolean = PlotterUtils.setBitmapDataSize(plotBitmap, unscaledWidth, unscaledHeight);
 			if (bitmapChanged)
 				invalidateGraphics();
-
+			
 			if (!isOverlay.value)
 			{
 				var bgChanged:Boolean = PlotterUtils.setBitmapDataSize(backgroundBitmap, unscaledWidth, unscaledHeight);

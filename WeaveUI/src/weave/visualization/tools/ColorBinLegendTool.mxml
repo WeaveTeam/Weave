@@ -72,8 +72,6 @@
 
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";
-				panelX.value = "40%";
-				panelY.value = "25%";
 				
 				toolTitle.addImmediateCallback(this, updateTitle, null, true);
 

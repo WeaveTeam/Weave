@@ -81,7 +81,7 @@ package weave.utils
 				catch (e:Error)
 				{
 					if (unscaledWidth >= 1 && unscaledHeight >= 1)
-						trace("Warning! Unscaled area too large to store in a Bitmap: "+[unscaledWidth, unscaledHeight]);
+						trace("PlotterUtils: Warning! Unscaled area too large to store in a Bitmap: "+[unscaledWidth, unscaledHeight]);
 				}
 			}
 			return result;
