@@ -189,11 +189,9 @@
 
 	<ui:ControlPanel>
 		<mx:VBox label="Visualization Controls">
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-							 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
-			</userControls:ControlsSubsetBox>
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
+						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="bin data"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>

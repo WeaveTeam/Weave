@@ -367,10 +367,10 @@
 							 toolTip="Checking this box makes the x, y, color and size attributes visible in this tool's probe tooltip"
 							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
 			</userControls:ControlsSubsetBox>
-			<mx:VBox borderStyle="inset"
-					 backgroundColor="0xFFFFFF" 
-					 backgroundAlpha="0.7"
-					 width="100%">
+			<ui:DynamicColumnComponent visTool="{this}" label="x column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="y column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<userControls:ControlsSubsetBox>
 				<mx:HBox width="100%"> 
 					<mx:CheckBox id="sizeByCheck" 
 								 fontSize="12" 
@@ -397,11 +397,8 @@
 								change="handleSizeSliderChange(event)"
 								mouseDown="event.stopImmediatePropagation();"/>
 				</mx:HBox>
-				<ui:DynamicColumnComponent visTool="{this}" label="x column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="y column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 				<ui:DynamicColumnComponent visTool="{this}" label="size" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
-			</mx:VBox>
+			</userControls:ControlsSubsetBox>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="Advanced">
 			<userControls:ControlsSubsetBox>
