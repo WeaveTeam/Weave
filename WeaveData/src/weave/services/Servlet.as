@@ -67,6 +67,10 @@ package weave.services
 		 * The base url is everything before the question mark in a url request like the following:
 		 *     http://www.example.com/servlet?param=123
 		 */
+		public function get servletURL():String
+		{
+			return _servletURL;
+		}
 		protected var _servletURL:String;
 
 		/**

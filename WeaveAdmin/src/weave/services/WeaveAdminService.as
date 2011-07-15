@@ -58,7 +58,7 @@ package weave.services
 		}
 		
 		private var queue:AsyncInvocationQueue;
-		private var service:IAsyncService;
+		private var service:AMF3Servlet;
 		
 		private function generateQueryAndAddToQueue(methodName:String, parameters:Array):DelayedAsyncInvocation
 		{
@@ -90,9 +90,10 @@ package weave.services
 				));
 			
 			//Alert.show(event.fault.faultString, event.fault.name);
-			messageDisplay(event.fault.name, event.fault.faultString, true);
-			trace(event.fault.faultString);
-			trace(event.fault.name);
+			var msg:String = event.fault.faultString;
+			if (msg == "ioError")
+				msg = "Received no response from the servlet.\nHas the WAR file been deployed correctly?\nExpected servlet URL: "+ service.servletURL;
+			messageDisplay(event.fault.name, msg, true);
 		}
 
 		public function checkSQLConfigExists():DelayedAsyncInvocation
