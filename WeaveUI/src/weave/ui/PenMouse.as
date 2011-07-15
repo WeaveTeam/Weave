@@ -35,8 +35,10 @@ package weave.ui
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableContainer;
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.StageUtils;
@@ -44,6 +46,7 @@ package weave.ui
 	import weave.utils.CustomCursorManager;
 	import weave.utils.EventUtils;
 	import weave.utils.VectorUtils;
+	import weave.visualization.layers.PlotLayer;
 
 	
 	/**
@@ -137,6 +140,7 @@ package weave.ui
 		 */		
 		public function handleMouseMove(event:MouseEvent):void
 		{
+			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22); //This is a temporary fix, should be changed if there is another way.
 			if( drawing ){
 				_coordsArrays[_coordsArrays.length - 1].push(mouseX, mouseY);
 				coords.value += '' + mouseX + "," + mouseY + ",";
@@ -225,7 +229,7 @@ package weave.ui
 				return;
 			CustomCursorManager.removeCurrentCursor();
 			//If session state is imported need to detect if there already is drawings.
-			if( Weave.root.getObject( PEN_OBJECT_NAME ) )
+			if( ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME ) )
 				_removeDrawingsMenuItem.enabled = true;
 		}
 		
@@ -237,7 +241,10 @@ package weave.ui
 		 */				
 		public static function drawFunction(e:ContextMenuEvent):void
 		{
-			var penTool:PenMouse = Weave.root.requestObject(PEN_OBJECT_NAME, PenMouse, false ) as PenMouse;
+			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
+			
+			if ( linkableContainer )
+				var penTool:PenMouse = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenMouse,false);
 			if( _penToolMenuItem.caption == ENABLE_PEN )
 			{
 				// enable pen
@@ -245,6 +252,7 @@ package weave.ui
 				penTool.editMode = true;
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
+				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
 			}
 			else
 			{
@@ -256,12 +264,34 @@ package weave.ui
 		}
 		
 		/**
+		 * This function is passed a target and checks to see if the target is an ILinkableContainer.
+		 * Either a ILinkableContainer or null will be returned.
+		 */
+		private static function getLinkableContainer(target:*):*
+		{
+			var targetComponent:* = target;
+			
+			while(targetComponent)
+			{
+				if(targetComponent is ILinkableContainer)
+					return targetComponent as ILinkableContainer;
+				
+				targetComponent = targetComponent.parent;
+			}
+			
+			return targetComponent;
+		}
+		
+		/**
 		 * This function occurs when Remove All Drawings is pressed.
 		 * It removes the PenMouse object and clears all of the event listeners.  
 		 */		
 		public static function eraseDrawings(e:ContextMenuEvent):void
 		{
-			Weave.root.removeObject(PEN_OBJECT_NAME);
+			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
+			
+			if ( linkableContainer )
+				linkableContainer.getLinkableChildren().removeObject( PEN_OBJECT_NAME );
 			_penToolMenuItem.caption = ENABLE_PEN;
 			_removeDrawingsMenuItem.enabled = false;
 		}
