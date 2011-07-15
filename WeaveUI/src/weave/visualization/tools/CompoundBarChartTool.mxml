@@ -345,10 +345,10 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes">
 			
-			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
+			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
 									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Bars Sorted By:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Sort" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" id="dimensionsList" initialize="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 		</mx:VBox>
 		
@@ -375,8 +375,8 @@
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Positive Error:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Negative Error:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Positive Error" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Negative Error" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
 			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
