@@ -249,12 +249,6 @@ package weave.services
 		
 		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			if (activeConnectionName == '')
-			{
-				activeConnectionName = connectionInfo.name;
-				activePassword = connectionInfo.pass;
-				userHasAuthenticated = true;
-			}
 			var query:DelayedAsyncInvocation = service.saveConnectionInfo(activeConnectionName, activePassword, connectionInfo, configOverwrite);
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void

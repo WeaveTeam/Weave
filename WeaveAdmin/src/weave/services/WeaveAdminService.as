@@ -93,7 +93,6 @@ package weave.services
 			messageDisplay(event.fault.name, event.fault.faultString, true);
 			trace(event.fault.faultString);
 			trace(event.fault.name);
-			trace(messageLog);
 		}
 
 		public function checkSQLConfigExists():DelayedAsyncInvocation

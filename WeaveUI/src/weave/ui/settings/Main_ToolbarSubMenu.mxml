@@ -241,12 +241,7 @@
 									 enabled="{toolsMenu.selected == true}"
 									 id="addRadViz"
 									 label="Add RadViz"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz,addRadViz,'selected')"/>  
-						<mx:CheckBox toolTip="Checking this box will allow the user to add a RadViz2 Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addRadViz2"
-									 label="Add RadViz2"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz2,addRadViz2,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz,addRadViz,'selected')"/>  						
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a CompoundRadViz Tool"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addCompoundRadViz"

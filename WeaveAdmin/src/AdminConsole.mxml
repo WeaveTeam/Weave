@@ -37,7 +37,7 @@
 			import weave.ui.admin.LoginPopup;
 			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.wizards.CSVImportWizard;
-			import weave.ui.admin.wizards.ForceMigrateWizard;
+			import weave.ui.admin.wizards.FirstTimeSetupWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
 			import weave.utils.EventUtils;
@@ -74,7 +74,7 @@
 			{
 				if (!exists)
 				{
-					var migrateViewStack:ForceMigrateWizard = new ForceMigrateWizard();
+					var migrateViewStack:FirstTimeSetupWizard = new FirstTimeSetupWizard();
 					var migratePanel:WizardPanel = WizardPanel.createWizard(this, migrateViewStack) as WizardPanel;
 					
 					//we don't want the user to hit the close button before the migration step, so we disable it.

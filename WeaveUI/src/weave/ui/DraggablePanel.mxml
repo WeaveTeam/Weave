@@ -344,15 +344,15 @@
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.
 			 */
-			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString("25%"));
-			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString("25%"));
+			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
+			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
 			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%"));
 			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%"));
 
-			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMaximizedChange);
-			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange);
-			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange);
-			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange);
+			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMaximizedChange, true);
+			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange, true);
+			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
+			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 			
 			/**
 			 * This function copies the values for x,y,width,height from the corresponding sessioned properties.

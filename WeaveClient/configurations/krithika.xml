@@ -16,18 +16,20 @@
       <GlobalObjectReference name="defaultSubsetKeyFilter"/>
     </filter>
     <internalDynamicColumn encoding="dynamic">
-      <ReferencedColumn>
-        <dynamicColumnReference encoding="dynamic">
-          <HierarchyColumnReference>
-            <dataSourceName>IrisDataset</dataSourceName>
-            <hierarchyPath encoding="xml">
-              <hierarchy>
-                <attribute keyType="IrisDataset" csvColumn="Sepal Length" title="Sepal Length"/>
-              </hierarchy>
-            </hierarchyPath>
-          </HierarchyColumnReference>
-        </dynamicColumnReference>
-      </ReferencedColumn>
+      <DynamicColumn encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>IrisDataset</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <attribute keyType="IrisDataset" csvColumn="Petal Length" title="Petal Length"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
     </internalDynamicColumn>
   </FilteredColumn>
   <KeyFilter name="defaultSubsetKeyFilter">
@@ -1393,7 +1395,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <keyType>IrisDataset</keyType>
     <url/>
   </CSVDataSource>
-  <CompoundRadVizTool name="CompoundRadVizTool2">
+  <CompoundRadVizTool name="CompoundRadVizTool4">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -1407,8 +1409,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
         <dataBounds>
-          <xMax>1.904878048780488</xMax>
-          <xMin>-1.904878048780488</xMin>
+          <xMax>1.6103092783505157</xMax>
+          <xMin>-1.6103092783505157</xMin>
           <yMax>1.1</yMax>
           <yMin>-1.1</yMin>
         </dataBounds>
@@ -1432,19 +1434,19 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <plotter encoding="dynamic">
               <CompoundRadVizPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="Petal Length">
+                  <AnchorPoint name="Sepal Length">
                     <x>1</x>
                     <y>0</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Sepal Length">
+                  <AnchorPoint name="Sepal Width">
                     <x>6.123233995736766e-17</x>
                     <y>1</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Petal Width">
+                  <AnchorPoint name="Petal Length">
                     <x>-1</x>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Sepal Width">
+                  <AnchorPoint name="Petal Width">
                     <x>-1.8369701987210297e-16</x>
                     <y>-1</y>
                   </AnchorPoint>
@@ -1467,18 +1469,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                   </colorRamp>
                 </colorMap>
                 <columns encoding="dynamic">
-                  <ReferencedColumn name="ReferencedColumn3">
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>IrisDataset</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <attribute keyType="IrisDataset" title="Petal Length" csvColumn="Petal Length"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
                   <ReferencedColumn name="ReferencedColumn">
                     <dynamicColumnReference encoding="dynamic">
                       <HierarchyColumnReference>
@@ -1491,18 +1481,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
-                  <ReferencedColumn name="ReferencedColumn4">
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>IrisDataset</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <attribute keyType="IrisDataset" title="Petal Width" csvColumn="Petal Width"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
                   <ReferencedColumn name="ReferencedColumn2">
                     <dynamicColumnReference encoding="dynamic">
                       <HierarchyColumnReference>
@@ -1510,6 +1488,30 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
                             <attribute keyType="IrisDataset" title="Sepal Width" csvColumn="Sepal Width"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn3">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>IrisDataset</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute keyType="IrisDataset" title="Petal Length" csvColumn="Petal Length"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn4">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>IrisDataset</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute keyType="IrisDataset" title="Petal Width" csvColumn="Petal Width"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1579,21 +1581,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
                 </lineStyle>
-                <radiusColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>IrisDataset</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <attribute keyType="IrisDataset" csvColumn="Sepal Length" title="Sepal Length"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </radiusColumn>
-                <radiusConstant>5</radiusConstant>
+                <radiusColumn encoding="dynamic"/>
+                <radiusConstant>1.1139240506329113</radiusConstant>
                 <spatialCallbacks/>
               </CompoundRadVizPlotter>
             </plotter>
@@ -1616,19 +1605,19 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <plotter encoding="dynamic">
               <AnchorPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="Petal Length">
+                  <AnchorPoint name="Sepal Length">
                     <x>1</x>
                     <y>0</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Sepal Length">
+                  <AnchorPoint name="Sepal Width">
                     <x>6.123233995736766e-17</x>
                     <y>1</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Petal Width">
+                  <AnchorPoint name="Petal Length">
                     <x>-1</x>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
-                  <AnchorPoint name="Sepal Width">
+                  <AnchorPoint name="Petal Width">
                     <x>-1.8369701987210297e-16</x>
                     <y>-1</y>
                   </AnchorPoint>
@@ -1674,7 +1663,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>43.459%</panelHeight>
+    <panelHeight>50.111%</panelHeight>
     <panelStyleList/>
     <panelWidth>49.837%</panelWidth>
     <panelX>50.163%</panelX>

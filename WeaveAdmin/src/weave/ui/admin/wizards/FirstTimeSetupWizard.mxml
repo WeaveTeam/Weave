@@ -49,9 +49,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:VBox>
 	<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 		<mx:Label fontWeight="bold" text="Enter the schema and table names to use for storing configuration"/>
-		<ui:TextBox indent="{_indent}" label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
-		<ui:TextBox indent="{_indent}" label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
-		<ui:TextBox indent="{_indent}" label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
+		<ui:Indent indent="{_indent}" label="Connection to use:">
+			<mx:Label text="{connectionNameInput.text}"/>
+		</ui:Indent>
+		<ui:TextBox indent="{_indent}" label="Schema to use:" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
+		<ui:TextBox indent="{_indent}" label="Geometry config table:" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
+		<ui:TextBox indent="{_indent}" label="AttributeColumn config table:" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
 		<mx:Label text="Note: You can always change these settings later."/>
 	</mx:VBox>
 		<!--<ui:Indent>
@@ -103,6 +106,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connectionInfo.user = connectionUserInput.text;
 				connectionInfo.is_superuser = true; // this is the first user, so he must be a superuser
 				
+				AdminInterface.instance.activeConnectionName = connectionInfo.name;
+				AdminInterface.instance.activePassword = connectionInfo.pass;
+				AdminInterface.instance.userHasAuthenticated = true;
 				AdminInterface.instance.saveConnectionInfo(connectionInfo,true).addAsyncResponder(resultSuccessHandler);
 			}
 			

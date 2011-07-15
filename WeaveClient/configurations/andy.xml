@@ -1158,7 +1158,7 @@
     </children>
     <eventListeners>
       <close>weave.setSessionState(
-[],[{className:null,objectName:'custom panel',sessionState:null}],false
+[],[{className:'delete',objectName:'custom panel',sessionState:null}],false
 )</close>
       <mouseMove>weave.setSessionState(
   ['custom panel','children','hbox','children','slider','properties'],

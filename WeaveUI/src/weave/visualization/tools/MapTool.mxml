@@ -176,6 +176,14 @@
 			private function handleLayersChange():void
 			{
 				_projComboBoxData.length = 0;
+				// TEMPORARY: set the selected item in the combo box because changing the data provider 
+				// will reset the text field
+				if (WeaveAPI.ProjectionManager.projectionExists(projectionSRS.value))
+				{
+					_projComboBoxData.push(projectionSRS.value);
+					projComboBox.selectedItem = projectionSRS.value; 
+				}
+				
 				var projString:String;
 				
 				// make sure wms layer projections are identical

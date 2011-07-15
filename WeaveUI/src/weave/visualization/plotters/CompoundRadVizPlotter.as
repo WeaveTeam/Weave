@@ -64,7 +64,7 @@ package weave.visualization.plotters
 		public function CompoundRadVizPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-			registerNonSpatialProperty(radiusColumn);
+			registerNonSpatialProperties(radiusColumn, fillStyle);			
 			setNewRandomJitterColumn();		
 			iterations.value = 50;
 		}		
@@ -76,7 +76,7 @@ package weave.visualization.plotters
 		 * <br/>contains the location of each column as an AnchorPoint object
 		 */		
 		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(AnchorPoint));
-		private const coordinate:Point = new Point();//reusable object
+		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 				
 		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));	
@@ -85,14 +85,14 @@ package weave.visualization.plotters
 		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);		
+		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle,handleColumnsChange);		
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public var colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
 
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
-		private const screenRadius:DynamicColumn = new DynamicColumn();
+		private const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn, handleColumnsChange);
 		public function get radiusColumn():DynamicColumn { return screenRadius; }
 		public const radiusConstant:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
 		
@@ -110,12 +110,12 @@ package weave.visualization.plotters
 			var i:int = 0;
 			var columnNormArray:Array;
 			var columnNumberArray:Array;
-			unorderedColumns = columns.getObjects(IAttributeColumn);
+			_columns = columns.getObjects(IAttributeColumn);
 			var sum:Number = 0;
 			
-			if (unorderedColumns.length > 0) 
+			if (_columns.length > 0) 
 			{
-				setKeySource(unorderedColumns[0]);
+				setKeySource(_columns[0]);
 			
 				randomArrayIndexMap = 	new Dictionary(true);				
 				keyRadiusMap = 			new Dictionary(true);
@@ -128,6 +128,7 @@ package weave.visualization.plotters
 				for each( var key:IQualifiedKey in keySet.keys)
 				{					
 					randomArrayIndexMap[key] = i ;
+					// move radius and color caching to other functions for callback efficiency
 					keyNormedRadiusMap[key] = ColumnUtils.getNorm(screenRadius,key);
 					keyRadiusMap[key] = screenRadius.getValueFromKey(key, Number);
 					keyColorMap[key] = fillStyle.color.internalDynamicColumn.getValueFromKey(key, Number);
@@ -135,7 +136,7 @@ package weave.visualization.plotters
 					columnNormArray = [];
 					columnNumberArray = [];
 					sum = 0;
-					for each( var column:IAttributeColumn in unorderedColumns)
+					for each( var column:IAttributeColumn in _columns)
 					{
 						if(i == 0)
 							columnTitleMap[column] = ColumnUtils.getTitle(column);
@@ -155,13 +156,13 @@ package weave.visualization.plotters
 		
 		public function setAnchorLocations():void
 		{			
-			unorderedColumns = columns.getObjects(IAttributeColumn);
-			var theta:Number = (2*Math.PI)/unorderedColumns.length;
+			_columns = columns.getObjects(IAttributeColumn);
+			var theta:Number = (2*Math.PI)/_columns.length;
 			var anchor:AnchorPoint;
 			anchors.removeAllObjects();
-			for( var i:int = 0; i < unorderedColumns.length; i++ )
+			for( var i:int = 0; i < _columns.length; i++ )
 			{
-				anchor = anchors.copyObject(ColumnUtils.getTitle(unorderedColumns[i]),new AnchorPoint()) as AnchorPoint ;								
+				anchor = anchors.copyObject(ColumnUtils.getTitle(_columns[i]),new AnchorPoint()) as AnchorPoint ;								
 				anchor.x.value = Math.cos(theta*i);
 				anchor.y.value = Math.sin(theta*i);				
 			}
@@ -182,18 +183,21 @@ package weave.visualization.plotters
 			var sum:Number = 0;			
 			var value:Number = 0;			
 			var name:String;
+			var keyMapExists:Boolean = true;
 			var anchor:AnchorPoint;
 			var array:Array = keyNormMap[recordKey];
+			if(!array) keyMapExists = false;
 			var array2:Array = keyNumberMap[recordKey];
-			for (var i:int=0; i<unorderedColumns.length; i++) {
-				
-				value = array[i];
-				name = columnTitleMap[unorderedColumns[i]];	
-				sum += array2[i];
+			var i:int = 0;
+			for each( var column:IAttributeColumn in _columns)  {				
+				value = (keyMapExists) ? array[i] : ColumnUtils.getNorm(column,recordKey);
+				name = (keyMapExists) ? columnTitleMap[column] : ColumnUtils.getTitle(column);	
+				sum += (keyMapExists) ? array2[i] : column.getValueFromKey(recordKey, Number);
 				anchor = anchors.getObject(name) as AnchorPoint;
 				numeratorX += value * anchor.x.value;
 				numeratorY += value * anchor.y.value;						
 				denominator += value;
+				i++ ;
 			}
 			if(denominator) {
 				coordinate.x = (numeratorX/denominator);
@@ -220,17 +224,14 @@ package weave.visualization.plotters
 			if(!isNaN(yJitter))coordinate.y += yJitter ;
 		}
 		
-		public function drawWedge(destination:Graphics, dataBounds:IBounds2D, screenBounds:IBounds2D, beginRadians:Number, spanRadians:Number, xDataCenter:Number = 0, yDataCenter:Number = 0, radius:Number = 1):void
+		public function drawWedge(destination:Graphics, beginRadians:Number, spanRadians:Number, projectedPoint:Point, radius:Number = 1):void
 		{
-			tempPoint.x = xDataCenter;
-			tempPoint.y = yDataCenter;
-			dataBounds.projectPointTo(tempPoint, screenBounds);
 			// move to center point
-			destination.moveTo(tempPoint.x, tempPoint.y);
+			destination.moveTo(projectedPoint.x, projectedPoint.y);
 			// line to beginning of arc, draw arc
-			DrawUtils.arcTo(destination, true, tempPoint.x, tempPoint.y, beginRadians, beginRadians + spanRadians, radius);
+			DrawUtils.arcTo(destination, true, projectedPoint.x, projectedPoint.y, beginRadians, beginRadians + spanRadians, radius);
 			// line back to center point
-			destination.lineTo(tempPoint.x, tempPoint.y);
+			destination.lineTo(projectedPoint.x, projectedPoint.y);
 		}
 		
 		/**
@@ -251,14 +252,28 @@ package weave.visualization.plotters
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
-		{			
+		{						
 			var graphics:Graphics = tempShape.graphics;
 			var radius:Number = keyNormedRadiusMap[recordKey];
-			if(!isNaN(radius)) radius = 2 + (radius *(10-2));
-			if(isNaN(radius)) radius = 5 ;
-						
+			
 			// Get coordinates of record and add jitter (if specified)
 			var sum:Number= getXYcoordinates(recordKey);
+
+			if(isNaN(radius) && (screenRadius.internalColumn != null))
+			{			
+				radius = 6;
+				var color:uint = keyColorMap[recordKey];
+				graphics.lineStyle(2);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				// draw a plus sign for missing values				
+				graphics.moveTo(coordinate.x - radius, coordinate.y);				
+				graphics.lineTo(coordinate.x + radius, coordinate.y);				
+				graphics.moveTo(coordinate.x, coordinate.y - radius);				
+				graphics.lineTo(coordinate.x, coordinate.y + radius);		
+				
+				return ;
+			}
+			if(radius <= Infinity) radius = 2 + (radius *(10-2));
 						
 			sum = (1/sum) *2 * Math.PI ;
 			
@@ -269,7 +284,9 @@ package weave.visualization.plotters
 			var numArray:Array = keyNumberMap[recordKey];
 			
 			var defaultAlpha:Number = MathLib.toNumber(alphaColumn.defaultValue.value);
-			for( var i:int = 0; i < unorderedColumns.length; i++ )
+			
+			dataBounds.projectPointTo(coordinate,screenBounds);
+			for( var i:int = 0; i < _columns.length; i++ )
 			{
 				value = numArray[i];
 				beginRadians += spanRadians;
@@ -277,18 +294,18 @@ package weave.visualization.plotters
 				
 				lineStyle.beginLineStyle(recordKey, graphics);
 				if(enableWedgeColoring.value)
-					graphics.beginFill(colorMap.getColorFromNorm(i / (unorderedColumns.length - 1)), alphaColumn.defaultValue.value as Number);
+					graphics.beginFill(colorMap.getColorFromNorm(i / (_columns.length - 1)), alphaColumn.defaultValue.value as Number);
 				else
 					fillStyle.beginFillStyle(recordKey, graphics);
 
 				if( screenRadius.internalColumn ) {
-					if(!isNaN(spanRadians)) //missing values skipped
-						drawWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y, radius*radiusConstant.value/3);
+					if(spanRadians <= Infinity) //missing values skipped
+						drawWedge(graphics, beginRadians, spanRadians, coordinate, radius*radiusConstant.value/3);
 				}
 				else
 				{
-					if(!isNaN(spanRadians)) //missing values skipped
-						drawWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, coordinate.x, coordinate.y,radiusConstant.value);
+					if(spanRadians <= Infinity) //missing values skipped
+						drawWedge(graphics, beginRadians, spanRadians, coordinate,radiusConstant.value);
 				}
 				graphics.endFill();
 			}
@@ -332,9 +349,9 @@ package weave.visualization.plotters
 			var b:Number = keyRadiusMap[key2];
 			// sort descending (high radius values drawn first)
 			if( radiusColumn.internalColumn )
-			{
-				if( a < b )	return -1;
-				else if( a > b ) return 1;
+			{				
+				if( isNaN(a) || (a < b) )	return -1;
+				else if( isNaN(b) || (a > b) ) return 1;
 			}
 			// size equal.. compare color (if global colorColumn is used)
 			if( !enableWedgeColoring.value)
@@ -352,6 +369,7 @@ package weave.visualization.plotters
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			//timer1.start();
+			if(keyNumberMap[recordKeys[0]] == null) return;
 			recordKeys.sort(sortKeys, Array.DESCENDING);			
 			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
 			/*timer1.debug("endplot");
@@ -360,7 +378,8 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			unorderedColumns = columns.getObjects(IAttributeColumn);
+			_columns = columns.getObjects(IAttributeColumn);
+			//if(!unorderedColumns.length) handleColumnsChange();
 			getXYcoordinates(recordKey);
 			
 			var bounds:IBounds2D = getReusableBounds();
@@ -409,331 +428,8 @@ package weave.visualization.plotters
 		private var timer1:DebugTimer = new DebugTimer(false);
 		private var S:Array ; // global similarity matrix 
 		private var N:Array ; // neighborhood matrix
-		private var orderedColumns:Array = null;
-		private var unorderedColumns:Array = null;
-		private var dimensionReorderLabels:Array ; // stores the list of reordered dimensions to apply to the columns LinkableHashMap
-				
-		private function isAdjacent(dim1:IAttributeColumn, dim2:IAttributeColumn, array:Array):Boolean
-		{
-			if(array[0] == dim1 && array[array.length-1] == dim2) return true;
-			if(array[0] == dim2 && array[array.length-1] == dim1) return true;
-			
-			for( var i:int = 0; i < array.length-1; i++ )
-			{
-				if(array[i] == dim1 && array[i+1] == dim2) return true ;
-				if(array[i] == dim2 && array[i+1] == dim1) return true ;
-			}
-			
-			return false ;
-		}		
-		private function getCosineDistance( recordKeys:Array, column1:IAttributeColumn, column2:IAttributeColumn):Number
-		{
-			var dist:Number = 0 ;
-			var sum:Number = 0;
-			var recordKeyslength:uint = recordKeys.length ;
-			var dist1:Number = 0; var dist2:Number = 0;
-			for( var i:int = 0; i < recordKeyslength; i++ )
-			{
-				var value1:Number = ColumnUtils.getNumber(column1, recordKeys[i] as IQualifiedKey);
-				var value2:Number = ColumnUtils.getNumber(column2, recordKeys[i] as IQualifiedKey);
-				
-				if( !isNaN(value1) && !isNaN(value2))
-				{
-					sum += Math.abs(value1 * value2);
-					dist1 += (value1 * value1);
-					dist2 += (value2 * value2);
-				}
-			}
-			dist = sum/Math.sqrt(dist1*dist2);			
-			return dist;
-		}		
-		/** 
-		 * Creates a new dxd global similarity matrix (where d is the number of dimensions) 
-		 * everytime the DA ordering algorithm is run
-		 */
-		private function getGlobalSimilarityMatrix():void
-		{			
-			var length:uint = unorderedColumns.length ;
-			S = [];
-			for( var i:int = 0; i < length; i++ )
-			{
-				var tempRowArray:Array = []; 
-				for( var j:int = 0; j < length; j++ )
-				{
-					tempRowArray.push(getCosineDistance( keySet.keys, unorderedColumns[i], unorderedColumns[j] ));
-				}
-				S.push(tempRowArray) ;
-				tempRowArray = null ;
-			}				
-		}
-		
-		private function getNeighborhoodMatrix(array:Array):void
-		{			
-			var length:uint = unorderedColumns.length ;
-			N = [];
-			for( var i:int = 0; i < length; i++ )
-			{
-				var tempArray:Array = [] ;
-				
-				for( var j:int = 0; j < length; j++)
-				{
-					if( isAdjacent(unorderedColumns[i], unorderedColumns[j], array))
-						tempArray.push(1);
-					else tempArray.push(0);
-				}
-				N.push( tempArray );
-				tempArray = null;
-			}
-		}		
-		
-		/** 
-		 * Creates a dxd global similarity matrix (where d is the number of dimensions) 
-		 * everytime the DA ordering algorithm is run
-		 */
-		private function getSortedSimilarityMatrix():void
-		{
-			var column:IAttributeColumn = unorderedColumns[0];
-			var length:uint = unorderedColumns.length ;
-			S = [];
-			for( var i:int = 0; i < length ;i++ )
-			{				
-				for( var j:int = 0; j < i; j++ )
-				{					
-					var entry:MatrixEntry = new MatrixEntry();
-					entry.similarity = getCosineDistance( column.keys, unorderedColumns[i], unorderedColumns[j] );
-					entry.dimension1 = unorderedColumns[i];
-					entry.dimension2 = unorderedColumns[j];
-					S.push(entry);
-				}
-			}	
-			// sort by increasing similarity values 
-			// we want the least similar dimensions at index 0
-			S.sort(sortEntries);
-		}
-		
-		/**
-		 * This function sorts matrix entries based on their similarity values 
-		 * @param entry1 First MatrixEntry (a)
-		 * @param entry2 Second MatrixEntry (b)
-		 * @return Sort value: 0: (a==b); -1:(a < b); 1:(a > b)
-		 * 
-		 */		
-		private function sortEntries( entry1:MatrixEntry, entry2:MatrixEntry):int
-		{
-			if( entry1.similarity > entry2.similarity) return 1;
-			if( entry1.similarity < entry2.similarity) return -1;
-			return 0;
-		}
-		
-		/**
-		 * Stores the DA ordering with the max similarity so far 
-		 * into private array DimensionReorderLabels
-		 */
-		private function storeDimensionReorder(array:Array):void
-		{
-			dimensionReorderLabels = [];
-			for( var i:int = 0; i < array.length; i++ )
-				dimensionReorderLabels.push(columns.getName(array[i])) ;
-		}
-		
-		/**
-		 * Calculates and returns the similarity measure for each reordering 
-		 * of the DAs in the algorithm
-		 */
-		private function getSimilarityMeasure():Number
-		{
-			var sim:Number = 0 ; var Nlength:uint = N.length ;
-			for( var i:int = 0; i < Nlength; i++ )
-				for( var j:int = 0; j < Nlength; j++ )
-					sim+=(S[i][j] * N[i][j]);
-			return sim; 
-		}
-		
-		/**
-		 * Searches for parameter IAttributeColumn inside the array parameter 
-		 * @param column column to search for
-		 * @param orderedColumns array of IAttributeColumns to search for column parameter
-		 * @return true: column is found
-		 * 
-		 */		
-		private function searchForColumn(column:IAttributeColumn, orderedColumns:Array ):IAttributeColumn
-		{
-			for each (var col:IAttributeColumn in orderedColumns ) {
-				if( col == column ) return col;
-			}
-			return null;
-		}
-		
-		private function searchForAnchorMatch(matchTo:IAttributeColumn, ignore:IAttributeColumn, orderedColumns:Array):IAttributeColumn
-		{
-			loop:for( var i:int = 0; i < S.length; i++ )
-			{
-				if(S[i].dimension1 == matchTo || S[i].dimension2 == matchTo)
-					if(S[i].dimension1 != ignore && S[i].dimension2 != ignore)
-					{
-						var matched:IAttributeColumn = (S[i].dimension1 == matchTo) ? S[i].dimension2 : S[i].dimension1;
-						for each( var column:IAttributeColumn in orderedColumns)
-						{
-							if( column == matched ) continue loop; 
-						}
-						return matched;
-					}
-			}
-			return null;
-		}
-		
-		/**
-		 * Reorder the private columns LinkableHashMap 
-		 * using the result from the DA ordering algorithm
-		 */
-		private function reorderColumnsHashMap():void
-		{
-			timer1.debug("end");
-			timer1.stop();
-			columns.setNameOrder(dimensionReorderLabels);
-		}		
-		
-		/**
-		 * Randomly swaps dimensions for a specified number of iterations,
-		 *  keeping track of reorderings with the max similarity so far
-		 */
-		private function applyRandomReorder():void
-		{
-			getGlobalSimilarityMatrix();
-			
-			var r1:Number; var r2:Number;
-			getNeighborhoodMatrix(unorderedColumns);
-			var min:Number = getSimilarityMeasure();
-			var sim:Number = 0 ;			
-
-			for( var i:int = 0; i < iterations.value; i++ )
-			{
-				// get 2 random column numbers
-				do{
-					r1=Math.floor(Math.random()*100) % unorderedColumns.length;	
-					r2=Math.floor(Math.random()*100) % unorderedColumns.length;	
-				} while(r1 == r2);
-				
-				// swap columns r2 and r1
-				var temp1:IAttributeColumn = new DynamicColumn() ; 
-				var temp2:IAttributeColumn = new DynamicColumn() ;
-				temp1 = unorderedColumns[r1];
-				unorderedColumns.splice(r1, 1, unorderedColumns[r2] );
-				unorderedColumns.splice(r2, 1, temp1);
-				
-				getNeighborhoodMatrix(unorderedColumns);
-				if((sim = getSimilarityMeasure()) <= min) 
-				{	
-					min = sim ;
-					storeDimensionReorder(unorderedColumns);
-				}
-			}
-			trace( "random swap ", min );
-			reorderColumnsHashMap();
-		}
-		
-		private function performGreedyLayout():void
-		{
-			var i:int = 0; 
-			orderedColumns.push(S[0].dimension1, S[0].dimension2);
-			var columnBegin:IAttributeColumn = orderedColumns[0];
-			var columnEnd:IAttributeColumn = orderedColumns[1];
-			var column1:IAttributeColumn; 
-			var column2:IAttributeColumn ;
-			while( orderedColumns.length < unorderedColumns.length )
-			{
-				column1 = searchForColumn( S[i].dimension1, orderedColumns );
-				column2 = searchForColumn( S[i].dimension2, orderedColumns );
-				
-				if(column1 && column2) {i++; continue;} 
-				else if( column1 ) {					
-					if( columnEnd == column1 ) {
-						orderedColumns.push(column2);
-						columnEnd = column2;
-					} else if( columnBegin == column1 )
-					{
-						orderedColumns.unshift(column2);
-						columnBegin = column2;
-					} else {i++; continue;}
-				} else if( column2 ) {
-					if( columnEnd == column2 ) {
-						orderedColumns.push(column1);
-						columnEnd = column1 ;
-					} else if (columnBegin == column2 ) {
-						orderedColumns.unshift(column1);
-						columnBegin = column1 ;
-					} else {i++; continue ;}
-				} else {
-					orderedColumns.push(S[i].dimension1, S[i].dimension2 );
-					columnEnd = S[i].dimension2 ;
-				}
-				i++;
-			}
-			storeDimensionReorder(orderedColumns);
-			columns.setNameOrder(dimensionReorderLabels);
-			
-			// debugging
-			getGlobalSimilarityMatrix();
-			getNeighborhoodMatrix(orderedColumns);
-			trace( "greedy ",getSimilarityMeasure());
-		}
-		
-		private function performNearestNeighborSearch():void
-		{			
-			// push the two columns that are least similar into new column order
-			orderedColumns.push(S[0].dimension1,S[0].dimension2);
-			while( orderedColumns.length < unorderedColumns.length)
-			{
-				var column:IAttributeColumn = searchForAnchorMatch( orderedColumns[orderedColumns.length-1], 
-					orderedColumns[orderedColumns.length-2], orderedColumns);				
-				orderedColumns.push(column);
-			}
-			storeDimensionReorder(orderedColumns);
-			columns.setNameOrder(dimensionReorderLabels);
-			
-			// debugging
-			getGlobalSimilarityMatrix();
-			getNeighborhoodMatrix(orderedColumns);
-			trace( "nearest neighbor ", getSimilarityMeasure());
-		}
-		
-		public function applyRandomAnchorLayout():void
-		{
-			unorderedColumns = columns.getObjects(IAttributeColumn);
-			if(!unorderedColumns.length) return;
-			orderedColumns = [];
-			trace(timer1.start());
-			timer1.debug("start");
-			applyRandomReorder();
-			orderedColumns = null;
-		}		
-		public function applyNearestNeighborAlgorithm():void
-		{
-			unorderedColumns = columns.getObjects(IAttributeColumn);
-			if(!unorderedColumns.length) return;
-			orderedColumns = [];
-			getSortedSimilarityMatrix();
-			performNearestNeighborSearch();
-			orderedColumns = null;
-		}				
-		public function applyGreedyLayoutAlgorithm():void
-		{
-			unorderedColumns = columns.getObjects(IAttributeColumn);
-			if(!unorderedColumns.length) return;
-			orderedColumns = [];
-			getSortedSimilarityMatrix();
-			performGreedyLayout();
-			orderedColumns = null;
-		}			
+		private var _orderedColumns:Array = null;
+		private var _columns:Array = null;
+		private var _columnNames:Array ; // stores the list of reordered dimensions to apply to the columns LinkableHashMap
 	}
-}
-
-import weave.api.data.IAttributeColumn;
-
-class MatrixEntry
-{
-	public function MatrixEntry() {}
-	public var similarity:Number;
-	public var dimension1:IAttributeColumn;
-	public var dimension2:IAttributeColumn;
 }

@@ -355,7 +355,7 @@ public class AdminService extends GenericServlet
 
 	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
 	{
-		if (newConnectionName.equals(""))
+		if (newConnectionName.equals("") || currentConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
 		
 		ConnectionInfo newConnectionInfo = new ConnectionInfo();
@@ -382,11 +382,14 @@ public class AdminService extends GenericServlet
 			}
 		}
 
+		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		// see if there are existing connections, we need to check the password
-		if (config.getConnectionNames().size() > 0)
+		// if there are existing connections and DatabaseConfigInfo exists, check the password.
+		// otherwise, allow anything.
+		if (config.getConnectionNames().size() > 0 && config.getDatabaseConfigInfo() != null)
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
+			
 			// non-superusers can't save connection info
 			if (!config.getConnectionInfo(currentConnectionName).is_superuser)
 				throw new RemoteException(String.format("User \"%s\" does not have permission to modify connections.", currentConnectionName));
@@ -435,7 +438,7 @@ public class AdminService extends GenericServlet
 					break;
 			}
 			// sanity check
-			if (currentConnectionName == newConnectionName && numSuperUsers == 1 && !grantSuperuser)
+			if (currentConnectionName == newConnectionName && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
 				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 			
 			config.removeConnection(newConnectionInfo.name);

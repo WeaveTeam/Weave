@@ -48,14 +48,15 @@ package weave.visualization.plotters
 		public var anchors:LinkableHashMap = newSpatialProperty(LinkableHashMap,handleAnchorsChange);
 		
 		private var _keySet:KeySet;
-		private var tempPoint:Point = new Point();
+		private const tempPoint:Point = new Point();
+		private const _bitmapText:BitmapText = new BitmapText();
 		
 		public function AnchorPlotter()	{}
 		
 		public function handleAnchorsChange():void
 		{		
 			var keys:Array = anchors.getNames(AnchorPoint);
-			var keyArray:Array = WeaveAPI.QKeyManager.getQKeys('dimensionalAnchors',keys);
+			var keyArray:Array = WeaveAPI.QKeyManager.getQKeys('dimensionAnchors',keys);
 
 			_keySet = new KeySet();
 			_keySet.replaceKeys(keyArray);
@@ -80,38 +81,37 @@ package weave.visualization.plotters
 				
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				var graphics1:Graphics = tempShape.graphics;
-				var labelText:BitmapText = new BitmapText();
-				labelText.text = key.localName;
+				_bitmapText.text = key.localName;
 				
 				if(x > 0) // right half of unit circle
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
-					labelText.x = tempPoint.x + 10;
-					labelText.y = tempPoint.y;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;
+					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
+					_bitmapText.x = tempPoint.x + 10;
+					_bitmapText.y = tempPoint.y;
 				}
 				
 				else if ( x == 0 && y <= 0 ) // exact bottom of circle
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					labelText.x = tempPoint.x ;
-					labelText.y = tempPoint.y + 10;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
+					_bitmapText.x = tempPoint.x ;
+					_bitmapText.y = tempPoint.y + 10;
 				}
 				else if( x == 0 && y > 0) // exact top of circle
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;					
-					labelText.x = tempPoint.x;
-					labelText.y = tempPoint.y - 10;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
+					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;					
+					_bitmapText.x = tempPoint.x;
+					_bitmapText.y = tempPoint.y - 10;
 				}
 				else // left half of circle
 				{
-					labelText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT ;
-					labelText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
-					labelText.x = tempPoint.x - 10;
-					labelText.y = tempPoint.y;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT ;
+					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
+					_bitmapText.x = tempPoint.x - 10;
+					_bitmapText.y = tempPoint.y;
 				}
-				labelText.draw(destination) ;
+				_bitmapText.draw(destination) ;
 				graphics1.clear();
 				graphics1.lineStyle(3);
 				graphics1.drawCircle(tempPoint.x, tempPoint.y, 1) ;

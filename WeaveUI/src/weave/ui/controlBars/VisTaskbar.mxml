@@ -98,12 +98,12 @@
 			import mx.utils.UIDUtil;
 			
 			import weave.Weave;
+			import weave.api.core.ILinkableObject;
+			import weave.api.newLinkableChild;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.SessionManager;
-			import weave.api.core.ILinkableObject;
-			import weave.api.newLinkableChild;
 			import weave.primitives.ImageFactory;
 			import weave.ui.DraggablePanel;
 			import weave.ui.MinimizedComponent;
@@ -115,6 +115,11 @@
 			private static var _instance:VisTaskbar = null;
 			public static function get instance():VisTaskbar
 			{
+				if (_instance == null)
+				{
+					_instance = new VisTaskbar();
+					_instance.initialize();
+				}
 				return _instance;
 			}
 			
@@ -125,8 +130,6 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-
-				_instance = this;
 				
 				addEventListener(MouseEvent.ROLL_OVER, growComponents);
 				addEventListener(MouseEvent.ROLL_OUT,  shrinkComponents);

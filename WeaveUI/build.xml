@@ -59,9 +59,6 @@
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>			
-
-			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>
-
 		</compc>
 	</target>
 

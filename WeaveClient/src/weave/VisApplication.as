@@ -32,6 +32,7 @@ package weave
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
 	import flash.system.System;
+	import flash.text.TextField;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.Timer;
@@ -43,9 +44,12 @@ package weave
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.controls.HSlider;
+	import mx.controls.Label;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.TabBar;
+	import mx.controls.Text;
+	import mx.controls.TextArea;
 	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.events.ChildExistenceChangedEvent;
@@ -80,7 +84,11 @@ package weave
 	import weave.core.StageUtils;
 	import weave.core.WeaveJavaScriptAPI;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.AttributeColumns.KeyColumn;
 	import weave.data.KeySets.KeyFilter;
+	import weave.data.KeySets.KeySet;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
@@ -129,7 +137,6 @@ package weave
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
 	import weave.visualization.tools.PieChartTool;
-	import weave.visualization.tools.RadViz2Tool;
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.SP2;
@@ -159,7 +166,6 @@ package weave
 		// Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
 		// view to add new tools, manage windows, do advanced tasks, etc.
 		private var _weaveMenu:WeaveMenuBar = null;
-		private var _visTaskbar:VisTaskbar = null;
 		
 		
 		// The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
@@ -191,7 +197,6 @@ package weave
 			this.setStyle('backgroundColor',0xCCCCCC);
 			this.pageTitle = "Open Indicators Weave";
 
-			_visTaskbar = new VisTaskbar();
 			visDesktop = new VisDesktop();
 			
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
@@ -413,7 +418,27 @@ package weave
 			
 		}
 		
-
+		private var _selectionIndicatorText:Text = new Text;
+		private var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		private function handleSelectionChange():void
+		{
+			_selectionIndicatorText.text = selectionKeySet.keys.length.toString() + " Records Selected";
+			try
+			{
+				if (selectionKeySet.keys.length == 0)
+				{
+					if (visDesktop.contains(_selectionIndicatorText))
+						visDesktop.removeChild(_selectionIndicatorText);
+				}
+				else
+				{
+					if (!visDesktop.contains(_selectionIndicatorText))
+						visDesktop.addChild(_selectionIndicatorText);
+				}
+			}
+			catch (e:Error) { }
+		}
+		
 		override protected function createChildren():void
 		{
 			super.createChildren();
@@ -459,6 +484,13 @@ package weave
 //			addViewBar();
 //			_viewTabBar.addEventListener(ItemClickEvent.ITEM_CLICK, handleTabSelected);
 //			addEventListener(ResizeEvent.RESIZE,handleTabBarResize);
+			
+			// Code for selection indicator
+			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
+			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
+			_selectionIndicatorText.opaqueBackground = 0x000000;
+			_selectionIndicatorText.setStyle("bottom", 0);
+			_selectionIndicatorText.setStyle("right", 0);
 			
 			getCallbackCollection(WeaveAPI.ProgressIndicator).addGroupedCallback(this, handleProgressIndicatorCounterChange, true);
 			visDesktop.addChild(_progressBar);
@@ -784,7 +816,6 @@ package weave
 //				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 //				
 				createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
-				createToolMenuItem(Weave.properties.enableAddRadViz2, "Add RadViz2", createGlobalObject, [RadViz2Tool]);
 				createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
 //				createToolMenuItem(Weave.properties.enableAddWordle, "Add Wordle", createGlobalObject, [WeaveWordleTool]);
 //				createToolMenuItem(Weave.properties.enableAddStickFigurePlot, "Add Stick Figure Plot", createGlobalObject, [StickFigureGlyphTool]);
@@ -910,22 +941,22 @@ package weave
 		{
 			if (Weave.properties.enableTaskbar.value)
 			{
-				_visTaskbar.percentWidth = 100;
+				VisTaskbar.instance.percentWidth = 100;
 					
 				// The task bar should be at the bottom of the page
-				if (!_visTaskbar.parent)
+				if (!VisTaskbar.instance.parent)
 				{
-					addChild(_visTaskbar);
+					addChild(VisTaskbar.instance);
 //					PopUpManager.addPopUp(_visTaskbar, this);
 				}
 			}
 			else
 			{
-				_visTaskbar.restoreAllComponents();
+				VisTaskbar.instance.restoreAllComponents();
 
-				if (_visTaskbar.parent)
+				if (VisTaskbar.instance.parent)
 				{
-					removeChild(_visTaskbar);
+					removeChild(VisTaskbar.instance);
 //					PopUpManager.removePopUp(_visTaskbar);
 				}
 			}
@@ -1645,10 +1676,10 @@ package weave
 				return;
 			
 			var visMenuVisible:Boolean    = (_weaveMenu ? _weaveMenu.visible : false);
-			var visTaskbarVisible:Boolean = (_visTaskbar ? _visTaskbar.visible : false);
+			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
 			
 			if (_weaveMenu)    _weaveMenu.visible    = false;
-			if (_visTaskbar) _visTaskbar.visible = false;
+			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;
 
 			//initialize the print format
 			var printPopUp:PrintFormat = new PrintFormat();
@@ -1659,7 +1690,7 @@ package weave
 			printPopUp.componentToScreenshot = component;
 			
 			if (_weaveMenu)  _weaveMenu.visible    = visMenuVisible;
-			if (_visTaskbar) _visTaskbar.visible = visTaskbarVisible;	
+			if (VisTaskbar.instance) VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
 		
 		public function updatePageTitle():void

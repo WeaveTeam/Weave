@@ -251,7 +251,7 @@
 				reseedJitterButton.selected = false; 
 			}
 			
-			private function handleAnchorReorderButtonClick(event:MouseEvent = null):void
+			/* private function handleAnchorReorderButtonClick(event:MouseEvent = null):void
 			{
 				switch( algorithmComboBox.selectedIndex )
 				{
@@ -261,11 +261,13 @@
 						_plotter.applyNearestNeighborAlgorithm(); break;
 					case 2:
 						_plotter.applyGreedyLayoutAlgorithm(); break;
+					case 3:
+						_plotter.applyIncrementalLayoutAlgorithm(); break;
 					default:
 						break;
 				}
 				anchorReorderButton.selected = false; 
-			}
+			} */
 			
 			public function getScreenBounds(outputBounds:Bounds2D):void
 			{
@@ -353,7 +355,7 @@
 				</mx:HBox>
 			</mx:VBox>
 			<mx:Spacer height="10"/>
-			<mx:VBox borderStyle="solid" 
+			<!--<mx:VBox borderStyle="solid" 
 					 backgroundColor="0xFFFFFF" 
 					 backgroundAlpha="0.7"
 					 id="controls4">
@@ -368,6 +370,7 @@
 							<mx:Object label="Random Swapping" />
 							<mx:Object label="Nearest Neighbor" />
 							<mx:Object label="Greedy Layout"/>
+							<mx:Object label="Incremental Search"/>
 						</mx:ArrayCollection>
 					</mx:ComboBox>
 				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
@@ -382,7 +385,7 @@
 									   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00" />
 					</mx:HBox>
 
-			</mx:VBox>
+			</mx:VBox>-->
 		</mx:VBox>
 		
 		<mx:VBox id="attributesPanel" label="Attributes for RadViz">

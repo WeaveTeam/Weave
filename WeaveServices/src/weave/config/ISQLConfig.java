@@ -173,9 +173,7 @@ public interface ISQLConfig
 	List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException;
 
 	/**
-	 * Returns the information to connect to a configuration database. If the
-	 * "databaseConfig" tag is missing, this returns an object which is
-	 * populated with empty strings for all fields.
+	 * @return A DatabaseConfigInfo object, or null if this ISQLConfig is not configured to store info in a database.
 	 */
 	DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
 
