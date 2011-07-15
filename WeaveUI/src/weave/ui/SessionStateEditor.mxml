@@ -529,10 +529,14 @@
 				{
 					var i:int;
 					
-					// if the object is a single ILinkableVariable
-					if (_currentSelectedObject is ILinkableVariable)
+					// if the object is a single ILinkableVariable or ILinkableDynamicObject
+					if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
 					{
-						var value:Object = (_currentSelectedObject as ILinkableVariable).getSessionState();
+						var value:Object;
+						if (_currentSelectedObject is ILinkableVariable)
+							value = (_currentSelectedObject as ILinkableVariable).getSessionState();
+						else
+							value = WeaveXMLEncoder.encode(getSessionState(_currentSelectedObject), 'tag').children().toXMLString();
 						if (value === null || (value as String) === '') // strict equality check to avoid casting 0, false, or '' to values of 0 (equal to null)
 							value = ' ';
 						sessionStateDataGrid.columns = [ _valueColumn ];
