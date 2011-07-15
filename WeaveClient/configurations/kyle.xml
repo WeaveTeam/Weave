@@ -23,7 +23,7 @@
               <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
               <hierarchyPath encoding="xml">
                 <hierarchy keyType="Country Code">
-                  <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                  <attribute csvColumn="Urban population (% of total)" keyType="Country Code" name="Urban population (% of total)" title="Urban population (% of total)"/>
                 </hierarchy>
               </hierarchyPath>
             </HierarchyColumnReference>
@@ -45,7 +45,7 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp singlehue="true" category="visualization" name="Red Scale" source="OIC">
+      <colorRamp category="visualization" name="Red Scale" singlehue="true" source="OIC">
         <node color="0x000000" position="0"/>
         <node color="0xff0000" position="0.5"/>
         <node color="0xffcccc" position="1"/>
@@ -120,8 +120,6 @@
     <enableSelectionsMenu>true</enableSelectionsMenu>
     <enableSessionBookmarks>true</enableSessionBookmarks>
     <enableSessionEdit>true</enableSessionEdit>
-    <enableSessionExport>true</enableSessionExport>
-    <enableSessionImport>true</enableSessionImport>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
@@ -133,7 +131,6 @@
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
-    <maxVerticesPolyPolyOverlap>0</maxVerticesPolyPolyOverlap>
     <pageTitle>Sample Weave Configuration</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
     <panelTitleFontColor>16777215</panelTitleFontColor>
@@ -159,7 +156,6 @@ Google Images|http://images.google.com/images?q=
 Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <selectionAlphaAmount>0.5</selectionAlphaAmount>
     <selectionBlurringAmount>4</selectionBlurringAmount>
-    <sessionStateEditor>TextArea</sessionStateEditor>
     <shadowAlpha>0.5</shadowAlpha>
     <shadowAngle>45</shadowAngle>
     <shadowBlur>4</shadowBlur>
@@ -172,7 +168,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
-    <version>1.0 Beta 1</version>
+    <version>1.0 Beta Nightly Build</version>
     <windowSnapGridSize>4</windowSnapGridSize>
   </WeaveProperties>
   <LinkableHashMap encoding="dynamic" name="Probed Columns">
@@ -182,7 +178,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+              <attribute name="Country Name" keyType="Country Code" csvColumn="Country Name" title="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -194,7 +190,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+              <attribute name="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -206,7 +202,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+              <attribute name="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -218,7 +214,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+              <attribute name="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -230,7 +226,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+              <attribute name="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -242,7 +238,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+              <attribute name="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -254,7 +250,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+              <attribute name="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -1064,25 +1060,25 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Open_Space_WGS2" name="Weave:Open_Space_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="WTAZ10_WGS2" name="Weave:WTAZ10_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="BikeRoutes_WGS" name="Weave:BikeRoutes_WGS">
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="OBJECTID" keyType="Weave:BikeRoutes_WGS" title="OBJECTID" dataType="Number"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="COUNTY" keyType="Weave:BikeRoutes_WGS" title="COUNTY" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="DIRECTION" keyType="Weave:BikeRoutes_WGS" title="DIRECTION" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="STATUS" keyType="Weave:BikeRoutes_WGS" title="STATUS" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="PATHTYPE" keyType="Weave:BikeRoutes_WGS" title="PATHTYPE" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="CLASS" keyType="Weave:BikeRoutes_WGS" title="CLASS" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="AGENCY" keyType="Weave:BikeRoutes_WGS" title="AGENCY" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="BIKEWAY_NA" keyType="Weave:BikeRoutes_WGS" title="BIKEWAY_NA" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="GREENMAP" keyType="Weave:BikeRoutes_WGS" title="GREENMAP" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="FUNCLASS" keyType="Weave:BikeRoutes_WGS" title="FUNCLASS" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="COINCIDENT" keyType="Weave:BikeRoutes_WGS" title="COINCIDENT" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="SOURCE" keyType="Weave:BikeRoutes_WGS" title="SOURCE" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="COGFunding" keyType="Weave:BikeRoutes_WGS" title="COGFunding" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="MORPC_Fclass" keyType="Weave:BikeRoutes_WGS" title="MORPC_Fclass" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="Notes" keyType="Weave:BikeRoutes_WGS" title="Notes" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="DATE_" keyType="Weave:BikeRoutes_WGS" title="DATE_" dataType="Number"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="COG_Trail" keyType="Weave:BikeRoutes_WGS" title="COG_Trail" dataType="String"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:BikeRoutes_WGS" title="Shape" dataType="Geometry"/>
-          <attribute featureTypeName="Weave:BikeRoutes_WGS" name="Shape.len" keyType="Weave:BikeRoutes_WGS" title="Shape.len" dataType="Number"/>
+          <attribute dataType="Number" name="OBJECTID" keyType="Weave:BikeRoutes_WGS" title="OBJECTID" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="COUNTY" keyType="Weave:BikeRoutes_WGS" title="COUNTY" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="DIRECTION" keyType="Weave:BikeRoutes_WGS" title="DIRECTION" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="STATUS" keyType="Weave:BikeRoutes_WGS" title="STATUS" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="PATHTYPE" keyType="Weave:BikeRoutes_WGS" title="PATHTYPE" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="CLASS" keyType="Weave:BikeRoutes_WGS" title="CLASS" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="AGENCY" keyType="Weave:BikeRoutes_WGS" title="AGENCY" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="BIKEWAY_NA" keyType="Weave:BikeRoutes_WGS" title="BIKEWAY_NA" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="GREENMAP" keyType="Weave:BikeRoutes_WGS" title="GREENMAP" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="FUNCLASS" keyType="Weave:BikeRoutes_WGS" title="FUNCLASS" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="COINCIDENT" keyType="Weave:BikeRoutes_WGS" title="COINCIDENT" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="SOURCE" keyType="Weave:BikeRoutes_WGS" title="SOURCE" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="COGFunding" keyType="Weave:BikeRoutes_WGS" title="COGFunding" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="MORPC_Fclass" keyType="Weave:BikeRoutes_WGS" title="MORPC_Fclass" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="Notes" keyType="Weave:BikeRoutes_WGS" title="Notes" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="Number" name="DATE_" keyType="Weave:BikeRoutes_WGS" title="DATE_" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="String" name="COG_Trail" keyType="Weave:BikeRoutes_WGS" title="COG_Trail" featureTypeName="Weave:BikeRoutes_WGS"/>
+          <attribute dataType="Geometry" featureTypeName="Weave:BikeRoutes_WGS" name="Shape" keyType="Weave:BikeRoutes_WGS" projectionSRS="EPSG:4326" title="Shape"/>
+          <attribute dataType="Number" name="Shape.len" keyType="Weave:BikeRoutes_WGS" title="Shape.len" featureTypeName="Weave:BikeRoutes_WGS"/>
         </category>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="SchoolDistricts_WGS_ExtraFields" name="Weave:SchoolDistricts_WGS_ExtraFields"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Counties_WFS" name="Weave:Counties_WFS"/>
@@ -1091,96 +1087,96 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Cities_WGS2" name="Weave:Cities_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="WATERSHEDShuc12_nrcs_WGS2" name="Weave:WATERSHEDShuc12_nrcs_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Points_of_Interest_WGS" name="Weave:Points_of_Interest_WGS">
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="OBJECTID" keyType="Weave:Points_of_Interest_WGS" title="OBJECTID" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Type" keyType="Weave:Points_of_Interest_WGS" title="Type" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Class" keyType="Weave:Points_of_Interest_WGS" title="Class" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Name" keyType="Weave:Points_of_Interest_WGS" title="Name" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Street_Address" keyType="Weave:Points_of_Interest_WGS" title="Street_Address" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Jurisdiction" keyType="Weave:Points_of_Interest_WGS" title="Jurisdiction" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ZipCode" keyType="Weave:Points_of_Interest_WGS" title="ZipCode" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Sub_Type" keyType="Weave:Points_of_Interest_WGS" title="Sub_Type" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Updated" keyType="Weave:Points_of_Interest_WGS" title="Updated" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Source" keyType="Weave:Points_of_Interest_WGS" title="Source" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="TAZ" keyType="Weave:Points_of_Interest_WGS" title="TAZ" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Alt_Name" keyType="Weave:Points_of_Interest_WGS" title="Alt_Name" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="SigYEARS" keyType="Weave:Points_of_Interest_WGS" title="SigYEARS" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="County" keyType="Weave:Points_of_Interest_WGS" title="County" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="PROP_ID" keyType="Weave:Points_of_Interest_WGS" title="PROP_ID" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="NET_RENT" keyType="Weave:Points_of_Interest_WGS" title="NET_RENT" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="GROSS_BLDG" keyType="Weave:Points_of_Interest_WGS" title="GROSS_BLDG" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="GROSS_LEAS" keyType="Weave:Points_of_Interest_WGS" title="GROSS_LEAS" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="YEAR_BUILT" keyType="Weave:Points_of_Interest_WGS" title="YEAR_BUILT" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="PHONE" keyType="Weave:Points_of_Interest_WGS" title="PHONE" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ID" keyType="Weave:Points_of_Interest_WGS" title="ID" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="FIRE_DISTR" keyType="Weave:Points_of_Interest_WGS" title="FIRE_DISTR" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="TYPE_NAME" keyType="Weave:Points_of_Interest_WGS" title="TYPE_NAME" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="HEIGHT" keyType="Weave:Points_of_Interest_WGS" title="HEIGHT" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="FLOORS" keyType="Weave:Points_of_Interest_WGS" title="FLOORS" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="SQFT" keyType="Weave:Points_of_Interest_WGS" title="SQFT" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="CAPACITY" keyType="Weave:Points_of_Interest_WGS" title="CAPACITY" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ACRES" keyType="Weave:Points_of_Interest_WGS" title="ACRES" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="PARKING" keyType="Weave:Points_of_Interest_WGS" title="PARKING" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="BEDS" keyType="Weave:Points_of_Interest_WGS" title="BEDS" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ROOMS" keyType="Weave:Points_of_Interest_WGS" title="ROOMS" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ACRES_DEVE" keyType="Weave:Points_of_Interest_WGS" title="ACRES_DEVE" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="LEASING_AG" keyType="Weave:Points_of_Interest_WGS" title="LEASING_AG" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="IND_ACRES" keyType="Weave:Points_of_Interest_WGS" title="IND_ACRES" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="IND_BLDGS" keyType="Weave:Points_of_Interest_WGS" title="IND_BLDGS" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="OWNER_DEVE" keyType="Weave:Points_of_Interest_WGS" title="OWNER_DEVE" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="COMPANIES" keyType="Weave:Points_of_Interest_WGS" title="COMPANIES" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="REMYRS_03" keyType="Weave:Points_of_Interest_WGS" title="REMYRS_03" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="SCH_DIST" keyType="Weave:Points_of_Interest_WGS" title="SCH_DIST" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Description" keyType="Weave:Points_of_Interest_WGS" title="Description" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="OFFICE_SQF" keyType="Weave:Points_of_Interest_WGS" title="OFFICE_SQF" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="NO_BLDGS" keyType="Weave:Points_of_Interest_WGS" title="NO_BLDGS" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ACRE_DEVEL" keyType="Weave:Points_of_Interest_WGS" title="ACRE_DEVEL" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="INMATES" keyType="Weave:Points_of_Interest_WGS" title="INMATES" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="OPENED" keyType="Weave:Points_of_Interest_WGS" title="OPENED" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="NO__BUSES" keyType="Weave:Points_of_Interest_WGS" title="NO__BUSES" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="FACID" keyType="Weave:Points_of_Interest_WGS" title="FACID" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="STATEID" keyType="Weave:Points_of_Interest_WGS" title="STATEID" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ABBREV" keyType="Weave:Points_of_Interest_WGS" title="ABBREV" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="OPENDATE" keyType="Weave:Points_of_Interest_WGS" title="OPENDATE" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="WORTHY" keyType="Weave:Points_of_Interest_WGS" title="WORTHY" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="OWNER" keyType="Weave:Points_of_Interest_WGS" title="OWNER" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="MAJOR" keyType="Weave:Points_of_Interest_WGS" title="MAJOR" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="STORES" keyType="Weave:Points_of_Interest_WGS" title="STORES" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="OCCUPANCY" keyType="Weave:Points_of_Interest_WGS" title="OCCUPANCY" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="ADDRESS2" keyType="Weave:Points_of_Interest_WGS" title="ADDRESS2" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="BUILDIRN" keyType="Weave:Points_of_Interest_WGS" title="BUILDIRN" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="DISTIRN" keyType="Weave:Points_of_Interest_WGS" title="DISTIRN" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="GRADESPAN" keyType="Weave:Points_of_Interest_WGS" title="GRADESPAN" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Est_Teache" keyType="Weave:Points_of_Interest_WGS" title="Est_Teache" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="STATUS" keyType="Weave:Points_of_Interest_WGS" title="STATUS" dataType="String"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Total___of_Employees" keyType="Weave:Points_of_Interest_WGS" title="Total___of_Employees" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" name="Est_Enroll" keyType="Weave:Points_of_Interest_WGS" title="Est_Enroll" dataType="Number"/>
-          <attribute featureTypeName="Weave:Points_of_Interest_WGS" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:Points_of_Interest_WGS" title="Shape" dataType="Geometry"/>
+          <attribute dataType="Number" name="OBJECTID" keyType="Weave:Points_of_Interest_WGS" title="OBJECTID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="Type" keyType="Weave:Points_of_Interest_WGS" title="Type" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Class" keyType="Weave:Points_of_Interest_WGS" title="Class" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Name" keyType="Weave:Points_of_Interest_WGS" title="Name" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Street_Address" keyType="Weave:Points_of_Interest_WGS" title="Street_Address" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Jurisdiction" keyType="Weave:Points_of_Interest_WGS" title="Jurisdiction" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="ZipCode" keyType="Weave:Points_of_Interest_WGS" title="ZipCode" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Sub_Type" keyType="Weave:Points_of_Interest_WGS" title="Sub_Type" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="Updated" keyType="Weave:Points_of_Interest_WGS" title="Updated" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Source" keyType="Weave:Points_of_Interest_WGS" title="Source" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="TAZ" keyType="Weave:Points_of_Interest_WGS" title="TAZ" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Alt_Name" keyType="Weave:Points_of_Interest_WGS" title="Alt_Name" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="SigYEARS" keyType="Weave:Points_of_Interest_WGS" title="SigYEARS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="County" keyType="Weave:Points_of_Interest_WGS" title="County" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="PROP_ID" keyType="Weave:Points_of_Interest_WGS" title="PROP_ID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="NET_RENT" keyType="Weave:Points_of_Interest_WGS" title="NET_RENT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="GROSS_BLDG" keyType="Weave:Points_of_Interest_WGS" title="GROSS_BLDG" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="GROSS_LEAS" keyType="Weave:Points_of_Interest_WGS" title="GROSS_LEAS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="YEAR_BUILT" keyType="Weave:Points_of_Interest_WGS" title="YEAR_BUILT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="PHONE" keyType="Weave:Points_of_Interest_WGS" title="PHONE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="ID" keyType="Weave:Points_of_Interest_WGS" title="ID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="FIRE_DISTR" keyType="Weave:Points_of_Interest_WGS" title="FIRE_DISTR" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="TYPE_NAME" keyType="Weave:Points_of_Interest_WGS" title="TYPE_NAME" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="HEIGHT" keyType="Weave:Points_of_Interest_WGS" title="HEIGHT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="FLOORS" keyType="Weave:Points_of_Interest_WGS" title="FLOORS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="SQFT" keyType="Weave:Points_of_Interest_WGS" title="SQFT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="CAPACITY" keyType="Weave:Points_of_Interest_WGS" title="CAPACITY" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="ACRES" keyType="Weave:Points_of_Interest_WGS" title="ACRES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="PARKING" keyType="Weave:Points_of_Interest_WGS" title="PARKING" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="BEDS" keyType="Weave:Points_of_Interest_WGS" title="BEDS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="ROOMS" keyType="Weave:Points_of_Interest_WGS" title="ROOMS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="ACRES_DEVE" keyType="Weave:Points_of_Interest_WGS" title="ACRES_DEVE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="LEASING_AG" keyType="Weave:Points_of_Interest_WGS" title="LEASING_AG" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="IND_ACRES" keyType="Weave:Points_of_Interest_WGS" title="IND_ACRES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="IND_BLDGS" keyType="Weave:Points_of_Interest_WGS" title="IND_BLDGS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="OWNER_DEVE" keyType="Weave:Points_of_Interest_WGS" title="OWNER_DEVE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="COMPANIES" keyType="Weave:Points_of_Interest_WGS" title="COMPANIES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="REMYRS_03" keyType="Weave:Points_of_Interest_WGS" title="REMYRS_03" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="SCH_DIST" keyType="Weave:Points_of_Interest_WGS" title="SCH_DIST" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="Description" keyType="Weave:Points_of_Interest_WGS" title="Description" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="OFFICE_SQF" keyType="Weave:Points_of_Interest_WGS" title="OFFICE_SQF" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="NO_BLDGS" keyType="Weave:Points_of_Interest_WGS" title="NO_BLDGS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="ACRE_DEVEL" keyType="Weave:Points_of_Interest_WGS" title="ACRE_DEVEL" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="INMATES" keyType="Weave:Points_of_Interest_WGS" title="INMATES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="OPENED" keyType="Weave:Points_of_Interest_WGS" title="OPENED" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="NO__BUSES" keyType="Weave:Points_of_Interest_WGS" title="NO__BUSES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="FACID" keyType="Weave:Points_of_Interest_WGS" title="FACID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="STATEID" keyType="Weave:Points_of_Interest_WGS" title="STATEID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="ABBREV" keyType="Weave:Points_of_Interest_WGS" title="ABBREV" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="OPENDATE" keyType="Weave:Points_of_Interest_WGS" title="OPENDATE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="WORTHY" keyType="Weave:Points_of_Interest_WGS" title="WORTHY" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="OWNER" keyType="Weave:Points_of_Interest_WGS" title="OWNER" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="MAJOR" keyType="Weave:Points_of_Interest_WGS" title="MAJOR" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="STORES" keyType="Weave:Points_of_Interest_WGS" title="STORES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="OCCUPANCY" keyType="Weave:Points_of_Interest_WGS" title="OCCUPANCY" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="ADDRESS2" keyType="Weave:Points_of_Interest_WGS" title="ADDRESS2" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="BUILDIRN" keyType="Weave:Points_of_Interest_WGS" title="BUILDIRN" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="DISTIRN" keyType="Weave:Points_of_Interest_WGS" title="DISTIRN" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="GRADESPAN" keyType="Weave:Points_of_Interest_WGS" title="GRADESPAN" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="Est_Teache" keyType="Weave:Points_of_Interest_WGS" title="Est_Teache" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="String" name="STATUS" keyType="Weave:Points_of_Interest_WGS" title="STATUS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="Total___of_Employees" keyType="Weave:Points_of_Interest_WGS" title="Total___of_Employees" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Number" name="Est_Enroll" keyType="Weave:Points_of_Interest_WGS" title="Est_Enroll" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute dataType="Geometry" featureTypeName="Weave:Points_of_Interest_WGS" name="Shape" keyType="Weave:Points_of_Interest_WGS" projectionSRS="EPSG:4326" title="Shape"/>
         </category>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="SchoolDistricts_WGS2" name="Weave:SchoolDistricts_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:3735" title="COTA_Routes" name="Weave:COTA_Routes"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Counties_WFS_ExtraFields" name="Weave:Counties_WFS_ExtraFields">
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="OBJECTID" keyType="Weave:Counties_WFS_ExtraFields" title="OBJECTID" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="FIPS_StateCode" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_StateCode" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="StateAbbr" keyType="Weave:Counties_WFS_ExtraFields" title="StateAbbr" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="CountyAbbr" keyType="Weave:Counties_WFS_ExtraFields" title="CountyAbbr" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="FIPS_CountyCode" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_CountyCode" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="FIPS_CountyCodeInteger" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_CountyCodeInteger" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="FIPS_StateCountyCode" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_StateCountyCode" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="CountyName" keyType="Weave:Counties_WFS_ExtraFields" title="CountyName" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="CountySeat" keyType="Weave:Counties_WFS_ExtraFields" title="CountySeat" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="ODOT_Distr" keyType="Weave:Counties_WFS_ExtraFields" title="ODOT_Distr" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="StatePlane" keyType="Weave:Counties_WFS_ExtraFields" title="StatePlane" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="Region" keyType="Weave:Counties_WFS_ExtraFields" title="Region" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="POP_2000" keyType="Weave:Counties_WFS_ExtraFields" title="POP_2000" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="POP_1990" keyType="Weave:Counties_WFS_ExtraFields" title="POP_1990" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="ElevMax" keyType="Weave:Counties_WFS_ExtraFields" title="ElevMax" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="ElevMin" keyType="Weave:Counties_WFS_ExtraFields" title="ElevMin" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="SQMI" keyType="Weave:Counties_WFS_ExtraFields" title="SQMI" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:Counties_WFS_ExtraFields" title="Shape" dataType="Geometry"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="KeyType" keyType="Weave:Counties_WFS_ExtraFields" title="KeyType" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="KeyColumnName" keyType="Weave:Counties_WFS_ExtraFields" title="KeyColumnName" dataType="String"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="Shape.area" keyType="Weave:Counties_WFS_ExtraFields" title="Shape.area" dataType="Number"/>
-          <attribute featureTypeName="Weave:Counties_WFS_ExtraFields" name="Shape.len" keyType="Weave:Counties_WFS_ExtraFields" title="Shape.len" dataType="Number"/>
+          <attribute dataType="Number" name="OBJECTID" keyType="Weave:Counties_WFS_ExtraFields" title="OBJECTID" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="FIPS_StateCode" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_StateCode" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="StateAbbr" keyType="Weave:Counties_WFS_ExtraFields" title="StateAbbr" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="CountyAbbr" keyType="Weave:Counties_WFS_ExtraFields" title="CountyAbbr" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="FIPS_CountyCode" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_CountyCode" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="FIPS_CountyCodeInteger" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_CountyCodeInteger" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="FIPS_StateCountyCode" keyType="Weave:Counties_WFS_ExtraFields" title="FIPS_StateCountyCode" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="CountyName" keyType="Weave:Counties_WFS_ExtraFields" title="CountyName" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="CountySeat" keyType="Weave:Counties_WFS_ExtraFields" title="CountySeat" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="ODOT_Distr" keyType="Weave:Counties_WFS_ExtraFields" title="ODOT_Distr" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="StatePlane" keyType="Weave:Counties_WFS_ExtraFields" title="StatePlane" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="Region" keyType="Weave:Counties_WFS_ExtraFields" title="Region" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="POP_2000" keyType="Weave:Counties_WFS_ExtraFields" title="POP_2000" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="POP_1990" keyType="Weave:Counties_WFS_ExtraFields" title="POP_1990" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="ElevMax" keyType="Weave:Counties_WFS_ExtraFields" title="ElevMax" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="ElevMin" keyType="Weave:Counties_WFS_ExtraFields" title="ElevMin" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="SQMI" keyType="Weave:Counties_WFS_ExtraFields" title="SQMI" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Geometry" featureTypeName="Weave:Counties_WFS_ExtraFields" name="Shape" keyType="Weave:Counties_WFS_ExtraFields" projectionSRS="EPSG:4326" title="Shape"/>
+          <attribute dataType="String" name="KeyType" keyType="Weave:Counties_WFS_ExtraFields" title="KeyType" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="String" name="KeyColumnName" keyType="Weave:Counties_WFS_ExtraFields" title="KeyColumnName" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="Shape.area" keyType="Weave:Counties_WFS_ExtraFields" title="Shape.area" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
+          <attribute dataType="Number" name="Shape.len" keyType="Weave:Counties_WFS_ExtraFields" title="Shape.len" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
@@ -1251,6 +1247,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>bottom</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
                 <tickCountRequested>5</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
@@ -1293,6 +1290,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>top</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
                 <tickCountRequested>11</tickCountRequested>
                 <tickMaxValue>212</tickMaxValue>
                 <tickMinValue>0</tickMinValue>
@@ -1309,7 +1307,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp category="aesthetic" dataFormat="qualitative" name="Doppler Radar" source="OIC">
+                  <colorRamp name="Doppler Radar" dataFormat="qualitative" category="aesthetic" source="OIC">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -1340,7 +1338,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                              <attribute name="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1354,7 +1352,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+                              <attribute name="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1368,7 +1366,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+                              <attribute name="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1382,7 +1380,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+                              <attribute name="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1396,7 +1394,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                              <attribute name="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1410,7 +1408,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                              <attribute name="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1424,7 +1422,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                              <attribute name="Country Name" keyType="Country Code" csvColumn="Country Name" title="Country Name"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1487,13 +1485,14 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                            <attribute csvColumn="Country Name" keyType="Country Code" name="Country Name" title="Country Name"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
+                <spatialCallbacks/>
                 <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
             </plotter>
@@ -1556,6 +1555,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </weight>
                   </SolidLineStyle>
                 </lineStyle>
+                <spatialCallbacks/>
               </ProbeLinePlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
@@ -1664,6 +1664,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>bottom</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
                 <tickCountRequested>10</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
@@ -1706,6 +1707,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>top</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
                 <tickCountRequested>10</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
@@ -1740,6 +1742,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <maxScreenRadius>10</maxScreenRadius>
                 <minScreenRadius>5</minScreenRadius>
                 <radiusColumn encoding="dynamic"/>
+                <spatialCallbacks/>
                 <xColumn encoding="dynamic">
                   <ReferencedColumn>
                     <dynamicColumnReference encoding="dynamic">
@@ -1747,7 +1750,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                            <attribute csvColumn="Country Name" keyType="Country Code" name="Country Name" title="Country Name"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1761,7 +1764,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                            <attribute csvColumn="Population, female (% of total)" keyType="Country Code" name="Population, female (% of total)" title="Population, female (% of total)"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1832,6 +1835,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
                 </lineStyle>
+                <spatialCallbacks/>
                 <xColumn encoding="dynamic">
                   <ReferencedColumn>
                     <dynamicColumnReference encoding="dynamic">
@@ -1839,7 +1843,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                            <attribute csvColumn="Country Name" keyType="Country Code" name="Country Name" title="Country Name"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1853,7 +1857,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                            <attribute csvColumn="Population, female (% of total)" keyType="Country Code" name="Population, female (% of total)" title="Population, female (% of total)"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1921,6 +1925,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </weight>
                   </SolidLineStyle>
                 </lineStyle>
+                <spatialCallbacks/>
               </ProbeLinePlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
@@ -2026,6 +2031,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>bottom</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
                 <tickCountRequested>5</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
@@ -2068,6 +2074,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>top</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
                 <tickCountRequested>7</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
@@ -2090,7 +2097,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                              <attribute name="Country Name" keyType="Country Code" csvColumn="Country Name" title="Country Name"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2104,7 +2111,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                              <attribute name="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2118,7 +2125,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+                              <attribute name="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2132,7 +2139,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+                              <attribute name="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2146,7 +2153,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+                              <attribute name="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2160,7 +2167,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                              <attribute name="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2174,7 +2181,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                              <attribute name="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2233,6 +2240,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <shapeBorderThickness>0</shapeBorderThickness>
                 <shapeSize>5</shapeSize>
                 <shapeToDraw>Solid Circle</shapeToDraw>
+                <spatialCallbacks/>
                 <zoomToSubset>true</zoomToSubset>
               </ParallelCoordinatesPlotter>
             </plotter>
@@ -2280,7 +2288,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                              <attribute csvColumn="Population ages 0-14 (% of total)" keyType="Country Code" name="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2318,7 +2326,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                              <attribute csvColumn="Population ages 0-14 (% of total)" keyType="Country Code" name="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2326,6 +2334,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </ReferencedColumn>
                   </DynamicColumn>
                 </sortColumn>
+                <spatialCallbacks/>
                 <text encoding="dynamic"/>
                 <underline>
                   <defaultValue>false</defaultValue>
@@ -2400,10 +2409,10 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
         <dataBounds>
-          <xMax>-16.497492237879257</xMax>
-          <xMin>-184.0446620492002</xMin>
-          <yMax>112.65273380749953</yMax>
-          <yMin>-4.78934882923334</yMin>
+          <xMax>1376620.634592086</xMax>
+          <xMin>-23867951.81015834</xMin>
+          <yMax>13160139.109205958</yMax>
+          <yMin>1480210.7436011336</yMin>
         </dataBounds>
         <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
         <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
@@ -2449,7 +2458,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Points_of_Interest_WGS" name="Weave:Points_of_Interest_WGS">
-                                <attribute title="Points" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:Points_of_Interest_WGS" featureTypeName="Weave:Points_of_Interest_WGS" dataType="Geometry"/>
+                                <attribute dataType="Geometry" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:Points_of_Interest_WGS" title="Points" featureTypeName="Weave:Points_of_Interest_WGS"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -2457,7 +2466,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </internalDynamicColumn>
-                  <projectionSRS>EPSG:4326</projectionSRS>
+                  <projectionSRS>EPSG:3857</projectionSRS>
                 </geometryColumn>
                 <keySet>
                   <keyFilter encoding="dynamic">
@@ -2504,6 +2513,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </line>
                 <pixellation>1</pixellation>
                 <pointShapeSize>2</pointShapeSize>
+                <spatialCallbacks/>
               </GeometryPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -2521,7 +2531,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <backgroundIsVisible>true</backgroundIsVisible>
             <enableBitmapFilters>true</enableBitmapFilters>
             <layerIsSelectable>false</layerIsSelectable>
-            <layerIsVisible>false</layerIsVisible>
+            <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -2550,7 +2560,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="BikeRoutes_WGS" name="Weave:BikeRoutes_WGS">
-                                <attribute title="Lines" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:BikeRoutes_WGS" featureTypeName="Weave:BikeRoutes_WGS" dataType="Geometry"/>
+                                <attribute dataType="Geometry" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:BikeRoutes_WGS" title="Lines" featureTypeName="Weave:BikeRoutes_WGS"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -2558,7 +2568,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </internalDynamicColumn>
-                  <projectionSRS>EPSG:4326</projectionSRS>
+                  <projectionSRS>EPSG:3857</projectionSRS>
                 </geometryColumn>
                 <keySet>
                   <keyFilter encoding="dynamic">
@@ -2605,6 +2615,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </line>
                 <pixellation>1</pixellation>
                 <pointShapeSize>5</pointShapeSize>
+                <spatialCallbacks/>
               </GeometryPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -2622,7 +2633,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <backgroundIsVisible>true</backgroundIsVisible>
             <enableBitmapFilters>true</enableBitmapFilters>
             <layerIsSelectable>false</layerIsSelectable>
-            <layerIsVisible>false</layerIsVisible>
+            <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -2651,7 +2662,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Counties_WFS_ExtraFields" name="Weave:Counties_WFS_ExtraFields">
-                                <attribute title="Polygons" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:Counties_WFS_ExtraFields" featureTypeName="Weave:Counties_WFS_ExtraFields" dataType="Geometry"/>
+                                <attribute dataType="Geometry" projectionSRS="EPSG:4326" name="Shape" keyType="Weave:Counties_WFS_ExtraFields" title="Polygons" featureTypeName="Weave:Counties_WFS_ExtraFields"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -2659,7 +2670,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </internalDynamicColumn>
-                  <projectionSRS>EPSG:4326</projectionSRS>
+                  <projectionSRS>EPSG:3857</projectionSRS>
                 </geometryColumn>
                 <keySet>
                   <keyFilter encoding="dynamic">
@@ -2706,6 +2717,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </line>
                 <pixellation>1</pixellation>
                 <pointShapeSize>5</pointShapeSize>
+                <spatialCallbacks/>
               </GeometryPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -2719,7 +2731,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             </subsetFilter>
             <useTextBitmapFilters>false</useTextBitmapFilters>
           </SelectablePlotLayer>
-          <SelectablePlotLayer name="plot4">
+          <SelectablePlotLayer name="plot5">
             <backgroundIsVisible>true</backgroundIsVisible>
             <enableBitmapFilters>true</enableBitmapFilters>
             <layerIsSelectable>true</layerIsSelectable>
@@ -2728,11 +2740,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <GeometryPlotter>
                 <fill>
                   <alpha>
-                    <defaultValue>0.8</defaultValue>
+                    <defaultValue>1</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </alpha>
                   <color>
-                    <defaultValue>16777215</defaultValue>
+                    <defaultValue>NaN</defaultValue>
                     <internalDynamicColumn encoding="dynamic">
                       <GlobalObjectReference name="defaultColorColumn"/>
                     </internalDynamicColumn>
@@ -2752,7 +2764,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category name="Geometry Collections">
-                                <attribute dataType="Geometry" name="new_world_borders"/>
+                                <attribute dataType="Geometry" name="states"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -2760,7 +2772,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </internalDynamicColumn>
-                  <projectionSRS>EPSG:4326</projectionSRS>
+                  <projectionSRS>EPSG:3857</projectionSRS>
                 </geometryColumn>
                 <keySet>
                   <keyFilter encoding="dynamic">
@@ -2769,7 +2781,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </keySet>
                 <line>
                   <alpha>
-                    <defaultValue>0.9</defaultValue>
+                    <defaultValue>1</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </alpha>
                   <caps>
@@ -2777,7 +2789,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <internalDynamicColumn encoding="dynamic"/>
                   </caps>
                   <color>
-                    <defaultValue>16711680</defaultValue>
+                    <defaultValue>16777215</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </color>
                   <enabled>
@@ -2807,6 +2819,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </line>
                 <pixellation>1</pixellation>
                 <pointShapeSize>5</pointShapeSize>
+                <spatialCallbacks/>
               </GeometryPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -2854,7 +2867,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
     <pinnedToBack>false</pinnedToBack>
-    <projectionSRS>EPSG:4326</projectionSRS>
+    <projectionSRS>EPSG:3857</projectionSRS>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
