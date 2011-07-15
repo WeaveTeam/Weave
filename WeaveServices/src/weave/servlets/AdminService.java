@@ -368,8 +368,6 @@ public class AdminService extends GenericServlet
 		newConnectionInfo.pass = password;
 		newConnectionInfo.is_superuser = true;
 		
-		configManager.detectConfigChanges();
-		
 		// if the config file doesn't exist, create it
 		String fileName = configManager.getConfigFileName();
 		if (!new File(fileName).exists())
@@ -384,6 +382,7 @@ public class AdminService extends GenericServlet
 			}
 		}
 
+		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 		// if there are existing connections and DatabaseConfigInfo exists, check the password.
 		// otherwise, allow anything.
