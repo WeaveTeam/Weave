@@ -599,10 +599,6 @@ public class AdminService extends GenericServlet
 		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 		
-		// information is valid and dataTableConnection holds the correct connection
-		// if this user isn't a superuser, don't allow an overwrite of an existing datatableinfo
-		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
-		
 		try
 		{
 			// start a block of code so tempConfig will not stay in memory
