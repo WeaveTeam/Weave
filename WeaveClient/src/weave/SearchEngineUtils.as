@@ -44,6 +44,7 @@ package weave
 	import weave.data.KeySets.KeySet;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
+	import weave.ui.CustomComboBox;
 	import weave.ui.CustomContextMenuManager;
 	import weave.utils.ProbeTextUtils;
 	
@@ -127,7 +128,7 @@ package weave
 				{
 					if(currentContextMenuItem.enabled)
 					{
-						var combobox:ComboBox = new ComboBox(); //ComboBox to hold the service names
+						var combobox:CustomComboBox = new CustomComboBox(); //ComboBox to hold the service names
 						var urlAlert:AlertTextBox = AlertTextBox.show("Custom URL",null);
 						var hbox:HBox = new HBox();						
 						var label:Label = new Label();
