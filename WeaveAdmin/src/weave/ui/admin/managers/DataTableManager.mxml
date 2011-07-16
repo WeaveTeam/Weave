@@ -65,9 +65,9 @@
 			</mx:VBox>
 		</mx:Canvas>
 		<!-- TODO Make the metadata editor its own Flex component -Curran 12/6/10 -->
-		<mx:Canvas id="metadataView" label="Metadata" width="100%" height="100%" enabled="false">
+		<mx:Canvas id="metadataView" label="Metadata" width="100%" height="100%" enabled="{treeWithSearch.tree.selectedItem != null}">
 			<mx:VBox width="100%" height="100%">
-				<mx:Label text = "This table shows the Dublin Core metadata elements associated with the selected data table." />
+				<mx:Label text="This table shows the Dublin Core metadata elements associated with the selected data table." />
 				<mx:HBox>
 					<ui:CustomComboBox id="elementsComboBox" dataProvider="{elements}" change="elementsChangeHandler(event);" prompt="Click to add metadata"/>
 				<!--	<mx:Button label="Edit selected" click="editSelectedElement()"/> -->
@@ -146,17 +146,14 @@
 				// display no data while downloading
 				loadData([]);
 				
-				//enable the metadata view on first click
-				metadataView.enabled = true;
-				
 				//handle updates for the Metadata tab
-				if(tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView))
+				if (tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView))
 					loadDublinCoreElements();
 				
-				if (treeWithSearch.tree.selectedItem == null) 
+				if (getCurrentTableName() == null)
 					return;
 				
-				var tableName:String = treeWithSearch.tree.selectedItem.label;
+				var tableName:String = getCurrentTableName();
 				AdminInterface.instance.getDataTableInfo(tableName).addAsyncResponder(handleDataTableInfo, null, tableName);
 			}
 			
@@ -180,7 +177,8 @@
 						metaDataChanged = false;
 					}
 				}
-				else changeSelectedTreeItem();
+				else
+					changeSelectedTreeItem();
 			}
 			
 			private function handleDataTableInfo(event:ResultEvent, token:Object = null):void
@@ -469,18 +467,17 @@
 			 */
 			private function deleteSelectedElements():void
 			{
+				var tableName:String = getCurrentTableName();
+				var elements:Array = dcElementsEditor.selectedItems.concat();
 				PopUpUtils.confirm(
 					this,
 					"Confirm delete",
-					'Delete selected Dublin Core element'+(dcElementsEditor.selectedItems.length>1?'s':'')+'?',
+					'Delete selected Dublin Core element' + (dcElementsEditor.selectedItems.length > 1 ? 's' : '') + ' from data table ' + tableName + '?',
 					del
 				);
 				function del():void
 				{
-					var elements:Array = dcElementsEditor.selectedItems;
-					
-					var tableName:String = getCurrentTableName();
-					var query:DelayedAsyncInvocation = AdminInterface.instance.deleteDCElements(tableName,elements);
+					var query:DelayedAsyncInvocation = AdminInterface.instance.deleteDCElements(tableName, elements);
 					query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
 						loadDublinCoreElements();
 					});
@@ -503,14 +500,14 @@
 			 */
 			private function elementsChangeHandler(event:Event):void
 			{
-				if (treeWithSearch.tree.selectedItem == null)
+				if (getCurrentTableName() == null)
 					return;
 				
 				var label:String = elementsComboBox.selectedItem as String;
 				//reset to the prompt
 				elementsComboBox.selectedIndex = -1;
 				
-				var dataTableName:String = treeWithSearch.tree.selectedItem.label;
+				var dataTableName:String = getCurrentTableName();
 //				Alert.show("label = "+label+", data = "+data);
 				var popup:DublinCoreEntryComponent = PopupDialog.openDialog(this, DublinCoreEntryComponent) as DublinCoreEntryComponent;
 				popup.setElement(label);

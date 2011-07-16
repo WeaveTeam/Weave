@@ -55,7 +55,7 @@
 				</ui:Indent>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
-				<ui:Indent indent="{_indent}" visible="false">
+				<ui:Indent indent="{_indent}">
 					<mx:CheckBox label="Grant Superuser Permissions" id="isSuperuserCheckbox"/>					
 				</ui:Indent>
 				<ui:Indent>
@@ -199,10 +199,6 @@
 			
 			private function saveConnectionInfo():void
 			{
-				// BEGIN TEMPORARY CODE
-				isSuperuserCheckbox.selected = true;
-				// END TEMPORARY CODE
-				
 				var info:ConnectionInfo = new ConnectionInfo(null);
 				info.name = connectionNameInput.text;
 				info.dbms = connectionDBMSCombo.text;
@@ -213,7 +209,15 @@
 				info.pass = connectionPasswordInput.text;
 				info.is_superuser = isSuperuserCheckbox.selected;
 				
-				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected);
+				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected).addAsyncResponder(handleSave);
+				function handleSave(..._):void
+				{
+					if (info.name == AdminInterface.instance.activeConnectionName)
+					{
+						AdminInterface.instance.authenticate(info.name, info.pass);
+						AdminInterface.instance.userHasAuthenticated = true;
+					}
+				}
 				dataChanged = false;
 			}
 			
