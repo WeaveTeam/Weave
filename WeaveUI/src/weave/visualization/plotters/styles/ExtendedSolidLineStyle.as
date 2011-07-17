@@ -56,6 +56,7 @@ package weave.visualization.plotters.styles
 	 				_matrix.createGradientBox(5, 5, 45, 0, 0);
 				}
 
+				target.lineStyle(lineWeight, 0, 0); // this is necessary to set the correct line thickness
 				target.lineGradientStyle(GradientType.LINEAR, 
 							        [0xFFFFFF, 0x000000],
 							        [0.5, 0.5],

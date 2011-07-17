@@ -151,10 +151,15 @@
 
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, 		alphaSlider,		"value");
 				linkBindableProperty(_plotter.shapeSize,  					shapeSizeSlider, 	"value");
-				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thickessButtons, 	"selectedValue");
+				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, 	"value");
 				linkBindableProperty(_plotter.shapeToDraw, shapeCombo, "selectedItem");
 				linkBindableProperty(_plotter.shapeBorderThickness, shapeBorderSizeSlider, "value");
 				linkBindableProperty(_plotter.shapeBorderColor, shapeBorderColorPicker, "selectedColor");
+				_plotter.curveType.addGroupedCallback(this, handleCurveType, true);
+				function handleCurveType():void
+				{
+					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
+				}
 				
 				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, null, true);
 			}
@@ -244,6 +249,14 @@
 				}
 			}
 			
+			private function handleCurveCheckBox():void
+			{
+				if (curveCheckBox.selected)
+					_plotter.curveType.value = ParallelCoordinatesPlotter.CURVE_DOUBLE;
+				else
+					_plotter.curveType.value = ParallelCoordinatesPlotter.CURVE_NONE;
+			}
+			
 			private function alphaSliderFormatFunction(value:Number):String {
             	//return int(100 - (value * 100)) + "% Transparent";
             	return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
@@ -325,15 +338,15 @@
 				<mx:Label text="Label Text Color:" fontWeight="bold"/>
 				<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 			</mx:HBox>
-			<userControls:ControlsSubsetBox>
+			<mx:HBox>
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
 							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
-			</userControls:ControlsSubsetBox>
+			</mx:HBox>
 			<ui:ColumnListComponent visTool="{this}" label="Drag columns here" initialize="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
-			<userControls:ControlsSubsetBox width="100%">
+			<mx:HBox>
 				<mx:Label text="Shape:" color="0x000000" fontSize="{controlsFontSize}" 
 						  toolTip="This controls what shape is used to indicate the data points on the axes."/>
 				<ui:CustomComboBox id="shapeCombo" dataProvider="{ParallelCoordinatesPlotter.shapesAvailable}"/>
@@ -349,11 +362,11 @@
 							minimum="0" maximum="20" 
 							liveDragging="true"/>
 				
-			</userControls:ControlsSubsetBox>
+			</mx:HBox>
 			
-			<userControls:ControlsSubsetBox width="100%" horizontalGap="2">
+			<mx:HBox>
 				<mx:HBox horizontalGap="0">
-					<mx:Label text="Border color:" color="0x000000" fontSize="{controlsFontSize}"/>
+					<mx:Label text="Shape border color:" color="0x000000" fontSize="{controlsFontSize}"/>
 					<mx:ColorPicker id="shapeBorderColorPicker"
 									toolTip="This controls color of the border around the shape at each point."
 									enabled="{!(shapeCombo.selectedItem == ParallelCoordinatesPlotter.NO_SHAPE || 
@@ -363,7 +376,7 @@
 				</mx:HBox>
 				
 				<mx:HBox width="100%" horizontalGap="0">
-					<mx:Label text="Border thickness:" color="0x000000" fontSize="{controlsFontSize}" 
+					<mx:Label text="Shape border thickness:" color="0x000000" fontSize="{controlsFontSize}" 
 							  toolTip="This controls the border size of the shapes indicating the data points on the axes."/>
 					<mx:HSlider id="shapeBorderSizeSlider" 
 								width="100%" 
@@ -374,12 +387,10 @@
 								minimum="0" maximum="5"
 								liveDragging="true"/>
 				</mx:HBox>
-			</userControls:ControlsSubsetBox>
+			</mx:HBox>
 			
-			<userControls:ControlsSubsetBox width="100%">
-				<mx:Label text="Line Opacity:" 
-						  color="0x000000" fontSize="{controlsFontSize}" 
-						  toolTip="Use this control to see how transparent lines are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+			<mx:HBox>
+				<mx:Label text="Line Opacity:" toolTip="Use this control to see how transparent lines are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
 				
 				<mx:HSlider id="alphaSlider" 
 							width="100%" 
@@ -388,43 +399,21 @@
 							dataTipFormatFunction="alphaSliderFormatFunction"
 							minimum="0.1" maximum="1.0" 
 							liveDragging="true"/>
-			</userControls:ControlsSubsetBox>
+			</mx:HBox>
 			
+			<mx:HBox>
+				<mx:Label text="Line Thickness:"/>
+				<mx:HSlider id="thicknessSlider" minimum="1" maximum="4" labels="{['1','2','3','4']}" snapInterval="1" liveDragging="true" tickInterval="1"/>
+				
+			</mx:HBox>
 			
-			<userControls:ControlsSubsetBox width="100%" creationComplete="linkBindableProperty(_plotter.curveType, curvatureButtons, 'selectedValue');">
-				<mx:Label text="Line Curvature:" 
-						  color="0x000000" fontSize="{controlsFontSize}" 
-						  toolTip=""/>
-				
-				<mx:RadioButtonGroup id="curvatureButtons" />
-				<mx:RadioButton label="Straight Line" value="{ParallelCoordinatesPlotter.CURVE_NONE}" 		groupName="curvatureButtons"/>
-				<mx:RadioButton label="Away"          value="{ParallelCoordinatesPlotter.CURVE_AWAY}" 		groupName="curvatureButtons"/>
-				<mx:RadioButton label="Towards"       value="{ParallelCoordinatesPlotter.CURVE_TOWARDS}" 	groupName="curvatureButtons"/>
-				<mx:RadioButton label="Double"        value="{ParallelCoordinatesPlotter.CURVE_DOUBLE}"  	groupName="curvatureButtons"/>
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox width="100%">
-				<mx:Label text="Line Thickness:" 
-						  color="0x000000" fontSize="{controlsFontSize}" 
-						  toolTip=""/>
-				
-				<mx:RadioButtonGroup id="thickessButtons" />
-				<mx:RadioButton label="1" value="1"  groupName="thickessButtons"/>
-				<mx:RadioButton label="2" value="2"  groupName="thickessButtons"/>
-				<mx:RadioButton label="3" value="3"  groupName="thickessButtons"/>
-				<mx:RadioButton label="4" value="4"  groupName="thickessButtons"/>
-				
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox width="100%">
-				<mx:CheckBox id="selectionAndProbeOnlyCheckBox" label="Show selection &amp; probe only" 
-							 color="0x000000" fontSize="{controlsFontSize}" 
-							 toolTip="" change="handleSelectionAndProbeOnlyCheckBox();"/>
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox width="100%">
-				<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
-							 color="0x000000" fontSize="{controlsFontSize}"
-							 toolTip="Enables automatic zooming to the subset of data currently displayed"
-							 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
-			</userControls:ControlsSubsetBox>
+			<mx:CheckBox id="curveCheckBox" label="Curved lines"
+						 change="_plotter.curveType.value = curveCheckBox.selected ? ParallelCoordinatesPlotter.CURVE_DOUBLE : ParallelCoordinatesPlotter.CURVE_NONE"/>
+			<mx:CheckBox id="selectionAndProbeOnlyCheckBox" label="Show selection &amp; probe only" 
+						 toolTip="" change="handleSelectionAndProbeOnlyCheckBox();"/>
+			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
+						 toolTip="Enables automatic zooming to the subset of data currently displayed"
+						 initialize="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
 			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
