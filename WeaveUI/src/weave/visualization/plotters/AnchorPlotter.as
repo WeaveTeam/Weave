@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IFilteredKeySet;
@@ -33,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableNumber;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.data.KeySets.KeySet;
 	import weave.data.QKeyManager;
@@ -46,6 +48,7 @@ package weave.visualization.plotters
 	public class AnchorPlotter extends AbstractPlotter
 	{
 		public var anchors:LinkableHashMap = newSpatialProperty(LinkableHashMap,handleAnchorsChange);
+		public const labelAngleRatio:LinkableNumber = registerSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
 		
 		private var _keySet:KeySet;
 		private const tempPoint:Point = new Point();
@@ -69,54 +72,54 @@ package weave.visualization.plotters
 			var x:Number; 
 			var y:Number;
 			var anchor:AnchorPoint;
-			var key:IQualifiedKey;
-			
-			// loop through anchors hash map and draw dimensional anchors and labels					
-			for( var i:int = 0 ; i < recordKeys.length ; i++ )
+			var radians:Number;
+			var graphics:Graphics = tempShape.graphics;
+			graphics.clear();
+			// loop through anchors hash map and draw dimensional anchors and labels	
+			for each(var key:IQualifiedKey in recordKeys)
 			{
-				key = recordKeys[i];
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
-				tempPoint.x = x = anchor.x.value;
-				tempPoint.y = y = anchor.y.value;
 				
+				x = anchor.x.value;
+				y = anchor.y.value;
+				radians = anchor.polarRadians.value;
+				var radius:Number = anchor.radius.value;
+				
+				var cos:Number = Math.cos(radians);
+				var sin:Number = Math.sin(radians);
+				
+				tempPoint.x = radius * cos;
+				tempPoint.y = radius * sin;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-				var graphics1:Graphics = tempShape.graphics;
+
 				_bitmapText.text = key.localName;
 				
-				if(x > 0) // right half of unit circle
-				{
-					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT ;
-					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
-					_bitmapText.x = tempPoint.x + 10;
-					_bitmapText.y = tempPoint.y;
-				}
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 				
-				else if ( x == 0 && y <= 0 ) // exact bottom of circle
+				_bitmapText.angle = screenBounds.getYDirection() * (radians * 180 / Math.PI);
+				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
+				if (cos > -0.000001) // the label exactly at the bottom will have left align
 				{
-					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					_bitmapText.x = tempPoint.x ;
-					_bitmapText.y = tempPoint.y + 10;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = ((_bitmapText.angle + 90) % 360 - 90) * labelAngleRatio.value;
 				}
-				else if( x == 0 && y > 0) // exact top of circle
+				else
 				{
-					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER ;
-					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM ;					
-					_bitmapText.x = tempPoint.x;
-					_bitmapText.y = tempPoint.y - 10;
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
-				else // left half of circle
-				{
-					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT ;
-					_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER ;
-					_bitmapText.x = tempPoint.x - 10;
-					_bitmapText.y = tempPoint.y;
-				}
-				_bitmapText.draw(destination) ;
-				graphics1.clear();
-				graphics1.lineStyle(3);
-				graphics1.drawCircle(tempPoint.x, tempPoint.y, 1) ;
-				destination.draw(tempShape);
+				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+				_bitmapText.x = tempPoint.x;
+				_bitmapText.y = tempPoint.y;
+				_bitmapText.draw(destination);
+				graphics.lineStyle(3);
+				graphics.drawCircle(tempPoint.x, tempPoint.y, 1);
 			}
+			destination.draw(tempShape);			
 		}
 		
 		
@@ -137,5 +140,11 @@ package weave.visualization.plotters
 		{
 			return getReusableBounds(-1, -1.1, 1, 1.1);
 		}
+		
+		private function verifyLabelAngleRatio(value:Number):Boolean
+		{
+			return 0 <= value && value <= 1;
+		}
+		
 	}	
 }

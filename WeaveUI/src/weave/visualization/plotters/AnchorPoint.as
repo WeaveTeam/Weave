@@ -29,11 +29,27 @@ package weave.visualization.plotters
 	 */	
 	public class AnchorPoint implements ILinkableObject
 	{
-		public const x:LinkableNumber = newLinkableChild(this,LinkableNumber);
-		public const y:LinkableNumber = newLinkableChild(this,LinkableNumber);		
+		public const x:LinkableNumber = newLinkableChild(this,LinkableNumber,convertCoords);
+		public const y:LinkableNumber = newLinkableChild(this,LinkableNumber,convertCoords);		
+		
+		public const polarRadians:LinkableNumber = newLinkableChild(this,LinkableNumber);
+		public const radius:LinkableNumber = newLinkableChild(this,LinkableNumber);
 		
 		public function AnchorPoint()
 		{
 		}		
+		
+		private function convertCoords():void
+		{
+			var xval:Number = x.value; 
+			var yval:Number = y.value;
+			
+			radius.value = Math.sqrt(xval * xval + yval * yval);
+
+			var pi:Number = Math.PI;
+			polarRadians.value = Math.atan2(yval,xval);
+			if( polarRadians.value < 0 )
+				polarRadians.value += 2 * pi;			
+		}
 	}
 }

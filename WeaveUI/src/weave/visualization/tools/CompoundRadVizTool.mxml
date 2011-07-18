@@ -318,6 +318,14 @@
 				</mx:HBox>
 			</mx:VBox>
 			<mx:Spacer height="10"/>
+			<userControls:ControlsSubsetBox>
+				<mx:Label text="Label angle" fontWeight="bold"/>
+				<mx:HSlider id="labelAngleSlider"
+						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+						dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
+						initialize="linkBindableProperty(_anchorPlotter.labelAngleRatio, labelAngleSlider, 'value')"/>
+			</userControls:ControlsSubsetBox>
+			<mx:Spacer height="10"/>
 			<mx:VBox
 				borderStyle="solid" 
 				backgroundColor="0xFFFFFF" 
