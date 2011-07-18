@@ -109,7 +109,7 @@ package weave.visualization.plotters
 			{				
 				radius = defaultScreenRadius.value;				
 				//draw a square for missing values
-				graphics.drawRect(tempPoint.x - radius/2, tempPoint.y - radius/2, radius, radius);				
+				graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);				
 			} 				
 			else if(isNaN(radius)) // no screenRadius column				
 			{				
