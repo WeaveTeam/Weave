@@ -370,6 +370,7 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="x column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="y column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="size" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
 			<userControls:ControlsSubsetBox>
 				<mx:HBox width="100%"> 
 					<mx:CheckBox id="sizeByCheck" 
@@ -397,7 +398,6 @@
 								change="handleSizeSliderChange(event)"
 								mouseDown="event.stopImmediatePropagation();"/>
 				</mx:HBox>
-				<ui:DynamicColumnComponent visTool="{this}" label="size" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
 			</userControls:ControlsSubsetBox>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="Advanced">
