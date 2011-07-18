@@ -19,6 +19,7 @@
 
 package weave.visualization.plotters
 {
+	import flash.display.CapsStyle;
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
@@ -107,12 +108,8 @@ package weave.visualization.plotters
 			if (screenRadius.internalColumn != null && isNaN(radius)) // missing screenRadius value			
 			{				
 				radius = defaultScreenRadius.value;				
-				//graphics.drawRect(tempPoint.x-radius, tempPoint.y-radius, radius*2, radius*2 );				
-				// draw a plus sign for missing values				
-				graphics.moveTo(tempPoint.x - radius, tempPoint.y);				
-				graphics.lineTo(tempPoint.x + radius, tempPoint.y);				
-				graphics.moveTo(tempPoint.x, tempPoint.y - radius);				
-				graphics.lineTo(tempPoint.x, tempPoint.y + radius);				
+				//draw a square for missing values
+				graphics.drawRect(tempPoint.x - radius/2, tempPoint.y - radius/2, radius, radius);				
 			} 				
 			else if(isNaN(radius)) // no screenRadius column				
 			{				
