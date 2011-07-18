@@ -200,10 +200,10 @@
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTop.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
-			<userControls:ControlsSubsetBox>
+			<mx:HBox>
 				<mx:Label text="Max bubble size"/>
 				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" initialize="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
-			</userControls:ControlsSubsetBox>
+			</mx:HBox>
 			<mx:Spacer/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>

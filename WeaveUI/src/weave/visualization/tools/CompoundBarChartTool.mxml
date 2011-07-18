@@ -345,51 +345,38 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes">
 			
-			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
+			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
 									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Bars Sorted By:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Sort" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" id="dimensionsList" initialize="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 		</mx:VBox>
 		
 		<mx:VBox id="cRamp" label="Bar Properties">
 			<mx:Button id="Legend" label="legend" click="Legend_clickHandler(event)"/>
-			<mx:HBox>
-				<userControls:ControlsSubsetBox >
-					<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
-								 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
-				</userControls:ControlsSubsetBox>
-				<userControls:ControlsSubsetBox >
-					<mx:CheckBox id="groupCheckBox" label="Grouped bars"
-								 toolTip="{groupCheckBox.enabled ? groupCheckEnabledToolTip : groupCheckDisabledToolTip}"/>
-				</userControls:ControlsSubsetBox>
-			</mx:HBox>
-			<userControls:ControlsSubsetBox >
+			<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
+						 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
+			<mx:CheckBox id="groupCheckBox" label="Grouped bars"
+						 toolTip="{groupCheckBox.enabled ? groupCheckEnabledToolTip : groupCheckDisabledToolTip}"/>
+			<userControls:ControlsSubsetBox>
 				<mx:Label text="Bar spacing:"/>
 				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No Gap', '1:4', '1:1']" tickInterval="0.25"
 							toolTip="Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width." showDataTip="false"
 							liveDragging="true"/>
 			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox id="showAllLabelsCheckBox" label="Show all bar labels"
-							 toolTip="This option will always show a label for each bar."/>
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox width="100%">
-				<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
-							 toolTip="Enables automatic zooming to the subset of data currently displayed"
-							 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
-			</userControls:ControlsSubsetBox>
-			
+			<mx:CheckBox id="showAllLabelsCheckBox" label="Show all bar labels"
+						 toolTip="This option will always show a label for each bar."/>
+			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
+						 toolTip="Enables automatic zooming to the subset of data currently displayed"
+						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Positive Error:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Negative Error:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Positive Error" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Negative Error" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
 			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>

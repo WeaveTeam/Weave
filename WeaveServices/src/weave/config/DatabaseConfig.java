@@ -425,7 +425,7 @@ public class DatabaseConfig
 		{
 			throw new RemoteException(String.format("Unable to get info for GeometryCollection \"%s\"", geometryCollectionName), e);
 		}
-		throw new RemoteException(String.format("GeometryCollection named \"%s\" does not exist.", geometryCollectionName));
+		return null;
 	}
 
 	public void addAttributeColumn(AttributeColumnInfo info) throws RemoteException

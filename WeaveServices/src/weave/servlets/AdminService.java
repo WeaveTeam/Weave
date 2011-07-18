@@ -336,8 +336,8 @@ public class AdminService extends GenericServlet
 		if (config.getConnectionInfo(connectionName).is_superuser)
 			return ListUtils.toStringArray(getSortedUniqueValues(config.getConnectionNames(), false));
 		
-		// non-superusers can't get connection info
-		return new String[0];
+		// non-superusers can't get connection info for other users
+		return new String[]{connectionName};
 	}
 	
 	synchronized public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
@@ -598,22 +598,6 @@ public class AdminService extends GenericServlet
 		}
 		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
-		
-		// information is valid and dataTableConnection holds the correct connection
-		// if this user isn't a superuser, don't allow an overwrite of an existing datatableinfo
-		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
-		
-		if (!currentConnectionInfo.is_superuser)
-		{
-			List<AttributeColumnInfo> dataTableColumnInfo = config.getAttributeColumnInfo(dataTableName);
-			
-			for (AttributeColumnInfo obj : dataTableColumnInfo)
-			{
-				String dataTableConnection = obj.connection;
-				if (!dataTableConnection.equals(connectionName))
-					throw new RemoteException("An existing data table with the same name exists on another connection. Unable to overwrite without superuser privileges.");
-			}
-		}
 		
 		try
 		{
@@ -948,7 +932,11 @@ public class AdminService extends GenericServlet
 		{
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
 			// Read first line only (header line).
-			String header = csvData.substring(0, Math.min(csvData.indexOf("\r"), csvData.indexOf("\n")));
+			int index = csvData.indexOf("\r");
+			int index2 = csvData.indexOf("\n");
+			if (index2 < index && index2 >= 0)
+				index = index2;
+			String header = index < 0 ? csvData : csvData.substring(0, index);
 			csvData = null; // don't need this in memory anymore
 			String[][] rows = CSVParser.defaultParser.parseCSV(header);
 			headerLine = rows[0];

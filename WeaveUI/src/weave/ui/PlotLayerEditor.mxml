@@ -26,11 +26,10 @@
 	width="100%" height="100%"
 	dragStart="handleDragStart(event)" dragComplete="handleDragComplete()"
 	dragMoveEnabled="true" dragEnabled="true" dropEnabled="true"
-	backgroundColor="white"
-	backgroundAlpha="0.7"
 	show="updateDataProvider();"
 	variableRowHeight="true"
 	verticalScrollPolicy="on"
+	paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
 	implements="weave.api.core.IDisposableObject"
 	allowMultipleSelection="false" xmlns:userControls="weave.ui.userControls.*"
 	>
@@ -105,8 +104,8 @@
 					 horizontalScrollPolicy="off"
 					 initialize="fillEnableCheck()"
 					 width="100%" 
-					 borderStyle="outset" 
-					 paddingLeft="3" paddingRight="5" paddingTop="1" paddingBottom="1" 
+					 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
+					 borderStyle="solid" borderThickness="1"
 					 verticalAlign="middle"
 					 verticalGap="0">
 				<mx:HBox width="100%" horizontalGap="1" verticalAlign="middle" paddingBottom="0" paddingTop="0">
@@ -391,7 +390,7 @@
 						{
 							var plotter:IPlotter = getPlotter(data as IPlotLayer);
 							if(plotter is GeometryLabelPlotter)
-								layerName.toolTip = "Click here to set the geometry used for the label positions" ;
+								layerName.toolTip = "Click here to set the label attribute" ;
 							if(plotter is GeometryPlotter)
 								layerName.toolTip = "Click here to set the geometry" ;
 							if(plotter is WMSPlotter)

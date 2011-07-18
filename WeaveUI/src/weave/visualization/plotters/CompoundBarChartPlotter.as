@@ -322,29 +322,32 @@ package weave.visualization.plotters
 							top = yNegativeMax + errorPlusVal;
 							bottom = yNegativeMax - errorMinusVal;
 						}
-						var coords:Array = []; // each pair of 4 numbers represents a line segment to draw
-						if (!_horizontalMode)
+						if (top != bottom)
 						{
-							coords.push(left, top, right, top);
-							coords.push(center, top, center, bottom);
-							coords.push(left, bottom, right, bottom);
-						}
-						else
-						{
-							coords.push(top, left, top, right);
-							coords.push(top, center, bottom, center);
-							coords.push(bottom, left, bottom, right);
-						}
-						
-						for (i = 0; i < coords.length; i += 2) // loop over x,y coordinate pairs
-						{
-							tempPoint.x = coords[i];
-							tempPoint.y = coords[i + 1];
-							dataBounds.projectPointTo(tempPoint, screenBounds);
-							if (i % 4 == 0) // every other pair
-								graphics.moveTo(tempPoint.x, tempPoint.y);
+							var coords:Array = []; // each pair of 4 numbers represents a line segment to draw
+							if (!_horizontalMode)
+							{
+								coords.push(left, top, right, top);
+								coords.push(center, top, center, bottom);
+								coords.push(left, bottom, right, bottom);
+							}
 							else
-								graphics.lineTo(tempPoint.x, tempPoint.y);
+							{
+								coords.push(top, left, top, right);
+								coords.push(top, center, bottom, center);
+								coords.push(bottom, left, bottom, right);
+							}
+							
+							for (i = 0; i < coords.length; i += 2) // loop over x,y coordinate pairs
+							{
+								tempPoint.x = coords[i];
+								tempPoint.y = coords[i + 1];
+								dataBounds.projectPointTo(tempPoint, screenBounds);
+								if (i % 4 == 0) // every other pair
+									graphics.moveTo(tempPoint.x, tempPoint.y);
+								else
+									graphics.lineTo(tempPoint.x, tempPoint.y);
+							}
 						}
 					}
 				}

@@ -186,13 +186,13 @@
 		    [PercentProxy("percentX")]
 			override public function set x(value:Number):void
 			{
-				super.x = value;
+				super.x = Math.round(value);
 			}
 			// this allows you to specify a percentage value like y="25%" in MXML.
 		    [PercentProxy("percentY")]
 			override public function set y(value:Number):void
 			{
-				super.y = value;
+				super.y = Math.round(value);
 			}
 			
 			[Inspectable(environment="none")]

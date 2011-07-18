@@ -686,12 +686,10 @@
 				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox label="Advanced">
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
-							 creationComplete="linkBindableProperty(enableOverview,overviewCheckBox,'selected')"/>
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox>
+		<mx:VBox label="Advanced" verticalGap="10">
+			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
+						 creationComplete="linkBindableProperty(enableOverview,overviewCheckBox,'selected')"/>
+			<mx:HBox verticalAlign="bottom">
 				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
 				<mx:VBox verticalGap="1">
 					<mx:Label text="Coordinates at map center:" fontWeight="bold"/>
@@ -705,31 +703,27 @@
 						<mx:Label text=")"/>
 					</mx:HBox>
 				</mx:VBox>
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox>
-				<mx:HBox verticalAlign="center" horizontalAlign="center">
-					<mx:Label text="Projection"/> 
-					<ui:CustomComboBox id="projComboBox"
-									   dataProvider="{_projComboBoxData}"
-									   initialize="linkBindableProperty(projectionSRS, projComboBox, 'text');"
-									   change="projValidLabel.text = projectionVerifier(projComboBox.text) ? 'Valid' : 'Invalid';"
-									   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
-									   editable="true"
-									   width="120"
-									   />
-					<!--<mx:TextInput id="projTextInput"
-						initialize="linkBindableProperty(projectionSRS, projTextInput, 'text');"
-						change="projValidLabel.text = projectionVerifier(projTextInput.text) ? 'Valid' : 'Invalid';"
-						focusOut="projTextInput.text = projectionSRS.value; projValidLabel.text = '';"
-						/>-->
-					<mx:Label id="projValidLabel" fontWeight="bold"/>
-				</mx:HBox>
-			</userControls:ControlsSubsetBox>
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-							 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
-			</userControls:ControlsSubsetBox>
+			</mx:HBox>
+			<mx:HBox verticalAlign="center" horizontalAlign="center">
+				<mx:Label text="Projection"/> 
+				<ui:CustomComboBox id="projComboBox"
+								   dataProvider="{_projComboBoxData}"
+								   initialize="linkBindableProperty(projectionSRS, projComboBox, 'text');"
+								   change="projValidLabel.text = projectionVerifier(projComboBox.text) ? 'Valid' : 'Invalid';"
+								   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
+								   editable="true"
+								   width="120"
+								   />
+				<!--<mx:TextInput id="projTextInput"
+					initialize="linkBindableProperty(projectionSRS, projTextInput, 'text');"
+					change="projValidLabel.text = projectionVerifier(projTextInput.text) ? 'Valid' : 'Invalid';"
+					focusOut="projTextInput.text = projectionSRS.value; projValidLabel.text = '';"
+					/>-->
+				<mx:Label id="projValidLabel" fontWeight="bold"/>
+			</mx:HBox>
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
+						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

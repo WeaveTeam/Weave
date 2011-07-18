@@ -251,7 +251,7 @@ package weave.visualization.plotters
 				{
 					var shapeSize:Number = _shapeSize;
 					
-					// use a gray border around each shape
+					// use a border around each shape
 					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : 1);
 					// draw a different shape for each option
 					switch(shapeToDraw.value)

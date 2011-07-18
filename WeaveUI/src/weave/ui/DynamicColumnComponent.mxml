@@ -28,9 +28,7 @@
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 width="100%" height="30"
-		 borderStyle="outset"
-		 backgroundColor="white" backgroundAlpha="0.7"
-		 verticalGap="0" verticalAlign="middle"
+		 verticalAlign="middle"
 		 horizontalGap="2">
 	<!--<ConnectionComponent id="connComponent"/>-->
 	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
