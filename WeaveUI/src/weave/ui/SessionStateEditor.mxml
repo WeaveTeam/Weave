@@ -656,7 +656,7 @@
 								{
 									if ((newSessionState[i] as DynamicState).objectName == lookupName)
 									{
-										(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{_currentSessionStateDataProvider[j].value}</tag>);
+										(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{_currentSessionStateDataProvider[j].Value}</tag>);
 										break;
 									}
 								}
