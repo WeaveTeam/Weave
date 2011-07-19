@@ -54,7 +54,16 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
 		
-		public function AnchorPlotter()	{}
+		public function AnchorPlotter()	
+		{
+			registerNonSpatialProperties(
+				Weave.properties.axisFontBold,
+				Weave.properties.axisFontColor,
+				Weave.properties.axisFontFamily,
+				Weave.properties.axisFontItalic,
+				Weave.properties.axisFontSize,
+				Weave.properties.axisFontUnderline);
+		}
 		
 		public function handleAnchorsChange():void
 		{		

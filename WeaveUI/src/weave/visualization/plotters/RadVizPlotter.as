@@ -263,16 +263,15 @@ package weave.visualization.plotters
 				if(radius <= Infinity) radius = 2 + (radius *(10-2));
 				if(isNaN(radius))
 				{			
-					radius = 6;
-					var color:uint = keyColorMap[recordKey];
-					graphics.lineStyle(2);
-					dataBounds.projectPointTo(coordinate, screenBounds);
-					// draw a plus sign for missing values				
-					graphics.moveTo(coordinate.x - radius, coordinate.y);				
-					graphics.lineTo(coordinate.x + radius, coordinate.y);				
-					graphics.moveTo(coordinate.x, coordinate.y - radius);				
-					graphics.lineTo(coordinate.x, coordinate.y + radius);		
+					radius = radiusConstant.value;
 					
+					lineStyle.beginLineStyle(recordKey, graphics);
+					fillStyle.beginFillStyle(recordKey, graphics);
+					dataBounds.projectPointTo(coordinate, screenBounds);
+					
+					// draw a square of fixed size for missing size values				
+					graphics.drawRect(coordinate.x - radius/2, coordinate.y - radius/2, radius, radius);		
+					graphics.endFill();
 					return ;
 				}	
 			}
