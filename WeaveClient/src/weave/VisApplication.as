@@ -1188,10 +1188,9 @@ package weave
 				
 			// Minimize All Windows: Get a list of all panels and call minimizePanel() on each sequentially
 			click = function():void {
-				var children:Array = Weave.root.getObjects(DraggablePanel);
-				while (children.length)
+				var panels:Array = Weave.root.getObjects(DraggablePanel);
+				for each( var panel:DraggablePanel in panels)
 				{
-					var panel:DraggablePanel = children.pop() as DraggablePanel;
 					if(panel.minimizable.value) panel.minimizePanel();
 				}
 			};
@@ -1199,23 +1198,17 @@ package weave
 			
 			// Restore all minimized windows: Get a list of all panels and call restorePanel() on each sequentially
 			click = function():void {
-				var children:Array = Weave.root.getObjects(DraggablePanel);
-				while(children.length)
-				{
-					panel = children.shift() as DraggablePanel;
+				var panels:Array = Weave.root.getObjects(DraggablePanel);
+				for each (var panel:DraggablePanel in panels)
 					panel.restorePanel();
-				}
 			};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Restore All Mimimized Windows", click, null, Weave.properties.enableRestoreAllMinimizedWindows.value ));
 			
 			// Close All Windows: Get a list of all panels and call removePanel() on each sequentially
 			click = function():void {
-				var children:Array = Weave.root.getObjects(DraggablePanel);
-				while(children.length)
-				{
-					panel = children.pop() as DraggablePanel;
+				var panels:Array = Weave.root.getObjects(DraggablePanel);
+				for each( var panel:DraggablePanel in panels)
 					panel.removePanel();
-				}
 			};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Close All Windows", click, null, Weave.properties.enableCloseAllWindows.value)) ;
 			
@@ -1320,24 +1313,16 @@ package weave
 		private function cascadeWindows():void
 		{
 			var panels:Array = getWindowsOnStage();
-			if(!panels.length) return;
-			
-			var dpanel:DraggablePanel;
-			dpanel = panels[panels.length-1] as DraggablePanel;
-			
-			dpanel.panelWidth.value = "50%";
-			dpanel.panelHeight.value = "50%";
+			if(!panels.length) return;			
 			
 			var increment:Number = 50/panels.length;
 			var dist:Number = 0 ;
 			
-			for( var i:int = 0; i < panels.length ; i++ ) 
-			{
-				dpanel = panels[i] as DraggablePanel;
-				dpanel.panelX.value = dist.toString()+"%";
-				dpanel.panelY.value = dist.toString()+"%";
-				dpanel.panelWidth.value = "50%" ;
-				dpanel.panelHeight.value = "50%" ;
+			for each( var dp:DraggablePanel in panels)
+			{				
+				dp.panelX.value = dp.panelY.value = dist.toString()+"%";			
+				dp.panelHeight.value = dp.panelWidth.value = "50%" ;	
+				
 				dist += increment;
 			}
 		}
@@ -1354,70 +1339,55 @@ package weave
 			if(!numPanels) return;
 			
 			var gridLength:Number = Math.ceil(Math.sqrt(numPanels));
-			var i:Number = gridLength; var j:Number = gridLength;
-			var factor1:uint = i; var factor2:uint = j;
 			
-			if( numPanels == 2) 
-			{
-				factor1 = 2;
-				factor2 = 1;
-			}
-			else if( (gridLength*gridLength != numPanels) && (numPanels != 1) )
-			{
-				/*if( !(numPanels % 5) );
-				else if( !(numPanels % 3));	*/
-				if( numPanels % 2 )numPanels++;
-				var minDiff:Number = numPanels;
-				while( i < numPanels )
-				{
-					j = gridLength;
-					while( j >= 1 )
-					{
-						if(i*j == numPanels) 
-							if( (i-j <= minDiff) ) {
-								minDiff = i-j ;
-								factor1 = i; factor2 = j;
-							}
-						j--;
-					}
-					i++;
-				}
-			}
+			var rows:uint = gridLength; 
+			var columns:uint = gridLength;
 			
-			//trace( factor1 + " " + factor2 + " " + numPanels);
+			if(gridLength*gridLength != numPanels)
+			{	
+				rows = Math.round(Math.sqrt(numPanels));
+				columns = gridLength;
+			}			
+						
+			var xPos:Number = 0;
+			var yPos:Number = 0 ;
+			var width:Number = 100/((stage.stageWidth > stage.stageHeight) ? rows : columns);
+			var height:Number = 100/((stage.stageWidth > stage.stageHeight) ? columns : rows);
 			
-			var dp:DraggablePanel;
-			var xPos:Number = 0; var yPos:Number = 0 ;
-			var width:Number = 100/((stage.stageWidth > stage.stageHeight) ? factor1 : factor2);
-			var height:Number = 100/((stage.stageWidth > stage.stageHeight) ? factor2 : factor1);
-			for( i = 0; i < panels.length; i++ )
-			{
-				dp = panels[i] as DraggablePanel;
+			var i:int = 0;
+			for each( var dp:DraggablePanel in panels)
+			{				
 				dp.panelX.value = xPos.toString() + "%";
 				dp.panelY.value = yPos.toString() + "%";
-				dp.panelWidth.value = width.toString() + "%";
+				
 				dp.panelHeight.value = height.toString() + "%";
+				dp.panelWidth.value = width.toString() + "%";
+				if( i == (panels.length - 1))
+				{
+					// expand to fill the width of stage
+					dp.panelWidth.value = (100-xPos).toString() + "%";
+				}
+				
 				xPos += width;
 				if(xPos >= 100) xPos = 0;
 				if( !xPos) yPos += height ;
+				i++;
 			}
 		}
 		
 		/**
 		 * @author kmanohar
 		 * @return an Array containing all DraggablePanels on stage that are not minimized
-		 * 
 		 */		
 		private function getWindowsOnStage():Array
 		{
 			var panels:Array = Weave.root.getObjects(DraggablePanel);
 			var panelsOnStage:Array = [];
-			var panel:DraggablePanel;
-			for( var i:int = 0; i < panels.length; i++ )
-			{
-				panel = panels[i] as DraggablePanel;
+			
+			for each( var panel:DraggablePanel in panels )
+			{				
 				if(!panel.minimized.value) 
-					panelsOnStage.push(panels[i]);
+					panelsOnStage.push(panel);
 			}
 			return panelsOnStage;
 		}
