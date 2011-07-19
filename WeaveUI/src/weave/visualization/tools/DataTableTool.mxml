@@ -654,7 +654,6 @@
 					sessionedWidth.value = Math.floor(100 * width / totalWidth) + "%";
 					_guiWidthChanged = false;
 				}
-				validateHScrollBar();
 			}
 			private function handleSessionedWidthChange():void
 			{
@@ -668,17 +667,21 @@
 						
 				var totalWidth:Number = 0;
 				totalWidth = dataGrid.width;
-				for (var j:int = 0; j < _currentDataGridColumns.length - 1; ++j)
+				for (var j:int = 0; j < _currentDataGridColumns.length; ++j)
 				{
 					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[j] as WeaveDataGridImageColumn;
 					var columnName:String = columns.getName(dgc.attrColumn);
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
 					var temp:Number =  NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
-					if (temp <= 0 || isNaN(temp))
+					if (temp <= 1 || isNaN(temp))
 						temp = _minSuggestedColumnSize;
-					dgc.width = Math.floor(Math.min(temp, dataGrid.width - 1));
+					
+					// always force the width to be the new value
+					dgc.setWidth(Math.floor(Math.min(temp, dataGrid.width - 1))); 
+					
+					// now we force it into doing the proper resizing (if any)
+					dgc.width = dgc.width; 
 				}
-				validateHScrollBar();
 			}
 			private var _guiWidthChanged:Boolean = false;
 			
