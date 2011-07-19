@@ -192,11 +192,13 @@
 				dataGrid.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, handleLockColumn);
 				
 				this.contextMenu = (Application.application as Application).contextMenu;
-				CustomContextMenuManager.createAndAddMenuItemToDestination("Unlock Locked Columns", this, handleUnlockLockedColumns);
+				_unlockContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Unlock Locked Columns", this, handleUnlockLockedColumns);
 			}
+			private var _unlockContextMenuItem:ContextMenuItem;
 			private function handleUnlockLockedColumns(event:ContextMenuEvent):void
 			{
 				dataGrid.lockedColumnCount = 0;
+				_unlockContextMenuItem.enabled = false;
 			}
 			private function handleLockColumn(event:ListEvent):void
 			{
@@ -205,6 +207,7 @@
 				
 				var colIndex:int = event.columnIndex;
 				dataGrid.lockedColumnCount = colIndex + 1;
+				_unlockContextMenuItem.enabled = true;
 			}
 			private function handleResize(event:ResizeEvent):void
 			{
@@ -245,9 +248,13 @@
 			private var fr:FileReference = new FileReference();	// CSV download file reference
 			
 			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
-			public const enableLockedColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); 
+			public const enableLockedColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleEnableLockedColumns); 
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
-			
+			private function handleEnableLockedColumns():void
+			{
+				dataGrid.lockedColumnCount = 0;
+				_unlockContextMenuItem.enabled = false; // always disable because 0 locked columns
+			}
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
