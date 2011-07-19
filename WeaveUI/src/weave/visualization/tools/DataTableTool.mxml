@@ -80,12 +80,10 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			import weave.api.data.IQualifiedKey;
-			import weave.api.data.IAttributeColumn;
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
 			
+			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.collections.ListCollectionView;
 			import mx.collections.Sort;
@@ -96,25 +94,33 @@
 			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
 			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
 			import mx.managers.PopUpManager;
 			import mx.skins.halo.DataGridSortArrow;
+			import mx.utils.ColorUtil;
+			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.compiler.MathLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
-			import weave.api.core.ILinkableObject;
-			import weave.api.copySessionState;
-			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
-			import weave.api.data.AttributeColumnMetadata;
+			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.api.data.IAttributeColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.AttributeColumns.KeyColumn;
 			import weave.data.KeySets.KeyFilter;
@@ -123,6 +129,7 @@
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.CustomDataGrid.WeaveDataGridImageColumn;
 			import weave.utils.ColumnUtils;
+			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
@@ -177,8 +184,17 @@
 				sortInDescendingOrder.addGroupedCallback(this,sortCallback);
 				columns.addGroupedCallback(this, function():void{ sortCallback(true); });
 				
+				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
+				this.addEventListener(ResizeEvent.RESIZE, handleResize);
 			}
-			
+			private function handleResize(event:ResizeEvent):void
+			{
+				callLater(handleSessionedWidthChange);
+			}
+			private function handleStretch(event:Event):void
+			{
+				callLater(handleNewWidth, [NaN, false]);
+			}
 			private function updateTitle():void
 			{
 				if (toolTitle.value == null)
@@ -210,6 +226,8 @@
 			private var fr:FileReference = new FileReference();	// CSV download file reference
 			
 			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
+			
+			public var columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
 			
 			private function addImageColumn():void
 			{
@@ -303,14 +321,20 @@
 				try {
 					dataGrid.columns = [];
 					_currentDataGridColumns = [];
-				
-					for each (var attrColumn:IAttributeColumn in columns.getObjects())
+//					columnWidths.removeAllObjects();
+
+					var attrColumns:Array = columns.getObjects();
+					for each (var attrColumn:IAttributeColumn in attrColumns)
 					{
-						//if(attrColumn.keyType == keyTypeCombo.selectedItem)
-						{
-							addItem(attrColumn);
-						}
+						addItem(attrColumn);
 					}
+					var _sessionedWidthNames:Array = columnWidths.getNames();
+					for each (var name:String in _sessionedWidthNames)
+					{
+						if (!columns.getObject(name))
+							columnWidths.removeObject(name);
+					}
+					handleSessionedWidthChange();
 				} catch (error:Error) {
 					//Errors from SDK should not be ignored.  If they are, program behavior becomes undefined.
 					ErrorManager.reportError(error);
@@ -580,23 +604,85 @@
 			
 			
 			
+			private function handleNewWidth(newWidth:Number, allowCallLater:Boolean = true):void
+			{
+				if (getCallbackCollection(columnWidths).callbacksWereTriggered)
+					return;
+				if (allowCallLater)
+				{
+					StageUtils.callLater(this, handleNewWidth, [newWidth, false], false);
+					return;
+				}
+				
+				var i:int;
+				var totalWidth:Number = dataGrid.width;
+				for (i = 0; i < _currentDataGridColumns.length; ++i)
+				{
+					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[i];
+					var column:IAttributeColumn = dgc.attrColumn;
+					var columnName:String = columns.getName(column);
+					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
+					var width:Number = (_currentDataGridColumns[i] as WeaveDataGridImageColumn).width;
+					if (isNaN(width) || width <= 0) // this happens when a column is stretched all the way to the right
+						width = _minSuggestedColumnSize;
+					_guiWidthChanged = true;
+					sessionedWidth.value = Math.floor(100 * width / totalWidth) + "%";
+					_guiWidthChanged = false;
+				}
+				validateHScrollBar();
+			}
+			private function handleSessionedWidthChange():void
+			{
+				if (_guiWidthChanged)
+					return;
+				if (!parent)
+				{
+					callLater(handleSessionedWidthChange);
+					return;
+				}
+						
+				var totalWidth:Number = 0;
+				totalWidth = dataGrid.width;
+				for (var j:int = 0; j < _currentDataGridColumns.length - 1; ++j)
+				{
+					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[j] as WeaveDataGridImageColumn;
+					var columnName:String = columns.getName(dgc.attrColumn);
+					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
+					var temp:Number =  NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
+					if (temp <= 0 || isNaN(temp))
+						temp = _minSuggestedColumnSize;
+					dgc.width = Math.floor(Math.min(temp, dataGrid.width - 1));
+				}
+				validateHScrollBar();
+			}
+			private var _guiWidthChanged:Boolean = false;
 			
-			public  function addItem(attrColumn:IAttributeColumn):void
+			public function addItem(attrColumn:IAttributeColumn):void
 			{				
 				var dgc:WeaveDataGridImageColumn	= new WeaveDataGridImageColumn(attrColumn);
-				
 				_currentDataGridColumns.push(dgc);
-					
-				// NEED TO DETERMINE WHETHER OR NOT TO SHOW A SCROLL BAR -- if not, it will resize each column automatically				
-				if(_currentDataGridColumns.length * _minSuggestedColumnSize <= dataGrid.width)
+				var columnName:String = columns.getName(attrColumn);
+				var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, true);
+
+				validateHScrollBar();
+				
+				dataGrid.columns = _currentDataGridColumns;
+				dataGrid.invalidateDisplayList();
+			}
+			
+			private function validateHScrollBar():void
+			{
+				// NEED TO DETERMINE WHETHER OR NOT TO SHOW A SCROLL BAR -- if not, it will resize each column automatically
+				var totalColumnWidths:Number = 0;
+				for each (var obj:WeaveDataGridImageColumn in _currentDataGridColumns)
+				{
+					totalColumnWidths += obj.width;
+				}
+				if(totalColumnWidths < dataGrid.width)
 					dataGrid.horizontalScrollPolicy = "off";
 				else
 					dataGrid.horizontalScrollPolicy = "auto";
-				
-				dataGrid.columns = _currentDataGridColumns;
-					dataGrid.invalidateDisplayList();
 			}
-			
 			public function deleteItem(selectedIndex:int):void
 			{
 				var dgc:WeaveDataGridImageColumn	= new WeaveDataGridImageColumn(_visibleColumns[selectedIndex]);
@@ -605,11 +691,7 @@
 					var spliceIndex:int = indexOfAttributeColumnAdded(dgc.attrColumn);
 					_currentDataGridColumns.splice(spliceIndex,1);
 					
-					// NEED TO DETERMINE WHETHER OR NOT TO SHOW A SCROLL BAR -- if not, it will resize each column automatically				
-					if(_currentDataGridColumns.length * _minSuggestedColumnSize <= dataGrid.width)
-						dataGrid.horizontalScrollPolicy = "off";
-					else
-						dataGrid.horizontalScrollPolicy = "auto";
+					validateHScrollBar();
 					
 					dataGrid.columns = _currentDataGridColumns;	
 					
