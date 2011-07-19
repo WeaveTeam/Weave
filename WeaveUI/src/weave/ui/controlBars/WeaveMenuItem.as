@@ -104,9 +104,12 @@ package weave.ui.controlBars
 		
 		//public var iconURL:String = null;
 		
-		public function WeaveMenuItem(labelStringOrFunction:*, clickFunction:Function=null, clickFunctionParameters:Array = null, enabledBooleanOrFunction:*=true)
+		public function WeaveMenuItem(labelStringOrFunction:Object, clickFunction:Function=null, clickFunctionParameters:Array = null, enabledBooleanOrFunction:*=true)
 		{	
-			this.weaveLabel = labelStringOrFunction is Function ? labelStringOrFunction() : labelStringOrFunction;
+			if (labelStringOrFunction is Function)
+				this.weaveLabel = (labelStringOrFunction as Function)();
+			else
+				this.weaveLabel = labelStringOrFunction as String;
 			
 			this.clickFunction = clickFunction;
 			this.functionParameters = clickFunctionParameters;

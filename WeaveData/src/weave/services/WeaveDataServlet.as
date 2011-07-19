@@ -65,7 +65,7 @@ package weave.services
 			var node:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
 
 			var params:Object = new Object();
-			for each (var attr:String in ['dataTable', 'name', 'year', 'min', 'max'])
+			for each (var attr:String in ['dataTable', 'name', 'year', 'min', 'max']) // only use these properties for querying
 			{
 				var value:String = node.attribute(attr);
 				if (value != '')

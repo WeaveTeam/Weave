@@ -1172,74 +1172,65 @@ package weave
 			enable = function():Boolean {
 					return (topPanel && topPanel.maximizable.value);
 				};
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable) );
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable));
 			
 			// close
-			label = "Close This Window";
 			click = function():void { 
-					if (topPanel)
-						topPanel.removePanel();
-				};
+				if (topPanel)
+					topPanel.removePanel();
+			};
 			enable = function():Boolean {
-					return (topPanel && topPanel.closeable.value);
-				};
-			
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable) );
+				return (topPanel && topPanel.closeable.value);
+			};
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Close This Window", click, null, enable));
 				
 			// Minimize All Windows: Get a list of all panels and call minimizePanel() on each sequentially
 			click = function():void {
-				var panels:Array = Weave.root.getObjects(DraggablePanel);
-				for each( var panel:DraggablePanel in panels)
-				{
-					if(panel.minimizable.value) panel.minimizePanel();
-				}
+				for each (panel in Weave.root.getObjects(DraggablePanel))
+					panel.minimizePanel();
 			};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Minimize All Windows", click, null, Weave.properties.enableMinimizeAllWindows.value) );
 			
 			// Restore all minimized windows: Get a list of all panels and call restorePanel() on each sequentially
 			click = function():void {
-				var panels:Array = Weave.root.getObjects(DraggablePanel);
-				for each (var panel:DraggablePanel in panels)
+				for each (panel in Weave.root.getObjects(DraggablePanel))
 					panel.restorePanel();
 			};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Restore All Mimimized Windows", click, null, Weave.properties.enableRestoreAllMinimizedWindows.value ));
 			
 			// Close All Windows: Get a list of all panels and call removePanel() on each sequentially
 			click = function():void {
-				var panels:Array = Weave.root.getObjects(DraggablePanel);
-				for each( var panel:DraggablePanel in panels)
+				for each (panel in Weave.root.getObjects(DraggablePanel))
 					panel.removePanel();
 			};
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Close All Windows", click, null, Weave.properties.enableCloseAllWindows.value)) ;
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Close All Windows", click, null, Weave.properties.enableCloseAllWindows.value));
 			
 			// cascade windows
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Cascade All Windows", cascadeWindows, null, Weave.properties.enableCascadeAllWindows.value ));
 			
 			// tile windows
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Tile All Windows", tileWindows, null, Weave.properties.enableTileAllWindows.value )) ;
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Tile All Windows", tileWindows, null, Weave.properties.enableTileAllWindows.value ));
 			
 			
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(
-				function():String { 
-					if ( stage.displayState == StageDisplayState.FULL_SCREEN) 
-						return 'Exit Fullscreen'; 
-					
-					return 'Go Fullscreen';
-				},
-				function():void{
-					if (stage.displayState == StageDisplayState.NORMAL )
-					{
-						// set full screen display
-						stage.displayState = StageDisplayState.FULL_SCREEN;
-					}
-					else
-					{
-						// set normal display
-						stage.displayState = StageDisplayState.NORMAL;
-					}
-				}, 
-				null,
-				Weave.properties.enableGoFullscreen.value) );
+			label = function():String { 
+				if ( stage.displayState == StageDisplayState.FULL_SCREEN) 
+					return 'Exit Fullscreen'; 
+				
+				return 'Go Fullscreen';
+			};
+			click = function():void{
+				if (stage.displayState == StageDisplayState.NORMAL )
+				{
+					// set full screen display
+					stage.displayState = StageDisplayState.FULL_SCREEN;
+				}
+				else
+				{
+					// set normal display
+					stage.displayState = StageDisplayState.NORMAL;
+				}
+			};
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, Weave.properties.enableGoFullscreen.value));
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 			//_visMenu.addSeparatorToMenu(windowMenu);
 			//_visMenu.addMenuItemToMenu("Window", new VisMenuItem("[submenu] Load Window Layout", null));
@@ -1257,13 +1248,30 @@ package weave
 		
 		private function createWindowMenuItem(panel:DraggablePanel, destinationMenuBar:WeaveMenuBar, destinationMenuItem:WeaveMenuItem):WeaveMenuItem
 		{
-			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem( panel.title,
-																   function ():void {
-																   		if(panel.minimizedComponentVersion != null)
-																   			panel.minimizedComponentVersion.restoreFunction();
-																   		else
-																			panel.restorePanel();
-																	});
+			var label:Function = function():String
+			{
+				var menuLabel:String = "untitled ";
+				if(panel.title.replace(" ", "").length > 0) 
+					menuLabel = panel.title;
+				else
+					menuLabel += " window";
+				
+				
+				if(panel.minimized.value)
+				{
+					menuLabel = ">\t" + menuLabel;
+				}
+				
+				return menuLabel;
+			}
+			var click:Function = function():void
+			{
+		   		if (panel.minimizedComponentVersion != null)
+		   			panel.minimizedComponentVersion.restoreFunction();
+		   		else
+					panel.restorePanel();
+			}
+			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, click);
 			 
 			newToolMenuItem.type = WeaveMenuItem.TYPE_RADIO;
 			newToolMenuItem.groupName = "activeWindows";
@@ -1271,22 +1279,6 @@ package weave
 				return newToolMenuItem.relevantItemPointer == topPanel;
 			};
 			newToolMenuItem.relevantItemPointer = panel;
-			newToolMenuItem.labelFunction = function ():String 
-											{ 
-												var menuLabel:String = "untitled ";
-												if(panel.title.replace(" ", "").length > 0) 
-													menuLabel = panel.title;
-												else
-													menuLabel += " window";
-													
-												
-												if(panel.minimized.value)
-												{
-													menuLabel = ">\t" + menuLabel;
-												}
-													
-												return menuLabel;
-											};
 			
 			addEventListener(FlexEvent.REMOVE, function(e:Event):void {
 				if(destinationMenuBar && destinationMenuItem)

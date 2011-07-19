@@ -144,7 +144,7 @@ public class DataService extends GenericServlet
 		int rowIndex =0;
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<AttributeColumnInfo> infoList =config.getAttributeColumnInfo(params);
+		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(params);
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 100)
