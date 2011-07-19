@@ -232,7 +232,13 @@
 				{ 
 					lineEquation.text = "Equation: y = mx + b";
 					if (contains(equationText))
-						removeChild(equationText);
+					{
+						try
+						{
+							removeChild(equationText);
+						}
+						catch (e:Error) {}
+					}
 				}
 			}
 			private function updateAxisLabels():void

@@ -70,6 +70,13 @@
 						 selected="true"
 						 toolTip="Selecting this option will turn the borders of this tool on or off"
 						 initialize="linkBindableProperty(_tool.enableBorders, windowBorderToggle, 'selected');"/>
+			<mx:CheckBox id="windowTitleToggle"
+						 label="Show Title" 
+						 fontWeight="bold" 
+						 fontSize="12" 
+						 selected="true"
+						 toolTip="Selecting this option will turn the title of this tool on or off"
+						 initialize="linkBindableProperty(_tool.enableTitle, windowTitleToggle, 'selected');"/>
 			<mx:CheckBox label="Allow Dragging" 
 						 fontWeight="bold"
 						 fontSize="12"
