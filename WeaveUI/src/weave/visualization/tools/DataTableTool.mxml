@@ -744,9 +744,12 @@
 				}
 			}
 			
+			public const lockedColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLockedColumnChange, true);
 			private function handleLockedColumnChange():void
 			{
-				dataGrid.lockedColumnCount = numLockedColumns.value;
+				if (lockedColumns.value < 0 || lockedColumns.value > dataGrid.columns.length)
+					lockedColumns.value = 0;
+				dataGrid.lockedColumnCount = lockedColumns.value;
 			}
 			
 		
@@ -761,7 +764,8 @@
 			<mx:Button label="Export Data..." click="exportCSV()" />
 			<mx:HBox>
 				<mx:Label text="Number of Locked Columns"/>
-				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" change="handleLockedColumnChange()"/>	
+				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" 
+								   initialize="linkBindableProperty(lockedColumns, numLockedColumns, 'value');"/>	
 			</mx:HBox>			
 		</mx:VBox>
 	</ui:ControlPanel>
