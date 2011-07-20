@@ -61,14 +61,16 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.SpatialIndex;
+			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
-			import weave.visualization.plotters.RadVizPlotter;
+			import weave.visualization.plotters.CompoundRadVizPlotter;
+			import weave.visualization.plotters.ProbeLinePlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
 
 			
-			public var _plotter:RadVizPlotter ;
+			public var _plotter:CompoundRadVizPlotter ;
 			private var _anchorPlotter:AnchorPlotter ;
 			private var _anchorLayer:SelectablePlotLayer ;
 			
@@ -77,7 +79,7 @@
 				super.constructor();
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(RadVizPlotter) as RadVizPlotter;
+				_plotter = initDefaultPlotter(CompoundRadVizPlotter) as CompoundRadVizPlotter;
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateTitle);
 				
 				visualization.enableAutoZoomToExtent.value = true;
@@ -208,7 +210,7 @@
 				if (toolTitle.value == null)
 				{				
 					// try to get unique attribute names separated by commas					
-					var newTitle:String = "RadViz of ";
+					var newTitle:String = "Compound RadViz of ";
 					
 					var uniqueColumns:Dictionary = new Dictionary();
 					
@@ -398,6 +400,30 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
 			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" />
 			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
-		</mx:VBox>		
+		</mx:VBox>
+		<mx:VBox id="AdvancedPanel" label="Advanced">
+			<mx:CheckBox id="enableWedgeColoringCkbx"
+						 label="Enable Wedge Coloring"
+						 toolTip="Enable different wedge colors for the pi-chart glyphs"
+						 creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, enableWedgeColoringCkbx, 'selected')"/>
+			<mx:Label text="Color scale used in pie-chart glyphs:" enabled="{enableWedgeColoringCkbx.selected}"/>
+			<mx:DataGrid id="colormapGrid"
+						 enabled="{enableWedgeColoringCkbx.selected}"
+						 useRollOver="false"
+						 minWidth="200" width="100%" height="100%"
+						 color="black"
+						 rollOverColor="0xCCFEFF"
+						 fontWeight="normal"
+						 paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
+						 horizontalScrollPolicy="off" verticalScrollPolicy="on"
+						 allowMultipleSelection="false"  
+						 dataProvider="{new XMLList(ColorRamp.allColorRamps.colorRamp)}"
+						 change="colorRampName.value = colormapGrid.selectedItem.@name;"
+						 headerHeight="22">
+				<mx:columns>												
+					<mx:DataGridColumn dataField="@name"  headerText="Color Scale"  itemRenderer="weave.ui.colormap.ColorRampPresetItemRenderer"/>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

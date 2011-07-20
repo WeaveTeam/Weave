@@ -55,13 +55,13 @@ package weave.visualization.plotters
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
-	 * RadVizPlotter
+	 * CompoundRadVizPlotter
 	 * 
 	 * @author kmanohar
 	 */
-	public class RadVizPlotter extends AbstractPlotter
+	public class CompoundRadVizPlotter extends AbstractPlotter
 	{
-		public function RadVizPlotter()
+		public function CompoundRadVizPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerNonSpatialProperties(radiusColumn, fillStyle);			
@@ -79,7 +79,8 @@ package weave.visualization.plotters
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 				
-		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));			
+		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));	
+		public const enableWedgeColoring:LinkableBoolean = 	registerSpatialProperty(new LinkableBoolean(false));
 		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
 		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
 		
@@ -256,37 +257,57 @@ package weave.visualization.plotters
 			var radius:Number = keyNormedRadiusMap[recordKey];
 			
 			// Get coordinates of record and add jitter (if specified)
-			getXYcoordinates(recordKey);
+			var sum:Number= getXYcoordinates(recordKey);
 
-			if(screenRadius.internalColumn != null)
+			if(isNaN(radius) && (screenRadius.internalColumn != null))
+			{			
+				radius = radiusConstant.value;
+				
+				lineStyle.beginLineStyle(recordKey, graphics);
+				fillStyle.beginFillStyle(recordKey, graphics);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				
+				// draw a square of fixed size for missing size values				
+				graphics.drawRect(coordinate.x - radius/2, coordinate.y - radius/2, radius, radius);		
+				graphics.endFill();
+				return ;
+			}
+			if(radius <= Infinity) radius = 2 + (radius *(10-2));
+						
+			sum = (1/sum) *2 * Math.PI ;
+			
+			// Plot pie charts of each record
+			var beginRadians:Number = 0;
+			var spanRadians:Number = 0;
+			var value:Number = 0;
+			var numArray:Array = keyNumberMap[recordKey];
+			
+			var defaultAlpha:Number = MathLib.toNumber(alphaColumn.defaultValue.value);
+			
+			dataBounds.projectPointTo(coordinate,screenBounds);
+			for( var i:int = 0; i < _columns.length; i++ )
 			{
-				if(radius <= Infinity) radius = 2 + (radius *(10-2));
-				if(isNaN(radius))
-				{			
-					radius = radiusConstant.value;
-					
-					lineStyle.beginLineStyle(recordKey, graphics);
+				value = numArray[i];
+				beginRadians += spanRadians;
+				spanRadians = value * sum;
+				
+				lineStyle.beginLineStyle(recordKey, graphics);
+				if(enableWedgeColoring.value)
+					graphics.beginFill(colorMap.getColorFromNorm(i / (_columns.length - 1)), alphaColumn.defaultValue.value as Number);
+				else
 					fillStyle.beginFillStyle(recordKey, graphics);
-					dataBounds.projectPointTo(coordinate, screenBounds);
-					
-					// draw a square of fixed size for missing size values				
-					graphics.drawRect(coordinate.x - radius/2, coordinate.y - radius/2, radius, radius);		
-					graphics.endFill();
-					return ;
-				}	
+
+				if( screenRadius.internalColumn ) {
+					if(spanRadians <= Infinity) //missing values skipped
+						drawWedge(graphics, beginRadians, spanRadians, coordinate, radius*radiusConstant.value/3);
+				}
+				else
+				{
+					if(spanRadians <= Infinity) //missing values skipped
+						drawWedge(graphics, beginRadians, spanRadians, coordinate,radiusConstant.value);
+				}
+				graphics.endFill();
 			}
-			else if (isNaN(radius))
-			{
-				radius = radiusConstant.value ;
-			}
-		
-			lineStyle.beginLineStyle(recordKey, graphics);
-			fillStyle.beginFillStyle(recordKey, graphics);
-			
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			graphics.drawCircle(coordinate.x, coordinate.y, radius);
-			
-			graphics.endFill();
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -332,7 +353,7 @@ package weave.visualization.plotters
 				else if( isNaN(b) || (a > b) ) return 1;
 			}
 			// size equal.. compare color (if global colorColumn is used)
-			if(keyColorMap[key1])
+			if( !enableWedgeColoring.value)
 			{
 				a = keyColorMap[key1];
 				b = keyColorMap[key2];
@@ -409,6 +430,5 @@ package weave.visualization.plotters
 		private var _orderedColumns:Array = null;
 		private var _columns:Array = null;
 		private var _columnNames:Array ; // stores the list of reordered dimensions to apply to the columns LinkableHashMap
-	
 	}
 }

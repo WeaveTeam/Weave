@@ -21,8 +21,8 @@
           <HierarchyColumnReference>
             <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
             <hierarchyPath encoding="xml">
-              <hierarchy>
-                <attribute csvColumn="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+              <hierarchy keyType="Country Code">
+                <attribute csvColumn="Population, female (% of total)" keyType="Country Code" name="Population, female (% of total)" title="Population, female (% of total)"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
@@ -43,12 +43,12 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="Eggplant" source="OIC" category="aesthetic">
-        <node position="0" color="0x040009"/>
-        <node position="0.1" color="0x4E0075"/>
-        <node position="0.3" color="0x7E00A5"/>
-        <node position="0.7" color="0xE2A510"/>
-        <node position="1" color="0xFFFF99"/>
+      <colorRamp name="Blue To Cyan" category="visualization" source="OIC">
+        <node position="0" color="0x000000"/>
+        <node position="0.44140625" color="0x00b7f6"/>
+        <node position="0.4765625" color="0x0bc4ff"/>
+        <node position="0.66796875" color="0x68ffff"/>
+        <node position="1" color="0xffffff"/>
       </colorRamp>
     </ramp>
   </ColorColumn>
