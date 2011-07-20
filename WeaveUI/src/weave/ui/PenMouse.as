@@ -214,7 +214,6 @@ package weave.ui
 			if(!destination.hasOwnProperty("contextMenu") )
 				return false;
 			
-			
 			// Add a listener to this destination context menu for when it is opened
 			var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
 			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
@@ -223,7 +222,6 @@ package weave.ui
 			_penToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(ENABLE_PEN, destination, drawFunction, "5 drawingMenuItems");
 			_removeDrawingsMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Remove All Drawings", destination, eraseDrawings, "5 drawingMenuItems");
 			_removeDrawingsMenuItem.enabled = false;
-			
 			
 			return true;
 		}
@@ -243,15 +241,22 @@ package weave.ui
 			_penToolMenuItem.caption = ENABLE_PEN;
 			_removeDrawingsMenuItem.enabled = false;
 			//If session state is imported need to detect if there already is drawings.
-			if( ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME ) )
-			{
-				var penObject:ILinkableObject = ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME );
-				if( ( penObject as PenMouse ).penEnabled.value == true )
-					_penToolMenuItem.caption = DISABLE_PEN;
-				else
-					_penToolMenuItem.caption = ENABLE_PEN;
-				_removeDrawingsMenuItem.enabled = true;
-			}
+			//Check if LinkableContainer is null.
+			if( ( getLinkableContainer(e.mouseTarget) as ILinkableContainer) )
+				if( ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME ) )
+				{
+					var penObject:ILinkableObject = ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME );
+					if( ( penObject as PenMouse ).penEnabled.value == true )
+					{
+						_penToolMenuItem.caption = DISABLE_PEN;
+						( penObject as PenMouse).editMode = true;
+					}
+					else
+					{
+						_penToolMenuItem.caption = ENABLE_PEN;
+					}
+					_removeDrawingsMenuItem.enabled = true;
+				}
 		}
 		
 		/**
@@ -271,6 +276,7 @@ package weave.ui
 				// enable pen
 				
 				penTool.editMode = true;
+				penTool.penEnabled.value = true;
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
@@ -279,6 +285,7 @@ package weave.ui
 			{
 				// disable pen
 				penTool.editMode = false;
+				penTool.penEnabled.value = false;
 				
 				_penToolMenuItem.caption = ENABLE_PEN;
 			}
