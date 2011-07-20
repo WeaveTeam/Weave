@@ -188,26 +188,7 @@
 				columns.addGroupedCallback(this, function():void{ sortCallback(true); });
 				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
-				this.addEventListener(ResizeEvent.RESIZE, handleResize);
-				dataGrid.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, handleLockColumn);
-				
-				this.contextMenu = (Application.application as Application).contextMenu;
-				_unlockContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Unlock Locked Columns", this, handleUnlockLockedColumns);
-			}
-			private var _unlockContextMenuItem:ContextMenuItem;
-			private function handleUnlockLockedColumns(event:ContextMenuEvent):void
-			{
-				dataGrid.lockedColumnCount = 0;
-				_unlockContextMenuItem.enabled = false;
-			}
-			private function handleLockColumn(event:ListEvent):void
-			{
-				if (!enableLockedColumns.value)
-					return;
-				
-				var colIndex:int = event.columnIndex;
-				dataGrid.lockedColumnCount = colIndex + 1;
-				_unlockContextMenuItem.enabled = true;
+				addEventListener(ResizeEvent.RESIZE, handleResize);
 			}
 			private function handleResize(event:ResizeEvent):void
 			{
@@ -248,13 +229,7 @@
 			private var fr:FileReference = new FileReference();	// CSV download file reference
 			
 			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
-			public const enableLockedColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleEnableLockedColumns); 
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
-			private function handleEnableLockedColumns():void
-			{
-				dataGrid.lockedColumnCount = 0;
-				_unlockContextMenuItem.enabled = false; // always disable because 0 locked columns
-			}
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
@@ -624,7 +599,7 @@
 						keySet.addKeys(column.keys);
 				}
 			}
-			
+			[Bindable]
 			private var _currentDataGridColumns:Array = [];
 			
 			
@@ -769,6 +744,10 @@
 				}
 			}
 			
+			private function handleLockedColumnChange():void
+			{
+				dataGrid.lockedColumnCount = numLockedColumns.value;
+			}
 			
 		
 		]]>
@@ -780,9 +759,10 @@
 			<mx:CheckBox id="showControlsCheckBox" label="Show controls on panel"/>
 			<mx:CheckBox change="handleKeyColumnCheckBox()" id="showKeyColumnCheckBox" label="Show Key Column"/>
 			<mx:Button label="Export Data..." click="exportCSV()" />
-			<mx:CheckBox label="Enable Locked Columns" id="chkBoxLockedCols" 
-						 toolTip="Select this to allow double clicking in a column to lock all the columns from the left of the table to the column."
-						 initialize="linkBindableProperty(enableLockedColumns, chkBoxLockedCols, 'selected')"/>  
+			<mx:HBox>
+				<mx:Label text="Number of Locked Columns"/>
+				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" change="handleLockedColumnChange()"/>	
+			</mx:HBox>			
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
