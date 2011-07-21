@@ -51,10 +51,13 @@
 					return dynamicNumericDataFilter.internalObject as NumericDataFilter;
 				}
 				
-				public const dynamicNumericDataFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(NumericDataFilter), columnUpdateSlider);
+				public const dynamicNumericDataFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(NumericDataFilter), columnUpdateSlider, true);
 				
 				private function columnUpdateSlider():void
 				{
+					if (!parent)
+						return callLater(columnUpdateSlider);
+					
 					var numericDataFilter:NumericDataFilter = getNumericDataFilter();
 					if (!numericDataFilter)
 						return;
