@@ -44,7 +44,8 @@
 			<mx:VBox id="listVBox" width="100%" height="100%">
 				<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
 				<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
- 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"/>
+ 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
+									 focusIn="sessionNav.refresh()"/>
  				<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off">
  					<mx:TextInput id="linkNameInput" width="100%"/>
  					<mx:Button label="Link to global object" click="linkSelectedObject();"/>
@@ -57,15 +58,11 @@
 					<mx:Button label="Search" click="highlightSearchText()" repeatDelay="1"/>
 				</mx:HBox>
 				<mx:Canvas id="editorBox" width="100%" height="100%">
-					<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleTextAreaFocusIn()" fontAntiAliasType="normal" fontSize="11" 
+					<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11" 
 								 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
-					<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleDataGridFocusIn()" fontAntiAliasType="normal" fontSize="11"
+					<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 								 fontFamily="Courier New" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
-								 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24" >
-						<!--<mx:columns>
-							<mx:DataGridColumn width="200" dataField="Name" headerText="Name" editable="false"/>
-							<mx:DataGridColumn dataField="Value" headerText="Value"/>
-						</mx:columns>-->
+								 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24"> 
 					</mx:DataGrid>
 				</mx:Canvas>
 				<mx:Button id="toggleView" label="Toggle View" click="handleToggleViewClick()" toolTip="Click this button to switch the view of the session state."/>
@@ -191,6 +188,7 @@
 		    	if (autoRefresh && _needRefresh && !_textModified && visible && parent)
 				{
 					autoRefresh = false; // this prevents text from refreshing every time -- we only want it to refresh when text area gains focus.
+					sessionNav.refresh();
 		    		loadSelectedSessionObjectInView();
 				}
 		    }
@@ -199,19 +197,20 @@
 		    	_needRefresh = true;
 		    }
 			
-			private function handleTextAreaFocusIn():void
+			private function handleEditorFocusIn():void
 			{
 				autoRefresh = true;
 			}
-			
-		    private function handleTextAreaChange():void
+
+			private function handleTextAreaChange():void
 		    {
 		    	_textModified = true;
 		    }
 		    
 			public function refresh():void
 			{
-				if (_textModified == false)
+				// refresh the tree navigator if the current object was disposed
+				if (_textModified == false || (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
 				{
 					sessionNav.refresh();
 					return;
@@ -233,6 +232,12 @@
 			{
 				if (sessionStateDataGrid.visible == false && sessionStateTextArea.visible == false)
 					return;
+				
+				// to avoid a flex error, make sure the dataGrid has no selected items
+				if (_editor == DATA_GRID)
+				{
+					sessionStateDataGrid.selectedItems = [];
+				}
 				
 				_needRefresh = false;
 
@@ -293,7 +298,16 @@
 		    
 		    private function handleApplyClick():void
 		    {
-		    	try {
+				try {
+//					// don't save the object if it was disposed
+//					if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+//					{
+//						_textModified = false;
+//						refresh();
+//						sessionStateDataGrid.columns = [];
+//						sessionStateTextArea.text = '';
+//						return;
+//					}						
 			    	saveSessionState();
 			    	refresh();
 				} catch (e:Error) { alertError(e); }
@@ -409,11 +423,6 @@
 				}
 			}
 
-			private function handleDataGridFocusIn():void
-			{
-				autoRefresh = true;
-			}
-			
 			private function handleDataGridChange(event:DataGridEvent):void
 			{
 				var row:int = int(event.rowIndex);
@@ -482,13 +491,13 @@
 			{
 				if (_editor == TEXT_EDITOR)
 				{
-					sessionStateTextArea.text = ' ';
+					sessionStateTextArea.text = '';
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.visible = true;
 				}
 				else if (_editor == DATA_GRID)
 				{
-					sessionStateDataGrid.dataProvider = [ {Name: ' ', Value: ' '} ];
+					sessionStateDataGrid.dataProvider = [ {Name: '', Value: ' '} ];
 					sessionStateDataGrid.enabled = true;
 					sessionStateDataGrid.visible = true;
 				}
@@ -619,6 +628,12 @@
 		    {
 				_textModified = false;
 				
+				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				{
+					refresh();
+					return;
+				}
+				
 				if (_currentSelectedObject != null)
 				{
 					if (_editor == TEXT_EDITOR && _currentSessionStateXML != null)
@@ -626,11 +641,11 @@
 						_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
 						
 						var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
-						
 						setSessionState(_currentSelectedObject, decodedStateObject, true);
 					}
 					else if (_editor == DATA_GRID && _currentSessionStateDataProvider != null)
 					{
+						var newValue:Object;
 						var newSessionState:Object;
 						var i:int, j:int;
 
@@ -640,6 +655,8 @@
 						if (_currentSelectedObject is ILinkableVariable && _currentSessionStateDataProvider.length == 1)
 						{
 							newSessionState = _currentSessionStateDataProvider[0].Value;
+							if (newSessionState === ' ')
+								newSessionState = '';
 							setSessionState(_currentSelectedObject, newSessionState, true);
 							return;
 						}
@@ -656,7 +673,10 @@
 								{
 									if ((newSessionState[i] as DynamicState).objectName == lookupName)
 									{
-										(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{_currentSessionStateDataProvider[j].Value}</tag>);
+										newValue = _currentSessionStateDataProvider[j].Value;
+										if (newValue === ' ')
+											newValue = '';
+										(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
 										break;
 									}
 								}
@@ -670,6 +690,9 @@
 						newSessionState = new Object();
 						for (i = 0; i < _currentSessionStateDataProvider.length; ++i)
 						{
+							newValue = _currentSessionStateDataProvider[i].Value;
+							if (newValue === ' ')
+								newValue = '';
 							newSessionState[_currentSessionStateDataProvider[i].Name] = _currentSessionStateDataProvider[i].Value;
 						}
 						
