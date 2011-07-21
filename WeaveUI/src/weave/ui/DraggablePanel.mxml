@@ -530,6 +530,9 @@
 				return round(value / gridSize) * gridSize;
 			}
 			
+			[Inspectable] protected var controlBarWidthBeforeScale:int = -1;
+    		[Inspectable] protected var sizeBeforeScale:int = -1;
+    		
     		private function handleResize(event:ResizeEvent):void
     		{
     			if (!parent)
@@ -537,6 +540,22 @@
 
 				if (_dragging || _resizing)
 	    			constrainAndSaveCoordinates();
+
+				if (controlBar && controlBarWidthBeforeScale > 0)
+				{
+	    			controlBar.scaleX = controlBar.scaleY = (width < controlBarWidthBeforeScale)
+	    													?
+	    													width / controlBarWidthBeforeScale
+	    													:
+	    													1.0;
+	   			}
+    			
+    			return;
+    			scaleX = scaleY = (unscaledWidth < sizeBeforeScale || unscaledHeight < sizeBeforeScale)
+    							  ?
+    							  unscaledWidth / sizeBeforeScale
+    							  :
+    							  1.0;
     		}
 			
 			public function updateBorders():void
