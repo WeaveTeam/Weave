@@ -51,17 +51,26 @@ package weave.services.collaboration
 	import org.igniterealtime.xiff.vcard.*;
 	
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.ErrorManager;
+	import weave.core.SessionStateLog;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	
 	public class CollaborationService extends EventDispatcher
 	{
-		public function CollaborationService()
+		public function CollaborationService( root:ILinkableObject )
 		{
+			stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
+			getCallbackCollection( stateLog ).addImmediateCallback( handleStateChange );
+			
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			for each (var c:Class in [SessionStateMessage, TextMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
 		}
+		
 		
 		private var _room:Room;
 		private function get room():Room
@@ -98,6 +107,17 @@ package weave.services.collaboration
 		//new room with the server
 		private var connectedToRoom:Boolean = 				false;
 		private var isConnected:Boolean = 					false;
+		
+		private var stateLog:SessionStateLog = null;
+		
+		//function to send diff
+		private function handleStateChange():void
+		{
+			var log:Array 	 = stateLog.undoHistory;
+			var entry:Object = log[log.length - 1]
+			if (isConnected == true)
+				sendSessionState( entry );
+		}
 		
 		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, username:String ):void
 		{
@@ -151,31 +171,28 @@ package weave.services.collaboration
 		
 		public function sendSessionState( state:Object, target:String=null ):void
 		{
-			messageIndex++;
-			var currentMessage:SessionStateMessage = new SessionStateMessage(lastMessage.id, selfJID + "." + String(currentMessage), state);
+
+			var currentMessage:SessionStateMessage = new SessionStateMessage(lastMessage.id, selfJID + "." + state.id, state.forward );
 			if( target != null)
 				room.sendPrivateMessage( target, encodeObject(currentMessage) );
 			else
 				room.sendMessage(encodeObject(currentMessage) );
-			
 			lastMessage = currentMessage;
+			
 		}
 		
 		private function postMessageToUser( message:String ) :void
 		{
-			if( this.username == "Host")
-				return;
+//			if( this.username == "Host")
+//				return;
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.TEXT, message));
 		}
 		
 		private function updateUsersList():void
 		{
 			var s:String = "";
-			for each (var occ:RoomOccupant in room)
-			{					
-				if( occ.displayName != "Host")
-					s += occ.displayName + '\n';
-			}
+			s = Array(room.toArray().sortOn( "displayName" )).join( '\n' );
+						
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.USERS_LIST, s));
 		}
 		
@@ -219,15 +236,21 @@ package weave.services.collaboration
 				if (o is SessionStateMessage)
 				{
 					var ssm:SessionStateMessage = o as SessionStateMessage;
-					if( this.username == "Host")
-					{
-						//What to do when recieving a private SessionStateMessage i.e. Host
-						if( e.data.from.resource != this.username )
-							sendSessionState(ssm.state);
+//					if( this.username == "Host")
+//					{
+//						//What to do when recieving a private SessionStateMessage i.e. Host
+//						if( e.data.from.resource != this.username )
+//							sendSessionState(ssm.state);
 					}
 					else if( ssm.id != selfJID )
 					{
-						dispatchEvent(new CollaborationEvent(CollaborationEvent.STATE_CHANGED, ssm.state));
+						//dispatchEvent(new CollaborationEvent(CollaborationEvent.STATE_CHANGED, ssm.state));
+						
+						//apply the state change
+						
+						
+						
+						lastMessage = ssm;	
 					}
 				}
 				else if (o is TextMessage)

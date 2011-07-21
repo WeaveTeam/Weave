@@ -32,8 +32,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
+			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.core.SessionManager;
+			import weave.core.SessionStateLog;
 			import weave.services.collaboration.CollaborationEvent;
 			import weave.services.collaboration.CollaborationService;
 			
@@ -41,6 +43,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			//Make the first person to connect to room create the host service.
 			private var hostService:CollaborationService = new CollaborationService();
+			
+			
+			
 			
 			override protected function childrenCreated():void
 			{	
@@ -56,26 +61,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
 				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
 				
-				//function to send diffs
-				getCallbackCollection(Weave.root).addGroupedCallback(this, handleStateChange);
 			}
-			
-			private function handleStateChange():void
-			{
-				var state:Object = getSessionState(Weave.root);
-				
-				var diff:* = (WeaveAPI.SessionManager as SessionManager).computeDiff(_prevState, state);
-				if (diff != undefined)
-				{
-					if (collabService.hasConnection() == true)
-						collabService.sendSessionState( diff, "Host");
-				}
-				
-				_prevState = state;
-			}
-			
-			private var _prevState:Object = null;
-			
+		
 			override public function dispose():void
 			{
 				if( collabService.hasConnection() == true) collabService.disconnect();
@@ -141,12 +128,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				log.text = "";
 			}
 			
-			//applys new diffs that this collaborative client recieves
-			//from the host state
+
+
 			private function handleRemoteSessionState( e:CollaborationEvent):void
 			{
 				setSessionState( Weave.root, e.getState(), false );
 			}
+			
+			
 			
 		]]>
 	</mx:Script>
