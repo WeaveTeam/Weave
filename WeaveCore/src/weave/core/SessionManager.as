@@ -686,7 +686,7 @@ package weave.core
 						delete parentToChildDictionaryMap[linkableObject];
 						// dispose of the children this object owned
 						for (var child:Object in children)
-							disposeObjects(child as ILinkableObject);
+							disposeObjects(child);
 					}
 					
 					// FOR DEBUGGING PURPOSES
