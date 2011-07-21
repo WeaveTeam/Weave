@@ -158,7 +158,6 @@
 				// drop-down menus will be hidden behind the window after we move the window to the front.
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
 				
-				minimizeEffectMode.value = LINEAR_MINIMIZE_EFFECT;//BOOMERANG_MINIMIZE_EFFECT;//CIRCULAR_MINIMIZE_EFFECT;//LINEAR_MINIMIZE_EFFECT;
 				buttonRadius.value = 3;
 				
 				panelX.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelX]);
@@ -531,9 +530,6 @@
 				return round(value / gridSize) * gridSize;
 			}
 			
-			[Inspectable] protected var controlBarWidthBeforeScale:int = -1;
-    		[Inspectable] protected var sizeBeforeScale:int = -1;
-    		
     		private function handleResize(event:ResizeEvent):void
     		{
     			if (!parent)
@@ -541,28 +537,8 @@
 
 				if (_dragging || _resizing)
 	    			constrainAndSaveCoordinates();
-
-				if (controlBar && controlBarWidthBeforeScale > 0)
-				{
-	    			controlBar.scaleX = controlBar.scaleY = (width < controlBarWidthBeforeScale)
-	    													?
-	    													width / controlBarWidthBeforeScale
-	    													:
-	    													1.0;
-	   			}
-    			
-    			return;
-    			scaleX = scaleY = (unscaledWidth < sizeBeforeScale || unscaledHeight < sizeBeforeScale)
-    							  ?
-    							  unscaledWidth / sizeBeforeScale
-    							  :
-    							  1.0;
     		}
-    		
 			
-			
-			[Inspectable]
-			private var previousBorderSizes:Array = [];
 			public function updateBorders():void
 			{
     			if (!parent)
@@ -641,8 +617,6 @@
     			return value;
     		}
 			
-			private var _moved:Boolean = false;
-			private var _resized:Boolean = false;
 			[Embed(source= "/weave/resources/images/tinyWrench2.png")]
 			private var _userControlIcon:Class;
 			
@@ -790,10 +764,7 @@
 				}
 			}
 
-			private var _titleBarMouseDown:Boolean = false;
 			private var _initialTitleBarMouseDownPoint:Point = new Point(0,0);
-			
-			private var _mouseDown:Boolean = false;
 			
 			private var _rightSideResize:Boolean = false;
 			private var _leftSideResize:Boolean = false;
@@ -817,8 +788,6 @@
 				if (!parent)
 					return;
 				
-				_mouseDown = true;
-			
 				_leftSideResize = false;
 				_rightSideResize = false;
 				_topSideResize = false;
@@ -906,14 +875,11 @@
 				return o;
 			}
 			
-			private var _showResizeIcon:Boolean = false;
-			//private var _resizeCursorID:int = -1;
+			public static const CIRCULAR_MINIMIZE_EFFECT:String  = "CIRCULAR_MINIMIZE_EFFECT";
+			public static const LINEAR_MINIMIZE_EFFECT:String    = "LINEAR_MINIMIZE_EFFECT";
+			public static const BOOMERANG_MINIMIZE_EFFECT:String = "BOOMERANG_MINIMIZE_EFFECT";
 
-			public const CIRCULAR_MINIMIZE_EFFECT:String  = "CIRCULAR_MINIMIZE_EFFECT";
-			public const LINEAR_MINIMIZE_EFFECT:String    = "LINEAR_MINIMIZE_EFFECT";
-			public const BOOMERANG_MINIMIZE_EFFECT:String = "BOOMERANG_MINIMIZE_EFFECT";
-
-			public static const minimizeEffectMode:LinkableString = new LinkableString();
+			public static const minimizeEffectMode:String = LINEAR_MINIMIZE_EFFECT;
 			
 			private var _minimizeEffect:Parallel = null;
 			
@@ -937,7 +903,7 @@
 				
 				var moveFX:Move = new Move();
 
-				if(minimizeEffectMode.value == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode.value == BOOMERANG_MINIMIZE_EFFECT)
+				if(minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode == BOOMERANG_MINIMIZE_EFFECT)
 					moveFX.easingFunction = mx.effects.easing.Circular.easeIn;
 
 				var minimizedComponentPoint:Point = VisTaskbar.instance.getMinimizedComponentXYRelativeToStage(minimizedComponentVersion);
@@ -1024,9 +990,9 @@
 				
 				var moveFX:Move = new Move();
 
-				if(minimizeEffectMode.value == CIRCULAR_MINIMIZE_EFFECT)
+				if(minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT)
 					moveFX.easingFunction = mx.effects.easing.Circular.easeIn;
-				else if(minimizeEffectMode.value == BOOMERANG_MINIMIZE_EFFECT)
+				else if(minimizeEffectMode == BOOMERANG_MINIMIZE_EFFECT)
 					moveFX.easingFunction = mx.effects.easing.Circular.easeOut;
 				
 				var minimizedComponentPoint:Point = VisTaskbar.instance.getMinimizedComponentXYRelativeToStage(minimizedComponentVersion);
@@ -1046,7 +1012,7 @@
 				var growX:AnimateProperty = new AnimateProperty();
 				var growY:AnimateProperty = new AnimateProperty();
 				
-				if (minimizeEffectMode.value == CIRCULAR_MINIMIZE_EFFECT)
+				if (minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT)
 				{
 					growX.easingFunction = mx.effects.easing.Sine.easeIn;
 					growY.easingFunction = mx.effects.easing.Sine.easeIn;
@@ -1061,7 +1027,7 @@
 				growY.toValue = 1.0;
 				growY.property = "scaleY";
 				
-				if(minimizeEffectMode.value == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode.value == BOOMERANG_MINIMIZE_EFFECT)
+				if(minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode == BOOMERANG_MINIMIZE_EFFECT)
 				{
 					growX.fromValue =  scaleRatio;
 					growY.fromValue =  scaleRatio;
@@ -1069,7 +1035,7 @@
 				
 				var alphaEffect:AnimateProperty = new AnimateProperty();
 
-				/*if(minimizeEffectMode.value == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode.value == BOOMERANG_MINIMIZE_EFFECT)
+				/*if(minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode == BOOMERANG_MINIMIZE_EFFECT)
 					alphaEffect.easingFunction = mx.effects.easing.Cubic.easeOut;*/
 
 				alphaEffect.fromValue = 0.0;
@@ -1080,7 +1046,7 @@
 				minimizedPanelAlphaEffect.fromValue = MinimizedComponent.MINIMIZED_COMPONENT_ALPHA;
 				minimizedPanelAlphaEffect.toValue = 0.0;
 				minimizedPanelAlphaEffect.property = "alpha";
-				if(minimizeEffectMode.value == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode.value == BOOMERANG_MINIMIZE_EFFECT)
+				if(minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode == BOOMERANG_MINIMIZE_EFFECT)
 					minimizedPanelAlphaEffect.easingFunction = mx.effects.easing.Exponential.easeOut;
 				
 				_maximizeEffect.addChild(moveFX);
@@ -1146,8 +1112,6 @@
     			if (!parent)
     				return;
 
-				_showResizeIcon = false;
-				
 				if (_resizeable && !_resizing)
 					CursorManager.removeCursor(draggablePanelCursorID);
 				
@@ -1160,8 +1124,8 @@
 
 			private function movePinnedPanelsToForeground():void
 			{
-				if(!parent) return;
-				if(this.pinned.value) return;
+				if (!parent || this.pinned.value)
+					return;
 				var pinnedPanels:Array = [];
 				var pinnedToBackPanels:Array = [];
 				var dpanel:DraggablePanel ;
@@ -1203,7 +1167,6 @@
 					parent.setChildIndex(this, parent.numChildren - 1);
 					
 					visible = true;
-					_moved = true;
 				}
 			}
 			
@@ -1223,7 +1186,6 @@
 					// once all other (besides this child) windows are 
 					parent.setChildIndex(this, 0);
 					
-					_moved = true;
 				}
 			}
 
@@ -1254,8 +1216,6 @@
 				/*for each(var child:* in this.getChildren())
 					child.cacheAsBitmap = true;*/
 				
-				_titleBarMouseDown = true;
-				
 				if( getResizeStatus(stage.mouseX, stage.mouseY).resizing )
 					_dragging = false;
 				else
@@ -1275,17 +1235,12 @@
 					return;
 				
 				_dragging = false;
-				_moved = false;
-				_titleBarMouseDown = false;
-				
 				
 				_resizing = false;
 				_leftSideResize = false;
 				_rightSideResize = false;
 				_topSideResize = false;
 				_bottomResize = false;
-				
-				_resized = false;
 			}
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
@@ -1324,12 +1279,6 @@
 							draggablePanelCursorID = -1;
 							ErrorManager.reportError(e);
 						}
-						
-						_showResizeIcon = true;
-					}
-					else
-					{
-						_showResizeIcon = false;
 					}
 				}
 
@@ -1386,8 +1335,6 @@
 						this.y 		= MathLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
 						this.height = (_bottomSideBeforeTopResize - this.y);
 					}		
-						
-					_resized = true;
 				}
 			}
 	
@@ -1395,13 +1342,13 @@
 			public static const RESIZE_CLICK:String = "resizeClick";
 	
 
-			protected var helpButton:Button = new Button();
-			protected var userControlButton:Button = new Button();
-			protected var minimizeButton:Button = new Button();
-			protected var maximizeButton:Button = new Button();
-			protected var closePanelButton:Button = new Button();
-			protected var pinButton:Button = new Button();
-			protected var pinToBackButton:Button = new Button();
+			protected const helpButton:Button = new Button();
+			protected const userControlButton:Button = new Button();
+			protected const minimizeButton:Button = new Button();
+			protected const maximizeButton:Button = new Button();
+			protected const closePanelButton:Button = new Button();
+			protected const pinButton:Button = new Button();
+			protected const pinToBackButton:Button = new Button();
 			
 			public const buttonRadius:LinkableNumber = newLinkableChild(this, LinkableNumber, panelNeedsUpdate, true);
 
@@ -1543,8 +1490,6 @@
 				button.buttonMode = true;
 			}
 
-			private var _resizeAreaAlpha:Number = 0.1;
-			
 			private var buttonSize:int = 17;
 			private var buttonOffsetFromSide:int = 5;
 			
@@ -1809,9 +1754,6 @@
 				
 				updateButtons();
 					
-				// we are hiding this resize box and only showing a mouse cursor
-				_resizeAreaAlpha = 0.0;	
-				
 				if (controlBar)
 				{
 					if (_minimized)
@@ -1844,12 +1786,7 @@
 											  unscaledHeight - (borderThickness - 2));
 			}
 	
-			private var myRestorePercentHeight:Number;
-			private var myRestoreHeight:int;
-			
 			// Minimize panel event handler.
-			private var _controlBarRestoreHeight:int = 0;
-			private var _panelRestoreHeight:int = 0;
 			public var minimizedComponentVersion:MinimizedComponent = null;
 			protected function handleMinimizeButtonClick():void
 			{
