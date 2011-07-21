@@ -79,6 +79,13 @@ package weave.core
 				_savePending = true;
 				saveDiff();
 			}
+			
+			if (debug && (_undoActive || _redoActive))
+			{
+				var state:Object = getSessionState(_subject);
+				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+				trace('immediate diff:', ObjectUtil.toString(forwardDiff));
+			}
 		}
 		
 		private function groupedCallback():void
@@ -88,6 +95,13 @@ package weave.core
 			// It is ok to save a diff the frame after grouped callbacks are called.
 			// If callbacks are triggered again before the next frame, the immediateCallback will set this flag back to true.
 			_saveLater = false;
+			
+			if (debug && (_undoActive || _redoActive))
+			{
+				var state:Object = getSessionState(_subject);
+				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+				trace('grouped diff:', ObjectUtil.toString(forwardDiff));
+			}
 		}
 		
 		private function saveDiff(immediately:Boolean = false):void
@@ -188,6 +202,13 @@ package weave.core
 					if (stepsRemaining == 0)
 						_prevState = getSessionState(_subject);
 					setSessionState(_subject, diff, false);
+					
+					if (debug)
+					{
+						var newState:Object = getSessionState(_subject);
+						var resultDiff:Object = WeaveAPI.SessionManager.computeDiff(_prevState, newState);
+						trace('resulting diff:', ObjectUtil.toString(resultDiff));
+					}
 				}
 				getCallbackCollection(_subject).resumeCallbacks();
 				
