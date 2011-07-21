@@ -544,7 +544,7 @@ package weave.utils
 								// Consider lines and points because although they may not overlap, it's very likely that no points or lines
 								// will overlap. If we consider all of them, we can still find the closest.
 								// After that, only consider keys that overlap query center.
-								if (!foundQueryCenterOverlap || overlapsQueryCenter || geom.isLine() || geom.isPoint())
+								if (!foundQueryCenterOverlap || overlapsQueryCenter || genGeomIsLine || genGeomIsPoint)
 								{
 									// if this is the first record that overlaps the query center, reset the list of keys
 									if (!foundQueryCenterOverlap && overlapsQueryCenter)
@@ -610,7 +610,7 @@ package weave.utils
 							// Consider lines and points because although they may not overlap, it's very likely that no points or lines
 							// will overlap. If we consider all of them, we can still find the closest.
 							// After that, only consider keys that overlap query center.
-							if (!foundQueryCenterOverlap || overlapsQueryCenter || simpleGeom.isLine() || simpleGeom.isPoint())
+							if (!foundQueryCenterOverlap || overlapsQueryCenter || simpleGeomIsLine || simpleGeomIsPoint)
 							{
 								// if this is the first record that overlaps the query center, reset the list of keys
 								if (!foundQueryCenterOverlap && overlapsQueryCenter)

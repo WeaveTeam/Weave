@@ -65,7 +65,8 @@
 								 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24"> 
 					</mx:DataGrid>
 				</mx:Canvas>
-				<mx:Button id="toggleView" label="Toggle View" click="handleToggleViewClick()" toolTip="Click this button to switch the view of the session state."/>
+				<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
+							 selected="true"/>
 			</mx:VBox>
 		</mx:HDividedBox>
 	</mx:VBox>
@@ -104,7 +105,9 @@
 			import weave.core.DynamicState;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
+			import weave.core.UntypedLinkableVariable;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
 			import weave.core.weave_internal;
@@ -141,21 +144,7 @@
 		    	
 				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
 				
-				if (_editor == TEXT_EDITOR)
-				{
-					editorBox.removeChild(sessionStateDataGrid);
-					editorBox.addChild(sessionStateTextArea);
-					sessionStateTextArea.visible = true;
-					sessionStateTextArea.enabled = true;
-				}
-				else 
-				{
-					editorBox.removeChild(sessionStateTextArea);
-					editorBox.addChild(sessionStateDataGrid);
-					sessionStateDataGrid.visible = true;
-					sessionStateDataGrid.enabled = true;
-				}
-				
+				changeView(_editor);
 				_nameColumn.editable = false;
 				_nameColumn.width = 192;
 				loadSelectedSessionObjectInView();
@@ -436,16 +425,31 @@
 					_textModified = true;
 			}
 
-			private function handleToggleViewClick():void
+			private function handlePreferDGChange():void
 			{
-				var oldValue:String = _editor;
+				var newEditor:String = preferDataGrid.selected ? DATA_GRID : TEXT_EDITOR;
+				changeView(newEditor);
+				loadSelectedSessionObjectInView();
+			}
+			
+			private function changeView(newValue:String = null):void
+			{
+				var oldValue:String;
+				if (newValue === null)
+					oldValue = _editor;
+				else
+					oldValue = newValue == TEXT_EDITOR ? DATA_GRID : TEXT_EDITOR;
+					
+				
 				if (oldValue == TEXT_EDITOR)
 				{
 					//toggleView.label = "Text Editor View";
 					_editor = DATA_GRID;
-					editorBox.removeChild(sessionStateTextArea);
-					editorBox.addChild(sessionStateDataGrid);
-					
+					if (editorBox.contains(sessionStateTextArea))
+						editorBox.removeChild(sessionStateTextArea);
+					if (!editorBox.contains(sessionStateDataGrid))
+						editorBox.addChild(sessionStateDataGrid);
+
 					sessionStateTextArea.enabled = false;
 					sessionStateTextArea.editable = false;
 					sessionStateTextArea.visible = false;
@@ -460,8 +464,10 @@
 				{
 					//toggleView.label = "Data Grid View";
 					_editor = TEXT_EDITOR;
-					editorBox.removeChild(sessionStateDataGrid);
-					editorBox.addChild(sessionStateTextArea);
+					if (editorBox.contains(sessionStateDataGrid))
+						editorBox.removeChild(sessionStateDataGrid);
+					if (!editorBox.contains(sessionStateTextArea))
+						editorBox.addChild(sessionStateTextArea);
 					
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.editable = true;
@@ -471,7 +477,7 @@
 					sessionStateDataGrid.editable = false;
 					sessionStateDataGrid.visible = false;
 				}
-				loadSelectedSessionObjectInView();
+				//loadSelectedSessionObjectInView();
 			}
 			
 			private function clearAndDisableView():void
@@ -504,6 +510,8 @@
 			}
 			
 			private var _editor:String = DATA_GRID;
+			private var _oldEditor:String = null;
+			private var _lastLoadChangedEditor:Boolean = false;
 			private const _nameColumn:DataGridColumn = new DataGridColumn("Name");
 			private const _valueColumn:DataGridColumn = new DataGridColumn("Value");
 			public static const TEXT_EDITOR:String = WeaveProperties.TEXT_EDITOR;
@@ -522,6 +530,21 @@
 					vsp = 0;
 				}
 
+				if (_currentSelectedObject is LinkableVariable)
+				{				
+					changeView(TEXT_EDITOR);
+					
+					if (editorBox.contains(sessionStateDataGrid))
+						editorBox.removeChild(sessionStateDataGrid);
+					if (!editorBox.contains(sessionStateTextArea))
+						editorBox.addChild(sessionStateTextArea);
+					sessionStateTextArea.enabled = true;
+					sessionStateTextArea.editable = true;
+					sessionStateTextArea.visible = true;
+				}
+				else
+					changeView( (preferDataGrid.selected) ? DATA_GRID : TEXT_EDITOR );
+				
 				if (_editor == TEXT_EDITOR)
 				{
 					var vsp:Number = sessionStateTextArea.verticalScrollPosition;
