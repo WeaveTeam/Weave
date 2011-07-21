@@ -52,7 +52,7 @@ package weave.api.services
 		function HierarchicalClustering(dataX:Array, dataY:Array):AsyncToken;			
 		function linearRegression(dataX:Array, dataY:Array):AsyncToken;
 		function clientRscript(rInput:String, selector:int):AsyncToken;		
-		function runScript(inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean,showWarningMessages:Boolean ):AsyncToken;	
+		function runScript(keys:Array,inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean,showWarningMessages:Boolean ):AsyncToken;	
 		function completeClientRscript(rInput:String, variable1: String, variable2:String, column1:Array, column2:Array):AsyncToken;
 	}
 }

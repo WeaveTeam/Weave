@@ -67,7 +67,7 @@ package weave.services
 			return servlet.invokeAsyncMethod("rScriptInput", arguments);
 		}
 		
-		public function runScript(inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean ):AsyncToken
+		public function runScript(keys:Array,inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean ):AsyncToken
 		{
 			/*inputValues = inputValues.concat();
 			for (var i:int = 0; i < inputValues.length; i++)

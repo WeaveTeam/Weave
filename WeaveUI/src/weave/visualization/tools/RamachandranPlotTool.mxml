@@ -28,6 +28,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
 			import mx.controls.textClasses.TextRange;
 			import mx.events.ChildExistenceChangedEvent;
 			import mx.events.FlexEvent;
@@ -227,20 +228,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _sessionFileLoader:FileReference = null;
 			private var _defaultsFilename:String = null;
 			
-			protected function rScriptButton_clickHandler(event:MouseEvent):void
-			{
-				var loadedXML:XML = new XML();
-				if(_sessionFileLoader == null)
-				{
-					_sessionFileLoader = new FileReference();
-					
-					_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
-					_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadXMLtoUI(loadedXML);} );
-				}
-				
-				_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
-				
-			}
+			
 			protected function loadXMLtoUI(loadedXML:XML):void{
 				
 				var result:Array = new Array();
@@ -286,7 +274,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				//Query is created from runScript with same signature from Jave side
-				var query:AsyncToken = Rservice.runScript(inputNames, inputValues, outputNames, script,"",false,false);
+				var query:AsyncToken = Rservice.runScript(null,inputNames, inputValues, outputNames, script,"",false,false);
 				//Keys are passed as token 
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);  
 			}
@@ -397,17 +385,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			private var pdbService:WeavePDBServlet = new WeavePDBServlet(Weave.properties.pdbServiceURL.value);
-			private var startTime:int;
-			private var endTime:int;
+			
 			protected function sendPDBidBtn_clickHandler(event:MouseEvent):void
 			{
 				var pdbID:String =  PDBid.text;
-				var query:AsyncToken = pdbService.getPhiPsiValues(pdbID);
-				
-				//Keys are passed as token 
-				startTime = getTimer();
-				DelayedAsyncResponder.addResponder(query, handleGetPhiPsiValuesResult, handleGetPhiPsiValuesFault);
-				
+				var query:AsyncToken = pdbService.getPhiPsiValues(pdbID);				
+				DelayedAsyncResponder.addResponder(query, handleGetPhiPsiValuesResult, handleGetPhiPsiValuesFault);	
+				//sendPDBidBtn.enabled = false;
+				//PDBid.enabled = false;
 			}
 			[Bindable]
 			private var sequence:String = "";
@@ -417,8 +402,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				rpToolTitle = PDBid.text;
 				var residueObj:ArrayCollection = event.result as ArrayCollection;
-				//var sequenceArray:Array = residueObj["resName"];
-				
+				//temp solution for wrong PDB entry (need to pass the same error)
+				if(!residueObj){
+					Alert.show(PDBid.text.toUpperCase() + " doesn't exist.","PDB ID Error");
+					return;
+				}
+				//var sequenceArray:Array = residueObj["resName"];				
 				var residueArray:Array = residueObj.source;
 				var residueHeaders:Array = WeaveAPI.CSVParser.getRecordFieldNames(residueArray);
 				var residueData:Array = WeaveAPI.CSVParser.convertRecordsToRows(residueArray);
@@ -518,7 +507,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function sequenceTA_mouseUpHandler(event:MouseEvent):void
 			{
-				
+				if(sequenceTA.text ==""){
+					return;
+				}
 				var txtHighlight:TextRange = new TextRange(sequenceTA);
 				txtHighlight.color = 0x000000;
 				
@@ -526,6 +517,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var endIndex:int = sequenceTA.selectionEndIndex;
 				txtHighlight.beginIndex = startIndex;
 				txtHighlight.endIndex =  endIndex;
+				if(startIndex == endIndex){
+					return;
+				}
 				txtHighlight.color = 0x00FF00;
 				
 				var selectedTextLength:int = endIndex - startIndex;

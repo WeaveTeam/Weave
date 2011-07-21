@@ -1,4 +1,4 @@
-<project name="WeaveServices" basedir="." default="main">
+<project name="WeaveServices" basedir=".">
     <path id="classpath">
         <fileset dir="lib" includes="**/*.jar"/>
         <fileset dir="/usr/share/java/" includes="junit4.jar"/>
