@@ -32,6 +32,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
+			import weave.api.newDisposableChild;
+			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.core.SessionManager;
@@ -39,12 +41,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.collaboration.CollaborationEvent;
 			import weave.services.collaboration.CollaborationService;
 			
-			private var collabService:CollaborationService = new CollaborationService();
-			
-			//Make the first person to connect to room create the host service.
-			private var hostService:CollaborationService = new CollaborationService();
-			
-			
+			private var collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
 			
 			override protected function childrenCreated():void
@@ -53,8 +50,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
 				collabService.addEventListener(CollaborationEvent.USERS_LIST, handleUserList);
 				collabService.addEventListener(CollaborationEvent.CLEAR_LOG, handleLogClear);
-				collabService.addEventListener(CollaborationEvent.STATE_CHANGED, handleRemoteSessionState);
-				collabService.addEventListener(CollaborationEvent.CREATE_HOST, handleHostCreation);
 				
 				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoom);
 				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
@@ -63,12 +58,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 		
-			override public function dispose():void
-			{
-				if( collabService.hasConnection() == true) collabService.disconnect();
-				super.dispose();
-			}
-			
 			private function sendToRoom(e:Event):void
 			{
 				if( e is KeyboardEvent && (e as KeyboardEvent).keyCode != Keyboard.ENTER || input.text=="")
@@ -89,8 +78,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function disconnect(e:MouseEvent):void
 			{
-				if (hostService.hasConnection() == true)
-					hostService.disconnect();
 				if( collabService.hasConnection() == true)
 				{
 					collabService.disconnect();
@@ -101,12 +88,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 
-			//use this to update the host with the session state.
-			private function handleHostCreation(e:CollaborationEvent):void
-			{
-				hostService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, "Host");
-			}
-			
 			private function handleText(e:CollaborationEvent):void
 			{
 				if (log.verticalScrollPosition == log.maxVerticalScrollPosition)
@@ -127,23 +108,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				log.text = "";
 			}
-			
-
-
-			private function handleRemoteSessionState( e:CollaborationEvent):void
-			{
-				setSessionState( Weave.root, e.getState(), false );
-			}
-			
-			
-			
 		]]>
 	</mx:Script>
 
 	
 	<mx:VBox width="100%" height="100%" paddingBottom="10" paddingLeft="10" paddingRight="10"
 			 paddingTop="10">
-		<mx:HBox width="100%" height="90%">
+		<mx:HBox width="100%" height="100%">
 			<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
 			<mx:TextArea id="users" height="100%" editable="false"/>
 		</mx:HBox>
@@ -157,11 +128,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox label="Visualization Controls">
 			<mx:HBox width="100%">
 				<mx:Label text="IP:"/>
-				<mx:TextInput id="serverIP" width="50%" text="129.63.223.125"/>	
+				<mx:TextInput id="serverIP" width="50%" text="129.63.16.190"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="ServerName:"/>
-				<mx:TextInput id="serverName" width="50%" text="android-lappy"/>	
+				<mx:TextInput id="serverName" width="50%" text="os-301"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:"/>

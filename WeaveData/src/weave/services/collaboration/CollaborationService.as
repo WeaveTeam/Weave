@@ -50,27 +50,30 @@ package weave.services.collaboration
 	import org.igniterealtime.xiff.util.*;
 	import org.igniterealtime.xiff.vcard.*;
 	
+	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.core.ErrorManager;
 	import weave.core.SessionStateLog;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	
-	public class CollaborationService extends EventDispatcher
+	public class CollaborationService extends EventDispatcher implements IDisposableObject
 	{
 		public function CollaborationService( root:ILinkableObject )
 		{
-			stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
-			getCallbackCollection( stateLog ).addImmediateCallback( handleStateChange );
+			this.root = root;
 			
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			for each (var c:Class in [SessionStateMessage, TextMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
 		}
 		
+		private var root:ILinkableObject;
 		
 		private var _room:Room;
 		private function get room():Room
@@ -92,9 +95,6 @@ package weave.services.collaboration
 		private var roomToJoin:String;
 		private var username:String;
 		
-		private var lastMessage:SessionStateMessage	= new SessionStateMessage();
-		private var messageIndex:int = 0;
-		
 		//private var server:String = 						"129.63.17.121";
 		private var compName:String = 						"@conference";
 		
@@ -110,13 +110,24 @@ package weave.services.collaboration
 		
 		private var stateLog:SessionStateLog = null;
 		
+		
+		
+		// this will be called by SessionManager to clean everything up
+		public function dispose():void
+		{
+			if( hasConnection() == true) disconnect();
+		}
+		
 		//function to send diff
 		private function handleStateChange():void
 		{
-			var log:Array 	 = stateLog.undoHistory;
-			var entry:Object = log[log.length - 1]
-			if (isConnected == true)
-				sendSessionState( entry );
+			// note: this code may need to be changed later if SessionStateLog implementation changes.
+			if (hasConnection() == true)
+			{
+				var log:Array 	 = stateLog.undoHistory;
+				var entry:Object = log[log.length - 1];
+				sendSessionState( entry.id, entry.forward );
+			}
 		}
 		
 		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, username:String ):void
@@ -154,6 +165,10 @@ package weave.services.collaboration
 		{
 			connectedToRoom = false;
 			connection.disconnect();
+			
+			// stop logging
+			if (stateLog)
+				disposeObjects(stateLog);
 		}
 		
 		public function hasConnection():Boolean 
@@ -169,16 +184,14 @@ package weave.services.collaboration
 				room.sendMessage(encodeObject(new TextMessage(selfJID, message)));
 		}
 		
-		public function sendSessionState( state:Object, target:String=null ):void
+		public function sendSessionState( diffID:int, diff:Object, target:String=null ):void
 		{
 
-			var currentMessage:SessionStateMessage = new SessionStateMessage(lastMessage.id, selfJID + "." + state.id, state.forward );
+			var message:SessionStateMessage = new SessionStateMessage(diffID, diff);
 			if( target != null)
-				room.sendPrivateMessage( target, encodeObject(currentMessage) );
+				room.sendPrivateMessage( target, encodeObject(message) );
 			else
-				room.sendMessage(encodeObject(currentMessage) );
-			lastMessage = currentMessage;
-			
+				room.sendMessage(encodeObject(message) );
 		}
 		
 		private function postMessageToUser( message:String ) :void
@@ -190,8 +203,10 @@ package weave.services.collaboration
 		
 		private function updateUsersList():void
 		{
-			var s:String = "";
-			s = Array(room.toArray().sortOn( "displayName" )).join( '\n' );
+			var s:String = '';
+			var sorted:Array = room.toArray().sortOn( "displayName" ) as Array;
+			for (var i:int = 0; i < sorted.length; i++)
+				s += (sorted[i] as RoomOccupant).displayName + '\n';
 						
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.USERS_LIST, s));
 		}
@@ -228,29 +243,50 @@ package weave.services.collaboration
 		}
 		
 		private function onReceiveMessage(e:MessageEvent):void
-		{	
+		{
 			if( e.data.id != null)
 			{
+				var i:int;
 				// handle a message from a user
 				var o:Object = decodeObject(e.data.body);
+				//var room:String = e.data.from.node;
+				var userAlias:String = e.data.from.resource;
 				if (o is SessionStateMessage)
 				{
 					var ssm:SessionStateMessage = o as SessionStateMessage;
-//					if( this.username == "Host")
-//					{
-//						//What to do when recieving a private SessionStateMessage i.e. Host
-//						if( e.data.from.resource != this.username )
-//							sendSessionState(ssm.state);
-					}
-					else if( ssm.id != selfJID )
+					if( userAlias == this.username )
 					{
-						//dispatchEvent(new CollaborationEvent(CollaborationEvent.STATE_CHANGED, ssm.state));
+						// received echo back from local state change
+						// search history for diff with matching id
+						var foundID:Boolean = false;
+						for (i = 0; i < stateLog.undoHistory.length; i++)
+						{
+							if (stateLog.undoHistory[i].id == ssm.id)
+							{
+								foundID = true;
+								break;
+							}
+						}
+ 						// remove everything up until the diff with the matching id
+						if (foundID)
+							stateLog.undoHistory.splice(0, i + 1);
+						else
+							ErrorManager.reportError(new Error("collab failed"));
+					}
+					else
+					{
+						// received diff from someone else -- rewind local changes and replay them.
 						
-						//apply the state change
+						// rewind local changes
+						for (i = stateLog.undoHistory.length - 1; i >= 0; i--)
+							setSessionState(root, stateLog.undoHistory[i].backward, false);
 						
+						// apply remote change
+						setSessionState(root, ssm.diff, false);
 						
-						
-						lastMessage = ssm;	
+						// replay local changes
+						for (i = 0; i < stateLog.undoHistory.length; i++)
+							setSessionState(root, stateLog.undoHistory[i].forward, false);
 					}
 				}
 				else if (o is TextMessage)
@@ -286,9 +322,11 @@ package weave.services.collaboration
 			//_room = Room(e.target);
 			connectedToRoom = true;
 			selfJID = room.userJID.resource;
-			lastMessage.id = selfJID + "." + String(messageIndex);
 			updateUsersList();
-			dispatchEvent(new CollaborationEvent( CollaborationEvent.CREATE_HOST, null ));
+			
+			// start logging
+			stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
+			getCallbackCollection( stateLog ).addImmediateCallback( this, handleStateChange );
 		}
 		
 		private function onTimeout(event:RoomEvent):void
@@ -300,20 +338,14 @@ package weave.services.collaboration
 		
 		private function onUserJoin(event:RoomEvent):void
 		{
-			if( event.nickname != "Host")
-			{
-				postMessageToUser( event.nickname + " has joined the room.\n" );
-				updateUsersList();
-			}
+			postMessageToUser( event.nickname + " has joined the room.\n" );
+			updateUsersList();
 		}
 		
 		private function onUserLeave(event:RoomEvent):void
 		{
-			if( event.nickname != "Host")
-			{
-				postMessageToUser( event.nickname + " has left the room.\n" );
-				updateUsersList();
-			}
+			postMessageToUser( event.nickname + " has left the room.\n" );
+			updateUsersList();
 		}
 			
 		private function clean():void
@@ -375,21 +407,19 @@ package weave.services.collaboration
 
 internal class SessionStateMessage
 {
-	public function SessionStateMessage(parentID:String=null, id:String=null, state:Object=null)
+	public function SessionStateMessage(id:int = 0, diff:Object = null)
 	{
-		this.parentID = parentID;
 		this.id = id;
-		this.state = state;
+		this.diff = diff;
 	}
 	
-	public var parentID:String;
-	public var id:String;
-	public var state:Object;
+	public var id:int;
+	public var diff:Object;
 }
 
 internal class TextMessage
 {
-	public function TextMessage(id:String=null, message:String=null)
+	public function TextMessage(id:String = null, message:String = null)
 	{
 		this.id = id;
 		this.message = message;
