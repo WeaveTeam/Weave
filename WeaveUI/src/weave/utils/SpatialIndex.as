@@ -485,133 +485,66 @@ package weave.utils
 					
 					for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
 					{
-						for each (var geom:Object in geoms)
+						var geom:Object = geoms[iGeom];
+						xDistance = geom.bounds.getXCenter() - xQueryCenter;
+						yDistance = geom.bounds.getYCenter() - yQueryCenter;
+						if (!isNaN(xPrecision) && xPrecision != 0)
+							xDistance = int(xDistance / xPrecision);
+						if (!isNaN(yPrecision) && yPrecision != 0)
+							yDistance = int(yDistance / yPrecision);
+						var geomDistance:Number = xDistance * xDistance + yDistance * yDistance; 
+						
+						if (geom is GeneralizedGeometry)
 						{
-							xDistance = geom.bounds.getXCenter() - xQueryCenter;
-							yDistance = geom.bounds.getYCenter() - yQueryCenter;
-							if (!isNaN(xPrecision) && xPrecision != 0)
-								xDistance = int(xDistance / xPrecision);
-							if (!isNaN(yPrecision) && yPrecision != 0)
-								yDistance = int(yDistance / yPrecision);
-							var geomDistance:Number = xDistance * xDistance + yDistance * yDistance; 
+							var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
+							var genGeomIsPoly:Boolean = genGeom.isPolygon();
+							var genGeomIsLine:Boolean = genGeom.isLine();
+							var genGeomIsPoint:Boolean = genGeom.isPoint();
+							var genGeomBounds:IBounds2D = genGeom.bounds;
 							
-							if (geom is GeneralizedGeometry)
+							var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
+							
+							for (var i:int = 0; i < simplifiedGeom.length; ++i)
 							{
-								var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
-								var genGeomIsPoly:Boolean = genGeom.isPolygon();
-								var genGeomIsLine:Boolean = genGeom.isLine();
-								var genGeomIsPoint:Boolean = genGeom.isPoint();
-								var genGeomBounds:IBounds2D = genGeom.bounds;
+								var part:Vector.<BLGNode> = simplifiedGeom[i];
 								
-								var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
-
-								for (var i:int = 0; i < simplifiedGeom.length; ++i)
+								if (genGeomIsPoly)
 								{
-									var part:Vector.<BLGNode> = simplifiedGeom[i];
-									
-									if (genGeomIsPoly)
-									{
-										// if the polygon contains the point, this key is probably what we want
-										if (ComputationalGeometryUtils.polygonOverlapsPoint(part, xQueryCenter, yQueryCenter))
-										{
-											distanceSq = 0;
-											overlapsQueryCenter = true;
-										}
-										else
-										{
-											distanceSq = geomDistance;
-											overlapsQueryCenter = false;
-										}
-									}
-									else if (genGeomIsLine)
-									{
-										distanceSq = getMinimumUnscaledDistanceFromPolyLine(part, xQueryCenter, yQueryCenter);
-										
-										if (distanceSq <= Number.MIN_VALUE)
-											overlapsQueryCenter = true;
-										else
-											overlapsQueryCenter = false;
-									}
-									else if (genGeomIsPoint)
-									{
-										distanceSq = getMinimumUnscaledDistanceFromPolyPoint(part, xQueryCenter, yQueryCenter);
-										if (distanceSq <= Number.MIN_VALUE)
-											overlapsQueryCenter = true;
-										else 
-											overlapsQueryCenter = false;										
-									}
-									
-									// Consider all keys until we have found one that overlaps the query center.
-									// Consider lines and points because although they may not overlap, it's very likely that no points or lines
-									// will overlap. If we consider all of them, we can still find the closest.
-									// After that, only consider keys that overlap query center.
-									if (!foundQueryCenterOverlap || overlapsQueryCenter || geom.isLine() || geom.isPoint())
-									{
-										// if this is the first record that overlaps the query center, reset the list of keys
-										if (!foundQueryCenterOverlap && overlapsQueryCenter)
-										{
-											resultCount = 0;
-											closestDistanceSq = Infinity;
-											foundQueryCenterOverlap = true;
-										}
-										// if this distance is closer than any previous distance, clear all previous keys
-										if (distanceSq < closestDistanceSq)
-										{
-											// clear previous result and update closest distance
-											resultCount = 0;
-											closestDistanceSq = distanceSq;
-										}
-										// add keys to the result if they are the closest so far
-										if (distanceSq == closestDistanceSq && (resultCount == 0 || result[resultCount - 1] != key))
-											result[resultCount++] = key;
-									}
-								}		
-							}
-							else  
-							{
-								var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
-								var simpleGeomIsPoly:Boolean = simpleGeom.isPolygon();
-								var simpleGeomIsLine:Boolean = simpleGeom.isLine();
-								var simpleGeomIsPoint:Boolean = simpleGeom.isPoint();
-								var vertices:Array = simpleGeom.getVertices();
-								
-								// calculate the distanceSq and overlapsQueryCenter
-								if (simpleGeomIsPoly)
-								{
-									if (ComputationalGeometryUtils.polygonOverlapsPoint(
-										vertices, xQueryCenter, yQueryCenter))
+									// if the polygon contains the point, this key is probably what we want
+									if (ComputationalGeometryUtils.polygonOverlapsPoint(part, xQueryCenter, yQueryCenter))
 									{
 										distanceSq = 0;
 										overlapsQueryCenter = true;
 									}
-									else 
+									else
 									{
 										distanceSq = geomDistance;
 										overlapsQueryCenter = false;
 									}
 								}
-								else if (simpleGeomIsLine)
+								else if (genGeomIsLine)
 								{
-									distanceSq = getMinimumUnscaledDistanceFromPolyLine(vertices, xQueryCenter, yQueryCenter);
+									distanceSq = getMinimumUnscaledDistanceFromPolyLine(part, xQueryCenter, yQueryCenter);
+									
 									if (distanceSq <= Number.MIN_VALUE)
 										overlapsQueryCenter = true;
 									else
 										overlapsQueryCenter = false;
 								}
-								else if (simpleGeomIsPoint)
+								else if (genGeomIsPoint)
 								{
-									distanceSq = getMinimumUnscaledDistanceFromPolyPoint(vertices, xQueryCenter, yQueryCenter);
+									distanceSq = getMinimumUnscaledDistanceFromPolyPoint(part, xQueryCenter, yQueryCenter);
 									if (distanceSq <= Number.MIN_VALUE)
 										overlapsQueryCenter = true;
 									else 
-										overlapsQueryCenter = false;
+										overlapsQueryCenter = false;										
 								}
 								
 								// Consider all keys until we have found one that overlaps the query center.
 								// Consider lines and points because although they may not overlap, it's very likely that no points or lines
 								// will overlap. If we consider all of them, we can still find the closest.
 								// After that, only consider keys that overlap query center.
-								if (!foundQueryCenterOverlap || overlapsQueryCenter || simpleGeom.isLine() || simpleGeom.isPoint())
+								if (!foundQueryCenterOverlap || overlapsQueryCenter || geom.isLine() || geom.isPoint())
 								{
 									// if this is the first record that overlaps the query center, reset the list of keys
 									if (!foundQueryCenterOverlap && overlapsQueryCenter)
@@ -631,6 +564,71 @@ package weave.utils
 									if (distanceSq == closestDistanceSq && (resultCount == 0 || result[resultCount - 1] != key))
 										result[resultCount++] = key;
 								}
+							}		
+						}
+						else  
+						{
+							var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
+							var simpleGeomIsPoly:Boolean = simpleGeom.isPolygon();
+							var simpleGeomIsLine:Boolean = simpleGeom.isLine();
+							var simpleGeomIsPoint:Boolean = simpleGeom.isPoint();
+							var vertices:Array = simpleGeom.getVertices();
+							
+							// calculate the distanceSq and overlapsQueryCenter
+							if (simpleGeomIsPoly)
+							{
+								if (ComputationalGeometryUtils.polygonOverlapsPoint(
+									vertices, xQueryCenter, yQueryCenter))
+								{
+									distanceSq = 0;
+									overlapsQueryCenter = true;
+								}
+								else 
+								{
+									distanceSq = geomDistance;
+									overlapsQueryCenter = false;
+								}
+							}
+							else if (simpleGeomIsLine)
+							{
+								distanceSq = getMinimumUnscaledDistanceFromPolyLine(vertices, xQueryCenter, yQueryCenter);
+								if (distanceSq <= Number.MIN_VALUE)
+									overlapsQueryCenter = true;
+								else
+									overlapsQueryCenter = false;
+							}
+							else if (simpleGeomIsPoint)
+							{
+								distanceSq = getMinimumUnscaledDistanceFromPolyPoint(vertices, xQueryCenter, yQueryCenter);
+								if (distanceSq <= Number.MIN_VALUE)
+									overlapsQueryCenter = true;
+								else 
+									overlapsQueryCenter = false;
+							}
+							
+							// Consider all keys until we have found one that overlaps the query center.
+							// Consider lines and points because although they may not overlap, it's very likely that no points or lines
+							// will overlap. If we consider all of them, we can still find the closest.
+							// After that, only consider keys that overlap query center.
+							if (!foundQueryCenterOverlap || overlapsQueryCenter || simpleGeom.isLine() || simpleGeom.isPoint())
+							{
+								// if this is the first record that overlaps the query center, reset the list of keys
+								if (!foundQueryCenterOverlap && overlapsQueryCenter)
+								{
+									resultCount = 0;
+									closestDistanceSq = Infinity;
+									foundQueryCenterOverlap = true;
+								}
+								// if this distance is closer than any previous distance, clear all previous keys
+								if (distanceSq < closestDistanceSq)
+								{
+									// clear previous result and update closest distance
+									resultCount = 0;
+									closestDistanceSq = distanceSq;
+								}
+								// add keys to the result if they are the closest so far
+								if (distanceSq == closestDistanceSq && (resultCount == 0 || result[resultCount - 1] != key))
+									result[resultCount++] = key;
 							}
 						}
 					} // geomLoop
