@@ -20,24 +20,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
-<ui:DraggablePanel xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
-			   xmlns:ui="weave.ui.*"
-			   xmlns:userControls="weave.ui.userControls.*"
-			   layout="absolute"
-			   creationPolicy="all">
+<ui:DraggablePanel xmlns="weave.visualization.tools.*"
+				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*"
+				   xmlns:userControls="weave.ui.userControls.*"
+				   creationPolicy="all" layout="absolute">
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.setSessionState;
 			import weave.core.SessionManager;
-			import weave.services.CollaborationEvent;
-			import weave.services.CollaborationService;
+			import weave.services.collaboration.CollaborationEvent;
+			import weave.services.collaboration.CollaborationService;
 			
 			private var collabService:CollaborationService = new CollaborationService();
+			
+			//Make the first person to connect to room create the host service.
+			private var hostService:CollaborationService = new CollaborationService();
 			
 			override protected function childrenCreated():void
 			{	
@@ -45,17 +48,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
 				collabService.addEventListener(CollaborationEvent.USERS_LIST, handleUserList);
 				collabService.addEventListener(CollaborationEvent.CLEAR_LOG, handleLogClear);
-				collabService.addEventListener(CollaborationEvent.STATE, handleRemoteSessionState);
+				collabService.addEventListener(CollaborationEvent.STATE_CHANGED, handleRemoteSessionState);
+				collabService.addEventListener(CollaborationEvent.CREATE_HOST, handleHostCreation);
 				
 				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoom);
 				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
 				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
 				
-				getCallbackCollection(Weave.root).addGroupedCallback(this, diffHandler);
+				//function to send diffs
+				getCallbackCollection(Weave.root).addGroupedCallback(this, handleStateChange);
 			}
 			
-			private function diffHandler():void
+			private function handleStateChange():void
 			{
 				var state:Object = getSessionState(Weave.root);
 				
@@ -63,7 +68,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (diff != undefined)
 				{
 					if (collabService.hasConnection() == true)
-						collabService.sendSessionState( diff );
+						collabService.sendSessionState( diff, "Host");
 				}
 				
 				_prevState = state;
@@ -87,7 +92,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function connect(e:MouseEvent):void
 			{
-				collabService.connect(server.text, int(port.text), roomToJoin.text, username.text);
+				collabService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, username.text);
 				cPanel.removePanel();
 				input.enabled = true;
 				sendButton.enabled = true;
@@ -97,6 +102,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function disconnect(e:MouseEvent):void
 			{
+				if (hostService.hasConnection() == true)
+					hostService.disconnect();
 				if( collabService.hasConnection() == true)
 				{
 					collabService.disconnect();
@@ -107,9 +114,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 
+			//use this to update the host with the session state.
+			private function handleHostCreation(e:CollaborationEvent):void
+			{
+				hostService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, "Host");
+			}
+			
 			private function handleText(e:CollaborationEvent):void
 			{
-				log.text += e.getText();
+				if (log.verticalScrollPosition == log.maxVerticalScrollPosition)
+				{
+					log.text += e.getText();
+					log.verticalScrollPosition += 100;
+				}
+				else
+					log.text += e.getText();	
 			}
 			
 			private function handleUserList( e:CollaborationEvent):void
@@ -122,13 +141,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				log.text = "";
 			}
 			
-//			private function sendSessionState():void
-//			{
-//				
-//				if (collabService.hasConnection() == true)
-//					collabService.sendSessionState(Weave.root.getSessionState());
-//			}
-			
+			//applys new diffs that this collaborative client recieves
+			//from the host state
 			private function handleRemoteSessionState( e:CollaborationEvent):void
 			{
 				setSessionState( Weave.root, e.getState(), false );
@@ -138,13 +152,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Script>
 
 	
-	<mx:VBox width="100%" height="100%" paddingTop="10" paddingBottom="10" paddingLeft="10" paddingRight="10">
+	<mx:VBox width="100%" height="100%" paddingBottom="10" paddingLeft="10" paddingRight="10"
+			 paddingTop="10">
 		<mx:HBox width="100%" height="90%">
-			<mx:TextArea width="80%" height="100%" id="log" editable="false"/>
-			<mx:TextArea height="100%" id="users" editable="false" />
+			<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
+			<mx:TextArea id="users" height="100%" editable="false"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
-			<mx:TextInput width="100%"  id="input" enabled="false"/>
+			<mx:TextInput id="input" width="100%" enabled="false"/>
 			<mx:Button id="sendButton" label="Send" enabled="false"/>
 		</mx:HBox>
 	</mx:VBox>
@@ -152,20 +167,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<ui:ControlPanel id="cPanel">
 		<mx:VBox label="Visualization Controls">
 			<mx:HBox width="100%">
-				<mx:Label text="Server:"/>
-				<mx:TextInput width="50%" id="server" text="129.63.17.121"/>	
+				<mx:Label text="IP:"/>
+				<mx:TextInput id="serverIP" width="50%" text="129.63.223.125"/>	
+			</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:Label text="ServerName:"/>
+				<mx:TextInput id="serverName" width="50%" text="android-lappy"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:"/>
-				<mx:TextInput width="50%" id="port" text="5222"/>	
+				<mx:TextInput id="port" width="50%" text="5222"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Username:"/>
-				<mx:TextInput width="50%" id="username" />	
+				<mx:TextInput id="username" width="50%"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Room Name:"/>
-				<mx:TextInput width="50%" id="roomToJoin" text="Test"/>	
+				<mx:TextInput id="roomToJoin" width="50%" text="Test"/>	
 			</mx:HBox>
 			<mx:Button id="connectButton" label="Connect" enabled="true"/>
 			<mx:Button id="disconnectButton" label="Disconnect" enabled="false"/>

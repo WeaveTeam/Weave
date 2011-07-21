@@ -17,15 +17,16 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services
-{
-	import com.hurlant.util.asn1.parser.integer;
-	
+package weave.services.collaboration
+{	
 	import flash.events.EventDispatcher;
 	import flash.net.registerClassAlias;
+	import flash.text.engine.BreakOpportunity;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.charts.renderers.BoxItemRenderer;
 	import mx.controls.Alert;
 	import mx.events.CloseEvent;
 	import mx.events.FlexEvent;
@@ -40,6 +41,7 @@ package weave.services
 	import org.igniterealtime.xiff.core.*;
 	import org.igniterealtime.xiff.data.*;
 	import org.igniterealtime.xiff.data.register.RegisterExtension;
+	import org.igniterealtime.xiff.data.search.SearchExtension;
 	import org.igniterealtime.xiff.events.*;
 	import org.igniterealtime.xiff.exception.*;
 	import org.igniterealtime.xiff.filter.*;
@@ -48,6 +50,7 @@ package weave.services
 	import org.igniterealtime.xiff.util.*;
 	import org.igniterealtime.xiff.vcard.*;
 	
+	import weave.api.core.ILinkableHashMap;
 	import weave.core.ErrorManager;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	
@@ -59,7 +62,6 @@ package weave.services
 			for each (var c:Class in [SessionStateMessage, TextMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
 		}
-	
 		
 		private var _room:Room;
 		private function get room():Room
@@ -75,10 +77,14 @@ package weave.services
 		/* public static var roster:Roster; */
 		private var selfJID:String;
 		
-		private var server:String;
+		private var serverIP:String;
+		private var serverName:String;
 		private var port:int;
 		private var roomToJoin:String;
 		private var username:String;
+		
+		private var lastMessage:SessionStateMessage	= new SessionStateMessage();
+		private var messageIndex:int = 0;
 		
 		//private var server:String = 						"129.63.17.121";
 		private var compName:String = 						"@conference";
@@ -93,24 +99,26 @@ package weave.services
 		private var connectedToRoom:Boolean = 				false;
 		private var isConnected:Boolean = 					false;
 		
-		public function connect( server:String, port:int, roomToJoin:String, username:String ):void
+		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, username:String ):void
 		{
 			if (isConnected == true) disconnect();
 			isConnected = true;
 			
-			this.server = server;
+			this.serverIP = serverIP;
+			this.serverName = serverName;
 			this.port =	port;
 			this.roomToJoin = roomToJoin;
 			this.username = username;
 			
-			postMessageToUser("connecting to " + server + "...\n");
+			postMessageToUser("connecting to " +serverName + " at " + serverIP + ":" + port.toString() + " ...\n");
+			trace( "connecting to " +serverName + " at " + serverIP + ":" + port.toString() ); 
 			connection = new XMPPConnection();
 			
 			connection.useAnonymousLogin = true;
 			/* connection.username = "admin";
 			connection.password = "admin"; */
 			
-			connection.server = server;
+			connection.server = serverIP;
 			connection.port = port;
 			
 			// For a full list of listeners, see XIFF/src/org/jivesoftware/xiff/events
@@ -133,29 +141,41 @@ package weave.services
 			return connectedToRoom;
 		}
 		
-		public function sendMessage( message:String ):void
+		public function sendMessage( message:String, target:String=null ):void
 		{
-			room.sendMessage(encodeObject(new TextMessage(selfJID, message)));
+			if( target != null)
+				room.sendPrivateMessage( target, encodeObject(new TextMessage(selfJID, message)));
+			else
+				room.sendMessage(encodeObject(new TextMessage(selfJID, message)));
 		}
 		
-		public function sendSessionState( state:Object ):void
+		public function sendSessionState( state:Object, target:String=null ):void
 		{
-			//send the state to the Host, or conflicting diff resolver.
-			room.sendMessage( encodeObject(new SessionStateMessage(selfJID, state)) );
-			//room.sendPrivateMessage( "Host", encodeObject(new SessionStateMessage(selfJID, state)) );
+			messageIndex++;
+			var currentMessage:SessionStateMessage = new SessionStateMessage(lastMessage.id, selfJID + "." + String(currentMessage), state);
+			if( target != null)
+				room.sendPrivateMessage( target, encodeObject(currentMessage) );
+			else
+				room.sendMessage(encodeObject(currentMessage) );
+			
+			lastMessage = currentMessage;
 		}
 		
 		private function postMessageToUser( message:String ) :void
 		{
+			if( this.username == "Host")
+				return;
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.TEXT, message));
 		}
 		
 		private function updateUsersList():void
 		{
 			var s:String = "";
-			for each (var occ:RoomOccupant in room)	
-				s += occ.displayName + '\n';
-			
+			for each (var occ:RoomOccupant in room)
+			{					
+				if( occ.displayName != "Host")
+					s += occ.displayName + '\n';
+			}
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.USERS_LIST, s));
 		}
 		
@@ -167,18 +187,18 @@ package weave.services
 			
 			room.nickname = username;
 			postMessageToUser( "set alias to: " + room.nickname + "\n" );
-			room.roomJID = new UnescapedJID(roomName + compName + '.' + server);
+			room.roomJID = new UnescapedJID(roomName + compName + '.' + serverName);
 			
 			room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
 			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 			room.addEventListener(RoomEvent.USER_JOIN, onUserJoin);
 			room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
 			room.join();
-			trace("joining room");
 		}
 		
 		private function onLogin(e:LoginEvent):void
 		{
+			trace("connection successful");
 			var message:String = "";
 			
 			message += "connected as ";
@@ -188,12 +208,10 @@ package weave.services
 			postMessageToUser( message );
 			
 			joinRoom(roomToJoin);
-			connectedToRoom = true;
 		}
 		
 		private function onReceiveMessage(e:MessageEvent):void
-		{
-
+		{	
 			if( e.data.id != null)
 			{
 				// handle a message from a user
@@ -201,8 +219,16 @@ package weave.services
 				if (o is SessionStateMessage)
 				{
 					var ssm:SessionStateMessage = o as SessionStateMessage;
-					if( ssm.id != selfJID )
-						dispatchEvent(new CollaborationEvent(CollaborationEvent.STATE, ssm.state));
+					if( this.username == "Host")
+					{
+						//What to do when recieving a private SessionStateMessage i.e. Host
+						if( e.data.from.resource != this.username )
+							sendSessionState(ssm.state);
+					}
+					else if( ssm.id != selfJID )
+					{
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.STATE_CHANGED, ssm.state));
+					}
 				}
 				else if (o is TextMessage)
 				{
@@ -223,7 +249,6 @@ package weave.services
 		
 		private function onDisconnect(e:DisconnectionEvent):void
 		{
-			trace("disconnectied");
 			isConnected = false;
 		}
 		
@@ -234,10 +259,13 @@ package weave.services
 		
 		private function onRoomJoin(e:RoomEvent):void
 		{
+			trace("Joined Room")
 			//_room = Room(e.target);
+			connectedToRoom = true;
 			selfJID = room.userJID.resource;
+			lastMessage.id = selfJID + "." + String(messageIndex);
 			updateUsersList();
-			trace("Joined room.");	
+			dispatchEvent(new CollaborationEvent( CollaborationEvent.CREATE_HOST, null ));
 		}
 		
 		private function onTimeout(event:RoomEvent):void
@@ -249,14 +277,20 @@ package weave.services
 		
 		private function onUserJoin(event:RoomEvent):void
 		{
-			postMessageToUser( event.nickname + " has joined the room.\n" );
-			updateUsersList();
+			if( event.nickname != "Host")
+			{
+				postMessageToUser( event.nickname + " has joined the room.\n" );
+				updateUsersList();
+			}
 		}
 		
 		private function onUserLeave(event:RoomEvent):void
 		{
-			postMessageToUser( event.nickname + " has left the room.\n" );
-			updateUsersList();
+			if( event.nickname != "Host")
+			{
+				postMessageToUser( event.nickname + " has left the room.\n" );
+				updateUsersList();
+			}
 		}
 			
 		private function clean():void
@@ -282,8 +316,6 @@ package weave.services
 			connection = 				null;
 			_room =						null;
 			selfJID = 					null;
-			
-			trace("cleaning");
 		}
 		
 		private function closeHandler(e:CloseEvent):void
@@ -320,16 +352,17 @@ package weave.services
 
 internal class SessionStateMessage
 {
-	public function SessionStateMessage(id:String=null, state:Object=null)
+	public function SessionStateMessage(parentID:String=null, id:String=null, state:Object=null)
 	{
+		this.parentID = parentID;
 		this.id = id;
 		this.state = state;
 	}
-
+	
+	public var parentID:String;
 	public var id:String;
 	public var state:Object;
 }
-
 
 internal class TextMessage
 {

@@ -17,17 +17,18 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services
+package weave.services.collaboration
 {
 	import flash.events.Event;
 	import flash.sampler.StackFrame;
 
 	public class CollaborationEvent extends Event
 	{
-		public static const TEXT:String = "collab_text";
-		public static const USERS_LIST:String = "collab_users_list";
+		public static const TEXT:String = "collab_text_receive";
+		public static const USERS_LIST:String = "collab_users_list_receive";
 		public static const CLEAR_LOG:String = "clear_chat_log";
-		public static const STATE:String = "collab_state_change";
+		public static const STATE_CHANGED:String = "collab_state_changed";
+		public static const CREATE_HOST:String = "create_collab_host";
 		
 		//generic data
 		public var data:Object;
