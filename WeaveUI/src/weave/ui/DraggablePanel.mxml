@@ -531,7 +531,8 @@
 			}
 			
 			[Inspectable] protected var controlBarWidthBeforeScale:int = -1;
-    		[Inspectable] protected var sizeBeforeScale:int = -1;
+//    		[Inspectable] protected var minWidthBeforeScale:int = -1;
+//    		[Inspectable] protected var minHeightBeforeScale:int = -1;
     		
     		private function handleResize(event:ResizeEvent):void
     		{
@@ -543,19 +544,11 @@
 
 				if (controlBar && controlBarWidthBeforeScale > 0)
 				{
-	    			controlBar.scaleX = controlBar.scaleY = (width < controlBarWidthBeforeScale)
-	    													?
-	    													width / controlBarWidthBeforeScale
-	    													:
-	    													1.0;
+	    			controlBar.scaleX = controlBar.scaleY = (width < controlBarWidthBeforeScale) ? (width / controlBarWidthBeforeScale) : 1;
 	   			}
     			
-    			return;
-    			scaleX = scaleY = (unscaledWidth < sizeBeforeScale || unscaledHeight < sizeBeforeScale)
-    							  ?
-    							  unscaledWidth / sizeBeforeScale
-    							  :
-    							  1.0;
+//    			scaleX = width < minWidthBeforeScale ? width / minWidthBeforeScale : 1.0;
+//    			scaleY = height < minHeightBeforeScale ? height / minHeightBeforeScale : 1.0;
     		}
 			
 			public function updateBorders():void
