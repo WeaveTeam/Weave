@@ -228,11 +228,14 @@ package weave.core
 		 */
 		private function generateEventListener(script:String):Function
 		{
+			// create script to initialize the 'weave' variable
+			var initScript:String = 'var weave = document.getElementById("' + ExternalInterface.objectID + '");';
+			
 			// attempt to delay alert boxes, without delaying other types of scripts
 			if (script.search("(alert|confirm|prompt)[\\ \n\t]*\\(") >= 0)
-				script = 'function(event){setTimeout(function(){' + script + '},0)}';
+				script = 'function(event){setTimeout(function(){' + initScript + script + '},0)}';
 			else
-				script = 'function(event){' + script + '}';
+				script = 'function(event){' + initScript + script + '}';
 			
 			return function (event:Event):void
 			{
