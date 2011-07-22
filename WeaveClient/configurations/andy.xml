@@ -1160,10 +1160,20 @@
       <close>weave.setSessionState(
 [],[{className:'delete',objectName:'custom panel',sessionState:null}],false
 )</close>
-      <mouseMove>weave.setSessionState(
-  ['custom panel','children','hbox','children','slider','properties'],
-  {value: event.stageX / 70}
-)</mouseMove>
+      <mouseDown>window.draggingPanel = true;</mouseDown>
+      <mouseMove>if (event.buttonDown != "true")
+  window.draggingPanel = false;
+if (window.draggingPanel)
+  weave.setSessionState(
+    ['custom panel','properties'],
+    {x: event.stageX - 100, y: event.stageY - 100},
+    false
+  );
+else
+  weave.setSessionState(
+    ['custom panel','children','hbox','children','slider','properties'],
+    {value: event.stageX / 70}
+  );</mouseMove>
     </eventListeners>
     <properties>
       <percentHeight>50</percentHeight>
