@@ -33,8 +33,8 @@ ColumnListComponent
 		 borderStyle="outset"
 		 label="Attributes"
 		 backgroundColor="white" backgroundAlpha="0.7"
-		 initialize="linkBindableProperty(Weave.properties.enableToolControls, this, 'enabled');"
-		 >
+		 creationComplete="handleCreationComplete()"
+		 enabled="{_enabled}">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -52,10 +52,19 @@ ColumnListComponent
 			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
-			import weave.api.linkBindableProperty;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.visualization.tools.SimpleVisTool;
 			
+			private function handleCreationComplete():void
+			{
+				Weave.properties.enableToolControls.addGroupedCallback(this, toggleSelector, true);
+			}
+			[Bindable] private var _enabled:Boolean = true;
+
+			private function toggleSelector():void
+			{
+				_enabled = Weave.properties.enableToolControls.value;
+			}
 			[Bindable] private var _visTool:SimpleVisTool= null;
 			
 			[Inspectable]

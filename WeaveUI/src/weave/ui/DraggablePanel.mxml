@@ -173,6 +173,8 @@
 				Weave.properties.panelTitleFontItalic.addGroupedCallback(this, handleTitleStyleChange);
 				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
+				Weave.properties.enableToolControls.addGroupedCallback(this, handleEnableToolControls, true);
+
 			}
 			
 			[Inspectable]
@@ -1445,8 +1447,6 @@
 				//_dragCanvas.percentWidth = 100;
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
-				
-				Weave.properties.enableToolControls.addGroupedCallback(this, handleEnableToolControls, true);
 			}
 			protected function handleEnableToolControls():void
 			{
