@@ -105,9 +105,7 @@
 			import weave.core.DynamicState;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
-			import weave.core.UntypedLinkableVariable;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
 			import weave.core.weave_internal;
@@ -530,7 +528,7 @@
 					vsp = 0;
 				}
 
-				if (_currentSelectedObject is LinkableVariable)
+				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
 				{				
 					changeView(TEXT_EDITOR);
 					
@@ -560,26 +558,6 @@
 				else if (_editor == DATA_GRID)
 				{
 					var i:int;
-					
-					// if the object is a single ILinkableVariable or ILinkableDynamicObject
-					if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
-					{
-						var value:Object;
-						if (_currentSelectedObject is ILinkableVariable)
-							value = (_currentSelectedObject as ILinkableVariable).getSessionState();
-						else
-							value = WeaveXMLEncoder.encode(getSessionState(_currentSelectedObject), 'tag').children().toXMLString();
-						if (value === null || (value as String) === '') // strict equality check to avoid casting 0, false, or '' to values of 0 (equal to null)
-							value = ' ';
-						sessionStateDataGrid.columns = [ _valueColumn ];
-						sessionStateDataGrid.dataProvider = [ { Value: value.toString() } ];
-
-						sessionStateDataGrid.variableRowHeight = true;
-						sessionStateDataGrid.wordWrap = false;
-						
-						return;
-					} 
-
 					var tempValue:Object;
 					var dataGridProvider:ArrayCollection = new ArrayCollection();
 					var childObject:ILinkableObject;
