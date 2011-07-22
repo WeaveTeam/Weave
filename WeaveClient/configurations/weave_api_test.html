@@ -23,11 +23,11 @@ body { margin: 0px; overflow:hidden }
 // -----------------------------------------------------------------------------
 // Globals
 // Major version of Flash required
-var requiredMajorVersion = 9;
+var requiredMajorVersion = 10;
 // Minor version of Flash required
 var requiredMinorVersion = 0;
 // Minor version of Flash required
-var requiredRevision = 124;
+var requiredRevision = 0;
 // -----------------------------------------------------------------------------
 // -->
 </script>
@@ -36,7 +36,7 @@ var requiredRevision = 124;
 <body scroll="no">
 
 
-<table><tr><td>
+<table id="controls"><tr><td>
 	<select id="methodInput" onchange="handleMethodSelect()">
 		<option>getSessionState(objectPath:Array):Object</option>
 		<option>setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean</option>
@@ -52,28 +52,59 @@ var requiredRevision = 124;
 	</select><br>
 	param1: <input id="input1" type="text" size="40" value="defaultSelectionKeySet"/><br>
 	param2: <input id="input2" type="text" size="40" value="US State FIPS Code,01,28"/><br>
-	<button onclick="testWeaveAPI()">Test API Function</button><br>
-	<br>
-	<button onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button><br>
-	<button onclick="testSwap()">Swap x,y on ScatterPlot</button><br>
-	<button onclick="showLegend()">Bring legend to foreground</button><br>
+	<button id="b1" onclick="testWeaveAPI()">Test API Function</button><br>
+	Weave Version: <span id="versionSpan">...</span><br>
+	<button id="b2" onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button><br>
+	<button id="b3" onclick="testSwap()">Swap x,y on ScatterPlot</button><br>
+	<button id="b4" onclick="showLegend()">Bring legend to foreground</button><br>
 </td><td width="100%" height="100%">
 	<textarea id="resultTextArea" cols="80" rows="10"></textarea>
 </td></tr></table>
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
+// this function gets called when the weave instance is ready.
+function weaveReady(weave)
+{
+	var disabled = weave == null;
+	var buttons = ['b1','b2','b3','b4'];
+	for (var i = 0; i < buttons.length; i++)
+		document.getElementById(buttons[i]).disabled = disabled;
+	if (weave != null)
+	{
+		document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
+		//alert('Weave instance is ready.');
+	}
+}
+weaveReady(null); // disable buttons
+
+// brings a color legend to the foreground
 function showLegend()
 {
 	weave.requestObject(['ColorBinLegendTool'],'ColorBinLegendTool');
 	weave.setSessionState(['ColorBinLegendTool'], {panelX:'40%',panelY:'30%'});
 	weave.setChildNameOrder([], ['ColorBinLegendTool'])
 }
+// swaps x and y dimensions on the scatterplot
+function testSwap()
+{
+	var path1 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'xColumn'];
+	var path2 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'yColumn'];
+	var state1 = weave.getSessionState(path1);
+	var state2 = weave.getSessionState(path2);
+	weave.setSessionState(path1, state2);
+	weave.setSessionState(path2, state1);
+	//alert(JSON.stringify(state1, replacer, '\t'));
+}
 
+function getMethodDescription()
+{
+	return methodInput.options[methodInput.selectedIndex].text;
+}
 // this function counts the number of required parameters in the selected api function
 function countRequiredParams()
 {
-	var funcDesc = methodInput.value;
+	var funcDesc = getMethodDescription();
 	var total = funcDesc.split(',').length;
 	var optional = funcDesc.split('=').length - 1;
 	//alert(total + '-' + optional + ': ' + funcDesc);
@@ -82,7 +113,7 @@ function countRequiredParams()
 // this function enables or disables the parameter input fields
 function handleMethodSelect()
 {
-	var method = methodInput.value;
+	var method = getMethodDescription();
 	var count = countRequiredParams();
 	input1.disabled = count < 1;
 	input2.disabled = count < 2;
@@ -117,9 +148,10 @@ function castParam(param, description)
 // this function executes the selected api function with the parameters entered in the input fields.
 function testWeaveAPI()
 {
+	var funcDesc = getMethodDescription();
 	var paramCount = countRequiredParams();
-	var paramList = methodInput.value.split('(')[1].split(')')[0].split(',');
-	var method = methodInput.value.split('(')[0];
+	var paramList = funcDesc.split('(')[1].split(')')[0].split(',');
+	var method = funcDesc.split('(')[0];
 	var param1 = castParam(input1.value, paramList[0]);
 	var param2 = castParam(input2.value, paramList[1]);
 
@@ -132,16 +164,6 @@ function testWeaveAPI()
 	var str = JSON.stringify(result, replacer, '\t');
 	resultTextArea.value = str;
 	//alert(str);
-}
-function testSwap()
-{
-	var path1 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'xColumn'];
-	var path2 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'yColumn'];
-	var state1 = weave.getSessionState(path1);
-	var state2 = weave.getSessionState(path2);
-	weave.setSessionState(path1, state2);
-	weave.setSessionState(path2, state1);
-	//alert(JSON.stringify(state1, replacer, '\t'));
 }
 </script>
 

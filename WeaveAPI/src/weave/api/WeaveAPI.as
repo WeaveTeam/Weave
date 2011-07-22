@@ -130,7 +130,8 @@ package weave.api
 		
 		/**
 		 * This function will initialize the external interfaces so calls can be made from JavaScript to Weave.
-		 * After initializing, this will call an external function weaveReady() if it exists.
+		 * After initializing, this will call an external function weaveReady(weave) if it exists, where the
+		 * 'weave' parameter is a pointer to the instance of Weave that is ready.
 		 */
 		public static function initializeExternalInterface():void
 		{
@@ -144,7 +145,7 @@ package weave.api
 					ExternalInterface.addCallback(methodName, generateExternalInterfaceCallback(methodName, theInterface));
 				}
 			}
-			ExternalInterface.call('function(){ if (window && window.weaveReady) window.weaveReady(); else if (weaveReady) weaveReady(); }');
+			ExternalInterface.call('function(){ var weave = document.getElementById("'+ExternalInterface.objectID+'"); if (window && window.weaveReady) window.weaveReady(weave); else if (weaveReady) weaveReady(weave); }');
 		}
 		
 		/**
