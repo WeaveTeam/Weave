@@ -221,8 +221,11 @@ package weave.data
 			var xMax:Number = bounds.xMax;
 			var yMin:Number = bounds.yMin;
 			var yMax:Number = bounds.yMax;
-			var projector:IProjector = getProjector(sourceSRS, destinationSRS); // fast projectsion
+			var projector:IProjector = getProjector(sourceSRS, destinationSRS); // fast projection
 
+			// NOTE: We can't just reproject the coordinates around the edges because the edges may include
+			// invalid coordinates and then we would miss the valid coordinates in the middle of the bounds.
+			
 			// reproject points along the edges and zig zag inside
 			// o--o--o--o--o
 			// |  |  |  |  |
