@@ -22,12 +22,15 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -35,6 +38,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.StringLookupColumn;
 	import weave.primitives.ColorRamp;
+	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
@@ -63,9 +67,14 @@ package weave.visualization.plotters
 		public function get binnedData():BinnedColumn { return _binnedData; }
 		
 		public function get unfilteredData():DynamicColumn { return _filteredData.internalDynamicColumn; }
-		
 		public const lineStyle:DynamicLineStyle = registerNonSpatialProperty(new DynamicLineStyle(SolidLineStyle));
 		public const fillStyle:DynamicFillStyle = registerNonSpatialProperty(new DynamicFillStyle(SolidFillStyle));
+		public const labelAngleRatio:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
+		
+		private function verifyLabelAngleRatio(value:Number):Boolean
+		{
+			return 0 <= value && value <= 1;
+		}
 		
 		private function init():void
 		{
@@ -81,7 +90,6 @@ package weave.visualization.plotters
 			_binnedData = _binLookup.requestLocalObject(BinnedColumn, true);
 			_filteredData = binnedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
-			
 			registerSpatialProperties(_binnedData);
 			setKeySource(_filteredData);
 		}
@@ -125,6 +133,72 @@ package weave.visualization.plotters
 			// end fill
 			graphics.endFill();
 		}
+		
+		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			if (_filteredData.keys.length == 0)
+				return;
+			
+			var binKey:IQualifiedKey;
+			var beginRadians:Number;
+			var spanRadians:Number;
+			var midRadians:Number;
+			var xScreenRadius:Number;
+			var yScreenRadius:Number;
+			
+			var binKeyMap:Dictionary = new Dictionary();
+			for (var j:int = 0; j < _filteredData.keys.length; j++)
+				binKeyMap[ _binLookup.getStringLookupKeyFromInternalColumnKey(_filteredData.keys[j] as IQualifiedKey)] = true;
+			
+			var binKeys:Array = [];
+			for (var binQKey:* in binKeyMap)
+				binKeys.push(binQKey);
+			
+			for (var i:int; i < binKeys.length; i++)
+			{
+				binKey = binKeys[i] as IQualifiedKey;
+				beginRadians = _beginRadians.getValueFromKey(binKey, Number) as Number;
+				spanRadians = _spanRadians.getValueFromKey(binKey, Number) as Number;
+				midRadians = beginRadians + (spanRadians / 2);
+				
+				var cos:Number = Math.cos(midRadians);
+				var sin:Number = Math.sin(midRadians);
+				
+				_tempPoint.x = cos;
+				_tempPoint.y = sin;
+				dataBounds.projectPointTo(_tempPoint, screenBounds);
+				_tempPoint.x += cos * 10 * screenBounds.getXDirection();
+				_tempPoint.y += sin * 10 * screenBounds.getYDirection();
+				
+				_bitmapText.text = binKey.localName;
+				
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				
+				_bitmapText.angle = screenBounds.getYDirection() * (midRadians * 180 / Math.PI);
+				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
+				if (cos > -0.000001) // the label exactly at the bottom will have left align
+				{
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = ((_bitmapText.angle + 90) % 360 - 90) * labelAngleRatio.value;
+				}
+				else
+				{
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
+				}
+				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+				_bitmapText.x = _tempPoint.x;
+				_bitmapText.y = _tempPoint.y;
+				_bitmapText.draw(destination);
+			}
+		}
+		
+		private const _tempPoint:Point = new Point();
+		private const _bitmapText:BitmapText = new BitmapText();
 		
 		/**
 		 * This gets the data bounds of the bin that a record key falls into.

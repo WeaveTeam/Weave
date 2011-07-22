@@ -59,6 +59,11 @@
 				initColumnDefaults(_plotter.unfilteredData);
 				toolTitle.addImmediateCallback(this, updateTitle);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,null,true);
+				
+				visualization.marginTop.value = 65;
+				visualization.marginBottom.value = 65;
+				visualization.marginLeft.value = 85;
+				visualization.marginRight.value = 85;
 			}
 			
 			override protected function childrenCreated():void
@@ -114,6 +119,13 @@
 							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
 			</userControls:ControlsSubsetBox>
 			<ui:DynamicColumnComponent visTool="{this}" label="data" initialize="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn"/>
+			<userControls:ControlsSubsetBox>
+				<mx:Label text="Label angle" fontWeight="bold"/>
+				<mx:HSlider id="labelAngleSlider"
+							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+							dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
+							initialize="linkBindableProperty(_plotter.labelAngleRatio, labelAngleSlider, 'value')"/>
+			</userControls:ControlsSubsetBox>
 		</mx:VBox>
 		
 		<mx:VBox id="advControlsPanel" label="Advanced">
