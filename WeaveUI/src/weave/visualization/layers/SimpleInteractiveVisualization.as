@@ -414,7 +414,7 @@ package weave.visualization.layers
 					
 					
 					// if we should be creating a tooltip
-					if(createXTooltip || createYTooltip)
+					if((createXTooltip || createYTooltip) && Weave.properties.enableToolControls.value)
 					{	
 						CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 

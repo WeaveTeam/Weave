@@ -32,7 +32,9 @@ ColumnListComponent
 		 width="100%" height="100%"
 		 borderStyle="outset"
 		 label="Attributes"
-		 backgroundColor="white" backgroundAlpha="0.7">
+		 backgroundColor="white" backgroundAlpha="0.7"
+		 initialize="linkBindableProperty(Weave.properties.enableToolControls, this, 'enabled');"
+		 >
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -47,8 +49,10 @@ ColumnListComponent
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
+			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
+			import weave.api.linkBindableProperty;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.visualization.tools.SimpleVisTool;
 			
@@ -105,6 +109,7 @@ ColumnListComponent
 				_dragMoveEnabled = value;
 			}
 			[Bindable] private var _dragMoveEnabled:Boolean = false;
+
 			
 		]]>
 	</mx:Script>

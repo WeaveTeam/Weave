@@ -37,15 +37,15 @@
 -->	<mx:Script>
 		<![CDATA[
 			import mx.core.Application;
-			import weave.api.linkBindableProperty;
-			import mx.events.ListEvent;
 			import mx.core.ClassFactory;
 			import mx.core.IFlexDisplayObject;
 			import mx.effects.effectClasses.HideShowEffectTargetFilter;
 			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.linkBindableProperty;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			import weave.ui.DraggablePanel;
@@ -128,6 +128,13 @@
 							 selected="false"
 							 initialize="linkBindableProperty(Weave.properties.dashboardMode, dashboardMode, 'selected');"
 							 />
+				<mx:CheckBox toolTip="Check this box to enable the Attribute Selector."
+							 id="enableToolControls"
+							 label="Enable tool controls"
+							 selected="true"
+							 initialize="linkBindableProperty(Weave.properties.enableToolControls, enableToolControls, 'selected');"
+							 />
+				
 				<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
 				id="viewsTabBar"
 				label="Show View TabBar"

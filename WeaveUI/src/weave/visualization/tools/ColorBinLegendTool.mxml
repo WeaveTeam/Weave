@@ -180,6 +180,13 @@
 				if (toolTitle.value == null)
 					title = "Color Legend";
 			}
+			
+			private function showLinkCursor():void
+			{
+				if (Weave.properties.enableToolControls.value)
+					CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+			}
+				
 		]]>
 	</mx:Script>
 	
@@ -187,7 +194,7 @@
 				fontWeight="bold" click="handleMarginLabelClick()" 
 				x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
 				text="{marginLabelText}" width="100%"
-				mouseOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
+				mouseOver="showLinkCursor();"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				mouseOut="CustomCursorManager.removeCurrentCursor()"
 				wordWrap="true" selectable="false" editable="false"

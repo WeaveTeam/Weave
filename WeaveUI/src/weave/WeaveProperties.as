@@ -126,7 +126,6 @@ package weave
 //		public const enableAddSP2:LinkableBoolean = new LinkableBoolean(true); // Add SP2 option tools menu
 //		public const enableAddWordle:LinkableBoolean = new LinkableBoolean(true); // Add Wordle option tools menu		
 //		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(true); // Add RamachandranPlot option tools menu		
-//		public const enableAddSurfacePlotter:LinkableBoolean = new LinkableBoolean(true); // Add Surface Plotter option tools menu
 		
 		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
@@ -182,6 +181,7 @@ package weave
 		public const enableEditDataSource:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
+		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
 		
 		public const enableFullscreen:LinkableBoolean = new LinkableBoolean(true); // enable/disable going fullscreen from Window menu
 		

@@ -100,6 +100,7 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableObjectOwner;
+			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
@@ -1444,8 +1445,17 @@
 				//_dragCanvas.percentWidth = 100;
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
+				
+				Weave.properties.enableToolControls.addGroupedCallback(this, handleEnableToolControls, true);
 			}
-			
+			protected function handleEnableToolControls():void
+			{
+				var val:Boolean = Weave.properties.enableToolControls.value;
+				enableControlPanel.value = val;
+				//userControlButton.enabled = val;
+				//userControlButton.visible = val;
+				//updateButtons();
+			}
 			private var _helpPanel:HelpPanel = null;
 			private var _controlPanel:ControlPanel = null;
 			

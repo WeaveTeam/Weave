@@ -253,6 +253,9 @@
 			private static var defaultSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
 			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
 			{
+				if (!Weave.properties.enableToolControls.value)
+					return;
+				
 				openDefaultSelector();
 				defaultSelector.targets = defaultSelector.selectableAttributes = tool.getSelectableAttributes();
 				defaultSelector.dimensionTypeLinks.dataProvider = defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
@@ -260,6 +263,9 @@
 			}
 			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null):void
 			{
+				if (!Weave.properties.enableToolControls.value)
+					return;
+				
 				if (!defaultSelector.parent)
 					PopUpManager.addPopUp(defaultSelector, Application.application as Application);
 
