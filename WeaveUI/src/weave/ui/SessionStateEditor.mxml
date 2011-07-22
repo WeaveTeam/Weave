@@ -332,6 +332,8 @@
 							var row:Object = rows[i];
 							for each (var string:String in row)
 							{
+								if (string === null)
+									continue;
 								_gridStartSearchIndex = string.toLowerCase().indexOf(searchTerm);
 								if (_gridStartSearchIndex >= 0)
 								{
