@@ -1,12 +1,10 @@
 Weave: Web-based Analysis and Visualization Environment - http://www.oicweave.org/
 
-Project website: http://ivpr.github.com/Weave
-
-Issue Tracker: http://bugs.oicweave.org
-
-Nightly build: https://github.com/IVPR/Weave-Binaries/zipball/master
+Issue Tracker & Wiki: http://bugs.oicweave.org/
 
 Developer documentation: http://ivpr.github.com/Weave/asdoc/
+
+Nightly build: https://github.com/IVPR/Weave-Binaries/zipball/master
 
 Components in this repository:
 
