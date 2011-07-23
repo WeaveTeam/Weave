@@ -59,7 +59,7 @@ package weave.data.ColumnReferences
 		// this function removes unwanted attributes from the path leaf node, and name of hierarchy
 		private function handlePathChange():void
 		{
-			if (hierarchyPath.value && hierarchyPath.value.localName().toString() == 'hierarchy')
+			if (hierarchyPath.value && String(hierarchyPath.value.localName()) == 'hierarchy')
 				delete hierarchyPath.value["@name"]; // for backwards compatibility
 		}
 	}
