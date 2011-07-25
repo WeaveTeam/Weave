@@ -25,6 +25,7 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.display.IBitmapDrawable;
 	import flash.display.LineScaleMode;
+	import flash.display.PixelSnapping;
 	import flash.display.Shape;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
@@ -54,6 +55,7 @@ package weave.visualization.plotters
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
+	import weave.utils.DebugTimer;
 
 	/**
 	 * WMSPlotter
@@ -106,7 +108,7 @@ package weave.visualization.plotters
 		private const _normalizedGridBounds:IBounds2D = new Bounds2D();
 		private const _tempReprojPoint:Point = new Point(); // reusable object for reprojections
 		private const projManager:IProjectionManager = WeaveAPI.ProjectionManager; // reprojecting tiles
-		private const _tileSRSToShapeCache:Dictionary = new Dictionary(true); // use WeakReferences to be GC friendly
+		private const _tileSRSToShapeCache:Dictionary = new Dictionary(false); // use WeakReferences to be GC friendly
 		
 		private function getCachedShape(tile:WMSTile, srs:String):ProjectedShape
 		{
@@ -121,7 +123,7 @@ package weave.visualization.plotters
 		private function setCachedShape(shape:ProjectedShape, tile:WMSTile, srs:String):void
 		{
 			if (_tileSRSToShapeCache[tile] == null)
-				_tileSRSToShapeCache[tile] = new Dictionary(true);
+				_tileSRSToShapeCache[tile] = new Dictionary(false);
 				
 			_tileSRSToShapeCache[tile][srs] = shape;
 		}
@@ -134,6 +136,7 @@ package weave.visualization.plotters
 		}
 		
 		// reusable objects in getShape()
+		private var imageBounds:IBounds2D = new Bounds2D();
 		private const vertices:Vector.<Number> = new Vector.<Number>();
 		private const indices:Vector.<int> = new Vector.<int>();
 		private const uvtData:Vector.<Number> = new Vector.<Number>();
@@ -164,7 +167,9 @@ package weave.visualization.plotters
 				(tile.imageWidth - overlap) / (tile.imageWidth),
 				- (tile.imageHeight - overlap) / (tile.imageHeight)
 			);
-
+			
+			imageBounds.setBounds(0, tile.imageHeight, tile.imageWidth, 0);
+			
 			var fences:int = Math.max(tile.imageWidth, tile.imageHeight) / gridSpacing.value; // number of spaces in the grid x or y direction
 			var fencePosts:int = fences + 1; // number of vertices in the grid
 			for (var iy:int = 0; iy < fencePosts; ++iy)
@@ -184,7 +189,7 @@ package weave.visualization.plotters
 					// reproject the point before pushing it as a vertex
 					_allowedTileReprojBounds.constrainPoint(_tempReprojPoint);
 					projector.reproject(_tempReprojPoint);
-
+					
 					reprojectedDataBounds.includePoint(_tempReprojPoint);
 					vertices.push(_tempReprojPoint.x, _tempReprojPoint.y);
 
@@ -192,10 +197,10 @@ package weave.visualization.plotters
 					// meaning half a pixel will be lost on all edges.  This code adjusts the normalized values so
 					// the edge pixels are not cut in half by converting our definition of normalized coordinates
 					// into flash player's definition.
-					var offset:Number = 0.5 + overlap;
+					var offset:Number = overlap;
 					uvtData.push(
-						(xNorm * tile.imageWidth - offset) / (tile.imageWidth - offset * 2),
-						(yNorm * tile.imageHeight - offset) / (tile.imageHeight - offset * 2)
+						(xNorm * tile.imageWidth  - offset) / (tile.imageWidth  - 2 * offset),
+						(yNorm * tile.imageHeight - offset) / (tile.imageHeight - 2 * offset)
 					);
 					
 					if (iy == 0 || ix == 0) 
@@ -214,6 +219,16 @@ package weave.visualization.plotters
 				}
 			}
 			
+			// flash is slow at drawing large complex vector data
+			for (var k:int = 0; k < vertices.length; k += 2)
+			{
+				_tempReprojPoint.x = vertices[k];
+				_tempReprojPoint.y = vertices[k + 1];
+				reprojectedDataBounds.projectPointTo(_tempReprojPoint, imageBounds);
+				vertices[k] = _tempReprojPoint.x;
+				vertices[k + 1] = _tempReprojPoint.y;
+			}
+			
 			// draw the triangles and end the fill
 			var newShape:Shape = new Shape();
 			//newShape.graphics.lineStyle(1, 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
@@ -225,9 +240,10 @@ package weave.visualization.plotters
 			// save the shape and bounds into the token object and put in cache
 			var projShape:ProjectedShape = new ProjectedShape();
 			projShape.shape = newShape;
-			reprojectedDataBounds.makeSizePositive();
+			projShape.shape.cacheAsBitmap = false;
+			//reprojectedDataBounds.makeSizePositive();
 			projShape.bounds = reprojectedDataBounds;
-
+			
 			setCachedShape(projShape, tile, getDestinationSRS());
 
 			return projShape;
@@ -249,7 +265,7 @@ package weave.visualization.plotters
 			}
 			
 			//// THERE IS A PROJECTION
-			
+
 			var bgDataBounds:IBounds2D = getBackgroundDataBounds(); // temp solution, slightly inefficient
 
 			_tempDataBounds.copyFrom(dataBounds);
@@ -266,26 +282,33 @@ package weave.visualization.plotters
 				_tempScreenBounds.copyFrom(_tempDataBounds);
 				dataBounds.projectCoordsTo(_tempScreenBounds, screenBounds);
 			
-				// transform the bounds--this hurts performance!
+				// transform the bounds
 				projManager.transformBounds(srs.value, serviceSRS, _tempDataBounds);
 			}
 
 			// expand the data bounds so some surrounding tiles are downloaded to improve panning
 			var allTiles:Array = _service.requestImages(_tempDataBounds, _tempScreenBounds, preferLowerQuality.value);
-			
-			// constants used many times inside the drawing loop
-			var xMinData:Number = dataBounds.getXMin();
-			var yMinData:Number = dataBounds.getYMin();
-			var scaleWidth:Number = screenBounds.getWidth() / dataBounds.getWidth();
-			var scaleHeight:Number = screenBounds.getHeight() / dataBounds.getHeight();
-			var xMinScreen:Number = screenBounds.getXMin();
-			var yMinScreen:Number = screenBounds.getYMin();
-			_tempMatrix.identity();
-			_tempMatrix.translate(-xMinData, -yMinData);
-			_tempMatrix.scale(scaleWidth, scaleHeight);
-			_tempMatrix.translate(xMinScreen, yMinScreen);
-
-			// draw each tile's reprojected shape
+//			var tilesToDraw:Array = [];
+//			lqLoop	:	for (var j:int = 0; j < allTiles.length; ++j)
+//			{
+//				var lqTile:WMSTile = allTiles[j];
+//				var lqBounds:IBounds2D = lqTile.bounds;
+//				for (var k:int = j + 1; k < allTiles.length; ++k)
+//				{
+//					var hqTile:WMSTile = allTiles[k];
+//					var hqBounds:IBounds2D = hqTile.bounds;
+//					if (lqBounds.overlaps(hqBounds, false))
+//						continue lqLoop;
+//				}
+//				tilesToDraw.push(lqTile);
+//			}
+			// draw each tile's reprojected shape				
+			_tempScreenBounds.copyFrom(_service.getAllowedBounds());
+			_tempScreenBounds.getRectangle(_clipRectangle);
+			_clipRectangle.x = Math.floor(_clipRectangle.x);
+			_clipRectangle.y = Math.floor(_clipRectangle.y);
+			_clipRectangle.width = Math.floor(_clipRectangle.width - 0.5);
+			_clipRectangle.height = Math.floor(_clipRectangle.height - 0.5);
 			for (var i:int = 0; i < allTiles.length; i++)
 			{
 				var tile:WMSTile = allTiles[i];
@@ -300,6 +323,23 @@ package weave.visualization.plotters
 				var projShape:ProjectedShape = getShape(tile);
 				if (!projShape.bounds.overlaps(dataBounds))
 					continue; // don't draw off-screen bitmaps
+				var imageBounds:IBounds2D = projShape.bounds;
+				var imageBitmap:BitmapData = tile.bitmapData;
+				
+				// get screen coords from image data coords
+				_tempDataBounds.copyFrom(imageBounds);
+				dataBounds.projectCoordsTo(_tempDataBounds, screenBounds);
+				_tempDataBounds.makeSizePositive();
+
+				_tempMatrix.identity();
+				
+				// when scaling, we need to use the ceiling of the values to cover the seam lines
+				_tempMatrix.scale(Math.ceil(_tempDataBounds.getWidth())/ imageBitmap.width, Math.ceil(_tempDataBounds.getHeight()) / imageBitmap.height);
+				_tempMatrix.translate(Math.round(_tempDataBounds.getXMin()), Math.round(_tempDataBounds.getYMin()));
+
+				// calculate clip rectangle for nasa service because tiles go outside the lat/long bounds
+				_tempScreenBounds.copyFrom(_service.getAllowedBounds());
+				dataBounds.projectCoordsTo(_tempScreenBounds, screenBounds);
 				
 				var colorTransform:ColorTransform = (tile.bitmapData == _missingImage.bitmapData ? _missingImageColorTransform : null);
 				destination.draw(projShape.shape, _tempMatrix, colorTransform, null, null, preferLowerQuality.value && !colorTransform);				
@@ -471,14 +511,15 @@ package weave.visualization.plotters
 	}
 }
 
+import flash.display.Bitmap;
 import flash.display.Shape;
 
 import weave.api.primitives.IBounds2D;
 
-// an internal object used for reprojecting shapes
 internal class ProjectedShape
 {
 	public var shape:Shape;
+	public var cachedBitmap:Bitmap = null;
 	public var bounds:IBounds2D;
 	public var imageWidth:int;
 	public var imageHeight:int;	
