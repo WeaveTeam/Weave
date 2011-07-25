@@ -37,7 +37,8 @@ package weave.ui.infomap
 			var keywordLabel:Label = new Label;
 			keywordLabel.text = keyWord;
 			keywordLabel.x = canvasCenterPoint.x;
-			keywordLabel.y = canvasCenterPoint.y;			
+			keywordLabel.y = canvasCenterPoint.y;	
+			this.addChild(keywordLabel);
 		}
 		
 		private function highlightThumbnailImage(event:MouseEvent):void
