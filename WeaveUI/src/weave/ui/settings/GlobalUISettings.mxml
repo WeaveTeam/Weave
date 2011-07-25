@@ -82,12 +82,6 @@
 			[Bindable]
 			public var adminUser:Boolean;
 			
-			public function stripSpaces(originalstring:String):String
-			{
-				var original:Array=originalstring.split(" ");
-				return(original.join("_"));
-			}
-			
 			private static var globalEditor:ControlPanel;
 			
 			/**
@@ -137,6 +131,12 @@
 			vs1.selectedChild = Container(vs1.getChildByName(stripSpaces(myTree.itemToLabel(selectedNode.@label.toString())))); 
 			}catch(e:Error){
 			}
+			}
+			
+			private function stripSpaces(originalstring:String):String
+			{
+				var original:Array=originalstring.split(" ");
+				return(original.join("_"));
 			}*/
 			
 		]]>

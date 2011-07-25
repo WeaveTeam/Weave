@@ -293,7 +293,7 @@ package weave
 		
 		private function handleBackgroundColorChange():void
 		{
-			VisApplication.instance.setStyle("backgroundColor",Weave.properties.backgroundColor.value);
+			VisApplication.instance.setStyle("backgroundGradientColors", [Weave.properties.backgroundColor.value, Weave.properties.backgroundColor.value]);
 		}
 		
 		// This VBox holds the optional menu bar, visDesktop, and optional task bar (stacked vertically)
