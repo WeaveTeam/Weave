@@ -6,6 +6,7 @@ package weave.ui.infomap
 	import mx.collections.ArrayCollection;
 	import mx.containers.Canvas;
 	import mx.controls.Image;
+	import mx.controls.Label;
 	import mx.events.FlexEvent;
 
 	public class InfoMapUIForDiaplay extends Canvas
@@ -18,6 +19,7 @@ package weave.ui.infomap
 		
 		private function createUI(ac:ArrayCollection,keyWord:String):void{
 			var canvasCenterPoint:Point = new Point(this.width/2,this.height/2);
+			
 			var location:Array = getNPointsOnCircle(canvasCenterPoint,140,ac.length);				
 			for(var i:int; i<ac.length ;i++){
 				var obj:Object = ac[i] as Object;					
@@ -31,7 +33,11 @@ package weave.ui.infomap
 				this.addChild(img);
 				img.x = imgPosition.x;
 				img.y = imgPosition.y;
-			}			
+			}	
+			var keywordLabel:Label = new Label;
+			keywordLabel.text = keyWord;
+			keywordLabel.x = canvasCenterPoint.x;
+			keywordLabel.y = canvasCenterPoint.y;			
 		}
 		
 		private function highlightThumbnailImage(event:MouseEvent):void
