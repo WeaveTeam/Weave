@@ -45,8 +45,8 @@
 				<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
 				<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
  				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
-									 focusIn="sessionNav.refresh()"/>
- 				<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off">
+									 focusIn="checkObjectWasDisposed()"/>
+				<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off">
  					<mx:TextInput id="linkNameInput" width="100%"/>
  					<mx:Button label="Link to global object" click="linkSelectedObject();"/>
  					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>
@@ -170,13 +170,28 @@
 			private var _textStartSearchIndex:int = 0;
 			private var _gridStartSearchIndex:int = 0; 
 			
+			private function checkObjectWasDisposed():void
+			{
+				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				{
+					_currentSelectedObject = null;
+					_textModified = false;
+					_needRefresh = false;
+					autoRefresh = false;
+					refresh();
+					
+				}
+			}
 			private function handleRefreshTimer(event:TimerEvent):void
 		    {
-		    	if (autoRefresh && _needRefresh && !_textModified && visible && parent)
+				if (visible && parent)
 				{
-					autoRefresh = false; // this prevents text from refreshing every time -- we only want it to refresh when text area gains focus.
-					sessionNav.refresh();
-		    		loadSelectedSessionObjectInView();
+					if (autoRefresh && _needRefresh && !_textModified) 
+					{
+						autoRefresh = false; // this prevents text from refreshing every time -- we only want it to refresh when text area gains focus.
+						sessionNav.refresh();
+						loadSelectedSessionObjectInView();
+					}
 				}
 		    }
 		    private function handleSelectedObjectGroupCallback():void
@@ -187,6 +202,7 @@
 			private function handleEditorFocusIn():void
 			{
 				autoRefresh = true;
+				checkObjectWasDisposed();
 			}
 
 			private function handleTextAreaChange():void
@@ -196,7 +212,6 @@
 		    
 			public function refresh():void
 			{
-				// refresh the tree navigator if the current object was disposed
 				if (_textModified == false || (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
 				{
 					sessionNav.refresh();
@@ -440,10 +455,8 @@
 				else
 					oldValue = newValue == TEXT_EDITOR ? DATA_GRID : TEXT_EDITOR;
 					
-				
 				if (oldValue == TEXT_EDITOR)
 				{
-					//toggleView.label = "Text Editor View";
 					_editor = DATA_GRID;
 					if (editorBox.contains(sessionStateTextArea))
 						editorBox.removeChild(sessionStateTextArea);
@@ -462,7 +475,6 @@
 				}
 				else if (oldValue == DATA_GRID)
 				{
-					//toggleView.label = "Data Grid View";
 					_editor = TEXT_EDITOR;
 					if (editorBox.contains(sessionStateDataGrid))
 						editorBox.removeChild(sessionStateDataGrid);
