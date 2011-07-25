@@ -22,7 +22,10 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.utils.Dictionary;
 	
 	import mx.utils.ObjectUtil;
 	
@@ -38,6 +41,7 @@ package weave.visualization.plotters
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.data.KeySets.KeySet;
 	import weave.data.QKeyManager;
+	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 
@@ -53,6 +57,11 @@ package weave.visualization.plotters
 		private var _keySet:KeySet;
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
+		
+		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
+		private var keyBoundsMap:Dictionary = new Dictionary();
+		private const _currentScreenBounds:Bounds2D = new Bounds2D();
+		private const _currentDataBounds:Bounds2D = new Bounds2D();
 		
 		public function AnchorPlotter()	
 		{
@@ -72,7 +81,7 @@ package weave.visualization.plotters
 
 			_keySet = new KeySet();
 			_keySet.replaceKeys(keyArray);
-			setKeySource(_keySet);
+			setKeySource(_keySet);				
 		}						
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -82,8 +91,8 @@ package weave.visualization.plotters
 			var y:Number;
 			var anchor:AnchorPoint;
 			var radians:Number;
-			var graphics:Graphics = tempShape.graphics;
-			graphics.clear();
+			keyBoundsMap = new Dictionary();
+			
 			// loop through anchors hash map and draw dimensional anchors and labels	
 			for each(var key:IQualifiedKey in recordKeys)
 			{
@@ -124,25 +133,90 @@ package weave.visualization.plotters
 				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 				_bitmapText.x = tempPoint.x;
 				_bitmapText.y = tempPoint.y;
+				
+				_bitmapText.getUnrotatedBounds(_tempBounds);
+				_tempBounds.getRectangle(_tempRectangle);
+				destination.fillRect(_tempRectangle, 0x02ff0000);
+				
 				_bitmapText.draw(destination);
+				
+				// draw circle
+				var graphics:Graphics = tempShape.graphics;
+				graphics.clear();
+				
 				graphics.lineStyle(3);
-				graphics.drawCircle(tempPoint.x, tempPoint.y, 1);
+				graphics.drawCircle(tempPoint.x, tempPoint.y, 3);
+				
+				graphics.endFill();
+				destination.draw(tempShape);							
 			}
-			destination.draw(tempShape);			
+			_currentScreenBounds.copyFrom(screenBounds);
+			_currentDataBounds.copyFrom(dataBounds);
 		}
 		
+		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			_currentScreenBounds.copyFrom(screenBounds);
+			_currentDataBounds.copyFrom(dataBounds);
+		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
 			if( !anchors ) return null;
 			
 			var anchor:AnchorPoint = anchors.getObject(recordKey.localName) as AnchorPoint;
-			tempPoint.x = anchor.x.value;
-			tempPoint.y = anchor.y.value;
-			
 			var bounds:IBounds2D = getReusableBounds();
-			bounds.includePoint(tempPoint);
-			return [bounds];
+			
+			if(_currentScreenBounds.isEmpty())
+			{
+				tempPoint.x = anchor.x.value;
+				tempPoint.y = anchor.y.value;
+								
+				bounds.includePoint(tempPoint);				
+				
+				return [bounds];
+			} 
+			else
+			{				
+				var x:Number = anchor.x.value;
+				var y:Number = anchor.y.value;
+				var radians:Number = anchor.polarRadians.value;
+				var radius:Number = anchor.radius.value;
+				
+				var cos:Number = Math.cos(radians);
+				var sin:Number = Math.sin(radians);
+				
+				tempPoint.x = radius * cos;
+				tempPoint.y = radius * sin;		
+				_currentDataBounds.projectPointTo(tempPoint, _currentScreenBounds);
+
+				_bitmapText.text = recordKey.localName;
+				
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				
+				_bitmapText.angle = _currentScreenBounds.getYDirection() * (radians * 180 / Math.PI);
+				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
+				if (cos > -0.000001) // the label exactly at the bottom will have left align
+				{
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = ((_bitmapText.angle + 90) % 360 - 90) * labelAngleRatio.value;
+				}
+				else
+				{
+					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+					// first get values between -90 and 90, then multiply by the ratio
+					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
+				}
+				_bitmapText.x = tempPoint.x;
+				_bitmapText.y = tempPoint.y;
+				
+				_bitmapText.getUnrotatedBounds(_tempBounds);
+				_currentScreenBounds.projectCoordsTo(_tempBounds, _currentDataBounds);				
+				
+				bounds.copyFrom(_tempBounds);
+				return [bounds];
+			}
 		}
 		
 		override public function getBackgroundDataBounds():IBounds2D
@@ -155,5 +229,56 @@ package weave.visualization.plotters
 			return 0 <= value && value <= 1;
 		}
 		
+		private var _matrix:Matrix = new Matrix();
+		private const _tempBounds:Bounds2D = new Bounds2D();
+		private var _tempRectangle:Rectangle = new Rectangle();
+		
+		private function drawRectangle(graphics:Graphics,destination:BitmapData):void
+		{
+			_bitmapText.getUnrotatedBounds(_tempBounds);			
+			_tempBounds.getRectangle(_tempRectangle);
+			
+			//graphics.drawRect(_tempRectangle.x, _tempRectangle.y, _tempRectangle.width, _tempRectangle.height);
+			
+			destination.fillRect(_tempRectangle,  0x02808080);
+			return;
+			var height:Number = _tempBounds.getWidth();
+			var width:Number = _tempBounds.getHeight();
+			
+			/*_tempBounds.getRectangle(_tempRectangle);
+			var p1:Point = new Point();
+			_tempBounds.getMinPoint(p1);
+			var p2:Point = new Point(_tempBounds.xMin, _tempBounds.yMax);
+			var p3:Point = new Point();
+			_tempBounds.getMaxPoint(p3);
+			var p4:Point = new Point(_tempBounds.xMax, _tempBounds.yMin);
+			var angle:Number = _bitmapText.angle;
+			angle = angle * Math.PI/180;
+			var p:Point = new Point();
+			_tempBounds.getMinPoint(p);
+						
+			graphics.moveTo(p1.x,p1.y);
+			graphics.lineTo(p2.x,p2.y);
+			graphics.moveTo(p2.x,p2.y);
+			graphics.lineTo(p3.x,p3.y);
+			graphics.moveTo(p3.x,p3.y);
+			graphics.lineTo(p4.x,p4.y);
+			graphics.moveTo(p4.x,p4.y);
+			graphics.lineTo(p1.x,p1.y);*/
+			//graphics.drawRect(rect.x, rect.y, rect.width, rect.height);
+		}		
+		public function rotatePoint(p:Point, o:Point, d:Number):Point{
+			
+			var np:Point = new Point();
+			p.x += (0 - o.x);
+			p.y += (0 - o.y);
+			np.x = (p.x * Math.cos(d)) - (p.y * Math.sin(d));
+			np.y = Math.sin(d) * p.x + Math.cos(d) * p.y;
+			np.x += (0 + o.x);
+			np.y += (0 + o.y)
+			
+			return np;
+			
+		}
 	}	
 }

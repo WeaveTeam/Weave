@@ -130,8 +130,12 @@ package weave.data.AttributeColumns
 			for (index = keys.length - 1; index >= 0; index--)
 			{
 				key = keys[index] as IQualifiedKey;
-				_keyToNumericDataMapping[key] = Number(numericData[index]);
-				keysThatChanged[key] = true; // remember that this key changed
+				var n:Number = Number(numericData[index]);
+				if(isFinite(n))
+				{
+					_keyToNumericDataMapping[key] = n;
+					keysThatChanged[key] = true; // remember that this key changed
+				}
 			}
 
 			// save list of unique keys

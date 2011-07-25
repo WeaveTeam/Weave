@@ -352,6 +352,14 @@ package weave.visualization.layers
 				layer.setScreenBounds(source);
 		}
 
+		public var lockScreenBounds:Boolean = false;
+		
+		public function showMissingRecords(show:Boolean = false):void
+		{
+			for each (var layer:PlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
+			layer.showMissingRecords = true;
+		}
+		
 		private function handleBlurringFilterChange():void
 		{
 			selectionBlur.blurX = Weave.properties.selectionBlurringAmount.value;

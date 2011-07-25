@@ -147,7 +147,7 @@ package weave.utils
 			if (bounds == null)
 			{
 				var stage:Stage = Application.application.stage;
-				tempBounds.setBounds(stage.x, stage.y, stage.width, stage.height);
+				tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 				bounds = tempBounds;
 			}
 			destroyProbeToolTip();

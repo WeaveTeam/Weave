@@ -530,7 +530,7 @@ package weave.visualization.layers
 			if (bounds == null) 
 				return; 
 			
-			if( yAxisToPlot )
+			if( yAxisToPlot && isFinite(bounds.getYMin()))
 			{
 				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				y_yAxis = bounds.getYMax();
@@ -538,7 +538,7 @@ package weave.visualization.layers
 				xPlot = bounds.getXCenter();
 				yPlot = bounds.getYMax();
 				
-				if(xAxisToPlot)
+				if(xAxisToPlot && isFinite(bounds.getXMin()))
 				{
 					x_xAxis = bounds.getXCenter();
 					y_xAxis = _yAxisLayer.axisPlotter.axisLineMinValue.value ;
@@ -547,7 +547,7 @@ package weave.visualization.layers
 				
 				showProbeTooltips(y_yAxis,bounds,labelFunctionY);
 				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis,true, xAxisToPlot );
-			} else
+			} else if(isFinite(bounds.getYMin()))
 			{
 				xPlot = bounds.getXMax();
 				yPlot = bounds.getYCenter();

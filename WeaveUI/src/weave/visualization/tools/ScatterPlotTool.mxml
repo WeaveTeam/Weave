@@ -42,6 +42,7 @@
 			import weave.api.data.IKeyFilter;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IPrimitiveColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -55,6 +56,7 @@
 			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
@@ -76,10 +78,8 @@
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
 			
-			private const REGRESSION_LAYER_NAME:String = "regressionLine";
 			public var _plotter:ScatterPlotPlotter = null;
-			private var _regressionLineLayer:SelectablePlotLayer ;
-			private var _regressionPlotter:RegressionLinePlotter = null;
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -136,9 +136,11 @@
 				
 				_plotter.enabledSizeBy.value = true;
 				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
+				visualization.marginTop.value    = 50;
 				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginRight.value  = 50;
+				
+				initializeUndefinedLayers();				
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -150,16 +152,166 @@
 				return [_plotter.xColumn, _plotter.yColumn, colorColumn, _plotter.radiusColumn];
 			}
 			
+			private var _regressionLineLayer:PlotLayer ;
+			private const REGRESSION_LAYER_NAME:String = "regressionLine";
+			private var _regressionPlotter:RegressionLinePlotter = null;
+			
 			private function initRegressionLayer():void
 			{
-				_regressionLineLayer = visualization.layers.requestObject(REGRESSION_LAYER_NAME, SelectablePlotLayer, true);
-				_regressionLineLayer.layerIsSelectable.value = false;
-				_regressionLineLayer.layerIsSelectable.lock();
+				_regressionLineLayer = visualization.layers.requestObject(REGRESSION_LAYER_NAME, PlotLayer, true);
 				_regressionPlotter = _regressionLineLayer.getDynamicPlotter().requestLocalObject(RegressionLinePlotter,true);
 				linkSessionState(_plotter.xColumn, _regressionPlotter.xColumn);
 				linkSessionState(_plotter.yColumn, _regressionPlotter.yColumn);
 				_regressionPlotter.drawLine.value = false;				
 			}
+			
+			private function handleUpdateComplete(event:FlexEvent):void
+			{
+				plotLayer.getScreenBounds(_tempBounds);
+				
+				if(!_tempBounds.isEmpty())
+				{
+					setUndefinedLayerScreenBounds();
+					//after first time updateComplete is dispatched, remove event listener to avoid unnecessary updates
+					removeEventListener(FlexEvent.UPDATE_COMPLETE, handleUpdateComplete);
+				}
+			}
+			
+			private var _undefinedXLayer:SelectablePlotLayer;
+			private var _undefinedYLayer:SelectablePlotLayer;
+			private var _undefinedXYLayer:SelectablePlotLayer;
+			
+			private var _undefinedXPlotter:ScatterPlotPlotter;
+			private var _undefinedYPlotter:ScatterPlotPlotter;
+			private var _undefinedXYPlotter:ScatterPlotPlotter;
+									
+			private const UNDEFINED_X_NAME:String = "undefinedX";
+			private const UNDEFINED_Y_NAME:String = "undefinedY";
+			private const UNDEFINED_XY_NAME:String = "undefinedXY";
+			
+			private const _tempBounds:Bounds2D = new Bounds2D();
+			private const _screenBounds:Bounds2D = new Bounds2D();
+			
+			private function initializeUndefinedLayers():void
+			{
+				_undefinedXLayer = visualization.layers.requestObject(UNDEFINED_X_NAME,SelectablePlotLayer, true);
+				_undefinedYLayer = visualization.layers.requestObject(UNDEFINED_Y_NAME, SelectablePlotLayer, true);
+				_undefinedXYLayer = visualization.layers.requestObject(UNDEFINED_XY_NAME,SelectablePlotLayer, true);
+				
+				_undefinedXPlotter = _undefinedXLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
+				_undefinedYPlotter = _undefinedYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
+				_undefinedXYPlotter = _undefinedXYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
+												
+				for each(var plotter:ScatterPlotPlotter in [_undefinedXPlotter, _undefinedYPlotter, _undefinedXYPlotter])
+				{
+					linkSessionState(_plotter.colorColumn, plotter.colorColumn);
+					linkSessionState(_plotter.alphaColumn, plotter.alphaColumn);
+					linkSessionState(_plotter.radiusColumn, plotter.radiusColumn);
+				} 	
+				
+				linkSessionState(_plotter.xColumn, _undefinedYPlotter.xColumn);
+				linkSessionState(_plotter.yColumn, _undefinedXPlotter.yColumn);
+				
+				for each(var column:IAttributeColumn in getSelectableAttributes())
+				{
+					column.addGroupedCallback(this, setUndefinedPlotterKeySource, true);
+				}
+				
+				visualization.marginTop.addGroupedCallback(this, setUndefinedLayerScreenBounds,true);
+				visualization.marginBottom.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
+				visualization.marginRight.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
+				visualization.marginLeft.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
+				
+				for each(var layer:SelectablePlotLayer in [_undefinedXLayer, _undefinedYLayer, _undefinedXYLayer])
+				{
+					layer.lockScreenBounds = true;
+					layer.plotLayer.isOverlay.value = true;					
+					layer.showMissingRecords(true);
+				} 
+				addEventListener(FlexEvent.UPDATE_COMPLETE, handleUpdateComplete);				
+			}
+			private const dataBounds:Bounds2D = new Bounds2D();
+			
+			private function setUndefinedPlotterKeySource():void
+			{
+				var recordKeys:Array = _plotter.keySet.keys;
+				var missingXkeys:Array = [];
+				var missingYkeys:Array = [];
+				var missingXYkeys:Array = [];
+				var missingX:Boolean;
+				var missingY:Boolean;
+				
+				for each(var key:IQualifiedKey in recordKeys)	
+				{
+					missingX = !_plotter.xColumn.containsKey(key);
+					missingY = !_plotter.yColumn.containsKey(key);
+					
+					if(missingX)
+					{
+						if(missingY)
+							missingXYkeys.push(key);
+						else 
+							missingXkeys.push(key);
+					}
+					else if(missingY)
+					{
+						missingYkeys.push(key);
+					}
+				}
+				_undefinedXPlotter.setCustomKeySource(missingXkeys);
+				_undefinedYPlotter.setCustomKeySource(missingYkeys);
+				_undefinedXYPlotter.setCustomKeySource(missingXYkeys);
+			}
+			
+			private function setUndefinedLayerScreenBounds():void
+			{				
+				var left:Number = visualization.marginLeft.value;
+				var top:Number = visualization.marginTop.value;
+				var right:Number = visualization.width - visualization.marginRight.value;
+				var bottom:Number = visualization.height - visualization.marginBottom.value;
+				var width:Number = visualization.width;
+				var height:Number = visualization.height;
+				
+				var topOffset:Number = top/2;
+				var rightOffset:Number = visualization.marginRight.value/2;
+				var graphics:Graphics = visualization.graphics;
+				graphics.clear();
+				graphics.lineStyle(1);
+				
+				graphics.moveTo(right+rightOffset, bottom);
+				graphics.lineTo(right+rightOffset, top);				
+				_tempBounds.setBounds(right, bottom, width, top);
+				_undefinedXLayer.setScreenBounds(_tempBounds);					
+				
+				graphics.moveTo(left, top-topOffset);
+				graphics.lineTo(right, top-topOffset);
+				_tempBounds.setBounds(left, top, right, 0);
+				_undefinedYLayer.setScreenBounds(_tempBounds);								
+				
+				graphics.moveTo(right+rightOffset, top-topOffset);
+				graphics.lineTo(right+rightOffset+2, top-topOffset);
+				_tempBounds.setBounds(right, top, width, 0);
+				_undefinedXYLayer.setScreenBounds(_tempBounds);
+				
+				graphics.endFill();
+			}
+			
+			// these variables are used to detect a change in size
+			private var _prevUnscaledWidth:Number = 0;
+			private var _prevUnscaledHeight:Number = 0;
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				// detect size change
+				var sizeChanged:Boolean = _prevUnscaledWidth != unscaledWidth || _prevUnscaledHeight != unscaledHeight;
+				_prevUnscaledWidth = unscaledWidth;
+				_prevUnscaledHeight = unscaledHeight;
+				
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				if (sizeChanged)
+					setUndefinedLayerScreenBounds();
+			}
+			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
 			
 			private function updateProbeColumns():void
@@ -204,6 +356,8 @@
 				Weave.properties.axisFontColor.addGroupedCallback(this,updateEquationStyle);
 				Weave.properties.axisFontSize.addGroupedCallback(this,updateEquationStyle);
 				Weave.properties.axisFontUnderline.addGroupedCallback(this, updateEquationStyle, true);
+				
+				setUndefinedLayerScreenBounds();
 			}
 			
 			private function updateEquationStyle():void

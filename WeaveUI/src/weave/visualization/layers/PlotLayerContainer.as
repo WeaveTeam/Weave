@@ -124,9 +124,17 @@ package weave.visualization.layers
 			// get new screen bounds
 			getScreenBounds(_currentScreenBounds);
 			// set new screen bounds for each layer
-			for each (var plotLayer:IPlotLayer in layers.getObjects(IPlotLayer))
-				plotLayer.setScreenBounds(_currentScreenBounds);
-
+			for each (var plotLayer:PlotLayer in layers.getObjects(PlotLayer))
+			{
+				if(!plotLayer.lockScreenBounds)
+					plotLayer.setScreenBounds(_currentScreenBounds);
+			}
+			for each (var selectablePlotLayer:SelectablePlotLayer in layers.getObjects(SelectablePlotLayer))
+			{
+				if(!selectablePlotLayer.lockScreenBounds)
+					selectablePlotLayer.setScreenBounds(_currentScreenBounds);
+			}
+			
 			// if screen bounds changed, need to make sure data bounds is still within desired constraints.
 			if (!_currentScreenBounds.equals(tempScreenBounds))
 			{

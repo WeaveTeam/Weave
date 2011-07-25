@@ -21,12 +21,18 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	
+	import mx.utils.ObjectUtil;
+	
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	
@@ -41,8 +47,27 @@ package weave.visualization.plotters
 		{
 			super(CircleGlyphPlotter);
 			//circlePlotter.fillStyle.lock();
+			setKeySource(_keySet);
+			getCallbackCollection(this).addImmediateCallback(this, updateKeys);
+			
+			getCallbackCollection(keySet).addImmediateCallback(this, printKeys);
 			registerSpatialProperties(xColumn, yColumn);
 			registerNonSpatialProperties(colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy);
+		}
+		
+		private var _keySet:KeySet = newDisposableChild(this,KeySet);
+		
+		public function setCustomKeySource(keys:Array):void
+		{			
+			getCallbackCollection(this).removeCallback(updateKeys);
+			_keySet.replaceKeys(keys);
+			setKeySource(_keySet);
+			
+		}
+		
+		private function printKeys():void
+		{
+			trace(ObjectUtil.toString(keySet));
 		}
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -91,6 +116,35 @@ package weave.visualization.plotters
 		public function get alphaColumn():AlwaysDefinedColumn { return (circlePlotter.fillStyle.internalObject as SolidFillStyle).alpha; }
 		public function get colorColumn():AlwaysDefinedColumn { return (circlePlotter.fillStyle.internalObject as SolidFillStyle).color; }
 		public function get radiusColumn():DynamicColumn { return circlePlotter.screenRadius; }
+		
+		private function getAllKeys(outputKeySet:KeySet, inputKeySets:Array):void
+		{
+			outputKeySet.delayCallbacks();
+			if (inputKeySets.length > 0)
+				outputKeySet.replaceKeys((inputKeySets[0] as IKeySet).keys);
+			else
+				outputKeySet.clearKeys();
+			for (var i:int = 1; i < inputKeySets.length; i++)
+			{
+				outputKeySet.addKeys((inputKeySets[i] as IKeySet).keys);
+			}
+			outputKeySet.resumeCallbacks();			
+		}
+		
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		{
+			var x:Number = xColumn.getValueFromKey(recordKey, Number);
+			var y:Number = yColumn.getValueFromKey(recordKey, Number);
+			
+			var bounds:IBounds2D = getReusableBounds();
+			bounds.setCenteredRectangle(isNaN(x) ? 0 : x, isNaN(y) ? 0 : y, isNaN(x) ? Infinity:0, isNaN(y) ? Infinity : 0);
+			return [bounds];
+		}
+				
+		private function updateKeys():void
+		{
+			getAllKeys(_keySet,[xColumn,yColumn,radiusColumn,colorColumn]);
+		}
 	}
 }
 

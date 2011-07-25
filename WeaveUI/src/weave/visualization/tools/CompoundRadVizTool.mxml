@@ -61,12 +61,10 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.SpatialIndex;
-			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.CompoundRadVizPlotter;
-			import weave.visualization.plotters.ProbeLinePlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
 
 			
@@ -128,8 +126,11 @@
 			private var tempPoint:Point = new Point();					
 			
 			private var _probedKeys:Array ;
+			private var _probedAnchor:AnchorPoint;
 			private var dataBounds:Bounds2D = new Bounds2D();
-			private var isDragging:Boolean = false;						
+			private var isDragging:Boolean = false;
+			private var anchorXOffsetFromMouse:Number;
+			private var enableAutoZoom:Boolean;
 			
 			private var probeSprite:Sprite = new Sprite() ;
 			
@@ -156,13 +157,22 @@
 				tempBounds.centeredResize(10,10);
 				
 				visualization.dataBounds.copyTo(dataBounds);
-				getScreenBounds(screenBounds);
+				getScreenBounds(screenBounds);				
 				screenBounds.projectCoordsTo(tempBounds, dataBounds);
 				
 				_probedKeys = (_anchorLayer.spatialIndex as SpatialIndex).getKeysBoundingBoxOverlap(tempBounds);
-				
 				if( !_probedKeys.length ) return;
+
+				var key:IQualifiedKey = _probedKeys[0];
+				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;
+				
+				tempBounds.copyFrom(_plotter.getDataBoundsFromRecordKey(key) as Bounds2D);
+				screenBounds.projectPointTo(tempPoint, dataBounds);
+				anchorXOffsetFromMouse = tempPoint.x - _probedAnchor.x.value;													
+				
 				visualization.enableSelection.value = false;
+				enableAutoZoom = visualization.enableAutoZoomToExtent.value;
+				visualization.enableAutoZoomToExtent.value = false;
 				isDragging = true;
 			}
 						
@@ -170,23 +180,23 @@
 			{
 				if(!isDragging) return;				
 				handleMouseMove(event);
-				visualization.enableSelection.value = true;
+				_probedAnchor = null;
 				isDragging = false;							
+				visualization.enableSelection.value = true;
+				visualization.enableAutoZoomToExtent.value = enableAutoZoom;
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void
 			{
 				if(!isDragging) return;
+				if(!_probedAnchor) return ;
+
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
-				getScreenBounds(screenBounds);
-				visualization.dataBounds.copyTo(dataBounds);
+								
 				screenBounds.projectPointTo(tempPoint, dataBounds);
-				
-				var key:IQualifiedKey = _probedKeys[0];	
-				if(!key) return ;
-				var anchor:AnchorPoint = _anchorPlotter.anchors.getObject(key.localName) as AnchorPoint;
-				anchor.x.value = tempPoint.x;
-				anchor.y.value = tempPoint.y;				
+																
+				_probedAnchor.x.value = tempPoint.x - anchorXOffsetFromMouse;
+				_probedAnchor.y.value = tempPoint.y;				
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -317,14 +327,14 @@
 								liveDragging="true"/>
 				</mx:HBox>
 			</mx:VBox>
-			<mx:Spacer height="10"/>
+			<!--<mx:Spacer height="10"/>
 			<userControls:ControlsSubsetBox>
 				<mx:Label text="Label angle" fontWeight="bold"/>
 				<mx:HSlider id="labelAngleSlider"
 						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 						dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 						initialize="linkBindableProperty(_anchorPlotter.labelAngleRatio, labelAngleSlider, 'value')"/>
-			</userControls:ControlsSubsetBox>
+			</userControls:ControlsSubsetBox>-->
 			<mx:Spacer height="10"/>
 			<mx:VBox
 				borderStyle="solid" 

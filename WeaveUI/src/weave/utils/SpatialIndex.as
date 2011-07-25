@@ -113,7 +113,7 @@ package weave.utils
 		 * 
 		 * @param plotter An IPlotter object to index.
 		 */
-		public function createIndex(plotter:IPlotter):void
+		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
 			delayCallbacks();
 						
@@ -171,7 +171,8 @@ package weave.utils
 					{
 						// do not index shapes with undefined bounds
 						//TODO: index shapes with missing bounds values into a different index
-						if (!bounds.isUndefined())
+						// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
+						if (!bounds.isUndefined() || (bounds.isUndefined() && queryMissingBounds))
 						{
 							_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
 							collectiveBounds.includeBounds(bounds);

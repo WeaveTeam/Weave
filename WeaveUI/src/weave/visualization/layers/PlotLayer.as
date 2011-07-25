@@ -165,6 +165,7 @@ package weave.visualization.layers
 
 		private const _dataBounds:IBounds2D = new Bounds2D(); // this is set by the public setDataBounds() interface
 		private const _screenBounds:IBounds2D = new Bounds2D(); // this is set by the public setScreenBounds() interface
+		public var lockScreenBounds:Boolean = false;
 
 		/**
 		 * When this is true, the plot won't be drawn if there is no selection and the background will never be drawn.
@@ -184,6 +185,7 @@ package weave.visualization.layers
 		 * This is used to index the keys in the plotter by dataBounds.
 		 */
 		public function get spatialIndex():ISpatialIndex { return _spatialIndex; }
+		public var showMissingRecords:Boolean = false;
 
 		// these bitmaps will be added as a children
  		protected const backgroundBitmap:Bitmap = new Bitmap(null, PixelSnapping.AUTO, true);
@@ -245,7 +247,7 @@ package weave.visualization.layers
 			if (_spatialIndex.recordCount == 0)
 			{
 				//trace(this,"updating spatial index", CallbackCollection.getStackTrace());
-				_spatialIndex.createIndex(plotter);
+				_spatialIndex.createIndex(plotter, showMissingRecords);
 				//trace(this,"updated spatial index",spatialIndex.collectiveBounds);
 			}
 
@@ -266,7 +268,8 @@ package weave.visualization.layers
 					{
 						if (keyBounds.overlaps(_dataBounds))
 						{
-							keys.push(key);
+							if(!keyBounds.isUndefined() || showMissingRecords)
+								keys.push(key);
 							break;
 						}
 					}
@@ -291,10 +294,10 @@ package weave.visualization.layers
 		 */
 		protected function validateGraphics(unscaledWidth:Number, unscaledHeight:Number):void
 		{
-			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0);
+			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && layerIsVisible.value;
 			//validate spatial index if necessary
 			if (shouldDraw && _spatialIndex.recordCount == 0)
-				_spatialIndex.createIndex(plotter);
+				_spatialIndex.createIndex(plotter, showMissingRecords);
 
 			// draw background if this is not an overlay
 			if (!isOverlay.value && !PlotterUtils.bitmapDataIsEmpty(backgroundBitmap))

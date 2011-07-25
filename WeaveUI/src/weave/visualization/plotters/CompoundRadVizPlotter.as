@@ -310,6 +310,13 @@ package weave.visualization.plotters
 			}
 		}
 		
+		/**
+		 * This function draws the background graphics for this plotter, if applicable.
+		 * An example background would be the origin lines of an axis.
+		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
+		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
+		 * @param destination The sprite to draw the graphics onto.
+		 */
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var g:Graphics = tempShape.graphics;
@@ -365,6 +372,15 @@ package weave.visualization.plotters
 			return 0 ;
 		}			
 		
+		/**
+		 * This function must be defined with override by classes that extend AbstractPlotter.
+		 * 
+		 * Draws the graphics for a list of records onto a sprite.
+		 * @param recordKeys The list of keys that identify which records should be used to generate the graphics.
+		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
+		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
+		 * @param destination The sprite to draw the graphics onto.
+		 */
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			//timer1.start();
@@ -375,6 +391,14 @@ package weave.visualization.plotters
 			timer1.stop();*/
 		}
 		
+		/**
+		 * This function must be implemented by classes that extend AbstractPlotter.
+		 * 
+		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
+		 * @param key The key of a data record.
+		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @return An Array of Bounds2D objects that make up the bounds for the record.
+		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
 			_columns = columns.getObjects(IAttributeColumn);
@@ -386,6 +410,10 @@ package weave.visualization.plotters
 			return [bounds];
 		}
 		
+		/**
+		 * This function returns a Bounds2D object set to the data bounds associated with the background.
+		 * @return A Bounds2D object specifying the background data bounds.
+		 */
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			return getReusableBounds(-1, -1.1, 1, 1.1);
