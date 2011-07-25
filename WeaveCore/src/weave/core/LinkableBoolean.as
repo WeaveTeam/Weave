@@ -32,7 +32,7 @@ package weave.core
 		public function LinkableBoolean(defaultValue:* = null)
 		{
 			super(Boolean);
-			if (defaultValue != null)
+			if (defaultValue !== null)
 			{
 				delayCallbacks();
 				value = defaultValue ? true : false;
