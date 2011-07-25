@@ -19,6 +19,8 @@
 
 package weave.visualization.tools
 {
+	import flash.events.Event;
+	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.Canvas;
 	import mx.containers.HBox;
@@ -75,10 +77,11 @@ package weave.visualization.tools
 		/**
 		 * container for Flex components
 		 */
+		private const toolVBox:VBox = new VBox(); // simpleVisToolVBox contains titleLabel and visCanvas
+		private const visCanvas:Canvas = new Canvas(); // For linkDisplayObjects
+		private const titleLabel:Label = new Label(); // For display of title inside the window area
+		
 		private var createdChildren:Boolean = false;
-		private var simpleVisToolVBox:VBox; // simpleVisToolVBox contains titleLabel and visCanvas
-		private var visCanvas:Canvas; // For linkDisplayObjects
-		private var titleLabel:Label; // For display of title inside the window area
 		override protected function createChildren():void
 		{
 			super.createChildren();
@@ -86,16 +89,13 @@ package weave.visualization.tools
 			if (createdChildren)
 				return;
 			
-			simpleVisToolVBox = new VBox();
-			visCanvas = new Canvas();
-			titleLabel = new Label();
-			simpleVisToolVBox.percentHeight = 100;
-			simpleVisToolVBox.percentWidth = 100;
-			simpleVisToolVBox.setStyle("horizontalAlign", "center");
+			toolVBox.percentHeight = 100;
+			toolVBox.percentWidth = 100;
+			toolVBox.setStyle("horizontalAlign", "center");
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
-			simpleVisToolVBox.addChild(titleLabel);
-			simpleVisToolVBox.addChild(visCanvas);
+			toolVBox.addChild(visCanvas);
+			titleLabel.setStyle("fontWeight", "bold");
 			
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
@@ -105,7 +105,9 @@ package weave.visualization.tools
 			for ( var i:int = 0; i < flexChildren.length; i++ )
 				visCanvas.addChild(flexChildren[i]);
 			
-			this.addChild(simpleVisToolVBox);
+			this.addChild(toolVBox);
+			
+			_userWindowSettings.targetTool = this;
 			
 			createdChildren = true;
 		}
@@ -116,10 +118,8 @@ package weave.visualization.tools
 			super.childrenCreated();
 			
 			if (controlPanel)
-			{
-				_userWindowSettings.targetTool = this;
 				controlPanel.children = [_userWindowSettings];
-			}
+			
 			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
 		}
 		private function handleBindableTitle(value:String):void
@@ -152,13 +152,19 @@ package weave.visualization.tools
 			verticalScrollPolicy = "off";
 		}
 		
-		public const enableTitle:LinkableBoolean = newLinkableChild(this, LinkableBoolean, handleTitleToggleChange);
+		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange);
 		private function handleTitleToggleChange():void
 		{
-			if (!enableTitle.value) simpleVisToolVBox.removeChild(titleLabel);
-			else simpleVisToolVBox.addChildAt(titleLabel,0);
-			handleToolTitleChange();
-			validateNow();
+			if (!enableTitle.value)
+			{
+				if (toolVBox.contains(titleLabel))
+					toolVBox.removeChild(titleLabel);
+			}
+			else
+			{
+				if (!toolVBox.contains(titleLabel))
+					toolVBox.addChildAt(titleLabel,0);
+			}
 			invalidateDisplayList();
 		}
 		

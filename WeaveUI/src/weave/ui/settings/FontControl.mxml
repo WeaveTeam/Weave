@@ -19,65 +19,38 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-	xmlns="*" xmlns:ui="weave.ui.settings.*" xmlns:ui1="weave.ui.*" >
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns="*"
+		xmlns:settings="weave.ui.settings.*"
+		xmlns:ui="weave.ui.*"
+		creationPolicy="all"
+		horizontalGap="4"
+		initialize="init();">
+	
+	<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 
-	<mx:Array id="fontSizeArray"> 
-		<mx:String>8</mx:String>
-		<mx:String>9</mx:String>
-		<mx:String>10</mx:String>
-		<mx:String>11</mx:String>
-		<mx:String>12</mx:String>
-		<mx:String>14</mx:String>
-		<mx:String>16</mx:String>
-		<mx:String>18</mx:String>
-		<mx:String>20</mx:String>
-		<mx:String>22</mx:String>
-		<mx:String>24</mx:String>
-		<mx:String>26</mx:String>
-		<mx:String>28</mx:String>
-		<mx:String>36</mx:String>
-		<mx:String>48</mx:String>
-		<mx:String>72</mx:String>
-	</mx:Array>
+	<settings:FontStyleList id="fontFamilyCombo" width="150" />
+
+	<ui:CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"/>
+
+	<mx:Button id="boldButton" toggle="true" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="Bold"/>
+	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="Italic"/>
+	<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="Underline"/>
 
 	<mx:Script>
-	<![CDATA[
-		import mx.core.mx_internal;
-		use namespace mx_internal;
-		
-		private function handleFontSizeCreationComplete():void
-		{
-			fontSizeCombo.setStyle("fontSize",10);
-			fontSizeCombo.setStyle('textDecoration','none');
-			fontSizeCombo.setStyle('fontStyle','normal');
-			fontSizeCombo.setStyle('fontWeight','normal');
-		}
-	]]>
-	</mx:Script>
-
-		<mx:HBox id="toolBar1" width="100%" paddingRight="2">		 
-
-			<ui:FontStyleList  id="fontcntrl" width="150" />
-
-			<ui1:CustomComboBox id="fontSizeCombo" editable="false"
-				paddingLeft="2" paddingRight="2"
-				dataProvider = "{fontSizeArray}"
-				creationComplete="handleFontSizeCreationComplete()"/>
-		</mx:HBox>
-	
-		<mx:HBox id="toolBar2" 
-			horizontalGap="0"
-			width="100%"
-			paddingBottom="2" paddingRight="2">
-
-			<mx:Button id="boldButton" toggle="true" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="Bold"/>
-			<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="Italic"/>
-			<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="Underline"/>
+		<![CDATA[
+			import mx.core.mx_internal;
+			use namespace mx_internal;
 			
-			<mx:Spacer width="100%"/>
-			<mx:Label text="Color:" />
-			<mx:ColorPicker id="colorPicker" width="22" height="22"/>
-		</mx:HBox>
-
-</mx:VBox>
+			public const fontSizeArray:Array = [8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72];
+			
+			private function init():void
+			{
+				fontSizeCombo.setStyle("fontSize", 10);
+				fontSizeCombo.setStyle('textDecoration', 'none');
+				fontSizeCombo.setStyle('fontStyle', 'normal');
+				fontSizeCombo.setStyle('fontWeight', 'normal');
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

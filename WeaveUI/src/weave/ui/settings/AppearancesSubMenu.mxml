@@ -25,8 +25,10 @@
 		 width="100%" 
 		 height="100%"
 		 creationPolicy="all"
+		 creationComplete="handleCreationComplete()"
 		 >
-<!--	<mx:Array id="borderList">
+<!--
+	<mx:Array id="borderList">
 		<mx:Object name="Solid" imageFile="@Embed(source='/weave/resources/images/borderImages/Border1.png')"/>
 		<mx:Object name="Dotted" imageFile="@Embed(source='/weave/resources/images/borderImages/Border2.png')"/>
 		<mx:Object name="Dash Small" imageFile="@Embed(source='/weave/resources/images/borderImages/Border3.png')"/>
@@ -34,7 +36,8 @@
 		<mx:Object name="Dash-Dot-wide" imageFile="@Embed(source='/weave/resources/images/borderImages/Border5.png')"/>
 		<mx:Object name="Dash-Dot-small" imageFile="@Embed(source='/weave/resources/images/borderImages/Border6.png')"/>
 	</mx:Array>
--->	<mx:Script>
+-->
+	<mx:Script>
 		<![CDATA[
 			import mx.core.Application;
 			import mx.core.ClassFactory;
@@ -54,26 +57,33 @@
 			
 			[Bindable]
 			public var selectedColor:uint;
-
-			private function handleFontControlInitialize():void
+			
+			override protected function createChildren():void
 			{
-				fc2.toolBar1.removeChildAt(0);
-				fc2.toolBar2.removeChildAt(0);
-				fc2.toolBar2.removeChildAt(0);
-				linkBindableProperty(Weave.properties.axisFontSize, fc2.fontSizeCombo, "selectedItem");
-				linkBindableProperty(Weave.properties.axisFontColor, fc2.colorPicker, "selectedColor");
-				linkBindableProperty(Weave.properties.axisFontUnderline, fc2.underlineButton, "selected" );
+				super.createChildren();
+				
+				windowTitleFontControl.initialize();
+				windowTitleFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleFontListChange );
+
+				toolFontControl.initialize();
+				toolFontControl.removeChild(toolFontControl.fontFamilyCombo);
+				toolFontControl.removeChild(toolFontControl.underlineButton);
+				toolFontControl.removeChild(toolFontControl.boldButton);
+				toolFontControl.removeChild(toolFontControl.italicButton);
 			}
 			
-			private function handleRT1Initialize():void
+			private function handleCreationComplete():void
 			{
-				rt1.fontcntrl.addEventListener(ListEvent.CHANGE, handleFontListChange );
-				linkBindableProperty(Weave.properties.panelTitleFontFamily, rt1.fontcntrl, "selectedLabel");
-				linkBindableProperty(Weave.properties.panelTitleFontSize,rt1.fontSizeCombo, "selectedItem");
-				linkBindableProperty(Weave.properties.panelTitleFontColor, rt1.colorPicker, "selectedColor");
-				linkBindableProperty(Weave.properties.panelTitleFontBold, rt1.boldButton, "selected");
-				linkBindableProperty(Weave.properties.panelTitleFontItalic, rt1.italicButton, "selected");
-				linkBindableProperty(Weave.properties.panelTitleFontUnderline, rt1.underlineButton, "selected");
+				linkBindableProperty(Weave.properties.panelTitleFontFamily, windowTitleFontControl.fontFamilyCombo, "selectedLabel");
+				linkBindableProperty(Weave.properties.panelTitleFontSize,windowTitleFontControl.fontSizeCombo, "selectedItem");
+				linkBindableProperty(Weave.properties.panelTitleFontColor, windowTitleFontControl.colorPicker, "selectedColor");
+				linkBindableProperty(Weave.properties.panelTitleFontBold, windowTitleFontControl.boldButton, "selected");
+				linkBindableProperty(Weave.properties.panelTitleFontItalic, windowTitleFontControl.italicButton, "selected");
+				linkBindableProperty(Weave.properties.panelTitleFontUnderline, windowTitleFontControl.underlineButton, "selected");
+				
+				linkBindableProperty(Weave.properties.axisFontSize, toolFontControl.fontSizeCombo, "selectedItem");
+				linkBindableProperty(Weave.properties.axisFontColor, toolFontControl.colorPicker, "selectedColor");
+				linkBindableProperty(Weave.properties.axisFontUnderline, toolFontControl.underlineButton, "selected" );
 			}
 			
 			private function handleFontListChange(event:ListEvent):void
@@ -82,105 +92,56 @@
 			}
 		]]>
 	</mx:Script>
-	<mx:ViewStack id="appearances"
-				  height="100%" width="100%"
-				  name="appearances"
-				  >
+	<mx:VBox verticalGap="16">
+		<mx:VBox>
+			<mx:Label text="Window Title Font Properties:"/>
+			<FontControl id="windowTitleFontControl"/> 
+		</mx:VBox>
 		
-		<mx:Canvas id="admin">
-			<mx:VBox paddingLeft="10">
-				<mx:HBox>
-					<mx:Label text="Background Color:"/>
-					<mx:ColorPicker id="swatches" selectedColor="0xCCCCCC" 
-									initialize="linkBindableProperty(Weave.properties.backgroundColor,swatches,'selectedColor')"
-									/>
-				</mx:HBox>
-				
-				<mx:Spacer height="20"/>	
-				
-				<mx:VBox>
-					<mx:HBox>
-						<mx:VBox cornerRadius="5" 
-								 borderStyle="solid" borderThickness="1" borderColor="0x222222">
-							<mx:Label text="Default Font Properties:"/>
-							<mx:HBox>
-								<mx:Label text="Font:"/>
-								<FontControl id="rt1" initialize="handleRT1Initialize();"/> 
-							</mx:HBox>
-						</mx:VBox>
-						<mx:Spacer width="10"/>
-						<mx:VBox cornerRadius="5" 
-								 borderStyle="solid" borderThickness="1" borderColor="0x222222">
-							<mx:Label text="Default Axis Font Properties:"/>
-							<mx:HBox>
-								<mx:Label text="Font Size:"/>
-								<FontControl id="fc2" 
-											 initialize="handleFontControlInitialize()"/>
-							</mx:HBox>
-						</mx:VBox>
-					</mx:HBox>
-					</mx:VBox>
-				
-				<mx:Spacer height="20"/>
-				<mx:CheckBox toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
-							 id="dashboardMode"
-							 label="Enable dashboard mode" 
-							 selected="false"
-							 initialize="linkBindableProperty(Weave.properties.dashboardMode, dashboardMode, 'selected');"
-							 />
-				<mx:CheckBox toolTip="Check this box to enable the Attribute Selector."
-							 id="enableToolControls"
-							 label="Enable tool controls"
-							 selected="true"
-							 initialize="linkBindableProperty(Weave.properties.enableToolControls, enableToolControls, 'selected');"
-							 />
-				
-				<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
-				id="viewsTabBar"
-				label="Show View TabBar"
-				initialize="linkBindableProperty(Weave.properties.showViewBar,viewsTabBar,'selected')"/>
-				
-				<mx:CheckBox toolTip="Set Active Window Border"
-				visible="{isActive}"
-				id="toggleActiveBorders"
-				label="Show Active Panel Border"
-				selected="true"
-				initialize="handleActiveWindowBorderCheckCreated(event)"/> 
-				
-				<mx:HBox visible="{isActive}">  
-				<mx:Label text="Tool Border:"/> 
-				
-				<ui:CustomComboBox id="list" dataProvider="{borderList}" maxWidth="96"
-				initialize="initCell();" labelField="{data.@name}"/>
-				
-				</mx:HBox>-->
-				
-				
-				
-			</mx:VBox>	
-		</mx:Canvas>
+		<mx:VBox>
+			<mx:Label text="Default Tool Font Properties:"/>
+			<FontControl id="toolFontControl"/>
+		</mx:VBox>
 		
-		<mx:Canvas id="notadmin">
-			<mx:VBox>
-				<mx:HBox>
-					<mx:Label text="Background Color:"/>
-					<mx:ColorPicker id="swatches2" 
-									initialize="linkBindableProperty(Weave.properties.backgroundColor,swatches2,'selectedColor')"
-									
-									/>
-				</mx:HBox>
-				
-				<mx:Spacer height="20"/>	
-				
-				<mx:HBox>
-					<mx:Label text="Font:"/>
-					<FontControl id="rt2"/>
-					<mx:Label text="Color:" />
-					<mx:ColorPicker id="colorPicker2" width="22" height="22"
-									change="Application.application.setStyle('color',colorPicker2.selectedColor)"/>
-				</mx:HBox>
-			</mx:VBox>	
-		</mx:Canvas>
-	</mx:ViewStack>
-	
+		<mx:HBox>
+			<mx:Label text="Background Color:"/>
+			<mx:ColorPicker id="swatches" selectedColor="0xCCCCCC" 
+							initialize="linkBindableProperty(Weave.properties.backgroundColor,swatches,'selectedColor')"
+							/>
+		</mx:HBox>
+		
+		<mx:CheckBox toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
+					 id="dashboardMode"
+					 label="Enable dashboard mode" 
+					 selected="false"
+					 initialize="linkBindableProperty(Weave.properties.dashboardMode, dashboardMode, 'selected');"
+					 />
+		<mx:CheckBox toolTip="Check this box to enable the Attribute Selector."
+					 id="enableToolControls"
+					 label="Enable tool controls"
+					 selected="true"
+					 initialize="linkBindableProperty(Weave.properties.enableToolControls, enableToolControls, 'selected');"
+					 />
+		
+		<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
+		id="viewsTabBar"
+		label="Show View TabBar"
+		initialize="linkBindableProperty(Weave.properties.showViewBar,viewsTabBar,'selected')"/>
+		
+		<mx:CheckBox toolTip="Set Active Window Border"
+		visible="{isActive}"
+		id="toggleActiveBorders"
+		label="Show Active Panel Border"
+		selected="true"
+		initialize="handleActiveWindowBorderCheckCreated(event)"/> 
+		
+		<mx:HBox visible="{isActive}">  
+		<mx:Label text="Tool Border:"/> 
+		
+		<ui:CustomComboBox id="list" dataProvider="{borderList}" maxWidth="96"
+		initialize="initCell();" labelField="{data.@name}"/>
+		
+		</mx:HBox>-->
+		
+	</mx:VBox>	
 </mx:VBox>	

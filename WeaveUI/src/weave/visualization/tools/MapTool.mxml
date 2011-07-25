@@ -22,7 +22,7 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
-	     layout="absolute" xmlns:userControls="weave.ui.userControls.*"
+	     layout="absolute" xmlns:userControls="weave.ui.userControls.*" creationPolicy="all"
 	     xmlns:mapTool="weave.visualization.tools.*"
 	     >
 	<mx:Script>
@@ -103,9 +103,6 @@
 				visualization.enableFixedAspectRatio.value = true;
 				visualization.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
-				
-				enableBackground.value = true;
-				enableOverview.value = false;
 				
 				colorColumn.addGroupedCallback(this, updateTitle);
 				toolTitle.addGroupedCallback(this, updateTitle);
@@ -241,21 +238,16 @@
 					title = toolTitle.value;
 			}
 			
-			override protected function childrenCreated():void
+			override protected function createChildren():void
 			{
-				super.childrenCreated();
+				super.createChildren();
 				
 				var backgroundImageCheck:CheckBox = new CheckBox();
 				backgroundImageCheck.label = "Enable ocean background image";
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
+				_userWindowSettings.initialize();
 				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
 				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
-				
-				//EventUtils.addBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
-				//EventUtils.addBindCallback(userControlPanel, "visible", handleControlPanelToggle);
-				
-				/*var download:BitmapData = BitmapUtils.loadBitmapDataFromImage("weave/resources/images/ocean_background2.jpg");
-				trace(download);*/
 				
 				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
 				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
@@ -263,17 +255,13 @@
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
 				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, handleBoundsChange, true);
+				visualization.addEventListener(Event.RESIZE, handleVisualizationResize);
 			}
 			
-			/*private function handleSelectedLayerChange():void
+			private function handleVisualizationResize(event:Event):void
 			{
-				var name:String = visualization.layers.getName(layerList.selectedItem as SelectablePlotLayer);
-				if (name != null)
-				{
-					visualization.activeLayerName.value = name;
-					(layerList.dataProvider as ICollectionView).refresh();
-				}
-			}*/
+				invalidateDisplayList();
+			}
 			
 			private function handleMouseModeChange(event:Event = null):void
 			{				
@@ -385,10 +373,11 @@
 			private var _tempBounds:IBounds2D = new Bounds2D();
 
 			[Embed(source="/weave/resources/images/ocean_background2.jpg")]
-			private var BackgroundImage:Class;
-			private var backgroundImageBitmapData:BitmapData = null;
-			public const enableBackground:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidateDisplayList);
-			public const enableOverview:LinkableBoolean = newLinkableChild(this, LinkableBoolean, updateOverviewWindow);
+			private static const BackgroundImage:Class;
+			private static const backgroundImageBitmapData:BitmapData = (new BackgroundImage() as Bitmap).bitmapData;
+			
+			public const enableBackground:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
+			public const enableOverview:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateOverviewWindow);
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
@@ -396,24 +385,17 @@
 				
 				if (enableBackground.value)
 				{
-					if(_userWindowSettings && _userWindowSettings.backgroundColorPicker)
+					if (_userWindowSettings && _userWindowSettings.backgroundColorPicker)
 						_userWindowSettings.backgroundColorPicker.enabled = false;
 					
-					if(backgroundImageBitmapData == null)
-					{
-						var backgroundImage:Bitmap = new BackgroundImage();
-						backgroundImageBitmapData = new BitmapData(backgroundImage.width, backgroundImage.height);
-						backgroundImageBitmapData.draw(backgroundImage);
-					}
-				
+					visualization.graphics.lineStyle(0,0,0);
 					visualization.graphics.clear();
-					
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
 				}
 				else
 				{
-					if(_userWindowSettings && _userWindowSettings.backgroundColorPicker)
+					if (_userWindowSettings && _userWindowSettings.backgroundColorPicker)
 						_userWindowSettings.backgroundColorPicker.enabled = true;
 					
 					visualization.graphics.clear();
