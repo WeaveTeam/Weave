@@ -92,7 +92,10 @@ package weave.visualization.plotters
 			var anchor:AnchorPoint;
 			var radians:Number;
 			keyBoundsMap = new Dictionary();
-			
+
+			var graphics:Graphics = tempShape.graphics;
+			graphics.clear();
+						
 			// loop through anchors hash map and draw dimensional anchors and labels	
 			for each(var key:IQualifiedKey in recordKeys)
 			{
@@ -134,28 +137,29 @@ package weave.visualization.plotters
 				_bitmapText.x = tempPoint.x;
 				_bitmapText.y = tempPoint.y;
 				
+				// draw almost-invisible rectangle behind text
 				_bitmapText.getUnrotatedBounds(_tempBounds);
-				_tempBounds.getRectangle(_tempRectangle);
-				destination.fillRect(_tempRectangle, 0x02ff0000);
+				_tempBounds.getRectangle(_tempRectangle);				
+				destination.fillRect(_tempRectangle, 0x02808080);
 				
+				// draw bitmap text
 				_bitmapText.draw(destination);
-				
-				// draw circle
-				var graphics:Graphics = tempShape.graphics;
-				graphics.clear();
-				
-				graphics.lineStyle(3);
-				graphics.drawCircle(tempPoint.x, tempPoint.y, 3);
-				
+								
+				// draw circle				
+				graphics.lineStyle(1);
+				graphics.drawCircle(tempPoint.x, tempPoint.y, 1);				
 				graphics.endFill();
-				destination.draw(tempShape);							
 			}
+			destination.draw(tempShape);							
+			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			super.drawBackground(dataBounds,screenBounds,destination);
+			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
 		}

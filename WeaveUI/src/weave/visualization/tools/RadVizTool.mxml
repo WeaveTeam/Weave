@@ -98,6 +98,7 @@
 				_anchorLayer = visualization.layers.requestObject("anchorLayer", SelectablePlotLayer, false );
 				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, false) ;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
+				_anchorLayer.useTextBitmapFilters.value = true;				
 				
 				getCallbackCollection(plotLayer.probeFilter).addGroupedCallback(this,drawProbeLines);
 				

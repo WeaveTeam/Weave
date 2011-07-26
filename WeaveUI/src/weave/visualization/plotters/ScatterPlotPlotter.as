@@ -48,9 +48,7 @@ package weave.visualization.plotters
 			super(CircleGlyphPlotter);
 			//circlePlotter.fillStyle.lock();
 			setKeySource(_keySet);
-			getCallbackCollection(this).addImmediateCallback(this, updateKeys);
-			
-			getCallbackCollection(keySet).addImmediateCallback(this, printKeys);
+			getCallbackCollection(this).addImmediateCallback(this, updateKeys);						
 			registerSpatialProperties(xColumn, yColumn);
 			registerNonSpatialProperties(colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy);
 		}
@@ -63,12 +61,7 @@ package weave.visualization.plotters
 			_keySet.replaceKeys(keys);
 			setKeySource(_keySet);
 			
-		}
-		
-		private function printKeys():void
-		{
-			trace(ObjectUtil.toString(keySet));
-		}
+		}		
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{

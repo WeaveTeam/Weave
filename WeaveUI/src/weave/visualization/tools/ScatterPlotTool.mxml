@@ -169,10 +169,12 @@
 			{
 				plotLayer.getScreenBounds(_tempBounds);
 				
+				// TEMPORARY SOLUTION: undefined layer screenbounds need to be set after tool appears on stage
+				// during creationComplete the plot's screenBounds are still empty, so this event needs to keep firing until they are not empty
 				if(!_tempBounds.isEmpty())
 				{
 					setUndefinedLayerScreenBounds();
-					//after first time updateComplete is dispatched, remove event listener to avoid unnecessary updates
+					// screenBounds have been set- remove event listener to avoid unnecessary updates
 					removeEventListener(FlexEvent.UPDATE_COMPLETE, handleUpdateComplete);
 				}
 			}
@@ -223,13 +225,20 @@
 				visualization.marginLeft.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
 				
 				for each(var layer:SelectablePlotLayer in [_undefinedXLayer, _undefinedYLayer, _undefinedXYLayer])
-				{
+				{					
 					layer.lockScreenBounds = true;
-					layer.plotLayer.isOverlay.value = true;					
 					layer.showMissingRecords(true);
+					
+					try 
+					{
+						// Remove background bitmaps to reduce the number of overlapping bitmaps on the visualization
+						// This is a Flash Player limitation
+						layer.plotLayer.removeChild(layer.plotLayer.getBackgroundBitmap());									
+					} catch (e:Error) {} 				
 				} 
 				addEventListener(FlexEvent.UPDATE_COMPLETE, handleUpdateComplete);				
 			}
+
 			private const dataBounds:Bounds2D = new Bounds2D();
 			
 			private function setUndefinedPlotterKeySource():void
