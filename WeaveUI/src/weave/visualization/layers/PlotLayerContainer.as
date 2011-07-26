@@ -89,6 +89,7 @@ package weave.visualization.layers
 			var newLayer:IPlotLayer = layers.childListCallbacks.lastObjectAdded as IPlotLayer;
 			if (newLayer)
 			{
+				newLayer.name = layers.childListCallbacks.lastNameAdded; // for debugging
 				(newLayer.spatialIndex as SpatialIndex).addImmediateCallback(this, spatialCallback);
 				newLayer.plotter.spatialCallbacks.addImmediateCallback(this, spatialCallback);
 			}

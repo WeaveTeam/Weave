@@ -38,6 +38,7 @@ package weave.visualization.layers
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.ui.IPlotLayer;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -310,7 +311,7 @@ package weave.visualization.layers
 
 					var zoomOut:Boolean = (event.ctrlKey || event.shiftKey);
 
-					projectDragBoundsToDataQueryBounds(false);
+					projectDragBoundsToDataQueryBounds(null, false);
 					dataBounds.copyTo(_tempBounds);
 					_tempBounds.setCenter(queryBounds.getXCenter(), queryBounds.getYCenter());
 					
@@ -456,7 +457,7 @@ package weave.visualization.layers
 				else if (mode == PAN_MODE)
 				{
 					// pan the dragged distance
-					projectDragBoundsToDataQueryBounds(false);
+					projectDragBoundsToDataQueryBounds(null, false);
 					dataBounds.copyTo(tempDataBounds);
 					tempDataBounds.setCenter(tempDataBounds.getXCenter() - queryBounds.getWidth(), tempDataBounds.getYCenter() - queryBounds.getHeight());
 					dataBounds.copyFrom(tempDataBounds);
@@ -468,7 +469,7 @@ package weave.visualization.layers
 					if (dragReleased)
 					{
 						// zoom to selected data bounds if area > 0
-						projectDragBoundsToDataQueryBounds();
+						projectDragBoundsToDataQueryBounds(null, true); // data bounds in same direction when zooming
 						if (queryBounds.getArea() > 0)
 							dataBounds.copyFrom(queryBounds);
 					}
@@ -562,10 +563,23 @@ package weave.visualization.layers
 			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
-		protected function projectDragBoundsToDataQueryBounds(sameDirection:Boolean = true):void
+		/**
+		 * This function projects drag start,stop screen coordinates into data coordinates and stores the result in queryBounds.
+		 * @param layer If layer is null, InteractiveVisualization's screen/data bounds will be used.  Otherwise, uses IPlotLayer's bounds.
+		 * @param sameDirection Specify true when computing zoom coordinates.
+		 */		
+		protected function projectDragBoundsToDataQueryBounds(layer:IPlotLayer, sameDirection:Boolean):void
 		{
-			dataBounds.copyTo(tempDataBounds);
-			getScreenBounds(tempScreenBounds);
+			if (layer)
+			{
+				layer.getDataBounds(tempDataBounds);
+				layer.getScreenBounds(tempScreenBounds);
+			}
+			else
+			{
+				dataBounds.copyTo(tempDataBounds);
+				getScreenBounds(tempScreenBounds);
+			}
 			
 			// project stage coords to local layer coords
 			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
@@ -627,7 +641,7 @@ package weave.visualization.layers
 
 				// when using the selection layer, clear the probe
 				setProbeKeys(layer, []);
-				projectDragBoundsToDataQueryBounds();
+				projectDragBoundsToDataQueryBounds(layer, true);
 				
 				
 				// calculate minImportance
