@@ -68,7 +68,7 @@ function weaveReady(weave)
 {
 	disableButtons(false);
 	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
-	//alert('Weave instance is ready.');
+	alert('Weave JavaScript API is ready (id="'+(weave && weave.id)+'").');
 }
 // this function will enable or disable the api test buttons.
 function disableButtons(disabled)
