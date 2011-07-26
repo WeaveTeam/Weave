@@ -500,6 +500,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (InvocationTargetException e)
 		{
+			System.out.println(methodName + (List)Arrays.asList(methodParameters));
 			e.getCause().printStackTrace();
 			sendError(response, e.getCause().getMessage());
 		}

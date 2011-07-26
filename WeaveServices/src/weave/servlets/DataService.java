@@ -382,6 +382,7 @@ public class DataService extends GenericServlet
 		}
 		catch (SQLException e)
 		{
+			System.out.println(dataWithKeysQuery);
 			e.printStackTrace();
 			String msg = String.format(
 					"Unable to retrieve AttributeColumn \"%s\" in DataTable \"%s\". %s",
