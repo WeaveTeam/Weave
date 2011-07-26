@@ -66,17 +66,18 @@ var requiredRevision = 0;
 // this function gets called when the weave instance is ready.
 function weaveReady(weave)
 {
-	var disabled = weave == null;
+	disableButtons(false);
+	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
+	//alert('Weave instance is ready.');
+}
+// this function will enable or disable the api test buttons.
+function disableButtons(disabled)
+{
 	var buttons = ['b1','b2','b3','b4'];
 	for (var i = 0; i < buttons.length; i++)
 		document.getElementById(buttons[i]).disabled = disabled;
-	if (weave != null)
-	{
-		document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
-		//alert('Weave instance is ready.');
-	}
 }
-weaveReady(null); // disable buttons
+disableButtons(true);
 
 // brings a color legend to the foreground
 function showLegend()
