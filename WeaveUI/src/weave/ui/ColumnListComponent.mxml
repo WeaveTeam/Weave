@@ -31,10 +31,7 @@ ColumnListComponent
 		 verticalGap="0"
 		 width="100%" height="100%"
 		 borderStyle="outset"
-		 label="Attributes"
-		 backgroundColor="white" backgroundAlpha="0.7"
-		 creationComplete="handleCreationComplete()"
-		 enabled="{_enabled}">
+		 label="Attributes">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -49,22 +46,11 @@ ColumnListComponent
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			private function handleCreationComplete():void
-			{
-				Weave.properties.enableToolControls.addGroupedCallback(this, toggleSelector, true);
-			}
-			[Bindable] private var _enabled:Boolean = true;
-
-			private function toggleSelector():void
-			{
-				_enabled = Weave.properties.enableToolControls.value;
-			}
 			[Bindable] private var _visTool:SimpleVisTool= null;
 			
 			[Inspectable]
@@ -122,10 +108,12 @@ ColumnListComponent
 			
 		]]>
 	</mx:Script>
-<!-- enabled="{internalList.numItems - internalList.selectedIndices.length >= _minimumNumObjectsInList}"-->
-	<mx:Button click="internalList.removeSelectedItem()"
-			   toolTip="Click here to remove one or more selected attributes in the list above."
-			   label="Remove Attribute(s)"
-			   enabled="{internalList.selectedIndex >= 0}"
-			   width="100%" fillAlphas="[1.0, 1.0, 1.0, 0.99]" alpha="1.0"/>
+	<mx:HBox width="100%">
+		<mx:Spacer width="100%"/>
+		<mx:Button
+			label="Remove Attribute(s)"
+			toolTip="Click here to remove one or more selected attributes in the list above."
+			click="internalList.removeSelectedItem()"
+			enabled="{internalList.selectedIndex >= 0}"/>
+	</mx:HBox>
 </mx:VBox>

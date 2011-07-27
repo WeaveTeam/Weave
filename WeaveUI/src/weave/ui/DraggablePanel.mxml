@@ -159,8 +159,6 @@
 				// drop-down menus will be hidden behind the window after we move the window to the front.
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
 				
-				buttonRadius.value = 3;
-				
 				panelX.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelX]);
 				panelY.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelY]);
 				panelWidth.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelWidth]);
@@ -173,7 +171,7 @@
 				Weave.properties.panelTitleFontItalic.addGroupedCallback(this, handleTitleStyleChange);
 				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
-				Weave.properties.enableToolControls.addGroupedCallback(this, handleEnableToolControls, true);
+				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 
 			}
 			
@@ -334,8 +332,6 @@
 			public const closeable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const showCloseDialog:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false));
 			public const enableBorders:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableControlPanel:LinkableBoolean 	= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableHelpPanel:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const panelBorderColor:LinkableNumber 		= registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
 			public const panelBackgroundColor:LinkableNumber 	= registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 	
@@ -1365,7 +1361,7 @@
 			protected const pinButton:Button = new Button();
 			protected const pinToBackButton:Button = new Button();
 			
-			public const buttonRadius:LinkableNumber = newLinkableChild(this, LinkableNumber, panelNeedsUpdate, true);
+			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
 
 			override protected function createChildren():void
 			{
@@ -1448,14 +1444,6 @@
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
 			}
-			protected function handleEnableToolControls():void
-			{
-				var val:Boolean = Weave.properties.enableToolControls.value;
-				enableControlPanel.value = val;
-				//userControlButton.enabled = val;
-				//userControlButton.visible = val;
-				//updateButtons();
-			}
 			private var _helpPanel:HelpPanel = null;
 			private var _controlPanel:ControlPanel = null;
 			
@@ -1531,9 +1519,9 @@
 			{
 				var leftIconWidths:int = getButtonOffsetFromSide();
 								
-				if(enableControlPanel.value && _controlPanel)
+				if (Weave.properties.enableToolControls.value && _controlPanel)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
-				if(enableHelpPanel.value && _helpPanel)
+				if (/* enableHelpPanel.value && */ _helpPanel)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
 					
 				return leftIconWidths;
@@ -1543,21 +1531,9 @@
 			{
 				// by default, width of icons is the border only
 				var rightIconWidths:int = buttonOffsetFromSide;
-				
-				if(closeable.value)
-					rightIconWidths += buttonSize + spaceBetweenButtons;
-					
-				if(minimizable.value)		
-					rightIconWidths += buttonSize + spaceBetweenButtons;
-				
-				if(maximizable.value)
-					rightIconWidths += buttonSize + spaceBetweenButtons;
-				
-				if(pinnable.value)
-					rightIconWidths += buttonSize + spaceBetweenButtons;
-				
-				if(pinnableToBack.value)
-					rightIconWidths += buttonSize + spaceBetweenButtons;
+				for each (var lb:LinkableBoolean in [closeable, minimizable, maximizable, pinnable, pinnableToBack])
+					if (lb.value)
+						rightIconWidths += buttonSize + spaceBetweenButtons;
 				
 				return rightIconWidths;
 			}
@@ -1598,7 +1574,7 @@
 				}
 				else
 				{
-					if( enableHelpPanel.value && _helpPanel )
+					if ( /* enableHelpPanel.value && */ _helpPanel )
 					{
 						if( !titleBar.contains(helpButton) )
 							titleBar.addChild(helpButton);
@@ -1617,13 +1593,13 @@
 						helpButton.visible = false;
 					}
 					
-					if( enableControlPanel.value && _controlPanel )
+					if ( Weave.properties.enableToolControls.value && _controlPanel )
 					{
-						if( !titleBar.contains(userControlButton) )
+						if ( !titleBar.contains(userControlButton) )
 							titleBar.addChild(userControlButton);						
 
 						userControlButton.setStyle("cornerRadius",  buttonRadius.value);
-						userControlButton.x = leftButtonX + (enableHelpPanel.value && _helpPanel ? buttonSize + spaceBetweenButtons : 0);
+						userControlButton.x = leftButtonX + (/* enableHelpPanel.value && */ _helpPanel ? buttonSize + spaceBetweenButtons : 0);
 						userControlButton.y = offsetFromTop;
 						userControlButton.width  = buttonSize;
 						userControlButton.height = buttonSize;
@@ -1636,7 +1612,7 @@
 					}
 					
 					
-					if(closeable.value)
+					if (closeable.value)
 					{
 						if( !titleBar.contains(closePanelButton) )
 							titleBar.addChild(closePanelButton);
@@ -1653,7 +1629,7 @@
 					{
 						closePanelButton.visible = false;
 					}
-					if(maximizable.value)
+					if (maximizable.value)
 					{
 						if( !titleBar.contains(maximizeButton) )
 							titleBar.addChild(maximizeButton);
@@ -1674,7 +1650,7 @@
 						maximizeButton.visible = false;
 					}
 						
-					if(minimizable.value)
+					if (minimizable.value)
 					{
 						if( !titleBar.contains(minimizeButton) )
 							titleBar.addChild(minimizeButton);
@@ -1684,9 +1660,9 @@
 						
 						// if the maximize button is shown, set the minimize button's x to be the maximize button's x less the size of the
 						// minimize button and space between the buttons
-						if(closeable.value)
+						if (closeable.value)
 							minimizeButton.x = minimizeButton.x - buttonSize - spaceBetweenButtons;
-						if(maximizable.value)
+						if (maximizable.value)
 							minimizeButton.x = minimizeButton.x - buttonSize - spaceBetweenButtons;
 							
 						minimizeButton.y = offsetFromTop;
@@ -1699,44 +1675,48 @@
 					{
 						minimizeButton.visible = false;
 					}
-					if(pinnable.value)
+					if (pinnable.value)
 					{
-						if( !titleBar.contains(pinButton))
+						if (!titleBar.contains(pinButton))
 							titleBar.addChild(pinButton);
 						pinButton.setStyle("cornerRadius", buttonRadius.value);
 						pinButton.x = rightButtonX;
-						if(closeable.value)
+						if (closeable.value)
 							pinButton.x = pinButton.x - buttonSize - spaceBetweenButtons;
-						if(maximizable.value)
+						if (maximizable.value)
 							pinButton.x = pinButton.x - buttonSize - spaceBetweenButtons;
-						if(minimizable.value)
+						if (minimizable.value)
 							pinButton.x = pinButton.x - buttonSize - spaceBetweenButtons;
 						pinButton.y = offsetFromTop ;
 						pinButton.width = buttonSize;
 						pinButton.height = buttonSize;
 						pinButton.visible = true;
-					} else {
+					}
+					else
+					{
 						pinButton.visible = false;
 					}
-					if(pinnableToBack.value)
+					if (pinnableToBack.value)
 					{
-						if( !titleBar.contains(pinToBackButton))
+						if (!titleBar.contains(pinToBackButton))
 							titleBar.addChild(pinToBackButton);
 						pinToBackButton.setStyle("cornerRadius", buttonRadius.value);
 						pinToBackButton.x = rightButtonX;
-						if(closeable.value)
+						if (closeable.value)
 							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
-						if(maximizable.value)
+						if (maximizable.value)
 							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
-						if(minimizable.value)
+						if (minimizable.value)
 							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
-						if(pinnable.value)
+						if (pinnable.value)
 							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
 						pinToBackButton.y = offsetFromTop ;
 						pinToBackButton.width = buttonSize;
 						pinToBackButton.height = buttonSize;
 						pinToBackButton.visible = true;
-					} else {
+					}
+					else
+					{
 						pinToBackButton.visible = false;
 					}
 				}
@@ -1746,7 +1726,7 @@
 			{
 				super.layoutChrome(unscaledWidth, unscaledHeight);
 				// shift title text to make room for buttons on the upper-left corner
-				if(!titleTextField)
+				if (!titleTextField)
 					return;
 				
 				titleTextField.x = getLeftIconAreaWidth();	
@@ -1981,9 +1961,6 @@
 			{
 				restorePanel();
 			}
-			
-			// backwards compatibility 0.9.6
-			[Deprecated(replacement="enableControlPanel")] public function get userControlsAvailable():LinkableBoolean { return enableControlPanel; }
 		]]>
 	</mx:Script>
 </mx:TitleWindow>

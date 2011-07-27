@@ -29,9 +29,7 @@
 		 xmlns="weave.ui.*"
 		 width="100%" height="30"
 		 verticalAlign="middle"
-		 horizontalGap="2"
-		 creationComplete="handleCreationComplete()"
-		 enabled="{_enabled}">
+		 horizontalGap="2">
 	<!--<ConnectionComponent id="connComponent"/>-->
 	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
 	<LinkableObjectList id="internalList" 
@@ -64,15 +62,6 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			private function handleCreationComplete():void
-			{
-				Weave.properties.enableToolControls.addGroupedCallback(this, toggleSelectors, true);
-			}
-			[Bindable] private var _enabled:Boolean = false; 
-			private function toggleSelectors():void
-			{
-				_enabled = Weave.properties.enableToolControls.value;
-			}
 			private var _initialized:Boolean = false;
 			
 			[Inspectable]

@@ -414,9 +414,10 @@ package weave.visualization.layers
 					
 					
 					// if we should be creating a tooltip
-					if((createXTooltip || createYTooltip) && Weave.properties.enableToolControls.value)
-					{	
-						CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+					if (createXTooltip || createYTooltip)
+					{
+						if (Weave.properties.enableToolControls.value)
+							CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 
 						var toolTip:String;
 						
@@ -424,7 +425,10 @@ package weave.visualization.layers
 						if(createXTooltip && _xAxisColumn)
 						{
 							// by default, just show that you can click the axis to change attribute
-							toolTip = "Click \"" + ColumnUtils.getTitle(_xAxisColumn) + "\" to select a different attribute. ";
+							if (Weave.properties.enableToolControls.value)
+								toolTip = "Click \"" + ColumnUtils.getTitle(_xAxisColumn) + "\" to select a different attribute. ";
+							else
+								toolTip = ColumnUtils.getTitle(_xAxisColumn);
 							toolTip += "\n Key Type: "   + ColumnUtils.getKeyType(_xAxisColumn);
 							toolTip += "\n # of Records: " + WeaveAPI.StatisticsCache.getCount(_xAxisColumn);
 							toolTip += "\n Data Source:" + _xAxisColumn.getMetadata(AttributeColumnMetadata.DATA_SOURCE);
@@ -432,7 +436,10 @@ package weave.visualization.layers
 						// otherwise show this for the y axis
 						else if(createYTooltip && _yAxisColumn)
 						{
-							toolTip = "Click \"" + ColumnUtils.getTitle(_yAxisColumn) + "\" to select a different attribute. ";
+							if (Weave.properties.enableToolControls.value)
+								toolTip = "Click \"" + ColumnUtils.getTitle(_yAxisColumn) + "\" to select a different attribute. ";
+							else
+								toolTip = ColumnUtils.getTitle(_yAxisColumn);
 							toolTip += "\n Key Type: "   + ColumnUtils.getKeyType(_yAxisColumn);
 							toolTip += "\n # of Records: " + WeaveAPI.StatisticsCache.getCount(_yAxisColumn);
 							toolTip += "\n Data Source:" + _yAxisColumn.getMetadata(AttributeColumnMetadata.DATA_SOURCE);
