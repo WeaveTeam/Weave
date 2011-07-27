@@ -465,7 +465,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleGetPhiPsiValuesFault(event:FaultEvent, token:Object = null):void
 			{
 				trace(["fault", token, event.message].join('\n'));
-				ErrorManager.reportError(event.fault);
+				WeaveAPI.ErrorManager.reportError(event.fault);
 			}
 			
 			protected function motifSearchBtn_clickHandler(event:MouseEvent):void
