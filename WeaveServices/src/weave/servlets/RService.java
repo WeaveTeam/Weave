@@ -77,21 +77,23 @@ public class RService extends GenericServlet
 	private String docrootPath = "";
 	private String rFolderName = "R_output";
 	
-	REngine rEngine = null;
-	private REngine getREngine() throws Exception
-	{		
-		try
+	private REngine rEngine = null;
+	/**
+	 * This function will initialize the private rEngine variable.
+	 * @throws Exception
+	 */
+	private void initializeREngine() throws Exception
+	{
+		// temporary to prevent server crashing
+		if (true)
+			throw new Exception("R support is temporarily disabled");
+		
+		if (rEngine == null)
 		{
 			String cls = "org.rosuda.REngine.JRI.JRIEngine";
 			String[] args = { "--vanilla", "--slave" };
-			rEngine= REngine.engineForClass(cls, args, new JRICallbacks(), false);
-			
+			rEngine = REngine.engineForClass(cls, args, new JRICallbacks(), false);
 		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		return rEngine;
 	}
 	private String plotEvalScript(REngine rEngine, String script, boolean showWarnings) throws REXPMismatchException, REngineException
 	{
@@ -132,9 +134,8 @@ public class RService extends GenericServlet
 	{
 		//System.out.println(keys.length);
 		String output = "";
-		if(rEngine == null){
-			rEngine = getREngine();
-		}
+		initializeREngine();
+		
 		RResult[] results = null;
 		REXP evalValue;
 		try
