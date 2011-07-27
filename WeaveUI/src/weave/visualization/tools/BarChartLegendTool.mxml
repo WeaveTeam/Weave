@@ -27,6 +27,7 @@
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
+			import mx.managers.CursorManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -185,9 +186,9 @@
 				fontWeight="bold" click="handleMarginLabelClick()" 
 				x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
 				text="{marginLabelText}" width="100%"
-				mouseOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
+				rollOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				mouseOut="CustomCursorManager.removeCurrentCursor()"
+				rollOut="CursorManager.removeAllCursors()"
 				wordWrap="true" selectable="false" editable="false"
 				borderThickness="0" backgroundAlpha="0"
 			  	toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute(s) used for the bars."/>

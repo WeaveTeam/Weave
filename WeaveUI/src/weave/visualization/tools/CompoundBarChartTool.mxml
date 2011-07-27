@@ -92,8 +92,8 @@
 
 				visualization.marginBottom.value = 80;
 				visualization.marginLeft.value = 80;
-				visualization.marginTop.value = 10;
-				visualization.marginRight.value = 10;
+				visualization.marginTop.value = 30;
+				visualization.marginRight.value = 30;
 				
 				visualization.enableZoomAndPan.value = false;
 
@@ -127,6 +127,7 @@
 				linkBindableProperty(_plotter.groupMode, groupCheckBox, "selected");
 				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
 				linkBindableProperty(showAllLabels, showAllLabelsCheckBox, "selected");
+				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
 				linkBindableProperty(_plotter.groupMode, visualization, "barChartGroupMode" );
 				linkBindableProperty(_plotter.horizontalMode, visualization, "barChartHorizontalMode" );
 				
@@ -322,11 +323,14 @@
 				{
 					cRampEditor.enabled = true;
 					groupCheckBox.enabled = true;
+					if (groupCheckBox.selected) showValueLabelsCheckBox.enabled = true;
+					else showValueLabelsCheckBox.enabled = false;
 				}
 				else
 				{
 					cRampEditor.enabled = false;
 					groupCheckBox.enabled = false;
+					showValueLabelsCheckBox.enabled = true;
 				}
 				colorColumInput.enabled = _plotter.heightColumns.getNames().length <= 1;
 			}
@@ -366,6 +370,8 @@
 			</userControls:ControlsSubsetBox>
 			<mx:CheckBox id="showAllLabelsCheckBox" label="Show all bar labels"
 						 toolTip="This option will always show a label for each bar."/>
+			<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
+						 toolTip="This option will show a value label for each bar."/>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>

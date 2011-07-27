@@ -1,20 +1,20 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -44,6 +44,7 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.primitives.Range;
+	import weave.utils.BitmapText;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -72,6 +73,7 @@ package weave.visualization.plotters
 			linkSessionState(_filteredKeySet.keyFilter, _filteredSortColumn.filter);
 			
 			horizontalMode.value = false;
+			showValueLabels.value = false;
 			groupMode.value = false;
 			barSpacing.value = 0;
 			zoomToSubset.value = true;
@@ -104,6 +106,7 @@ package weave.visualization.plotters
 		public const groupMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 		public const barSpacing:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const showValueLabels:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
 		
 		private function defineSortColumnIfUndefined():void
 		{
@@ -285,6 +288,59 @@ package weave.visualization.plotters
 							yNegativeMin = yNegativeMax;
 					}
 					
+					//------------------------------------
+					// BEGIN code to draw one bar value label
+					//------------------------------------
+					if (showValueLabels.value && ((_heightColumns.length >= 1 && _groupMode) || _heightColumns.length == 1))
+					{
+						if (height != 0)
+						{
+							_bitmapText.text = heightColumn.getValueFromKey(recordKey, Number);;
+							_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+							_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+							_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+							if (!_horizontalMode)
+							{
+								_tempPoint.x = (barStart + barEnd) / 2;
+								if (height >= 0)
+								{
+									_tempPoint.y = yMax;
+									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+								}
+								else
+								{
+									_tempPoint.y = yNegativeMax;
+									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+								}
+								_bitmapText.angle = 270;
+								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+							}
+							else
+							{
+								_tempPoint.y = (barStart + barEnd) / 2;
+								if (height >= 0)
+								{
+									_tempPoint.x = yMax;
+									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+								}
+								else
+								{
+									_tempPoint.x = yNegativeMax;
+									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+								}
+								_bitmapText.angle = 0;
+								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+							}
+							dataBounds.projectPointTo(_tempPoint, screenBounds);
+							_bitmapText.x = _tempPoint.x;
+							_bitmapText.y = _tempPoint.y;
+							_bitmapText.draw(destination);
+						}
+					}
+					//------------------------------------
+					// END code to draw one bar value label
+					//------------------------------------
+					
 				}
 				//------------------------------------
 				// END code to draw one compound bar
@@ -371,6 +427,9 @@ package weave.visualization.plotters
 			// END template code
 		}
 		
+		private const _bitmapText:BitmapText = new BitmapText();
+		private const _tempPoint:Point = new Point();
+		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
 			var _groupMode:Boolean = groupMode.value;
@@ -388,7 +447,7 @@ package weave.visualization.plotters
 			{
 				var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 				var height:Number = heightColumn.getValueFromKey(recordKey, Number);
-
+				
 				if (heightColumn == positiveError)
 				{
 					if (tempRange.end == 0)
@@ -403,7 +462,7 @@ package weave.visualization.plotters
 					else
 						continue;
 				}
-					
+				
 				if (isNaN(height))
 					height = WeaveAPI.StatisticsCache.getMean(heightColumn);
 				if (isNaN(height))
@@ -430,7 +489,7 @@ package weave.visualization.plotters
 			var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
 			var minPos:Number = sortedIndex - 0.5;
 			var maxPos:Number = minPos + 1;
-
+			
 			if (horizontalMode.value)
 				return [getReusableBounds(tempRange.begin, minPos, tempRange.end, maxPos)]; // x,y swapped
 			else
