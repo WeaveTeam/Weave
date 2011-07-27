@@ -95,7 +95,7 @@
 
 	<mx:Panel
 			headerHeight="25"
-			title="Weave {version} Administration Console"
+			title="Administration Console for Weave {version}"
 			width="100%"
 			height="100%"
 			borderAlpha="0.5" backgroundColor="#DBDBDB" cornerRadius="0"
