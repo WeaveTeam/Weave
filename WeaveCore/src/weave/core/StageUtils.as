@@ -438,7 +438,7 @@ package weave.core
 			}
 			else
 			{
-				ErrorManager.reportError(new Error("(StageUtils) Unsupported event: "+eventType));
+				WeaveAPI.ErrorManager.reportError(new Error("(StageUtils) Unsupported event: "+eventType));
 			}
 		}
 		

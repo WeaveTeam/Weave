@@ -25,6 +25,7 @@ package weave.data.AttributeColumns
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -163,14 +164,14 @@ package weave.data.AttributeColumns
 		
 		private function handleDownloadFault(event:FaultEvent, token:Object = null):void
 		{
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_streamDownloadCounter--;
 		}
 
 		private function handleGetTileDescriptorsFault(event:FaultEvent, token:Object = null):void
 		{
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 		
 		private function handleGetTileDescriptors(event:ResultEvent, token:Object = null):void
@@ -200,7 +201,7 @@ package weave.data.AttributeColumns
 			catch (error:Error)
 			{
 				trace('handleGetTileDescriptors() error parsing result from server');
-				ErrorManager.reportError(error);
+				WeaveAPI.ErrorManager.reportError(error);
 			}
 		}
 		
@@ -208,7 +209,7 @@ package weave.data.AttributeColumns
 		private function reportNullResult():void
 		{
 			var msg:String = "Did not receive any data from service for geometry column: " + ColumnUtils.getTitle(this);
-			ErrorManager.reportError(new Error(msg));
+			WeaveAPI.ErrorManager.reportError(new Error(msg));
 		}
 		
 		private var _totalDownloadedSize:int = 0;

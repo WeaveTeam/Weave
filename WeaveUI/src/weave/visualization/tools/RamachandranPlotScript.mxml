@@ -110,13 +110,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			import weave.data.QKeyManager;
-			import weave.api.data.IQualifiedKey;
-			import weave.api.data.IAttributeColumn;
-			import weave.data.AttributeColumns.StringColumn;
-			import weave.utils.ColumnUtils;
-			import weave.core.ErrorManager;
 			import mx.controls.Alert;
 			import mx.controls.textClasses.TextRange;
 			import mx.events.ChildExistenceChangedEvent;
@@ -129,27 +122,33 @@
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.data.AttributeColumns.CSVColumn;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.BinningDefinitions.DynamicBinningDefinition;
-			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
-			import weave.services.WeaveStatisticsServlet;
-			import weave.services.beans.RResult;
+			import weave.api.data.IQualifiedKey;
+			import weave.core.ErrorManager;
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
+			import weave.core.UIUtils;
 			import weave.core.WeaveXMLDecoder;
+			import weave.core.weave_internal;
+			import weave.data.AttributeColumns.CSVColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.AttributeColumns.StringColumn;
+			import weave.data.BinningDefinitions.DynamicBinningDefinition;
+			import weave.data.KeySets.KeySet;
+			import weave.data.QKeyManager;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveStatisticsServlet;
+			import weave.services.beans.RResult;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapText;
+			import weave.utils.ColumnUtils;
 			import weave.utils.DebugUtils;
-			import weave.core.UIUtils;
 			import weave.utils.VectorUtils;
-			import weave.core.weave_internal;
 			
 			
 			[Bindable]
@@ -258,7 +257,7 @@
 				if (Robj == null)
 				{
 					var error:Error = new Error("R Servlet did not return an Array of results as expected.");
-					ErrorManager.reportError(error);
+					WeaveAPI.ErrorManager.reportError(error);
 					return;
 				}
 				

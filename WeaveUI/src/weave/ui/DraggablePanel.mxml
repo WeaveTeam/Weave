@@ -105,7 +105,6 @@
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.compiler.MathLib;
-			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -972,7 +971,7 @@
 					return;
 				if (!parent)
 				{
-					ErrorManager.reportError(new Error("DraggablePanel.playRestorePanelEffect() called when parent is null"));
+					WeaveAPI.ErrorManager.reportError(new Error("DraggablePanel.playRestorePanelEffect() called when parent is null"));
 					return;
 				}
 
@@ -1288,7 +1287,7 @@
 						catch (e:Error)
 						{
 							draggablePanelCursorID = -1;
-							ErrorManager.reportError(e);
+							WeaveAPI.ErrorManager.reportError(e);
 						}
 					}
 				}

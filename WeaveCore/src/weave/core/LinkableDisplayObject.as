@@ -28,6 +28,7 @@ package weave.core
 	import mx.core.UIComponent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableContainer;
 	import weave.api.core.ILinkableDisplayObject;
@@ -130,7 +131,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				ErrorManager.reportError(e);
+				WeaveAPI.ErrorManager.reportError(e);
 			}
 		}
 		
@@ -163,7 +164,7 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						ErrorManager.reportError(e);
+						WeaveAPI.ErrorManager.reportError(e);
 					}
 				}
 			}
@@ -180,7 +181,7 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						ErrorManager.reportError(e);
+						WeaveAPI.ErrorManager.reportError(e);
 					}
 					delete _defaultProperties[name];
 				}

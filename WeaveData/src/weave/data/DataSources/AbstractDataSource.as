@@ -22,6 +22,7 @@ package weave.data.DataSources
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
@@ -316,7 +317,7 @@ package weave.data.DataSources
 		protected function handleUnsupportedColumnReference(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
 		{
 			var error:Error = new Error(this + " Unsupported column reference type: " + getQualifiedClassName(columnReference));
-			ErrorManager.reportError(error);
+			WeaveAPI.ErrorManager.reportError(error);
 			proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
 			return;
 		}

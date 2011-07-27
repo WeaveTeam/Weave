@@ -335,7 +335,7 @@
 					handleSessionedWidthChange();
 				} catch (error:Error) {
 					//Errors from SDK should not be ignored.  If they are, program behavior becomes undefined.
-					ErrorManager.reportError(error);
+					WeaveAPI.ErrorManager.reportError(error);
 				}
 			}
 			

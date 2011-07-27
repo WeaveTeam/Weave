@@ -22,6 +22,7 @@ package weave
 	import flash.external.ExternalInterface;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ISessionManager;
@@ -32,6 +33,7 @@ package weave
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.core.ErrorManager;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.SessionManager;
@@ -75,6 +77,7 @@ package weave
 			
 			// register singleton implementations for framework classes
 			WeaveAPI.registerSingleton(ISessionManager, SessionManager);
+			WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
 			WeaveAPI.registerSingleton(IExternalSessionStateInterface, WeaveJavaScriptAPI);
 			WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);

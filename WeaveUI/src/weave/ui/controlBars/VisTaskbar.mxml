@@ -98,6 +98,7 @@
 			import mx.utils.UIDUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.core.ErrorManager;
@@ -246,7 +247,7 @@
 				}
 				catch (error:Error)
 				{
-				 	ErrorManager.reportError(error);
+					WeaveAPI.ErrorManager.reportError(error);
 				}
 			}
 			public function cleanMinimizedComponentImage(minimizedComponent:MinimizedComponent):void

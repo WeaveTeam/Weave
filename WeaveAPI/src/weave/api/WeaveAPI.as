@@ -43,6 +43,7 @@ package weave.api
 	
 	import mx.core.Singleton;
 	
+	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ISessionManager;
@@ -67,6 +68,13 @@ package weave.api
 		public static function get SessionManager():ISessionManager
 		{
 			return getSingletonInstance(ISessionManager);
+		}
+		/**
+		 * This is the singleton instance of the registered IErrorManager implementation.
+		 */
+		public static function get ErrorManager():IErrorManager
+		{
+			return getSingletonInstance(IErrorManager);
 		}
 		/**
 		 * This is the singleton instance of the registered IExternalSessionStateInterface implementation.

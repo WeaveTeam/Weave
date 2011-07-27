@@ -134,7 +134,7 @@ package weave.data.DataSources
 		 */
 		private function handleCSVDownloadError(event:FaultEvent, token:Object = null):void
 		{
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 			trace(event.type, event.message + '\n' + event.fault);
 		}
 		

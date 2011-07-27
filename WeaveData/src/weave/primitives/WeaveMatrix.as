@@ -19,6 +19,7 @@
 
 package weave.primitives
 {
+	import weave.api.WeaveAPI;
 	import weave.api.primitives.IMatrix;
 	import weave.core.ErrorManager;
 
@@ -78,7 +79,7 @@ package weave.primitives
 			if (this._rows != rightHandSide.getHeight() 
 				|| this._columns != rightHandSide.getWidth())
 			{
-				ErrorManager.reportError(new Error("Invalid matrix addition."));
+				WeaveAPI.ErrorManager.reportError(new Error("Invalid matrix addition."));
 				return null;
 			}
 
@@ -101,7 +102,7 @@ package weave.primitives
 			if (this._rows != rightHandSide.getHeight() 
 				|| this._columns != rightHandSide.getWidth())
 			{
-				ErrorManager.reportError(new Error("Invalid matrix subtraction."));
+				WeaveAPI.ErrorManager.reportError(new Error("Invalid matrix subtraction."));
 				return null;
 			}
 
@@ -124,7 +125,7 @@ package weave.primitives
 			// this matrix's number of columns must equal the other matrix's number of rows
 			if (_columns != rightHandSide.getHeight())
 			{
-				ErrorManager.reportError(new Error("Invalid matrix multiplication."));
+				WeaveAPI.ErrorManager.reportError(new Error("Invalid matrix multiplication."));
 				return null;
 			}
 			
@@ -161,7 +162,7 @@ package weave.primitives
 				var pivot:Number = this.getEntry(k, k);
 				if (pivot == 0) 
 				{
-					ErrorManager.reportError(new Error("Attempt to invert singular matrix."));
+					WeaveAPI.ErrorManager.reportError(new Error("Attempt to invert singular matrix."));
 					return null;
 				}
 				
@@ -194,7 +195,7 @@ package weave.primitives
 			if (result.getHeight() != this._rows
 				|| result.getWidth() != this._columns)
 			{
-				ErrorManager.reportError(new Error("Invalid result matrix provided."));
+				WeaveAPI.ErrorManager.reportError(new Error("Invalid result matrix provided."));
 				return result;
 			}
 			
@@ -214,7 +215,7 @@ package weave.primitives
 			if (other.getHeight() != this._rows 
 				|| other.getWidth() != this._columns)
 			{
-				ErrorManager.reportError(new Error("Invalid matrix to copy."));
+				WeaveAPI.ErrorManager.reportError(new Error("Invalid matrix to copy."));
 				return;
 			}
 			

@@ -92,9 +92,6 @@ RTextEditor
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			import weave.api.data.IQualifiedKey;
-			import weave.data.AttributeColumns.StringColumn;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.Image;
@@ -108,6 +105,14 @@ RTextEditor
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.core.DynamicState;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableHashMap;
@@ -115,14 +120,10 @@ RTextEditor
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
-			import weave.api.core.ILinkableObject;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
-			import weave.api.data.AttributeColumnMetadata;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.CSVColumn;
-			import weave.api.data.IAttributeColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.services.DelayedAsyncInvocation;
@@ -137,7 +138,6 @@ RTextEditor
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
-			import weave.core.weave_internal;
 			
 			private const padding:int = 5;
 			
@@ -258,7 +258,7 @@ RTextEditor
 				if (Robj == null)
 				{
 					var error:Error = new Error("R Servlet did not return an Array of results as expected.");
-				 	ErrorManager.reportError(error);
+					WeaveAPI.ErrorManager.reportError(error);
 					return;
 				}
 				
@@ -345,7 +345,7 @@ RTextEditor
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
 			{
 				trace(["fault", token, event.message].join('\n'));
-				ErrorManager.reportError(event.fault);
+				WeaveAPI.ErrorManager.reportError(event.fault);
 			}
 			
 			//To get the name of selected Column from ColumnListComponent and add to respective TextArea(based on Focused Texarea)

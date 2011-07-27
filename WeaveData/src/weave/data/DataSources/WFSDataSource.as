@@ -156,7 +156,7 @@ package weave.data.DataSources
 			}
 			catch (e:Error)
 			{
-				ErrorManager.reportError(new Error("Received invalid XML from WFS service at "+url.value));
+				WeaveAPI.ErrorManager.reportError(new Error("Received invalid XML from WFS service at "+url.value));
 				if (xml)
 					trace(xml.toXMLString());
 				return;
@@ -168,7 +168,7 @@ package weave.data.DataSources
 		 */
 		private function handleGetCapabilitiesError(event:FaultEvent, token:Object = null):void
 		{
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 		
 		/**
@@ -254,7 +254,7 @@ package weave.data.DataSources
 		 */
 		private function handleDescribeFeatureError(event:FaultEvent, token:Object = null):void
 		{
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 
 		/**
@@ -426,7 +426,7 @@ package weave.data.DataSources
 			catch (e:Error)
 			{
 				//var detail:String = ObjectUtil.toString(request.request) + '\n\nResult: ' + (result && result.toXMLString());
-				ErrorManager.reportError(e);
+				WeaveAPI.ErrorManager.reportError(e);
 			}
 
 		}
@@ -437,7 +437,7 @@ package weave.data.DataSources
 		 */
 		private function handleColumnDownloadFail(event:FaultEvent, token:Object = null):void
 		{
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 	}
 }

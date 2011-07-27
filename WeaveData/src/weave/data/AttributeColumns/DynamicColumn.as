@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
@@ -50,7 +51,7 @@ package weave.data.AttributeColumns
 				if (!ClassUtils.classIs(columnTypeQName, baseQName))
 				{
 					var error:Error = new Error("DynamicColumn(): columnTypeRestriction does not implement IAttributeColumn: " + columnTypeQName);
-					ErrorManager.reportError(error);
+					WeaveAPI.ErrorManager.reportError(error);
 					columnTypeRestriction = IAttributeColumn;
 				}
 			}

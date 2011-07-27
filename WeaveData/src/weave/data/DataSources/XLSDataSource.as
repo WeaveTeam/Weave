@@ -112,7 +112,7 @@ package weave.data.DataSources
 		private function handleXLSDownloadError(event:FaultEvent, token:Object = null):void
 		{
 			trace(event.type, event.message + '\n' + event.fault);
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 		
 		/**

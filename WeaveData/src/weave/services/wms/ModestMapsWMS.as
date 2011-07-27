@@ -42,13 +42,14 @@ package weave.services.wms
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import org.openscales.proj4as.ProjConstants;
+	import org.openscales.proj4as.proj.ProjMerc;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
 	import weave.primitives.Bounds2D;
-	import org.openscales.proj4as.ProjConstants;
-	import org.openscales.proj4as.proj.ProjMerc;
 
 	/**
 	 * This class is a wrapper around the ModestMaps library for both Microsoft and Yahoo
@@ -94,7 +95,7 @@ package weave.services.wms
 					_mapProvider = new OpenMapQuestAerialProvider();
 					break;
 				default:
-					ErrorManager.reportError(new Error("Attempt to set invalid map provider."));
+					WeaveAPI.ErrorManager.reportError(new Error("Attempt to set invalid map provider."));
 					return;
 					break;
 			}
@@ -414,7 +415,7 @@ package weave.services.wms
 			var tile:WMSTile = token as WMSTile;
 			
 			tile.bitmapData = null; // a plotter should handle this
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 			
 			/** 
 			 * @TODO This may not be appropriate because a download with a valid URL may fail.

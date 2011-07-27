@@ -226,7 +226,7 @@ package weave.data.DataSources
 		 */
 		private function handleHierarchyURLDownloadError(event:FaultEvent, token:Object = null):void
 		{
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 			trace(event.type, event.message + '\n' + event.fault);
 		}
 		
@@ -284,14 +284,14 @@ package weave.data.DataSources
 			{
 				trace(e.getStackTrace());
 				var msg:String = "Unable to process result from servlet: "+ObjectUtil.toString(event.result);
-				ErrorManager.reportError(new Error(msg));
+				WeaveAPI.ErrorManager.reportError(new Error(msg));
 			}
 		}
 
 		private function handleGetDataServiceMetadataFault(event:FaultEvent, token:Object = null):void
 		{
 			//trace("handleGetDataServiceMetadataFault", event.fault, event.message);
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 		
 		private function handleGetDataTableMetadata(event:ResultEvent, token:Object = null):void
@@ -331,7 +331,7 @@ package weave.data.DataSources
 			{
 				trace(e.getStackTrace());
 				var msg:String = "Unable to process result from servlet: "+ObjectUtil.toString(event.result);
-				ErrorManager.reportError(new Error(msg));
+				WeaveAPI.ErrorManager.reportError(new Error(msg));
 			}
 			finally
 			{
@@ -343,7 +343,7 @@ package weave.data.DataSources
 		{
 			trace("handleGetDataTableMetadataFault", (token as XML).toXMLString(), event.fault, event.message);
 			// TODO: should fill in pending column requests under this hierarchy path to ProxyColumn.undefinedColumn
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 		
 		/**
@@ -383,7 +383,7 @@ package weave.data.DataSources
 			var request:ColumnRequestToken = token as ColumnRequestToken;
 			request.proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
 			trace("handleGetAttributeColumnFault", ObjectUtil.toString(request.pathInHierarchy), event.fault, event.message);
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{
@@ -404,7 +404,7 @@ package weave.data.DataSources
 				{
 					var msg:String = "Did not receive any data from service for attribute column: "
 						+ HierarchyUtils.getLeafNodeFromPath(request.pathInHierarchy).toXMLString();
-					ErrorManager.reportError(new Error(msg));
+					WeaveAPI.ErrorManager.reportError(new Error(msg));
 					return;
 				}
 				var result:AttributeColumnDataWithKeys = new AttributeColumnDataWithKeys(event.result);
@@ -495,7 +495,7 @@ package weave.data.DataSources
 		public function handleCreateReportFault(event:FaultEvent, token:Object = null):void
 		{
 			trace("Fault creating report: " + event.fault.name, event.message);
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 	}
 }

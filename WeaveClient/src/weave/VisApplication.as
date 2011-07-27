@@ -210,7 +210,7 @@ package weave
 			
 //			this.frameRate = 60;
 			
-			ErrorManager.callbacks.addGroupedCallback(this, ErrorLogPanel.openErrorLog);
+			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
 			
 			Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
 			
@@ -1407,7 +1407,7 @@ package weave
 			}
 			catch (e:Error)
 			{
-				ErrorManager.reportError(e);
+				WeaveAPI.ErrorManager.reportError(e);
 			}
 			if (xml)
 				loadSessionState(xml);

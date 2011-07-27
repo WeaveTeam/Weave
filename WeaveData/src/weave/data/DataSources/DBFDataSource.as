@@ -155,7 +155,7 @@ package weave.data.DataSources
 				return;
 			
 			trace(event.type, event.message + '\n' + event.fault);
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 		}
 
 		/**

@@ -19,26 +19,32 @@
 
 package weave.core
 {
-	import weave.core.CallbackCollection;
+	import weave.api.core.IErrorManager;
+	import weave.api.getCallbackCollection;
 	import weave.core.SessionManager;
-	import weave.api.core.ICallbackCollection;
 	
 	/**
 	 * This class is a central location for reporting and detecting errors.
+	 * The callbacks for this object get called when an error is reported.
 	 * 
 	 * @author adufilie
 	 */
-	public class ErrorManager
+	public class ErrorManager implements IErrorManager
 	{
-		//These callbacks get called when an error is reported.
-		public static const callbacks:ICallbackCollection = new CallbackCollection();
-		//This is the list of all previous errors.
-		public static const errors:Array = new Array();
+		private var _errors:Array = [];
+		
+		/**
+		 * This is the list of all previous errors.
+		 */
+		public function get errors():Array
+		{
+			return _errors;
+		}
 		
 		/**
 		 * This function is intended to be the global error reporting mechanism for Weave.
 		 */
-		public static function reportError(error:Error):void
+		public function reportError(error:Error):void
 		{
 			if (SessionManager.runningDebugFlashPlayer)
 			{
@@ -47,7 +53,7 @@ package weave.core
 			}
 			
 			errors.push(error);
-			callbacks.triggerCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 	}
 }

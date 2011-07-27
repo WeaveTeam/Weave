@@ -44,17 +44,18 @@
 	</mx:HDividedBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.api.data.IQualifiedKey;
 			import mx.collections.ArrayCollection;
 			import mx.events.ListEvent;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
 			
-			import weave.core.ErrorManager;
-			import weave.core.SessionManager;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.core.ErrorManager;
+			import weave.core.SessionManager;
 			import weave.data.KeySets.KeySet;
 			import weave.utils.ProbeTextUtils;
 			
@@ -115,7 +116,7 @@
 			
 			public function handleGetRowFault(event:FaultEvent, token:Object = null):void
 			{
-				ErrorManager.reportError(event.fault);
+				WeaveAPI.ErrorManager.reportError(event.fault);
 			}
 			
 			/**

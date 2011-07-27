@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
@@ -74,7 +75,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				ErrorManager.reportError(e);
+				WeaveAPI.ErrorManager.reportError(e);
 			}
 		}
 

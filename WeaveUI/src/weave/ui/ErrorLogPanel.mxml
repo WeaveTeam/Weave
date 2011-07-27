@@ -49,32 +49,40 @@
 -->
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.TextArea;
 			import mx.core.Application;
 			import mx.managers.PopUpManager;
-			import weave.utils.DebugUtils;
 			import mx.rpc.Fault;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.getCallbackCollection;
 			import weave.core.SessionManager;
-			import mx.controls.TextArea;
-			import weave.core.ErrorManager;
+			import weave.utils.DebugUtils;
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				ErrorManager.callbacks.addGroupedCallback(this, handleError, true);
+				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, handleError, true);
 			}
 			
 			private var errorIndex:int = 0;
 			private function handleError():void
 			{
-				while (errorIndex < ErrorManager.errors.length)
+				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
 					if (errorIndex > 0)
 						textArea.text += '\n\n';
 					
-					var error:Error = ErrorManager.errors[errorIndex++];
+					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
 					if (error is Fault || !SessionManager.runningDebugFlashPlayer)
 					{
-						textArea.text += error.message;
+						var f:Fault = error as Fault;
+						var errorString:String = f.faultCode;
+						if (f.faultString)
+							errorString += ': ' + f.faultString;
+						if (f.faultDetail)
+							errorString += ': ' + f.faultDetail;
+						textArea.text += errorString;
 					}
 					else
 					{

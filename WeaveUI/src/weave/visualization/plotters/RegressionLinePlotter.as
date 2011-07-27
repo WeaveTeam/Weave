@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.ErrorManager;
@@ -128,7 +129,7 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			ErrorManager.reportError(event.fault);
+			WeaveAPI.ErrorManager.reportError(event.fault);
 			trace("FAULT on: RegressionLinePlotter "+token, event.message);
 			intercept = NaN;
 			slope = NaN;

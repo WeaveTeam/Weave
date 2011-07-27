@@ -239,7 +239,7 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						ErrorManager.reportError(e);
+						WeaveAPI.ErrorManager.reportError(e);
 					}
 				}
 				else

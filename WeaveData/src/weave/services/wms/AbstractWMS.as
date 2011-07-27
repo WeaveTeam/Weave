@@ -22,6 +22,7 @@ package weave.services.wms
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.services.IWMSService;
 	import weave.core.CallbackCollection;
@@ -158,12 +159,12 @@ package weave.services.wms
 		
 		/* abstract */ public function setProvider(provider:String):void
 		{
-			ErrorManager.reportError(new Error("Attempt to set the provider of AbstractWMS."));
+			WeaveAPI.ErrorManager.reportError(new Error("Attempt to set the provider of AbstractWMS."));
 		}
 		
 		/* abstract */ public function getProvider():*
 		{
-			ErrorManager.reportError(new Error("Attempt to get the provider of AbstractWMS."));
+			WeaveAPI.ErrorManager.reportError(new Error("Attempt to get the provider of AbstractWMS."));
 			return null;
 		}
 		
@@ -183,7 +184,7 @@ package weave.services.wms
 		
 		/* abstract */ public function getCreditInfo():String
 		{
-			ErrorManager.reportError(new Error("Attempt to get copyright information of AbstractWMS."));
+			WeaveAPI.ErrorManager.reportError(new Error("Attempt to get copyright information of AbstractWMS."));
 			return null;
 		}
 	}

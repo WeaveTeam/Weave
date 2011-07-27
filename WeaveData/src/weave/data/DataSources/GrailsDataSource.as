@@ -31,6 +31,7 @@ package weave.data.DataSources
 	import mx.rpc.AsyncToken;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
@@ -39,7 +40,6 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.api.data.DataTypes;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
@@ -125,7 +125,7 @@ package weave.data.DataSources
 		 */
 		private function handleListTablesError(event:ErrorEvent):void
 		{
-			ErrorManager.reportError(new Error(event.text));
+			WeaveAPI.ErrorManager.reportError(new Error(event.text));
 		}
 		
 		/**
@@ -176,7 +176,7 @@ package weave.data.DataSources
 		 */
 		private function handleListTableColumnsError(event:ErrorEvent):void
 		{
-			ErrorManager.reportError(new Error(event.text));
+			WeaveAPI.ErrorManager.reportError(new Error(event.text));
 		}
 
 		/**
@@ -225,7 +225,7 @@ package weave.data.DataSources
 
 			if(event.target.data == "Invalid columnId given!"){
 				var message:String = "The requested data no longer exists on the server." 
-				ErrorManager.reportError(new Error(message));
+				WeaveAPI.ErrorManager.reportError(new Error(message));
 			}
 			else{
 				var result:XML = new XML(event.target.data);
