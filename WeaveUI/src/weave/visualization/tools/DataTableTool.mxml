@@ -29,9 +29,6 @@
 	
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
 		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
-			<!--<mx:Label text="Select Data Source:"/>
-			<ui:CustomComboBox id="dataSourceCombo"  selectedItem="null" dataProvider="{SessionManager.getBindableValue(DataRepository.dataSourceNames).value}" change="handleDataSourceChange()"/>
-			-->
 			<mx:Label text="Key type:"/>
 			<ui:CustomComboBox id="keyTypeCombo" change="keyTypeChangeEventHandler()" toolTip="Only columns of the selected key type will be shown."/>
 			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
@@ -59,20 +56,8 @@
 						 />
 						 
 		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
-			<!--<mx:Button label="Reload" click="handleKeyTypeChange()" alpha="1.0" fillAlphas="[1.0, 1.0, 1.0, 1.0]"/>-->
 			<mx:Button label="Export Data..." click="exportCSV()" />
 			<mx:Button click="moveSelectedToTop()" label="Move Selected Items to top"/>
-			<!--<mx:ProgressBar id="downloadProgress" mode="manual" visible="true" enabled="false"/>-->
-			
-			
-			<!--<mx:Label text="Data Download:" color="#FFFFFF"/>
-			<mx:Canvas width="110" height="20" alpha="1.0" borderColor="#000000" borderStyle="solid" horizontalScrollPolicy="off">
-			<mx:TextArea id="downloadProgress" width="1%" height="100%" editable="false" selectable="false" backgroundColor="#FFAAAA" minWidth="0" minHeight="0"/>
-			<mx:TextArea id="downloadProgressText" text="" width="100%" height="100%"  editable="false" selectable="false" minWidth="0" minHeight="0" textAlign="center" backgroundAlpha="0.0"/>
-			</mx:Canvas>
-			-->
-
-			<mx:CheckBox id="showAllCheck" click="handleShowAll(event)" visible="false"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -218,9 +203,24 @@
 			{
 				if (!parent)
 					return callLater(updateControls);
-				topControls.visible = bottomControls.visible = showControls.value;
-				topControls.percentWidth = bottomControls.percentWidth = showControls.value ? 100 : 0;
-				topControls.height = bottomControls.height = showControls.value ? NaN : 0;
+				try
+				{
+					if (showControls.value)
+					{
+						if (!tableArea.contains(topControls))
+							tableArea.addChildAt(topControls, 0);
+						if (!tableArea.contains(bottomControls))
+							tableArea.addChild(bottomControls);
+					}
+					else
+					{
+						if (tableArea.contains(topControls))
+							tableArea.removeChild(topControls);
+						if (tableArea.contains(bottomControls))
+							tableArea.removeChild(bottomControls);
+					}
+				}
+				catch (e:Error) {}
 			}
 			
 			[Bindable]
@@ -339,28 +339,6 @@
 					//Errors from SDK should not be ignored.  If they are, program behavior becomes undefined.
 					ErrorManager.reportError(error);
 				}
-			}
-			
-			private function handleShowAll(event:Event):void
-			{
-				if(showAllCheck.selected)
-				{
-					
-					dataGrid.horizontalScrollPolicy = "off";
-					dataGrid.verticalScrollPolicy = "off";
-					
-					prevRowCount = dataGrid.rowCount;
-					dataGrid.rowCount = dataRowKeys.length;
-				}
-				else
-				{
-					dataGrid.horizontalScrollPolicy = "auto";
-					dataGrid.verticalScrollPolicy = "auto";
-					
-					dataGrid.rowCount = prevRowCount;	
-				}
-				
-				//dataGrid.dataProvider.refresh();
 			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
