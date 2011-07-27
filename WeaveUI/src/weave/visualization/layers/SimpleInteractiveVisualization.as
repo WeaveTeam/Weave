@@ -517,7 +517,7 @@ package weave.visualization.layers
 			}
 			var recordKeys:Array = keySet.keys;
 			
-			if( (recordKeys.length == 0) || ((this.parent as DraggablePanel) != DraggablePanel.activePanel))
+			if( (recordKeys.length == 0) || !this.mouseIsRolledOver)
 			{
 				_probePlotter.clearCoordinates();
 				return;
