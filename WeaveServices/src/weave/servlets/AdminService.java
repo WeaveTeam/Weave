@@ -486,10 +486,8 @@ public class AdminService extends GenericServlet
 				if (numSuperUsers >= 2)
 					break;
 			}
-			if (numSuperUsers == 1) // if this is true, then loginConnectionName is trying to delete itself and is the only superuser
+			if (numSuperUsers == 1 && loginConnectionName.equals(connectionNameToRemove) == true) // if this is true, then loginConnectionName is trying to delete itself and is the only superuser
 				throw new RemoteException("Cannot remove the only superuser.");
-			
-			// also do not delete if this is the only superuser
 			
 			config.removeConnection(connectionNameToRemove);
 			backupAndSaveConfig(config);
