@@ -64,7 +64,7 @@
     <dashboardMode>false</dashboardMode>
     <dashedSelectionBox>5,5</dashedSelectionBox>
     <dataInfoURL/>
-    <debugScreenBounds>true</debugScreenBounds>
+    <debugScreenBounds>false</debugScreenBounds>
     <enableAboutMenu>true</enableAboutMenu>
     <enableAdd2DHistogram>true</enableAdd2DHistogram>
     <enableAddBarChart>true</enableAddBarChart>
@@ -376,7 +376,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Country Name" csvColumn="Country Name" keyType="Country Code" title="Country Name"/>
+              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -388,7 +388,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population, female (% of total)" csvColumn="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -400,7 +400,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Rural population (% of total population)" csvColumn="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -412,7 +412,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -424,7 +424,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -436,7 +436,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Urban population (% of total)" csvColumn="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -448,7 +448,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -1399,7 +1399,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute name="Country Name" csvColumn="Country Name" keyType="Country Code" title="Country Name"/>
+                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1413,7 +1413,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute name="Population, female (% of total)" csvColumn="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1488,7 +1488,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute name="Country Name" csvColumn="Country Name" keyType="Country Code" title="Country Name"/>
+                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1502,7 +1502,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute name="Population, female (% of total)" csvColumn="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1602,7 +1602,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute name="Population, female (% of total)" csvColumn="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1657,7 +1657,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="Country Code">
-                            <attribute name="Country Name" csvColumn="Country Name" keyType="Country Code" title="Country Name"/>
+                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1757,7 +1757,7 @@ noMissing2,9,8,6</csvDataString>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
   </ScatterPlotTool>
-  <ScatterPlotTool name="ScatterPlotTool3">
+  <ScatterPlotTool name="ScatterPlotTool2">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -1907,7 +1907,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>undefinedTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute csvColumn="Name" keyType="undefinedTest" title="Name"/>
+                            <attribute csvColumn="color" keyType="undefinedTest" title="color"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -2122,7 +2122,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>undefinedTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute csvColumn="Name" keyType="undefinedTest" title="Name"/>
+                            <attribute csvColumn="color" keyType="undefinedTest" title="color"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -2191,7 +2191,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>undefinedTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute csvColumn="Name" keyType="undefinedTest" title="Name"/>
+                            <attribute csvColumn="color" keyType="undefinedTest" title="color"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -2260,7 +2260,7 @@ noMissing2,9,8,6</csvDataString>
                         <dataSourceName>undefinedTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute csvColumn="Name" keyType="undefinedTest" title="Name"/>
+                            <attribute csvColumn="color" keyType="undefinedTest" title="color"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -2306,7 +2306,7 @@ noMissing2,9,8,6</csvDataString>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.224%</panelHeight>
+    <panelHeight>50.111%</panelHeight>
     <panelStyleList/>
     <panelWidth>50.122%</panelWidth>
     <panelX>49.797%</panelX>

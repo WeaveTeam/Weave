@@ -530,24 +530,46 @@ package weave.visualization.layers
 			if (bounds == null) 
 				return; 
 			
-			if( yAxisToPlot && isFinite(bounds.getYMin()))
+			var yExists:Boolean = isFinite(bounds.getYMin());
+			var xExists:Boolean = isFinite(bounds.getXMin());
+			
+			if( yAxisToPlot && !xAxisToPlot && xExists && yExists) // bar charts, histograms
 			{
 				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				y_yAxis = bounds.getYMax();
-				
+							
 				xPlot = bounds.getXCenter();
 				yPlot = bounds.getYMax();
 				
-				if(xAxisToPlot && isFinite(bounds.getXMin()))
-				{
-					x_xAxis = bounds.getXCenter();
-					y_xAxis = _yAxisLayer.axisPlotter.axisLineMinValue.value ;
-					showProbeTooltips(x_xAxis, bounds,labelFunctionX,true);
-				}
+				 showProbeTooltips(y_yAxis,bounds,labelFunctionY);
+				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis, yAxisToPlot, xAxisToPlot );
 				
-				showProbeTooltips(y_yAxis,bounds,labelFunctionY);
-				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis,true, xAxisToPlot );
-			} else if(isFinite(bounds.getYMin()))
+			}
+			else if(yAxisToPlot && xAxisToPlot) //scatterplot
+			{
+				var xAxisMin:Number = _xAxisLayer.axisPlotter.axisLineMinValue.value;
+				var yAxisMin:Number = _yAxisLayer.axisPlotter.axisLineMinValue.value;
+				
+				var xAxisMax:Number = _xAxisLayer.axisPlotter.axisLineMaxValue.value;
+				var yAxisMax:Number = _yAxisLayer.axisPlotter.axisLineMaxValue.value;
+				
+				if(yExists || xExists)
+				{
+					x_yAxis = xAxisMin;
+					y_yAxis = bounds.getYMax();
+					
+					xPlot = (xExists) ? bounds.getXCenter() : xAxisMax;
+					yPlot = (yExists) ? bounds.getYMax() : yAxisMax;
+					
+					x_xAxis = bounds.getXCenter();
+					y_xAxis = yAxisMin;
+
+					if(yExists) showProbeTooltips(y_yAxis,bounds,labelFunctionY);
+					if(xExists) showProbeTooltips(x_xAxis,bounds,labelFunctionX, true);
+					_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yExists, xExists);
+				}
+			}
+			else if(!yAxisToPlot && xAxisToPlot) // special case for horizontal bar chart
 			{
 				xPlot = bounds.getXMax();
 				yPlot = bounds.getYCenter();
@@ -557,8 +579,7 @@ package weave.visualization.layers
 				
 				showProbeTooltips(xPlot, bounds, labelFunctionY,false, true);
 				
-				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis, false, true);
-				
+				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis, false, true);				
 			}
 		}
 		
@@ -596,13 +617,16 @@ package weave.visualization.layers
 			{
 				xAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
 				xAxisTooltip.move(xAxisTooltip.x-(xAxisTooltip.width/2),xAxisTooltip.y);
-				constrainTooltipToStage();
+				xAxisTooltipPtr = xAxisTooltip;
 			} else
 			{
 				yAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
 				yAxisTooltip.move(yAxisTooltip.x-yAxisTooltip.width, yAxisTooltip.y-(yAxisTooltip.height/2));
-				constrainTooltipToStage();
+				yAxisTooltipPtr = yAxisTooltip
 			}
+			constrainToolTipsToStage(xAxisTooltip, yAxisTooltip);
+			if(!yAxisTooltip) yAxisTooltipPtr = null;
+			if(!xAxisTooltip) xAxisTooltipPtr = null;
 			setProbeToolTipAppearance();
 			
 		}
@@ -622,29 +646,30 @@ package weave.visualization.layers
 		}
 		
 		/**
-		 * This function corrects the probe x and y axes tooltip positions if they go offstage
+		 * This function corrects the parameter toolTip positions if they go offstage
+		 * @param toolTip An object that implements IToolTip
+		 * @param moreToolTips more objects that implement IToolTip
 		 */		
-		private function constrainTooltipToStage():void
+		public function constrainToolTipsToStage(tooltip:IToolTip,...moreToolTips):void
 		{
 			var xMin:Number = 0;
 			
-			if( yAxisTooltip != null ) 
+			moreToolTips.unshift(tooltip);
+			for each(tooltip in moreToolTips)
 			{
-				if( yAxisTooltip.x < xMin ) 
-					yAxisTooltip.move(yAxisTooltip.x+Math.abs(xMin-yAxisTooltip.x), yAxisTooltip.y );
-				yAxisTooltipPtr = yAxisTooltip;
-			}
-			else yAxisTooltipPtr = null;
-			if( xAxisTooltip != null )
-			{
-				var xMax:Number = stage.stageWidth- (xAxisTooltip.width/2);
-				var xMaxTooltip:Number = xAxisTooltip.x+(xAxisTooltip.width/2);
-				if(xMaxTooltip > xMax) {
-					xAxisTooltip.move(xMax-(xAxisTooltip.width/2),xAxisTooltip.y);				
+				if(tooltip != null)
+				{
+					if(tooltip.x < xMin)
+						tooltip.move(tooltip.x+Math.abs(xMin-tooltip.x), tooltip.y);
+					var xMax:Number = stage.stageWidth - (tooltip.width/2);
+					var xMaxTooltip:Number = tooltip.x+(tooltip.width/2);
+					if(xMaxTooltip > xMax)
+					{
+						tooltip.move(xMax-(tooltip.width/2),tooltip.y);
+					}
 				}
-				xAxisTooltipPtr = xAxisTooltip;
 			}
-			else xAxisTooltipPtr = null; 
+						
 		}
 		
 		/**

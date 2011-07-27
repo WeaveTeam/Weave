@@ -109,9 +109,9 @@
 				
 				if (scatterPlot != null)
 				{
-					copySessionState(scatterPlot._plotter.radiusColumn, _sizeBinLegendPlotter.radiusColumn);
-					copySessionState(scatterPlot._plotter.minScreenRadius, _sizeBinLegendPlotter.minScreenRadius);
-					copySessionState(scatterPlot._plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
+					copySessionState(scatterPlot.plotter.radiusColumn, _sizeBinLegendPlotter.radiusColumn);
+					copySessionState(scatterPlot.plotter.minScreenRadius, _sizeBinLegendPlotter.minScreenRadius);
+					copySessionState(scatterPlot.plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
 				}
 				
 				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
@@ -135,7 +135,7 @@
 				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
 					AttributeSelectorPanel.openDefaultSelector(colorColumn);
 				else
-					AttributeSelectorPanel.openDefaultSelector(scatterPlot._plotter.radiusColumn);
+					AttributeSelectorPanel.openDefaultSelector(scatterPlot.plotter.radiusColumn);
 			}
 			
 			[Bindable] private var marginLabelText:String = "";
