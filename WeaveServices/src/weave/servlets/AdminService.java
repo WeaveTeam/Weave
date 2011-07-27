@@ -472,21 +472,14 @@ public class AdminService extends GenericServlet
 				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, connectionNameToRemove);
 			
-			// do not delete if this is the last user (which must be a superuser)
-			List<String> connectionNames = config.getConnectionNames();
-			if (connectionNames.size() == 1)
-				throw new RemoteException("Cannot remove the only connection.");
-			
 			// check for number of superusers
+			List<String> connectionNames = config.getConnectionNames();
 			int numSuperUsers = 0;
 			for (String name : connectionNames)
-			{
 				if (config.getConnectionInfo(name).is_superuser)
 					++numSuperUsers;
-				if (numSuperUsers >= 2)
-					break;
-			}
-			if (numSuperUsers == 1 && loginConnectionName.equals(connectionNameToRemove) == true) // if this is true, then loginConnectionName is trying to delete itself and is the only superuser
+			// do not allow removal of last superuser
+			if (numSuperUsers == 1 && loginConnectionName.equals(connectionNameToRemove))
 				throw new RemoteException("Cannot remove the only superuser.");
 			
 			config.removeConnection(connectionNameToRemove);
