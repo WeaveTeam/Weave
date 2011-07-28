@@ -35,8 +35,10 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.disposeObjects;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -78,6 +80,8 @@ package weave.visualization.tools
 			{
 				invalidateDisplayList();
 			}
+			Weave.properties.axisFontSize.addGroupedCallback(this, updateTitleLabel);
+			Weave.properties.axisFontColor.addGroupedCallback(this, updateTitleLabel);
 		}
 		
 		/**
@@ -101,7 +105,9 @@ package weave.visualization.tools
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
 			toolVBox.addChild(visCanvas);
-			titleLabel.setStyle("fontWeight", "bold");
+			
+			titleLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
 			
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
@@ -116,6 +122,15 @@ package weave.visualization.tools
 			_userWindowSettings.targetTool = this;
 			
 			createdChildren = true;
+		}
+		
+		private function updateTitleLabel():void
+		{
+			if (!parent)
+				return callLater(updateTitleLabel);
+			
+			titleLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
 		}
 		
 		protected var _userWindowSettings:UserWindowSettings = new UserWindowSettings();
