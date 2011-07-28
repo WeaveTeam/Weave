@@ -276,7 +276,8 @@ package weave
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
 		// temporary?
-		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service
+		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService");// url of Weave R service using Rserve
+		public const jriServiceURL:LinkableString = new LinkableString("/WeaveServices/JRIService");// url of Weave R service using JRI
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 		
 		//default URL

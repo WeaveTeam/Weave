@@ -274,7 +274,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				//Query is created from runScript with same signature from Jave side
-				var query:AsyncToken = Rservice.runScript(null,inputNames, inputValues, outputNames, script,"",false,false);
+				var query:AsyncToken = Rservice.runScript(inputNames, inputValues, outputNames, script,"",false,false);
 				//Keys are passed as token 
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);  
 			}

@@ -62,12 +62,9 @@ package weave.services
 			return servlet.invokeAsyncMethod("linearRegression", arguments);
 		}
 
-		public function clientRscript(rInput:String, selector:int):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("rScriptInput", arguments);
-		}
 		
-		public function runScript(keys:Array,inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean ):AsyncToken
+		
+		public function runScript(inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean ):AsyncToken
 		{
 			/*inputValues = inputValues.concat();
 			for (var i:int = 0; i < inputValues.length; i++)
@@ -78,12 +75,7 @@ package weave.services
 			return servlet.invokeAsyncMethod("runScript", arguments);
 		}
 
-		public function completeClientRscript(rInput:String, variable1: String, variable2:String, column1:Array, column2:Array):AsyncToken
-		{
-			var encodedColumn1:String = ByteArrayUtils.encodeDoubleArray(column1);
-			var encodedColumn2:String = ByteArrayUtils.encodeDoubleArray(column2);
-			return servlet.invokeAsyncMethod("completeRScript", arguments);
-		}
+		
 		
 	}
 }
