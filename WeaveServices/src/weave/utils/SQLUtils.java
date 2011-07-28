@@ -95,10 +95,29 @@ public class SQLUtils
 		else
 			host = ip + ":" + port;
 		
+		return "jdbc:" + dbms.toLowerCase() + "://" + host + "/" + connectStringEncode(database) + "?user=" + user + "&password=" + connectStringEncode(pass);
+	}
+	
+	/**
+	 * This function will encode a string so that it is suitable to be included in a connectString.
+	 * @param str The string to encode.
+	 * @return The encoded string.
+	 */
+	private static String connectStringEncode(String str)
+	{
+//		String escaped = "";
+//		for (int i = 0; i < str.length(); i++)
+//		{
+//			if (str.charAt(i) == ';')
+//				escaped += "{;}";
+//			else
+//				escaped += str.charAt(i);
+//		}
+//		return escaped;
+		
 		try
 		{
-			String enc = "UTF-8";
-			return "jdbc:" + dbms.toLowerCase() + "://" + host + "/" + URLEncoder.encode(database, enc) + "?user=" + URLEncoder.encode(user, enc) + "&password=" + URLEncoder.encode(pass, enc);
+			return URLEncoder.encode(str, "UTF-8");
 		}
 		catch (UnsupportedEncodingException e)
 		{
@@ -212,6 +231,7 @@ public class SQLUtils
 		}
 		catch (SQLException ex)
 		{
+			System.out.println(String.format("driver: %s\nconnectString: %s", driver, connectString));
 			throw new RemoteException("Unable to connect to SQL database", ex);
 		}
 		catch (Exception ex)
