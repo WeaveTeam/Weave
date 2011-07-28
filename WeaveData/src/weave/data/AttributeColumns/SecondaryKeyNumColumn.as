@@ -24,12 +24,12 @@ package weave.data.AttributeColumns
 	
 	import mx.formatters.NumberFormatter;
 	
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.compiler.MathLib;
 	import weave.core.LinkableString;
-	import weave.api.data.AttributeColumnMetadata;
 	
 	/**
 	 * SecondaryKeyColumn
@@ -39,8 +39,7 @@ package weave.data.AttributeColumns
 	{
 		public function SecondaryKeyNumColumn(metadata:XML = null)
 		{
-			super();
-			//super(metadata);
+			super(metadata);
 		}
 
 		/**
@@ -53,7 +52,18 @@ package weave.data.AttributeColumns
 				case AttributeColumnMetadata.MIN: return String(_minNumber);
 				case AttributeColumnMetadata.MAX: return String(_maxNumber);
 			}
-			return super.getMetadata(propertyName);
+			
+			var value:String = super.getMetadata(propertyName);
+			
+			switch (propertyName)
+			{
+				case AttributeColumnMetadata.TITLE:
+					if (value != null)
+						return value + ' (' + _currentSecondaryKeyValue.value + ')';
+					break;
+			}
+			
+			return value;
 		}
 		
 		private var _minNumber:Number = NaN; // returned by getMetadata

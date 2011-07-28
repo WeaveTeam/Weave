@@ -453,6 +453,7 @@ package weave.data.DataSources
 					var secKeyVector:Vector.<String> = VectorUtils.copy(result.secKeys, new Vector.<String>());
 					newColumn.updateRecords(keysVector, secKeyVector, result.data);
 					proxyColumn.internalColumn = newColumn;
+					proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
 				}
 				else if (result.dataType == AttributeColumnDataWithKeys.NUMBER_DATATYPE)
 				{
