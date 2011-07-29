@@ -33,56 +33,99 @@ package weave.primitives
 	import weave.core.SessionManager;
 	
 	/**
-	 * This is a linkable version of a Bounds2D object.
-	 * It supports two modes: center coordinates and absolute coordinates.
+	 * This object defines the data bounds of a visualization, either directly with
+	 * absolute coordinates or indirectly with center coordinates and a scale value.
 	 * 
 	 * @author adufilie
 	 */
 	public class ZoomBounds implements ILinkableVariable
 	{
-		public function LinkableBounds2D()
+		public function ZoomBounds()
 		{
-			useAbsoluteCoords();
 		}
+		
+		private const _dataBounds:Bounds2D = new Bounds2D();
+		private const _screenBounds:Bounds2D = new Bounds2D();
+		private const _useCenterCoords:Boolean = false;
+		private const _cc:ICallbackCollection = getCallbackCollection(this);
 		
 		public function getSessionState():Object
 		{
-			if (_useCenterCoords.value)
+			return null;
+			if (_useCenterCoords)
 			{
-				
+				return {
+					xMin: _dataBounds.getXMin(),
+					yMin: _dataBounds.getYMin(),
+					xMax: _dataBounds.getXMax(),
+					yMax: _dataBounds.getYMax()
+				};
+			}
+			else
+			{
+				return {
+					xCenter: _dataBounds.getXCenter(),
+					yCenter: _dataBounds.getXCenter(),
+					areaPerPixel: _dataBounds.getArea() / _screenBounds.getArea()
+				};
 			}
 		}
 		
-		public const xMin:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const yMin:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const xMax:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const yMax:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		
-		public const xCenter:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const yCenter:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const areaPerPixel:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		
-		private static const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
-		
-		private const _dataBounds:IBounds2D = new Bounds2D();
-		private const _screenBounds:IBounds2D = new Bounds2D();
-		private const _useCenterCoords:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		private const _cc:ICallbackCollection = getCallbackCollection(this);
-		
-		/**
-		 * This switches the session state to use absolute coordinates xMin,yMin,xMax,yMax.
-		 */
-		public function useAbsoluteCoords():void
+		public function setSessionState(state:Object):void
 		{
-			_useCenterCoords.value = false; // this may trigger callbacks
-		}
-		
-		/**
-		 * This switches the session state to use center coordinates xCenter,yCenter,areaPerPixel.
-		 */
-		public function useCenterCoords():void
-		{
-			_useCenterCoords.value = true; // this may trigger callbacks
+			_cc.delayCallbacks();
+			if (state == null)
+			{
+				if (!_dataBounds.isUndefined())
+					_cc.triggerCallbacks();
+				_dataBounds.reset();
+			}
+			else
+			{
+				var usedCenterCoords:Boolean = false;
+				if (state.hasOwnProperty("xCenter"))
+				{
+					if (_dataBounds.getXCenter() != state.xCenter)
+					{
+						_dataBounds.setXCenter(state.xCenter);
+						_cc.triggerCallbacks();
+					}
+					usedCenterCoords = true;
+				}
+				if (state.hasOwnProperty("yCenter"))
+				{
+					if (_dataBounds.getYCenter() != state.yCenter)
+					{
+						_dataBounds.setYCenter(state.yCenter);
+						_cc.triggerCallbacks();
+					}
+					usedCenterCoords = true;
+				}
+				if (state.hasOwnProperty("areaPerPixel"))
+				{
+					if (_dataBounds.getArea() / _screenBounds.getArea() != state.areaPerPixel)
+					{
+						_dataBounds.setXCenter(state.xCenter);
+						_cc.triggerCallbacks();
+					}
+					usedCenterCoords = true;
+				}
+				
+				if (!usedCenterCoords)
+				{
+					var names:Array = ["xMin", "yMin", "xMax", "yMax"];
+					for each (var name:String in names)
+					{
+						if (state.hasOwnProperty(name) && _dataBounds[name] != state[name])
+						{
+							_dataBounds[name] = state[name];
+							_cc.triggerCallbacks();
+						}
+					}
+				}
+			}
+			
+			_cc.resumeCallbacks();
 		}
 		
 		public function getDataBounds(outputDataBounds:IBounds2D):void
@@ -95,15 +138,21 @@ package weave.primitives
 			outputScreenBounds.copyFrom(_screenBounds);
 		}
 		
+		/**
+		 * This function will set all the information required to define the session state of the ZoomBounds.
+		 * @param dataBounds The data range of a visualization.
+		 * @param screenBounds The pixel range of a visualization.
+		 * @param useCenterCoords If true, the session state will be defined by xCenter,yCenter,areaPerPixel.  If false, the session state will be defined by xMin,yMin,xMax,yMax.
+		 */		
 		public function setBounds(dataBounds:Bounds2D, screenBounds:IBounds2D, useCenterCoords:Boolean):void
 		{
 			_cc.delayCallbacks();
-			if (!_dataBounds.equals(dataBounds) || (_useCenterCoords.value && !_screenBounds.equals(screenBounds)))
+			if (_useCenterCoords != useCenterCoords || !_dataBounds.equals(dataBounds) || (useCenterCoords && !_screenBounds.equals(screenBounds)))
 				_cc.triggerCallbacks();
 			
 			_dataBounds.copyFrom(dataBounds);
 			_screenBounds.copyFrom(screenBounds);
-			_useCenterCoords.value = useCenterCoords; // this may trigger callbacks
+			_useCenterCoords = useCenterCoords;
 			
 			_cc.resumeCallbacks();
 		}
