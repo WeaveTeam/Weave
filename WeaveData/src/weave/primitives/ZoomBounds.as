@@ -28,6 +28,7 @@ package weave.primitives
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.compiler.MathLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
@@ -35,6 +36,7 @@ package weave.primitives
 	/**
 	 * This object defines the data bounds of a visualization, either directly with
 	 * absolute coordinates or indirectly with center coordinates and a scale value.
+	 * Screen coordinates are never directly specified in the session state.
 	 * 
 	 * @author adufilie
 	 */
@@ -46,9 +48,12 @@ package weave.primitives
 		
 		private const _dataBounds:Bounds2D = new Bounds2D();
 		private const _screenBounds:Bounds2D = new Bounds2D();
-		private const _useCenterCoords:Boolean = false;
-		private const _cc:ICallbackCollection = getCallbackCollection(this);
+		private var _useCenterCoords:Boolean = false;
 		
+		/**
+		 * The session state has two modes: absolute coordinates and center/scale coordinates.
+		 * @return The current session state.
+		 */		
 		public function getSessionState():Object
 		{
 			return null;
@@ -64,20 +69,26 @@ package weave.primitives
 			else
 			{
 				return {
-					xCenter: _dataBounds.getXCenter(),
-					yCenter: _dataBounds.getXCenter(),
-					areaPerPixel: _dataBounds.getArea() / _screenBounds.getArea()
+					xCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
+					yCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
+					areaPerPixel: MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea())
 				};
 			}
 		}
 		
+		/**
+		 * The session state can be specified in two ways: absolute coordinates and center/scale coordinates.
+		 * @param The new session state.
+		 */		
 		public function setSessionState(state:Object):void
 		{
-			_cc.delayCallbacks();
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
+			
 			if (state == null)
 			{
 				if (!_dataBounds.isUndefined())
-					_cc.triggerCallbacks();
+					cc.triggerCallbacks();
 				_dataBounds.reset();
 			}
 			else
@@ -85,28 +96,29 @@ package weave.primitives
 				var usedCenterCoords:Boolean = false;
 				if (state.hasOwnProperty("xCenter"))
 				{
-					if (_dataBounds.getXCenter() != state.xCenter)
+					if (MathLib.roundSignificant(_dataBounds.getXCenter()) != state.xCenter)
 					{
 						_dataBounds.setXCenter(state.xCenter);
-						_cc.triggerCallbacks();
+						cc.triggerCallbacks();
 					}
 					usedCenterCoords = true;
 				}
 				if (state.hasOwnProperty("yCenter"))
 				{
-					if (_dataBounds.getYCenter() != state.yCenter)
+					if (MathLib.roundSignificant(_dataBounds.getYCenter()) != state.yCenter)
 					{
 						_dataBounds.setYCenter(state.yCenter);
-						_cc.triggerCallbacks();
+						cc.triggerCallbacks();
 					}
 					usedCenterCoords = true;
 				}
 				if (state.hasOwnProperty("areaPerPixel"))
 				{
-					if (_dataBounds.getArea() / _screenBounds.getArea() != state.areaPerPixel)
+					if (MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea()) != state.areaPerPixel)
 					{
-						_dataBounds.setXCenter(state.xCenter);
-						_cc.triggerCallbacks();
+						var scale:Number = Math.sqrt(state.areaPerPixel);
+						_dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
+						cc.triggerCallbacks();
 					}
 					usedCenterCoords = true;
 				}
@@ -119,20 +131,28 @@ package weave.primitives
 						if (state.hasOwnProperty(name) && _dataBounds[name] != state[name])
 						{
 							_dataBounds[name] = state[name];
-							_cc.triggerCallbacks();
+							cc.triggerCallbacks();
 						}
 					}
 				}
 			}
 			
-			_cc.resumeCallbacks();
+			cc.resumeCallbacks();
 		}
 		
+		/**
+		 * This function will copy the internal dataBounds to another IBounds2D.
+		 * @param outputScreenBounds The destination.
+		 */
 		public function getDataBounds(outputDataBounds:IBounds2D):void
 		{
 			outputDataBounds.copyFrom(_dataBounds);
 		}
 		
+		/**
+		 * This function will copy the internal screenBounds to another IBounds2D.
+		 * @param outputScreenBounds The destination.
+		 */
 		public function getScreenBounds(outputScreenBounds:IBounds2D):void
 		{
 			outputScreenBounds.copyFrom(_screenBounds);
@@ -146,15 +166,17 @@ package weave.primitives
 		 */		
 		public function setBounds(dataBounds:Bounds2D, screenBounds:IBounds2D, useCenterCoords:Boolean):void
 		{
-			_cc.delayCallbacks();
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
+			
 			if (_useCenterCoords != useCenterCoords || !_dataBounds.equals(dataBounds) || (useCenterCoords && !_screenBounds.equals(screenBounds)))
-				_cc.triggerCallbacks();
+				cc.triggerCallbacks();
 			
 			_dataBounds.copyFrom(dataBounds);
 			_screenBounds.copyFrom(screenBounds);
 			_useCenterCoords = useCenterCoords;
 			
-			_cc.resumeCallbacks();
+			cc.resumeCallbacks();
 		}
 	}
 }
