@@ -267,7 +267,7 @@ package weave.primitives
 		 */
 		public function includeCoords(newX:Number, newY:Number):void
 		{
-			if (!isNaN(newX))
+			if (isFinite(newX))
 			{
 				// If x coordinates are undefined, define them now.
 				if (isNaN(this.xMin))
@@ -291,7 +291,7 @@ package weave.primitives
 					if (newX > xMax) xMax = newX; // xMax = Math.max(xMax, newX);
 				}
 			}
-			if (!isNaN(newY))
+			if (isFinite(newY))
 			{
 				// If y coordinates are undefined, define them now.
 				if (isNaN(this.yMin))
