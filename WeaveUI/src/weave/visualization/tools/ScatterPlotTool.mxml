@@ -51,6 +51,7 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -64,7 +65,7 @@
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
-			import weave.visualization.plotters.AxisPlotter;			
+			import weave.visualization.plotters.AxisPlotter;
 			import weave.visualization.plotters.ProbeLinePlotter;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
@@ -186,12 +187,16 @@
 				_undefinedXPlotter = _undefinedXLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
 				_undefinedYPlotter = _undefinedYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
 				_undefinedXYPlotter = _undefinedXYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
-												
+					
 				for each(var _plotter:ScatterPlotPlotter in [_undefinedXPlotter, _undefinedYPlotter, _undefinedXYPlotter])
 				{
 					linkSessionState(plotter.colorColumn, _plotter.colorColumn);
 					linkSessionState(plotter.alphaColumn, _plotter.alphaColumn);
-					linkSessionState(plotter.radiusColumn, _plotter.radiusColumn);
+					linkSessionState(plotter.radiusColumn, _plotter.radiusColumn);					
+					linkSessionState(plotter.defaultScreenRadius, _plotter.defaultScreenRadius);
+					linkSessionState(plotter.enabledSizeBy, _plotter.enabledSizeBy);
+					linkSessionState(plotter.maxScreenRadius, _plotter.maxScreenRadius);
+					linkSessionState(plotter.minScreenRadius, _plotter.minScreenRadius);
 				} 	
 				
 				linkSessionState(plotter.xColumn, _undefinedYPlotter.xColumn);
@@ -216,6 +221,10 @@
 					layer.lockScreenBounds = true;
 					layer.showMissingRecords(true);
 					
+					linkSessionState(plotLayer.backgroundIsVisible, layer.backgroundIsVisible);
+					linkSessionState(plotLayer.layerIsVisible, layer.layerIsVisible);
+					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);
+					linkSessionState(plotLayer.enableBitmapFilters, layer.enableBitmapFilters);
 					try 
 					{
 						// Remove background bitmaps to reduce the number of overlapping bitmaps on the visualization
