@@ -159,7 +159,7 @@ package weave.visualization.layers
 					linkSessionState(var1, var0);
 				else
 					linkSessionState(var0, var1);
-				(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(p, pair[1]);
+				(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(p, pair[1]);
 			}
 			//(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(p, p.axisLineDataBounds);
 		}

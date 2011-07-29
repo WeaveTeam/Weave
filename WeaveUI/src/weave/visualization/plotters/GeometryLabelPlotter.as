@@ -54,7 +54,8 @@ package weave.visualization.plotters
 			registerSpatialProperties(geometryColumn);
 			
 			// hide dataX,dataY because they don't need to be shown in the session state.
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(this, dataX, dataY);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, dataX);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, dataY);
 			hideOverlappingText.value = true;
 
 			// set up x,y columns to be derived from the geometry column

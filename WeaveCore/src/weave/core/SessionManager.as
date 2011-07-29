@@ -187,20 +187,19 @@ package weave.core
 		 */
 		weave_internal function unregisterLinkableChild(parent:ILinkableObject, child:ILinkableObject):void
 		{
-			removeLinkableChildrenFromSessionState(parent, child);
+			removeLinkableChildFromSessionState(parent, child);
 			getCallbackCollection(child).removeCallback(getCallbackCollection(parent).triggerCallbacks);
 		}
 		
 		/**
-		 * Use this function with care.  This will remove child objects from the session state of a parent.  This
-		 * means the children will no longer be "sessioned."  The child objects will continue to trigger the callbacks
-		 * of the parent object, but they will no longer be considered a part of the parent's session state.  If you
-		 * are not careful, this will break certain functionalities that depend on the session state of the parent.
+		 * This function will add or remove child objects from the session state of a parent.  Use this function
+		 * with care because the child will no longer be "sessioned."  The child objects will continue to trigger the
+		 * callbacks of the parent object, but they will no longer be considered a part of the parent's session state.
+		 * If you are not careful, this will break certain functionalities that depend on the session state of the parent.
 		 * @param parent A parent that the specified child objects were previously registered with.
-		 * @param child The first child object to remove from the session state of the parent.
-		 * @param moreChildren Additional child objects to remove from the session state.
+		 * @param child The child object to remove from the session state of the parent.
 		 */
-		public function removeLinkableChildrenFromSessionState(parent:ILinkableObject, child:ILinkableObject, ...moreChildren):void
+		public function removeLinkableChildFromSessionState(parent:ILinkableObject, child:ILinkableObject):void
 		{
 			if (parent == null || child == null)
 			{
@@ -212,8 +211,6 @@ package weave.core
 				delete childToParentDictionaryMap[child][parent];
 			if (parentToChildDictionaryMap[parent] != undefined)
 				delete parentToChildDictionaryMap[parent][child];
-			for each (child in moreChildren)
-				removeLinkableChildrenFromSessionState(parent, child);
 		}
 		
 		/**

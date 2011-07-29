@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -207,7 +208,8 @@ package weave.visualization.plotters
 		[Deprecated(replacement="internalBinnedColumn")] public function get binnedColumn():BinnedColumn
 		{
 			// this prevents old session states from resetting the color column
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(fillStyle.color, fillStyle.color.internalDynamicColumn);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(fillStyle.color, fillStyle.color.internalDynamicColumn);
+			StageUtils.callLater(this, WeaveAPI.SessionManager.registerLinkableChild, [fillStyle.color, fillStyle.color.internalDynamicColumn], false);
 
 			// this allows old session state to set the binned column
 			return registerLinkableChild(this, internalBinnedColumn);
