@@ -290,20 +290,11 @@
 				_undefinedXYLayer.setScreenBounds(_tempBounds);							
 			}
 			
-			// these variables are used to detect a change in size
-			private var _prevUnscaledWidth:Number = 0;
-			private var _prevUnscaledHeight:Number = 0;
-			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-				// detect size change
-				var sizeChanged:Boolean = _prevUnscaledWidth != unscaledWidth || _prevUnscaledHeight != unscaledHeight;
-				_prevUnscaledWidth = unscaledWidth;
-				_prevUnscaledHeight = unscaledHeight;
-				
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
-				if (sizeChanged)
-					setUndefinedLayerScreenBounds();
+				
+				setUndefinedLayerScreenBounds();
 			}
 			
 			private var _toolTip:IToolTip = null;

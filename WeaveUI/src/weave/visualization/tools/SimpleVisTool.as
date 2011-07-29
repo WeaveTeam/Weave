@@ -72,6 +72,12 @@ package weave.visualization.tools
 			
 			// lock an InteractiveVisualization onto the panel
 			_visualization = children.requestObject("visualization", SimpleInteractiveVisualization, true);
+			
+			_visualization.addEventListener(Event.RESIZE, handleVisualizationResize);
+			function handleVisualizationResize(event:Event):void
+			{
+				invalidateDisplayList();
+			}
 		}
 		
 		/**
