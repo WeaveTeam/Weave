@@ -81,6 +81,11 @@ package weave.visualization.plotters
 			heightColumns.addGroupedCallback(this, defineSortColumnIfUndefined);
 			registerNonSpatialProperty(colorColumn);
 			registerSpatialProperty(sortColumn);
+			
+			registerNonSpatialProperties(
+				Weave.properties.axisFontSize,
+				Weave.properties.axisFontColor
+			);
 		}
 		
 		/**
@@ -332,6 +337,8 @@ package weave.visualization.plotters
 								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 							}
 							dataBounds.projectPointTo(_tempPoint, screenBounds);
+							_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+							_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 							_bitmapText.x = _tempPoint.x;
 							_bitmapText.y = _tempPoint.y;
 							_bitmapText.draw(destination);

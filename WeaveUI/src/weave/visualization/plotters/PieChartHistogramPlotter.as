@@ -92,6 +92,11 @@ package weave.visualization.plotters
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
 			registerSpatialProperties(_binnedData);
 			setKeySource(_filteredData);
+			
+			registerNonSpatialProperties(
+				Weave.properties.axisFontSize,
+				Weave.properties.axisFontColor
+			);
 		}
 		
 		/**
@@ -188,9 +193,8 @@ package weave.visualization.plotters
 					// first get values between -90 and 90, then multiply by the ratio
 					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
-				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 				_bitmapText.x = _tempPoint.x;
 				_bitmapText.y = _tempPoint.y;
 				_bitmapText.draw(destination);
