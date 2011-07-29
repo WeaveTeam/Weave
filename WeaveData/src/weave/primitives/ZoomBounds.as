@@ -56,7 +56,6 @@ package weave.primitives
 		 */		
 		public function getSessionState():Object
 		{
-			return null;
 			if (_useCenterCoords)
 			{
 				return {
@@ -135,6 +134,8 @@ package weave.primitives
 						}
 					}
 				}
+				
+				_useCenterCoords = usedCenterCoords;
 			}
 			
 			cc.resumeCallbacks();
