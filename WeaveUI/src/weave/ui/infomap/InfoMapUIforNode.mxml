@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" minWidth="400" minHeight="300" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		   creationComplete="canvas1_creationCompleteHandler(event)" 
+		   mouseUp="canvas1_mouseUpHandler(event)" 
+		   mouseDown="canvas1_mouseDownHandler(event)" >
+	<mx:Script>
+		<![CDATA[
+			import flash.events.MouseEvent;
+			import flash.geom.Point;
+			import flash.net.URLRequest;
+			import flash.net.navigateToURL;
+			import flash.utils.Dictionary;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Image;
+			import mx.controls.Label;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+
+			protected function canvas1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function canvas1_mouseDownHandler(event:MouseEvent):void
+			{
+				this.startDrag();
+			}
+
+
+			protected function canvas1_mouseUpHandler(event:MouseEvent):void
+			{
+				this.stopDrag();
+			}
+			
+			private var objCollection:ArrayCollection = null;
+			public var solrObjMap:Dictionary = new Dictionary();
+			
+			public function createUI(ac:ArrayCollection,keyWord:String):void{
+				objCollection = ac;
+				var canvasCenterPoint:Point = new Point(this.minWidth/2,this.minHeight/2);			
+				var location:Array = getNPointsOnCircle(canvasCenterPoint,100,ac.length);				
+				for(var i:int; i<ac.length ;i++){
+					var obj:Object = ac[i] as Object;					
+					var img:Image = new Image();
+					img.name = String(i);
+					img.load(obj.imgName);
+					img.width = 50;
+					img.height = 50;
+					img.addEventListener(MouseEvent.ROLL_OVER,highlightThumbnailImage,false, 0, true);
+					img.addEventListener(MouseEvent.ROLL_OUT,removeHighlight,false, 0, true);
+					var imgPosition:Point = location[i] as Point;
+					this.addChild(img);
+					img.x = imgPosition.x;
+					img.y = imgPosition.y;					
+					solrObjMap[img] = obj;
+				}	
+				var keywordLabel:Label = new Label;
+				keywordLabel.text = keyWord;
+				keywordLabel.x = canvasCenterPoint.x;
+				keywordLabel.y = canvasCenterPoint.y;	
+				this.addChild(keywordLabel);
+				currentPreviewWindow = new SolrPreview();
+				currentPreviewWindow.initialize();
+				this.addChild(currentPreviewWindow);
+				
+				currentPreviewWindow.visible = false;
+			}
+			
+			public var currentPreviewWindow:SolrPreview = null
+			
+			public var solrPreviewForNode:SolrPreview = null
+			private function highlightThumbnailImage(event:MouseEvent):void
+			{		
+				var img:Image = event.currentTarget as Image;				
+				var obj:Object = solrObjMap[img] as Object;	
+				
+				currentPreviewWindow.nodeTitle.text =obj.title;
+				currentPreviewWindow.nodeDescription.text=obj.description;
+				currentPreviewWindow.nodeThumbnail.load(obj.imgName);
+				currentPreviewWindow.nodeFullStory.htmlText= "<A HREF=\""+obj.link+ "\" target=\"_blank\">Full Story</A>"; 
+				currentPreviewWindow.x = img.x;
+				currentPreviewWindow.y = img.y;
+				currentPreviewWindow.visible = true;
+				
+			}
+			private function removeHighlight(event:MouseEvent):void
+			{
+				var img:Image = event.currentTarget as Image;
+				if(currentPreviewWindow.visible){
+					//currentPreviewWindow.visible = false;
+				}
+				
+				
+			}
+			
+			private function getNPointsOnCircle( center:Point, radius:Number, n:Number = 10 ) : Array
+			{				
+				var alpha:Number = Math.PI * 2 / n;
+				var points:Array = new Array( n );				
+				var i:int = -1;
+				while( ++i < n )				{
+					var theta:Number = alpha * i;
+					var pointOnCircle:Point = new Point( Math.cos( theta ) * radius, Math.sin( theta ) * radius );
+					points[ i ] = center.add( pointOnCircle );
+				}				
+				return points;				
+			}
+
+
+
+		]]>
+	</mx:Script>
+	
+	
+</mx:Canvas>
