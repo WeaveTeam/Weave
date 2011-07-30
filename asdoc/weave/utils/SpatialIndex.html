@@ -168,7 +168,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#createIndex()">createIndex</a>(plotter:<a href="../api/ui/IPlotter.html">IPlotter</a>):void</div>
+<a class="signatureLink" href="#createIndex()">createIndex</a>(plotter:<a href="../api/ui/IPlotter.html">IPlotter</a>, queryMissingBounds:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function fills the spatial index with the data bounds of each record in a plotter.</div>
 </td><td class="summaryTableOwnerCol">SpatialIndex</td>
@@ -364,7 +364,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function createIndex(plotter:<a href="../api/ui/IPlotter.html">IPlotter</a>):void</code><p>
+<code>public function createIndex(plotter:<a href="../api/ui/IPlotter.html">IPlotter</a>, queryMissingBounds:Boolean = false):void</code><p>
    This function fills the spatial index with the data bounds of each record in a plotter.
    
    </p><span class="label">Parameters</span>
@@ -372,6 +372,12 @@ showHideInherited();
 <tr>
 <td width="20px"></td><td><code><span class="label">plotter</span>:<a href="../api/ui/IPlotter.html">IPlotter</a></code> &mdash; An IPlotter object to index.
    </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">queryMissingBounds</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
 </tr>
 </table>
 </div>

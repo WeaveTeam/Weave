@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,plotBitmap,backgroundFilters,graphicsAreValid,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getBackgroundBitmap,getDataBounds,getDynamicPlotter,getPlotBitmap,getScreenBounds,getSelectedKeys,handleSizeChange,invalidateGraphics,setDataBounds,setScreenBounds,updateDisplayList,validateGraphics" name="keywords">
+<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,lockScreenBounds,plotBitmap,showMissingRecords,backgroundFilters,graphicsAreValid,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getBackgroundBitmap,getDataBounds,getDynamicPlotter,getPlotBitmap,getScreenBounds,getSelectedKeys,handleSizeChange,invalidateGraphics,setDataBounds,setScreenBounds,updateDisplayList,validateGraphics" name="keywords">
 <title>weave.visualization.layers.PlotLayer</title>
 </head>
 <body>
@@ -72,6 +72,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lockScreenBounds">lockScreenBounds</a> : Boolean = false<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">PlotLayer</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#plotFilters">plotFilters</a> : Array<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
@@ -86,6 +90,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#selectionFilter">selectionFilter</a> : <a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a>
 <div class="summaryTableDescription">[read-only]
    This will be used to filter the graphics that are drawn, but not the records that were used to calculate the graphics.</div>
+</td><td class="summaryTableOwnerCol">PlotLayer</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#showMissingRecords">showMissingRecords</a> : Boolean = false<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
 <tr class="">
@@ -299,6 +307,15 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get graphicsAreValid():Boolean</code>
 <br>
 </div>
+<a name="lockScreenBounds"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">lockScreenBounds</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var lockScreenBounds:Boolean = false</code>
+</div>
 <a name="plotFilters"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -340,6 +357,15 @@ showHideInherited();
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get selectionFilter():<a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>
 <br>
+</div>
+<a name="showMissingRecords"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">showMissingRecords</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var showMissingRecords:Boolean = false</code>
 </div>
 <a name="spatialIndex"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

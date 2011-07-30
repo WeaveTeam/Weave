@@ -307,8 +307,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#projectDragBoundsToDataQueryBounds()">projectDragBoundsToDataQueryBounds</a>(sameDirection:Boolean = true):void</div>
-<div class="summaryTableDescription"></div>
+<a class="signatureLink" href="#projectDragBoundsToDataQueryBounds()">projectDragBoundsToDataQueryBounds</a>(layer:<a href="../../api/ui/IPlotLayer.html">IPlotLayer</a>, sameDirection:Boolean):void</div>
+<div class="summaryTableDescription">
+   This function projects drag start,stop screen coordinates into data coordinates and stores the result in queryBounds.</div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
 <tr class="">
@@ -818,10 +819,20 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected function projectDragBoundsToDataQueryBounds(sameDirection:Boolean = true):void</code><span class="label">Parameters</span>
+<code>protected function projectDragBoundsToDataQueryBounds(layer:<a href="../../api/ui/IPlotLayer.html">IPlotLayer</a>, sameDirection:Boolean):void</code><p>
+   This function projects drag start,stop screen coordinates into data coordinates and stores the result in queryBounds.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">sameDirection</span>:Boolean</code> (default = <code>true</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">layer</span>:<a href="../../api/ui/IPlotLayer.html">IPlotLayer</a></code> &mdash; If layer is null, InteractiveVisualization's screen/data bounds will be used.  Otherwise, uses IPlotLayer's bounds.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">sameDirection</span>:Boolean</code> &mdash; Specify true when computing zoom coordinates.
+   </td>
 </tr>
 </table>
 </div>

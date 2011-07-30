@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="SessionManager,weave.core.SessionManager,ILinkableObjectQualifiedClassName,runningDebugFlashPlayer,computeDiff,copySessionState,disposeObjects,getCallbackCollection,getDescendants,getLinkableObjectOwner,getLinkablePropertyNames,getRegisteredChildren,getSessionState,isChildInSessionState,linkBindableProperty,linkSessionState,newDisposableChild,newLinkableChild,objectWasDisposed,registerDisposableChild,registerLinkableChild,removeLinkableChildrenFromSessionState,setSessionState,unlinkBindableProperty,unlinkSessionState,unregisterLinkableChild" name="keywords">
+<meta content="SessionManager,weave.core.SessionManager,ILinkableObjectQualifiedClassName,runningDebugFlashPlayer,computeDiff,copySessionState,disposeObjects,getCallbackCollection,getDescendants,getLinkableObjectOwner,getLinkablePropertyNames,getRegisteredChildren,getSessionState,isChildInSessionState,linkBindableProperty,linkSessionState,newDisposableChild,newLinkableChild,objectWasDisposed,registerDisposableChild,registerLinkableChild,removeLinkableChildFromSessionState,setSessionState,unlinkBindableProperty,unlinkSessionState,unregisterLinkableChild" name="keywords">
 <title>weave.core.SessionManager</title>
 </head>
 <body>
@@ -166,9 +166,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#removeLinkableChildrenFromSessionState()">removeLinkableChildrenFromSessionState</a>(parent:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, child:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, ... moreChildren):void</div>
+<a class="signatureLink" href="#removeLinkableChildFromSessionState()">removeLinkableChildFromSessionState</a>(parent:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, child:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</div>
 <div class="summaryTableDescription">
-   Use this function with care.</div>
+   This function will add or remove child objects from the session state of a parent.</div>
 </td><td class="summaryTableOwnerCol">SessionManager</td>
 </tr>
 <tr class="">
@@ -765,18 +765,18 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="removeLinkableChildrenFromSessionState()"></a>
+<a name="removeLinkableChildFromSessionState()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">removeLinkableChildrenFromSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">removeLinkableChildFromSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function removeLinkableChildrenFromSessionState(parent:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, child:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, ... moreChildren):void</code><p>
-   Use this function with care.  This will remove child objects from the session state of a parent.  This
-   means the children will no longer be "sessioned."  The child objects will continue to trigger the callbacks
-   of the parent object, but they will no longer be considered a part of the parent's session state.  If you
-   are not careful, this will break certain functionalities that depend on the session state of the parent.
+<code>public function removeLinkableChildFromSessionState(parent:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, child:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</code><p>
+   This function will add or remove child objects from the session state of a parent.  Use this function
+   with care because the child will no longer be "sessioned."  The child objects will continue to trigger the
+   callbacks of the parent object, but they will no longer be considered a part of the parent's session state.
+   If you are not careful, this will break certain functionalities that depend on the session state of the parent.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -787,14 +787,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">child</span>:<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code> &mdash; The first child object to remove from the session state of the parent.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code>... <span class="label">moreChildren</span></code> &mdash; Additional child objects to remove from the session state.
+<td width="20px"></td><td><code><span class="label">child</span>:<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code> &mdash; The child object to remove from the session state of the parent.
    </td>
 </tr>
 </table>
