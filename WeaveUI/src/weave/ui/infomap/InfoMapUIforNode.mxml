@@ -16,19 +16,19 @@
 			import mx.controls.Label;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
-
+			
 			protected function canvas1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
 			}
-
-
+			
+			
 			protected function canvas1_mouseDownHandler(event:MouseEvent):void
 			{
 				this.startDrag();
 			}
-
-
+			
+			
 			protected function canvas1_mouseUpHandler(event:MouseEvent):void
 			{
 				this.stopDrag();
@@ -36,11 +36,11 @@
 			
 			private var objCollection:ArrayCollection = null;
 			public var solrObjMap:Dictionary = new Dictionary();
-			
 			public function createUI(ac:ArrayCollection,keyWord:String):void{
 				objCollection = ac;
 				var canvasCenterPoint:Point = new Point(this.minWidth/2,this.minHeight/2);			
-				var location:Array = getNPointsOnCircle(canvasCenterPoint,100,ac.length);				
+				var location:Array = getNPointsOnCircle(canvasCenterPoint,100,ac.length);	
+				
 				for(var i:int; i<ac.length ;i++){
 					var obj:Object = ac[i] as Object;					
 					var img:Image = new Image();
@@ -48,51 +48,35 @@
 					img.load(obj.imgName);
 					img.width = 50;
 					img.height = 50;
-					img.addEventListener(MouseEvent.ROLL_OVER,highlightThumbnailImage,false, 0, true);
-					img.addEventListener(MouseEvent.ROLL_OUT,removeHighlight,false, 0, true);
+					img.mouseChildren = false;
+					img.doubleClickEnabled = true;
+					img.addEventListener(MouseEvent.DOUBLE_CLICK,openLink);
 					var imgPosition:Point = location[i] as Point;
 					this.addChild(img);
 					img.x = imgPosition.x;
 					img.y = imgPosition.y;					
 					solrObjMap[img] = obj;
+					var nodePreview:NodeHover = new NodeHover();
+					nodePreview.initialize();
+					nodePreview.parentComponent = img;
+					nodePreview.nodeTitleText =obj.title;
+					nodePreview.nodeDescriptionText=obj.description;
+					nodePreview.nodeThumbnail.load(obj.imgName);
+					//nodePreview.nodeFullStoryHtmlText= "<A HREF=\""+obj.link+ "\" target=\"_blank\">Full Story</A>"; 
+					nodePreview.nodeTimeStampText = obj.date_published;
 				}	
 				var keywordLabel:Label = new Label;
 				keywordLabel.text = keyWord;
 				keywordLabel.x = canvasCenterPoint.x;
 				keywordLabel.y = canvasCenterPoint.y;	
 				this.addChild(keywordLabel);
-				currentPreviewWindow = new SolrPreview();
-				currentPreviewWindow.initialize();
-				this.addChild(currentPreviewWindow);
-				
-				currentPreviewWindow.visible = false;
-			}
-			
-			public var currentPreviewWindow:SolrPreview = null
-			
-			public var solrPreviewForNode:SolrPreview = null
-			private function highlightThumbnailImage(event:MouseEvent):void
-			{		
-				var img:Image = event.currentTarget as Image;				
-				var obj:Object = solrObjMap[img] as Object;	
-				
-				currentPreviewWindow.nodeTitle.text =obj.title;
-				currentPreviewWindow.nodeDescription.text=obj.description;
-				currentPreviewWindow.nodeThumbnail.load(obj.imgName);
-				currentPreviewWindow.nodeFullStory.htmlText= "<A HREF=\""+obj.link+ "\" target=\"_blank\">Full Story</A>"; 
-				currentPreviewWindow.x = img.x;
-				currentPreviewWindow.y = img.y;
-				currentPreviewWindow.visible = true;
 				
 			}
-			private function removeHighlight(event:MouseEvent):void
+			
+			private function openLink(event:MouseEvent):void
 			{
 				var img:Image = event.currentTarget as Image;
-				if(currentPreviewWindow.visible){
-					//currentPreviewWindow.visible = false;
-				}
-				
-				
+				navigateToURL(new URLRequest((objCollection[img.name] as Object).link)) ;
 			}
 			
 			private function getNPointsOnCircle( center:Point, radius:Number, n:Number = 10 ) : Array
@@ -107,11 +91,12 @@
 				}				
 				return points;				
 			}
-
-
-
+			
+			
+			
 		]]>
 	</mx:Script>
+	
 	
 	
 </mx:Canvas>
