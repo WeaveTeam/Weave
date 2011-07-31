@@ -897,6 +897,8 @@
 			{
 				if (effectInProgress)
 					return;
+				
+				//suspendBackgroundProcessing();
 				effectInProgress = true;
 				this.enabled = false;
 					
@@ -977,7 +979,8 @@
 
 				_minimized = false;
 				//copyCoordinatesFromSessionedProperties();
-
+				
+				//suspendBackgroundProcessing();
 				effectInProgress = true;
 				this.enabled = false;
 				
@@ -1088,7 +1091,8 @@
 
 					minimizedComponentVersion = null;
 				}
-				
+
+				//resumeBackgroundProcessing();
 				effectInProgress = false;
 				this.enabled = true;
 				Application.application.mouseEnabled = true;

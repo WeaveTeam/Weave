@@ -27,6 +27,7 @@ package weave.visualization.layers
 	import flash.filters.DropShadowFilter;
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
+	import flash.ui.Keyboard;
 	
 	import mx.containers.Canvas;
 	import mx.core.Application;
@@ -221,20 +222,6 @@ package weave.visualization.layers
 		{
 			var mode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
 			
-			
-			// commented out because there were complaints/"bug" reports about this
-			/* 
-			if(StageUtils.previousFrameElapsedTime > 75)
-			{
-				CursorManager.removeCursor(CursorManager.currentCursorID);
-				callLater(updateMouseCursor);
-				return;
-			}
-			*/
-				
-			//resumeBackgroundProcessing()
-			//suspendBackgroundProcessing()
-
 			if(mouseIsRolledOver)
 			{
 				if(mode == PAN_MODE)
@@ -266,7 +253,7 @@ package weave.visualization.layers
 		protected function handleKeyboardEvent():void
 		{
 			// if the escape key was hit, stop whatever mouse drag operation is in progress
-			if(StageUtils.keyboardEvent && (StageUtils.keyboardEvent.keyCode == 27))
+			if (StageUtils.keyboardEvent && StageUtils.keyboardEvent.keyCode == Keyboard.ESCAPE)
 				mouseDragActive = false;
 
 			// if currently dragging, don't change mouse mode
