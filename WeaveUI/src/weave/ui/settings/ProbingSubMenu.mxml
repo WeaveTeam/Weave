@@ -27,8 +27,15 @@
 				  height="100%" width="100%"
 				  >
 	<mx:Canvas id="admin">
-		<mx:VBox >
-		
+		<mx:VBox>
+					
+		<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
+					 id="enableBitmapFilters"
+					 label="Enable Bitmap Filters"
+					 selected="true"
+					 initialize="linkBindableProperty(Weave.properties.enableBitmapFilters, enableBitmapFilters, 'selected')"
+					 />
+		<mx:VBox enabled="{enableBitmapFilters.selected}" >			
 			<mx:HBox>
 				<mx:Label text="Probe Inner Glow Color" 
 						  width="200"		
@@ -109,7 +116,7 @@
 				<mx:ColorPicker id="probeTooltipBackgroundColor" change="backgroundColorPicked()"/>
 				<mx:Button label="Reset" click="Weave.properties.probeToolTipBackgroundColor.value = NaN;"/>
 			</mx:HBox>
-			
+			</mx:VBox>
 			<mx:VBox paddingLeft="10">
 				<mx:HBox>
 					<mx:CheckBox id="enableProbeAnimationCheck"
