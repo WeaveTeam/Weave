@@ -9,6 +9,9 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
+  <listener>
+      <listener-class>infomap.scheduler.SolrSchedulerShutdown</listener-class>
+</listener>
   <servlet>
     <servlet-name>GenerateThumbnail</servlet-name>
     <servlet-class>infomap.thumbnailr.GenerateThumbnail</servlet-class>
@@ -32,4 +35,5 @@
     <servlet-name>SolrDataServices</servlet-name>
     <url-pattern>/SolrDataServices</url-pattern>
   </servlet-mapping>
+  
 </web-app>

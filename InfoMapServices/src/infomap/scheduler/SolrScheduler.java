@@ -16,15 +16,15 @@ import org.quartz.DateBuilder;
 import static org.quartz.SimpleScheduleBuilder.*;
 import org.quartz.impl.StdSchedulerFactory;
 
-public class SolrScheduler extends HttpServlet{
+public final class SolrScheduler extends HttpServlet{
 	
 	private static final long serialVersionUID = 1L;
 	
 	private static SchedulerFactory _schedFactory = new StdSchedulerFactory();
 	
 	//the interval in minutes after which Solr will index the documents
-	private static int interval = 15;
-	public void setInterval(int value)
+	private static int interval = 60;
+	public static void setInterval(int value)
 	{
 		interval = value;
 		try{
@@ -42,11 +42,11 @@ public class SolrScheduler extends HttpServlet{
 	
 	public void init() 
 	{
-			setInterval(15);
+			setInterval(60);
 	}
 	
 	//TODO: test start function
-	public void start() throws SchedulerException{
+	public static void start() throws SchedulerException{
 		try{
 			
 			System.out.println("Setting up Scheduler...");
@@ -63,7 +63,7 @@ public class SolrScheduler extends HttpServlet{
 							.build();
 			
 			sched.scheduleJob(job, trigger);
-//			sched.start();
+			sched.start();
 			System.out.println("Scheduler is now running...");
 			
 		}catch (SchedulerException e){
@@ -72,12 +72,12 @@ public class SolrScheduler extends HttpServlet{
 	}
 	
 	//TODO: test stop function
-	public void stop() throws SchedulerException{
+	public static void stop() throws SchedulerException{
 		try{
 		Scheduler sched = _schedFactory.getScheduler();
 		JobKey jKey = new JobKey("jobForIndexing","solr");
 		sched.deleteJob(jKey);
-		
+		sched.shutdown(true);
 		}catch (SchedulerException e){
 			e.printStackTrace();
 		}

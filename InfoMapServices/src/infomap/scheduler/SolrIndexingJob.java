@@ -19,7 +19,7 @@ public class SolrIndexingJob implements Job{
 		try{
 			System.out.println("making URL request");
 			//TODO: abstract the URL
-			URL url = new URL("http://129.63.8.219:8080/solr/select?clean=false&commit=true&qt=%2Fdataimport&command=full-import");
+			URL url = new URL("http://localhost:8080/solr/select?clean=false&commit=true&qt=%2Fdataimport&command=full-import");
 			URLConnection conn = url.openConnection();
 			conn.setDoOutput(true);
 			//read the response

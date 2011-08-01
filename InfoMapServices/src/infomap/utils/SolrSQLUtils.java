@@ -197,7 +197,7 @@ public class SolrSQLUtils {
 	}
     
     
-    private void recursivelyAddFiles(String path)
+    public void recursivelyAddFiles(String path)
     {
     	
     	File file = new File(path);

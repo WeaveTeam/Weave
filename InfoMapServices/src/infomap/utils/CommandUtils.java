@@ -13,7 +13,10 @@ public class CommandUtils
     {
 
         Runtime run = Runtime.getRuntime();
-
+        
+        run.traceInstructions(true);
+        run.traceMethodCalls(true);
+        
         Process proc = null;
 
         proc = run.exec(args);
@@ -38,9 +41,9 @@ public class CommandUtils
 
                 {
 
+                	System.out.println(stdout.readLine());
                     stdout.skip(Long.MAX_VALUE);
 
-                    //line = stdout.readLine();
 
                 }
 
@@ -48,9 +51,10 @@ public class CommandUtils
 
                 {
 
-                    stderr.skip(Long.MAX_VALUE);
+                    System.out.println(stderr.readLine());
+                	stderr.skip(Long.MAX_VALUE);
 
-                    //line = stderr.readLine();
+//                    line = stderr.readLine();
 
                 }
 
