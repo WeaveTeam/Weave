@@ -223,8 +223,7 @@
 					
 					linkSessionState(plotLayer.backgroundIsVisible, layer.backgroundIsVisible);
 					linkSessionState(plotLayer.layerIsVisible, layer.layerIsVisible);
-					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);
-					linkSessionState(plotLayer.enableBitmapFilters, layer.enableBitmapFilters);
+					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);					
 					try 
 					{
 						// Remove background bitmaps to reduce the number of overlapping bitmaps on the visualization

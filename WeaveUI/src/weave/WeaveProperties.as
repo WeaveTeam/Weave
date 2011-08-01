@@ -135,6 +135,7 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
+		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true);
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
