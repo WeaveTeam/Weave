@@ -108,7 +108,7 @@
 				visualization.enableZoomAndPan.value = false;
 				visualization.enableAutoZoomToExtent.value = false;
 				visualization.enableAutoZoomToExtent.lock();
-				visualization.dataBounds.setBounds(-180,-180,180,180);
+				visualization.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
 				
 				visualization.enableXAxisProbing = true;
 				visualization.enableYAxisProbing = true;
@@ -119,7 +119,7 @@
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
-				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				

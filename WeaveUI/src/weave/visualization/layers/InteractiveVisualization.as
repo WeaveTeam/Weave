@@ -290,7 +290,7 @@ package weave.visualization.layers
 				if (event.ctrlKey && event.shiftKey)
 				{
 					// zoom to full extent
-					dataBounds.copyFrom(fullDataBounds);
+					zoomBounds.setDataBounds(fullDataBounds);
 				}
 				else
 				{
@@ -299,13 +299,13 @@ package weave.visualization.layers
 					var zoomOut:Boolean = (event.ctrlKey || event.shiftKey);
 
 					projectDragBoundsToDataQueryBounds(null, false);
-					dataBounds.copyTo(_tempBounds);
+					zoomBounds.getDataBounds(_tempBounds);
 					_tempBounds.setCenter(queryBounds.getXCenter(), queryBounds.getYCenter());
 					
 					var multiplier:Number = zoomOut ? 2 : 0.5;
 					_tempBounds.centeredResize(_tempBounds.getWidth() * multiplier, _tempBounds.getHeight() * multiplier);
 
-					dataBounds.copyFrom(_tempBounds);
+					zoomBounds.setDataBounds(_tempBounds);
 				}
 			}
 			else
@@ -313,7 +313,7 @@ package weave.visualization.layers
 				// clear selection or select all
 
 				// set up mouse drag rectangle to select or deselect visible area
-				getScreenBounds(_screenBounds);
+				zoomBounds.getScreenBounds(_screenBounds);
 				_screenBounds.getMinPoint(tempPoint);
 				mouseDragStageCoords.setMinPoint(localToGlobal(tempPoint));
 				_screenBounds.getMaxPoint(tempPoint);
@@ -382,13 +382,13 @@ package weave.visualization.layers
 		{
 			if (Weave.properties.enableMouseWheel.value && enableZoomAndPan.value)
 			{
-				dataBounds.copyTo(_tempBounds);
-				getScreenBounds(_screenBounds);
+				zoomBounds.getDataBounds(_tempBounds);
+				zoomBounds.getScreenBounds(_screenBounds);
 				if(event.delta > 0)
 					ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,2,false);
 				else if(event.delta < 0)
 						ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,0.5,false);
-				dataBounds.copyFrom(_tempBounds);
+				zoomBounds.setDataBounds(_tempBounds);
 			}
 		}
 		
@@ -445,9 +445,9 @@ package weave.visualization.layers
 				{
 					// pan the dragged distance
 					projectDragBoundsToDataQueryBounds(null, false);
-					dataBounds.copyTo(tempDataBounds);
+					zoomBounds.getDataBounds(tempDataBounds);
 					tempDataBounds.setCenter(tempDataBounds.getXCenter() - queryBounds.getWidth(), tempDataBounds.getYCenter() - queryBounds.getHeight());
-					dataBounds.copyFrom(tempDataBounds);
+					zoomBounds.setDataBounds(tempDataBounds);
 					// set begin point for next pan
 					mouseDragStageCoords.setMinPoint(mouseDragStageCoords.getMaxPoint(tempPoint));
 				}
@@ -458,7 +458,7 @@ package weave.visualization.layers
 						// zoom to selected data bounds if area > 0
 						projectDragBoundsToDataQueryBounds(null, true); // data bounds in same direction when zooming
 						if (queryBounds.getArea() > 0)
-							dataBounds.copyFrom(queryBounds);
+							zoomBounds.setDataBounds(queryBounds);
 					}
 				}
 			}
@@ -564,8 +564,8 @@ package weave.visualization.layers
 			}
 			else
 			{
-				dataBounds.copyTo(tempDataBounds);
-				getScreenBounds(tempScreenBounds);
+				zoomBounds.getDataBounds(tempDataBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
 			}
 			
 			// project stage coords to local layer coords

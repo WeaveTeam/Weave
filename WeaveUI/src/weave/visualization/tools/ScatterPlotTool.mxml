@@ -116,7 +116,7 @@
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, invalidateAxes);
 				getCallbackCollection(plotter).addGroupedCallback(this, invalidateAxes, true);
 				
 				initColumnDefaults(plotter.xColumn, plotter.yColumn, colorColumn);

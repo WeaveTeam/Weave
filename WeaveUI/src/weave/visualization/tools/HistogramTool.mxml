@@ -86,7 +86,7 @@
 
 				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
 				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, openAttributeSelector);

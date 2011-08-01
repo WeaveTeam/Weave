@@ -140,8 +140,8 @@
 				var probeKeySet:IKeySet = (plotLayer.probeFilter.internalObject) as IKeySet;
 				if(!probeKeySet) return;
 				
-				visualization.dataBounds.copyTo(dataBounds);
-				getScreenBounds(screenBounds);
+				visualization.zoomBounds.getDataBounds(dataBounds);
+				visualization.zoomBounds.getScreenBounds(screenBounds);
 				
 				_plotter.probedKeys = probeKeySet.keys ;
 				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
@@ -157,8 +157,8 @@
 				tempBounds.setCenter(tempPoint.x, tempPoint.y);
 				tempBounds.centeredResize(10,10);
 				
-				visualization.dataBounds.copyTo(dataBounds);
-				getScreenBounds(screenBounds);				
+				visualization.zoomBounds.getDataBounds(dataBounds);
+				visualization.zoomBounds.getScreenBounds(screenBounds);
 				screenBounds.projectCoordsTo(tempBounds, dataBounds);
 				
 				_probedKeys = (_anchorLayer.spatialIndex as SpatialIndex).getKeysBoundingBoxOverlap(tempBounds);
@@ -279,15 +279,6 @@
 				}
 				anchorReorderButton.selected = false; 
 			} */
-			
-			public function getScreenBounds(outputBounds:Bounds2D):void
-			{
-				for each( var plotlayer:IPlotLayer in visualization.layers.getObjects(IPlotLayer))
-				{
-					plotlayer.getScreenBounds(outputBounds);
-					break;
-				}
-			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>

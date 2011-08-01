@@ -254,7 +254,7 @@
 				
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, handleBoundsChange, true);
+				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void
@@ -338,28 +338,28 @@
 			
 			private function handleZoomInClick():void
 			{
-				visualization.dataBounds.copyTo(_tempBounds);
+				visualization.zoomBounds.getDataBounds(_tempBounds);
 				_tempBounds.centeredResize(_tempBounds.getWidth() / 2, _tempBounds.getHeight() / 2);
-				visualization.dataBounds.copyFrom(_tempBounds);
+				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private function handleZoomOutClick():void
 			{
-				visualization.dataBounds.copyTo(_tempBounds);
+				visualization.zoomBounds.getDataBounds(_tempBounds);
 				_tempBounds.centeredResize(_tempBounds.getWidth() * 2, _tempBounds.getHeight() * 2);
-				visualization.dataBounds.copyFrom(_tempBounds);
+				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private function handlePanButtonClick(xPan:Number, yPan:Number):void
 			{
 				var panPercent:Number = 0.3;
 				
-				visualization.dataBounds.copyTo(_tempBounds);
+				visualization.zoomBounds.getDataBounds(_tempBounds);
 				_tempBounds.offset(
 						_tempBounds.getWidth() * panPercent * xPan,
 						_tempBounds.getHeight() * panPercent * yPan
 					);
-				visualization.dataBounds.copyFrom(_tempBounds);
+				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private var scrollWheelScaler:int = 3; // number of mouse wheel delta increments required to zoom in/out 2x
@@ -397,7 +397,7 @@
 			}
 			private function handleZoomExtentClick():void
 			{
-				visualization.dataBounds.copyFrom(visualization.fullDataBounds);
+				visualization.zoomBounds.setDataBounds(visualization.fullDataBounds);
 			}
 			
 			private function addGeomLayer():void
@@ -456,7 +456,7 @@
 			private function handleBoundsChange():void
 			{
 				// update center coordinates text boxes
-				visualization.dataBounds.copyTo(_tempBounds);
+				visualization.zoomBounds.getDataBounds(_tempBounds);
 				xCenterCoord.text = String(_tempBounds.getXCenter());
 				yCenterCoord.text = String(_tempBounds.getYCenter());
 				
@@ -490,7 +490,7 @@
 					{
 						overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME = children.generateUniqueName("overview"),MapOverviewWindow,true);
 						linkSessionState(visualization.layers, overviewPanel.visualization.layers); 
-						linkSessionState(visualization.dataBounds,overviewPanel.parentDataBounds);	
+						linkSessionState(visualization.zoomBounds, overviewPanel.parentZoomBounds);	
 						children.addGroupedCallback(this, bringOverviewToTop);
 						visualization.layers.addGroupedCallback(this,overviewPanel.drawBoundsRectangle);
 					}

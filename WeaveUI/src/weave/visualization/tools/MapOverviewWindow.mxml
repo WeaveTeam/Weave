@@ -42,6 +42,7 @@
 			import weave.api.ui.IPlotLayer;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.LinkableBounds2D;
+			import weave.primitives.ZoomBounds;
 
 
 			override protected function constructor():void
@@ -64,7 +65,7 @@
 				
 				// make sure WMS layers are included in the full data bounds
 				visualization.includeNonSelectableLayersInAutoZoom.value = true;
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this,drawBoundsRectangle);
+				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this,drawBoundsRectangle);
 				visualization.enableFixedAspectRatio.value = true;
 			
 				sessionPanelCoordsAsPercentages = false;
@@ -83,8 +84,8 @@
 				addEventListener(MouseEvent.MOUSE_OVER, handleMouseOver);
 				addEventListener(MouseEvent.MOUSE_OUT, handleMouseOut);
 			}
-	
-			public const parentDataBounds:LinkableBounds2D = newLinkableChild(this,LinkableBounds2D, drawBoundsRectangle, true);
+			
+			public const parentZoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, drawBoundsRectangle, true);
 			
 			private var overviewDataBounds:IBounds2D = new Bounds2D();
 			private var screenBounds:IBounds2D = new Bounds2D();
@@ -98,12 +99,12 @@
 			public function drawBoundsRectangle():void
 			{
 				getDataScreenBounds();
-				parentDataBounds.copyTo(tempBounds);
+				parentZoomBounds.getDataBounds(tempBounds);
 				
 				if( tempBounds.isEmpty() || tempBounds.isUndefined() ) return;				
 				if( screenBounds.isEmpty() || screenBounds.isUndefined()) return;									
 
-				visualization.dataBounds.copyTo(overviewDataBounds);
+				visualization.zoomBounds.getDataBounds(overviewDataBounds);
 				overviewDataBounds.projectCoordsTo(tempBounds,screenBounds);
 				screenBounds.constrainBounds(tempBounds,false);
 				var graphics:Graphics = canvas.graphics;
@@ -156,11 +157,10 @@
 				tempPoint = visualization.globalToLocal(new Point(e.stageX, e.stageY));
 				tempBounds.setBounds(tempPoint.x, tempPoint.y, tempPoint.x+boundWidth,tempPoint.y+boundHeight);
 				tempBounds.setCenter(tempPoint.x,tempPoint.y); 
-				visualization.dataBounds.copyTo(overviewDataBounds);
+				visualization.zoomBounds.getDataBounds(overviewDataBounds);
 				
-				screenBounds.projectCoordsTo(tempBounds,overviewDataBounds);
-				parentDataBounds.copyFrom(tempBounds);
-				
+				screenBounds.projectCoordsTo(tempBounds, overviewDataBounds);
+				parentZoomBounds.setDataBounds(tempBounds);
 			}
 			
 			private function getDataScreenBounds():void

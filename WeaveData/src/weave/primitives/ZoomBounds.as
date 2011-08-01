@@ -46,9 +46,10 @@ package weave.primitives
 		{
 		}
 		
+		private const _tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
 		private const _dataBounds:Bounds2D = new Bounds2D();
 		private const _screenBounds:Bounds2D = new Bounds2D();
-		private var _useCenterCoords:Boolean = false;
+		private var _useFixedAspectRatio:Boolean = false;
 		
 		/**
 		 * The session state has two modes: absolute coordinates and center/scale coordinates.
@@ -56,21 +57,21 @@ package weave.primitives
 		 */		
 		public function getSessionState():Object
 		{
-			if (_useCenterCoords)
+			if (_useFixedAspectRatio)
+			{
+				return {
+					xCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
+					yCenter: MathLib.roundSignificant(_dataBounds.getYCenter()),
+					areaPerPixel: MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea())
+				};
+			}
+			else
 			{
 				return {
 					xMin: _dataBounds.getXMin(),
 					yMin: _dataBounds.getYMin(),
 					xMax: _dataBounds.getXMax(),
 					yMax: _dataBounds.getYMax()
-				};
-			}
-			else
-			{
-				return {
-					xCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
-					yCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
-					areaPerPixel: MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea())
 				};
 			}
 		}
@@ -135,7 +136,7 @@ package weave.primitives
 					}
 				}
 				
-				_useCenterCoords = usedCenterCoords;
+				_useFixedAspectRatio = usedCenterCoords;
 			}
 			
 			cc.resumeCallbacks();
@@ -163,21 +164,59 @@ package weave.primitives
 		 * This function will set all the information required to define the session state of the ZoomBounds.
 		 * @param dataBounds The data range of a visualization.
 		 * @param screenBounds The pixel range of a visualization.
-		 * @param useCenterCoords If true, the session state will be defined by xCenter,yCenter,areaPerPixel.  If false, the session state will be defined by xMin,yMin,xMax,yMax.
+		 * @param useFixedAspectRatio If true, the session state will be defined by xCenter,yCenter,areaPerPixel.  If false, the session state will be defined by xMin,yMin,xMax,yMax.
 		 */		
-		public function setBounds(dataBounds:Bounds2D, screenBounds:IBounds2D, useCenterCoords:Boolean):void
+		public function setBounds(dataBounds:IBounds2D, screenBounds:IBounds2D, useFixedAspectRatio:Boolean):void
 		{
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			if (_useCenterCoords != useCenterCoords || !_dataBounds.equals(dataBounds) || (useCenterCoords && !_screenBounds.equals(screenBounds)))
+			if (_useFixedAspectRatio != useFixedAspectRatio || !_dataBounds.equals(dataBounds) || (useFixedAspectRatio && !_screenBounds.equals(screenBounds)))
 				cc.triggerCallbacks();
 			
 			_dataBounds.copyFrom(dataBounds);
 			_screenBounds.copyFrom(screenBounds);
-			_useCenterCoords = useCenterCoords;
+			_useFixedAspectRatio = useFixedAspectRatio;
+			_fixAspectRatio();
 			
 			cc.resumeCallbacks();
+		}
+		
+		public function setDataBounds(dataBounds:IBounds2D):void
+		{
+			if (_dataBounds.equals(dataBounds))
+				return;
+			
+			_dataBounds.copyFrom(dataBounds);
+			_fixAspectRatio();
+			
+			getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		public function setScreenBounds(screenBounds:IBounds2D, useFixedAspectRatio:Boolean):void
+		{
+			if (_useFixedAspectRatio == useFixedAspectRatio && _screenBounds.equals(screenBounds))
+				return;
+			
+			_useFixedAspectRatio = useFixedAspectRatio;
+			_screenBounds.copyFrom(screenBounds);
+			_fixAspectRatio();
+			
+			getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		private function _fixAspectRatio():void
+		{
+			if (_useFixedAspectRatio)
+			{
+				var xScale:Number = _dataBounds.getWidth() / _screenBounds.getXCoverage();
+				var yScale:Number = _dataBounds.getHeight() / _screenBounds.getYCoverage();
+				if (xScale != yScale)
+				{
+					var scale:Number = Math.sqrt(Math.abs(xScale * yScale));
+					_dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
+				}
+			}
 		}
 	}
 }

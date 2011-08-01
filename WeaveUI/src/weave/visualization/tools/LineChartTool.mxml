@@ -91,7 +91,7 @@
 				
 				addLabelLayer();
 
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, updateAxes);
+				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxes);
 			
 				// BEGIN TEMPORARY SOLUTION
 				visualization.marginLeft.addGroupedCallback(this, updateAxes);
@@ -214,7 +214,7 @@
 				xAxisLayer.axisPlotter.updateLabels();
 				
 				// get bounds for y axis
-				visualization.dataBounds.copyTo(tempBounds);
+				visualization.zoomBounds.getDataBounds(tempBounds);
 				tempBounds.xMax = tempBounds.xMin;
 				
 				yAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.yMin;
