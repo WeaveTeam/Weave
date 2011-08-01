@@ -284,8 +284,6 @@ package weave.data.DataSources
 				handleColumnDownload, handleColumnDownloadFail, token);
 		}
 		
-		// [Deprecated] private var _urlLoaderToColumnRequestMap:Dictionary = new Dictionary(false); // maps a URLLoader object to a ColumnRequestToken
-
 		private function getQName(xmlContainingNamespaceInfo:XML, qname:String):QName
 		{
 			var array:Array = String(qname).split(":");

@@ -283,32 +283,38 @@ package weave
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
-		[Deprecated(replacement="panelTitleFontFamily")] public function get panelTitleFontStyle():LinkableString { return panelTitleFontFamily; }
-		[Deprecated(replacement="dashboardMode")] public function get enableToolBorders():LinkableBoolean
+		[Deprecated(replacement="panelTitleFontFamily")] public function set panelTitleFontStyle(value:String):void
 		{
-			var temp:LinkableBoolean = new LinkableBoolean();
-			var callback:Function = function():void
-			{
-				dashboardMode.value = !temp.value;
-				disposeObjects(temp);
-			}
-			return registerLinkableChild(this, temp, callback);
+			panelTitleFontFamily.value = value;
 		}
-		[Deprecated(replacement="dashboardMode")] public function get enableBorders():LinkableBoolean { return this['enableToolBorders']; }
-		[Deprecated(replacement="enableSessionBookmarks")] public function get enableSavePoint():LinkableBoolean { return enableSessionBookmarks; }
-		[Deprecated(replacement="showProbeToolTipEditor")] public function get showProbeColumnEditor():LinkableBoolean { return showProbeToolTipEditor; }
-		[Deprecated(replacement="enableAddWeaveDataSource")] public function get enableAddOpenIndicatorsDataSource():LinkableBoolean { return enableAddWeaveDataSource; }
-		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function get enableToolAutoResizeAndPosition():LinkableBoolean { return enablePanelCoordsPercentageMode; }
-		[Deprecated(replacement="rServiceURL")] public function get rServicesURL():LinkableString
+		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void
 		{
-			var temp:LinkableString = new LinkableString();
-			var callback:Function = function():void
-			{
-				if (temp.value != '/OpenIndicatorsDataServices')
-					rServiceURL.value = temp.value + '/RService';
-				disposeObjects(temp);
-			};
-			return registerLinkableChild(this, temp, callback);
+			dashboardMode.value = !value;
+		}
+		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void
+		{
+			dashboardMode.value = !value;
+		}
+		[Deprecated(replacement="enableSessionBookmarks")] public function set enableSavePoint(value:Boolean):void
+		{
+			enableSessionBookmarks.value = value;
+		}
+		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void
+		{
+			showProbeToolTipEditor.value = value;
+		}
+		[Deprecated(replacement="enableAddWeaveDataSource")] public function set enableAddOpenIndicatorsDataSource(value:Boolean):void
+		{
+			enableAddWeaveDataSource.value = value;
+		}
+		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void
+		{
+			enablePanelCoordsPercentageMode.value = value;
+		}
+		[Deprecated(replacement="rServiceURL")] public function set rServicesURL(value:String):void
+		{
+			if (value != '/OpenIndicatorsDataServices')
+				rServiceURL.value = value + '/RService';
 		}
 		//--------------------------------------------
 	}

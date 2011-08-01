@@ -351,15 +351,9 @@ package weave.visualization.tools
 		}
 		
 		// backwards compatibility 0.9.6
-		[Deprecated(replacement="enableBorders")] public function get hideBorders():LinkableBoolean
+		[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void
 		{
-			var hide:LinkableBoolean = new LinkableBoolean(!enableBorders.value);
-			var callback:Function = function():void
-			{
-				enableBorders.value = !hide.value;
-				disposeObjects(hide);
-			};
-			return registerLinkableChild(this, hide, callback);
+			enableBorders.value = !value;
 		}
 	}
 }

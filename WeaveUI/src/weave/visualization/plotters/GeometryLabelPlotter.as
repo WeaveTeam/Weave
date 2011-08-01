@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -106,9 +107,9 @@ package weave.visualization.plotters
 		private var tempBounds2:IBounds2D = new Bounds2D();
 		
 		// backwards compatibility 0.9.6
-		[Deprecated(replacement="geometryColumn")] public function get geometry():DynamicColumn
+		[Deprecated(replacement="geometryColumn")] public function set geometry(value:Object):void
 		{
-			return registerLinkableChild(this, geometryColumn.internalDynamicColumn);
+			setSessionState(geometryColumn.internalDynamicColumn, value);
 		}
 	}
 }

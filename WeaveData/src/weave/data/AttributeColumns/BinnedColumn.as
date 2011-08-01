@@ -125,32 +125,30 @@ package weave.data.AttributeColumns
 			_largestBinSize = 0;
 			_derivedBins.removeAllObjects();
 			if (def != null && column != null)
-			{
 				def.getBinClassifiersForColumn(column, _derivedBins);
-				// save bin names for faster lookup
-				_binNames = _derivedBins.getNames();
-				if (_binNames.length > 0)
+			// save bin names for faster lookup
+			_binNames = _derivedBins.getNames();
+			if (_binNames.length > 0)
+			{
+				var bins:Array = _derivedBins.getObjects();
+				var i:int;
+				// create empty key arrays
+				for (i = 0; i < _binNames.length; i++)
+					_binnedKeysMap[_binNames[i]] = _binnedKeysArray[i] = []; // same Array pointer
+				// fill all mappings
+				for (i = 0; i < keys.length; i++)
 				{
-					var bins:Array = _derivedBins.getObjects();
-					var i:int;
-					// create empty key arrays
-					for (i = 0; i < _binNames.length; i++)
-						_binnedKeysMap[_binNames[i]] = _binnedKeysArray[i] = []; // same Array pointer
-					// fill all mappings
-					for (i = 0; i < keys.length; i++)
-					{
-						var key:IQualifiedKey = keys[i];
-						// assuming bin classifiers are NumberClassifiers
-						var value:Number = column.getValueFromKey(key, Number);
-						var binIndex:int = _derivedBins.getBinIndexFromDataValue(value);
-						if (isNaN(binIndex))
-							continue;
-						_keyToBinIndexMap[key] = binIndex;
-						(_binnedKeysMap[_binNames[binIndex]] as Array).push(key);
-					}
-					for each (var bin:Array in _binnedKeysArray)
-						_largestBinSize = Math.max(_largestBinSize, bin.length);
+					var key:IQualifiedKey = keys[i];
+					// assuming bin classifiers are NumberClassifiers
+					var value:Number = column.getValueFromKey(key, Number);
+					var binIndex:int = _derivedBins.getBinIndexFromDataValue(value);
+					if (isNaN(binIndex))
+						continue;
+					_keyToBinIndexMap[key] = binIndex;
+					(_binnedKeysMap[_binNames[binIndex]] as Array).push(key);
 				}
+				for each (var bin:Array in _binnedKeysArray)
+					_largestBinSize = Math.max(_largestBinSize, bin.length);
 			}
 			_validateBinsCompleted = true; // this prevents invalidateBins() from setting dirty to true			
 			_dirty = false;
