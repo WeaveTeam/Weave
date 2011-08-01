@@ -65,24 +65,30 @@ package weave.ui
 		}
 		
 		public var drawing:Boolean = false;
-		public const penEnabled:LinkableBoolean = newLinkableChild( this, LinkableBoolean );
 		public const coords:LinkableString = newLinkableChild( this, LinkableString, handleCoordsChange ); //This is used for sessiong all of the coordinates.
 		public const lineWidth:LinkableNumber = newLinkableChild( this, LinkableNumber, invalidateDisplayList ); //Allows user to change the size of the line.
 		public const lineColor:LinkableNumber = newLinkableChild( this, LinkableNumber, invalidateDisplayList ); //Allows the user to change the color of the line.
-		private var placeholder:int = 0; //This is necessary for drawing the lines. The placeholder keeps track of what has been drawn so there is no re-drawing.
 		private var _coordsArrays:Array = []; // parsed from coords LinkableString
-		private var _editMode:Boolean = false; // true when editing
+		public const _editMode:LinkableBoolean = newLinkableChild( this, LinkableBoolean, handleEditModeChange );; // true when editing
+		
+		public function handleEditModeChange():void
+		{
+			if( _editMode.value == true )
+				editMode = true;
+			else
+				editMode = false;
+		}
 		
 		public function get editMode():Boolean
 		{
-			return _editMode;
+			return _editMode.value;
 		}
 		public function set editMode(value:Boolean):void
 		{
-			if (_editMode == value)
+			if (_editMode.value == value)
 				return;
 			
-			_editMode = value;
+			_editMode.value = value;
 			
 			if (value)
 			{
@@ -92,7 +98,6 @@ package weave.ui
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown );
 				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp );
 				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove );
-				penEnabled.value = true;
 			}
 			else
 			{
@@ -101,7 +106,6 @@ package weave.ui
 				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove );
 				
 				CustomCursorManager.removeAllCursors();
-				penEnabled.value = false;
 			}
 			invalidateDisplayList();
 		}
@@ -246,7 +250,7 @@ package weave.ui
 				if( ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME ) )
 				{
 					var penObject:ILinkableObject = ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME );
-					if( ( penObject as PenMouse ).penEnabled.value == true )
+					if( ( penObject as PenMouse ).editMode == true )
 					{
 						_penToolMenuItem.caption = DISABLE_PEN;
 						( penObject as PenMouse).editMode = true;
@@ -276,7 +280,6 @@ package weave.ui
 				// enable pen
 				
 				penTool.editMode = true;
-				penTool.penEnabled.value = true;
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
@@ -285,7 +288,6 @@ package weave.ui
 			{
 				// disable pen
 				penTool.editMode = false;
-				penTool.penEnabled.value = false;
 				
 				_penToolMenuItem.caption = ENABLE_PEN;
 			}
