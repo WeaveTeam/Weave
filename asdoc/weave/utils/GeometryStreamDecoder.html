@@ -1,0 +1,440 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
+<link rel="stylesheet" href="../../print.css" type="text/css" media="print">
+<meta content="GeometryStreamDecoder,weave.utils.GeometryStreamDecoder,collectiveBounds,geometries,keySet,projectionSrsCode,keyType,decodeGeometryStream,decodeGeometryTileList,decodeMetadataStream,decodeMetadataTileList,getGeometriesFromKey,getRequiredGeometryTileIDs,getRequiredMetadataTileIDs" name="keywords">
+<title>weave.utils.GeometryStreamDecoder</title>
+</head>
+<body>
+<script type="text/javascript" language="javascript" src="../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../cookies.js"></script><script type="text/javascript" language="javascript">
+<!--
+				asdocTitle = 'GeometryStreamDecoder - Weave AS3 documentation';
+				var baseRef = '../../';
+				window.onload = configPage;
+			--></script>
+<table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
+<tr>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/utils/GeometryStreamDecoder.html&amp;weave/utils/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
+</tr>
+<tr class="titleTableRow2">
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;GeometryStreamDecoder</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
+</tr>
+<tr class="titleTableRow3">
+<td colspan="2">&nbsp;</td>
+</tr>
+</table>
+<script type="text/javascript" language="javascript">
+<!--
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class GeometryStreamDecoder"); titleBar_setSubNav(true,true,false,false,false,false,true,false,false,false,false,false,false,false);}
+--></script>
+<div class="MainContent">
+<table cellspacing="0" cellpadding="0" class="classHeaderTable">
+<tr>
+<td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.utils</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class GeometryStreamDecoder</td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Implements</td><td><a href="../api/core/ILinkableObject.html">ILinkableObject</a></td>
+</tr>
+</table>
+<p></p>
+  This class provides functions for parsing a binary geometry stream.
+  The callbacks for this object get called when all queued decoding completes.
+  
+  Throughout the code, an ID refers to an integer value, while a Key is a string value.
+  Binary format:
+    tile descriptor format: <float minImportance, float maxImportance, double xMin, double yMin, double xMax, double yMax>
+        stream tile format: <int negativeTileID, binary stream object beginning with positive int, ...>
+    metadata stream object: <int geometryID, String geometryKey, '\0', double xMin, double yMin, double xMax, double yMax, int vertexID1, ..., int vertexID(n), int -1>
+    geometry stream object: <int geometryID1, int vertexID1, int geometryID2, int vertexID2, ..., int geometryID(n-1), int vertexID(n-1), int geometryID(n), int negativeVertexID(n), double x, double y, float importance>
+  
+  <p></p>
+<br>
+<hr>
+</div>
+<a name="propertySummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Properties</div>
+<table id="summaryTableProperty" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keyType">keyType</a> : String<div class="summaryTableDescription">[write-only]
+   This function sets the keyType of the keys that will be
+   added as a result of downloading the geometries.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#projectionSrsCode">projectionSrsCode</a> : String = "null"<div class="summaryTableDescription">
+   This is the projection that the coordinates are in.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+</table>
+</div>
+<a name="methodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Methods</div>
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#GeometryStreamDecoder()">GeometryStreamDecoder</a>()</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#decodeGeometryStream()">decodeGeometryStream</a>(stream:ByteArray):void</div>
+<div class="summaryTableDescription">
+   extracts points from a ByteArray.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#decodeGeometryTileList()">decodeGeometryTileList</a>(stream:ByteArray):void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#decodeMetadataStream()">decodeMetadataStream</a>(stream:ByteArray):void</div>
+<div class="summaryTableDescription">
+   extracts metadata from a ByteArray.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#decodeMetadataTileList()">decodeMetadataTileList</a>(stream:ByteArray):void</div>
+<div class="summaryTableDescription">
+   decodeMetadataTileList, decodeGeometryTileList, and decodeTileList
+   Converts a base64 string to a ByteArray and extracts tile descriptors,
+   starting with tile #0, then tile #1, etc.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getGeometriesFromKey()">getGeometriesFromKey</a>(geometryKey:<a href="../api/data/IQualifiedKey.html">IQualifiedKey</a>):Array</div>
+<div class="summaryTableDescription">
+   getGeometriesFromKey
+   </div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getRequiredGeometryTileIDs()">getRequiredGeometryTileIDs</a>(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number, removeTilesFromList:Boolean):Array</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getRequiredMetadataTileIDs()">getRequiredMetadataTileIDs</a>(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number, removeTilesFromList:Boolean):Array</div>
+<div class="summaryTableDescription">
+   getRequiredMetadataTileIDs, getRequiredGeometryTileIDs, and getRequiredTileIDs
+   These functions return an array of tile IDs that need to be downloaded in
+   order for shapes to be displayed at the given importance (quality) level.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+</table>
+</div>
+<a name="constantSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Constants</div>
+<table id="summaryTableConstant" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#collectiveBounds">collectiveBounds</a> : <a href="../api/primitives/IBounds2D.html">IBounds2D</a>
+<div class="summaryTableDescription">
+   collectiveBounds
+   This is the bounding box containing all tile boundaries.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#geometries">geometries</a> : Array<div class="summaryTableDescription">
+   geometries
+   This is an Array of GeneralizedGeometry objects that have been decoded from a stream.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keySet">keySet</a> : <a href="../data/KeySets/KeySet.html">KeySet</a>
+<div class="summaryTableDescription">
+   keySet
+   This is the set of geometry keys that have been decoded so far.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+</table>
+</div>
+<script type="text/javascript" language="javascript">
+<!--
+showHideInherited();
+--></script>
+<div class="MainContent">
+<a name="propertyDetail"></a>
+<div class="detailSectionHeader">Property detail</div>
+<a name="keyType"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">keyType</td><td class="detailHeaderType">property</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>keyType:String</code>&nbsp;&nbsp;[write-only]<p>
+   This function sets the keyType of the keys that will be
+   added as a result of downloading the geometries.
+   </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set keyType(value:String):void</code>
+<br>
+</div>
+<a name="projectionSrsCode"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">projectionSrsCode</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var projectionSrsCode:String = "null"</code><p>
+   This is the projection that the coordinates are in.
+   Note: SRS ID means "Spatial Reference System Identifier"
+   </p></div>
+<a name="constructorDetail"></a>
+<div class="detailSectionHeader">Constructor detail</div>
+<a name="GeometryStreamDecoder()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">GeometryStreamDecoder</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">constructor</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function GeometryStreamDecoder()</code>
+</div>
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="decodeGeometryStream()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">decodeGeometryStream</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function decodeGeometryStream(stream:ByteArray):void</code><p>
+   extracts points from a ByteArray.
+   If the geometries change, the specified callback will run when processing is finished.
+   When decoding completes, decodeCompleteCallbacks will run.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code></td>
+</tr>
+</table>
+</div>
+<a name="decodeGeometryTileList()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">decodeGeometryTileList</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function decodeGeometryTileList(stream:ByteArray):void</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code></td>
+</tr>
+</table>
+</div>
+<a name="decodeMetadataStream()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">decodeMetadataStream</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function decodeMetadataStream(stream:ByteArray):void</code><p>
+   extracts metadata from a ByteArray.
+   If the geometries change, the specified callback will run when processing is finished.
+   When decoding completes, decodeCompleteCallbacks will run.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code></td>
+</tr>
+</table>
+</div>
+<a name="decodeMetadataTileList()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">decodeMetadataTileList</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function decodeMetadataTileList(stream:ByteArray):void</code><p>
+   decodeMetadataTileList, decodeGeometryTileList, and decodeTileList
+   Converts a base64 string to a ByteArray and extracts tile descriptors,
+   starting with tile #0, then tile #1, etc.
+   When decoding completes, decodeCompleteCallbacks will run.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code></td>
+</tr>
+</table>
+</div>
+<a name="getGeometriesFromKey()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getGeometriesFromKey</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getGeometriesFromKey(geometryKey:<a href="../api/data/IQualifiedKey.html">IQualifiedKey</a>):Array</code><p>
+   getGeometriesFromKey
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">geometryKey</span>:<a href="../api/data/IQualifiedKey.html">IQualifiedKey</a></code> &mdash; A String identifier.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An Array of GeneralizedGeometry objects with keys matching the specified key. 
+   </td>
+</tr>
+</table>
+</div>
+<a name="getRequiredGeometryTileIDs()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getRequiredGeometryTileIDs</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getRequiredGeometryTileIDs(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number, removeTilesFromList:Boolean):Array</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">bounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">minImportance</span>:Number</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">removeTilesFromList</span>:Boolean</code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code></td>
+</tr>
+</table>
+</div>
+<a name="getRequiredMetadataTileIDs()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getRequiredMetadataTileIDs</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getRequiredMetadataTileIDs(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number, removeTilesFromList:Boolean):Array</code><p>
+   getRequiredMetadataTileIDs, getRequiredGeometryTileIDs, and getRequiredTileIDs
+   These functions return an array of tile IDs that need to be downloaded in
+   order for shapes to be displayed at the given importance (quality) level.
+   IDs of tiles that have already been decoded from a stream will not be returned.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">bounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">minImportance</span>:Number</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">removeTilesFromList</span>:Boolean</code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; A list of tile IDs, sorted descending by maxImportance.
+   </td>
+</tr>
+</table>
+</div>
+<a name="constantDetail"></a>
+<div class="detailSectionHeader">Constant detail</div>
+<a name="collectiveBounds"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">collectiveBounds</td><td class="detailHeaderType">constant</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const collectiveBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code><p>
+   collectiveBounds
+   This is the bounding box containing all tile boundaries.
+   </p></div>
+<a name="geometries"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">geometries</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const geometries:Array</code><p>
+   geometries
+   This is an Array of GeneralizedGeometry objects that have been decoded from a stream.
+   </p></div>
+<a name="keySet"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">keySet</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const keySet:<a href="../data/KeySets/KeySet.html">KeySet</a></code><p>
+   keySet
+   This is the set of geometry keys that have been decoded so far.
+   </p></div>
+<br>
+<br>
+<hr>
+<br>
+<p></p>
+<center class="copyright"> 
+</center>
+</div>
+</body>
+</html>
+<!-- -->
