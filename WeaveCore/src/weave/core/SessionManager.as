@@ -292,8 +292,9 @@ package weave.core
 				return;
 
 			// delay callbacks before setting session state
-			var objectCC:ICallbackCollection = getCallbackCollection(linkableObject);
-			objectCC.delayCallbacks();
+			var cc:ICallbackCollection = getCallbackCollection(linkableObject);
+			cc.delayCallbacks();
+			var ccArray:Array = [cc]; // list of ICallbackCollections
 
 			// set session state
 			var name:String;
@@ -318,7 +319,12 @@ package weave.core
 				// skip this property if it was not registered as a linkable child of the sessionedObject.
 				if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
 					continue;
-					
+				
+				// delay callbacks before setting session state
+				cc = getCallbackCollection(property);
+				cc.delayCallbacks();
+				ccArray.push(cc);
+				
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
 			
@@ -328,7 +334,8 @@ package weave.core
 					linkableObject[name] = newState[name];
 			
 			// resume callbacks after setting session state
-			objectCC.resumeCallbacks();
+			for (var i:int = ccArray.length - 1; i >= 0; i--)
+				(ccArray[i] as ICallbackCollection).resumeCallbacks();
 		}
 		
 		/**
