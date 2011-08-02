@@ -553,9 +553,9 @@ package weave.visualization.layers
 		/**
 		 * This function projects drag start,stop screen coordinates into data coordinates and stores the result in queryBounds.
 		 * @param layer If layer is null, InteractiveVisualization's screen/data bounds will be used.  Otherwise, uses IPlotLayer's bounds.
-		 * @param sameDirection Specify true when computing zoom coordinates.
+		 * @param zooming Specify true when computing zoom coordinates.
 		 */		
-		protected function projectDragBoundsToDataQueryBounds(layer:IPlotLayer, sameDirection:Boolean):void
+		protected function projectDragBoundsToDataQueryBounds(layer:IPlotLayer, zooming:Boolean):void
 		{
 			if (layer)
 			{
@@ -582,12 +582,21 @@ package weave.visualization.layers
 			queryBounds.setMinPoint(localMinPoint);
 			queryBounds.setMaxPoint(localMaxPoint);
 			
-			if (sameDirection)
+			if (zooming)
 			{
+				// swap min,max coordinates if necessary
 				if (queryBounds.getXDirection() != tempDataBounds.getXDirection())
 					queryBounds.setXRange(queryBounds.getXMax(), queryBounds.getXMin());
 				if (queryBounds.getYDirection() != tempDataBounds.getYDirection())
 					queryBounds.setYRange(queryBounds.getYMax(), queryBounds.getYMin());
+				
+				// expand rectangle if necessary to match screen aspect ratio
+				var xScale:Number = queryBounds.getXCoverage() / tempScreenBounds.getXCoverage();
+				var yScale:Number = queryBounds.getYCoverage() / tempScreenBounds.getYCoverage();
+				if (xScale > yScale)
+					queryBounds.setHeight( queryBounds.getYDirection() * tempScreenBounds.getYCoverage() * xScale );
+				if (yScale > xScale)
+					queryBounds.setWidth( queryBounds.getXDirection() * tempScreenBounds.getXCoverage() * yScale );
 			}
 		}
 		
@@ -628,7 +637,7 @@ package weave.visualization.layers
 
 				// when using the selection layer, clear the probe
 				setProbeKeys(layer, []);
-				projectDragBoundsToDataQueryBounds(layer, true);
+				projectDragBoundsToDataQueryBounds(layer, false);
 				
 				
 				// calculate minImportance
