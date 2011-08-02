@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" minWidth="400" minHeight="300" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" minWidth="200" minHeight="200" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 		   creationComplete="canvas1_creationCompleteHandler(event)" 
 		   mouseUp="canvas1_mouseUpHandler(event)" 
 		   mouseDown="canvas1_mouseDownHandler(event)" >
@@ -39,7 +39,7 @@
 			public function createUI(ac:ArrayCollection,keyWord:String):void{
 				objCollection = ac;
 				var canvasCenterPoint:Point = new Point(this.minWidth/2,this.minHeight/2);			
-				var location:Array = getNPointsOnCircle(canvasCenterPoint,100,ac.length);	
+				var location:Array = getNPointsOnCircle(canvasCenterPoint,this.minHeight/2,ac.length);	
 				
 				for(var i:int; i<ac.length ;i++){
 					var obj:Object = ac[i] as Object;					
@@ -63,13 +63,13 @@
 					nodePreview.nodeDescriptionText=obj.description;
 					nodePreview.nodeThumbnail.load(obj.imgName);
 					//nodePreview.nodeFullStoryHtmlText= "<A HREF=\""+obj.link+ "\" target=\"_blank\">Full Story</A>"; 
-					nodePreview.nodeTimeStampText = obj.date_published;
+					nodePreview.nodeTimeStampText = obj.datePub;
 				}	
-				var keywordLabel:Label = new Label;
-				keywordLabel.text = keyWord;
-				keywordLabel.x = canvasCenterPoint.x;
-				keywordLabel.y = canvasCenterPoint.y;	
+				var keywordLabel:Label = new Label();
+				keywordLabel.text = keyWord;				
 				this.addChild(keywordLabel);
+				keywordLabel.x = canvasCenterPoint.x ;
+				keywordLabel.y = canvasCenterPoint.y;	
 				
 			}
 			

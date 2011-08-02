@@ -63,18 +63,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			private var loader:URLLoader = null;
+			private var query:String = "";
 			
 			private function parseSolrResponseFromURL():void
 			{
 				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=10&indent=on&q=";	
-				
-				var query:String = (keywords.value as String);
-				
+				query = (keywords.value as String);				
 				if(query=="")
 					return;
 				
-				var temp:Array = query.split(",");
-				
+				var temp:Array = query.split(",");				
 				if(temp.length != 0 || temp.length != 1)
 					query = temp.join(" OR ");
 				
@@ -105,19 +103,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				response = new ArrayCollection();
 				for each(var doc:XML in result.result.doc)
 				{
-					trace(doc.str.(@name=="title").text().toXMLString());
-					
-					var docObject:Object = new Object();
+									
+					var docObject:Object = new Object();					
+					var link:String = doc.str.(@name=="link").text().toXMLString();
+					var linkLen:int = link.length;
+					var linkExtension:String = link.substring(linkLen-3,linkLen);
+					if(linkExtension == "pdf"){
+						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+					}
+					if(link.substring(linkLen-3,linkLen-1) == "doc"){
+						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+					}
 					
 					docObject.title = doc.str.(@name=="title").text().toXMLString();
-					docObject.link = doc.str.(@name=="link").text().toXMLString();
+					docObject.link = link;
 					docObject.description = doc.str.(@name=="description").text().toXMLString();
-					docObject.datePub = doc.date.text().toXMLString();
-					
+					docObject.datePub = doc.str.(@name=="date_published").text().toXMLString();
+					docObject.imgName = "http://129.63.8.219:8080/infomap/thumbnails/"+  doc.str.(@name=="imgName").text().toXMLString() +".jpg";					
 					response.addItem(docObject);
 				}
 				
-				
+				var infoMapUIforNode:InfoMapUIforNode = new InfoMapUIforNode();
+				infoMapUIforNode.createUI(response,query);
+				this.addChild(infoMapUIforNode);				
 			}
 			
 		
@@ -129,7 +137,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Label text="Keywords:"/>
 			<mx:TextInput id="keywordsInput" enabled="true" cornerRadius="5"/>
 		</mx:HBox>
-		<mx:List verticalScrollPolicy="on" variableRowHeight="true" height="100%" width="100%" id="resultView" dataProvider="{response}">
+		<!--<mx:List verticalScrollPolicy="on" variableRowHeight="true" height="100%" width="100%" id="resultView" dataProvider="{response}">
 		
 		<mx:itemRenderer>
 			
@@ -145,6 +153,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				</mx:VBox>
 			</mx:Component>
 		</mx:itemRenderer>	
-		</mx:List>
+		</mx:List>-->
 	</mx:VBox>
 </ui:DraggablePanel>
