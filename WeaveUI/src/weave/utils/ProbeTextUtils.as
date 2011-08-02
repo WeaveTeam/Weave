@@ -27,12 +27,12 @@ package weave.utils
 	import mx.managers.ToolTipManager;
 	
 	import weave.Weave;
-	import weave.compiler.StringLib;
-	import weave.core.LinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.compiler.StringLib;
+	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
 	import weave.visualization.layers.InteractiveVisualization;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
@@ -63,7 +63,7 @@ package weave.utils
 		 * @param maxRecordsShown Maximum no. of records shown in one probe tooltip
 		 * @return A string to be displayed on a tooltip while probing 
 		 */		
-		public static function getProbeText(keySet:IKeySet, additionalColumns:Array = null, maxRecordsShown:int = 4):String
+		public static function getProbeText(keySet:IKeySet, additionalColumns:Array = null):String
 		{
 			var result:String = '';
 			var columns:Array = probedColumns.getObjects(IAttributeColumn);
@@ -73,6 +73,7 @@ package weave.utils
 			var keys:Array = keySet.keys;
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
+			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;
 			for (var iKey:int = 0; iKey < keys.length && iKey < maxRecordsShown; iKey++)
 			{
 				key = keys[iKey] as IQualifiedKey;

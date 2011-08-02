@@ -37,6 +37,16 @@
 					 />
 		<mx:VBox enabled="{enableBitmapFilters.selected}" >			
 			<mx:HBox>
+				<mx:Label text="Maximum number of records shown" 
+						  width="200"							  
+						  textAlign="right"
+						  toolTip="Set the maximum number of records displayed in probe toolTips"/>
+				<mx:NumericStepper id="maxRecordsShown"
+								   maximum="20"
+								   initialize="linkBindableProperty(Weave.properties.maxTooltipRecordsShown, maxRecordsShown, 'value' );"
+								   />
+			</mx:HBox>
+			<mx:HBox>
 				<mx:Label text="Probe Inner Glow Color" 
 						  width="200"		
 						  textAlign="right"

@@ -81,13 +81,14 @@ package weave
 		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
 		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
-		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; };
+		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:Number):Boolean { return value >= 1; }
 		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
+		private function verifyMaxTooltipRecordsShown(value:Number):Boolean { return 0 <= value && value <= 20; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
-//		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Viws TabBar
+//		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Views TabBar
 		public const windowSnapGridSize:LinkableNumber = new LinkableNumber(5, verifyWindowSnapGridSize); // window snap grid size in pixels
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
@@ -135,7 +136,8 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
-		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true);
+		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(4, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
+		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);

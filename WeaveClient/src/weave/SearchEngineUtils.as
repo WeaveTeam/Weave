@@ -116,7 +116,7 @@ package weave
 		
 		private static function handleSearchQueryContextMenuItemSelect(event:ContextMenuEvent):void
 		{
-			var probeText:String = ProbeTextUtils.getProbeText(_localProbeKeySet, null, 1);
+			var probeText:String = ProbeTextUtils.getProbeText(_localProbeKeySet, null);
 			if (probeText == null)
 				return;
 			// get first line of text only

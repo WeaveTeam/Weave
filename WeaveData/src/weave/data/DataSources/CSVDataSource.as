@@ -52,8 +52,8 @@ package weave.data.DataSources
 		public function CSVDataSource()
 		{
 			// when sessioned url or data change, reset hierarchy
-			url.addImmediateCallback(this, resetHierarchy);
-			csvDataString.addImmediateCallback(this, resetHierarchy);
+			/*url.addImmediateCallback(this, resetHierarchy);
+			csvDataString.addImmediateCallback(this, resetHierarchy);*/
 		}
 		
 		override protected function get initializationComplete():Boolean
