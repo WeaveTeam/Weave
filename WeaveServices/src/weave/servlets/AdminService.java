@@ -22,7 +22,6 @@ package weave.servlets;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -30,6 +29,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -75,14 +75,21 @@ import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
 
-import org.postgresql.PGConnection;
-
 public class AdminService extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
 	
 	public AdminService()
 	{
+	}
+	
+	/**
+	 * This constructor is for testing only.
+	 * @param configManager
+	 */
+	public AdminService(SQLConfigManager configManager)
+	{
+		this.configManager = configManager;
 	}
 	
 	public void init(ServletConfig config) throws ServletException
@@ -94,6 +101,17 @@ public class AdminService extends GenericServlet
 		uploadPath = configManager.getContextParams().getUploadPath();
 		docrootPath = configManager.getContextParams().getDocrootPath();
 	}
+	
+//	/**
+//	 * ONLY FOR TESTING.
+//	 * @throws ServletException
+//	 */
+//	public void init2() throws ServletException
+//	{
+//		tempPath = configManager.getContextParams().getTempPath();
+//		uploadPath = configManager.getContextParams().getUploadPath();
+//		docrootPath = configManager.getContextParams().getDocrootPath();
+//	}
 	private String tempPath;
 	private String uploadPath;
 	private String docrootPath;
@@ -101,8 +119,6 @@ public class AdminService extends GenericServlet
 	private static int StringType = 0;
 	private static int IntType = 1;
 	private static int DoubleType = 2;
-	private static String CSV_NULL_VALUE = "\\N";
-
 	private SQLConfigManager configManager;
 
 	synchronized public AdminServiceResponse checkSQLConfigExists()
@@ -1142,7 +1158,6 @@ public class AdminService extends GenericServlet
 		{
 			throw new RemoteException(e.getMessage(), e);
 		}
-		String dbms = connInfo.dbms;
 
 		sqlTable = sqlTable.toLowerCase(); // fix for MySQL running under Linux
 
@@ -1156,6 +1171,7 @@ public class AdminService extends GenericServlet
 		int i = 0;
 		int j = 0;
 		int num = 1;
+		String outputNullValue = SQLUtils.SQLSERVER.equalsIgnoreCase(connInfo.dbms) ? "" : "\\N";
 
 		try
 		{
@@ -1231,19 +1247,18 @@ public class AdminService extends GenericServlet
 					
 					// Change missing data into NULL, later add more cases to deal with missing data.
 					String[] nullValuesStandard = new String[]{"", ".", "..", " ", "-", "\"NULL\"", "NULL", "NaN"};
-					
 					for(String[] values : new String[][] {nullValuesStandard, nullValues })
 					{			
 						for (String nullValue : values)
 						{
 							if (nextLine[i].equalsIgnoreCase(nullValue))
 							{
-								nextLine[i] = CSV_NULL_VALUE;
+								nextLine[i] = outputNullValue;
 								break;
 							}
 						}
 					}
-					if (nextLine[i].equals(CSV_NULL_VALUE))
+					if (nextLine[i].equals(outputNullValue))
 						continue;
 					
 					// 3.3.2 is a string, update the type.
@@ -1260,7 +1275,6 @@ public class AdminService extends GenericServlet
 					{
 						try
 						{
-							// if this fails, it will throw an exception
 							Double.parseDouble(nextLine[i]);
 
 							types[i] = DoubleType;
@@ -1294,14 +1308,10 @@ public class AdminService extends GenericServlet
 		String returnMsg = "";
 		try
 		{
-			String quotedTable = SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable);
-
 			// Drop the table if it exists.
 			if (sqlOverwrite)
 			{
-				stmt = conn.createStatement();
-				stmt.executeUpdate("DROP TABLE IF EXISTS " + quotedTable);
-				stmt.close();
+				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
 			}
 			else
 			{
@@ -1317,47 +1327,23 @@ public class AdminService extends GenericServlet
 							configDataTableName));
 			}
 
-			// create a table
-			String query = "CREATE TABLE " + quotedTable + " (";
+			// create a list of the column types
+			List<String> columnTypesList = new Vector<String>();
 			for (i = 0; i < columnNames.length; i++)
 			{
-				String quotedColumnName = SQLUtils.quoteSymbol(dbms, columnNames[i]);
-				if (i > 0)
-					query += ",";
 				if (types[i] == StringType || csvKeyColumn.equalsIgnoreCase(columnNames[i]))
-					query += String.format("%s VARCHAR(%s)", quotedColumnName, fieldLengths[i]);
+					columnTypesList.add(SQLUtils.getVarcharString(conn, fieldLengths[i]));
 				else if (types[i] == IntType)
-					query += quotedColumnName + " INT";
+					columnTypesList.add(SQLUtils.getIntString(conn));
 				else if (types[i] == DoubleType)
-					query += quotedColumnName + " DOUBLE PRECISION";
+					columnTypesList.add(SQLUtils.getDoubleString(conn));
 			}
-			query += ");";
-			stmt = conn.createStatement();
-			System.out.println(query);
-			stmt.executeUpdate(query);
-			stmt.close();
+			// create the table
+			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(columnNames), columnTypesList);
 
 			// import the data
-			System.out.println(conn.getMetaData().getDatabaseProductName());
-			if (dbms.equalsIgnoreCase(SQLUtils.MYSQL))
-			{
-				stmt = conn.createStatement();
-				//ignoring 1st line so that we don't put the column headers as the first row of data
-				stmt.executeUpdate(String.format(
-						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
-						formatted_CSV_path, quotedTable
-					));
-				stmt.close();
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
-			{
-				// using modified driver from
-				// http://kato.iki.fi/sw/db/postgresql/jdbc/copy/
-				((PGConnection) conn).getCopyAPI().copyIntoDB(
-						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
-						new FileInputStream(formatted_CSV_path));
-			}
-
+			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
+			
 			returnMsg += addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
 					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, Arrays.asList(originalColumnNames), Arrays
 							.asList(columnNames), sqlSchema, sqlTable);
@@ -1375,6 +1361,15 @@ public class AdminService extends GenericServlet
 		{
 			e.printStackTrace();
 			returnMsg += "Unable to import CSV.\nFile not found: ";
+			String errorMsg = e.getMessage();
+			if (errorMsg.length() > 512)
+				errorMsg = errorMsg.substring(0, 512);
+			returnMsg += errorMsg;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			returnMsg += "Unable to import CSV.";
 			String errorMsg = e.getMessage();
 			if (errorMsg.length() > 512)
 				errorMsg = errorMsg.substring(0, 512);
@@ -1440,23 +1435,29 @@ public class AdminService extends GenericServlet
 		// config file
 		List<String> queries = new Vector<String>();
 		List<String> dataTypes = new Vector<String>();
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String query = null;
 		Connection conn = null;
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
-			stmt = conn.createStatement();
 			for (i = 0; i < sqlColumnNames.size(); i++)
 			{
 				// test each query
 				query = generateColumnQuery(dbms, keyColumnName, secondaryKeyColumnName, sqlColumnNames.get(i), sqlSchema, sqlTable);
-				rs = stmt.executeQuery(query + " LIMIT 1");
+				String testQuery = dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) ? query : (query + " LIMIT 1");
+				
+//				System.out.println("QUERY:\t" + testQuery);
+				stmt = conn.prepareStatement(testQuery);
+				rs = stmt.executeQuery();
+				
 				DataType dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
-				SQLUtils.cleanup(rs);
 				queries.add(query);
 				dataTypes.add(dataType.toString());
+				
+				SQLUtils.cleanup(rs);
+				SQLUtils.cleanup(stmt);
 			}
 		}
 		catch (SQLException e)

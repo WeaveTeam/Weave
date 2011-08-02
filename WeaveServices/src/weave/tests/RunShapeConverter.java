@@ -59,13 +59,13 @@ public class RunShapeConverter
 			System.out.println("file: " + args[i]);
 		}
 
-		String dbms = "MySQL";
+		String dbms = SQLUtils.SQLSERVER;
 		String ip = "localhost";
-		String port = "3306";
-		String database = "";
+		String port = "1433";
+		String database = "SQLSERVER_DEV";
 		String user = "root";
-		String pass = "PASSWORD";
-		String sqlSchema = "test";
+		String pass = "<PASSWORD>";
+		String sqlSchema = "shp_convert";
 		String sqlTablePrefix = "shptest";
 		
 		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(dbms), SQLUtils.getConnectString(dbms, ip, port, database, user, pass));

@@ -25,8 +25,9 @@ import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
+import java.util.Vector;
+
 
 import weave.utils.SQLUtils;
 import weave.utils.SerialIDGenerator;
@@ -86,30 +87,39 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 
 	protected void createTileTable(String sqlTable) throws SQLException
 	{
-		// create sql table
-		String quotedSchemaTable = SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable);
-		Statement stmt = null;
 		try
 		{
-			stmt = conn.createStatement();
-
 			// create schema if it doesn't exist
 			if (!SQLUtils.schemaExists(conn, sqlSchema))
-				stmt.executeUpdate("CREATE SCHEMA " + sqlSchema);
+				SQLUtils.createSchema(conn, sqlSchema);
 
 			// overwrite table
 			if (overwriteTables)
-				stmt.executeUpdate("DROP TABLE IF EXISTS " + quotedSchemaTable);
-    		String query = "CREATE TABLE "+quotedSchemaTable+" ("
-    			+ " minImportance DOUBLE PRECISION, maxImportance DOUBLE PRECISION,"
-    			+ " xMinBounds DOUBLE PRECISION, yMinBounds DOUBLE PRECISION, xMaxBounds DOUBLE PRECISION, yMaxBounds DOUBLE PRECISION,"
-    			+ " tileID INT, tileData " + SQLUtils.binarySQLType(dbms) + ","
-    			+ " PRIMARY KEY (tileID)"
-    			+ ")";
-    		stmt.executeUpdate(query);
-			query = "CREATE INDEX " + SQLUtils.quoteSymbol(dbms, sqlTable + "_index")
-				+ " ON " + quotedSchemaTable + " (xMinBounds,yMinBounds,xMaxBounds,yMaxBounds)";
-			stmt.executeUpdate(query);
+				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
+			
+			List<String> colNames = new Vector<String>();
+			List<String> colTypes = new Vector<String>();
+			colNames.add("minImportance");
+			colTypes.add(SQLUtils.getDoubleString(conn));
+			colNames.add("maxImportance");
+			colTypes.add(SQLUtils.getDoubleString(conn));
+			colNames.add("xMinBounds");
+			colTypes.add(SQLUtils.getDoubleString(conn));
+			colNames.add("yMinBounds");
+			colTypes.add(SQLUtils.getDoubleString(conn));
+			colNames.add("xMaxBounds");
+			colTypes.add(SQLUtils.getDoubleString(conn));
+			colNames.add("yMaxBounds");
+			colTypes.add(SQLUtils.getDoubleString(conn));
+			colNames.add("tileID");
+			colTypes.add("BIGINT PRIMARY KEY");
+			colNames.add("tileData");
+			colTypes.add(SQLUtils.binarySQLType(dbms));
+
+			SQLUtils.createTable(conn, sqlSchema, sqlTable, colNames, colTypes);
+
+			SQLUtils.createIndex(conn, sqlSchema, sqlTable, "xMinBounds,yMinBounds,xMaxBounds,yMaxBounds");
+
 		}
 		catch (Exception e)
 		{
@@ -117,7 +127,6 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 		}
 		finally
 		{
-			SQLUtils.cleanup(stmt);
 		}
 	}
 
@@ -146,7 +155,9 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 		try
 		{
 			// loop through tiles, adding entries to sql table
-			cstmt = conn.prepareCall("insert into "+quotedSchemaTable+" values (?,?, ?,?,?,?, ?,?);");
+			cstmt = conn.prepareCall("insert into "+quotedSchemaTable+
+					" (minImportance,maxImportance,xMinBounds,yMinBounds,xMaxBounds,yMaxBounds,tileID,tileData) values "
+					+ "(?,?, ?,?,?,?, ?,?);");
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream data = new DataOutputStream(baos);
 			StreamTile tile;

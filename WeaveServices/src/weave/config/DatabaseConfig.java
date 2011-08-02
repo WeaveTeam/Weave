@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import java.rmi.RemoteException;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -354,17 +353,10 @@ public class DatabaseConfig
 
 	public void removeGeometryCollection(String name) throws RemoteException
 	{
-		CallableStatement cstmt = null;
-		String query = "";
 		try
 		{
 			Connection conn = getConnection();
-			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.geometryConfigTable) + " WHERE "
-					+ SQLUtils.quoteSymbol(conn, "name") + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
-			// prepare call and set string parameters
-			cstmt = conn.prepareCall(query);
-			cstmt.setString(1, name);
-			cstmt.execute();
+			SQLUtils.removeDataTable(conn, dbInfo.schema, dbInfo.geometryConfigTable, "name", name);
 		}
 		catch (Exception e)
 		{
@@ -372,23 +364,15 @@ public class DatabaseConfig
 		}
 		finally
 		{
-			SQLUtils.cleanup(cstmt);
 		}
 	}
 
 	public void removeDataTable(String name) throws RemoteException
 	{
-		CallableStatement cstmt = null;
-		String query = "";
 		try
 		{
 			Connection conn = getConnection();
-			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.dataConfigTable) + " WHERE "
-					+ SQLUtils.quoteSymbol(conn, "dataTable") + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
-			// prepare call and set string parameters
-			cstmt = conn.prepareCall(query);
-			cstmt.setString(1, name);
-			cstmt.execute();
+			SQLUtils.removeDataTable(conn, dbInfo.schema, dbInfo.dataConfigTable, "dataTable", name);
 		}
 		catch (Exception e)
 		{
@@ -396,7 +380,6 @@ public class DatabaseConfig
 		}
 		finally
 		{
-			SQLUtils.cleanup(cstmt);
 		}
 	}
 

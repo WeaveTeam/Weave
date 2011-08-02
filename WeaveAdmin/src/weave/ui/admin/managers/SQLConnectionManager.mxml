@@ -44,14 +44,15 @@
 					<mx:CheckBox label="Overwrite" id="configOverwrite"/>
 				</ui:Indent>
 				<ui:Indent indent="{_indent}" label="SQL Server type">
-					<ui:CustomComboBox change="{dataChanged=true}" id="connectionDBMSCombo" dataProvider="{['MySQL','PostGreSQL']}" width="130"/>
+					<ui:CustomComboBox change="{dataChanged=true}" id="connectionDBMSCombo" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 				</ui:Indent>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" textWidth="130"/>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{connectionDBMSCombo.text=='MySQL' ? 3306 : 5432}" textWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" textWidth="130"/>
 				<ui:Indent indent="{_indent}" label="SQL Database name">
 					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
 					<mx:Label text="(Optional)"/>
-					<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.  In PostGreSQL, databases are different from schemas.  MySQL does not differentiate between the two.', 'Admin Console Help')"/>
+					<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.  For SQL Server, this is an instance name.  Similarly in PostGreSQL, databases are different from schemas.  MySQL does not differentiate between the two.', 'Admin Console Help')"/>
+					<!-- 'This field is required only for MS SQLServer connections. If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express. If there is no instance name for your server, you may leave this blank.' -->
 				</ui:Indent>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
@@ -111,7 +112,7 @@
 			
 			[Bindable]
 			private var dataChanged:Boolean = false;
-
+			
 			private function handleCreationComplete():void
 			{
 				EventUtils.addBindCallback(AdminInterface.instance,"connectionNames",loadDataSource);
@@ -155,8 +156,10 @@
 					//SQL Server Type
 					if ((info.dbms as String).toUpperCase() == "MYSQL")
 						connectionDBMSCombo.selectedIndex = 0;
-					else
+					else if ((info.dbms as String).toUpperCase() == "POSTGRESQL")
 						connectionDBMSCombo.selectedIndex = 1;
+					else if ((info.dbms as String).toUpperCase() == "Microsoft SQL Server")
+						connectionDBMSCombo.selectedIndex = 2;
 					//SQL Server Ip
 					connectionIPInput.text = info.ip;
 					//SQL Server Port

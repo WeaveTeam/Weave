@@ -19,6 +19,8 @@
 
 package weave.services.beans
 {
+	import mx.utils.ObjectUtil;
+
 	public class ConnectionInfo
 	{
 		[Bindable] public var name:String = "";
@@ -39,9 +41,32 @@ package weave.services.beans
 			if (ip == '')
 				ip = 'localhost';
 			
-			var defaultPorts:Object = { mysql:'3306', postgresql:'5432' };
 			if (port == '')
-				port = defaultPorts[dbms.toLowerCase()];
+				port = String(getDefaultPort(dbms));
 		}
+
+		/**
+		 * This is a list of supported DBMS values.
+		 */
+		public static function get dbmsList():Array
+		{
+			return ['MySQL', 'PostGreSQL', 'Microsoft SQL Server'];
+		}
+		
+		/**
+		 * This function will get the default port for a DBMS.
+		 * @param dbms A supported DBMS.
+		 * @return The default port for the dbms.
+		 */
+		public static function getDefaultPort(dbms:String):int
+		{
+			var list:Array = dbmsList;
+			for (var i:int = 0; i < list.length; i++)
+				if (ObjectUtil.stringCompare(list[i], dbms, true) == 0)
+					return defaultPortList[i];
+			return 0;
+		}
+		
+		private static const defaultPortList:Array = [3306, 5432, 1433]; // corresponding to the database products in dbmsList
 	}
 }
