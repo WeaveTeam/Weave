@@ -46,7 +46,7 @@ JRITextEditor
 	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:VBox width="20%" height="100%" verticalGap="0">
 			<mx:Label text="(1) Select data to use in your script"/>
-			<mx:CheckBox id="columnAsList" label="Use Columns as List"/>
+			<mx:CheckBox id="columnAsList" label="Use Columns as R-List(HashMap)"/>
 			<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"   />			
 		</mx:VBox>
 		<mx:VBox width="55%" height="100%" verticalGap="0">
@@ -312,48 +312,28 @@ JRITextEditor
 						imagePanel.panelHeight.value = "500";
 					}
 					if(RresultArray[p].value is Array){
-						trace("array");
-						var tempArray:Array = RresultArray[p].value;
-						trace(tempArray[0]);
-						// need to set to Weave Key						
+						var tempArray:Array = RresultArray[p].value;	
 					}
-					if(RresultArray[p].value is Dictionary){
-						trace("Dictionary");
-						// need to set to Weave Key						
-					}
-					if(RresultArray[p].value is List){
-						trace("list");
-						// need to set to Weave Key						
-					}
-					if(RresultArray[p].value is ArrayCollection){
-						trace("ArrayCollection");
-						// need to set to Weave Key						
-					}
-					
-					var className:String = flash.utils.getQualifiedClassName(RresultArray[p].value);
-					var obj:Object = RresultArray[p].value;
-					
-					var qkey:IQualifiedKey;
-					var result:Dictionary = new Dictionary();
-					var resultKeys:Array = [];
-					
-					trace(ObjectUtil.toString(obj));
-					for (var key:String in obj)
-					{
-						qkey = WeaveAPI.QKeyManager.getQKey(keyType, key);
-						result[qkey] = obj[key];
-						resultKeys.push(qkey);
-						trace(qkey.localName, '=', obj[key]);
+					else if(RresultArray[p].value is Object){ // as HashMap
+						var obj:Object = RresultArray[p].value;					
+						var qkey:IQualifiedKey;
+						var result:Dictionary = new Dictionary();
+						var resultKeys:Array = [];
+						
+						for (var key:String in obj)
+						{
+							qkey = WeaveAPI.QKeyManager.getQKey(keyType, key);
+							result[qkey] = obj[key];
+							resultKeys.push(qkey);
+							trace(qkey.localName, '=', obj[key]);
+						}
+						
+						// temporary code -- select the keys returned from R
+						var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+						selectedKeySet.replaceKeys(resultKeys);
 					}
 					
-					// temporary code -- select the keys returned from R
-					var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-					selectedKeySet.replaceKeys(resultKeys);
 					
-					/* for each (var ob:String in obj){
-//						trace(ob);
-//						trace(obj[ob]);
-					} */
 				}
 			}
 			
