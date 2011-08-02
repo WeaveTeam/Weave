@@ -19,6 +19,8 @@
 
 package weave.primitives
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
@@ -35,7 +37,7 @@ package weave.primitives
 	
 	/**
 	 * This object defines the data bounds of a visualization, either directly with
-	 * absolute coordinates or indirectly with center coordinates and a scale value.
+	 * absolute coordinates or indirectly with center coordinates and area.
 	 * Screen coordinates are never directly specified in the session state.
 	 * 
 	 * @author adufilie
@@ -62,7 +64,7 @@ package weave.primitives
 				return {
 					xCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
 					yCenter: MathLib.roundSignificant(_dataBounds.getYCenter()),
-					areaPerPixel: MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea())
+					area: MathLib.roundSignificant(_dataBounds.getArea())
 				};
 			}
 			else
@@ -93,37 +95,52 @@ package weave.primitives
 			}
 			else
 			{
-				var usedCenterCoords:Boolean = false;
+				var useFixedAspectRatio:Boolean = false;
 				if (state.hasOwnProperty("xCenter"))
 				{
+					useFixedAspectRatio = true;
 					if (MathLib.roundSignificant(_dataBounds.getXCenter()) != state.xCenter)
 					{
 						_dataBounds.setXCenter(state.xCenter);
 						cc.triggerCallbacks();
 					}
-					usedCenterCoords = true;
 				}
 				if (state.hasOwnProperty("yCenter"))
 				{
+					useFixedAspectRatio = true;
 					if (MathLib.roundSignificant(_dataBounds.getYCenter()) != state.yCenter)
 					{
 						_dataBounds.setYCenter(state.yCenter);
 						cc.triggerCallbacks();
 					}
-					usedCenterCoords = true;
 				}
-				if (state.hasOwnProperty("areaPerPixel"))
+				if (state.hasOwnProperty("area"))
 				{
-					if (MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea()) != state.areaPerPixel)
+					useFixedAspectRatio = true;
+					if (MathLib.roundSignificant(_dataBounds.getArea()) != state.area)
 					{
-						var scale:Number = Math.sqrt(state.areaPerPixel);
-						_dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
+						// We can't change the screen area.  Adjust the dataBounds to match the specified area.
+						/*
+							Ad = Wd * Hd
+							Wd/Hd = Ws/Hs
+							Wd = Hd * Ws/Hs
+							Ad = Hd^2 * Ws/Hs
+							Hd^2 = Ad * Hs/Ws
+							Hd = sqrt(Ad * Hs/Ws)
+						*/
+						
+						var Ad:Number = state.area;
+						var HsWsRatio:Number = _screenBounds.getYCoverage() / _screenBounds.getXCoverage();
+						if (!isFinite(HsWsRatio)) // handle case if screenBounds is undefined
+							HsWsRatio = 1;
+						var Hd:Number = Math.sqrt(Ad * HsWsRatio);
+						var Wd:Number = Ad / Hd;
+						_dataBounds.centeredResize(Wd, Hd);
 						cc.triggerCallbacks();
 					}
-					usedCenterCoords = true;
 				}
 				
-				if (!usedCenterCoords)
+				if (!useFixedAspectRatio)
 				{
 					var names:Array = ["xMin", "yMin", "xMax", "yMax"];
 					for each (var name:String in names)
@@ -136,7 +153,7 @@ package weave.primitives
 					}
 				}
 				
-				_useFixedAspectRatio = usedCenterCoords;
+				_useFixedAspectRatio = useFixedAspectRatio;
 			}
 			
 			cc.resumeCallbacks();
