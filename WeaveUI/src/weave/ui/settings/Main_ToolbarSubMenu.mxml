@@ -144,29 +144,29 @@
 									 enabled="{toolsMenu.selected == true}"
 									 id="showColorController"
 									 label="Show Color Controller"
-									 creationComplete="linkBindableProperty(Weave.properties.showColorController,showColorController,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.showColorController,showColorController,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the Probe ToolTip Editor"
 									 enabled="{toolsMenu.selected == true}"
 									 id="showProbeToolTipEditor"
 									 label="Show Probe ToolTip Editor"
-									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor,showProbeToolTipEditor,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor,showProbeToolTipEditor,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the Equation Editor"
 									 enabled="{toolsMenu.selected == true}"
 									 id="showEquationEditor"
 									 label="Show Equation Editor"
-									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor,showEquationEditor,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor,showEquationEditor,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the Attribute Selector"
 									 enabled="{toolsMenu.selected == true}"
 									 id="showAttributeSelector"
 									 label="Show Attribute Selector"
-									 creationComplete="linkBindableProperty(Weave.properties.showAttributeSelector,showAttributeSelector,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.showAttributeSelector,showAttributeSelector,'selected')"/>
 					</mx:VBox>
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a bar chart visualization"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addBarChart"
 									 label="Add Bar Chart"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddBarChart,addBarChart,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddBarChart,addBarChart,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Color Legend"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addColorLegend"
@@ -176,7 +176,12 @@
 									 enabled="{toolsMenu.selected == true}"
 									 id="addColormapHistogram"
 									 label="Add Colormap Histogram"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddColormapHistogram,addColormapHistogram,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddColormapHistogram,addColormapHistogram,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a CompoundRadViz Tool"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addCompoundRadViz"
+									 label="Add CompoundRadViz"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddCompoundRadViz,addCompoundRadViz,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Data Table"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addDataTable"
@@ -186,67 +191,67 @@
 									 enabled="{toolsMenu.selected == true}"
 									 id="addDimensionSlider"
 									 label="Add Dimension Slider Tool"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddDimensionSliderTool,addDimensionSlider,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddDimensionSliderTool,addDimensionSlider,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Gauge Tool"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addGaugeTool"
 									 label="Add Gauge Tool"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddGaugeTool,addGaugeTool,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddGaugeTool,addGaugeTool,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a histogram visualization"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addHistogram"
 									 label="Add Histogram"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddHistogram,addHistogram,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddHistogram,addHistogram,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a line chart visualization"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addLineChart"
 									 label="Add Line Chart"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddLineChart,addLineChart,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddLineChart,addLineChart,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a map visualization"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addMap"
 									 label="Add Map"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddMap,addMap,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddMap,addMap,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a pie chart visualization"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addPieChart"
 									 label="Add Pie Chart"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChart,addPieChart,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChart,addPieChart,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a pie chart histogram visualization"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addPieChartHistogram"
 									 label="Add Pie Chart Histogram"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChartHistogram,addPieChartHistogram,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChartHistogram,addPieChartHistogram,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add the R Script Editor"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addRScriptEditor"
 									 label="Add R Script Editor"
 									 creationComplete="linkBindableProperty(Weave.properties.enableAddRScriptEditor,addRScriptEditor,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a RadViz Tool"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addRadViz"
+									 label="Add RadViz"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz,addRadViz,'selected')"/>
+						<mx:CheckBox toolTip="Checking this box will allow the user to add a Ramachandran Plot Tool"
+									 enabled="{toolsMenu.selected == true}"
+									 id="addRamachandranPlot"
+									 label="Add Ramachandran Plot"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRamachandranPlot,addRamachandranPlot,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a scatterplot visualization"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addScatterplot"
 									 label="Add Scatterplot"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddScatterplot,addScatterplot,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddScatterplot,addScatterplot,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Thermometer Tool"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addThermometerTool"
 									 label="Add Thermometer Tool"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddThermometerTool,addThermometerTool,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddThermometerTool,addThermometerTool,'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Time Slider Tool"
 									 enabled="{toolsMenu.selected == true}"
 									 id="addTimeSlider"
 									 label="Add Time Slider Tool"
 									 creationComplete="linkBindableProperty(Weave.properties.enableAddTimeSliderTool,addTimeSlider,'selected')"/>
-						<mx:CheckBox toolTip="Checking this box will allow the user to add a RadViz Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addRadViz"
-									 label="Add RadViz"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz,addRadViz,'selected')"/>  						
-						<mx:CheckBox toolTip="Checking this box will allow the user to add a CompoundRadViz Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addCompoundRadViz"
-									 label="Add CompoundRadViz"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddCompoundRadViz,addCompoundRadViz,'selected')"/>  
 					</mx:VBox>
 						<!--
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Stick Figure visualization"
