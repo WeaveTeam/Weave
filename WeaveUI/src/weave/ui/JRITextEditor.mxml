@@ -112,6 +112,7 @@ JRITextEditor
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -254,6 +255,7 @@ JRITextEditor
 			
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
 			{
+				var keyType:String = token as String;
 				//Object to stored returned result - Which is array of object{name: , value: }
 				var Robj:Array = event.result as Array;
 				trace('Robj:',ObjectUtil.toString(Robj));
@@ -294,8 +296,8 @@ JRITextEditor
 				
 				ResultTA.text = resultString;
 				
-				//To make availabe for Weave -Mapping with key returned from Token
-				var keyType:String = token as String;
+				
+				
 				
 				//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
 				for (var p:int = 0;p < RresultArray.length; p++)
@@ -329,12 +331,29 @@ JRITextEditor
 					}
 					
 					var className:String = flash.utils.getQualifiedClassName(RresultArray[p].value);
-					
 					var obj:Object = RresultArray[p].value;
-					for each (var ob:String in obj){
-						trace(ob);
-						trace(obj[ob]);
+					
+					var qkey:IQualifiedKey;
+					var result:Dictionary = new Dictionary();
+					var resultKeys:Array = [];
+					
+					trace(ObjectUtil.toString(obj));
+					for (var key:String in obj)
+					{
+						qkey = WeaveAPI.QKeyManager.getQKey(keyType, key);
+						result[qkey] = obj[key];
+						resultKeys.push(qkey);
+						trace(qkey.localName, '=', obj[key]);
 					}
+					
+					// temporary code -- select the keys returned from R
+					var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+					selectedKeySet.replaceKeys(resultKeys);
+					
+					/* for each (var ob:String in obj){
+//						trace(ob);
+//						trace(obj[ob]);
+					} */
 				}
 			}
 			
