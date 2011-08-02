@@ -14,7 +14,11 @@ package weave.ui.infomap
 	{
 		public function HoverComponent()
 		{
-			this.setStyle("backgroundColor",0xffffff);
+			this.setStyle("backgroundColor",0xEDE6E6);
+			this.setStyle("borderStyle","solid");
+			this.setStyle("borderColor",0xC40202);
+			this.setStyle("cornerRadius",10);
+			this.setStyle("borderThickness",2);
 			this.minWidth = 250;
 			this.minHeight = 300;
 		}
@@ -30,41 +34,20 @@ package weave.ui.infomap
 			_parentComponent = parentComponent;
 			if ( _parentComponent != null )
 			{
+				// if you call this directly object says "global" instead of "HoverComponent" (while compiling)
+				// since global lead to flickering of hover component on stage.
+				// Reason: Not figured out why?
+				// solution: use as UI component
 				var thisComponent:UIComponent = this;
-				
-				//Detects mouse overs and starts a timer to display the hover
 				parentComponent.addEventListener( MouseEvent.MOUSE_OVER, function( evt:MouseEvent ):void
 				{
-					//Initialize the timer to trigger one time after delay millis
-					timer = new Timer( delay, 1 );
-					
-					//Wait for the timer to complete
-					timer.addEventListener(TimerEvent.TIMER_COMPLETE, function( tevt:TimerEvent ):void
-					{
-						//move to a position relative to the mouse cursor
-						thisComponent.move( evt.stageX + 15, evt.stageY + 15 );
-						
-						//Popup the hover component
-						PopUpManager.addPopUp( thisComponent, parentComponent );
-						
-						//Set a flag so we know that a popup actually occurred
-						popped = true;
-					});
-					
-					//start the timer
-					timer.start();
+					thisComponent.move( evt.stageX + 15, evt.stageY + 15 );					
+					PopUpManager.addPopUp( thisComponent, parentComponent );
+					popped = true;					
 				});
 				
 				parentComponent.addEventListener( MouseEvent.MOUSE_OUT, function( evt:MouseEvent ):void
 				{
-					//If the timer exists we stop it
-					if ( timer )
-					{
-						timer.stop();
-						timer = null;
-					} 
-					
-					//If we popped up, remove the popup
 					if ( popped )
 					{
 						PopUpManager.removePopUp( thisComponent );
