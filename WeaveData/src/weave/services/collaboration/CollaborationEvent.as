@@ -25,7 +25,7 @@ package weave.services.collaboration
 	{
 		public static const TEXT:String = "collab_text_receive";
 		public static const USERS_LIST:String = "collab_users_list_receive";
-		public static const CLEAR_LOG:String = "clear_chat_log";
+		public static const DISCONNECT:String = "collab_disconnect";
 		
 		//generic data
 		public var data:Object;

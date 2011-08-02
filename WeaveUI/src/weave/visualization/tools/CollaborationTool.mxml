@@ -27,6 +27,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   creationPolicy="all" layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
@@ -40,6 +42,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.SessionStateLog;
 			import weave.services.collaboration.CollaborationEvent;
 			import weave.services.collaboration.CollaborationService;
+			import weave.ui.AlertTextBox;
 			
 			private var collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
@@ -49,7 +52,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				toggleUserControlPanel();
 				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
 				collabService.addEventListener(CollaborationEvent.USERS_LIST, handleUserList);
-				collabService.addEventListener(CollaborationEvent.CLEAR_LOG, handleLogClear);
+				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				
 				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoom);
 				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
@@ -68,17 +71,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function connect(e:MouseEvent):void
 			{
-				collabService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, username.text);
-				cPanel.removePanel();
-				input.enabled = true;
-				sendButton.enabled = true;
-				disconnectButton.enabled = true;
-				connectButton.enabled = false;
+				if( username.text == "" || serverIP.text == "" || serverName.text == "" || roomToJoin.text == "" || port.text ==  "" )
+				{
+					Alert.show( "Can't leave any field blank" );
+				}
+				else
+				{	
+					collabService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, username.text);
+					cPanel.removePanel();
+					input.enabled = true;
+					sendButton.enabled = true;
+					disconnectButton.enabled = true;
+					connectButton.enabled = false;
+				}
 			}
 			
 			private function disconnect(e:MouseEvent):void
 			{
-				if( collabService.hasConnection() == true)
+				if( collabService.isConnectedToServer() == true)
 				{
 					collabService.disconnect();
 					input.enabled = false;
@@ -104,9 +114,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				users.text = e.getText();
 			}
 			
-			private function handleLogClear( e:CollaborationEvent):void
+			private function handleDisconnect( e:CollaborationEvent):void
 			{
-				log.text = "";
+				disconnect(null);
 			}
 		]]>
 	</mx:Script>
@@ -128,11 +138,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox label="Visualization Controls">
 			<mx:HBox width="100%">
 				<mx:Label text="IP:"/>
-				<mx:TextInput id="serverIP" width="50%" text="129.63.16.190"/>	
+				<mx:TextInput id="serverIP" width="50%" text="129.63.223.101"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="ServerName:"/>
-				<mx:TextInput id="serverName" width="50%" text="os-301"/>	
+				<mx:TextInput id="serverName" width="50%" text="Android-Lappy"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:"/>

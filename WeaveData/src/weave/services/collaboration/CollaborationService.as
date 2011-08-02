@@ -19,10 +19,14 @@
 
 package weave.services.collaboration
 {	
+	import com.modestmaps.extras.ui.FullScreenButton;
+	
+	import flash.events.ErrorEvent;
 	import flash.events.EventDispatcher;
 	import flash.net.registerClassAlias;
 	import flash.text.engine.BreakOpportunity;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	import flash.utils.Endian;
 	import flash.utils.getQualifiedClassName;
 	
@@ -31,9 +35,11 @@ package weave.services.collaboration
 	import mx.events.CloseEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
+	import mx.messaging.messages.ErrorMessage;
 	import mx.utils.Base64Decoder;
 	import mx.utils.Base64Encoder;
 	import mx.utils.ObjectUtil;
+	import mx.validators.StringValidator;
 	
 	import org.igniterealtime.xiff.auth.*;
 	import org.igniterealtime.xiff.bookmark.*;
@@ -55,6 +61,7 @@ package weave.services.collaboration
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
+	import weave.api.getSessionState;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
@@ -69,7 +76,7 @@ package weave.services.collaboration
 			this.root = root;
 			
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
-			for each (var c:Class in [SessionStateMessage, TextMessage])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
 		}
 		
@@ -106,34 +113,32 @@ package weave.services.collaboration
 		//setting a room that doesn't exist will register that
 		//new room with the server
 		private var connectedToRoom:Boolean = 				false;
-		private var isConnected:Boolean = 					false;
+		private var connectedToServer:Boolean = 			false;
 		
 		private var stateLog:SessionStateLog = null;
-		
-		
 		
 		// this will be called by SessionManager to clean everything up
 		public function dispose():void
 		{
-			if( hasConnection() == true) disconnect();
+			if( isConnectedToRoom() == true) disconnect();
 		}
 		
 		//function to send diff
 		private function handleStateChange():void
 		{
 			// note: this code may need to be changed later if SessionStateLog implementation changes.
-			if (hasConnection() == true)
+			if (isConnectedToRoom() == true)
 			{
 				var log:Array 	 = stateLog.undoHistory;
 				var entry:Object = log[log.length - 1];
-				sendSessionState( entry.id, entry.forward );
+				sendSessionStateDiff( entry.id, entry.forward );
 			}
 		}
 		
 		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, username:String ):void
 		{
-			if (isConnected == true) disconnect();
-			isConnected = true;
+			if (connectedToServer == true) disconnect();
+			connectedToServer = true;
 			
 			this.serverIP = serverIP;
 			this.serverName = serverName;
@@ -141,13 +146,15 @@ package weave.services.collaboration
 			this.roomToJoin = roomToJoin;
 			this.username = username;
 			
-			postMessageToUser("connecting to " +serverName + " at " + serverIP + ":" + port.toString() + " ...\n");
-			trace( "connecting to " +serverName + " at " + serverIP + ":" + port.toString() ); 
+			postMessageToUser("connecting to " + serverName + " at " + serverIP + ":" + port.toString() + " ...\n");
 			connection = new XMPPConnection();
 			
 			connection.useAnonymousLogin = true;
-			/* connection.username = "admin";
-			connection.password = "admin"; */
+			/* 
+			Registered Login:
+			connection.username = "registeredUser";
+			connection.password = "password"; 
+			*/
 			
 			connection.server = serverIP;
 			connection.port = port;
@@ -163,30 +170,59 @@ package weave.services.collaboration
 		
 		public function disconnect():void
 		{
-			connectedToRoom = false;
-			connection.disconnect();
-			
 			// stop logging
 			if (stateLog)
 				disposeObjects(stateLog);
+			
+			postMessageToUser( "Disconnected from server\n" );
+			dispatchEvent( new CollaborationEvent(CollaborationEvent.USERS_LIST, "") );
+			
+			//== Remove Event Listeners ==//
+			connection.removeEventListener(LoginEvent.LOGIN, onLogin);
+			connection.removeEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
+			connection.removeEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
+			connection.removeEventListener(MessageEvent.MESSAGE, onReceiveMessage);
+			if( _room != null)
+			{
+				room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
+				room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+				room.removeEventListener(RoomEvent.USER_JOIN, onUserJoin);
+				room.removeEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
+			}
+			
+			connection.disconnect();
 		}
 		
-		public function hasConnection():Boolean 
+		public function isConnectedToServer():Boolean 
+		{
+			return connectedToServer;
+		}
+		
+		public function isConnectedToRoom():Boolean 
 		{
 			return connectedToRoom;
 		}
-		
-		public function sendMessage( message:String, target:String=null ):void
+	
+		public function sendMessage( text:String, target:String=null ):void
 		{
+			var message:TextMessage = new TextMessage( selfJID, text );
 			if( target != null)
-				room.sendPrivateMessage( target, encodeObject(new TextMessage(selfJID, message)));
+				room.sendPrivateMessage( target, encodeObject(message) );
 			else
-				room.sendMessage(encodeObject(new TextMessage(selfJID, message)));
+				room.sendMessage( encodeObject(message) );
 		}
 		
-		public function sendSessionState( diffID:int, diff:Object, target:String=null ):void
+		public function sendFullSessionState( diffID:int, diff:Object, target:String=null ):void
 		{
-
+			var message:FullSessionState = new FullSessionState(diffID, diff);
+			if( target != null)
+				room.sendPrivateMessage( target, encodeObject(message) );
+			else
+				room.sendMessage(encodeObject(message) );
+		}
+		
+		public function sendSessionStateDiff( diffID:int, diff:Object, target:String=null ):void
+		{
 			var message:SessionStateMessage = new SessionStateMessage(diffID, diff);
 			if( target != null)
 				room.sendPrivateMessage( target, encodeObject(message) );
@@ -210,8 +246,7 @@ package weave.services.collaboration
 						
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.USERS_LIST, s));
 		}
-		
-		
+			
 		private function joinRoom(roomName:String):void
 		{
 			postMessageToUser( "joined room: " + roomToJoin + "\n" );
@@ -221,16 +256,19 @@ package weave.services.collaboration
 			postMessageToUser( "set alias to: " + room.nickname + "\n" );
 			room.roomJID = new UnescapedJID(roomName + compName + '.' + serverName);
 			
+			//start logging
+			stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
+			getCallbackCollection( stateLog ).addImmediateCallback( this, handleStateChange );
+			
 			room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
 			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 			room.addEventListener(RoomEvent.USER_JOIN, onUserJoin);
 			room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
 			room.join();
 		}
-		
+				
 		private function onLogin(e:LoginEvent):void
 		{
-			trace("connection successful");
 			var message:String = "";
 			
 			message += "connected as ";
@@ -251,7 +289,16 @@ package weave.services.collaboration
 				var o:Object = decodeObject(e.data.body);
 				//var room:String = e.data.from.node;
 				var userAlias:String = e.data.from.resource;
-				if (o is SessionStateMessage)
+				if (o is FullSessionState)
+				{
+					var fss:FullSessionState = o as FullSessionState;
+					setSessionState( root, fss.state, true);
+					//once you've downloaded the sessionState start logging 
+					//is there a callback to make sure the sessionState has fully finished
+					//downloading?
+					connectedToRoom = true;
+				}
+				else if (o is SessionStateMessage)
 				{
 					var ssm:SessionStateMessage = o as SessionStateMessage;
 					if( userAlias == this.username )
@@ -308,79 +355,68 @@ package weave.services.collaboration
 		
 		private function onDisconnect(e:DisconnectionEvent):void
 		{
-			isConnected = false;
+			//== Reset variables ==//
+			connectedToRoom = 			false;
+			connectedToServer = 		false;
+			connection = 				null;
+			_room =						null;
+			selfJID = 					null;	
 		}
 		
 		private function onError(e:XIFFErrorEvent):void
 		{
-			trace("Error: " + e.errorMessage);
+			//401 == Not Authorized to connect to server
+			if( e.errorCode == 401 )
+				dispatchEvent( new CollaborationEvent( CollaborationEvent.TEXT, "Not Authorized to connect to Server, please check IP and server name, and try again.\n" ) );
+			
+			dispatchEvent( new CollaborationEvent(CollaborationEvent.DISCONNECT, null) );
 		}
 		
 		private function onRoomJoin(e:RoomEvent):void
 		{
-			trace("Joined Room")
 			//_room = Room(e.target);
-			connectedToRoom = true;
 			selfJID = room.userJID.resource;
-			updateUsersList();
-			
-			// start logging
-			stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
-			getCallbackCollection( stateLog ).addImmediateCallback( this, handleStateChange );
-		}
-		
-		private function onTimeout(event:RoomEvent):void
-		{
-			if (connectedToRoom)
-				Alert.show("Would you like to reconnect?", "Disconnected", Alert.YES | Alert.NO, null, closeHandler, null, Alert.YES);
-			clean();
-		}
-		
-		private function onUserJoin(event:RoomEvent):void
-		{
-			postMessageToUser( event.nickname + " has joined the room.\n" );
+			var userList:Array = room.toArray();
 			updateUsersList();
 		}
 		
-		private function onUserLeave(event:RoomEvent):void
+		private function onTimeout(e:RoomEvent):void
 		{
-			postMessageToUser( event.nickname + " has left the room.\n" );
-			updateUsersList();
+			connectedToRoom = false;
+			postMessageToUser( "You've timed out from the server.\n" );
+			disconnect();
 		}
-			
-		private function clean():void
+		
+		private function onUserJoin(e:RoomEvent):void
 		{
-			dispatchEvent( new CollaborationEvent(CollaborationEvent.CLEAR_LOG, null) );
-			dispatchEvent( new CollaborationEvent(CollaborationEvent.USERS_LIST, "") );
+			postMessageToUser( e.nickname + " has joined the room.\n" );
+			updateUsersList();
+		
+			var userList:Array = room.toArray().sortOn( "displayName" );
+	
+			for( var i:int = 0; i < userList.length; i++)
+				if(userList[i].displayName == e.nickname)
+				{
+					userList.splice(i,1);
+					break;
+				}
 			
-			//== Remove Event Listeners ==//
-			connection.removeEventListener(LoginEvent.LOGIN, onLogin);
-			connection.removeEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
-			connection.removeEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
-			connection.removeEventListener(MessageEvent.MESSAGE, onReceiveMessage);
-			if( room != null)
+			if( userList.length == 0)
 			{
-				room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
-				room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
-				room.removeEventListener(RoomEvent.USER_JOIN, onUserJoin);
-				room.removeEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
+				//no one else is in room, start logging
+				connectedToRoom == true;
 			}
-			
-			//== Reset variables ==//
-			isConnected = 				false;
-			connection = 				null;
-			_room =						null;
-			selfJID = 					null;
+			else if( username == userList[0].displayName )
+			{
+				var id:int = stateLog.undoHistory[ stateLog.undoHistory.length - 1];
+				sendFullSessionState(id, getSessionState(root), e.nickname );
+			} 
 		}
 		
-		private function closeHandler(e:CloseEvent):void
+		private function onUserLeave(e:RoomEvent):void
 		{
-			if(e.detail == Alert.YES )
-			{
-				clean();
-				if( connection == null )
-					Alert.show( "Unable to connect at this time.", "Connection Issue");
-			}
+			postMessageToUser( e.nickname + " has left the room.\n" );
+			updateUsersList();
 		}
 		
 		private function encodeObject(toEncode:Object):String
@@ -403,6 +439,18 @@ package weave.services.collaboration
 			return byteArray.readObject();
 		}
 	}
+}
+
+internal class FullSessionState
+{
+	public function FullSessionState( id:int = 0, state:Object = null)
+	{
+		this.id = id;
+		this.state = state;
+	}
+	
+	public var id:int;
+	public var state:Object;
 }
 
 internal class SessionStateMessage
