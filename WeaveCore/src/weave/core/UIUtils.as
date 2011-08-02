@@ -183,7 +183,7 @@ package weave.core
 			uiChild.addEventListener(Event.REMOVED, listener);
 			childToEventListenerMap[uiChild] = listener; // save a pointer so the event listener can be removed later.
 			
-			if (uiParent.contains(uiChild))
+			if (uiParent == uiChild.parent)
 				updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop);
 			else
 				uiParent.addChild(uiChild);
@@ -249,7 +249,7 @@ package weave.core
 			}
 			// stop if there are sessioned UIComponents that are not contained by the parent.
 			for each (uiChild in uiChildren)
-				if (uiChild && !uiParent.contains(uiChild))
+				if (uiChild && uiParent != uiChild.parent)
 					return;
 
 			parentToBusyFlagMap[uiParent] = true; // prevent sessioned name order from being set
@@ -260,7 +260,7 @@ package weave.core
 				for (i = uiChildren.length - 1; i >= 0; i--)
 				{
 					uiChild = uiChildren[i] as DisplayObject;
-					if (uiChild && uiParent.contains(uiChild) && uiParent.getChildIndex(uiChild) != indexOffset + i)
+					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != indexOffset + i)
 						uiParent.setChildIndex(uiChild, indexOffset + i);
 				}
 			}
@@ -269,7 +269,7 @@ package weave.core
 				for (i = 0; i < uiChildren.length; i++)
 				{
 					uiChild = uiChildren[i] as DisplayObject;
-					if (uiChild && uiParent.contains(uiChild) && uiParent.getChildIndex(uiChild) != i)
+					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != i)
 						uiParent.setChildIndex(uiChild, i);
 				}
 			}

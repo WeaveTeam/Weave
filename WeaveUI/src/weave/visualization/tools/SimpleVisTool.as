@@ -84,7 +84,7 @@ package weave.visualization.tools
 		 * container for Flex components
 		 */
 		private const toolVBox:VBox = new VBox(); // simpleVisToolVBox contains titleLabel and visCanvas
-		private const visCanvas:Canvas = new Canvas(); // For linkDisplayObjects
+		protected const visCanvas:Canvas = new Canvas(); // For linkDisplayObjects
 		private const titleLabel:Label = new Label(); // For display of title inside the window area
 		
 		private var createdChildren:Boolean = false;
@@ -163,12 +163,12 @@ package weave.visualization.tools
 		{
 			if (!enableTitle.value)
 			{
-				if (toolVBox.contains(titleLabel))
+				if (toolVBox == titleLabel.parent)
 					toolVBox.removeChild(titleLabel);
 			}
 			else
 			{
-				if (!toolVBox.contains(titleLabel))
+				if (toolVBox != titleLabel.parent)
 					toolVBox.addChildAt(titleLabel,0);
 			}
 			invalidateDisplayList();

@@ -480,13 +480,13 @@
 			private var OVERVIEW_PANEL_NAME:String = null ;
 			private function updateOverviewWindow():void
 			{				
-				if(enableOverview.value)
+				if (enableOverview.value)
 				{
-					if(overviewPanel && !contains(overviewPanel))
+					if (overviewPanel && this != overviewPanel.parent)
 					{
 						addChild(overviewPanel);
 					}
-					if(!overviewPanel)
+					if (!overviewPanel)
 					{
 						overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME = children.generateUniqueName("overview"),MapOverviewWindow,true);
 						linkSessionState(visualization.layers, overviewPanel.visualization.layers); 
@@ -494,8 +494,10 @@
 						children.addGroupedCallback(this, bringOverviewToTop);
 						visualization.layers.addGroupedCallback(this,overviewPanel.drawBoundsRectangle);
 					}
-				} else {
-					if(overviewPanel)
+				}
+				else
+				{
+					if (overviewPanel)
 					{
 						overviewPanel.dispose();
 						disposeObjects(overviewPanel);

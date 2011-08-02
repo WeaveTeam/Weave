@@ -242,7 +242,7 @@
 				
 				if (Weave.properties.showCopyright.value)
 					addChild(logoParentHBox);
-				else if (contains(logoParentHBox))
+				else if (this == logoParentHBox.parent)
 					removeChild(logoParentHBox);
 			}
 

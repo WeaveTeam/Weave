@@ -35,6 +35,7 @@
 			import mx.managers.ToolTipManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.data.IKeyFilter;
@@ -436,20 +437,14 @@
 					var intercept:Number = MathLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
 					lineEquation.text = "Equation: y = " + slope + "x"+ " + " + intercept;
 					equationText.text = "slope = " + slope + "\nintercept = " + intercept;
-					if (!contains(equationText))
+					if (equationText.parent != this)
 						addChild(equationText);
 				}
 				else
 				{ 
 					lineEquation.text = "Equation: y = mx + b";
-					if (contains(equationText))
-					{
-						try
-						{
-							removeChild(equationText);
-						}
-						catch (e:Error) {}
-					}
+					if (equationText.parent == this)
+						removeChild(equationText);
 				}
 			}
 			private function updateAxisLabels():void
@@ -550,7 +545,7 @@
 				
 			}
 			
-			protected function Legend_clickHandler(event:MouseEvent):void
+			protected function createLegend():void
 			{
 				var sizeBinLegendTool:SizeBinLegendTool = Weave.root.requestObject(null, SizeBinLegendTool, false);
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
@@ -558,12 +553,15 @@
 		]]>
 	</mx:Script>
 	<ui:AutoResizingTextArea id="equationText"
-		 backgroundAlpha="0" editable="false" borderThickness="0" width="0"
-				 bottom="0"
-				 left="0"/>
+		editable="false"
+		backgroundAlpha="0"
+		borderThickness="0"
+		width="0"
+		bottom="0"
+		left="0"/>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
-			<mx:Button id="Legend" label="legend" click="Legend_clickHandler(event)"/>
+			<mx:Button id="Legend" label="legend" click="createLegend()"/>
 			<mx:HBox width="100%" 
 					 borderStyle="inset" 
 					 backgroundColor="0xFFFFFF" 

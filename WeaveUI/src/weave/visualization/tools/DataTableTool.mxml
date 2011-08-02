@@ -205,16 +205,16 @@
 				{
 					if (showControls.value)
 					{
-						if (!tableArea.contains(topControls))
+						if (tableArea != topControls.parent)
 							tableArea.addChildAt(topControls, 0);
-						if (!tableArea.contains(bottomControls))
+						if (tableArea != bottomControls.parent)
 							tableArea.addChild(bottomControls);
 					}
 					else
 					{
-						if (tableArea.contains(topControls))
+						if (tableArea == topControls.parent)
 							tableArea.removeChild(topControls);
-						if (tableArea.contains(bottomControls))
+						if (tableArea == bottomControls.parent)
 							tableArea.removeChild(bottomControls);
 					}
 				}

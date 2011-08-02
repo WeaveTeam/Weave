@@ -64,9 +64,9 @@
 				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
 				function handlePermissionChange(isSuperuser:Boolean):void
 				{
-					if (isSuperuser && !tabNavigator.contains(sqlConnectionManager))
+					if (isSuperuser && tabNavigator != sqlConnectionManager.parent)
 						tabNavigator.addChild(sqlConnectionManager);
-					if (!isSuperuser && tabNavigator.contains(sqlConnectionManager))
+					if (!isSuperuser && tabNavigator == sqlConnectionManager.parent)
 						tabNavigator.removeChild(sqlConnectionManager);
 				}
 			}

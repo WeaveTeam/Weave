@@ -428,12 +428,12 @@ package weave
 			{
 				if (selectionKeySet.keys.length == 0)
 				{
-					if (visDesktop.contains(_selectionIndicatorText))
+					if (visDesktop == _selectionIndicatorText.parent)
 						visDesktop.removeChild(_selectionIndicatorText);
 				}
 				else
 				{
-					if (!visDesktop.contains(_selectionIndicatorText))
+					if (visDesktop != _selectionIndicatorText.parent)
 						visDesktop.addChild(_selectionIndicatorText);
 				}
 			}
@@ -669,9 +669,9 @@ package weave
 					
 					_applicationVBox.addChildAt(_weaveMenu, 0);
 					
-					//if (visDesktop.contains(_oicLogoPane))
+					//if (visDesktop == _oicLogoPane.parent)
 					//	visDesktop.removeChild(_oicLogoPane);
-					if (_applicationVBox.contains(_oicLogoPane))
+					if (_applicationVBox == _oicLogoPane.parent)
 						_applicationVBox.removeChild(_oicLogoPane);
 				}
 				
@@ -684,7 +684,7 @@ package weave
 				DraggablePanel.showRollOverBorders = false;
 				try
 				{
-		   			if (_weaveMenu && _applicationVBox.contains(_weaveMenu))
+		   			if (_weaveMenu && _applicationVBox == _weaveMenu.parent)
 						_applicationVBox.removeChild(_weaveMenu);
 
 		   			_weaveMenu = null;
