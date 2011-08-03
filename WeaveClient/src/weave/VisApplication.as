@@ -104,12 +104,12 @@ package weave
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStatePanel;
+	import weave.ui.JRITextEditor;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
-	import weave.ui.PrintFormat;
+	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
-	import weave.ui.JRITextEditor;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SessionStatesDisplay;
@@ -1645,8 +1645,8 @@ package weave
 			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;
 
 			//initialize the print format
-			var printPopUp:PrintFormat = new PrintFormat();
-   			printPopUp = PopUpManager.createPopUp(this,PrintFormat,true) as PrintFormat;
+			var printPopUp:PrintPanel = new PrintPanel();
+   			printPopUp = PopUpManager.createPopUp(this,PrintPanel,true) as PrintPanel;
    			PopUpManager.centerPopUp(printPopUp);
    			printPopUp.applicationTitle = Weave.properties.pageTitle.value;
    			//add current snapshot to Print Format

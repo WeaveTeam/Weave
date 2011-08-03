@@ -41,12 +41,14 @@
 	<![CDATA[
 		import mx.core.Application;
 		import mx.core.UIComponent;
-		import weave.data.AttributeColumns.AbstractAttributeColumn;
-		import mx.utils.ObjectUtil;
-		import weave.utils.BitmapUtils;
-		import mx.printing.FlexPrintJobScaleType;
-		import mx.printing.FlexPrintJob;
+		import mx.graphics.ImageSnapshot;
 		import mx.managers.PopUpManager;
+		import mx.printing.FlexPrintJob;
+		import mx.printing.FlexPrintJobScaleType;
+		import mx.utils.ObjectUtil;
+		
+		import weave.data.AttributeColumns.AbstractAttributeColumn;
+		import weave.utils.BitmapUtils;
 		
 		//Title of the Application/Tool to be printed
 		private var _applicationTitle:String = null;
@@ -72,7 +74,8 @@
 		{
 			_componentToScreenshot = value;
 			
-			_imageSource = BitmapUtils.getPNGFromComponent(value);
+			//_imageSource = BitmapUtils.getPNGFromComponent(value);
+			_imageSource = ImageSnapshot.captureImage(value).data;
 		}
 		
 		//handle when close button of TitleWindow is clicked
@@ -161,7 +164,8 @@
 			printVbox.validateProperties();
 			
    		   	
-   			_fileSaver.save(BitmapUtils.getPNGFromComponent(this.printVbox), "weave screenshot " + dateString + ".png");
+			var img:ImageSnapshot = ImageSnapshot.captureImage(printVbox);
+   			_fileSaver.save(img.data, "weave screenshot " + dateString + ".png");
    			
    			//close popup after image is saved
    			PopUpManager.removePopUp(this);	
