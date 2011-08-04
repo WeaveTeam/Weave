@@ -277,6 +277,7 @@ public interface ISQLConfig
 			DATATABLE("dataTable"),
 			GEOMETRYCOLLECTION("geometryCollection"),
 			YEAR("year"),
+			CATEGORY_ID("category_id"),
 			MIN("min"),
 			MAX("max");
 

@@ -101,7 +101,7 @@ public class DatabaseConfig
 
 	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
 	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
-
+	private final String SQLTYPE_INT = "INT";
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();
@@ -178,7 +178,15 @@ public class DatabaseConfig
 		}
 		catch (SQLException e)
 		{
-			// ignore sql errors
+			// If the indices already exist, we don't care.
+		}
+		try
+		{
+			SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.CATEGORY_ID.toString(), SQLTYPE_INT);
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
 		}
 
 		// TODO: create auto-incrementing primary key: "id" int4 NOT NULL
