@@ -104,8 +104,11 @@ package weave.utils
 					var line:String = StringLib.lpad(value, 8) + ' (' + title + ')\n';
 					if(lookup[line]  == undefined )
 					{
-						record += line;
-						lookup[line] = true;
+						if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
+						{
+							record += line;
+							lookup[line] = true;
+						}
 					}
 				}
 				if (record != '')
