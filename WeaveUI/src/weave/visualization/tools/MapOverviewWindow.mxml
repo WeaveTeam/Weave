@@ -28,10 +28,12 @@
 	     xmlns:ui="weave.ui.*"
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*"
 	     xmlns:mapTool="weave.visualization.tools.*"
+		 creationComplete="drawBoundsRectangle()"
 	     >
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.Canvas;
+			import mx.events.ResizeEvent;
 			
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
@@ -54,32 +56,43 @@
 				closeable.value = false;
 				pinnable.value = false;
 				enableBorders.value = false;
+				
+				clipContent = true;
 
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableAutoZoomToExtent.lock();
+				visualization.enableSelection.value = false;
+				visualization.enableSelection.lock();
 				
 				// ensure WMS layers are included in the full data bounds
 				visualization.includeNonSelectableLayersInAutoZoom.value = true;
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this,drawBoundsRectangle);
 				visualization.enableFixedAspectRatio.value = true;
 			
-				sessionPanelCoordsAsPercentages = false;
+				sessionPanelCoordsAsPercentages = false;				
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
 				canvas.percentHeight= canvas.percentWidth = 100;
 				canvas.useHandCursor = true;
 				visualization.addChild(canvas);
 				canvas.toolTip = "Click or drag this rectangle to change the displayed area in the map";
+				
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
-				addEventListener(MouseEvent.MOUSE_OVER, handleMouseOver);
-				addEventListener(MouseEvent.MOUSE_OUT, handleMouseOut);
+				
+				parentTool.addEventListener(ResizeEvent.RESIZE, function (e:ResizeEvent):void
+				{					
+					parentTool.visualization.zoomBounds.getScreenBounds(parentScreenBounds);
+					drawBoundsRectangle();
+				});
 			}
 			
+			public var parentTool:SimpleVisTool;
 			public const parentZoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, drawBoundsRectangle, true);
 			public const parentScreenBounds:IBounds2D = new Bounds2D();
 			
@@ -97,23 +110,25 @@
 				visualization.zoomBounds.getScreenBounds(screenBounds);				
 				parentZoomBounds.getDataBounds(tempBounds);				
 				
+				if( parentScreenBounds.isEmpty()) return;
 				if( tempBounds.isEmpty()) return;				
 				if( screenBounds.isEmpty()) return;									
 
-				visualization.zoomBounds.getDataBounds(overviewDataBounds);
-								
-				_fixAspectRatio(overviewDataBounds);
-				_fixAspectRatio(tempBounds);
+				visualization.zoomBounds.getDataBounds(overviewDataBounds);				
 				
 				overviewDataBounds.projectCoordsTo(tempBounds,screenBounds);
-				screenBounds.constrainBounds(tempBounds,false);
+				
 				var graphics:Graphics = canvas.graphics;
 				graphics.clear();
 				
-				graphics.lineStyle(1);
-				graphics.beginFill(0xffff00,0.5);
+				graphics.lineStyle(2);
+				graphics.beginFill(0xcccccc,0.5);
 				graphics.drawRect(tempBounds.getXMin(),tempBounds.getYMin(),boundWidth = tempBounds.getWidth(),boundHeight = tempBounds.getHeight());
-				graphics.endFill();  
+				graphics.endFill();  								
+				
+				// TEMPORARY SOLUTION to enforce clipContent (flex bug) so rectangle is not drawn outside the overview panel
+				canvas.width = width+1;
+				canvas.height = height+1;
 			} 
 			
 			private var tempPoint:Point = new Point();
@@ -137,20 +152,7 @@
 			{ 
 				if(!mouseDown || forceEnableBorders.value) return; handleMouseEvent(e);
 			}
-			
-			private function handleMouseOver(e:MouseEvent):void 
-			{ 
-				//disable tool selection while mouse is over overviewPanel
-				enableSelection = visualization.enableSelection.value;
-				visualization.enableSelection.value = false;
-			}
-			
-			private function handleMouseOut(e:MouseEvent):void
-			{ 
-				// when mouse leaves panel reset tool selection to its old value
-				visualization.enableSelection.value = enableSelection; 
-			}
-			
+						
 			private function handleMouseEvent(e:MouseEvent):void
 			{
 				visualization.zoomBounds.getScreenBounds(screenBounds);
@@ -170,8 +172,6 @@
 				removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 				removeEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
-				removeEventListener(MouseEvent.MOUSE_OVER, handleMouseOver);
-				removeEventListener(MouseEvent.MOUSE_OUT, handleMouseOut);
 			}
 			
 			// this function was copied from ZoomBounds.as to get the correct dataBounds
