@@ -394,6 +394,8 @@
 					
 					visualization.graphics.clear();
 				}
+				if(overviewPanel != null)
+					visualization.zoomBounds.getScreenBounds(overviewPanel.parentScreenBounds);
 			}
 			private function handleZoomExtentClick():void
 			{
@@ -477,7 +479,7 @@
 			}
 			
 			public var overviewPanel:MapOverviewWindow;
-			private var OVERVIEW_PANEL_NAME:String = null ;
+			private const OVERVIEW_PANEL_NAME:String = "overview";
 			private function updateOverviewWindow():void
 			{				
 				if (enableOverview.value)
@@ -488,7 +490,7 @@
 					}
 					if (!overviewPanel)
 					{
-						overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME = children.generateUniqueName("overview"),MapOverviewWindow,true);
+						overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME,MapOverviewWindow,true);
 						linkSessionState(visualization.layers, overviewPanel.visualization.layers); 
 						linkSessionState(visualization.zoomBounds, overviewPanel.parentZoomBounds);	
 						children.addGroupedCallback(this, bringOverviewToTop);
