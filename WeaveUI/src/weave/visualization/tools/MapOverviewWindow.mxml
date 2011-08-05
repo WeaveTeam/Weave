@@ -64,6 +64,7 @@
 				visualization.enableAutoZoomToExtent.lock();
 				visualization.enableSelection.value = false;
 				visualization.enableSelection.lock();
+				visualization.enableProbe.value = false;
 								
 				visualization.includeNonSelectableLayersInAutoZoom.value = true;
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this,drawBoundsRectangle);
@@ -73,6 +74,8 @@
 				
 				addEventListener(FlexEvent.CREATION_COMPLETE, function (e:FlexEvent):void
 				{
+					if(parentTool)
+						parentTool.addEventListener(ResizeEvent.RESIZE, handleMapResize);							
 					getParentScreenBounds(parentScreenBounds);
 					drawBoundsRectangle();
 				});
@@ -91,8 +94,6 @@
 				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 				
-				if(parentTool)
-					parentTool.addEventListener(ResizeEvent.RESIZE, handleMapResize);							
 			}
 						
 			public var parentTool:SimpleVisTool;
