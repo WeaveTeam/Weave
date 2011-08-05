@@ -1,0 +1,1181 @@
+<Weave encoding="dynamic">
+  <WeaveProperties name="WeaveProperties">
+    <axisFontBold>true</axisFontBold>
+    <axisFontColor>0</axisFontColor>
+    <axisFontFamily>Sophia Nubian</axisFontFamily>
+    <axisFontItalic>false</axisFontItalic>
+    <axisFontSize>11</axisFontSize>
+    <axisFontUnderline>false</axisFontUnderline>
+    <backgroundColor>13421772</backgroundColor>
+    <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+    <dashboardMode>false</dashboardMode>
+    <dashedSelectionBox>5,5</dashedSelectionBox>
+    <dataInfoURL/>
+    <debugScreenBounds>false</debugScreenBounds>
+    <enableAboutMenu>true</enableAboutMenu>
+    <enableAdd2DHistogram>true</enableAdd2DHistogram>
+    <enableAddBarChart>true</enableAddBarChart>
+    <enableAddColorLegend>true</enableAddColorLegend>
+    <enableAddColormapHistogram>true</enableAddColormapHistogram>
+    <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
+    <enableAddDataFilter>true</enableAddDataFilter>
+    <enableAddDataSource>true</enableAddDataSource>
+    <enableAddDataTable>true</enableAddDataTable>
+    <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
+    <enableAddGaugeTool>true</enableAddGaugeTool>
+    <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+    <enableAddHistogram>true</enableAddHistogram>
+    <enableAddLineChart>true</enableAddLineChart>
+    <enableAddMap>true</enableAddMap>
+    <enableAddPieChart>true</enableAddPieChart>
+    <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
+    <enableAddRadViz>true</enableAddRadViz>
+    <enableAddRamachandranPlot>false</enableAddRamachandranPlot>
+    <enableAddRScriptEditor>true</enableAddRScriptEditor>
+    <enableAddScatterplot>true</enableAddScatterplot>
+    <enableAddThermometerTool>true</enableAddThermometerTool>
+    <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+    <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+    <enableBitmapFilters>true</enableBitmapFilters>
+    <enableCascadeAllWindows>true</enableCascadeAllWindows>
+    <enableClearCurrentSelection>true</enableClearCurrentSelection>
+    <enableCloseAllWindows>true</enableCloseAllWindows>
+    <enableCreateSubsets>true</enableCreateSubsets>
+    <enableDataMenu>true</enableDataMenu>
+    <enableDebugAlert>false</enableDebugAlert>
+    <enableDynamicTools>true</enableDynamicTools>
+    <enableEditDataSource>true</enableEditDataSource>
+    <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+    <enableExportDataTable>true</enableExportDataTable>
+    <enableExportToolImage>true</enableExportToolImage>
+    <enableFullscreen>true</enableFullscreen>
+    <enableGeometryProbing>true</enableGeometryProbing>
+    <enableGoFullscreen>true</enableGoFullscreen>
+    <enableManageSavedSelections>true</enableManageSavedSelections>
+    <enableManageSavedSubsets>true</enableManageSavedSubsets>
+    <enableMenuBar>true</enableMenuBar>
+    <enableMinimizeAllWindows>true</enableMinimizeAllWindows>
+    <enableMouseWheel>true</enableMouseWheel>
+    <enableNewDataset>true</enableNewDataset>
+    <enableNewUserWizard>true</enableNewUserWizard>
+    <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
+    <enableProbeAnimation>true</enableProbeAnimation>
+    <enableProbeLines>true</enableProbeLines>
+    <enableRefreshHierarchies>true</enableRefreshHierarchies>
+    <enableRemoveSubsets>true</enableRemoveSubsets>
+    <enableRestoreAllMinimizedWindows>true</enableRestoreAllMinimizedWindows>
+    <enableRightClick>true</enableRightClick>
+    <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
+    <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
+    <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionsMenu>true</enableSelectionsMenu>
+    <enableSessionBookmarks>true</enableSessionBookmarks>
+    <enableSessionEdit>true</enableSessionEdit>
+    <enableSessionMenu>true</enableSessionMenu>
+    <enableShowAllRecords>true</enableShowAllRecords>
+    <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetsMenu>true</enableSubsetsMenu>
+    <enableTaskbar>true</enableTaskbar>
+    <enableTileAllWindows>true</enableTileAllWindows>
+    <enableToolAttributeEditing>true</enableToolAttributeEditing>
+    <enableToolControls>true</enableToolControls>
+    <enableToolProbe>true</enableToolProbe>
+    <enableToolSelection>true</enableToolSelection>
+    <enableUserPreferences>true</enableUserPreferences>
+    <enableWindowMenu>true</enableWindowMenu>
+    <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
+    <maxTooltipRecordsShown>4</maxTooltipRecordsShown>
+    <pageTitle>Open Indicators Weave</pageTitle>
+    <panelTitleFontBold>false</panelTitleFontBold>
+    <panelTitleFontColor>16777215</panelTitleFontColor>
+    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
+    <panelTitleFontItalic>false</panelTitleFontItalic>
+    <panelTitleFontSize>10</panelTitleFontSize>
+    <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
+    <probeInnerGlowAlpha>1</probeInnerGlowAlpha>
+    <probeInnerGlowBlur>5</probeInnerGlowBlur>
+    <probeInnerGlowColor>16777215</probeInnerGlowColor>
+    <probeInnerGlowStrength>10</probeInnerGlowStrength>
+    <probeOuterGlowAlpha>1</probeOuterGlowAlpha>
+    <probeOuterGlowBlur>3</probeOuterGlowBlur>
+    <probeOuterGlowColor>0</probeOuterGlowColor>
+    <probeOuterGlowStrength>3</probeOuterGlowStrength>
+    <probeToolTipBackgroundAlpha>1</probeToolTipBackgroundAlpha>
+    <probeToolTipBackgroundColor>NaN</probeToolTipBackgroundColor>
+    <probeToolTipFontColor>0</probeToolTipFontColor>
+    <rServiceURL>/WeaveServices/RService</rServiceURL>
+    <searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
+Google|http://www.google.com/search?q=
+Google Images|http://images.google.com/images?q=
+Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
+    <selectionAlphaAmount>0.5</selectionAlphaAmount>
+    <selectionBlurringAmount>4</selectionBlurringAmount>
+    <shadowAlpha>0.5</shadowAlpha>
+    <shadowAngle>45</shadowAngle>
+    <shadowBlur>4</shadowBlur>
+    <shadowColor>0</shadowColor>
+    <shadowDistance>2</shadowDistance>
+    <showAttributeSelector>true</showAttributeSelector>
+    <showColorController>true</showColorController>
+    <showCopyright>true</showCopyright>
+    <showEquationEditor>true</showEquationEditor>
+    <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+    <showProbeToolTipEditor>true</showProbeToolTipEditor>
+    <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <version>1.0 Beta Nightly Build</version>
+    <windowSnapGridSize>5</windowSnapGridSize>
+  </WeaveProperties>
+  <ColorColumn name="defaultColorColumn">
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorBinColumn"/>
+    </internalDynamicColumn>
+    <ramp encoding="xml">
+      <colorRamp name="Grayscale">
+        <node color="0x000000" position="0.0"/>
+        <node color="0xffffff" position="1.0"/>
+      </colorRamp>
+    </ramp>
+  </ColorColumn>
+  <BinnedColumn name="defaultColorBinColumn">
+    <binningDefinition encoding="dynamic">
+      <SimpleBinningDefinition>
+        <numberOfBins>10</numberOfBins>
+      </SimpleBinningDefinition>
+    </binningDefinition>
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorDataColumn"/>
+    </internalDynamicColumn>
+  </BinnedColumn>
+  <FilteredColumn name="defaultColorDataColumn">
+    <filter encoding="dynamic">
+      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+    </filter>
+    <internalDynamicColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>WeaveDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="Data Tables">
+                  <category name="ObesityCube">
+                    <attribute id="165082" name="PercentObese" dataTable="ObesityCube" keyType="ObesityCube"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </internalDynamicColumn>
+  </FilteredColumn>
+  <KeyFilter name="defaultSubsetKeyFilter">
+    <excluded/>
+    <included/>
+    <includeMissingKeys>true</includeMissingKeys>
+    <includeMissingKeyTypes>true</includeMissingKeyTypes>
+  </KeyFilter>
+  <KeySet name="defaultSelectionKeySet"/>
+  <KeySet name="defaultProbeKeySet"/>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <WeaveDataSource name="WeaveDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="IVPR Indicator Server">
+        <category name="Data Tables">
+          <category name="ObesityCube">
+            <attribute id="165078" name="ID" dataTable="ObesityCube" keyType="ObesityCube" dataType="ObesityCube"/>
+            <attribute id="165079" name="State" dataTable="ObesityCube" keyType="ObesityCube" dataType="US State Name"/>
+            <attribute id="165080" name="FIPS2" dataTable="ObesityCube" keyType="ObesityCube" dataType="US State FIPS Code"/>
+            <attribute id="165081" name="Year" dataTable="ObesityCube" keyType="ObesityCube" dataType="Year"/>
+            <attribute id="165082" name="PercentObese" dataTable="ObesityCube" keyType="ObesityCube"/>
+            <attribute id="165083" name="PercentOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+            <attribute id="165084" name="PercentNotOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+          </category>
+          <category name="Obesity"/>
+        </category>
+        <category name="Geometry Collections">
+          <attribute name="11_4_reprojected" dataType="Geometry"/>
+          <attribute name="11_4_reprojected_geometry" dataType="Geometry"/>
+          <attribute name="arra_mass_points201004" dataType="Geometry"/>
+          <attribute name="arra_point" dataType="Geometry"/>
+          <attribute name="arra_point" dataType="Geometry"/>
+          <attribute name="Arrests_Nashua" dataType="Geometry"/>
+          <attribute name="Atlanta Superdistricts" dataType="Geometry"/>
+          <attribute name="Atlanta Superdistricts11" dataType="Geometry"/>
+          <attribute name="Atlanta Transportation Analysis Zones" dataType="Geometry"/>
+          <attribute name="Atlanta_CLCC_GDCH" dataType="Geometry"/>
+          <attribute name="Atlanta_ES_4th_CRCT_Reading" dataType="Geometry"/>
+          <attribute name="Atlanta_Head_Start" dataType="Geometry"/>
+          <attribute name="Atlanta_LowPerfSchools" dataType="Geometry"/>
+          <attribute name="Atlanta_MSA_Counties" dataType="Geometry"/>
+          <attribute name="Atlanta_MSA_Interstates" dataType="Geometry"/>
+          <attribute name="Atlanta_MSA_Places" dataType="Geometry"/>
+          <attribute name="Atlanta_NPUs" dataType="Geometry"/>
+          <attribute name="Atlanta_Pre-K" dataType="Geometry"/>
+          <attribute name="Atlanta_Vuln3_5" dataType="Geometry"/>
+          <attribute name="Atlanta_Vuln3Plus" dataType="Geometry"/>
+          <attribute name="Atlanta_Vuln6_10" dataType="Geometry"/>
+          <attribute name="BCFutureLandUse_2009" dataType="Geometry"/>
+          <attribute name="bike trails" dataType="Geometry"/>
+          <attribute name="bikeped_facilities" dataType="Geometry"/>
+          <attribute name="Boston 2005 Parcels" dataType="Geometry"/>
+          <attribute name="Boston 2005 Parcels Subset" dataType="Geometry"/>
+          <attribute name="Boston Parcels" dataType="Geometry"/>
+          <attribute name="boston_foreclosure_deeds" dataType="Geometry"/>
+          <attribute name="Boston_Hositals" dataType="Geometry"/>
+          <attribute name="Boston_Hositals111" dataType="Geometry"/>
+          <attribute name="Boston_Neighborhoods" dataType="Geometry"/>
+          <attribute name="boston_roads" dataType="Geometry"/>
+          <attribute name="Boston_zips" dataType="Geometry"/>
+          <attribute name="carcinogen" dataType="Geometry"/>
+          <attribute name="CATCHMENTS_poly_region" dataType="Geometry"/>
+          <attribute name="CBSA2003" dataType="Geometry"/>
+          <attribute name="CBSAs" dataType="Geometry"/>
+          <attribute name="cd99_110" dataType="Geometry"/>
+          <attribute name="cd_110thCongress" dataType="Geometry"/>
+          <attribute name="Census Trats MA 2010" dataType="Geometry"/>
+          <attribute name="census2000blockgroups_poly_orig" dataType="Geometry"/>
+          <attribute name="census2000tracts_ICC_Towns" dataType="Geometry"/>
+          <attribute name="census_msad" dataType="Geometry"/>
+          <attribute name="CHCS_PT" dataType="Geometry"/>
+          <attribute name="chic_counties" dataType="Geometry"/>
+          <attribute name="Chicago Census Tracts" dataType="Geometry"/>
+          <attribute name="chicago_arra_munis" dataType="Geometry"/>
+          <attribute name="chicago_arra_point" dataType="Geometry"/>
+          <attribute name="Chicago_Muni_ARRA" dataType="Geometry"/>
+          <attribute name="chicpoint2" dataType="Geometry"/>
+          <attribute name="chicpoint2111" dataType="Geometry"/>
+          <attribute name="chicpoint3" dataType="Geometry"/>
+          <attribute name="CHN_adm1" dataType="Geometry"/>
+          <attribute name="CHN_adm2" dataType="Geometry"/>
+          <attribute name="CHN_adm3" dataType="Geometry"/>
+          <attribute name="CityofAtlanta" dataType="Geometry"/>
+          <attribute name="Community_ED EEC" dataType="Geometry"/>
+          <attribute name="connecticut_usproj" dataType="Geometry"/>
+          <attribute name="Counties" dataType="Geometry"/>
+          <attribute name="Countries" dataType="Geometry"/>
+          <attribute name="County Subdivisions" dataType="Geometry"/>
+          <attribute name="DEGREES BY INSTITUTION " dataType="Geometry"/>
+          <attribute name="DEMO_Shape" dataType="Geometry"/>
+          <attribute name="dhe_states" dataType="Geometry"/>
+          <attribute name="eec2" dataType="Geometry"/>
+          <attribute name="eec_artificial_child" dataType="Geometry"/>
+          <attribute name="eec_comprehensive_family" dataType="Geometry"/>
+          <attribute name="eec_familyservices_reproj" dataType="Geometry"/>
+          <attribute name="eec_lowellschools_reproj" dataType="Geometry"/>
+          <attribute name="eec_prek_pregnant_reproj" dataType="Geometry"/>
+          <attribute name="eec_prekpregnant_reproj" dataType="Geometry"/>
+          <attribute name="EEC_Providers" dataType="Geometry"/>
+          <attribute name="eec_regcnt_MA_ElemSchoolDistricts" dataType="Geometry"/>
+          <attribute name="eec_registrants_ma" dataType="Geometry"/>
+          <attribute name="eec_SchAged_TeenParents" dataType="Geometry"/>
+          <attribute name="eec_schoolagedchildren_reproj" dataType="Geometry"/>
+          <attribute name="eec_test1" dataType="Geometry"/>
+          <attribute name="eec_test2" dataType="Geometry"/>
+          <attribute name="emassnh_catchments" dataType="Geometry"/>
+          <attribute name="EPA_emissions_CO2_1995-2010" dataType="Geometry"/>
+          <attribute name="Exempt" dataType="Geometry"/>
+          <attribute name="FamilyServices" dataType="Geometry"/>
+          <attribute name="FCHC" dataType="Geometry"/>
+          <attribute name="fd_2005" dataType="Geometry"/>
+          <attribute name="fd_2006" dataType="Geometry"/>
+          <attribute name="fd_2007" dataType="Geometry"/>
+          <attribute name="fd_2008" dataType="Geometry"/>
+          <attribute name="fd_2009" dataType="Geometry"/>
+          <attribute name="fd_2010" dataType="Geometry"/>
+          <attribute name="FD_points_Lowell_new1" dataType="Geometry"/>
+          <attribute name="fe_2007_44_elsd" dataType="Geometry"/>
+          <attribute name="fe_2007_44_unsd" dataType="Geometry"/>
+          <attribute name="firms" dataType="Geometry"/>
+          <attribute name="FullPoints_Final" dataType="Geometry"/>
+          <attribute name="FullPoints_Lowell" dataType="Geometry"/>
+          <attribute name="fullpoints_lowell_reprojected" dataType="Geometry"/>
+          <attribute name="GHA_boundaries" dataType="Geometry"/>
+          <attribute name="GHA_outline" dataType="Geometry"/>
+          <attribute name="hb_states" dataType="Geometry"/>
+          <attribute name="hbstates" dataType="Geometry"/>
+          <attribute name="HeadStart" dataType="Geometry"/>
+          <attribute name="higher_ed_ma" dataType="Geometry"/>
+          <attribute name="higher_ed_ma_x" dataType="Geometry"/>
+          <attribute name="HigherEd Institutions - Crime" dataType="Geometry"/>
+          <attribute name="hwt_point" dataType="Geometry"/>
+          <attribute name="ICMB_ct" dataType="Geometry"/>
+          <attribute name="IPEDS(For)2009" dataType="Geometry"/>
+          <attribute name="IPEDS(Non)2009" dataType="Geometry"/>
+          <attribute name="IPEDS(Public)2009" dataType="Geometry"/>
+          <attribute name="ireland_counties" dataType="Geometry"/>
+          <attribute name="ireland_latlongpoints" dataType="Geometry"/>
+          <attribute name="ireland_latlongpoints_v3" dataType="Geometry"/>
+          <attribute name="ireland_latlongpoints_v4" dataType="Geometry"/>
+          <attribute name="ireland_latlongpoints_v5" dataType="Geometry"/>
+          <attribute name="ireland_municipal_combined" dataType="Geometry"/>
+          <attribute name="ireland_nation" dataType="Geometry"/>
+          <attribute name="ireland_regions" dataType="Geometry"/>
+          <attribute name="Lawrence Parcel" dataType="Geometry"/>
+          <attribute name="lawrence_home buyers active" dataType="Geometry"/>
+          <attribute name="LCW Home purchase" dataType="Geometry"/>
+          <attribute name="LGSAC" dataType="Geometry"/>
+          <attribute name="lowell_nccs_3" dataType="Geometry"/>
+          <attribute name="lowell_neighborhoods_reprojected" dataType="Geometry"/>
+          <attribute name="Lowell_Parcels" dataType="Geometry"/>
+          <attribute name="lowell_registrants" dataType="Geometry"/>
+          <attribute name="LowellFD_2009_Final" dataType="Geometry"/>
+          <attribute name="lowelltracts_w_eec_registrant_count" dataType="Geometry"/>
+          <attribute name="MA Census Tract" dataType="Geometry"/>
+          <attribute name="MA Census Tract 6-digit" dataType="Geometry"/>
+          <attribute name="MA PRISONS" dataType="Geometry"/>
+          <attribute name="MA SCHOOLS" dataType="Geometry"/>
+          <attribute name="MA Train lines" dataType="Geometry"/>
+          <attribute name="ma_childcare_2009_sample_points" dataType="Geometry"/>
+          <attribute name="MA_COC" dataType="Geometry"/>
+          <attribute name="ma_ct2010_usproj" dataType="Geometry"/>
+          <attribute name="MA_EEC_Registrants" dataType="Geometry"/>
+          <attribute name="MA_Major_Streams_Lines" dataType="Geometry"/>
+          <attribute name="ma_SCHOOLS_PT" dataType="Geometry"/>
+          <attribute name="ma_shapes_delete" dataType="Geometry"/>
+          <attribute name="ma_town_region3" dataType="Geometry"/>
+          <attribute name="MA_Towns_MultiPoly_TOWN" dataType="Geometry"/>
+          <attribute name="ma_tract_w_eec_regcnt_and_town" dataType="Geometry"/>
+          <attribute name="ma_tracts_w_eec_regcnt" dataType="Geometry"/>
+          <attribute name="MA_ZCTA" dataType="Geometry"/>
+          <attribute name="MA_ZipCodes_Poly" dataType="Geometry"/>
+          <attribute name="MAPC_Municipalities" dataType="Geometry"/>
+          <attribute name="Mars_bkg" dataType="Geometry"/>
+          <attribute name="Mars_Points" dataType="Geometry"/>
+          <attribute name="mass towns" dataType="Geometry"/>
+          <attribute name="mass_benchmarks" dataType="Geometry"/>
+          <attribute name="mass_towns" dataType="Geometry"/>
+          <attribute name="Massachusetts Towns" dataType="Geometry"/>
+          <attribute name="massachusetts_usproj" dataType="Geometry"/>
+          <attribute name="MassARRA" dataType="Geometry"/>
+          <attribute name="MassARRALowellOnly" dataType="Geometry"/>
+          <attribute name="MassARRApoint" dataType="Geometry"/>
+          <attribute name="MassARRAPoint" dataType="Geometry"/>
+          <attribute name="MassARRAVer6" dataType="Geometry"/>
+          <attribute name="masstowns_w_eec_registrant_count" dataType="Geometry"/>
+          <attribute name="MBTA BUS ROUTES" dataType="Geometry"/>
+          <attribute name="MBTA BUS Stops" dataType="Geometry"/>
+          <attribute name="MBTA_ARC" dataType="Geometry"/>
+          <attribute name="MBTA_NODE" dataType="Geometry"/>
+          <attribute name="MBTABUSROUTES_ARC" dataType="Geometry"/>
+          <attribute name="MBTABUSSTOPS_PT" dataType="Geometry"/>
+          <attribute name="Merged Turi" dataType="Geometry"/>
+          <attribute name="MetroBoston_Schools" dataType="Geometry"/>
+          <attribute name="Metropolitan Division" dataType="Geometry"/>
+          <attribute name="MEX" dataType="Geometry"/>
+          <attribute name="MFI Ben" dataType="Geometry"/>
+          <attribute name="MFI_GH" dataType="Geometry"/>
+          <attribute name="MFI_GH1" dataType="Geometry"/>
+          <attribute name="MFI_Points_2007" dataType="Geometry"/>
+          <attribute name="minnesota_usproj" dataType="Geometry"/>
+          <attribute name="missouri_usproj" dataType="Geometry"/>
+          <attribute name="MSA_Tracts" dataType="Geometry"/>
+          <attribute name="mvhp" dataType="Geometry"/>
+          <attribute name="mvhp_reprojected_v2" dataType="Geometry"/>
+          <attribute name="mys1" dataType="Geometry"/>
+          <attribute name="mys2" dataType="Geometry"/>
+          <attribute name="mys4" dataType="Geometry"/>
+          <attribute name="Nashua_Tract" dataType="Geometry"/>
+          <attribute name="NCCS_Lowell" dataType="Geometry"/>
+          <attribute name="nccs_ma_reprojected" dataType="Geometry"/>
+          <attribute name="nccs_shape2" dataType="Geometry"/>
+          <attribute name="nccs_shape_CT" dataType="Geometry"/>
+          <attribute name="nccs_shape_LA" dataType="Geometry"/>
+          <attribute name="nccs_shape_LA_FIPS22051" dataType="Geometry"/>
+          <attribute name="nccs_shape_MA" dataType="Geometry"/>
+          <attribute name="nccs_shape_MACT" dataType="Geometry"/>
+          <attribute name="ne_cd99_110" dataType="Geometry"/>
+          <attribute name="ne_lldistricts" dataType="Geometry"/>
+          <attribute name="ne_lsdistricts" dataType="Geometry"/>
+          <attribute name="ne_streams" dataType="Geometry"/>
+          <attribute name="nehucs10" dataType="Geometry"/>
+          <attribute name="new_england_subbasins" dataType="Geometry"/>
+          <attribute name="NewEngland_Cousub" dataType="Geometry"/>
+          <attribute name="newengland_subbasins_v2" dataType="Geometry"/>
+          <attribute name="newhampshire_usproj" dataType="Geometry"/>
+          <attribute name="nhpn" dataType="Geometry"/>
+          <attribute name="nhpn1" dataType="Geometry"/>
+          <attribute name="northcarolina_usproj" dataType="Geometry"/>
+          <attribute name="NREL_NewEnglandShapeWGS84" dataType="Geometry"/>
+          <attribute name="nuclear-facilities-update" dataType="Geometry"/>
+          <attribute name="nuclear_seismic-hazard" dataType="Geometry"/>
+          <attribute name="nuclear_states" dataType="Geometry"/>
+          <attribute name="nuclear_us_earthquakes" dataType="Geometry"/>
+          <attribute name="od_2005" dataType="Geometry"/>
+          <attribute name="od_2006_reprojected" dataType="Geometry"/>
+          <attribute name="od_2007" dataType="Geometry"/>
+          <attribute name="od_2008" dataType="Geometry"/>
+          <attribute name="od_2009" dataType="Geometry"/>
+          <attribute name="od_2010" dataType="Geometry"/>
+          <attribute name="Ohio County Subdivisions" dataType="Geometry"/>
+          <attribute name="Ohio Places" dataType="Geometry"/>
+          <attribute name="ON no FD 2005" dataType="Geometry"/>
+          <attribute name="on no fd 2006_reprojected" dataType="Geometry"/>
+          <attribute name="on no fd 2007_reprojected" dataType="Geometry"/>
+          <attribute name="on no fd 2008_reprojected" dataType="Geometry"/>
+          <attribute name="on no fd 2009_reprojected" dataType="Geometry"/>
+          <attribute name="on no fd 2010_reprojected" dataType="Geometry"/>
+          <attribute name="on no fd_2005" dataType="Geometry"/>
+          <attribute name="oregon_usproj" dataType="Geometry"/>
+          <attribute name="perc" dataType="Geometry"/>
+          <attribute name="Plants" dataType="Geometry"/>
+          <attribute name="pma_us96" dataType="Geometry"/>
+          <attribute name="pma_us96_pmsa" dataType="Geometry"/>
+          <attribute name="PreK" dataType="Geometry"/>
+          <attribute name="PreK2" dataType="Geometry"/>
+          <attribute name="Prek3" dataType="Geometry"/>
+          <attribute name="Prek4" dataType="Geometry"/>
+          <attribute name="PreK6" dataType="Geometry"/>
+          <attribute name="PreKPregnant" dataType="Geometry"/>
+          <attribute name="PrekPregnant2" dataType="Geometry"/>
+          <attribute name="PreKPregnant3" dataType="Geometry"/>
+          <attribute name="private_IPEDS" dataType="Geometry"/>
+          <attribute name="Public Libraries MA" dataType="Geometry"/>
+          <attribute name="Public School Pre K" dataType="Geometry"/>
+          <attribute name="railways" dataType="Geometry"/>
+          <attribute name="Registrants_US1" dataType="Geometry"/>
+          <attribute name="registrants_us1" dataType="Geometry"/>
+          <attribute name="RGGI" dataType="Geometry"/>
+          <attribute name="RGGI2" dataType="Geometry"/>
+          <attribute name="rhodeisland_usproj" dataType="Geometry"/>
+          <attribute name="ri_bg" dataType="Geometry"/>
+          <attribute name="ri_schools08_projected" dataType="Geometry"/>
+          <attribute name="roads" dataType="Geometry"/>
+          <attribute name="Rwanda_Districts" dataType="Geometry"/>
+          <attribute name="Rwanda_Provinces" dataType="Geometry"/>
+          <attribute name="SchoolAged" dataType="Geometry"/>
+          <attribute name="schooldis_elem_POLY" dataType="Geometry"/>
+          <attribute name="schooldishigh_POLY_ma" dataType="Geometry"/>
+          <attribute name="schooldist_elem_ma" dataType="Geometry"/>
+          <attribute name="schooldist_elem_maPOLY" dataType="Geometry"/>
+          <attribute name="SCHOOLDISTELEM_POLY" dataType="Geometry"/>
+          <attribute name="SCHOOLDISTHIGH_POLY" dataType="Geometry"/>
+          <attribute name="shapes_demo" dataType="Geometry"/>
+          <attribute name="Soil Waste MA" dataType="Geometry"/>
+          <attribute name="st99_d00" dataType="Geometry"/>
+          <attribute name="State" dataType="Geometry"/>
+          <attribute name="States" dataType="Geometry"/>
+          <attribute name="StatesforNREL" dataType="Geometry"/>
+          <attribute name="STEM BY INSTITUTION" dataType="Geometry"/>
+          <attribute name="Styrene" dataType="Geometry"/>
+          <attribute name="Success_Boston_Student_Cohorts" dataType="Geometry"/>
+          <attribute name="sulfuricacid" dataType="Geometry"/>
+          <attribute name="ta tatata" dataType="Geometry"/>
+          <attribute name="test" dataType="Geometry"/>
+          <attribute name="TEST" dataType="Geometry"/>
+          <attribute name="test_nccs" dataType="Geometry"/>
+          <attribute name="test_st99" dataType="Geometry"/>
+          <attribute name="tgr33001lkA" dataType="Geometry"/>
+          <attribute name="tl_2009_09_bg00" dataType="Geometry"/>
+          <attribute name="tl_2009_us_cbsa" dataType="Geometry"/>
+          <attribute name="tl_2009_us_state" dataType="Geometry"/>
+          <attribute name="tl_2010_us_cbsa10" dataType="Geometry"/>
+          <attribute name="tl_2010_us_state10" dataType="Geometry"/>
+          <attribute name="tr25_d00_reprojected" dataType="Geometry"/>
+          <attribute name="TRAINS_NODE" dataType="Geometry"/>
+          <attribute name="Turi points" dataType="Geometry"/>
+          <attribute name="turi points" dataType="Geometry"/>
+          <attribute name="turi points 2008" dataType="Geometry"/>
+          <attribute name="turi00" dataType="Geometry"/>
+          <attribute name="turi01" dataType="Geometry"/>
+          <attribute name="turi02" dataType="Geometry"/>
+          <attribute name="turi03" dataType="Geometry"/>
+          <attribute name="turi04" dataType="Geometry"/>
+          <attribute name="turi05" dataType="Geometry"/>
+          <attribute name="turi06" dataType="Geometry"/>
+          <attribute name="turi06-" dataType="Geometry"/>
+          <attribute name="turi07" dataType="Geometry"/>
+          <attribute name="turi07new" dataType="Geometry"/>
+          <attribute name="turi08" dataType="Geometry"/>
+          <attribute name="turi90" dataType="Geometry"/>
+          <attribute name="turi91" dataType="Geometry"/>
+          <attribute name="turi92" dataType="Geometry"/>
+          <attribute name="turi93" dataType="Geometry"/>
+          <attribute name="turi94" dataType="Geometry"/>
+          <attribute name="turi95" dataType="Geometry"/>
+          <attribute name="turi96" dataType="Geometry"/>
+          <attribute name="turi97" dataType="Geometry"/>
+          <attribute name="turi98" dataType="Geometry"/>
+          <attribute name="turi99" dataType="Geometry"/>
+          <attribute name="TURI_all_2008" dataType="Geometry"/>
+          <attribute name="Turkey" dataType="Geometry"/>
+          <attribute name="US_AKHI_moved" dataType="Geometry"/>
+          <attribute name="us_cbsa" dataType="Geometry"/>
+          <attribute name="us_interstates" dataType="Geometry"/>
+          <attribute name="US_Outline" dataType="Geometry"/>
+          <attribute name="US_Outline_As_State" dataType="Geometry"/>
+          <attribute name="US_States_WGS" dataType="Geometry"/>
+          <attribute name="USCoastFinalver2selectable" dataType="Geometry"/>
+          <attribute name="USCoastFinalver2selectabledelete" dataType="Geometry"/>
+          <attribute name="USCoastFinalver2selectableWITHFIPS" dataType="Geometry"/>
+          <attribute name="USoilPlatforms" dataType="Geometry"/>
+          <attribute name="utah_usproj" dataType="Geometry"/>
+          <attribute name="washington_usproj" dataType="Geometry"/>
+          <attribute name="waterways" dataType="Geometry"/>
+          <attribute name="wb_test" dataType="Geometry"/>
+          <attribute name="wb_testest" dataType="Geometry"/>
+          <attribute name="wbfasdljk" dataType="Geometry"/>
+          <attribute name="welwellwelllll" dataType="Geometry"/>
+          <attribute name="westminster_const_region" dataType="Geometry"/>
+          <attribute name="world" dataType="Geometry"/>
+          <attribute name="World Borders" dataType="Geometry"/>
+          <attribute name="World Borders (UN Codes)" dataType="Geometry"/>
+          <attribute name="World UN" dataType="Geometry"/>
+          <attribute name="WT_FAAOE_2000_2011" dataType="Geometry"/>
+          <attribute name="yb_points" dataType="Geometry"/>
+          <attribute name="youthbuild_points" dataType="Geometry"/>
+          <attribute name="ZillowNeighborhoods" dataType="Geometry"/>
+        </category>
+      </hierarchy>
+    </attributeHierarchy>
+    <hierarchyURL/>
+    <url>/WeaveServices/DataService</url>
+  </WeaveDataSource>
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="Data Tables">
+                <category name="ObesityCube">
+                  <attribute id="165079" name="State" dataTable="ObesityCube" keyType="ObesityCube" dataType="US State Name"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="Data Tables">
+                <category name="ObesityCube">
+                  <attribute id="165078" name="ID" dataTable="ObesityCube" keyType="ObesityCube" dataType="ObesityCube"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn2">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="Data Tables">
+                <category name="ObesityCube">
+                  <attribute id="165080" name="FIPS2" dataTable="ObesityCube" keyType="ObesityCube" dataType="US State FIPS Code"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn3">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="Data Tables">
+                <category name="ObesityCube">
+                  <attribute id="165081" name="Year" dataTable="ObesityCube" keyType="ObesityCube" dataType="Year"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn4">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="Data Tables">
+                <category name="ObesityCube">
+                  <attribute id="165082" name="PercentObese" dataTable="ObesityCube" keyType="ObesityCube"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn5">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="Data Tables">
+                <category name="ObesityCube">
+                  <attribute id="165083" name="PercentOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn6">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>WeaveDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="Data Tables">
+                <category name="ObesityCube">
+                  <attribute id="165084" name="PercentNotOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <ScatterPlotTool name="ScatterPlotTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>true</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>true</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>32</xMax>
+                  <xMin>32</xMin>
+                  <yMax>56</yMax>
+                  <yMin>42</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>56</axisLineMaxValue>
+                <axisLineMinValue>42</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
+                <tickCountRequested>10</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>40</xMax>
+                  <xMin>32</xMin>
+                  <yMax>42</yMax>
+                  <yMin>42</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>40</axisLineMaxValue>
+                <axisLineMinValue>32</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
+                <tickCountRequested>10</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic"/>
+                <spatialCallbacks/>
+                <xColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="ObesityCube">
+                                <attribute id="165083" name="PercentOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </xColumn>
+                <yColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="ObesityCube">
+                                <attribute id="165084" name="PercentNotOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </yColumn>
+              </ScatterPlotPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <PlotLayer name="regressionLine">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <RegressionLinePlotter>
+                <drawLine>false</drawLine>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <spatialCallbacks/>
+                <xColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="ObesityCube">
+                                <attribute id="165083" name="PercentOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </xColumn>
+                <yColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="ObesityCube">
+                                <attribute id="165084" name="PercentNotOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </yColumn>
+              </RegressionLinePlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+          <PlotLayer name="probeLine">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ProbeLinePlotter>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+                <spatialCallbacks/>
+              </ProbeLinePlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+          <SelectablePlotLayer name="undefinedX">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic"/>
+                <spatialCallbacks/>
+                <xColumn encoding="dynamic"/>
+                <yColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="ObesityCube">
+                                <attribute id="165084" name="PercentNotOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </yColumn>
+              </ScatterPlotPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="undefinedY">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic"/>
+                <spatialCallbacks/>
+                <xColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="ObesityCube">
+                                <attribute id="165083" name="PercentOverweight" dataTable="ObesityCube" keyType="ObesityCube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </xColumn>
+                <yColumn encoding="dynamic"/>
+              </ScatterPlotPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="undefinedXY">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic"/>
+                <spatialCallbacks/>
+                <xColumn encoding="dynamic"/>
+                <yColumn encoding="dynamic"/>
+              </ScatterPlotPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>50</marginRight>
+        <marginTop>50</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>40</xMax>
+          <xMin>32</xMin>
+          <yMax>56</yMax>
+          <yMin>42</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>58.464%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>53.125%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>41.012%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </ScatterPlotTool>
+</Weave>
