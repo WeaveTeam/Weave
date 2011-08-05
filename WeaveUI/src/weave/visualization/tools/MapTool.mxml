@@ -399,7 +399,7 @@
 			}
 			private function handleZoomExtentClick():void
 			{
-				visualization.zoomBounds.setDataBounds(visualization.fullDataBounds);
+				visualization.zoomBounds.setDataBounds(visualization.fullDataBounds, true);
 			}
 			
 			private function addGeomLayer():void

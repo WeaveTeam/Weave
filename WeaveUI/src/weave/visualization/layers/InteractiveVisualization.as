@@ -290,7 +290,7 @@ package weave.visualization.layers
 				if (event.ctrlKey && event.shiftKey)
 				{
 					// zoom to full extent
-					zoomBounds.setDataBounds(fullDataBounds);
+					zoomBounds.setDataBounds(fullDataBounds, true);
 				}
 				else
 				{
