@@ -21,9 +21,6 @@ package weave.services.beans
 {	
 	public class AttributeColumnDataWithKeys 
 	{
-		public static const NUMBER_DATATYPE:String = 'number';
-		public static const STRING_DATATYPE:String = 'string';
-		
 		public function AttributeColumnDataWithKeys(result:Object)
 		{
 			this.attributeColumnName = result.attributeColumnName;

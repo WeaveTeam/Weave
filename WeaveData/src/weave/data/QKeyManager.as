@@ -46,8 +46,8 @@ package weave.data
 		 */
 		public function getQKey(keyType:String, localName:String):IQualifiedKey
 		{
-			if (keyType == null)
-				keyType = 'String';
+			if (keyType == null || keyType == '')
+				keyType = 'string';
 			
 //			// special case -- if keyType is null, return a unique QKey object
 //			if (keyType == null)

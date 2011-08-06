@@ -25,6 +25,7 @@ package weave.data.DataSources
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
@@ -54,19 +55,20 @@ package weave.data.DataSources
 	{
 		public function WFSDataSource()
 		{
+			url.addImmediateCallback(this, handleURLChange);
 		}
 		
 		public var wfsDataService:WFSServlet = null;
 		
-		/**
-		 */
-		override protected function initialize():void
+		private function handleURLChange():void
 		{
 			if (url.value == null)
 				url.value = '/geoserver/wfs';
-			
 			wfsDataService = new WFSServlet(url.value);
-			
+		}
+		
+		override protected function initialize():void
+		{
 			// backwards compatibility
 			if(_attributeHierarchy.value != null)
 			{
@@ -90,10 +92,8 @@ package weave.data.DataSources
 		 */
 		public function radiusSearch(layerName:String, queryPoint:Point,distance:Number):AsyncToken
 		{
-			//todo: add required parameters, return async token 
-			
-			var filterQuery:String = "<Filter><DWithin><PropertyName>the_geom</PropertyName><Point><coordinates>"+queryPoint.y.toString()+","+queryPoint.x.toString()+"</coordinates></Point><Distance>"+distance.toString()+"</Distance></DWithin></Filter>";
-			var asyncToken:AsyncToken = wfsDataService.getFilteredQueryResult(layerName,["STATE_FIPS"],filterQuery);
+			var filterQuery:String = "<Filter><DWithin><PropertyName>the_geom</PropertyName><Point><coordinates>" + queryPoint.y + "," + queryPoint.x + "</coordinates></Point><Distance>" + distance + "</Distance></DWithin></Filter>";
+			var asyncToken:AsyncToken = wfsDataService.getFilteredQueryResult(layerName, ["STATE_FIPS"], filterQuery);
 			
 			return asyncToken;
 		}
@@ -109,8 +109,7 @@ package weave.data.DataSources
 			{
 				query = wfsDataService.getCapabilties();
 
-				DelayedAsyncResponder.addResponder(query, 
-					handleGetCapabilities, handleGetCapabilitiesError);
+				DelayedAsyncResponder.addResponder(query, handleGetCapabilities, handleGetCapabilitiesError);
 			}
 			else // download a list of properties for a given featureTypeName
 			{
@@ -118,8 +117,7 @@ package weave.data.DataSources
 				
 				query = wfsDataService.describeFeatureType(dataTableName);
 				
-				DelayedAsyncResponder.addResponder(query,
-					handleDescribeFeature, handleDescribeFeatureError, subtreeNode);
+				DelayedAsyncResponder.addResponder(query, handleDescribeFeature, handleDescribeFeatureError, subtreeNode);
 			}
 		}
 		
@@ -197,7 +195,7 @@ package weave.data.DataSources
 				var propertyType:String = propertiesList[i].attribute("type");
 				// handle case for   <xs:simpleType><xs:restriction base="xs:string"><xs:maxLength value="2"/></xs:restriction></xs:simpleType>
 				if (propertyType == '')
-					propertyType = propertiesList[i].descendants().attribute("base");
+					propertyType = propertiesList[i].descendants().(@base)[0].attribute("base");
 				// convert missing propertyType to string
 				if (propertyType == '')
 					propertyType = "xs:string";
@@ -241,7 +239,7 @@ package weave.data.DataSources
 					if (array.length > 1)
 						altProj += ':' + array[1];
 					if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
-						proj = altProj
+						proj = altProj;
 					attrNode['@'+AttributeColumnMetadata.PROJECTION_SRS] = proj;
 				}
 				node.appendChild(attrNode);
@@ -363,11 +361,10 @@ package weave.data.DataSources
 				
 				// determine the data type, and create the appropriate type of IAttributeColumn
 				var newColumn:IAttributeColumn;
-				var dataVector:*;
-				if (dataType == DataTypes.GEOMETRY)
+				if (ObjectUtil.stringCompare(dataType, DataTypes.GEOMETRY, true) == 0)
 				{
 					newColumn = new GeometryColumn(hierarchyNode);
-					dataVector = new Vector.<GeneralizedGeometry>();
+					var geomVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
 					var features:XMLList = result.descendants(keyQName);
 					var firstFeatureData:XML = features[0].descendants(dataQName)[0];
 					var geomType:String = firstFeatureData.children()[0].name().toString();
@@ -402,21 +399,19 @@ package weave.data.DataSources
 						var geometry:GeneralizedGeometry = new GeneralizedGeometry(geomType);
 						
 						geometry.setCoordinates(coordinates, BLGTreeUtils.METHOD_SAMPLE);
-						dataVector[geometryIndex] = geometry;
+						geomVector[geometryIndex] = geometry;
 					}
-					(newColumn as GeometryColumn).setGeometries(keysVector, dataVector);
+					(newColumn as GeometryColumn).setGeometries(keysVector, geomVector);
 				}
-				else if (dataType == DataTypes.STRING)
+				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
-					newColumn = new StringColumn(hierarchyNode);
-					dataVector = VectorUtils.copyXMLListToVector(dataList, new Vector.<String>());
-					(newColumn as StringColumn).updateRecords(keysVector, dataVector);
+					newColumn = new NumberColumn(hierarchyNode);
+					(newColumn as NumberColumn).updateRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<Number>()));
 				}
 				else
 				{
-					newColumn = new NumberColumn(hierarchyNode);
-					dataVector = VectorUtils.copyXMLListToVector(dataList, new Vector.<Number>());
-					(newColumn as NumberColumn).updateRecords(keysVector, dataVector);
+					newColumn = new StringColumn(hierarchyNode);
+					(newColumn as StringColumn).updateRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<String>()), true);
 				}
 				// save pointer to new column inside the matching proxy column
 				proxyColumn.internalColumn = newColumn;

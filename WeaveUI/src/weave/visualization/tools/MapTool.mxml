@@ -29,6 +29,7 @@
 		<![CDATA[
 			import mx.controls.CheckBox;
 			import mx.events.ResizeEvent;
+			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -191,7 +192,7 @@
 						// get all ReferencedColumn objects, excluding geometry columns
 						var refCols:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(spl.plotter, ReferencedColumn);
 						for each (var col:IAttributeColumn in refCols)
-							if (ColumnUtils.getDataType(col) != DataTypes.GEOMETRY)
+							if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) == 0)
 								visualization.additionalProbeColumns.push(col);
 					}
 				}
