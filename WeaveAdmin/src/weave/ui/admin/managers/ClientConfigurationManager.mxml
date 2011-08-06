@@ -50,11 +50,6 @@
 						<mx:Button label="Create" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"
 								   click="AdminInterface.instance.initWeaveFileAndOpenWeave(weaveFileNameInput.text)"/>
 					</mx:HBox>
-					<mx:Spacer height="16"/>
-					<mx:HBox width="100%">
-						<mx:Label text="Admin Activity"/>
-						<mx:TextArea id="adminActivityConsole" editable="false" width="400" height="200" text="{AdminInterface.instance.adminActivityText}"/>
-					</mx:HBox>
 				</mx:VBox>
 			</mx:VBox>
 		</mx:Canvas>
