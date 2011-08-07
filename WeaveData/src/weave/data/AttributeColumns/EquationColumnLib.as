@@ -29,6 +29,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.BooleanLib;
+	import weave.compiler.EquationCompiler;
 	import weave.compiler.MathLib;
 	import weave.compiler.StringLib;
 	import weave.core.ClassUtils;
@@ -356,5 +357,9 @@ package weave.data.AttributeColumns
 		 * This is a macro for IQualifiedKey that can be used in equations.
 		 */		
 		public static const QKey:Class = IQualifiedKey;
+		
+		{ /** begin static code block **/
+			EquationCompiler.includeConstant("IQualifiedKey", IQualifiedKey);
+		} /** end static code block **/
 	}
 }
