@@ -792,10 +792,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("SÂ
 <td width="20"></td><td></td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html#setDataBounds()">setDataBounds</a>(dataBounds:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>) &mdash; Method in class weave.primitives.<a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html">ZoomBounds</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html#setDataBounds()">setDataBounds</a>(dataBounds:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>, zoomOutIfNecessary) &mdash; Method in class weave.primitives.<a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html">ZoomBounds</a></td>
 </tr>
 <tr>
-<td width="20"></td><td></td>
+<td width="20"></td><td>
+   This function will zoom to the specified dataBounds and fix the aspect ratio if necessary.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/PlotLayer.html#setDataBounds()">setDataBounds</a>(source:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>) &mdash; Method in class weave.visualization.layers.<a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/PlotLayer.html">PlotLayer</a></td>
@@ -1085,7 +1086,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("SÂ
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html#setScreenBounds()">setScreenBounds</a>(screenBounds:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>, useFixedAspectRatio) &mdash; Method in class weave.primitives.<a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html">ZoomBounds</a></td>
 </tr>
 <tr>
-<td width="20"></td><td></td>
+<td width="20"></td><td>
+   This function will update the screenBounds and fix the aspect ratio of the dataBounds if necessary.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/PlotLayer.html#setScreenBounds()">setScreenBounds</a>(source:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>) &mdash; Method in class weave.visualization.layers.<a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/PlotLayer.html">PlotLayer</a></td>
@@ -1205,7 +1207,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("SÂ
 </tr>
 <tr>
 <td width="20"></td><td>
-   The session state can be specified in two ways: absolute coordinates and center/scale coordinates.</td>
+   The session state can be specified in two ways: absolute coordinates and centered area coordinates.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/class-list.html');" href="weave/Weave.html#setSessionStateXML()">setSessionStateXML</a>(newStateXML, removeMissingObjects) &mdash; Static method in class weave.<a onclick="javascript:loadClassListFrame('weave/class-list.html');" href="weave/Weave.html">Weave</a></td>
@@ -2641,12 +2643,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("SÂ
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/StringColumn.html#StringColumn()">StringColumn</a>(metadata) &mdash; Constructor in class weave.data.AttributeColumns.<a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/StringColumn.html">StringColumn</a></td>
-</tr>
-<tr>
-<td width="20"></td><td></td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/services/beans/class-list.html');" href="weave/services/beans/AttributeColumnDataWithKeys.html#STRING_DATATYPE">STRING_DATATYPE</a> &mdash; Constant static property in class weave.services.beans.<a onclick="javascript:loadClassListFrame('weave/services/beans/class-list.html');" href="weave/services/beans/AttributeColumnDataWithKeys.html">AttributeColumnDataWithKeys</a></td>
 </tr>
 <tr>
 <td width="20"></td><td></td>
