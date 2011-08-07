@@ -341,7 +341,7 @@
 			private static const BackgroundImage:Class;
 			private static const backgroundImageBitmapData:BitmapData = (new BackgroundImage() as Bitmap).bitmapData;
 			
-			public const enableBackground:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
+			public const enableBackground:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), invalidateDisplayList);
 			public const enableOverview:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateOverviewWindow);
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
