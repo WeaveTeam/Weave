@@ -351,5 +351,10 @@ package weave.data.AttributeColumns
 				return undefined;
 			return (object[methodName] as Function).apply(null, params);
 		}
+		
+		/**
+		 * This is a macro for IQualifiedKey that can be used in equations.
+		 */		
+		public static const QKey:Class = IQualifiedKey;
 	}
 }
