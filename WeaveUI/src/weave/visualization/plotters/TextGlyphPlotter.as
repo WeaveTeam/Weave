@@ -106,8 +106,8 @@ package weave.visualization.plotters
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				
 				// round to nearest pixel to get clearer text
-				bitmapText.x = Math.round(tempPoint.x+xScreenOffset.value);
-				bitmapText.y = Math.round(tempPoint.y);
+				bitmapText.x = Math.round(tempPoint.x + xScreenOffset.value);
+				bitmapText.y = Math.round(tempPoint.y + yScreenOffset.value);
 				bitmapText.text = text.getValueFromKey(recordKey, String) as String;
 				bitmapText.verticalAlign = vAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.horizontalAlign = hAlign.getValueFromKey(recordKey, String) as String;
