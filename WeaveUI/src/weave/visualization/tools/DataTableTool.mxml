@@ -321,18 +321,36 @@
 					dataGrid.columns = [];
 					_currentDataGridColumns = [];
 
+					// add the items to the data grid
 					var attrColumns:Array = columns.getObjects();
 					for each (var attrColumn:IAttributeColumn in attrColumns)
 					{
 						addItem(attrColumn);
 					}
+					
+					// for each column, give it a valid sessioned width if necessary
+//					var columnNames:Array = columns.getNames();
+//					_guiWidthChanged = true; // don't let handleSessionedWidth() run
+//					for each (var colName:String in columnNames)
+//					{
+//						var temp:LinkableString = columnWidths.getObject(colName) as LinkableString;
+//						if (!temp.value)
+//						{
+//							// Because the vertical scroll bar is included in the dataGrid.width,
+//							// this value may be cause the horizontal bar to be shown when it shouldn't. 
+//							temp.value = Math.floor(Math.max(100 / attrColumns.length - 1, 1)) + "%";
+//						}
+//					}
+//					_guiWidthChanged = false;
+					
+					// remove values which lack associated columns
 					var _sessionedWidthNames:Array = columnWidths.getNames();
 					for each (var name:String in _sessionedWidthNames)
 					{
 						if (!columns.getObject(name))
 							columnWidths.removeObject(name);
 					}
-					handleSessionedWidthChange();
+					handleSessionedWidthChange(); // run the callback for the sessionedWidths
 				} catch (error:Error) {
 					//Errors from SDK should not be ignored.  If they are, program behavior becomes undefined.
 					WeaveAPI.ErrorManager.reportError(error);
@@ -582,14 +600,19 @@
 			
 			private function handleNewWidth(newWidth:Number, allowCallLater:Boolean = true):void
 			{
+				// if this was called from the callbacks of columnWidths, return
+				// (this means this function already ran)
 				if (getCallbackCollection(columnWidths).callbacksWereTriggered)
 					return;
+				
+				// delay this function to let the flex component update correctly.
 				if (allowCallLater)
 				{
 					StageUtils.callLater(this, handleNewWidth, [newWidth, false], false);
 					return;
 				}
 				
+				// go through each column and set the sessioned widths
 				var i:int;
 				var totalWidth:Number = dataGrid.width;
 				for (i = 0; i < _currentDataGridColumns.length; ++i)
@@ -599,42 +622,52 @@
 					var columnName:String = columns.getName(column);
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
 					var width:Number = (_currentDataGridColumns[i] as WeaveDataGridImageColumn).width;
-					if (isNaN(width) || width <= 0) // this happens when a column is stretched all the way to the right
+					if (isNaN(width) || width <= 5) // this happens when a column is stretched all the way to the right
 						width = _minSuggestedColumnSize;
-					_guiWidthChanged = true;
+					_guiWidthChanged = true; // don't let the next line run callbacks
 					sessionedWidth.value = Math.floor(100 * width / totalWidth) + "%";
-					_guiWidthChanged = false;
+					_guiWidthChanged = false; 
 				}
 			}
 			private function handleSessionedWidthChange():void
 			{
+				// return if this function was called from the above function
 				if (_guiWidthChanged)
 					return;
-				if (!parent)
+
+				// if there isn't a parent or the grid isn't fully instantiated, return
+				if (!parent || dataGrid.width == 0)
 				{
 					callLater(handleSessionedWidthChange);
 					return;
 				}
-						
-				var totalWidth:Number = 0;
-				totalWidth = dataGrid.width;
+				
+				// loop through the data and put them into the data grid
+				var totalWidth:Number = dataGrid.width;				
 				for (var j:int = 0; j < _currentDataGridColumns.length; ++j)
 				{
 					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[j] as WeaveDataGridImageColumn;
 					var columnName:String = columns.getName(dgc.attrColumn);
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
-					var temp:Number =  NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
-					if (temp <= 1 || isNaN(temp))
+
+					var temp:Number;
+					if (sessionedWidth.value)
+						temp =  NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
+					else
+						temp = dataGrid.width / _currentDataGridColumns.length - 1;
+
+					if (temp <= 5 || isNaN(temp)) 
 						temp = _minSuggestedColumnSize;
 					
 					// always force the width to be the new value
 					dgc.setWidth(Math.floor(Math.min(temp, dataGrid.width - 1))); 
+					dgc.width = Math.floor(Math.min(temp, dataGrid.width - 1));
 					
 					// now we force it into doing the proper resizing (if any)
 					dgc.width = dgc.width; 
 				}
 			}
-			private var _guiWidthChanged:Boolean = false;
+			private var _guiWidthChanged:Boolean = false; 
 			
 			public function addItem(attrColumn:IAttributeColumn):void
 			{				
@@ -657,7 +690,7 @@
 				{
 					totalColumnWidths += obj.width;
 				}
-				if(totalColumnWidths < dataGrid.width)
+				if (totalColumnWidths < dataGrid.width) 
 					dataGrid.horizontalScrollPolicy = "off";
 				else
 					dataGrid.horizontalScrollPolicy = "auto";
