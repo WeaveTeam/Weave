@@ -1,6 +1,7 @@
 <project name="WeaveServices" basedir=".">
     <path id="classpath">
         <fileset dir="lib" includes="**/*.jar"/>
+        <fileset dir="external-lib" includes="**/*.jar"/>
         <fileset dir="/usr/share/java/" includes="junit4.jar"/>
         <fileset dir="/usr/share/java/" includes="servlet-api.jar"/>
     </path>
