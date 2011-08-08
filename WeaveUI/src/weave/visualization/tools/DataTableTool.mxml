@@ -34,7 +34,7 @@
 			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
 	
-		<mx:DataGrid id="dataGrid"  
+		<ui:CustomDataGrid id="dataGrid"  
 					 	horizontalScrollPolicy="auto" verticalScrollPolicy="auto"
 						 dataProvider="{dataRowKeys}" 
 						 width="100%" height="100%"
