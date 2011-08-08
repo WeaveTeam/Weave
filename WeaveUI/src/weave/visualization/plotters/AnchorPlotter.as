@@ -21,29 +21,22 @@ package weave.visualization.plotters
 {	
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
-	import flash.display.Shape;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
-	import weave.data.KeySets.FilteredKeySet;
 	import weave.data.KeySets.KeySet;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
-	import weave.utils.ColumnUtils;
 
 	/**
 	 * AnchorPlotter
@@ -57,6 +50,9 @@ package weave.visualization.plotters
 		private var _keySet:KeySet;
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
+		public const enableWedgeColoring:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false), fillColorMap);
+		public const colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public var anchorColorMap:Dictionary;
 		
 		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
 		private var keyBoundsMap:Dictionary = new Dictionary();
@@ -71,7 +67,7 @@ package weave.visualization.plotters
 				Weave.properties.axisFontFamily,
 				Weave.properties.axisFontItalic,
 				Weave.properties.axisFontSize,
-				Weave.properties.axisFontUnderline);
+				Weave.properties.axisFontUnderline);			
 		}
 		
 		public function handleAnchorsChange():void
@@ -82,13 +78,28 @@ package weave.visualization.plotters
 			_keySet = new KeySet();
 			_keySet.replaceKeys(keyArray);
 			setKeySource(_keySet);				
-		}						
+			fillColorMap();
+		}			
+		
+		private function fillColorMap():void
+		{
+			var i:int = 0;
+			anchorColorMap = new Dictionary(true);
+			var _anchors:Array = anchors.getObjects(AnchorPoint);
+			
+			for each( var anchor:AnchorPoint in anchors.getObjects())
+			{
+				anchorColorMap[anchors.getName(anchor)] = colorMap.getColorFromNorm(i / (_anchors.length - 1)); 
+				i++;
+			}
+		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var array:Array = anchors.getObjects(AnchorPoint);
 			var x:Number; 
 			var y:Number;
+			
 			var anchor:AnchorPoint;
 			var radians:Number;
 			keyBoundsMap = new Dictionary();
@@ -96,6 +107,7 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 						
+			graphics.lineStyle(1);
 			// loop through anchors hash map and draw dimensional anchors and labels	
 			for each(var key:IQualifiedKey in recordKeys)
 			{
@@ -113,7 +125,14 @@ package weave.visualization.plotters
 				tempPoint.y = radius * sin;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 
-				_bitmapText.text = key.localName;
+				// draw circle
+				if(enableWedgeColoring.value)
+					graphics.beginFill(anchorColorMap[key.localName]);				
+				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
+				graphics.endFill();
+				
+				_bitmapText.trim = false;
+				_bitmapText.text = " " + key.localName + " ";
 				
 				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 				
@@ -131,7 +150,8 @@ package weave.visualization.plotters
 					// first get values between -90 and 90, then multiply by the ratio
 					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
-				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+				
+				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;				
 				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 				_bitmapText.x = tempPoint.x;
@@ -143,12 +163,7 @@ package weave.visualization.plotters
 				destination.fillRect(_tempRectangle, 0x02808080);
 				
 				// draw bitmap text
-				_bitmapText.draw(destination);
-								
-				// draw circle				
-				graphics.lineStyle(1);
-				graphics.drawCircle(tempPoint.x, tempPoint.y, 1);				
-				graphics.endFill();
+				_bitmapText.draw(destination);								
 			}
 			destination.draw(tempShape);							
 			
@@ -192,9 +207,10 @@ package weave.visualization.plotters
 				
 				tempPoint.x = radius * cos;
 				tempPoint.y = radius * sin;		
-				_currentDataBounds.projectPointTo(tempPoint, _currentScreenBounds);
-
-				_bitmapText.text = recordKey.localName;
+				_currentDataBounds.projectPointTo(tempPoint, _currentScreenBounds);				
+				
+				_bitmapText.trim = false;
+				_bitmapText.text = " " + recordKey.localName + " ";
 				
 				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 				
