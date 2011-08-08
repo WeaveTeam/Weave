@@ -119,25 +119,27 @@ public class JRIService extends GenericServlet
 			evalValue = (REXP) rEngine.parseAndEval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
 			
 		else
-			evalValue = (REXP) rEngine.parseAndEval("try({ options(warn=1) \n" + script + "},silent=TRUE)");		
+			evalValue = (REXP) rEngine.parseAndEval("try({ options(warn=1) \n" + script + "},silent=TRUE)");	
+		
+		System.out.println("evalScript Evaluvation:" + " = " + evalValue.toDebugString() + "\n");
 		return evalValue;
 	}
 	
 	
 	
-	public ScriptEngine testDiscovery() {		
-		String extension = "R";
-		ScriptEngineManager manager = new ScriptEngineManager();
-		// List<ScriptEngineFactory> factories = manager.getEngineFactories();
-		ScriptEngine engine = manager.getEngineByExtension(extension);
-		assert engine != null;		
-		return engine;
-	}
+//	public ScriptEngine testDiscovery() {		
+//		String extension = "R";
+//		ScriptEngineManager manager = new ScriptEngineManager();
+//		// List<ScriptEngineFactory> factories = manager.getEngineFactories();
+//		ScriptEngine engine = manager.getEngineByExtension(extension);
+//		assert engine != null;		
+//		return engine;
+//	}
 	
 	@SuppressWarnings("unchecked")
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws Exception
 	{
-		//System.out.println(keys.length);
+		System.out.println(script);
 		String output = "";
 		if(rEngine == null){
 			rEngine = getREngine();
@@ -190,6 +192,7 @@ public class JRIService extends GenericServlet
 			{
 				REXP completeEvalValue = evalScript(rEngine, script, showWarnings);
 				output = completeEvalValue.toString();
+				System.out.println("Complete Evaluvation:" + " = " + output + "\n");
 			}
 			// R Script to EVALUATE outputTA(from R Script Output TextArea)
 			if (showIntermediateResults)
@@ -228,6 +231,7 @@ public class JRIService extends GenericServlet
 					}
 					// Script to get R - output
 					evalValue = evalScript(rEngine, name, showWarnings);
+					System.out.println("EvalValue" + " = " + evalValue.toString() + "\n");
 					Object value = RUtils.rexp2jobj(evalValue);					
 					results[i] = new RResult(name, value);
 					System.out.println(name + " = " + value.toString() + "\n");

@@ -43,52 +43,68 @@ JRITextEditor
 				layout="horizontal"
 				autoLayout="true"
 				>
+	
+	<mx:Script>
+		<![CDATA[
+		
+		]]>
+	</mx:Script>
+	
 	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
-		<mx:VBox width="20%" height="100%" verticalGap="0">
-			<mx:Label text="(1) Select data to use in your script"/>
-			<mx:CheckBox id="columnAsList" label="Use Columns as R-List(HashMap)"/>
-			<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"   />			
-		</mx:VBox>
-		<mx:VBox width="55%" height="100%" verticalGap="0">
-			<LabelWithWordWrap text="(2) Assign variables to your data (Separate by commas)"/>
-			<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
-
-			<mx:Spacer height="{padding}"/>
-
-			<LabelWithWordWrap text="(3) Enter a script (type or paste in)"/>			
-			<mx:TextArea id = "inputTA" width="100%" height="100%" text=""/>						
-
-			<mx:Spacer height="{padding}"/>
-
-			<LabelWithWordWrap text="(4) Input a plot script (Optional)"/>
-			<mx:TextArea id = "plotTA" width="100%" height="100%" text=""/>
-
-			<mx:Spacer height="{padding}"/>
-
-			<LabelWithWordWrap text="(5) Specify script outputs to display, separated by commas"/>
-			<mx:TextArea id = "outputTA" width="100%" height="100%" wordWrap="false"/>
-
-			<mx:Spacer height="{padding}"/>
-
-			<LabelWithWordWrap text="(6) Run your script on the server"/>
-			<mx:HBox>
-				<mx:Button id="B2" label="Run script"  buttonDown="viewAndSendbuttonClickHandler()"/>
-				<mx:CheckBox id="intermediateResultCB" label="Verbose" toolTip="Show intermediate results from R"/>
-				<mx:CheckBox id="warningCB" label="Warnings" toolTip="Show warnings from R"/>
+		<mx:VBox width="100%" height="100%">
+			<mx:HBox width="100%" height="100%">
+				<mx:VBox width="20%" height="100%" verticalGap="0">
+					<mx:Label text="(1) Select data to use in your script"/>
+					<mx:CheckBox id="columnAsList" label="Use Columns as R-List(HashMap)"/>
+					<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"   />			
+				</mx:VBox>
+				<mx:VBox width="55%" height="100%" verticalGap="0">
+					<LabelWithWordWrap text="(2) Assign variables to your data (Separate by commas)"/>
+					<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
+					
+					<mx:Spacer height="{padding}"/>
+					
+					<LabelWithWordWrap text="(3) Enter a script (type or paste in)"/>			
+					<mx:TextArea id = "inputTA" width="100%" height="100%" text=""/>						
+					
+					<mx:Spacer height="{padding}"/>
+					
+					<LabelWithWordWrap text="(4) Input a plot script (Optional)"/>
+					<mx:TextArea id = "plotTA" width="100%" height="100%" text=""/>
+					
+					<mx:Spacer height="{padding}"/>
+					
+					<LabelWithWordWrap text="(5) Specify script outputs to display, separated by commas"/>
+					<mx:TextArea id = "outputTA" width="100%" height="100%" wordWrap="false"/>
+					
+					<mx:Spacer height="{padding}"/>
+					
+					<LabelWithWordWrap text="(6) Run your script on the server"/>
+					<mx:HBox>
+						<mx:Button id="B2" label="Run script"  buttonDown="viewAndSendbuttonClickHandler()"/>
+						<mx:CheckBox id="intermediateResultCB" label="Verbose" toolTip="Show intermediate results from R"/>
+						<mx:CheckBox id="warningCB" label="Warnings" toolTip="Show warnings from R"/>
+					</mx:HBox>
+					
+					<mx:Spacer height="{padding}"/>
+					
+					<LabelWithWordWrap text="(7) Export your script for later use"/>
+					<mx:HBox>
+						<mx:Button id="exportBtn" label="Export" buttonDown="export_buttonDownHandler(event)"/>
+						<mx:Button id="importBtn" label="Import" buttonDown="import_buttonDownHandler(event)"/>	
+					</mx:HBox>						
+				</mx:VBox>
+				<mx:VBox width="25%" height="100%" verticalGap="0">
+					<mx:Label text="Result"/>
+					<mx:TextArea id="ResultTA" width="100%" height="100%" editable="false"/>
+				</mx:VBox>
 			</mx:HBox>
-
-			<mx:Spacer height="{padding}"/>
-
-			<LabelWithWordWrap text="(7) Export your script for later use"/>
-			<mx:HBox>
-				<mx:Button id="exportBtn" label="Export" buttonDown="export_buttonDownHandler(event)"/>
-				<mx:Button id="importBtn" label="Import" buttonDown="import_buttonDownHandler(event)"/>	
-			</mx:HBox>						
+			
+			<mx:HBox width="100%" height="100%">
+				<mx:CheckBox id="meanCheckbox" change="meanCheckbox_changeHandler(event)"	/>			
+			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox width="25%" height="100%" verticalGap="0">
-			<mx:Label text="Result"/>
-			<mx:TextArea id="ResultTA" width="100%" height="100%" editable="false"/>
-		</mx:VBox>
+		
 	</mx:HBox>
 	
 	<mx:Script>
@@ -174,6 +190,53 @@ JRITextEditor
 				linkBindableProperty(plotTALinkable,plotTA,"text");
 				linkBindableProperty(outputTALinkable,outputTA,"text");
 				linkBindableProperty(assignTALinkable,assignTA,"text");
+			}
+			
+			protected function meanCheckbox_changeHandler(event:Event):void
+			{
+				var result:Array = new Array();
+				//Columns from Joined columns Method
+				var joinedColumnQKeys:Array;
+				var joinedColumnKeys:Array;
+				var joinedColumns:Array;
+				//Columns from ColumnListComponent 
+				var selectedColumns:Array = variables.getObjects();
+				
+				var attributeColumns:Array = new Array();
+				//Use as Attribute column as joinColumns takes mebers of IAttributeColumn
+				for(var i:int = 0; i<selectedColumns.length; i++)
+				{
+					attributeColumns[i] = selectedColumns[i] as IAttributeColumn;
+				}
+				//joinColumns Called only When columns are added to ColumnListComponent
+				//if(selectedColumns.length == 0)
+				//	return;
+				var keyType:String = null;
+				if(selectedColumns.length >0)
+				{					
+					// get records for keys common to all columns 
+					result = joinColumns(attributeColumns);
+					joinedColumnQKeys = result[0];
+					joinedColumns = result[1];
+					joinedColumnKeys = joinedColumnQKeys.concat();
+					// replace each IQualifiedKey with its localName
+					for (var j:int = 0; j < joinedColumnKeys.length; j++)
+					{
+						var qkey:IQualifiedKey = joinedColumnKeys[j];						
+						if (keyType && keyType != qkey.keyType)// sanity check
+						{
+							// there are multiple key types in the list of keys..
+							Alert.show("This feature only works with keys having a common keyType.  Key types do not match: " + [keyType, qkey.keyType]);
+							return;
+						}
+						keyType = qkey.keyType;
+						joinedColumnKeys[j] = qkey.localName;
+					} 					
+				}
+				
+				//Values need to assign for Column names in R
+				var assignValues:Array = joinedColumns;
+				
 			}
 			
 			/**

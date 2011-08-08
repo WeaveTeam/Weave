@@ -23,6 +23,7 @@ package weave.tests;
 import java.rmi.RemoteException;
 import weave.beans.RResult;
 import weave.servlets.JRIService;
+import java.util.Properties;
 public class JRItest {
 
 	/**
@@ -44,12 +45,19 @@ public class JRItest {
 			System.out.println(scriptResult);
 		}
 	}
-	
+	 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 		System.out.println("hi");		
 		ws = new JRIService();
-	
+		
+		Properties prop = System.getProperties();
+		String classPathh = prop.getProperty("java.class.path", null);
+		//System.out.println(classPathh);
+		String[] classPathArray = classPathh.split(";");
+		for(int i = 0; i<classPathArray.length ;i++){
+			System.out.println(classPathArray[i]);
+		}
 		
 		String[] inputNames = {};
 		Object[][] inputValues = {};			
@@ -57,9 +65,9 @@ public class JRItest {
 		String script = "";		
 		String [] resultNames = {};	
 		
-		Object[] array1 = {0,10,20,30,40,50};
-		Object[] array2 = {10,20,30,52,34,87};
-		String[] keys = {"a","b","c","d","e","f"};
+		Object[] array1 = { 0, 10, 20, 30, 40, 50, 56, 45, 67, 56, 98, 23, 45, 76};
+		Object[] array2 = {10, 20, 30, 52, 34, 87, 34, 77, 44, 33, 88, 66, 22, 11};
+		String[] keys   = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n",};
 //		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
 		
 //		plotscript ="";
@@ -94,9 +102,13 @@ public class JRItest {
 		inputValues = new Object[][]{array1,array2};
 		//plotscript = "plot(x,y)";
 		//keys = new  String[]{};
-		script = "d<-x[x>20]";		
-		resultNames =  new String []{"x","d"};			
-		call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false,false);
+	//	script = "d<-x[x>20]";		
+	//	resultNames =  new String []{"x","d"};			
+	//	call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false,false);
 		
+		
+		script ="data1<-cbind(x,y) \n corelation<-cor(data1,use=\"complete\")";
+		resultNames =  new String []{"data1","corelation"};
+		call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false,false);
 	}
 }
