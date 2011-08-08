@@ -219,8 +219,8 @@ package weave.visualization.plotters
 				coordinate.y = (numeratorY/denominator);
 			}
 			else {
-				coordinate.x = 0;
-				coordinate.y = 0;
+				coordinate.x = NaN;
+				coordinate.y = NaN;
 			}
 			if( enableJitter.value )
 				jitterRecords(recordKey);			
@@ -274,6 +274,9 @@ package weave.visualization.plotters
 			// Get coordinates of record and add jitter (if specified)
 			var sum:Number= getXYcoordinates(recordKey);
 
+			// missing values skipped
+			if(isNaN(coordinate.x) || isNaN(coordinate.y)) return;
+				
 			if(isNaN(radius) && (screenRadius.internalColumn != null))
 			{			
 				radius = radiusConstant.value;
@@ -313,14 +316,12 @@ package weave.visualization.plotters
 				else
 					fillStyle.beginFillStyle(recordKey, graphics);
 
-				if( screenRadius.internalColumn ) {
-					if(spanRadians <= Infinity) //missing values skipped
-						drawWedge(graphics, beginRadians, spanRadians, coordinate, radius*radiusConstant.value/3);
+				if( screenRadius.internalColumn ) {					
+					drawWedge(graphics, beginRadians, spanRadians, coordinate, radius*radiusConstant.value/3);
 				}
 				else
-				{
-					if(spanRadians <= Infinity) //missing values skipped
-						drawWedge(graphics, beginRadians, spanRadians, coordinate,radiusConstant.value);
+				{					
+					drawWedge(graphics, beginRadians, spanRadians, coordinate,radiusConstant.value);
 				}
 				graphics.endFill();
 			}

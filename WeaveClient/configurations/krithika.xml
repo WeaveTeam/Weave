@@ -381,7 +381,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col1" keyType="RadVizTest" csvColumn="col1"/>
+              <attribute csvColumn="col1" keyType="RadVizTest" title="col1"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -393,7 +393,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col2" keyType="RadVizTest" csvColumn="col2"/>
+              <attribute csvColumn="col2" keyType="RadVizTest" title="col2"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -405,7 +405,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col3" keyType="RadVizTest" csvColumn="col3"/>
+              <attribute csvColumn="col3" keyType="RadVizTest" title="col3"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -417,7 +417,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col4" keyType="RadVizTest" csvColumn="col4"/>
+              <attribute csvColumn="col4" keyType="RadVizTest" title="col4"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -1230,7 +1230,8 @@ noMissing2,9,8,6</csvDataString>
 A,1,1,0,0
 B,0,1,1,0
 C,0,0,1,1
-D,1,0,0,1</csvDataString>
+D,1,0,0,1
+E,1,1,,</csvDataString>
     <keyColName>Name</keyColName>
     <keyType>RadVizTest</keyType>
     <url/>
@@ -1287,20 +1288,19 @@ D,1,0,0,1</csvDataString>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
                   <AnchorPoint name="col4">
-                    <polarRadians>4.740471483489129</polarRadians>
-                    <radius>1.0096764533979612</radius>
-                    <x>0.02835051546391724</x>
-                    <y>-1.0092783505154639</y>
+                    <polarRadians>4.71238898038469</polarRadians>
+                    <radius>1</radius>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
                   </AnchorPoint>
                 </anchors>
                 <colorMap encoding="xml">
-                  <colorRamp category="visualization" name="Jet" source="OIC" dataFormat="qualitative">
-                    <node position="0" color="0x000086"/>
-                    <node position="0.1518324607329843" color="0x0000ff"/>
-                    <node position="0.3717277486910995" color="0x00ffff"/>
-                    <node position="0.6282722513089005" color="0xffff00"/>
-                    <node position="0.8952879581151832" color="0xff0000"/>
-                    <node position="1" color="0x860000"/>
+                  <colorRamp name="Watermelon" category="aesthetic" source="OIC">
+                    <node position="0" color="0x3E5B13"/>
+                    <node position="0.1" color="0x61B10D"/>
+                    <node position="0.3" color="0xCCCD06"/>
+                    <node position="0.4" color="0xFF8F88"/>
+                    <node position="1" color="0x630000"/>
                   </colorRamp>
                 </colorMap>
                 <columns encoding="dynamic">
@@ -1310,7 +1310,7 @@ D,1,0,0,1</csvDataString>
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col1" keyType="RadVizTest" csvColumn="col1"/>
+                            <attribute csvColumn="col1" keyType="RadVizTest" title="col1"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1322,7 +1322,7 @@ D,1,0,0,1</csvDataString>
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col2" keyType="RadVizTest" csvColumn="col2"/>
+                            <attribute csvColumn="col2" keyType="RadVizTest" title="col2"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1334,7 +1334,7 @@ D,1,0,0,1</csvDataString>
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col3" keyType="RadVizTest" csvColumn="col3"/>
+                            <attribute csvColumn="col3" keyType="RadVizTest" title="col3"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1346,7 +1346,7 @@ D,1,0,0,1</csvDataString>
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col4" keyType="RadVizTest" csvColumn="col4"/>
+                            <attribute csvColumn="col4" keyType="RadVizTest" title="col4"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1458,20 +1458,19 @@ D,1,0,0,1</csvDataString>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
                   <AnchorPoint name="col4">
-                    <polarRadians>4.740471483489129</polarRadians>
-                    <radius>1.0096764533979612</radius>
-                    <x>0.02835051546391724</x>
-                    <y>-1.0092783505154639</y>
+                    <polarRadians>4.71238898038469</polarRadians>
+                    <radius>1</radius>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
                   </AnchorPoint>
                 </anchors>
                 <colorMap encoding="xml">
-                  <colorRamp category="visualization" name="Jet" source="OIC" dataFormat="qualitative">
-                    <node position="0" color="0x000086"/>
-                    <node position="0.1518324607329843" color="0x0000ff"/>
-                    <node position="0.3717277486910995" color="0x00ffff"/>
-                    <node position="0.6282722513089005" color="0xffff00"/>
-                    <node position="0.8952879581151832" color="0xff0000"/>
-                    <node position="1" color="0x860000"/>
+                  <colorRamp name="Watermelon" category="aesthetic" source="OIC">
+                    <node position="0" color="0x3E5B13"/>
+                    <node position="0.1" color="0x61B10D"/>
+                    <node position="0.3" color="0xCCCD06"/>
+                    <node position="0.4" color="0xFF8F88"/>
+                    <node position="1" color="0x630000"/>
                   </colorRamp>
                 </colorMap>
                 <enableWedgeColoring>true</enableWedgeColoring>
@@ -1506,7 +1505,7 @@ D,1,0,0,1</csvDataString>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
           <area>7.08536082474227</area>
-          <xCenter>-0.000199742268041</xCenter>
+          <xCenter>0.00028350515464</xCenter>
           <yCenter>0</yCenter>
         </zoomBounds>
       </SimpleInteractiveVisualization>
@@ -1534,4 +1533,324 @@ D,1,0,0,1</csvDataString>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
   </CompoundRadVizTool>
+  <RadVizTool name="RadVizTool2">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <RadVizPlotter>
+                <anchors encoding="dynamic">
+                  <AnchorPoint name="col1">
+                    <polarRadians>0</polarRadians>
+                    <radius>1</radius>
+                    <x>1</x>
+                    <y>0</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col2">
+                    <polarRadians>1.5707963267948966</polarRadians>
+                    <radius>1</radius>
+                    <x>6.123233995736766e-17</x>
+                    <y>1</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col3">
+                    <polarRadians>3.141592653589793</polarRadians>
+                    <radius>1</radius>
+                    <x>-1</x>
+                    <y>1.2246467991473532e-16</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col4">
+                    <polarRadians>4.71238898038469</polarRadians>
+                    <radius>1</radius>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
+                  </AnchorPoint>
+                </anchors>
+                <colorMap encoding="xml">
+                  <colorRamp name="Doppler Radar" category="aesthetic" source="OIC" dataFormat="qualitative">
+                    <node position="0" color="0x04E9E7"/>
+                    <node position="0.08" color="0x009DF4"/>
+                    <node position="0.16" color="0x0201F4"/>
+                    <node position="0.24" color="0x01FC01"/>
+                    <node position="0.32" color="0x00C400"/>
+                    <node position="0.4" color="0x008C00"/>
+                    <node position="0.48" color="0x0FDF801"/>
+                    <node position="0.56" color="0xF99200"/>
+                    <node position="0.64" color="0xFD0000"/>
+                    <node position="0.72" color="0xBC0000"/>
+                    <node position="0.8" color="0xBC0000"/>
+                    <node position="0.88" color="0xF800FD"/>
+                    <node position="1.0" color="0x9854C6"/>
+                  </colorRamp>
+                </colorMap>
+                <columns encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute csvColumn="col1" keyType="RadVizTest" title="col1"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute csvColumn="col2" keyType="RadVizTest" title="col2"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute csvColumn="col3" keyType="RadVizTest" title="col3"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn4">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute csvColumn="col4" keyType="RadVizTest" title="col4"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </columns>
+                <enableJitter>false</enableJitter>
+                <fillStyle>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                </fillStyle>
+                <iterations>50</iterations>
+                <jitterLevel>-19</jitterLevel>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <radiusColumn encoding="dynamic"/>
+                <radiusConstant>5</radiusConstant>
+                <spatialCallbacks/>
+              </RadVizPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="anchorLayer">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <AnchorPlotter>
+                <anchors encoding="dynamic">
+                  <AnchorPoint name="col1">
+                    <polarRadians>0</polarRadians>
+                    <radius>1</radius>
+                    <x>1</x>
+                    <y>0</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col2">
+                    <polarRadians>1.5707963267948966</polarRadians>
+                    <radius>1</radius>
+                    <x>6.123233995736766e-17</x>
+                    <y>1</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col3">
+                    <polarRadians>3.141592653589793</polarRadians>
+                    <radius>1</radius>
+                    <x>-1</x>
+                    <y>1.2246467991473532e-16</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col4">
+                    <polarRadians>4.71238898038469</polarRadians>
+                    <radius>1</radius>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
+                  </AnchorPoint>
+                </anchors>
+                <colorMap encoding="xml">
+                  <colorRamp name="Doppler Radar" category="aesthetic" source="OIC" dataFormat="qualitative">
+                    <node position="0" color="0x04E9E7"/>
+                    <node position="0.08" color="0x009DF4"/>
+                    <node position="0.16" color="0x0201F4"/>
+                    <node position="0.24" color="0x01FC01"/>
+                    <node position="0.32" color="0x00C400"/>
+                    <node position="0.4" color="0x008C00"/>
+                    <node position="0.48" color="0x0FDF801"/>
+                    <node position="0.56" color="0xF99200"/>
+                    <node position="0.64" color="0xFD0000"/>
+                    <node position="0.72" color="0xBC0000"/>
+                    <node position="0.8" color="0xBC0000"/>
+                    <node position="0.88" color="0xF800FD"/>
+                    <node position="1.0" color="0x9854C6"/>
+                  </colorRamp>
+                </colorMap>
+                <enableWedgeColoring>false</enableWedgeColoring>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <labelAngleRatio>0</labelAngleRatio>
+                <spatialCallbacks/>
+              </AnchorPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>true</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>20</marginBottom>
+        <marginLeft>20</marginLeft>
+        <marginRight>20</marginRight>
+        <marginTop>20</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <area>7.13525773195877</area>
+          <xCenter>0</xCenter>
+          <yCenter>0</yCenter>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>50.111%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>50.122%</panelWidth>
+    <panelX>49.797%</panelX>
+    <panelY>0.88692%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </RadVizTool>
 </Weave>
