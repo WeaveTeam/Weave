@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,6 +70,7 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
 import weave.beans.AdminServiceResponse;
@@ -580,6 +582,36 @@ public class AdminService extends GenericServlet
 
 		return info.toArray(new AttributeColumnInfo[info.size()]);
 	}
+	
+	/**
+	 * Returns metadata about columns with invalid queries.
+	 */
+	synchronized public AttributeColumnInfo[] getInvalidQueryInfo(String connectionName, String password) throws RemoteException
+	{
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		List<AttributeColumnInfo> infolist = config.getAttributeColumnInfo(new HashMap<String, String>());
+		List<AttributeColumnInfo> invalidQueryinfoList = new LinkedList<AttributeColumnInfo>();
+		for (int i = 0; i < infolist.size(); i ++)
+		{
+			AttributeColumnInfo attributeColumnInfo = infolist.get(i);
+			try
+			{
+				
+				String query = attributeColumnInfo.sqlQuery;
+				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
+				System.out.println(query);
+			}
+			
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				invalidQueryinfoList.add(attributeColumnInfo);
+			}
+			
+		}
+		
+		return invalidQueryinfoList.toArray(new AttributeColumnInfo[invalidQueryinfoList.size()]);
+	}
 
 	@SuppressWarnings("unchecked")
 	synchronized public String saveDataTableInfo(String connectionName, String password, Object[] columnMetadata) throws RemoteException
@@ -644,6 +676,11 @@ public class AdminService extends GenericServlet
 			e.printStackTrace();
 			throw new RemoteException(e.getMessage());
 		}
+	}
+
+	synchronized public void removeAttributeColumnInfo(String connectionName, String password, Object[] columnMetadata) throws RemoteException
+	{
+		
 	}
 
 	synchronized public String removeDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException

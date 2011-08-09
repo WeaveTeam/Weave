@@ -155,7 +155,10 @@ package weave.services
 		{
 			return generateQueryAndAddToQueue("getGeometryCollectionInfo", arguments);
 		}
-
+		public function getInvalidQueryInfo(connectionName:String, password:String):DelayedAsyncInvocation
+		{
+			return generateQueryAndAddToQueue("getInvalidQueryInfo", arguments);
+		}
 		
 		// save info
 		public function saveConnectionInfo(activeConnectionName:String, activePassword:String, info:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
@@ -206,6 +209,13 @@ package weave.services
 		public function removeWeaveFile(connectionName:String, password:String, fileName:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("removeWeaveFile", arguments);
+			query.addAsyncResponder(alertResult);
+			return query;
+		}
+		
+		public function removeAttributeColumnInfo(connectionName:String, password:String, columnMetadata:Array):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("removeAttributeColumnInfo", arguments);
 			query.addAsyncResponder(alertResult);
 			return query;
 		}

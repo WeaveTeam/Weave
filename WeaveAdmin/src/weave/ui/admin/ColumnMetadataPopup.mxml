@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
+		  layout="absolute"
+		  width="600" height="300"
+		  xmlns="weave.ui.admin.*"
+		  xmlns:ui="weave.ui.*"
+		  label="ColumnMetadataPopup"
+	      showCloseButton="true" close="closeColumnMetadataPopup(event)">
+<mx:VBox>	
+		<mx:DataGrid id="popUpDataGrid">
+		</mx:DataGrid>
+	
+	<mx:Label text= "Would you like to delete these invalid query results?">
+		
+	</mx:Label>
+	<mx:HBox>
+			<mx:Button id="YesButton"  label="Yes" click="YesButton_clickHandler(event)">
+			</mx:Button>
+		
+		
+			<mx:Button id="NoButton" label="No" click="NoButton_clickHandler(event)">
+			</mx:Button>
+	</mx:HBox>	
+</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			import weave.services.AdminInterface;
+			import weave.services.DelayedAsyncInvocation;
+			import weave.services.WeaveAdminService;
+			
+			
+			protected function YesButton_clickHandler(event:MouseEvent):DelayedAsyncInvocation
+			{
+				var metadataArray:Array = (popUpDataGrid.dataProvider as ArrayCollection).source;
+				var service:WeaveAdminService = AdminInterface.instance.service;
+				var connectionName:String = AdminInterface.instance.activeConnectionName;
+				var password:String = AdminInterface.instance.activePassword;
+				PopUpManager.removePopUp(this);
+				return service.removeAttributeColumnInfo(connectionName,password,metadataArray);
+				
+			}
+			
+			protected function NoButton_clickHandler(event:MouseEvent):void
+			{
+				
+				PopUpManager.removePopUp(this);
+				
+			}
+			
+		    protected function closeColumnMetadataPopup(e:CloseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	
+</mx:TitleWindow>
