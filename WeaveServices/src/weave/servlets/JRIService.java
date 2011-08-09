@@ -82,14 +82,19 @@ public class JRIService extends GenericServlet
 	private String docrootPath = "";
 	private String rFolderName = "R_output";
 	
+	static private REngine rEngine = null;
+	
 	private REngine getREngine() throws RemoteException
 	{
 		try
 		{
-			String cls = "org.rosuda.REngine.JRI.JRIEngine";
-			String[] args = { "--vanilla", "--slave" };
-			REngine rEngine = REngine.engineForClass(cls, args, new JRICallbacks(), false);
-			System.out.println(rEngine.getClass().getClassLoader());
+			if (rEngine == null)
+			{
+				String cls = "org.rosuda.REngine.JRI.JRIEngine";
+				String[] args = { "--vanilla", "--slave" };
+				/*REngine*/ rEngine = REngine.engineForClass(cls, args, new JRICallbacks(), false);
+				System.out.println(rEngine.getClass().getClassLoader());
+			}
 			return rEngine;
 		}
 		catch (Exception e)
@@ -141,158 +146,161 @@ public class JRIService extends GenericServlet
 	@SuppressWarnings("unchecked")
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
 	{
-		System.out.println(script);
-		String output = "";
-		REngine rEngine = getREngine();
-		RResult[] results = null;
-		REXP evalValue;
-		try
+		synchronized(rEngine) // make sure only one thread is using rEngine at a time.
 		{
-			// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
-			for (int i = 0; i < inputNames.length; i++)
+			System.out.println(script);
+			String output = "";
+			REngine rEngine = getREngine();
+			RResult[] results = null;
+			REXP evalValue;
+			try
 			{
-				String name = inputNames[i];				
-				REXP rexp = null;
-				if(useColumnAsList){//if column to consider as list in R
-					@SuppressWarnings("rawtypes")
-					HashMap hm = new HashMap();
-					for(int keyID = 0; keyID < keys.length ;keyID++){
-						hm.put(keys[keyID], inputValues[i][keyID]);
-					}
-					rexp = RUtils.jobj2rexp(hm);					
-				}
-				else{//if column to consider as vector in R					
-					rexp = RUtils.jobj2rexp( inputValues[i]);
-				}
-				
-				rEngine.assign(name, rexp);			
-			}
-			// R Script to EVALUATE inputTA(from R Script Input TextArea)
-			if (showIntermediateResults)
-			{
-				String[] rScript = script.split("\n");
-				for (int i = 0; i < rScript.length; i++)
+				// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
+				for (int i = 0; i < inputNames.length; i++)
 				{
-					REXP individualEvalValue = evalScript(rEngine, rScript[i], showWarnings);
-					// to-do remove debug information from string
-					String trimedString = individualEvalValue.toString();
-					while (trimedString.indexOf('[') > 0)
-					{
-						int pos = trimedString.indexOf('[');
-						System.out.println(pos + "\n");
-						System.out.println(trimedString + "\n");
-						trimedString = trimedString.substring(pos + 1);
+					String name = inputNames[i];				
+					REXP rexp = null;
+					if(useColumnAsList){//if column to consider as list in R
+						@SuppressWarnings("rawtypes")
+						HashMap hm = new HashMap();
+						for(int keyID = 0; keyID < keys.length ;keyID++){
+							hm.put(keys[keyID], inputValues[i][keyID]);
+						}
+						rexp = RUtils.jobj2rexp(hm);					
 					}
-					trimedString = "[" + trimedString;					
-					output = output.concat(trimedString);
-					output += "\n";
-				}
-			}
-			else
-			{
-				REXP completeEvalValue = evalScript(rEngine, script, showWarnings);
-				output = completeEvalValue.toString();
-				System.out.println("Complete Evaluvation:" + " = " + output + "\n");
-			}
-			// R Script to EVALUATE outputTA(from R Script Output TextArea)
-			if (showIntermediateResults)
-			{
-				int i;
-				int iterationTimes;
-				if (plotScript != "")
-				{
-					results = new RResult[outputNames.length + 2];
-					String plotEvalValue = plotEvalScript(rEngine, plotScript, showWarnings);
-					results[0] = new RResult("Plot Results", plotEvalValue);
-					results[1] = new RResult("Intermediate Results", output);
-					i = 2;
-					iterationTimes = outputNames.length + 2;
-				}
-				else
-				{
-					results = new RResult[outputNames.length + 1];
-					results[0] = new RResult("Intermediate Results", output);
-					i = 1;
-					iterationTimes = outputNames.length + 1;
-				}
-				// to add intermediate results extra object is created as first
-				// input, so results length will be one greater than OutputNames
-				// int i =1;
-				// int iterationTimes =outputNames.length;
-				for (; i < iterationTimes; i++)
-				{
-					String name;
-					// Boolean addedTolist = false;
-					if (iterationTimes == outputNames.length + 2){
-						name = outputNames[i - 2];
+					else{//if column to consider as vector in R					
+						rexp = RUtils.jobj2rexp( inputValues[i]);
 					}
-					else{
-						name = outputNames[i - 1];
-					}
-					// Script to get R - output
-					evalValue = evalScript(rEngine, name, showWarnings);
-					System.out.println("EvalValue" + " = " + evalValue.toString() + "\n");
-					Object value = RUtils.rexp2jobj(evalValue);					
-					results[i] = new RResult(name, value);
-					System.out.println(name + " = " + value.toString() + "\n");
 					
-				}//end of for - to store result
-			}//end of IF for intermediate results
-			else
-			{
-				int i;
-				int iterationTimes;
-				if (plotScript != "")
+					rEngine.assign(name, rexp);			
+				}
+				// R Script to EVALUATE inputTA(from R Script Input TextArea)
+				if (showIntermediateResults)
 				{
-					results = new RResult[outputNames.length + 1];
-					String plotEvalValue = plotEvalScript(rEngine, plotScript, showWarnings);
-					System.out.println(plotEvalValue);
-					results[0] = new RResult("Plot Results", plotEvalValue);
-					i = 1;
-					iterationTimes = outputNames.length + 1;
+					String[] rScript = script.split("\n");
+					for (int i = 0; i < rScript.length; i++)
+					{
+						REXP individualEvalValue = evalScript(rEngine, rScript[i], showWarnings);
+						// to-do remove debug information from string
+						String trimedString = individualEvalValue.toString();
+						while (trimedString.indexOf('[') > 0)
+						{
+							int pos = trimedString.indexOf('[');
+							System.out.println(pos + "\n");
+							System.out.println(trimedString + "\n");
+							trimedString = trimedString.substring(pos + 1);
+						}
+						trimedString = "[" + trimedString;					
+						output = output.concat(trimedString);
+						output += "\n";
+					}
 				}
 				else
 				{
-					results = new RResult[outputNames.length];
-					i = 0;
-					iterationTimes = outputNames.length;
+					REXP completeEvalValue = evalScript(rEngine, script, showWarnings);
+					output = completeEvalValue.toString();
+					System.out.println("Complete Evaluvation:" + " = " + output + "\n");
 				}
-				// to outputNames script result
-				// results = new RResult[outputNames.length];
-				for (; i < iterationTimes; i++)
+				// R Script to EVALUATE outputTA(from R Script Output TextArea)
+				if (showIntermediateResults)
 				{
-					String name;
-					// Boolean addedTolist = false;
-					if (iterationTimes == outputNames.length + 1){
-						name = outputNames[i - 1];
+					int i;
+					int iterationTimes;
+					if (plotScript != "")
+					{
+						results = new RResult[outputNames.length + 2];
+						String plotEvalValue = plotEvalScript(rEngine, plotScript, showWarnings);
+						results[0] = new RResult("Plot Results", plotEvalValue);
+						results[1] = new RResult("Intermediate Results", output);
+						i = 2;
+						iterationTimes = outputNames.length + 2;
 					}
-					else{
-						name = outputNames[i];
+					else
+					{
+						results = new RResult[outputNames.length + 1];
+						results[0] = new RResult("Intermediate Results", output);
+						i = 1;
+						iterationTimes = outputNames.length + 1;
 					}
-					// Script to get R - output
-					evalValue = evalScript(rEngine, name, showWarnings);				
-					Object value = RUtils.rexp2jobj(evalValue);	
-					results[i] = new RResult(name, value);
-					System.out.println(name + " = " + value.toString() + "\n");					
+					// to add intermediate results extra object is created as first
+					// input, so results length will be one greater than OutputNames
+					// int i =1;
+					// int iterationTimes =outputNames.length;
+					for (; i < iterationTimes; i++)
+					{
+						String name;
+						// Boolean addedTolist = false;
+						if (iterationTimes == outputNames.length + 2){
+							name = outputNames[i - 2];
+						}
+						else{
+							name = outputNames[i - 1];
+						}
+						// Script to get R - output
+						evalValue = evalScript(rEngine, name, showWarnings);
+						System.out.println("EvalValue" + " = " + evalValue.toString() + "\n");
+						Object value = RUtils.rexp2jobj(evalValue);					
+						results[i] = new RResult(name, value);
+						System.out.println(name + " = " + value.toString() + "\n");
+						
+					}//end of for - to store result
+				}//end of IF for intermediate results
+				else
+				{
+					int i;
+					int iterationTimes;
+					if (plotScript != "")
+					{
+						results = new RResult[outputNames.length + 1];
+						String plotEvalValue = plotEvalScript(rEngine, plotScript, showWarnings);
+						System.out.println(plotEvalValue);
+						results[0] = new RResult("Plot Results", plotEvalValue);
+						i = 1;
+						iterationTimes = outputNames.length + 1;
+					}
+					else
+					{
+						results = new RResult[outputNames.length];
+						i = 0;
+						iterationTimes = outputNames.length;
+					}
+					// to outputNames script result
+					// results = new RResult[outputNames.length];
+					for (; i < iterationTimes; i++)
+					{
+						String name;
+						// Boolean addedTolist = false;
+						if (iterationTimes == outputNames.length + 1){
+							name = outputNames[i - 1];
+						}
+						else{
+							name = outputNames[i];
+						}
+						// Script to get R - output
+						evalValue = evalScript(rEngine, name, showWarnings);				
+						Object value = RUtils.rexp2jobj(evalValue);	
+						results[i] = new RResult(name, value);
+						System.out.println(name + " = " + value.toString() + "\n");					
+					}
 				}
 			}
+			catch (Exception e)
+			{
+				throw new RemoteException("Unable to run R script", e);
+				
+	//			e.printStackTrace();
+	//			output += e.getMessage();
+	//			// to send error from R to As3 side results is created with one
+	//			// object
+	//			results = new RResult[1];
+	//			results[0] = new RResult("Error Statement", output);
+			}
+			finally
+			{
+				rEngine.close();
+			}
+			return results;
 		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Unable to run R script", e);
-			
-//			e.printStackTrace();
-//			output += e.getMessage();
-//			// to send error from R to As3 side results is created with one
-//			// object
-//			results = new RResult[1];
-//			results[0] = new RResult("Error Statement", output);
-		}
-		finally
-		{
-			rEngine.close();
-		}
-		return results;
 	}
 
 //	public LinearRegressionResult linearRegression(double[] dataX, double[] dataY) throws RemoteException
