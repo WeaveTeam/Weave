@@ -26,6 +26,7 @@ package weave.utils
 	
 	import mx.formatters.NumberFormatter;
 	
+	import weave.Weave;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.MathLib;
 
@@ -77,7 +78,7 @@ package weave.utils
 		private const p:Point = new Point();
 		
 		// reusable object containing text style information for tick mark labels
-		private const tickMarkLabel:BitmapText = new BitmapText(); 
+		private const tickMarkLabel:BitmapText = new BitmapText();
 		
 		// reusable object for formatting tick mark label text
 		private const formatter:NumberFormatter = new NumberFormatter();
@@ -86,11 +87,11 @@ package weave.utils
 		public function RadialAxis(){
 			
 			//set the font and style for the tick mark label text
-			tickMarkLabel.textFormat.size = tickMarkLabelSize;
+			tickMarkLabel.textFormat.size = Weave.properties.axisFontSize.value;
+			tickMarkLabel.textFormat.color = Weave.properties.axisFontColor.value;
 			tickMarkLabel.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
 			tickMarkLabel.textFormat.align = TextFormatAlign.CENTER;
 			tickMarkLabel.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
-			tickMarkLabel.textFormat.color = 0x000000;
 			tickMarkLabel.angle = 0;
 			tickMarkLabel.width = 80;
 		}
@@ -151,7 +152,8 @@ package weave.utils
 					tickMarkLabel.text = ""+MathLib.roundSignificant(value,8);//formatter.format(value);
 					tickMarkLabel.x = p.x;
 					tickMarkLabel.y = p.y;
-					
+					tickMarkLabel.textFormat.size = Weave.properties.axisFontSize.value;
+					tickMarkLabel.textFormat.color = Weave.properties.axisFontColor.value;
 					tickMarkLabel.draw(destination);
 					
 					//a marker for testing whether text is centered properly
