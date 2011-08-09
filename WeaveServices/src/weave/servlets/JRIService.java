@@ -82,22 +82,24 @@ public class JRIService extends GenericServlet
 	private String docrootPath = "";
 	private String rFolderName = "R_output";
 	
-	REngine rEngine = null;
-	private REngine getREngine() throws Exception
-	{		
+	private REngine getREngine() throws RemoteException
+	{
 		try
 		{
 			String cls = "org.rosuda.REngine.JRI.JRIEngine";
 			String[] args = { "--vanilla", "--slave" };
-			rEngine= REngine.engineForClass(cls, args, new JRICallbacks(), false);
+			REngine rEngine = REngine.engineForClass(cls, args, new JRICallbacks(), false);
 			System.out.println(rEngine.getClass().getClassLoader());
-			
+			return rEngine;
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			throw new RemoteException("Unable to initialize REngine", e);
 		}
-		return rEngine;
+		catch (NoClassDefFoundError ncdfe) // not caught by default
+		{
+			throw new RemoteException("Unable to initialize REngine", ncdfe);
+		}
 	}
 	private String plotEvalScript(REngine rEngine, String script, boolean showWarnings) throws REXPMismatchException, REngineException, ScriptException
 	{
@@ -137,13 +139,11 @@ public class JRIService extends GenericServlet
 //	}
 	
 	@SuppressWarnings("unchecked")
-	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws Exception
+	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
 	{
 		System.out.println(script);
 		String output = "";
-		if(rEngine == null){
-			rEngine = getREngine();
-		}
+		REngine rEngine = getREngine();
 		RResult[] results = null;
 		REXP evalValue;
 		try
@@ -277,13 +277,16 @@ public class JRIService extends GenericServlet
 				}
 			}
 		}
-		catch (Exception e)	{
-			e.printStackTrace();
-			output += e.getMessage();
-			// to send error from R to As3 side results is created with one
-			// object
-			results = new RResult[1];
-			results[0] = new RResult("Error Statement", output);
+		catch (Exception e)
+		{
+			throw new RemoteException("Unable to run R script", e);
+			
+//			e.printStackTrace();
+//			output += e.getMessage();
+//			// to send error from R to As3 side results is created with one
+//			// object
+//			results = new RResult[1];
+//			results[0] = new RResult("Error Statement", output);
 		}
 		finally
 		{

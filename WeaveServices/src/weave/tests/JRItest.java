@@ -52,7 +52,7 @@ public class JRItest {
 		ws = new JRIService();
 		
 		Properties prop = System.getProperties();
-		String classPathh = prop.getProperty("java.class.path", null);
+		String classPathh = prop.getProperty("java.library.path", null);
 		//System.out.println(classPathh);
 		String[] classPathArray = classPathh.split(";");
 		for(int i = 0; i<classPathArray.length ;i++){
@@ -60,7 +60,7 @@ public class JRItest {
 		}
 		
 		String[] inputNames = {};
-		Object[][] inputValues = {};			
+		Object[][] inputValues = {};
 		String plotscript = "";
 		String script = "";		
 		String [] resultNames = {};	
