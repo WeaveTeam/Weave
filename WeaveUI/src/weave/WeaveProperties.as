@@ -137,7 +137,7 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
-		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(4, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
+		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
