@@ -71,7 +71,6 @@ package weave.services
 
 		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
 		
-		[Bindable] public var adminActivityText:String = '';
 		[Bindable] public var userHasAuthenticated:Boolean = false;
 		
 		// values returned by the server
@@ -619,7 +618,7 @@ package weave.services
 			query.addAsyncResponder(displayFileSaveStatus);
 			function displayFileSaveStatus(event:ResultEvent, token:Object = null):void
 			{
-				adminActivityText += event.result + '\n';
+				WeaveAdminService.messageDisplay(null, event.result as String, false);
 				getWeaveFileNames();
 			}
 			return query;

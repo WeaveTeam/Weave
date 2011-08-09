@@ -57,6 +57,7 @@ LinkableObjectList
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -286,7 +287,12 @@ LinkableObjectList
 				if (item is IAttributeColumn)
 				{
 					var col:IAttributeColumn = item as IAttributeColumn;
-					return ColumnUtils.getTitle(col) + ' (Key Type: ' + ColumnUtils.getKeyType(col) + ')';
+					var title:String = ColumnUtils.getTitle(col);
+					var keyType:String = ColumnUtils.getKeyType(col);
+					var dataType:String = ColumnUtils.getDataType(col);
+					if ((dataType || '') == '')
+						return StringUtil.substitute("{0} (Key Type: {1})", title, keyType);
+					return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
 				}
 				else
 				{

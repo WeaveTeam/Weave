@@ -98,6 +98,9 @@
 				_anchorLayer = visualization.layers.requestObject("anchorLayer", SelectablePlotLayer, false );
 				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, false) ;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
+				linkSessionState(_plotter.colorMap, _anchorPlotter.colorMap);
+				linkSessionState(_plotter.enableWedgeColoring, _anchorPlotter.enableWedgeColoring);
+				
 				_anchorLayer.useTextBitmapFilters.value = true;
 				
 				getCallbackCollection(plotLayer.probeFilter).addGroupedCallback(this,drawProbeLines);

@@ -54,7 +54,7 @@ package weave.primitives
 		private var _useFixedAspectRatio:Boolean = false;
 		
 		/**
-		 * The session state has two modes: absolute coordinates and center/scale coordinates.
+		 * The session state has two modes: absolute coordinates and centered area coordinates.
 		 * @return The current session state.
 		 */		
 		public function getSessionState():Object
@@ -79,7 +79,7 @@ package weave.primitives
 		}
 		
 		/**
-		 * The session state can be specified in two ways: absolute coordinates and center/scale coordinates.
+		 * The session state can be specified in two ways: absolute coordinates and centered area coordinates.
 		 * @param The new session state.
 		 */		
 		public function setSessionState(state:Object):void
@@ -181,7 +181,7 @@ package weave.primitives
 		 * This function will set all the information required to define the session state of the ZoomBounds.
 		 * @param dataBounds The data range of a visualization.
 		 * @param screenBounds The pixel range of a visualization.
-		 * @param useFixedAspectRatio If true, the session state will be defined by xCenter,yCenter,areaPerPixel.  If false, the session state will be defined by xMin,yMin,xMax,yMax.
+		 * @param useFixedAspectRatio Set this to true if you want to maintain an identical x and y data-per-pixel ratio.
 		 */		
 		public function setBounds(dataBounds:IBounds2D, screenBounds:IBounds2D, useFixedAspectRatio:Boolean):void
 		{
@@ -199,17 +199,27 @@ package weave.primitives
 			cc.resumeCallbacks();
 		}
 		
-		public function setDataBounds(dataBounds:IBounds2D):void
+		/**
+		 * This function will zoom to the specified dataBounds and fix the aspect ratio if necessary.
+		 * @param dataBounds The bounds to zoom to.
+		 * @param zoomOutIfNecessary Set this to true if you are using a fixed aspect ratio and you want the resulting fixed bounds to be expanded to include the specified dataBounds.
+		 */
+		public function setDataBounds(dataBounds:IBounds2D, zoomOutIfNecessary:Boolean = false):void
 		{
 			if (_dataBounds.equals(dataBounds))
 				return;
 			
 			_dataBounds.copyFrom(dataBounds);
-			_fixAspectRatio();
+			_fixAspectRatio(zoomOutIfNecessary);
 			
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
+		/**
+		 * This function will update the screenBounds and fix the aspect ratio of the dataBounds if necessary.
+		 * @param screenBounds The new screenBounds.
+		 * @param useFixedAspectRatio Set this to true if you want to maintain an identical x and y data-per-pixel ratio.
+		 */
 		public function setScreenBounds(screenBounds:IBounds2D, useFixedAspectRatio:Boolean):void
 		{
 			if (_useFixedAspectRatio == useFixedAspectRatio && _screenBounds.equals(screenBounds))
@@ -222,15 +232,15 @@ package weave.primitives
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		private function _fixAspectRatio():void
+		private function _fixAspectRatio(zoomOutIfNecessary:Boolean = false):void
 		{
 			if (_useFixedAspectRatio)
 			{
-				var xScale:Number = _dataBounds.getWidth() / _screenBounds.getXCoverage();
-				var yScale:Number = _dataBounds.getHeight() / _screenBounds.getYCoverage();
+				var xScale:Number = _dataBounds.getXCoverage() / _screenBounds.getXCoverage();
+				var yScale:Number = _dataBounds.getYCoverage() / _screenBounds.getYCoverage();
 				if (xScale != yScale)
 				{
-					var scale:Number = Math.sqrt(Math.abs(xScale * yScale));
+					var scale:Number = zoomOutIfNecessary ? Math.max(xScale, yScale) : Math.sqrt(xScale * yScale);
 					_dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
 				}
 			}

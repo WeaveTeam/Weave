@@ -196,9 +196,9 @@ public class DataService extends GenericServlet
 				// otherwise, derive it from the sql result.
 				if (dataType.length() == 0)
 					dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
-				if (dataType.equalsIgnoreCase(DataType.NUMBER.toString()))
+				if (dataType.equalsIgnoreCase(DataType.NUMBER.toString())) // special case: "number" => Double
 					numericData = new ArrayList<Double>();
-				else
+				else // for every other dataType, use String
 					stringData = new ArrayList<String>();
 				
 				Object keyObj, dataObj;
@@ -336,9 +336,9 @@ public class DataService extends GenericServlet
 			// otherwise, derive it from the sql result.
 			if (dataType.length() == 0)
 				dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
-			if (dataType.equalsIgnoreCase(DataType.NUMBER.toString()))
+			if (dataType.equalsIgnoreCase(DataType.NUMBER.toString())) // special case: "number" => Double
 				numericData = new ArrayList<Double>();
-			else
+			else // for every other dataType, use String
 				stringData = new ArrayList<String>();
 			
 			Object keyObj, dataObj;

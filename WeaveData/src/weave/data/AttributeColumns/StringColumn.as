@@ -24,6 +24,9 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IStreamedColumn;
@@ -119,7 +122,7 @@ package weave.data.AttributeColumns
 			updateRecords(recordKeys, recordData, true);
 		}
 
-		public function updateRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>, clearExistingRecords:Boolean = false):void
+		public function updateRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>, clearExistingRecords:Boolean):void
 		{
 			if (keys.length > stringData.length)
 			{
@@ -212,19 +215,30 @@ package weave.data.AttributeColumns
 			}
 		}
 		
-		/**
-		 * get data from key value
-		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (dataType == Number)
-				return _keyToUniqueStringIndexMapping[key];
-			
-			// return string value
 			var index:Number = _keyToUniqueStringIndexMapping[key];
+			
+			if (dataType == Number)
+				return index;
+			
+			if (dataType == null)
+				dataType = String;
+			
 			if (isNaN(index))
-				return "";
-			return _uniqueStrings[index] as String;
+				return '' as dataType;
+			
+			var str:String = _uniqueStrings[index] as String;
+			
+			if (dataType == IQualifiedKey)
+			{
+				var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
+				if (type == '')
+					type = DataTypes.STRING;
+				return WeaveAPI.QKeyManager.getQKey(type, str);
+			}
+			
+			return str;
 		}
 
 		override public function toString():String

@@ -235,13 +235,13 @@ package weave.visualization.layers
 		{
 			if (!backgroundIsVisible.value && !selectionExists && !probeExists)
 			{
-				if (!contains(emptySelectionText))
-					addChild(emptySelectionText);
+				if (this != emptySelectionText.parent)
+					this.addChild(emptySelectionText);
 			}
 			else
 			{
-				if (contains(emptySelectionText))
-					removeChild(emptySelectionText);
+				if (this == emptySelectionText.parent)
+					this.removeChild(emptySelectionText);
 			}	
 		}
 		

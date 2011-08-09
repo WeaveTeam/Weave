@@ -24,15 +24,9 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
-	import flash.utils.describeType;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IDynamicKeyFilter;
-	import weave.api.data.IKeyFilter;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -42,15 +36,11 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.KeySets.FilteredKeySet;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.DrawUtils;
-	import weave.utils.PlotterUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -202,9 +192,10 @@ package weave.visualization.plotters
 				coordinate.x = (numeratorX/denominator);
 				coordinate.y = (numeratorY/denominator);
 			}
-			else {
-				coordinate.x = 0;
-				coordinate.y = 0;
+			else 
+			{
+				coordinate.x = NaN;
+				coordinate.y = NaN;
 			}
 			if( enableJitter.value )
 				jitterRecords(recordKey);			
@@ -279,7 +270,9 @@ package weave.visualization.plotters
 			{
 				radius = radiusConstant.value ;
 			}
-		
+					
+			if(isNaN(coordinate.x) || isNaN(coordinate.y)) return; // missing values skipped
+			
 			lineStyle.beginLineStyle(recordKey, graphics);
 			fillStyle.beginFillStyle(recordKey, graphics);
 			

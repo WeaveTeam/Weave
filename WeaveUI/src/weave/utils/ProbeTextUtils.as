@@ -25,6 +25,7 @@ package weave.utils
 	import mx.core.Application;
 	import mx.core.IToolTip;
 	import mx.managers.ToolTipManager;
+	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
@@ -70,7 +71,7 @@ package weave.utils
 			if (additionalColumns != null)
 				columns = columns.concat(additionalColumns);
 			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
-			var keys:Array = keySet.keys;
+			var keys:Array = keySet.keys.concat().sort(ObjectUtil.compare);
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
 			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;
@@ -171,7 +172,7 @@ package weave.utils
 			// calculate y pos depending on toolTipAbove setting
 			if (toolTipAbove)
 			{
-				y = stageY - (probeToolTip.height +2* margin);
+				y = stageY - (probeToolTip.height + 2 * margin);
 				if(yAxisToolTip != null)
 					y = yAxisToolTip.y - margin - probeToolTip.height ;
 			}

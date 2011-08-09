@@ -710,7 +710,7 @@ package weave.core
 					var parentContainer:DisplayObjectContainer = displayObject.parent;
 					try
 					{
-						if (parentContainer && parentContainer.contains(displayObject))
+						if (parentContainer && parentContainer == displayObject.parent)
 							parentContainer.removeChild(displayObject);
 					}
 					catch (e:Error)

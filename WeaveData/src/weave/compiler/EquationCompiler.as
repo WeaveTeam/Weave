@@ -111,6 +111,16 @@ package weave.compiler
 				}
 			}
 		}
+		
+		/**
+		 * This function will add a variable to the constants available in equations.
+		 * @param constantName The name of the constant.
+		 * @param constantValue The value of the constant.
+		 */		
+		public static function includeConstant(constantName:String, constantValue:*):void
+		{
+			constants[constantName] = constantValue;
+		}
 
 		/**
 		 * This function gets a list of all the libraries currently being used by the compiler.
@@ -203,7 +213,7 @@ package weave.compiler
 			
 			// Save pointers to impure functions so the compiler will not reduce
 			// them to constants when all their parameters are constants.
-			impureFunctions[Math.random] = true;
+			impureFunctions[Math['random']] = true;
 		}
 
 		/**
@@ -339,7 +349,11 @@ package weave.compiler
 						}
 						// replace the function token, '(', and ')' tokens with a compiled function call
 						// if the function is the variableGetter, compileFunction() should not attempt to simplify to a constant.
-						var func:Function = (funcToken == GET_FUNCTION_NAME) ? variableGetter : functions[funcToken] as Function;
+						var func:Function;
+						if (funcToken == GET_FUNCTION_NAME)
+							func = variableGetter;
+						else
+							func = functions[funcToken] as Function;
 						tokens.splice(open - 1, 3, compileFunction(funcToken, func, compiledParams, funcToken != GET_FUNCTION_NAME && evaluateToConstantIfPossible));
 					}
 					else // These parentheses do not correspond to a function call.

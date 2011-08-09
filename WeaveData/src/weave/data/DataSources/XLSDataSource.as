@@ -141,7 +141,7 @@ package weave.data.DataSources
 			var xlsDataColumn:Vector.<String> = getColumnValues(colIndex);
 			var keyStringsArray:Array = VectorUtils.copy(getColumnValues(keyColIndex), []);
 			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, keyStringsArray);
-			var keysVector:Vector.<IQualifiedKey> = VectorUtils.copy(keysArray, new Vector.<IQualifiedKey>());
+			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
 
 			// loop through values, determine column type
 			var nullValues:Array = ["null", "\\N", "NaN"];
@@ -167,12 +167,12 @@ package weave.data.DataSources
 			if (isNumericColumn)
 			{
 				newColumn = new NumberColumn(leafNode);
-				(newColumn as NumberColumn).updateRecords(keysVector, VectorUtils.copy(xlsDataColumn, new Vector.<Number>()));
+				(newColumn as NumberColumn).updateRecords(keysVector, Vector.<Number>(xlsDataColumn));
 			}
 			else
 			{
 				newColumn = new StringColumn(leafNode);
-				(newColumn as StringColumn).updateRecords(keysVector, VectorUtils.copy(xlsDataColumn, new Vector.<String>()));
+				(newColumn as StringColumn).updateRecords(keysVector, Vector.<String>(xlsDataColumn), true);
 			}
 			proxyColumn.internalColumn = newColumn;
 		}

@@ -104,9 +104,10 @@ package weave
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStatePanel;
+	import weave.ui.JRITextEditor;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
-	import weave.ui.PrintFormat;
+	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
@@ -427,12 +428,12 @@ package weave
 			{
 				if (selectionKeySet.keys.length == 0)
 				{
-					if (visDesktop.contains(_selectionIndicatorText))
+					if (visDesktop == _selectionIndicatorText.parent)
 						visDesktop.removeChild(_selectionIndicatorText);
 				}
 				else
 				{
-					if (!visDesktop.contains(_selectionIndicatorText))
+					if (visDesktop != _selectionIndicatorText.parent)
 						visDesktop.addChild(_selectionIndicatorText);
 				}
 			}
@@ -668,9 +669,9 @@ package weave
 					
 					_applicationVBox.addChildAt(_weaveMenu, 0);
 					
-					//if (visDesktop.contains(_oicLogoPane))
+					//if (visDesktop == _oicLogoPane.parent)
 					//	visDesktop.removeChild(_oicLogoPane);
-					if (_applicationVBox.contains(_oicLogoPane))
+					if (_applicationVBox == _oicLogoPane.parent)
 						_applicationVBox.removeChild(_oicLogoPane);
 				}
 				
@@ -683,7 +684,7 @@ package weave
 				DraggablePanel.showRollOverBorders = false;
 				try
 				{
-		   			if (_weaveMenu && _applicationVBox.contains(_weaveMenu))
+		   			if (_weaveMenu && _applicationVBox == _weaveMenu.parent)
 						_applicationVBox.removeChild(_weaveMenu);
 
 		   			_weaveMenu = null;
@@ -795,39 +796,39 @@ package weave
 				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", createGlobalObject, [EquationEditor, "EquationEditor"]);
 				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
 				
+				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
+					var userUI:NewUserWizard = new NewUserWizard();
+					WizardPanel.createWizard(instance,userUI);
+				});
+
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				
 				createToolMenuItem(Weave.properties.enableAddBarChart, "Add Bar Chart", createGlobalObject, [CompoundBarChartTool]);
 				createToolMenuItem(Weave.properties.enableAddColormapHistogram, "Add Color Histogram", createColorHistogram);
 				createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
+				createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
 				createToolMenuItem(Weave.properties.enableAddDataTable, "Add Data Table", createGlobalObject, [DataTableTool]);
 				createToolMenuItem(Weave.properties.enableAddDimensionSliderTool, "Add Dimension Slider Tool", createGlobalObject, [DimensionSliderTool]);
 				createToolMenuItem(Weave.properties.enableAddGaugeTool, "Add Gauge Tool", createGlobalObject, [GaugeTool]);
 				createToolMenuItem(Weave.properties.enableAddHistogram, "Add Histogram", createGlobalObject, [HistogramTool]);
+				createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add JRI Script Editor", createGlobalObject, [JRITextEditor]);
 				createToolMenuItem(Weave.properties.enableAddLineChart, "Add Line Chart", createGlobalObject, [LineChartTool]);
 				createToolMenuItem(Weave.properties.enableAddMap, "Add Map", createGlobalObject, [MapTool]);
 				createToolMenuItem(Weave.properties.enableAddPieChart, "Add Pie Chart", createGlobalObject, [PieChartTool]);
 				createToolMenuItem(Weave.properties.enableAddPieChartHistogram, "Add Pie Chart Histogram", createGlobalObject, [PieChartHistogramTool]);
 				createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add R Script Editor", createGlobalObject, [RTextEditor]);
+				createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
+				createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
 				createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
 				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
 				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
 
 //				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 //				
-				createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
-				createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
 //				createToolMenuItem(Weave.properties.enableAddWordle, "Add Wordle", createGlobalObject, [WeaveWordleTool]);
 //				createToolMenuItem(Weave.properties.enableAddStickFigurePlot, "Add Stick Figure Plot", createGlobalObject, [StickFigureGlyphTool]);
-//				createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
 //				createToolMenuItem(Weave.properties.enableAddSP2, "Add SP2", createGlobalObject, [SP2]);
 				
-				_weaveMenu.addSeparatorToMenu(_toolsMenu);
-				
-				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
-					var userUI:NewUserWizard = new NewUserWizard();
-					WizardPanel.createWizard(instance,userUI);
-				});
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
@@ -1644,8 +1645,8 @@ package weave
 			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;
 
 			//initialize the print format
-			var printPopUp:PrintFormat = new PrintFormat();
-   			printPopUp = PopUpManager.createPopUp(this,PrintFormat,true) as PrintFormat;
+			var printPopUp:PrintPanel = new PrintPanel();
+   			printPopUp = PopUpManager.createPopUp(this,PrintPanel,true) as PrintPanel;
    			PopUpManager.centerPopUp(printPopUp);
    			printPopUp.applicationTitle = Weave.properties.pageTitle.value;
    			//add current snapshot to Print Format

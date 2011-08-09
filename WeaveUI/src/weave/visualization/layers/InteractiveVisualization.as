@@ -31,10 +31,8 @@ package weave.visualization.layers
 	
 	import mx.containers.Canvas;
 	import mx.core.Application;
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -43,7 +41,6 @@ package weave.visualization.layers
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
@@ -73,6 +70,7 @@ package weave.visualization.layers
 			
 			enableZoomAndPan.value = true;
 			enableSelection.value = true;
+			enableProbe.value = true;
 			enableAutoZoomToExtent.value = true;
 			// adding a canvas as child gets the selection rectangle on top of the vis
 			addChild(selectionRectangleCanvas);
@@ -140,6 +138,7 @@ package weave.visualization.layers
 		
 		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const enableProbe:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		protected var activeKeyType:String = null;
 		protected var mouseDragActive:Boolean = false;
@@ -290,7 +289,7 @@ package weave.visualization.layers
 				if (event.ctrlKey && event.shiftKey)
 				{
 					// zoom to full extent
-					zoomBounds.setDataBounds(fullDataBounds);
+					zoomBounds.setDataBounds(fullDataBounds, true);
 				}
 				else
 				{
@@ -665,7 +664,7 @@ package weave.visualization.layers
 		
 		protected function handleProbe(allowCallLater:Boolean = true):void
 		{
-			if (!parent || !Weave.properties.enableToolProbe.value)
+			if (!parent || !Weave.properties.enableToolProbe.value || !enableProbe.value)
 				return;
 			
 			// NOTE: this code is hacked to work with only one global probe KeySet

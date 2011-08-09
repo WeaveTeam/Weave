@@ -24,9 +24,10 @@ package weave.data
 	
 	import mx.core.Singleton;
 	
-	import weave.core.weave_internal;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
+	import weave.core.weave_internal;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
@@ -46,9 +47,6 @@ package weave.data
 		 */
 		public function getQKey(keyType:String, localName:String):IQualifiedKey
 		{
-			if (keyType == null)
-				keyType = 'String';
-			
 //			// special case -- if keyType is null, return a unique QKey object
 //			if (keyType == null)
 //			{
@@ -57,6 +55,10 @@ package weave.data
 //				_constructorOK = false;
 //				return uniqueQKey;
 //			}
+			
+			// if there is no keyType specified, use the default
+			if ((keyType || '') == '')
+				keyType = DataTypes.STRING;
 			
 			// get mapping of key strings to QKey weak refrences
 			var keyToQKeyRefMap:Object = _keyTypeMap[keyType] as Object;

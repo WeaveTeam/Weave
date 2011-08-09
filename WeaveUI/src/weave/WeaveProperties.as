@@ -126,7 +126,8 @@ package weave
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 //		public const enableAddSP2:LinkableBoolean = new LinkableBoolean(true); // Add SP2 option tools menu
 //		public const enableAddWordle:LinkableBoolean = new LinkableBoolean(true); // Add Wordle option tools menu		
-//		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(true); // Add RamachandranPlot option tools menu		
+		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(false); // Add RamachandranPlot option tools menu		
+//		public const enableAddSurfacePlotter:LinkableBoolean = new LinkableBoolean(true); // Add Surface Plotter option tools menu
 		
 		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
@@ -275,7 +276,9 @@ package weave
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
 		// temporary?
-		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service
+		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService");// url of Weave R service using Rserve
+		public const jriServiceURL:LinkableString = new LinkableString("/WeaveServices/JRIService");// url of Weave R service using JRI
+		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 		
 		//default URL
 		public const searchServiceURLs:LinkableString = new LinkableString(WIKIPEDIA_URL+"\n"+GOOGLE_URL+"\n"+GOOGLE_IMAGES_URL+"\n"+GOOGLE_MAPS_URL);

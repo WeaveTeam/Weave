@@ -22,16 +22,12 @@ package weave.utils
 	import weave.primitives.Range;
 	
 	/**
-	 * NumberUtils:
 	 * This class contains functions that manipulate Numbers.
 	 * 
 	 * @author adufilie
-	 * @author abaumann
 	 */
 	public class NumberUtils
 	{
-
-		
 		/**
 		 * generateBins
 		 * @return an array of Range objects, with values evenly distributed between min and max
@@ -71,54 +67,6 @@ package weave.utils
 			catch (e:Error) { }
 			
 			return NaN;
-		}
-		
-		public static function getNumberFromPercentString(string:String):Number
-		{
-			if(string == null)
-				return NaN;
-			
-			if(string.charAt(string.length-1) == "%")
-			{
-				var stringAsNumber:Number = Number(string.substr(0, string.length-1));
-								
-				if(!isNaN(stringAsNumber))
-					return stringAsNumber;
-			}	
-			
-			return NaN;
-		}
-
-		public static function getPercentStringFromNumber(number:Number, divisor:Number = NaN):String
-		{
-			if(isNaN(divisor))
-				return number + "%";
-			
-			return ((number / divisor) * 100) + "%";
-		}
-		
-		public static function extractNumberFromObject(object:Object, extractFailureDefault:Number, multiplierIfPercent:Number=NaN):Number
-		{
-			if(object == null)
-				return extractFailureDefault;
-				
-			var xPercent:Number = getNumberFromPercentString(object as String);
-			var xNumber:Number  = Number(object);
-				
-						
-			if( !isNaN(xPercent) )
-			{
-				if(!isNaN(multiplierIfPercent))
-					return (xPercent / 100) * multiplierIfPercent;
-				
-				return (xPercent / 100);
-			}
-			else if( !isNaN(xNumber) )
-			{
-				return xNumber;	
-			}
-			
-			return extractFailureDefault;
 		}
 	}
 }

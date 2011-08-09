@@ -43,8 +43,8 @@ package weave.api.data
 	 */
 	public class DataTypes
 	{
-		public static const NUMBER:String = "Number";
-		public static const STRING:String = "String";
-		public static const GEOMETRY:String = "Geometry";
+		public static const NUMBER:String = "number";
+		public static const STRING:String = "string";
+		public static const GEOMETRY:String = "geometry";
 	}
 }

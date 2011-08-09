@@ -80,15 +80,16 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();//reusable object
 				
 		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));	
-		public const enableWedgeColoring:LinkableBoolean = 	registerSpatialProperty(new LinkableBoolean(false));
+		public const enableWedgeColoring:LinkableBoolean = 	registerNonSpatialProperty(new LinkableBoolean(false));
 		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
 		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle,handleColumnsChange);		
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
-		public var colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
-
+		public const colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public var anchorColorMap:Dictionary;
+		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
@@ -152,6 +153,7 @@ package weave.visualization.plotters
 				setKeySource(null);
 			
 			setAnchorLocations();
+			fillColorMap();
 		}
 		
 		public function setAnchorLocations():void
@@ -168,6 +170,19 @@ package weave.visualization.plotters
 			}
 		}			
 				
+		private function fillColorMap():void
+		{
+			var i:int = 0;
+			anchorColorMap = new Dictionary(true);
+			var _anchors:Array = anchors.getObjects(AnchorPoint);
+			
+			for each( var anchor:AnchorPoint in anchors.getObjects())
+			{
+				anchorColorMap[anchors.getName(anchor)] = colorMap.getColorFromNorm(i / (_anchors.length - 1)); 
+				i++;
+			}
+		}
+		
 		/**
 		 * Applies the RadViz algorithm to a record specified by a recordKey
 		 */
@@ -204,8 +219,8 @@ package weave.visualization.plotters
 				coordinate.y = (numeratorY/denominator);
 			}
 			else {
-				coordinate.x = 0;
-				coordinate.y = 0;
+				coordinate.x = NaN;
+				coordinate.y = NaN;
 			}
 			if( enableJitter.value )
 				jitterRecords(recordKey);			
@@ -259,6 +274,9 @@ package weave.visualization.plotters
 			// Get coordinates of record and add jitter (if specified)
 			var sum:Number= getXYcoordinates(recordKey);
 
+			// missing values skipped
+			if(isNaN(coordinate.x) || isNaN(coordinate.y)) return;
+				
 			if(isNaN(radius) && (screenRadius.internalColumn != null))
 			{			
 				radius = radiusConstant.value;
@@ -284,27 +302,26 @@ package weave.visualization.plotters
 			
 			var defaultAlpha:Number = MathLib.toNumber(alphaColumn.defaultValue.value);
 			
-			dataBounds.projectPointTo(coordinate,screenBounds);
-			for( var i:int = 0; i < _columns.length; i++ )
+			dataBounds.projectPointTo(coordinate,screenBounds);						
+			
+			for(var i:int = 0; i < _columns.length; i++)
 			{
 				value = numArray[i];
 				beginRadians += spanRadians;
 				spanRadians = value * sum;
 				
 				lineStyle.beginLineStyle(recordKey, graphics);
-				if(enableWedgeColoring.value)
-					graphics.beginFill(colorMap.getColorFromNorm(i / (_columns.length - 1)), alphaColumn.defaultValue.value as Number);
+				if(enableWedgeColoring.value && anchorColorMap)
+					graphics.beginFill(anchorColorMap[ColumnUtils.getTitle(_columns[i])], alphaColumn.defaultValue.value as Number);
 				else
 					fillStyle.beginFillStyle(recordKey, graphics);
 
-				if( screenRadius.internalColumn ) {
-					if(spanRadians <= Infinity) //missing values skipped
-						drawWedge(graphics, beginRadians, spanRadians, coordinate, radius*radiusConstant.value/3);
+				if( screenRadius.internalColumn ) {					
+					drawWedge(graphics, beginRadians, spanRadians, coordinate, radius*radiusConstant.value/3);
 				}
 				else
-				{
-					if(spanRadians <= Infinity) //missing values skipped
-						drawWedge(graphics, beginRadians, spanRadians, coordinate,radiusConstant.value);
+				{					
+					drawWedge(graphics, beginRadians, spanRadians, coordinate,radiusConstant.value);
 				}
 				graphics.endFill();
 			}
