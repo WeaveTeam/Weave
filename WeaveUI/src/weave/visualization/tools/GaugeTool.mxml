@@ -62,7 +62,6 @@
 				cRampEditor.colorRamp = _plotter.colorRamp;
 				
 				visualization.marginBottom.addGroupedCallback(this, handleMarginChange);
-				linkBindableProperty(visualization.marginBottom, marginLabel, "height");
 			}
 			
 			override protected function constructor():void
@@ -140,10 +139,11 @@
 				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
 			}
 			
-			private static const DEFAULT_MARGIN_BOTTOM:int = 25;
+			private static const DEFAULT_MARGIN_BOTTOM:int = 35;
 			private function handleMarginChange():void
 			{
 				marginLabelCheckBox.selected = visualization.marginBottom.value != 0;
+				marginLabel.height = visualization.marginBottom.value;
 			}
 			
 		]]>
@@ -157,7 +157,7 @@
 				 rollOut="CursorManager.removeAllCursors()"
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"
-				 bottom="20"
+				 bottom="0"
 				 textAlign="center"
 				 toolTip="{marginLabelText} &#13;&#09;Click here to select a different attribute."/>
 	<ui:ControlPanel>
