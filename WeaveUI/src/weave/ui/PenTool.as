@@ -44,14 +44,14 @@ package weave.ui
 	
 	
 	/**
-	 * PenMouse
+	 * PenTool
 	 * This is a class that controls the graphical annotations within Weave.
 	 *
 	 * @author jfallon
 	 */
-	public class PenMouse extends UIComponent implements ILinkableObject, IDisposableObject
+	public class PenTool extends UIComponent implements ILinkableObject, IDisposableObject
 	{
-		public function PenMouse()
+		public function PenTool()
 		{
 			//Initial setup
 			coords.value = "";
@@ -61,36 +61,20 @@ package weave.ui
 		
 		public function dispose():void
 		{
-			editMode = false; // cleans up event listeners and cursor
+			editMode.value = false; // cleans up event listeners and cursor
 		}
 		
-		public var drawing:Boolean = false;
 		public const coords:LinkableString = newLinkableChild( this, LinkableString, handleCoordsChange ); //This is used for sessiong all of the coordinates.
 		public const lineWidth:LinkableNumber = newLinkableChild( this, LinkableNumber, invalidateDisplayList ); //Allows user to change the size of the line.
 		public const lineColor:LinkableNumber = newLinkableChild( this, LinkableNumber, invalidateDisplayList ); //Allows the user to change the color of the line.
+		public const editMode:LinkableBoolean = newLinkableChild( this, LinkableBoolean, handleEditModeChange ); // true when editing
+		
+		private var _drawing:Boolean = false;
 		private var _coordsArrays:Array = []; // parsed from coords LinkableString
-		public const _editMode:LinkableBoolean = newLinkableChild( this, LinkableBoolean, handleEditModeChange );; // true when editing
 		
 		public function handleEditModeChange():void
 		{
-			if( _editMode.value == true )
-				editMode = true;
-			else
-				editMode = false;
-		}
-		
-		public function get editMode():Boolean
-		{
-			return _editMode.value;
-		}
-		public function set editMode(value:Boolean):void
-		{
-			if (_editMode.value == value)
-				return;
-			
-			_editMode.value = value;
-			
-			if (value)
+			if (editMode.value)
 			{
 				// enable pen
 				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
@@ -112,7 +96,7 @@ package weave.ui
 		
 		private function handleCoordsChange():void
 		{
-			if (!drawing)
+			if (!_drawing)
 				_coordsArrays = WeaveAPI.CSVParser.parseCSV( coords.value );
 			invalidateDisplayList();
 		}
@@ -124,7 +108,7 @@ package weave.ui
 		 */
 		public function handleMouseDown(event:MouseEvent):void
 		{
-			drawing = true;
+			_drawing = true;
 			// new line in CSV means "moveTo"
 			_coordsArrays.push([mouseX, mouseY]);
 			coords.value += '\n' + mouseX + "," + mouseY + ",";
@@ -133,7 +117,7 @@ package weave.ui
 		
 		public function handleMouseUp(event:MouseEvent):void
 		{
-			drawing = false;
+			_drawing = false;
 			invalidateDisplayList();
 		}
 		
@@ -144,7 +128,7 @@ package weave.ui
 		public function handleMouseMove(event:MouseEvent):void
 		{
 			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22); //This is a temporary fix, should be changed if there is another way.
-			if( drawing ){
+			if( _drawing ){
 				_coordsArrays[_coordsArrays.length - 1].push(mouseX, mouseY);
 				coords.value += '' + mouseX + "," + mouseY + ",";
 				invalidateDisplayList();
@@ -166,7 +150,7 @@ package weave.ui
 			
 			graphics.clear();
 			
-			if (editMode)
+			if (editMode.value)
 			{
 				// draw invisible transparent rectangle to capture mouse events
 				graphics.lineStyle(0, 0, 0);
@@ -249,11 +233,10 @@ package weave.ui
 			if( ( getLinkableContainer(e.mouseTarget) as ILinkableContainer) )
 				if( ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME ) )
 				{
-					var penObject:ILinkableObject = ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME );
-					if( ( penObject as PenMouse ).editMode == true )
+					var penObject:PenTool = ( getLinkableContainer(e.mouseTarget) as ILinkableContainer).getLinkableChildren().getObject( PEN_OBJECT_NAME ) as PenTool;
+					if( penObject && penObject.editMode.value )
 					{
 						_penToolMenuItem.caption = DISABLE_PEN;
-						( penObject as PenMouse).editMode = true;
 					}
 					else
 					{
@@ -273,13 +256,15 @@ package weave.ui
 		{
 			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
 			
-			if ( linkableContainer )
-				var penTool:PenMouse = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenMouse,false);
+			if ( !linkableContainer )
+				return;
+			
+			var penTool:PenTool = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenTool, false);
 			if( _penToolMenuItem.caption == ENABLE_PEN )
 			{
 				// enable pen
 				
-				penTool.editMode = true;
+				penTool.editMode.value = true;
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
@@ -287,7 +272,7 @@ package weave.ui
 			else
 			{
 				// disable pen
-				penTool.editMode = false;
+				penTool.editMode.value = false;
 				
 				_penToolMenuItem.caption = ENABLE_PEN;
 			}

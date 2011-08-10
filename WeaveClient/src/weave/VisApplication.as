@@ -115,7 +115,7 @@ package weave
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
 	import weave.ui.PrintPanel;
-	import weave.ui.PenMouse;
+	import weave.ui.PenTool;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
@@ -1520,7 +1520,7 @@ package weave
 				
 				SessionedTextBox.createContextMenuItems(this);
 				
-				PenMouse.createContextMenuItems(this);
+				PenTool.createContextMenuItems(this);
 					
 				//HelpPanel.createContextMenuItems(this);
 				if (Weave.properties.dataInfoURL.value)
