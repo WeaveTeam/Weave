@@ -20,11 +20,14 @@
 package weave
 {
 	import flash.display.StageDisplayState;
+	import flash.errors.IllegalOperationError;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
+	import flash.filters.BevelFilter;
 	import flash.geom.Point;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
@@ -36,6 +39,7 @@ package weave
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.Timer;
+	import flash.ui.MouseCursor;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
@@ -54,6 +58,7 @@ package weave
 	import mx.core.UIComponent;
 	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
+	import mx.managers.CursorManagerPriority;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -65,6 +70,7 @@ package weave
 	import weave.Reports.WeaveReport;
 	import weave.SearchEngineUtils;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
@@ -72,6 +78,7 @@ package weave
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.newLinkableChild;
 	import weave.api.services.IURLRequestUtils;
 	import weave.api.setSessionState;
 	import weave.compiler.BooleanLib;
@@ -108,6 +115,7 @@ package weave
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
 	import weave.ui.PrintPanel;
+	import weave.ui.PenTool;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
@@ -122,8 +130,10 @@ package weave
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
 	import weave.ui.settings.GlobalUISettings;
+	import weave.ui.settings.InteractivitySubMenu;
 	import weave.utils.BitmapUtils;
 	import weave.utils.CSSUtils;
+	import weave.utils.CustomCursorManager;
 	import weave.utils.DebugUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.NumberUtils;
@@ -290,6 +300,7 @@ package weave
 			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange);
 //			Weave.properties.showViewBar.addGroupedCallback(this, addViewBar);
+			
 		}
 		
 		private function handleBackgroundColorChange():void
@@ -1509,6 +1520,7 @@ package weave
 				
 				SessionedTextBox.createContextMenuItems(this);
 				
+				PenTool.createContextMenuItems(this);
 					
 				//HelpPanel.createContextMenuItems(this);
 				if (Weave.properties.dataInfoURL.value)
@@ -1681,6 +1693,8 @@ package weave
    			}
    			
 		}
+		
+		
 		/** END CONTEXT MENU CODE **/
 
 		

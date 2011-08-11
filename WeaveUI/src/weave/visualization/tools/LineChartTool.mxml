@@ -286,6 +286,16 @@
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY,labelPlotter.sortColumn);
+				
+				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
+				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
+				Weave.properties.axisFontColor.addGroupedCallback(this, updateLabel);
+				Weave.properties.axisFontSize.addGroupedCallback(this, updateLabel);
+			}
+			private function updateLabel():void
+			{
+				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
+				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
 			}
 			
 			private function updateColumns():void

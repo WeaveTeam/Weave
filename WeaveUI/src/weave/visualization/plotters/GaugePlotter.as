@@ -23,6 +23,7 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
@@ -108,6 +109,7 @@ package weave.visualization.plotters
 			meterColumn.addImmediateCallback(this, updateBins);
 			meterColumn.addImmediateCallback(this, updateAxis);
 			
+			registerNonSpatialProperties(Weave.properties.axisFontSize, Weave.properties.axisFontColor);
 		}
 		
 		/**

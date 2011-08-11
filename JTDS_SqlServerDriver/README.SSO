@@ -1,0 +1,192 @@
+===============================================================================
+                        Windows Single Sign On in jTDS
+                             ~~~~~~~~~~~~~~~
+              Patch Submitted by Magendran Sathaiah (mahi@aztec.soft.net)
+===============================================================================
+
+Introduction
+============
+
+    This document describes the design of the Single Sign On implementation in
+    the jTDS JDBC driver.
+
+    Releases 0.9.1 and earlier of jTDS driver support Windows authentication by
+    means of the NTLM protocol. That is, clients using the JDBC Driver passes
+    a valid Windows-Domain-Name, a Windows User and Windows Password; the JDBC
+    driver will submit these to Microsoft SQL Server via NTLM protocol in order
+    to gain access to the database. (This approach still works with all later
+    versions, allowing Windows Authentication to work for non-Windows clients
+    or clients that don't/can't have the native library installed.)
+
+    In the above approach the client will have to maintain a configuration file
+    to keep the windows logon credentials. That is, the domain name, user name
+    and password need to be stored in encrypted or plain text format. This
+    might not be an acceptable solution for everybody.
+
+    Starting with release 0.9.2 jTDS is capable of using the Windows
+    credentials of the current user under whose account the client program is
+    running to login to SQL Server (Windows Single Sign On).
+
+    Using Windows Single Sign On (SSO) clients will be able to connect to
+    Microsoft SQL Server without providing credentials. It would dynamically
+    read current user's credentials and connect to the database. provided that
+    the Windows account has enough rights in the database. This is done using a
+    native (Windows-only) library, ntlmauth.dll.
+
+
+Installation
+============
+
+    In order for Single Sign On to work, jTDS must be able to load the native
+    SPPI library (ntlmauth.dll). Place this DLL anywhere in the system path
+    (defined by the PATH system variable) and you're all set.
+
+
+Usage
+=====
+
+    In order to set up the jTDS driver to use Windows Single Sign On, users
+    will have to connect without providing a user name and password. This will
+    only work on Windows.
+
+    Driver example:
+
+        // No user name or password in URL or as parameters
+        DriverManager.getConnection(
+                "jdbc:jtds:sqlserver://localhost:1433/LionKing");
+
+    DataSource example:
+
+        ds = new JtdsDataSource();
+        ds.setDescription("test");
+
+        // MS SQL Server Host Name
+        ds.setServerName("localhost");
+
+        // Port
+        ds.setPortNumber(1433);
+
+        // Database Name
+        ds.setDatabaseName("LionKing");
+
+        // No domain name
+        // No user name
+
+        Connection conn = ds.getConnection();
+
+
+Design
+======
+
+    The patch comprises the following components:
+
+    1. ntlmauth.dll
+        A CPP Program that uses SSPI Windows APIs to accquire credentials and
+        NTLM messages from the Windows Operating System.
+
+    2. SSPIJNIClient.java
+        A Java Native Interface class that bridges jTDS JDBC driver and
+        ntlmauth.dll.
+
+    3. Modified Version jTDS source files.
+        A set of modified jTDS java files that make use of the
+        SSPIJNIClient.java when the driver is set to use Windows Single Sign On.
+
+
+SSPIJNIClient.java
+==================
+
+    It loads the DLL (ntlmauth.dll) in a static block. The ntlmauth.dll must be
+    available in the system path (defined by the system variable PATH). It
+    exposes the following APIs:
+
+    public static SSPIJNIClient getInstance() throws Exception;
+
+        Retuns the singleton SSPIJNIClient object.
+
+    private native void initialize();
+
+        Initializes the SSPI Client.
+
+    private native void unInitialize();
+
+        Uninitializes the SSPI client.
+
+    private native byte[] prepareSSORequest();
+
+        Prepares NTLM TYPE-1 message and returns it as a byte[].
+
+    private native byte[] prepareSSOSubmit(byte[] challengeBuf, long size);
+
+        Prepares NTLM TYPE-3 message using current user's credentials. It needs
+        the challenge BLOB and its size as input. The challenge BLOB is nothing
+        but the TYPE-2 message that is received from the SQL Server.
+
+    API Usage:
+    ----------
+
+            ntlmAuthSSO = (user == null || user.length() == 0);
+        	if (ntlmAuthSSO) {
+        		sspiJNIClient = SSPIJNIClient.getInstance();
+        		ntlm1 = sspiJNIClient.invokePrepareSSORequest();
+        	}
+
+            // 1.ntlm1 contains Type-1 message now
+            // 2.Send Type-1 Message to the server
+            //
+            // 3.MS SQL Server replies back with Type-2 message
+            // 4.Read Type-2 Message in (say) ntlm2
+
+       		ntlm3 = sspiJNIClient.invokePrepareSSOSubmit(ntlm2);
+
+            //1.now, ntlm3 contains Type-3 message
+            //2.Send, Type-3 message to the Server.
+            //3.Check the status - Success | Failure.
+
+
+Modifications to jTDS Classes
+=============================
+        The TdsCode.java has been modified as follows
+
+        1. Member boolean variable: ntlmAuthSSO
+            A flag that is used to indicate if the client wants to do Windows
+            Single Sign On. The variable is set in the logon(...) as below
+
+            ntlmAuthSSO = (user == null || user.length() == 0);
+
+	        Note: The user must leave the user name (and password) unset or set
+	              them to null or a blank string to instructthe driver to use
+	              Windows Single Sign On.
+
+        2. Member Variable: sspiJNIClient
+            A reference to the single-ton object of SSPIJNIClient.class
+            It gets initialzied in logon(..) if ntlmAuthSSO is true.
+
+        3.  login(..)
+            At the begining of the method check if Windows Single Sign On is
+            requested (ntlmAuth == true)
+
+            If so initialize the SSPI client and prepare NTLM TYPE-1 message
+
+        4. send70Login(..)
+            Modified to accept an additional byte[] parameter to pass the NTLM
+            Type-1 message.
+
+            Set the authLen = ntlmMessage.legnth() if ntlmAuthSSO is true
+
+        5. sendNtlmChallengeResponse(...)
+
+           If ntlmAuthSSO is true, then read the Type-2 message from
+           authToken.getNTLMMessage()
+
+           Prepare Type-3 message as below
+
+           type3 = sspiJNIClient.invokePrepareSSOSubmit(type2)
+
+           Then append it to the command buffer.
+
+------------------------------------------------------------------------------------------------------
+Magendran Sathaiah
+mahi@aztec.soft.net
+
+Version: $Id: README.SSO,v 1.1 2004-12-21 12:06:59 alin_sinpalean Exp $

@@ -84,11 +84,11 @@
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
-    <maxTooltipRecordsShown>4</maxTooltipRecordsShown>
+    <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
     <panelTitleFontColor>16777215</panelTitleFontColor>
-    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
+    <panelTitleFontFamily/>
     <panelTitleFontItalic>false</panelTitleFontItalic>
     <panelTitleFontSize>10</panelTitleFontSize>
     <panelTitleFontUnderline>false</panelTitleFontUnderline>
@@ -131,7 +131,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="basic" source="OIC" name="5-Color">
+      <colorRamp source="OIC" name="5-Color" category="basic">
         <node position="0" color="0xEFF3FF"/>
         <node position="0.25" color="0xBDD7E7"/>
         <node position="0.5" color="0x6BAED6"/>
@@ -163,7 +163,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <hierarchy>
                 <category name="Data Tables">
                   <category name="obesity-cube">
-                    <attribute name="PercentObese" dataType="number" keyType="obesity-cube" dataTable="obesity-cube"/>
+                    <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
                   </category>
                 </category>
               </hierarchy>
@@ -181,8 +181,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   </KeyFilter>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
   <WeaveDataSource name="WeaveDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy name="Open Indicators Server">
@@ -229,28 +229,28 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="Obesity"/>
           <category name="Obesity Years"/>
           <category name="obesity-cube">
-            <attribute name="ID" dataType="obesity-cube" keyType="obesity-cube" dataTable="obesity-cube"/>
-            <attribute name="FIPS2" dataType="US State FIPS Code" keyType="obesity-cube" dataTable="obesity-cube"/>
-            <attribute name="State" dataType="US State Name" keyType="obesity-cube" dataTable="obesity-cube"/>
-            <attribute name="Year" dataType="Year" keyType="obesity-cube" dataTable="obesity-cube"/>
-            <attribute name="PercentObese" dataType="number" keyType="obesity-cube" dataTable="obesity-cube"/>
+            <attribute name="ID" dataTable="obesity-cube" keyType="obesity-cube" dataType="obesity-cube"/>
+            <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+            <attribute name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
+            <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+            <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
           </category>
           <category name="Obesity1">
-            <attribute name="fips" dataType="string" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="State" dataType="string" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2007" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2006" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2005" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2004" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2003" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2002" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2001" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese2000" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese1999" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese1998" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese1997" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese1996" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
-            <attribute name="PercentObese1995" dataType="number" keyType="Obesity1" dataTable="Obesity1"/>
+            <attribute name="fips" dataTable="Obesity1" keyType="Obesity1" dataType="string"/>
+            <attribute name="State" dataTable="Obesity1" keyType="Obesity1" dataType="string"/>
+            <attribute name="PercentObese2007" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese2006" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese2005" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese2004" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese2003" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese2002" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese2001" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese2000" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese1999" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese1998" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese1997" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese1996" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
+            <attribute name="PercentObese1995" dataTable="Obesity1" keyType="Obesity1" dataType="number"/>
           </category>
           <category name="Obesity3"/>
           <category name="objectid"/>
@@ -263,56 +263,56 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="school_performance_level"/>
           <category name="st99_d00"/>
           <category name="States">
-            <attribute name="States" dataType="geometry" keyType="US State FIPS Code" projectionSRS="EPSG:4326"/>
-            <attribute name="AGE_18_21" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AGE_22_29" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AGE_30_39" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AGE_40_49" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AGE_50_64" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AGE_5_17" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AGE_65_UP" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AGE_UNDER5" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AMERI_ES" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="ASIAN" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AVE_FAM_SZ" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AVE_HH_SZ" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AVG_SALE97" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="AVG_SIZE97" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="BLACK" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="CROP_ACR97" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="FAMILIES" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="FEMALES" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="FHH_CHILD" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="HAWN_PI" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="HISPANIC" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="HOUSEHOLDS" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="HSE_UNITS" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="HSEHLD_1_F" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="HSEHLD_1_M" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MALES" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MARHH_CHD" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MARHH_NO_C" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MED_AGE" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MED_AGE_F" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MED_AGE_M" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MHH_CHILD" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="MULT_RACE" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="NO_FARMS97" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="OTHER" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="OWNER_OCC" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="POP00_SQMI" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="POP07_SQMI" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="POP2000" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="POP2007" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="RENTER_OCC" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="SQMI" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="STATE_ABBR" dataType="string" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="STATE_FIPS" dataType="string" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="STATE_NAME" dataType="string" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="SUB_REGION" dataType="string" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="the_geom_id" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="VACANT" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
-            <attribute name="WHITE" dataType="number" keyType="US State FIPS Code" dataTable="States" geometryCollection="States"/>
+            <attribute name="States" projectionSRS="EPSG:4326" keyType="US State FIPS Code" dataType="geometry"/>
+            <attribute name="AGE_18_21" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AGE_22_29" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AGE_30_39" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AGE_40_49" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AGE_50_64" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AGE_5_17" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AGE_65_UP" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AGE_UNDER5" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AMERI_ES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="ASIAN" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AVE_FAM_SZ" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AVE_HH_SZ" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AVG_SALE97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="AVG_SIZE97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="BLACK" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="CROP_ACR97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="FAMILIES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="FEMALES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="FHH_CHILD" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="HAWN_PI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="HISPANIC" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="HOUSEHOLDS" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="HSE_UNITS" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="HSEHLD_1_F" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="HSEHLD_1_M" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MALES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MARHH_CHD" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MARHH_NO_C" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MED_AGE" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MED_AGE_F" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MED_AGE_M" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MHH_CHILD" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="MULT_RACE" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="NO_FARMS97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="OTHER" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="OWNER_OCC" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="POP00_SQMI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="POP07_SQMI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="POP2000" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="POP2007" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="RENTER_OCC" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="SQMI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="STATE_ABBR" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
+            <attribute name="STATE_FIPS" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
+            <attribute name="STATE_NAME" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
+            <attribute name="SUB_REGION" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
+            <attribute name="the_geom_id" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="VACANT" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute name="WHITE" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
           </category>
           <category name="StatesHealth"/>
           <category name="StatesHealth Years"/>
@@ -371,7 +371,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -380,7 +380,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="State" dataType="US State Name" keyType="obesity-cube" id="165079" dataTable="obesity-cube"/>
+                  <attribute name="State" id="165079" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
                 </category>
               </category>
             </hierarchy>
@@ -389,7 +389,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns">
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -398,7 +398,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="ID" dataType="obesity-cube" keyType="obesity-cube" id="165078" dataTable="obesity-cube"/>
+                  <attribute name="ID" id="165078" dataTable="obesity-cube" keyType="obesity-cube" dataType="obesity-cube"/>
                 </category>
               </category>
             </hierarchy>
@@ -414,7 +414,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="FIPS2" dataType="US State FIPS Code" keyType="obesity-cube" id="165080" dataTable="obesity-cube"/>
+                  <attribute name="FIPS2" id="165080" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
                 </category>
               </category>
             </hierarchy>
@@ -430,7 +430,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="Year" dataType="Year" keyType="obesity-cube" id="165081" dataTable="obesity-cube"/>
+                  <attribute name="Year" id="165081" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
                 </category>
               </category>
             </hierarchy>
@@ -446,7 +446,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="PercentObese" keyType="obesity-cube" id="165082" dataTable="obesity-cube"/>
+                  <attribute name="PercentObese" id="165082" dataTable="obesity-cube" keyType="obesity-cube"/>
                 </category>
               </category>
             </hierarchy>
@@ -469,7 +469,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <hierarchy>
                 <category name="Data Tables">
                   <category name="obesity-cube">
-                    <attribute name="FIPS2" dataType="US State FIPS Code" keyType="obesity-cube" dataTable="obesity-cube"/>
+                    <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
                   </category>
                 </category>
               </hierarchy>
@@ -550,7 +550,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName/>
                           <hierarchyPath encoding="xml">
                             <hierarchy title="Equations">
-                              <attribute title="custom-geom" name="EquationEditorColumn2"/>
+                              <attribute name="EquationEditorColumn2" title="custom-geom"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -648,7 +648,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <dataSourceName/>
                           <hierarchyPath encoding="xml">
                             <hierarchy title="Equations">
-                              <attribute title="custom-geom" name="EquationEditorColumn2"/>
+                              <attribute name="EquationEditorColumn2" title="custom-geom"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -686,7 +686,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" dataType="US State Name" keyType="obesity-cube" id="165079" dataTable="obesity-cube"/>
+                                <attribute name="State" id="165079" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -761,333 +761,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
   </MapTool>
-  <HistogramTool name="HistogramTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>1</axesAlpha>
-        <axesColor>11579568</axesColor>
-        <axesThickness>10</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>1</gridLineAlpha>
-        <gridLineColor>14540253</gridLineColor>
-        <gridLineThickness>1</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <AxisLayer name="yAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>-0.5</xMax>
-                  <xMin>-0.5</xMin>
-                  <yMax>49</yMax>
-                  <yMin>0</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>49</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>bottom</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>10</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <AxisLayer name="xAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>14.5</xMax>
-                  <xMin>-0.5</xMin>
-                  <yMax>0</yMax>
-                  <yMin>0</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>14.5</axisLineMaxValue>
-                <axisLineMinValue>-0.5</axisLineMinValue>
-                <forceTickCount>true</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>top</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>15</tickCountRequested>
-                <tickMaxValue>14</tickMaxValue>
-                <tickMinValue>0</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <HistogramPlotter>
-                <drawPartialBins>false</drawPartialBins>
-                <dynamicColorColumn encoding="dynamic">
-                  <ColorColumn>
-                    <internalDynamicColumn encoding="dynamic">
-                      <BinnedColumn>
-                        <binningDefinition encoding="dynamic">
-                          <SimpleBinningDefinition>
-                            <numberOfBins>15</numberOfBins>
-                          </SimpleBinningDefinition>
-                        </binningDefinition>
-                        <internalDynamicColumn encoding="dynamic">
-                          <FilteredColumn>
-                            <filter encoding="dynamic">
-                              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                            </filter>
-                            <internalDynamicColumn encoding="dynamic">
-                              <ReferencedColumn>
-                                <dynamicColumnReference encoding="dynamic">
-                                  <HierarchyColumnReference>
-                                    <dataSourceName>WeaveDataSource</dataSourceName>
-                                    <hierarchyPath encoding="xml">
-                                      <hierarchy>
-                                        <category name="Data Tables">
-                                          <category name="obesity-cube">
-                                            <attribute name="Year" dataType="Year" keyType="obesity-cube" dataTable="obesity-cube"/>
-                                          </category>
-                                        </category>
-                                      </hierarchy>
-                                    </hierarchyPath>
-                                  </HierarchyColumnReference>
-                                </dynamicColumnReference>
-                              </ReferencedColumn>
-                            </internalDynamicColumn>
-                          </FilteredColumn>
-                        </internalDynamicColumn>
-                      </BinnedColumn>
-                    </internalDynamicColumn>
-                    <ramp encoding="xml">
-                      <colorRamp name="Gray">
-                        <node position="0.0" color="0x808080"/>
-                        <node position="1.0" color="0x808080"/>
-                      </colorRamp>
-                    </ramp>
-                  </ColorColumn>
-                </dynamicColorColumn>
-                <fillStyle>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                </fillStyle>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <spatialCallbacks/>
-              </HistogramPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <PlotLayer name="probeLine">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ProbeLinePlotter>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <lineStyle encoding="dynamic">
-                  <SolidLineStyle>
-                    <alpha>
-                      <defaultValue>0.5</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </alpha>
-                    <caps>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </caps>
-                    <color>
-                      <defaultValue>0</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </color>
-                    <enabled>
-                      <defaultValue>true</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </enabled>
-                    <joints>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </joints>
-                    <miterLimit>
-                      <defaultValue>3</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </miterLimit>
-                    <pixelHinting>
-                      <defaultValue>false</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </pixelHinting>
-                    <scaleMode>
-                      <defaultValue>normal</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </scaleMode>
-                    <weight>
-                      <defaultValue>1</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </weight>
-                  </SolidLineStyle>
-                </lineStyle>
-                <spatialCallbacks/>
-              </ProbeLinePlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </PlotLayer>
-        </layers>
-        <marginBottom>80</marginBottom>
-        <marginLeft>80</marginLeft>
-        <marginRight>10</marginRight>
-        <marginTop>10</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-        <zoomBounds>
-          <xMax>14.5</xMax>
-          <xMin>-0.5</xMin>
-          <yMax>49</yMax>
-          <yMin>0</yMin>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>30.655%</panelHeight>
-    <panelStyleList/>
-    <panelWidth>49.765%</panelWidth>
-    <panelX>50.157%</panelX>
-    <panelY>69.239%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-    <toolTitle/>
-  </HistogramTool>
   <ColorBinLegendTool name="ColorBinLegendTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -1435,7 +1108,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </children>
     <closeable>true</closeable>
     <columns encoding="dynamic">
-      <DynamicColumn encoding="dynamic" name="DynamicColumn2">
+      <DynamicColumn name="DynamicColumn2" encoding="dynamic">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1444,7 +1117,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="ID" dataType="obesity-cube" keyType="obesity-cube" id="165078" dataTable="obesity-cube"/>
+                      <attribute name="ID" id="165078" dataTable="obesity-cube" keyType="obesity-cube" dataType="obesity-cube"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1453,7 +1126,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn encoding="dynamic" name="DynamicColumn3">
+      <DynamicColumn name="DynamicColumn3" encoding="dynamic">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1462,7 +1135,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="FIPS2" dataType="US State FIPS Code" keyType="obesity-cube" id="165080" dataTable="obesity-cube"/>
+                      <attribute name="FIPS2" id="165080" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1471,7 +1144,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn encoding="dynamic" name="DynamicColumn">
+      <DynamicColumn name="DynamicColumn" encoding="dynamic">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1480,7 +1153,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="State" dataType="US State Name" keyType="obesity-cube" id="165079" dataTable="obesity-cube"/>
+                      <attribute name="State" id="165079" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1489,7 +1162,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn encoding="dynamic" name="DynamicColumn4">
+      <DynamicColumn name="DynamicColumn4" encoding="dynamic">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1498,7 +1171,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="Year" dataType="Year" keyType="obesity-cube" id="165081" dataTable="obesity-cube"/>
+                      <attribute name="Year" id="165081" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1507,7 +1180,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn encoding="dynamic" name="DynamicColumn5">
+      <DynamicColumn name="DynamicColumn5" encoding="dynamic">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1516,7 +1189,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="PercentObese" keyType="obesity-cube" id="165082" dataTable="obesity-cube"/>
+                      <attribute name="PercentObese" id="165082" dataTable="obesity-cube" keyType="obesity-cube"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1560,6 +1233,333 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <sortInDescendingOrder>false</sortInDescendingOrder>
     <toolTitle/>
   </DataTableTool>
+  <HistogramTool name="HistogramTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>-0.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>49</yMax>
+                  <yMin>0</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>49</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
+                <tickCountRequested>10</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>14.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>0</yMax>
+                  <yMin>0</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>14.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
+                <tickCountRequested>15</tickCountRequested>
+                <tickMaxValue>14</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <HistogramPlotter>
+                <drawPartialBins>true</drawPartialBins>
+                <dynamicColorColumn encoding="dynamic">
+                  <ColorColumn>
+                    <internalDynamicColumn encoding="dynamic">
+                      <BinnedColumn>
+                        <binningDefinition encoding="dynamic">
+                          <SimpleBinningDefinition>
+                            <numberOfBins>15</numberOfBins>
+                          </SimpleBinningDefinition>
+                        </binningDefinition>
+                        <internalDynamicColumn encoding="dynamic">
+                          <FilteredColumn>
+                            <filter encoding="dynamic">
+                              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                            </filter>
+                            <internalDynamicColumn encoding="dynamic">
+                              <ReferencedColumn>
+                                <dynamicColumnReference encoding="dynamic">
+                                  <HierarchyColumnReference>
+                                    <dataSourceName>WeaveDataSource</dataSourceName>
+                                    <hierarchyPath encoding="xml">
+                                      <hierarchy>
+                                        <category name="Data Tables">
+                                          <category name="obesity-cube">
+                                            <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                          </category>
+                                        </category>
+                                      </hierarchy>
+                                    </hierarchyPath>
+                                  </HierarchyColumnReference>
+                                </dynamicColumnReference>
+                              </ReferencedColumn>
+                            </internalDynamicColumn>
+                          </FilteredColumn>
+                        </internalDynamicColumn>
+                      </BinnedColumn>
+                    </internalDynamicColumn>
+                    <ramp encoding="xml">
+                      <colorRamp name="Gray">
+                        <node position="0.0" color="0x808080"/>
+                        <node position="1.0" color="0x808080"/>
+                      </colorRamp>
+                    </ramp>
+                  </ColorColumn>
+                </dynamicColorColumn>
+                <fillStyle>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                </fillStyle>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <spatialCallbacks/>
+              </HistogramPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <PlotLayer name="probeLine">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ProbeLinePlotter>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+                <spatialCallbacks/>
+              </ProbeLinePlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>10</marginRight>
+        <marginTop>10</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>14.5</xMax>
+          <xMin>-0.5</xMin>
+          <yMax>49</yMax>
+          <yMin>0</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>30.655%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>49.765%</panelWidth>
+    <panelX>50.157%</panelX>
+    <panelY>69.239%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </HistogramTool>
   <ScatterPlotTool name="ScatterPlotTool2">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -1708,7 +1708,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" dataType="US State Name" keyType="obesity-cube" dataTable="obesity-cube"/>
+                                <attribute name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1726,7 +1726,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="Year" dataType="Year" keyType="obesity-cube" dataTable="obesity-cube"/>
+                                <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1805,7 +1805,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" dataType="US State Name" keyType="obesity-cube" dataTable="obesity-cube"/>
+                                <attribute name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1823,7 +1823,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="Year" dataType="Year" keyType="obesity-cube" dataTable="obesity-cube"/>
+                                <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1926,7 +1926,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="Year" dataType="Year" keyType="obesity-cube" dataTable="obesity-cube"/>
+                                <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1984,7 +1984,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" dataType="US State Name" keyType="obesity-cube" dataTable="obesity-cube"/>
+                                <attribute name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2052,8 +2052,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         </layers>
         <marginBottom>80</marginBottom>
         <marginLeft>80</marginLeft>
-        <marginRight>50</marginRight>
-        <marginTop>50</marginTop>
+        <marginRight>25</marginRight>
+        <marginTop>25</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
