@@ -1171,7 +1171,7 @@ public class AdminService extends GenericServlet
 		int i = 0;
 		int j = 0;
 		int num = 1;
-		String outputNullValue = SQLUtils.SQLSERVER.equalsIgnoreCase(connInfo.dbms) ? "" : "\\N";
+		String outputNullValue = SQLUtils.getCSVNullValue(conn);
 
 		try
 		{
@@ -1332,11 +1332,11 @@ public class AdminService extends GenericServlet
 			for (i = 0; i < columnNames.length; i++)
 			{
 				if (types[i] == StringType || csvKeyColumn.equalsIgnoreCase(columnNames[i]))
-					columnTypesList.add(SQLUtils.getVarcharString(conn, fieldLengths[i]));
+					columnTypesList.add(SQLUtils.getVarcharTypeString(conn, fieldLengths[i]));
 				else if (types[i] == IntType)
-					columnTypesList.add(SQLUtils.getIntString(conn));
+					columnTypesList.add(SQLUtils.getIntTypeString(conn));
 				else if (types[i] == DoubleType)
-					columnTypesList.add(SQLUtils.getDoubleString(conn));
+					columnTypesList.add(SQLUtils.getDoubleTypeString(conn));
 			}
 			// create the table
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(columnNames), columnTypesList);

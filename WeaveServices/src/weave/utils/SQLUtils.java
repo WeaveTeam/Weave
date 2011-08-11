@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
+import java.security.InvalidParameterException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -245,23 +246,29 @@ public class SQLUtils
 	 */
 	public static String quoteSymbol(String dbms, String symbol) throws IllegalArgumentException
 	{
-		//the quote symbol is required for names of variables that include spaces
-		
-		String quote;
-		if (dbms.equalsIgnoreCase(SQLSERVER))
-			return "[" + symbol + "]";
+		//the quote symbol is required for names of variables that include spaces or special characters
 
+		String openQuote, closeQuote;
 		if (dbms.equalsIgnoreCase(MYSQL))
-			quote = "`";
+		{
+			openQuote = closeQuote = "`";
+		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL))
-			quote = "\"";
+		{
+			openQuote = closeQuote = "\"";
+		}
+		else if (dbms.equalsIgnoreCase(SQLSERVER))
+		{
+			openQuote = "[";
+			closeQuote = "]";
+		}
 		else
 			throw new IllegalArgumentException("Unsupported DBMS type: "+dbms);
 		
-		if (symbol.contains(quote))
-			throw new IllegalArgumentException(String.format("Unable to surround SQL symbol with quote marks (%s) because it already contains one: %s", quote, symbol));
+		if (symbol.contains(openQuote) || symbol.contains(closeQuote))
+			throw new IllegalArgumentException(String.format("Unable to surround SQL symbol with quote marks (%s%s) because it already contains one: %s", openQuote, closeQuote, symbol));
 		
-		return quote + symbol + quote;
+		return openQuote + symbol + closeQuote;
 	}
 	
 	/**
@@ -271,19 +278,8 @@ public class SQLUtils
 	 */
 	public static String quoteSymbol(Connection conn, String symbol) throws SQLException, IllegalArgumentException
 	{
-		//the quote symbol is required for names of variables that include spaces
-		String quote = conn.getMetaData().getIdentifierQuoteString();
 		String dbms = conn.getMetaData().getDatabaseProductName();
-		
-//		System.out.println(conn.toString() + "\tQUOTE:\t" + quote);
-		if (MYSQL.equalsIgnoreCase(dbms) || POSTGRESQL.equalsIgnoreCase(dbms))
-		{
-			if (symbol.contains(quote))
-				throw new IllegalArgumentException(String.format("Unable to surround SQL symbol with quote marks (%s) because it already contains one: %s", quote, symbol));
-			return quote + symbol + quote;
-		}
-		else
-			return "[" + symbol + "]";
+		return quoteSymbol(dbms, symbol);
 	}
 	
 	/**
@@ -293,21 +289,28 @@ public class SQLUtils
 	 */
 	public static String unquoteSymbol(String dbms, String symbol)
 	{
-		char quote;
+		char openQuote, closeQuote;
 		int length = symbol.length();
 		if (dbms.equalsIgnoreCase(MYSQL))
-			quote = '`';
+		{
+			openQuote = closeQuote = '`';
+		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL))
-			quote = '"';
+		{
+			openQuote = closeQuote = '"';
+		}
 		else if (dbms.equalsIgnoreCase(SQLSERVER))
-				quote = '\'';
+		{
+			openQuote = '[';
+			closeQuote = ']';
+		}
 		else
 			throw new IllegalArgumentException("Unsupported DBMS type: "+dbms);
 
 		String result = symbol;
-		if (length > 2 && symbol.charAt(0) == quote && symbol.charAt(length - 1) == quote)
+		if (length > 2 && symbol.charAt(0) == openQuote && symbol.charAt(length - 1) == closeQuote)
 			result = symbol.substring(1, length - 1);
-		if (result.indexOf(quote) >= 0)
+		if (result.indexOf(openQuote) >= 0 || result.indexOf(closeQuote) >= 0)
 			throw new IllegalArgumentException("Cannot unquote symbol: "+symbol);
 		
 		return result;
@@ -678,7 +681,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-//			System.out.println("Query: "+query);
+			System.out.println("Query: "+query);
 			//e.printStackTrace();
 			throw e;
 		}
@@ -1007,7 +1010,7 @@ public class SQLUtils
 		}
 		catch (Exception e)
 		{
-//			System.out.println(query);
+			System.out.println(query);
 			e.printStackTrace();
 		}
 		finally											//delete old values in reverse order
@@ -1071,7 +1074,7 @@ public class SQLUtils
 		}
 		catch (Exception e)
 		{
-			System.out.println(pstmt.toString());			
+			System.out.println(pstmt.toString());
 //			System.out.println(query);
 //			System.out.println(newColumnValues);
 			e.printStackTrace();
@@ -1105,7 +1108,7 @@ public class SQLUtils
 		String query = "";
 		if (SQLSERVER.equalsIgnoreCase(dbms))
 			query = "IF OBJECT_ID('" + quotedTable + "','U') IS NOT NULL DROP TABLE " + quotedTable;
-		else if (MYSQL.equalsIgnoreCase(dbms) || POSTGRESQL.equalsIgnoreCase(dbms))
+		else
 			query = "DROP TABLE IF EXISTS " + quotedTable;
 		
 		Statement stmt = conn.createStatement();
@@ -1114,26 +1117,39 @@ public class SQLUtils
 		cleanup(stmt);
 	}
 		
-	public static void removeDataTable(Connection conn, String dbInfoSchema, String dataConfigTable, String whereParam, String tableToRemove) throws RemoteException
+	/**
+	 * This function will delete from a table the rows that have a specified set of column values.
+	 * @param conn An existing SQL Connection
+	 * @param schemaName A schema name accessible through the given connection
+	 * @param tableName A table name existing in the given schema
+	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
+	 * @throws SQLException If the query fails.
+	 */
+	@SuppressWarnings("unchecked")
+	public static void deleteRows(Connection conn, String schemaName, String tableName, Map<String,String> whereParams) throws SQLException
 	{
 		CallableStatement cstmt = null;
 		String query = "";
 
 		try 
 		{
-//			System.out.println("SQLUtils.removeDataTable:\t" + dbms);
-			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, dbInfoSchema, dataConfigTable) + " WHERE "
-				+ SQLUtils.quoteSymbol(conn, whereParam) + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
+			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schemaName, tableName) + " WHERE ";
+			
+			Entry<String,String>[] params = whereParams.entrySet().toArray(new Entry[0]);
+
+			for (int i = 0; i < params.length; i++)
+			{
+				if (i > 0)
+					query += " AND ";
+				query += SQLUtils.quoteSymbol(conn, params[i].getKey()) + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
+			}
 			
 			cstmt = conn.prepareCall(query);
-			cstmt.setString(1, tableToRemove);
+			
+			for (int i = 0; i < params.length; i++)
+				cstmt.setString(i + 1, params[i].getValue());
+			
 			cstmt.execute();
-		}
-		catch (Exception e)
-		{
-//			System.out.println("SQLUtils.removeDataTable:\t" + numParams);
-//			System.out.println(query);
-			throw new RemoteException(String.format("Unable to remove DataTable \"%s\"", tableToRemove), e);
 		}
 		finally
 		{
@@ -1149,8 +1165,9 @@ public class SQLUtils
 		} 
 		catch (SQLException e) 
 		{
+			// this should never happen
+			throw new RuntimeException(e);
 		}
-		return symbol;
 	}
 	
 	public static String quoteString(String dbms, String symbol)
@@ -1161,7 +1178,7 @@ public class SQLUtils
 			return "\"" + symbol + "\"";
 		if (SQLSERVER.equalsIgnoreCase(dbms))
 			return "'" + symbol + "'";
-		return symbol;
+		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 	}
 	
 	/**
@@ -1198,15 +1215,15 @@ public class SQLUtils
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
 	}
 
-	public static String getVarcharString(Connection conn, int length) 
+	public static String getVarcharTypeString(Connection conn, int length) 
 	{
 		return String.format("VARCHAR(%s)", length);
 	}
-	public static String getIntString(Connection conn) 
+	public static String getIntTypeString(Connection conn) 
 	{
 		return "INT";
 	}
-	public static String getDoubleString(Connection conn)
+	public static String getDoubleTypeString(Connection conn)
 	{
 		String dbms = "";
 		try
@@ -1215,7 +1232,7 @@ public class SQLUtils
 		}
 		catch (Exception e)
 		{
-			// should never get an exception for this
+			// it's ok to ignore this error that will never happen
 		}
 		
 		if (SQLSERVER.equalsIgnoreCase(dbms))
@@ -1223,11 +1240,11 @@ public class SQLUtils
 			                // but SQL Server's DOUBLE PRECISION type isn't standard
 		return "DOUBLE PRECISION";
 	}
-	public static String getBigIntString(Connection conn) 
+	public static String getBigIntTypeString(Connection conn) 
 	{
 		return "BIGINT";
 	}
-	public static String getDateTimeString(Connection conn)
+	public static String getDateTimeTypeString(Connection conn)
 	{
 		return "DATETIME";
 	}
@@ -1279,7 +1296,7 @@ public class SQLUtils
 		}
 	}
 	
-	public static String getSerialPrimaryKeySQLString(Connection conn) throws SQLException 
+	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException 
 	{
 		String dbms = conn.getMetaData().getDatabaseProductName();
 		if (SQLSERVER.equalsIgnoreCase(dbms))
@@ -1289,21 +1306,20 @@ public class SQLUtils
 		return "SERIAL PRIMARY KEY";
 	}
 
-//	public static String getNullValue(Connection conn) 
-//	{
-//		String dbms = "";
-//		try
-//		{
-//			dbms = conn.getMetaData().getDatabaseProductName();
-//		}
-//		catch (Exception e)
-//		{
-//			// should never happen
-//		}
-//		
-//		if (SQLSERVER.equalsIgnoreCase(dbms))
-//			return ""; 
-//		
-//		return "NULL";
-//	}
+	public static String getCSVNullValue(Connection conn) 
+	{
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			if (SQLSERVER.equalsIgnoreCase(dbms))
+				return ""; // empty string
+			else
+				return "\\N";
+		}
+		catch (Exception e)
+		{
+			// it's ok to ignore this error that should never happen
+		}
+		return "\"\"";
+	}
 }

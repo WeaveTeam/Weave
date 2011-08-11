@@ -131,7 +131,7 @@ public class DBFUtils
 			
 			//Create Table
 			fieldNames.add(0, "the_geom_id");
-			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeySQLString(conn));
+			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeyTypeString(conn));
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes);
 			
 			//Insert Data
@@ -160,18 +160,18 @@ public class DBFUtils
 		char dataType = dbfHeader.getFieldType(index);
 		String sqlDataType = "";
 		if (dataType == 'C')
-			sqlDataType = SQLUtils.getVarcharString(conn, dbfHeader.getFieldLength(index));
+			sqlDataType = SQLUtils.getVarcharTypeString(conn, dbfHeader.getFieldLength(index));
 		else if (dataType == 'N' || dataType == 'F')
 		{
 			//if it has not 0 decimals return type as integer else Double Precision
 			if(dbfHeader.getFieldDecimalCount(index) == 0)
-				sqlDataType = SQLUtils.getBigIntString(conn);
+				sqlDataType = SQLUtils.getBigIntTypeString(conn);
 			else
-				sqlDataType = SQLUtils.getDoubleString(conn);
+				sqlDataType = SQLUtils.getDoubleTypeString(conn);
 		}
 		else if (dataType == 'D')
 		{
-			sqlDataType = SQLUtils.getDateTimeString(conn);
+			sqlDataType = SQLUtils.getDateTimeTypeString(conn);
 		}
 		else
 		{

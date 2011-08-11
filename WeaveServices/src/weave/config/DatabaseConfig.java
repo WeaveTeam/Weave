@@ -356,14 +356,13 @@ public class DatabaseConfig
 		try
 		{
 			Connection conn = getConnection();
-			SQLUtils.removeDataTable(conn, dbInfo.schema, dbInfo.geometryConfigTable, "name", name);
+			Map<String,String> whereParams = new HashMap<String,String>();
+			whereParams.put("name", name);
+			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
 		}
-		catch (Exception e)
+		catch (SQLException e)
 		{
 			throw new RemoteException(String.format("Unable to remove GeometryCollection \"%s\"", name), e);
-		}
-		finally
-		{
 		}
 	}
 
@@ -372,14 +371,13 @@ public class DatabaseConfig
 		try
 		{
 			Connection conn = getConnection();
-			SQLUtils.removeDataTable(conn, dbInfo.schema, dbInfo.dataConfigTable, "dataTable", name);
+			Map<String,String> whereParams = new HashMap<String,String>();
+			whereParams.put("dataTable", name);
+			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.dataConfigTable, whereParams);
 		}
-		catch (Exception e)
+		catch (SQLException e)
 		{
 			throw new RemoteException(String.format("Unable to remove DataTable \"%s\"", name), e);
-		}
-		finally
-		{
 		}
 	}
 

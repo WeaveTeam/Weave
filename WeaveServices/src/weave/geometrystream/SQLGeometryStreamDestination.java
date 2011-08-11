@@ -97,29 +97,27 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 			if (overwriteTables)
 				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
 			
+			String doubleType = SQLUtils.getDoubleTypeString(conn);
+			String[] def = new String[]{
+					"minImportance", doubleType,
+					"maxImportance", doubleType,
+					"xMinBounds", doubleType,
+					"yMinBounds", doubleType,
+					"xMaxBounds", doubleType,
+					"yMaxBounds", doubleType,
+					"tileID", "BIGINT PRIMARY KEY",
+					"tileData", SQLUtils.binarySQLType(dbms)
+			};
+			
 			List<String> colNames = new Vector<String>();
 			List<String> colTypes = new Vector<String>();
-			colNames.add("minImportance");
-			colTypes.add(SQLUtils.getDoubleString(conn));
-			colNames.add("maxImportance");
-			colTypes.add(SQLUtils.getDoubleString(conn));
-			colNames.add("xMinBounds");
-			colTypes.add(SQLUtils.getDoubleString(conn));
-			colNames.add("yMinBounds");
-			colTypes.add(SQLUtils.getDoubleString(conn));
-			colNames.add("xMaxBounds");
-			colTypes.add(SQLUtils.getDoubleString(conn));
-			colNames.add("yMaxBounds");
-			colTypes.add(SQLUtils.getDoubleString(conn));
-			colNames.add("tileID");
-			colTypes.add("BIGINT PRIMARY KEY");
-			colNames.add("tileData");
-			colTypes.add(SQLUtils.binarySQLType(dbms));
-
+			for (int i = 0; i < def.length; i += 2)
+			{
+				colNames.add(def[i]);
+				colTypes.add(def[i + 1]);
+			}
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, colNames, colTypes);
-
 			SQLUtils.createIndex(conn, sqlSchema, sqlTable, "xMinBounds,yMinBounds,xMaxBounds,yMaxBounds");
-
 		}
 		catch (Exception e)
 		{
@@ -155,9 +153,9 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 		try
 		{
 			// loop through tiles, adding entries to sql table
-			cstmt = conn.prepareCall("insert into "+quotedSchemaTable+
-					" (minImportance,maxImportance,xMinBounds,yMinBounds,xMaxBounds,yMaxBounds,tileID,tileData) values "
-					+ "(?,?, ?,?,?,?, ?,?);");
+			cstmt = conn.prepareCall("insert into " + quotedSchemaTable
+					+ " (minImportance,maxImportance, xMinBounds,yMinBounds,xMaxBounds,yMaxBounds, tileID,tileData)"
+					+ " values (?,?, ?,?,?,?, ?,?);");
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream data = new DataOutputStream(baos);
 			StreamTile tile;
