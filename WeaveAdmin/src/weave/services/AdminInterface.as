@@ -29,6 +29,7 @@ package weave.services
 	import mx.utils.UIDUtil;
 	
 	import weave.StringDefinition;
+	import weave.Weave;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.GeometryCollectionInfo;

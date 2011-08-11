@@ -82,7 +82,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					  }
 				  }
 				
-				  trace(metadataArray);
+				 
 			//var currentInvalidQueryGrid:DataGrid = new DataGrid();
 			 //currentInvalidQueryGrid.dataProvider = metadataArray;
 			 //this.addChild(currentInvalidQueryGrid);   

@@ -70,7 +70,6 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
-import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
 import weave.beans.AdminServiceResponse;
@@ -598,7 +597,7 @@ public class AdminService extends GenericServlet
 			{
 				
 				String query = attributeColumnInfo.sqlQuery;
-				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
+				SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
 				System.out.println(query);
 			}
 			

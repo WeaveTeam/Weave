@@ -54,15 +54,17 @@ package weave.services
 		public function WeaveAdminService(url:String)
 		{
 			service = new AMF3Servlet(url + "/AdminService");
+			dataService = new AMF3Servlet(url + "/DataService");
 			queue = new AsyncInvocationQueue();
 		}
 		
 		private var queue:AsyncInvocationQueue;
 		private var service:AMF3Servlet;
+		private var dataService:AMF3Servlet;
 		
-		private function generateQueryAndAddToQueue(methodName:String, parameters:Array):DelayedAsyncInvocation
+		private function generateQueryAndAddToQueue(methodName:String, parameters:Array, useDataServlet:Boolean = false):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = new DelayedAsyncInvocation(service, methodName, parameters);
+			var query:DelayedAsyncInvocation = new DelayedAsyncInvocation(useDataServlet ? dataService : service, methodName, parameters);
 			// we want to use a queue so the admin functions will execute in the correct order.
 			queue.addToQueue(query);
 			// automatically display FaultEvent error messages as alert boxes
@@ -75,7 +77,7 @@ package weave.services
 			messageDisplay(null,String(event.result),false);
 		}
 		// this function displays an error message from a FaultEvent in an Alert box.
-		private function alertFault(event:FaultEvent, token:Object = null):void
+		public function alertFault(event:FaultEvent, token:Object = null):void
 		{
 			var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
 			
@@ -350,5 +352,15 @@ package weave.services
 		{
 		    return generateQueryAndAddToQueue("getColumns", arguments);
 		}
+		
+		
+		// data servlet functions
+		
+		public function getAttributeColumn(metadata:Object):DelayedAsyncInvocation
+		{
+			return generateQueryAndAddToQueue("getAttributeColumn", arguments, true);
+		}
+		
+		
 	}
 }

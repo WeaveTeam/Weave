@@ -43,12 +43,10 @@
 			import weave.utils.EventUtils;
 			
 			private static const version:String = Weave.properties.version.value;
-			private var loginPopup:LoginPopup = new LoginPopup();
+			private var loginPopup:LoginPopup;
 			
 			private function handleCreationComplete():void
 			{
-				loginPopup.show(this);
-
 				BindingUtils.bindSetter(handleSQLConfigExists, AdminInterface.instance, "sqlConfigExists");
 
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
@@ -68,6 +66,36 @@
 						tabNavigator.addChild(sqlConnectionManager);
 					if (!isSuperuser && tabNavigator == sqlConnectionManager.parent)
 						tabNavigator.removeChild(sqlConnectionManager);
+				}
+				//Sets up bindings such that when AdminInterface.instance.userHasAuthenticated changes, 
+				//handleUserHasAuthenticatedChange() is invoked, passing as the argument
+				//the new value of AdminInterface.instance.userHasAuthenticated.
+				BindingUtils.bindSetter(handleUserHasAuthenticatedChange, AdminInterface.instance, "userHasAuthenticated");
+			}
+			
+			private var _previouslyAuthenticated:Boolean = true;
+			private function handleUserHasAuthenticatedChange(authenticated:Boolean):void
+			{
+				if (_previouslyAuthenticated == authenticated)
+					return;
+				
+				_previouslyAuthenticated = authenticated;
+				
+				if (authenticated)
+				{
+					if (loginPopup)
+						PopUpManager.removePopUp(loginPopup);
+					loginPopup = null;
+				}
+				else
+				{
+					if (!loginPopup)
+					{
+						loginPopup = new LoginPopup();
+						PopUpManager.addPopUp(loginPopup, this, true);
+						PopUpManager.centerPopUp(loginPopup);
+					}
+					loginPopup.enabled = true;
 				}
 			}
 			private function handleSQLConfigExists(exists:Boolean):void
