@@ -33,6 +33,7 @@
 	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs"/>
 	<property name="SDK_VERSION" value="3.5.0.12683"/>
 
+    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
 
 	<!-- These are the projects -->
