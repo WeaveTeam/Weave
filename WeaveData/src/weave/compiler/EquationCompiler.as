@@ -25,6 +25,7 @@ package weave.compiler
 	import mx.utils.StringUtil;
 	
 	import weave.api.compiler.ICompiledObject;
+	import weave.data.AttributeColumns.EquationColumnLib;
 	
 	/**
 	 * This class provides a static function compileEquation() that compiles a mathematical
@@ -197,17 +198,33 @@ package weave.compiler
 			constants["true"] = true;
 			constants["false"] = false;
 			
-			// initialize operators
+			// grouping operators
 			operators["("] = true;
 			operators[")"] = true;
 			operators[","] = true;
-			operators["^"] = Math.pow;
+			// math operators
 			operators["*"] = MathLib.mul;
+			operators["**"] = Math.pow;
 			operators["/"] = MathLib.div;
 			operators["%"] = MathLib.mod;
 			operators["+"] = MathLib.add;
 			operators["-"] = MathLib.sub;
+			// bitwise operators
+			operators["&"] = function(x:*, y:*):* { return x & y; };
+			operators["|"] = function(x:*, y:*):* { return x | y; };
+			operators["^"] = function(x:*, y:*):* { return x ^ y; };
+			operators["<<"] = function(x:*, y:*):* { return x << y; };
+			operators[">>"] = function(x:*, y:*):* { return x >> y; };
+			// boolean operators
+			operators["<"] = BooleanLib.lessThan;
+			operators[">"] = BooleanLib.greaterThan;
+			operators["&&"] = function(x:*, y:*):* { return x && y; };
+			operators["||"] = function(x:*, y:*):* { return x || y; };
+			operators["^^"] = function(x:*, y:*):* { return (x ? 1 : 0) ^ (y ? 1 : 0) }; // XOR boolean operator
+			
+			//operators["."] = ;
 
+			// create a corresponding function name for each operator
 			for (var op:String in operators)
 				functions[OPERATOR_FUNCTION_NAME_PREFIX + op] = operators[op];
 			
@@ -431,7 +448,11 @@ package weave.compiler
 			compileInfixOperators(tokens, '*/%', evaluateToConstantIfPossible);
 			// step 8: compile '+' and '-' infix operators
 			compileInfixOperators(tokens, '+-', evaluateToConstantIfPossible);
-			// step 9: compile last token
+			// step 9: compile infix operators
+			compileInfixOperators(tokens, '<>', evaluateToConstantIfPossible);
+			// step 10: compile infix operators
+			compileInfixOperators(tokens, '&|^', evaluateToConstantIfPossible);
+			// step 11: compile last token
 			// there should be only a single token left
 			if (tokens.length == 1)
 				return tokens[0];
