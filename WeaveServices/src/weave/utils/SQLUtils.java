@@ -1232,7 +1232,8 @@ public class SQLUtils
 		}
 		catch (Exception e)
 		{
-			// it's ok to ignore this error that will never happen
+			// this should never happen
+			throw new RuntimeException(e);
 		}
 		
 		if (SQLSERVER.equalsIgnoreCase(dbms))
@@ -1269,9 +1270,7 @@ public class SQLUtils
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
 			{
-				// using modified driver from
-				// http://kato.iki.fi/sw/db/postgresql/jdbc/copy/
-				((PGConnection) conn).getCopyAPI().copyIntoDB(
+				((PGConnection) conn).getCopyAPI().copyIn(
 						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
 						new FileInputStream(formatted_CSV_path));
 			}
@@ -1311,15 +1310,18 @@ public class SQLUtils
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
-			if (SQLSERVER.equalsIgnoreCase(dbms))
-				return ""; // empty string
-			else
+			
+			if (MYSQL.equalsIgnoreCase(dbms))
 				return "\\N";
+			else if (POSTGRESQL.equalsIgnoreCase(dbms) || SQLSERVER.equalsIgnoreCase(dbms))
+				return ""; // empty string (no quotes)
+			else
+				throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 		}
 		catch (Exception e)
 		{
-			// it's ok to ignore this error that should never happen
+			// this should never happen
+			throw new RuntimeException(e);
 		}
-		return "\"\"";
 	}
 }
