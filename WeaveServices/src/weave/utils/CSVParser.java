@@ -112,12 +112,12 @@ public class CSVParser
 	 * @param str The String to encode as a CSV token.
 	 * @return The String encoded as a CSV token.
 	 */
-	public String createCSVToken(String str)
+	public String createCSVToken(String str, boolean quoteEmptyStrings)
 	{
 		if (str == null)
 			return null;
 		// determine if quotes are necessary
-		if ( str.length() > 0
+		if ( (str.length() > 0 || !quoteEmptyStrings)
 			&& str.indexOf(quote) < 0
 			&& str.indexOf(delimiter) < 0
 			&& str.indexOf(LF) < 0
@@ -282,7 +282,7 @@ public class CSVParser
 	 * @param rows An array of rows.
 	 * @return The rows encoded as a CSV String.
 	 */
-	public String createCSVFromArrays(String[][] rows)
+	public String createCSVFromArrays(String[][] rows, boolean quoteEmptyStrings)
 	{
 		StringBuilder result = new StringBuilder();
 		int lastRow = rows.length - 1;
@@ -292,7 +292,7 @@ public class CSVParser
 			int lastCol = row.length - 1;
 			for (int iCol = 0; iCol <= lastCol; iCol++)
 			{
-				result.append(createCSVToken(row[iCol]));
+				result.append(createCSVToken(row[iCol], quoteEmptyStrings));
 				if (iCol < lastCol)
 					result.append(delimiter);
 			}

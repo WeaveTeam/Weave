@@ -96,7 +96,7 @@ public class DBFUtils
 				if (!foundFieldName)
 				{
 					fieldNames.add(newFieldName);
-					fieldTypes.add(getSQLDataType(dbfHeader, col));
+					fieldTypes.add(getSQLDataType(conn, dbfHeader, col));
 				}
 			}
 			// append records from this file to the full list of records
@@ -126,14 +126,12 @@ public class DBFUtils
 		{
 			conn.setAutoCommit(false);
 			
-			String quotedSchemaTable = SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable);
 			if (overwriteTables)
-				if (SQLUtils.tableExists(conn, sqlSchema, sqlTable))
-					SQLUtils.getRowCountFromUpdateQuery(conn, "DROP TABLE IF EXISTS " + quotedSchemaTable);
+				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
 			
 			//Create Table
 			fieldNames.add(0, "the_geom_id");
-			fieldTypes.add(0, "SERIAL PRIMARY KEY");
+			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeyTypeString(conn));
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes);
 			
 			//Insert Data
@@ -157,23 +155,23 @@ public class DBFUtils
 	}
 	
 	//returns a string format of the SQL Datatype of the column using the getFieldType function from DBaseFileHeader
-	private static String getSQLDataType(DbaseFileHeader dbfHeader, int index)
+	private static String getSQLDataType(Connection conn, DbaseFileHeader dbfHeader, int index)
 	{
 		char dataType = dbfHeader.getFieldType(index);
 		String sqlDataType = "";
 		if (dataType == 'C')
-			sqlDataType = "VARCHAR(" + dbfHeader.getFieldLength(index)+ ")";
+			sqlDataType = SQLUtils.getVarcharTypeString(conn, dbfHeader.getFieldLength(index));
 		else if (dataType == 'N' || dataType == 'F')
 		{
 			//if it has not 0 decimals return type as integer else Double Precision
 			if(dbfHeader.getFieldDecimalCount(index) == 0)
-				sqlDataType = "BIGINT";
+				sqlDataType = SQLUtils.getBigIntTypeString(conn);
 			else
-				sqlDataType = "DOUBLE PRECISION";
+				sqlDataType = SQLUtils.getDoubleTypeString(conn);
 		}
 		else if (dataType == 'D')
 		{
-			sqlDataType = "DATETIME";
+			sqlDataType = SQLUtils.getDateTimeTypeString(conn);
 		}
 		else
 		{

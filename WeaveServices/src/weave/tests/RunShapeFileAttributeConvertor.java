@@ -33,22 +33,19 @@ public class RunShapeFileAttributeConvertor  {
 		// TODO Auto-generated method stub
 		
 		System.out.println(args.toString());
-		String dbms = "MySQL";
-		String ip = "129.63.8.210";
-		String port = "3306";
-		String database = "";
+		String dbms = SQLUtils.SQLSERVER;
+		String ip = "localhost";
+		String port = "1433";
+		String database = "SQLSERVER_DEV";
 		String user = "root";
-		String pass = "PASSWORD";
+		String pass = "<PASSWORD>";
 		String sqlSchema = "shapes5";
 		String sqlTable = "test_table";
-		String fileName = args[0];
+		String fileName = "st99_d00.dbf";
 		String[] nullValues={};
 		
 		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(dbms), SQLUtils.getConnectString(dbms, ip, port, database, user, pass));
 		DBFUtils.storeAttributes(new File[]{ new File(fileName) }, conn, sqlSchema, sqlTable, true, nullValues);
-		conn.commit();
-		
-
 	}
 
 }

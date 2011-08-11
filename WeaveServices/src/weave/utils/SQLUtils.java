@@ -19,9 +19,11 @@
 
 package weave.utils;
 
+import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
+import java.security.InvalidParameterException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -40,18 +42,20 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.postgresql.PGConnection;
+
 /**
  * SQLUtils
  * 
  * @author Andy Dufilie
- * 
- * Additional work done by Andrew Wilkinson
+ * @author Andrew Wilkinson
+ * @author Kyle Monico
  */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
 	public static String POSTGRESQL = "PostGreSQL";
-
+	public static String SQLSERVER = "Microsoft SQL Server";
 	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
@@ -63,29 +67,19 @@ public class SQLUtils
 			return "com.mysql.jdbc.Driver";
 		if (dbms.equalsIgnoreCase(POSTGRESQL))
 			return "org.postgresql.Driver";
+		if (dbms.equalsIgnoreCase(SQLSERVER))
+			return "net.sourceforge.jtds.jdbc.Driver";
 		return "";
 	}
-//	/**
-//	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
-//	 * @return The default port number for the specified DBMS.
-//	 */
-//	public static String getDefaultPort(String dbms)
-//	{
-//		if (dbms.equalsIgnoreCase(MYSQL))
-//			return "3306"; // default MySQL port
-//		if (dbms.equalsIgnoreCase(POSTGRESQL))
-//			return "5432"; // default PostGreSQL port
-//		return "";
-//	}
+
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, Microsoft SQL Server)
 	 * @param ip The IP address of the DBMS.
 	 * @param port The port the DBMS is on (optional, can be "" to use default).
-	 * @param database The name of a database to connect to (optional, can be "")
+	 * @param database The name of a database to connect to (can be "" for MySQL)
 	 * @param user The username to use when connecting.
 	 * @param pass The password associated with the username.
 	 * @return A connect string that can be used in the getConnection() function.
-	 * @throws UnsupportedEncodingException 
 	 */
 	public static String getConnectString(String dbms, String ip, String port, String database, String user, String pass)
 	{
@@ -95,6 +89,17 @@ public class SQLUtils
 		else
 			host = ip + ":" + port;
 		
+		String format = null;
+		if (SQLSERVER.equalsIgnoreCase(dbms))
+		{
+			dbms = "sqlserver"; // this will be put in the format string
+			format = "jdbc:jtds:%s://%s/;instance=%s;user=%s;password=%s";
+		}
+		else // MySQL or PostGreSQL
+		{
+			format = "jdbc:%s://%s/%s?user=%s&password=%s";
+		}
+
 		// MySQL connect string uses % as an escape character, so we must use URLEncoder.
 		// PostGreSQL does not support % as an escape character, and does not work with the & character.
 		if (dbms.equalsIgnoreCase(MYSQL))
@@ -113,7 +118,9 @@ public class SQLUtils
 			}
 		}
 		
-		return "jdbc:" + dbms.toLowerCase() + "://" + host + "/" + database + "?user=" + user + "&password=" + pass;
+		String result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
+//		System.out.println(result);
+		return result;
 	}
 	
 	/**
@@ -239,20 +246,29 @@ public class SQLUtils
 	 */
 	public static String quoteSymbol(String dbms, String symbol) throws IllegalArgumentException
 	{
-		//the quote symbol is required for names of variables that include spaces
-		
-		String quote;
+		//the quote symbol is required for names of variables that include spaces or special characters
+
+		String openQuote, closeQuote;
 		if (dbms.equalsIgnoreCase(MYSQL))
-			quote = "`";
+		{
+			openQuote = closeQuote = "`";
+		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL))
-			quote = "\"";
+		{
+			openQuote = closeQuote = "\"";
+		}
+		else if (dbms.equalsIgnoreCase(SQLSERVER))
+		{
+			openQuote = "[";
+			closeQuote = "]";
+		}
 		else
 			throw new IllegalArgumentException("Unsupported DBMS type: "+dbms);
 		
-		if (symbol.contains(quote))
-			throw new IllegalArgumentException(String.format("Unable to surround SQL symbol with quote marks (%s) because it already contains one: %s", quote, symbol));
+		if (symbol.contains(openQuote) || symbol.contains(closeQuote))
+			throw new IllegalArgumentException(String.format("Unable to surround SQL symbol with quote marks (%s%s) because it already contains one: %s", openQuote, closeQuote, symbol));
 		
-		return quote + symbol + quote;
+		return openQuote + symbol + closeQuote;
 	}
 	
 	/**
@@ -262,13 +278,8 @@ public class SQLUtils
 	 */
 	public static String quoteSymbol(Connection conn, String symbol) throws SQLException, IllegalArgumentException
 	{
-		//the quote symbol is required for names of variables that include spaces
-		String quote = conn.getMetaData().getIdentifierQuoteString();
-
-		if (symbol.contains(quote))
-			throw new IllegalArgumentException(String.format("Unable to surround SQL symbol with quote marks (%s) because it already contains one: %s", quote, symbol));
-		
-		return quote + symbol + quote;
+		String dbms = conn.getMetaData().getDatabaseProductName();
+		return quoteSymbol(dbms, symbol);
 	}
 	
 	/**
@@ -278,19 +289,28 @@ public class SQLUtils
 	 */
 	public static String unquoteSymbol(String dbms, String symbol)
 	{
-		char quote;
+		char openQuote, closeQuote;
 		int length = symbol.length();
 		if (dbms.equalsIgnoreCase(MYSQL))
-			quote = '`';
+		{
+			openQuote = closeQuote = '`';
+		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL))
-			quote = '"';
+		{
+			openQuote = closeQuote = '"';
+		}
+		else if (dbms.equalsIgnoreCase(SQLSERVER))
+		{
+			openQuote = '[';
+			closeQuote = ']';
+		}
 		else
 			throw new IllegalArgumentException("Unsupported DBMS type: "+dbms);
 
 		String result = symbol;
-		if (length > 2 && symbol.charAt(0) == quote && symbol.charAt(length - 1) == quote)
+		if (length > 2 && symbol.charAt(0) == openQuote && symbol.charAt(length - 1) == closeQuote)
 			result = symbol.substring(1, length - 1);
-		if (result.indexOf(quote) >= 0)
+		if (result.indexOf(openQuote) >= 0 || result.indexOf(closeQuote) >= 0)
 			throw new IllegalArgumentException("Cannot unquote symbol: "+symbol);
 		
 		return result;
@@ -334,8 +354,11 @@ public class SQLUtils
 	 */
 	public static String binarySQLType(String dbms)
 	{
-		if (dbms.equalsIgnoreCase(POSTGRESQL))
+		if (POSTGRESQL.equalsIgnoreCase(dbms))
 			return "bytea";
+		else if (SQLSERVER.equalsIgnoreCase(dbms))
+			return "image";
+			
 		//if (dbms.equalsIgnoreCase(MYSQL))
 		return "BLOB";
 	}
@@ -893,6 +916,11 @@ public class SQLUtils
 			stmt = conn.createStatement();
 			stmt.executeUpdate(query);
 		}
+		catch (SQLException e)
+		{
+			System.out.println(query);
+			throw e;
+		}
 		finally
 		{
 			SQLUtils.cleanup(stmt);
@@ -1004,9 +1032,10 @@ public class SQLUtils
 		throws SQLException
 	{
 		//add a "if already exists don't create" thing here
-		CallableStatement cstmt = null;
-		
+		CallableStatement pstmt = null;
+		//String dbms = conn.getMetaData().getDatabaseProductName();
 		String query = "";
+		int i = 0;
 		try
 		{
 			// build list of quoted column names, question marks, and array of values in correct order
@@ -1014,7 +1043,7 @@ public class SQLUtils
 			String columnNames = "";
 			String questionMarks = "";
 			Object[] values = new Object[entrySet.size()];
-			int i = 0;
+
 			for (Entry<String,Object> entry : entrySet)
 			{
 				if (i > 0)
@@ -1023,33 +1052,36 @@ public class SQLUtils
 					questionMarks += ",";
 				}
 				columnNames += quoteSymbol(conn, entry.getKey());
-				questionMarks += '?';
+				questionMarks += "?";
 				values[i] = entry.getValue();
 				i++;
 			}
+			
 			query = String.format(
 					"INSERT INTO %s (%s) VALUES (%s)",
 					quoteSchemaTable(conn, schemaName, tableName),
 					columnNames,
 					questionMarks
-				);
-
-			// prepare call and set string parameters
-			cstmt = conn.prepareCall(query);
-			for (i = 0; i < values.length; i++)
-				cstmt.setObject(i+1, values[i]);
+			);
 			
-			cstmt.execute();
+			// prepare call and set string parameters
+			pstmt = conn.prepareCall(query);
+//			System.out.println("SQLUtils.insertRow:\t" + pstmt.getParameterMetaData().getParameterCount());
+			for (i = 0; i < values.length; i++)
+				pstmt.setObject(i+1, values[i]);
+
+			pstmt.execute();
 		}
 		catch (Exception e)
 		{
-			System.out.println(query);
-			System.out.println(newColumnValues);
+			System.out.println(pstmt.toString());
+//			System.out.println(query);
+//			System.out.println(newColumnValues);
 			e.printStackTrace();
 		}
 		finally
 		{
-			SQLUtils.cleanup(cstmt);
+			SQLUtils.cleanup(pstmt);
 		}
 	}
 
@@ -1067,6 +1099,86 @@ public class SQLUtils
 			if (existingSchema.equalsIgnoreCase(schema))
 				return true;
 		return false;
+	}
+	
+	public static void dropTableIfExists(Connection conn, String schema, String table) throws SQLException
+	{
+		String dbms = conn.getMetaData().getDatabaseProductName();
+		String quotedTable = SQLUtils.quoteSchemaTable(conn, schema, table);
+		String query = "";
+		if (SQLSERVER.equalsIgnoreCase(dbms))
+			query = "IF OBJECT_ID('" + quotedTable + "','U') IS NOT NULL DROP TABLE " + quotedTable;
+		else
+			query = "DROP TABLE IF EXISTS " + quotedTable;
+		
+		Statement stmt = conn.createStatement();
+		stmt.executeUpdate(query);
+		stmt.close();
+		cleanup(stmt);
+	}
+		
+	/**
+	 * This function will delete from a table the rows that have a specified set of column values.
+	 * @param conn An existing SQL Connection
+	 * @param schemaName A schema name accessible through the given connection
+	 * @param tableName A table name existing in the given schema
+	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
+	 * @throws SQLException If the query fails.
+	 */
+	@SuppressWarnings("unchecked")
+	public static void deleteRows(Connection conn, String schemaName, String tableName, Map<String,String> whereParams) throws SQLException
+	{
+		CallableStatement cstmt = null;
+		String query = "";
+
+		try 
+		{
+			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schemaName, tableName) + " WHERE ";
+			
+			Entry<String,String>[] params = whereParams.entrySet().toArray(new Entry[0]);
+
+			for (int i = 0; i < params.length; i++)
+			{
+				if (i > 0)
+					query += " AND ";
+				query += SQLUtils.quoteSymbol(conn, params[i].getKey()) + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
+			}
+			
+			cstmt = conn.prepareCall(query);
+			
+			for (int i = 0; i < params.length; i++)
+				cstmt.setString(i + 1, params[i].getValue());
+			
+			cstmt.execute();
+		}
+		finally
+		{
+			SQLUtils.cleanup(cstmt);
+		}		
+	}
+
+	public static String quoteString(Connection conn, String symbol)
+	{
+		try 
+		{
+			return quoteString(conn.getMetaData().getDatabaseProductName(), symbol);
+		} 
+		catch (SQLException e) 
+		{
+			// this should never happen
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public static String quoteString(String dbms, String symbol)
+	{
+		if (MYSQL.equalsIgnoreCase(dbms))
+			return "`" + symbol + "`";
+		if (POSTGRESQL.equalsIgnoreCase(dbms))
+			return "\"" + symbol + "\"";
+		if (SQLSERVER.equalsIgnoreCase(dbms))
+			return "'" + symbol + "'";
+		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 	}
 	
 	/**
@@ -1101,5 +1213,115 @@ public class SQLUtils
 	public static void cleanup(Connection obj)
 	{
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
+	}
+
+	public static String getVarcharTypeString(Connection conn, int length) 
+	{
+		return String.format("VARCHAR(%s)", length);
+	}
+	public static String getIntTypeString(Connection conn) 
+	{
+		return "INT";
+	}
+	public static String getDoubleTypeString(Connection conn)
+	{
+		String dbms = "";
+		try
+		{
+			dbms = conn.getMetaData().getDatabaseProductName();
+		}
+		catch (Exception e)
+		{
+			// this should never happen
+			throw new RuntimeException(e);
+		}
+		
+		if (SQLSERVER.equalsIgnoreCase(dbms))
+			return "FLOAT"; // this is an 8 floating point type with 53 bits for the mantissa, the same as an 8 byte double.
+			                // but SQL Server's DOUBLE PRECISION type isn't standard
+		return "DOUBLE PRECISION";
+	}
+	public static String getBigIntTypeString(Connection conn) 
+	{
+		return "BIGINT";
+	}
+	public static String getDateTimeTypeString(Connection conn)
+	{
+		return "DATETIME";
+	}
+	
+	public static void copyCsvToDatabase(Connection conn, String formatted_CSV_path, String sqlSchema, String sqlTable) throws Exception
+	{
+		String dbms = conn.getMetaData().getDatabaseProductName();
+		Statement stmt = null;
+		String quotedTable = quoteSchemaTable(conn, sqlSchema, sqlTable);
+
+		try
+		{
+			if (dbms.equalsIgnoreCase(SQLUtils.MYSQL))
+			{
+				stmt = conn.createStatement();
+				//ignoring 1st line so that we don't put the column headers as the first row of data
+				stmt.executeUpdate(String.format(
+						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
+						formatted_CSV_path, quotedTable
+						));
+				stmt.close();
+			}
+			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
+			{
+				((PGConnection) conn).getCopyAPI().copyIn(
+						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
+						new FileInputStream(formatted_CSV_path));
+			}
+			else if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
+			{
+				stmt = conn.createStatement();
+
+				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
+				stmt.executeUpdate(String.format(
+						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', KEEPNULLS )", 
+						quotedTable, formatted_CSV_path
+						));
+			}
+		}
+		catch (Exception e)
+		{
+			throw e;
+		}
+		finally 
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}
+	
+	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException 
+	{
+		String dbms = conn.getMetaData().getDatabaseProductName();
+		if (SQLSERVER.equalsIgnoreCase(dbms))
+			return "BIGINT PRIMARY KEY IDENTITY";
+		
+		// for mysql and postgresql, return the following.
+		return "SERIAL PRIMARY KEY";
+	}
+
+	public static String getCSVNullValue(Connection conn) 
+	{
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			
+			if (MYSQL.equalsIgnoreCase(dbms))
+				return "\\N";
+			else if (POSTGRESQL.equalsIgnoreCase(dbms) || SQLSERVER.equalsIgnoreCase(dbms))
+				return ""; // empty string (no quotes)
+			else
+				throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
+		}
+		catch (Exception e)
+		{
+			// this should never happen
+			throw new RuntimeException(e);
+		}
 	}
 }
