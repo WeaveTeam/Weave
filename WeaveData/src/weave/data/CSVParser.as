@@ -202,13 +202,12 @@ package weave.data
 			
 			// if there is more than one row and last row is empty,
 			// remove last row assuming it is there because of a newline at the end of the file.
-			while (csvDataArray.length > 1)
+			for (var iRow:int = csvDataArray.length - 1; iRow >= 0; --iRow)
 			{
-				var lastRow:Array = csvDataArray[csvDataArray.length - 1];
-				if (lastRow.length == 1 && lastRow[0] == '')
-					csvDataArray.pop();
-				else
-					break;
+				var dataLine:Array = csvDataArray[iRow];
+				
+				if (dataLine.length == 1 && dataLine[0] == '')
+					csvDataArray.splice(iRow, 1);
 			}
 			
 			return csvDataArray;
