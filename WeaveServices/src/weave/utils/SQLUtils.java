@@ -95,34 +95,25 @@ public class SQLUtils
 		else
 			host = ip + ":" + port;
 		
-		return "jdbc:" + dbms.toLowerCase() + "://" + host + "/" + connectStringEncode(database) + "?user=" + user + "&password=" + connectStringEncode(pass);
-	}
-	
-	/**
-	 * This function will encode a string so that it is suitable to be included in a connectString.
-	 * @param str The string to encode.
-	 * @return The encoded string.
-	 */
-	private static String connectStringEncode(String str)
-	{
-//		String escaped = "";
-//		for (int i = 0; i < str.length(); i++)
-//		{
-//			if (str.charAt(i) == ';')
-//				escaped += "{;}";
-//			else
-//				escaped += str.charAt(i);
-//		}
-//		return escaped;
+		// MySQL connect string uses % as an escape character, so we must use URLEncoder.
+		// PostGreSQL does not support % as an escape character, and does not work with the & character.
+		if (dbms.equalsIgnoreCase(MYSQL))
+		{
+			try
+			{
+				String utf = "UTF-8";
+				database = URLEncoder.encode(database, utf);
+				user = URLEncoder.encode(user, utf);
+				pass = URLEncoder.encode(pass, utf);
+			}
+			catch (UnsupportedEncodingException e)
+			{
+				// this should never happen
+				throw new RuntimeException(e);
+			}
+		}
 		
-		try
-		{
-			return URLEncoder.encode(str, "UTF-8");
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			throw new RuntimeException(e);
-		}
+		return "jdbc:" + dbms.toLowerCase() + "://" + host + "/" + database + "?user=" + user + "&password=" + pass;
 	}
 	
 	/**
