@@ -278,8 +278,7 @@ package weave.data.DataSources
 			propertyNamesArray.push(propertyName);
 			query = wfsDataService.getFeature(featureTypeName, propertyNamesArray);
 			var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-			DelayedAsyncResponder.addResponder(query, 
-				handleColumnDownload, handleColumnDownloadFail, token);
+			DelayedAsyncResponder.addResponder(query, handleColumnDownload, handleColumnDownloadFail, token);
 		}
 		
 		private function getQName(xmlContainingNamespaceInfo:XML, qname:String):QName
@@ -303,6 +302,9 @@ package weave.data.DataSources
 			var request:ColumnRequestToken = token as ColumnRequestToken;
 			var hierarchyPath:XML = request.pathInHierarchy;
 			var proxyColumn:ProxyColumn = request.proxyColumn;
+			
+			if (proxyColumn.wasDisposed)
+				return;
 			
 			var result:XML = null;
 			var i:int;

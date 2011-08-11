@@ -381,6 +381,10 @@ package weave.data.DataSources
 		private function handleGetAttributeColumnFault(event:FaultEvent, token:Object = null):void
 		{
 			var request:ColumnRequestToken = token as ColumnRequestToken;
+
+			if (request.proxyColumn.wasDisposed)
+				return;
+			
 			request.proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
 			trace("handleGetAttributeColumnFault", ObjectUtil.toString(request.pathInHierarchy), event.fault, event.message);
 			WeaveAPI.ErrorManager.reportError(event.fault);
