@@ -39,15 +39,22 @@
 		</mx:HBox>
 		<admin:SQLTableSelectorDialog id="tableSelector" enabled="false" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" initialize="tableSelector.tableOverwriteCheck.toolTip = StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP"/>
 		<mx:HBox id="box1" enabled="false">
-			<mx:TextArea text="Name of key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true" />
-			<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
-		</mx:HBox>
-		<mx:CheckBox  id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false" enabled="false"/>
-		<mx:VBox id="box1b" enabled="false">
-			<mx:HBox enabled="{secondaryKeyColumnCheckBox.selected}">
-				<mx:TextArea text="Name of secondary key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true"/>
-				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" text=""  selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
+			<mx:HBox enabled="{!generateKeyColumn.selected}">
+				<mx:TextArea text="Name of key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true" />
+				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
 			</mx:HBox>
+			<mx:CheckBox id="generateKeyColumn" selected="true"
+						 label="Generate primary key column"
+						 toolTip="Checking this box will generate a key column where each row is treated as a unique key."/>
+		</mx:HBox>
+		<mx:VBox enabled="{!generateKeyColumn.selected}">
+			<mx:CheckBox  id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false" enabled="false"/>
+			<mx:VBox id="box1b" enabled="false">
+				<mx:HBox enabled="{secondaryKeyColumnCheckBox.selected}">
+					<mx:TextArea text="Name of secondary key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true"/>
+					<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" text=""  selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
+				</mx:HBox>
+			</mx:VBox>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage">
@@ -60,7 +67,9 @@
 			<mx:TextInput id="dataTableNameInput" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</mx:HBox>
-		<admin:GeometryCollectionDialog id="geometrySelector" enabled="false" keyType="{tableSelector.activeTable}"/>
+		<mx:HBox enabled="{!generateKeyColumn.selected}">
+			<admin:GeometryCollectionDialog id="geometrySelector" enabled="false" keyType="{tableSelector.activeTable}"/>
+		</mx:HBox>		
 	</mx:VBox>
 	<mx:VBox id="dublinCorePage" width="100%" >
 		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the metadata tab of the data table view."/>
@@ -193,9 +202,10 @@
 			 */
 			override public function finish():void
 			{
+				var keyType:String = generateKeyColumn.selected ? '' : csvKeyColumnCombo.text;
 				var query:DelayedAsyncInvocation = AdminInterface.instance.importCSV(
 						csvFileNameInput.text,
-						csvKeyColumnCombo.text,
+						keyType, 
 						secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,

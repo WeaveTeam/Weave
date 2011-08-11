@@ -1172,7 +1172,7 @@ public class AdminService extends GenericServlet
 		int j = 0;
 		int num = 1;
 		String outputNullValue = SQLUtils.getCSVNullValue(conn);
-
+		boolean ignoreKeyColumnQueries = false;
 		try
 		{
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
@@ -1181,6 +1181,36 @@ public class AdminService extends GenericServlet
 			if (rows.length == 0)
 				throw new RemoteException("CSV file is empty: " + csvFile);
 
+			// if there is no key column, we need to append a unique Row ID column
+			if ("".equals(csvKeyColumn))
+			{
+				ignoreKeyColumnQueries = true;	
+				// get the maximum number of rows in a column
+				int maxNumRows = 0;
+				for (i = 0; i < rows.length; ++i) 
+				{
+					String[] column = rows[i];
+					int numRows = column.length; // this includes the column name in row 0
+					if (numRows > maxNumRows)
+						maxNumRows = numRows;
+				}
+
+				
+				csvKeyColumn = "Row ID";
+				for (i = 0; i < rows.length; ++i)
+				{
+					String[] row = rows[i];
+					String[] newRow = new String[row.length + 1];
+					
+					System.arraycopy(row, 0, newRow, 0, row.length);
+					if (i == 0)
+						newRow[newRow.length - 1] = csvKeyColumn;
+					else
+						newRow[newRow.length - 1] = "Key " + i;
+					rows[i] = newRow;
+				}
+			}
+			
 			// Read the column names
 			
 			columnNames = rows[0];
@@ -1347,7 +1377,7 @@ public class AdminService extends GenericServlet
 			
 			returnMsg += addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
 					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, Arrays.asList(originalColumnNames), Arrays
-							.asList(columnNames), sqlSchema, sqlTable);
+							.asList(columnNames), sqlSchema, sqlTable, ignoreKeyColumnQueries);
 		}
 		catch (SQLException e)
 		{
@@ -1394,10 +1424,10 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		List<String> columnNames = getColumnsList(connectionName, schemaName, tableName);
 		return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName, geometryCollectionName,
-				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName);
+				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false);
 	}
 
-	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable) throws RemoteException
+	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTable = sqlTable.toLowerCase();
@@ -1408,13 +1438,23 @@ public class AdminService extends GenericServlet
 		String dbms = info.dbms;
 		if (sqlColumnNames == null)
 			sqlColumnNames = new Vector<String>();
+
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
-		int i = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames);
-		
+		int i = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames); 
 		int j = ListUtils.findIgnoreCase(secondaryKeyColumnName, sqlColumnNames);
+
+		String originalKeyColumName; // save the original column name
 		if (i >= 0)
+		{
+			originalKeyColumName = keyColumnName; // before quoting, save the column name
 			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(i));
+		}
+		else
+		{
+			originalKeyColumName = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
+		}
+		
 		if (j >= 0)
 			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(j));
 		// Write SQL statements into sqlconfig.
@@ -1443,9 +1483,15 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
+			System.out.println("ignoreKeyColumnQueries: " + ignoreKeyColumnQueries);
 			for (i = 0; i < sqlColumnNames.size(); i++)
 			{
 				// test each query
+				String columnName = sqlColumnNames.get(i);
+				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
+				if (ignoreKeyColumnQueries && originalKeyColumName.equals(columnName))
+					continue;
+				
 				query = generateColumnQuery(dbms, keyColumnName, secondaryKeyColumnName, sqlColumnNames.get(i), sqlSchema, sqlTable);
 				String testQuery = dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) ? query : (query + " LIMIT 1");
 				
@@ -1484,7 +1530,11 @@ public class AdminService extends GenericServlet
 			metadata.put(Metadata.DATATABLE.toString(), configDataTableName);
 			metadata.put(Metadata.KEYTYPE.toString(), keyType);
 			metadata.put(Metadata.GEOMETRYCOLLECTION.toString(), geometryCollectionName);
-			for (i = 0; i < sqlColumnNames.size(); i++)
+			
+			int numberSqlColumns = sqlColumnNames.size();
+			if (ignoreKeyColumnQueries)
+				--numberSqlColumns;
+			for (i = 0; i < numberSqlColumns; i++)
 			{
 				metadata.put(Metadata.NAME.toString(), configColumnNames.get(i));
 				metadata.put(Metadata.DATATYPE.toString(), dataTypes.get(i));
@@ -1622,7 +1672,7 @@ public class AdminService extends GenericServlet
 		List<String> columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName);
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
 				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
-				dbfTableName);
+				dbfTableName, false);
 
 		return resultAddSQL
 				+ "\n\n"
