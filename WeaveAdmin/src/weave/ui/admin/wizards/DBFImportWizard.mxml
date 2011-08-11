@@ -38,7 +38,7 @@
 		<admin:SQLTableSelectorDialog name="tableSelector" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 		<ui:Center>
 			<mx:VBox>
-				<mx:Button id="importDBFButton" label="Store DBF Data in Database" click="AdminInterface.instance.storeDBFDataToDatabase(importDBFFileNameInputToStore.text,importDBFSchemaComboToStore.text, importDBFTableInputToStore.text, importDBFDataToSQLOverwriteCheck.selected, importDBFButton)" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
+				<mx:Button id="importDBFButton" label="Store DBF Data in Database" click="AdminInterface.instance.storeDBFDataToDatabase(importDBFFileNameInputToStore.text,importDBFSchemaComboToStore.text, importDBFTableInputToStore.text, importDBFDataToSQLOverwriteCheck.selected, importDBFButton)" />
 				<mx:Label text="Note: This does not create a Weave configuration entry yet, it only uploads the data to a SQL table."/>
 			</mx:VBox>
 		</ui:Center>

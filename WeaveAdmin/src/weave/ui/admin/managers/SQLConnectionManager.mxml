@@ -30,7 +30,6 @@
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Remove" click="handleRemoveConnection()"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
 		</mx:HBox>
 	</mx:VBox>	
@@ -51,7 +50,7 @@
 				<ui:Indent indent="{_indent}" label="SQL Database name">
 					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
 					<mx:Label text="(Optional)"/>
-					<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.  For SQL Server, this is an instance name.  Similarly in PostGreSQL, databases are different from schemas.  MySQL does not differentiate between the two.', 'Admin Console Help')"/>
+					<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.\nFor SQL Server, this is an instance name.\nSimilarly in PostGreSQL, databases are different from schemas.\nMySQL does not differentiate between the two.', 'Admin Console Help')"/>
 					<!-- 'This field is required only for MS SQLServer connections. If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express. If there is no instance name for your server, you may leave this blank.' -->
 				</ui:Indent>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
@@ -59,12 +58,11 @@
 				<ui:Indent indent="{_indent}">
 					<mx:CheckBox label="Grant Superuser Permissions" id="isSuperuserCheckbox"/>					
 				</ui:Indent>
-				<ui:Indent>
-					<mx:Button label="Save this database connection"
-							   click="saveConnectionInfo()"
-							   fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
-					<mx:Button label="Clear" id="clearConnectionColumns" click="clearConnectionColumns_clickHandler(event)" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
-				</ui:Indent>
+				<mx:HBox>
+					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
+					<mx:Button label="Clear fields" id="clearConnectionColumns" click="clearConnectionColumns_clickHandler(event)" />
+					<mx:Button label="Remove selected connection" click="handleRemoveConnection()"/>
+				</mx:HBox>
 			</mx:VBox>
 		</mx:Canvas>
 		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
@@ -77,9 +75,7 @@
 				<ui:TextBox indent="{170}" label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
 				<ui:TextBox indent="{170}" label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
 				<ui:TextBox indent="{170}" label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
-				<ui:Indent>
-					<mx:Button id="migrateButton" label="Use these SQL tables to store Weave's configuration" click="migrateToDatabase()" fillColors="[#13F2EA, #0B9A95, #44F6C2, #44F6C2]"/>
-				</ui:Indent>
+				<mx:Button id="migrateButton" label="Use these SQL tables to store Weave's configuration" click="migrateToDatabase()" />
 			</mx:VBox>
 		</mx:Canvas>
 		<!--		<mx:Canvas label="etc" width="100%" height="100%">
@@ -193,6 +189,7 @@
 				connectionUserInput.text = "";
 				connectionPasswordInput.text = "";
 				configOverwrite.selected = false;
+				isSuperuserCheckbox.selected = false;
 			}
 			
 			private function saveConnectionInfo():void

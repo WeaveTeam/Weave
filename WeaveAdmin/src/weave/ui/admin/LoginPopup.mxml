@@ -23,10 +23,11 @@
 Author: skolman
 -->
 
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" title="Enter login criteria" 
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" title="Sign in" 
 		  paddingLeft="10" paddingTop="10" paddingRight="10" paddingBottom="10"
 		  xmlns:ui="weave.ui.*"
 		  xmlns="weave.ui.admin.*"
+		  backgroundAlpha="1"
 		  creationComplete="handleCreationComplete()">
 	
 	<mx:Script>
@@ -109,7 +110,7 @@ Author: skolman
 	
 	<mx:HBox>
 		<mx:Label text="Connection Name:" width="110" textAlign="right"/>
-		<mx:TextInput id="connectionInput" enter="login()" minWidth="150" change="AdminInterface.instance.activeConnectionName = connectionInput.text"/>
+		<mx:TextInput id="connectionInput" enter="login()" minWidth="150"/>
 		<!--<ui:CustomComboBox id="connectionCombo" minWidth="150" text="{AdminInterface.instance.activeConnectionName}" change="AdminInterface.instance.activeConnectionName = connectionCombo.text;" dataProvider="{AdminInterface.instance.connectionNames}"/>-->
 	</mx:HBox>
 	<mx:HBox>
@@ -117,7 +118,7 @@ Author: skolman
 		<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
 	</mx:HBox>
 	<ui:Center>
-		<mx:Button label="Log In" click="login()"/>
+		<mx:Button label="Sign in" click="login()"/>
 	</ui:Center>
 	
 </mx:Panel>
