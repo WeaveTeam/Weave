@@ -62,10 +62,19 @@
 				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
 				function handlePermissionChange(isSuperuser:Boolean):void
 				{
-					if (isSuperuser && tabNavigator != sqlConnectionManager.parent)
-						tabNavigator.addChild(sqlConnectionManager);
-					if (!isSuperuser && tabNavigator == sqlConnectionManager.parent)
-						tabNavigator.removeChild(sqlConnectionManager);
+					if (isSuperuser != (tabNavigator == sqlConnectionManager.parent))
+					{
+						if (isSuperuser)
+						{
+							tabNavigator.addChild(sqlConnectionManager);
+							tabNavigator.addChild(adminToolsManager);
+						}
+						else
+						{
+							tabNavigator.removeChild(sqlConnectionManager);
+							tabNavigator.removeChild(adminToolsManager);
+						}
+					}
 				}
 				//Sets up bindings such that when AdminInterface.instance.userHasAuthenticated changes, 
 				//handleUserHasAuthenticatedChange() is invoked, passing as the argument
@@ -148,7 +157,6 @@
 				<managers:GeometryCollectionManager/>
 				<managers:SQLConnectionManager id="sqlConnectionManager"/>
 				<managers:AdminToolsManager id="adminToolsManager"/>
-							
 			</mx:TabNavigator>
 			<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false">
 				

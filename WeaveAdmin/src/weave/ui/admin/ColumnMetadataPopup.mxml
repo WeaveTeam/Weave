@@ -21,27 +21,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
 		  layout="absolute"
-		  width="600" height="300"
+		  width="640" height="480"
 		  xmlns="weave.ui.admin.*"
 		  xmlns:ui="weave.ui.*"
 		  label="ColumnMetadataPopup"
 	      showCloseButton="true" close="closeColumnMetadataPopup(event)">
-<mx:VBox>	
-		<mx:DataGrid id="popUpDataGrid">
-		</mx:DataGrid>
-	
-	<mx:Label text= "Would you like to delete these invalid query results?">
-		
-	</mx:Label>
+	<mx:DataGrid id="popUpDataGrid" width="100%" height="100%" horizontalScrollPolicy="auto"/>
+<!--
+	<mx:Label text= "The queries for these attribute columns failed.  Would you like to remove them?"/>
 	<mx:HBox>
-			<mx:Button id="YesButton"  label="Yes" click="YesButton_clickHandler(event)">
-			</mx:Button>
-		
-		
-			<mx:Button id="NoButton" label="No" click="NoButton_clickHandler(event)">
-			</mx:Button>
-	</mx:HBox>	
-</mx:VBox>
+			<mx:Button id="YesButton"  label="Yes" click="YesButton_clickHandler(event)"/>
+			<mx:Button id="NoButton" label="No" click="NoButton_clickHandler(event)"/>
+	</mx:HBox>
+-->
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
@@ -78,6 +70,4 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 		]]>
 	</mx:Script>
-	
-	
 </mx:TitleWindow>
