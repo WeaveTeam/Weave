@@ -1289,7 +1289,8 @@ public class AdminService extends GenericServlet
 			
 			// save modified CSV
 			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
-			out.write(CSVParser.defaultParser.createCSVFromArrays(rows));
+			boolean quoteEmptyStrings = outputNullValue.length() > 0;
+			out.write(CSVParser.defaultParser.createCSVFromArrays(rows, quoteEmptyStrings));
 			out.close();
 		}
 		catch (RemoteException e)
