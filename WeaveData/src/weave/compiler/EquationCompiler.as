@@ -168,6 +168,11 @@ package weave.compiler
 		 */
 		private static var operators:Object = null;
 		/**
+		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
+		 * Each nested Array is a group of operators that should be evaluated in the same pass.
+		 */
+		private static var orderedOperators:Array = null;
+		/**
 		 * The keys in this Dictionary are pointers to impure functions, meaning if they are called
 		 * more than once with the same arguments, they may return different results.  The compiler
 		 * checks this Dictionary to determine which function calls it cannot simplify to a constant.
@@ -198,31 +203,65 @@ package weave.compiler
 			constants["true"] = true;
 			constants["false"] = false;
 			
-			// grouping operators
+			/** operators **/
+			// access
+			//operators["."] = true;
+			// grouping
 			operators["("] = true;
 			operators[")"] = true;
 			operators[","] = true;
-			// math operators
-			operators["*"] = MathLib.mul;
+			// math
 			operators["**"] = Math.pow;
-			operators["/"] = MathLib.div;
-			operators["%"] = MathLib.mod;
-			operators["+"] = MathLib.add;
-			operators["-"] = MathLib.sub;
-			// bitwise operators
-			operators["&"] = function(x:*, y:*):* { return x & y; };
-			operators["|"] = function(x:*, y:*):* { return x | y; };
-			operators["^"] = function(x:*, y:*):* { return x ^ y; };
-			operators["<<"] = function(x:*, y:*):* { return x << y; };
-			operators[">>"] = function(x:*, y:*):* { return x >> y; };
-			// boolean operators
-			operators["<"] = BooleanLib.lessThan;
-			operators[">"] = BooleanLib.greaterThan;
-			operators["&&"] = function(x:*, y:*):* { return x && y; };
-			operators["||"] = function(x:*, y:*):* { return x || y; };
-			operators["^^"] = function(x:*, y:*):* { return (x ? 1 : 0) ^ (y ? 1 : 0) }; // XOR boolean operator
-			
-			//operators["."] = ;
+			operators["*"] = function(x:*, y:*):Number { return x * y; };
+			operators["/"] = function(x:*, y:*):Number { return x / y; };
+			operators["%"] = function(x:*, y:*):Number { return x % y; };
+			operators["+"] = function(x:*, y:*):Number { return x + y; };
+			operators["-"] = function(x:*, y:*):Number { return x - y; };
+			// bitwise
+			operators["~"] = function(x:*):int { return ~x; };
+			operators["&"] = function(x:*, y:*):int { return x & y; };
+			operators["|"] = function(x:*, y:*):int { return x | y; };
+			operators["^"] = function(x:*, y:*):int { return x ^ y; };
+			operators["<<"] = function(x:*, y:*):int { return x << y; };
+			operators[">>"] = function(x:*, y:*):int { return x >> y; };
+			operators[">>>"] = function(x:*, y:*):int { return x >>> y; };
+			// comparison
+			operators["<"] = function(x:*, y:*):Boolean { return x < y; };
+			operators["<="] = function(x:*, y:*):Boolean { return x <= y; };
+			operators[">"] = function(x:*, y:*):Boolean { return x > y; };
+			operators[">="] = function(x:*, y:*):Boolean { return x >= y; };
+			operators["=="] = function(x:*, y:*):Boolean { return x == y; };
+			operators["==="] = function(x:*, y:*):Boolean { return x === y; };
+			operators["!="] = function(x:*, y:*):Boolean { return x != y; };
+			operators["!=="] = function(x:*, y:*):Boolean { return x !== y; };
+			// boolean
+			operators["!"] = function(x:*):Boolean { return !x; };
+			operators["&&"] = function(x:*, y:*):Boolean { return x && y; };
+			operators["||"] = function(x:*, y:*):Boolean { return x || y; };
+			operators["^^"] = function(x:*, y:*):Boolean { return ((x ? 1 : 0) ^ (y ? 1 : 0)) == 1; }; // XOR boolean operator
+			// branching
+			operators["?"] = true;
+			operators[":"] = true;
+			// assignment
+			operators["="] = true; // for now, this is only here to make sure '==' will be captured as an operator
+
+			// Evaluate operators in the same order as ActionScript.
+			orderedOperators = [
+				['*','/','%'],
+				['+','-'],
+				['<<','>>','>>>'],
+				['<','<=','>','>='],
+				['==','!=','===','!=='],
+				['&'],
+				['^'],
+				['|'],
+				['&&'],
+				['^^'],
+				['||'],
+				['?',':'],
+				['='],
+				[',']
+			];
 
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
@@ -263,18 +302,25 @@ package weave.compiler
 			var endIndex:int;
 			var n:int = equation.length;
 			var c:String = equation.charAt(index);
+			
 			// this function assumes operators has already been initialized
-			if (operators[c] != undefined) // special character in "+-*/^(),"
-				return c;
-			if (WHITESPACE.indexOf(c) >= 0) // whitespace
-			{
-				// find the next character that is not whitespace.
-				endIndex = index;
-				while (endIndex < n && WHITESPACE.indexOf(equation.charAt(endIndex)) >= 0)
-					endIndex++;
+
+			// handle operators (find the longest matching operator)
+			endIndex = index;
+			while (endIndex < n && operators[ equation.substring(index, endIndex + 1) ] != undefined)
+				endIndex++;
+			if (index < endIndex)
 				return equation.substring(index, endIndex);
-			}
-			if (c == '"') // quoted string
+			
+			// handle whitespace (find the longest matching sequence)
+			endIndex = index;
+			while (endIndex < n && WHITESPACE.indexOf(equation.charAt(endIndex)) >= 0)
+				endIndex++;
+			if (index < endIndex)
+				return equation.substring(index, endIndex);
+			
+			// handle quoted string
+			if (c == '"')
 			{
 				// index points to the beginning '"'
 				// make endIndex point to the ending '"'
@@ -302,9 +348,13 @@ package weave.compiler
 				// operator terminates a token
 				if (operators[c] != undefined)
 				{
-					// special case: "operator" followed by an operator symbol is treated as a single token 
+					// special case: "operator" followed by an operator symbol is treated as a single token
 					if (equation.substring(index, endIndex) == OPERATOR_FUNCTION_NAME_PREFIX)
-						endIndex++; // include operator symbol
+					{
+						// this while loop works because any substring of a multi-character operator is also an operator itself
+						while (operators[ equation.substring(index, endIndex + 1) ] != undefined)
+							endIndex++; // include operator symbol
+					}
 					break;
 				}
 			}
@@ -313,13 +363,14 @@ package weave.compiler
 
 		/**
 		 * This function will recursively compile a set of tokens into a compiled object representing a function that takes no parameters and returns a value.
-		 * Example set of input tokens:  add ( - ( - 2 + 1 ) ^ - 4 , 3 ) - ( 4 + - 1 )
+		 * Example set of input tokens:  add ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
 		 * @param tokens An Array of tokens for an equation.
 		 * @param variableGetter This function should return a value for a given variable name.  The function signature should be:  function(variableName:String):*
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid equation.
 		 */
 		private static function compileTokens(tokens:Array, variableGetter:Function, evaluateToConstantIfPossible:Boolean):ICompiledObject
 		{
+			var i:int;
 			var subArray:Array;
 			var compiledParams:Array;
 
@@ -395,9 +446,11 @@ package weave.compiler
 
 			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
 			
+			// step: handle infix '.'
+			
 			// step 2: compile constants and variable names
 			var token:*;
-			for (var i:int = 0; i < tokens.length; i++)
+			for (i = 0; i < tokens.length; i++)
 			{
 				token = tokens[i];
 				// skip tokens that have already been compiled and skip operator tokens
@@ -430,11 +483,13 @@ package weave.compiler
 				// compile the token as a call to variableGetter.
 				tokens[i] = compileVariable(variableGetter, token);
 			}
-			// step 3: compile '^' infix operators, left to right
-			compileInfixOperators(tokens, '^', evaluateToConstantIfPossible);
+			// step 3: compile '**' infix operators, left to right
+			compileInfixOperators(tokens, ['**'], evaluateToConstantIfPossible);
 			// step 4: compile unary '-' operators, right to left
 			for (var neg:int = tokens.length - 2; neg >= 0; neg--) // start from second to last token
 			{
+				//TODO: ~ !
+				
 				if (tokens[neg] != '-')
 					continue;
 				// if '-' is the first token or the token to the left of it is an operator, it is a unary '-'.
@@ -444,14 +499,9 @@ package weave.compiler
 					tokens.splice(neg, 2, compileFunction("-", MathLib.neg, [tokens[neg + 1]], evaluateToConstantIfPossible));
 				}
 			}
-			// step 7: compile '*', '/' and '%' infix operators
-			compileInfixOperators(tokens, '*/%', evaluateToConstantIfPossible);
-			// step 8: compile '+' and '-' infix operators
-			compileInfixOperators(tokens, '+-', evaluateToConstantIfPossible);
-			// step 9: compile infix operators
-			compileInfixOperators(tokens, '<>', evaluateToConstantIfPossible);
-			// step 10: compile infix operators
-			compileInfixOperators(tokens, '&|^', evaluateToConstantIfPossible);
+			// step 5: compile infix operators
+			for (i = 0; i < orderedOperators.length; i++)
+				compileInfixOperators(tokens, orderedOperators[i], evaluateToConstantIfPossible);
 			// step 11: compile last token
 			// there should be only a single token left
 			if (tokens.length == 1)
@@ -508,7 +558,7 @@ package weave.compiler
 		 * @param compiledTokens An Array of compiled tokens for an equation.  No '(' ')' or ',' tokens should appear in this Array.
 		 * @param operatorSymbols A String containing all the infix operator symbols to compile.
 		 */
-		private static function compileInfixOperators(compiledTokens:Array, operatorSymbols:String, evaluateToConstantIfPossible:Boolean):void
+		private static function compileInfixOperators(compiledTokens:Array, operatorSymbols:Array, evaluateToConstantIfPossible:Boolean):void
 		{
 			//trace("compile infix operators '"+operatorSymbols+"': "+compiledTokens); 
 			var index:int;
@@ -518,7 +568,7 @@ package weave.compiler
 				index = compiledTokens.length;
 				for (var i:int = 0; i < operatorSymbols.length; i++)
 				{
-					var testIndex:int = compiledTokens.indexOf(operatorSymbols.charAt(i));
+					var testIndex:int = compiledTokens.indexOf(operatorSymbols[i]);
 					if (testIndex >= 0)
 						index = Math.min(index, testIndex);
 				}
@@ -679,9 +729,9 @@ package weave.compiler
 		{
 			var eqs:Array = [
 				'-var---3+var2',
-				'(- x * 3) / get("var") + -2 + pow(5,3) + 6^3',
-				'add ( - ( - 2 + 1 ) ^ - 4 , - 3 ) - ( - 4 + - 1 * - 7 )',
-				'(x + var) / add ( - ( 2 + 1 ) ^ 4 , 3 ) - ( 4 + 1 )',
+				'(- x * 3) / get("var") + -2 + pow(5,3) + 6**3',
+				'add ( - ( - 2 + 1 ) ** - 4 , - 3 ) - ( - 4 + - 1 * - 7 )',
+				'(x + var) / add ( - ( 2 + 1 ) ** 4 , 3 ) - ( 4 + 1 )',
 				'3',
 				'-3',
 				'var',
