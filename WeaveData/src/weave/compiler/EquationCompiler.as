@@ -22,13 +22,15 @@ package weave.compiler
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	
+	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.compiler.ICompiledObject;
+	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.EquationColumnLib;
 	
 	/**
-	 * This class provides a static function compileEquation() that compiles a mathematical
+	 * This class provides a static function compileEquation() that compiles an
 	 * equation into a function that evaluates that equation.
 	 * 
 	 * @author adufilie
@@ -177,6 +179,10 @@ package weave.compiler
 		 */
 		private static var orderedOperators:Array = null;
 		/**
+		 * This is an Array of all the unary operator symbols.
+		 */
+		private static var unaryOperatorSymbols:Array = null;
+		/**
 		 * The keys in this Dictionary are pointers to impure functions, meaning if they are called
 		 * more than once with the same arguments, they may return different results.  The compiler
 		 * checks this Dictionary to determine which function calls it cannot simplify to a constant.
@@ -243,7 +249,6 @@ package weave.compiler
 			operators["!"] = function(x:*):Boolean { return !x; };
 			operators["&&"] = function(x:*, y:*):Boolean { return x && y; };
 			operators["||"] = function(x:*, y:*):Boolean { return x || y; };
-			operators["^^"] = function(x:*, y:*):Boolean { return ((x ? 1 : 0) ^ (y ? 1 : 0)) == 1; }; // XOR boolean operator
 			// branching
 			operators["?"] = true;
 			operators[":"] = true;
@@ -255,7 +260,7 @@ package weave.compiler
 			unaryOperators['!'] = operators['!'];
 			unaryOperators['~'] = operators['~'];
 			
-			// Evaluate operators in the same order as ActionScript.
+			// evaluate operators in the same order as ActionScript
 			orderedOperators = [
 				['*','/','%'],
 				['+','-'],
@@ -266,16 +271,14 @@ package weave.compiler
 				['^'],
 				['|'],
 				['&&'],
-				['^^'],
-				['||'],
-				['?',':'],
-				['='],
-				[',']
+				['||']
 			];
+			unaryOperatorSymbols = ['-','~','!'];
 
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
-				functions[OPERATOR_FUNCTION_NAME_PREFIX + op] = operators[op];
+				if (operators[op] is Function)
+					functions[OPERATOR_FUNCTION_NAME_PREFIX + op] = operators[op];
 			
 			// Save pointers to impure functions so the compiler will not reduce
 			// them to constants when all their parameters are constants.
@@ -362,7 +365,7 @@ package weave.compiler
 					if (equation.substring(index, endIndex) == OPERATOR_FUNCTION_NAME_PREFIX)
 					{
 						// this while loop works because any substring of a multi-character operator is also an operator itself
-						while (operators[ equation.substring(index, endIndex + 1) ] != undefined)
+						while (functions[ equation.substring(index, endIndex + 1) ] is Function)
 							endIndex++; // include operator symbol
 					}
 					break;
@@ -401,7 +404,7 @@ package weave.compiler
 					var funcToken:* = tokens[open - 1];
 					if (open > 0 && (functions[funcToken] != undefined || funcToken == GET_FUNCTION_NAME))
 					{
-						//trace("handling function call "+tokens[open-1]+"("+subArray.join(' ')+")");
+						//trace("compiling function call", tokens[open-1] + "(", subArray.join(' '), ")");
 						compiledParams = [];
 						// special case: zero-length parameters; if subArray is empty, compiledParams is already set up
 						if (subArray.length > 0)
@@ -436,7 +439,7 @@ package weave.compiler
 					}
 					else // These parentheses do not correspond to a function call.
 					{
-						//trace("handling tokens in parentheses ("+subArray.join(' ')+")");
+						//trace("compiling tokens (", subArray.join(' '), ")");
 						if (open > 0 && !(tokens[open - 1] is Function) && operators[tokens[open - 1]] == undefined)
 							throw new Error("Missing operator or function name before parentheses");
 						// Replace the '(' and ')' tokens with the result of compiling subArray
@@ -444,7 +447,7 @@ package weave.compiler
 					}
 				}
 				else
-					throw new Error("Found '(' without matching ')'");
+					throw new Error("Missing ')'");
 			}
 			// return null if there are extra ',' or ')' tokens
 			if (tokens.indexOf(',') >= 0)
@@ -455,16 +458,17 @@ package weave.compiler
 			// -------------------
 
 			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
+			//trace("compiling tokens", ObjectUtil.toString(tokens.join(' ')));
 			
-			// step: handle infix '.'
+			// step 2: handle infix '.'
 			
-			// step 2: compile constants and variable names
+			// step 3: compile constants and variable names
 			var token:*;
 			for (i = 0; i < tokens.length; i++)
 			{
 				token = tokens[i];
 				// skip tokens that have already been compiled and skip operator tokens
-				if (token is CompiledConstant || token is CompiledFunctionCall || operators[token] != undefined)
+				if (token is ICompiledObject || operators[token] != undefined)
 					continue;
 				// evaluate constants
 				if (constants[token] != undefined)
@@ -493,24 +497,50 @@ package weave.compiler
 				// compile the token as a call to variableGetter.
 				tokens[i] = compileVariable(variableGetter, token);
 			}
-			// step 3: compile '**' infix operators, left to right
+			
+			// step 4: compile '**' infix operators, left to right
 			compileInfixOperators(tokens, ['**'], evaluateToConstantIfPossible);
-			// step 4: compile unary operators, right to left
-			for (i = tokens.length - 2; i >= 0; i--) // start from second to last token
-			{
-				if (unaryOperators[tokens[i]] == undefined)
-					continue;
-				// it is a unary operator if it is the first token or the token to the left is an operator
-				if (i == 0 || operators[tokens[i - 1]] != undefined)
-				{
-					// replace this and the next token with a unary operator call
-					tokens.splice(i, 2, compileFunction(tokens[i], unaryOperators[tokens[i]], [tokens[i + 1]], evaluateToConstantIfPossible));
-				}
-			}
-			// step 5: compile infix operators
+			
+			// step 5: compile unary operators
+			compileUnaryOperators(tokens, unaryOperatorSymbols, evaluateToConstantIfPossible);
+			
+			// step 6: compile remaining infix operators in order
 			for (i = 0; i < orderedOperators.length; i++)
 				compileInfixOperators(tokens, orderedOperators[i], evaluateToConstantIfPossible);
-			// step 11: compile last token
+			
+			// step 7: compile conditional branches
+			while (true)
+			{
+				// true branch includes everything between the last '?' and the next ':'
+				var left:int = tokens.lastIndexOf('?');
+				var right:int = tokens.indexOf(':', left);
+				
+				// stop if any section has no tokens
+				if (left < 1 || right < 0 || left + 1 == right || right + 1 == tokens.length)
+					break;
+				
+				// false branch includes everything after the corresponding ':' up until the next ':' or the end
+				var end:int = tokens.indexOf(':', right + 1);
+				if (end < 0)
+					end = tokens.length;
+				
+				var condition:ICompiledObject = compileTokens([tokens[left - 1]], variableGetter, evaluateToConstantIfPossible);
+				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right), variableGetter, evaluateToConstantIfPossible);
+				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, end), variableGetter, evaluateToConstantIfPossible);
+				
+				var result:ICompiledObject;
+				if (evaluateToConstantIfPossible && condition is CompiledConstant)
+					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
+				else
+					result = new CompiledConditionalBranch(condition, trueBranch, falseBranch);
+				
+				tokens.splice(left - 1, end - left + 1, result);
+			}
+			// stop if any branch operators remain
+			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
+				throw new Error('Invalid conditional branch');
+			
+			// step 8: compile the last token
 			// there should be only a single token left
 			if (tokens.length == 1)
 				return tokens[0];
@@ -562,63 +592,81 @@ package weave.compiler
 
 		/**
 		 * This function is for internal use only.
+		 * This will compile unary operators of the given type from right to left.
+		 * @param compiledTokens An Array of compiled tokens for an equation.  No '(' ')' or ',' tokens should appear in this Array.
+		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
+		 * @param evaluateToConstantIfPossible When this is true, function calls will be simplified to constants where possible.
+		 */
+		private static function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array, evaluateToConstantIfPossible:Boolean):void
+		{
+			var index:int;
+			for (index = compiledTokens.length - 1; index >= 0; index--)
+			{
+				// skip tokens that are not unary operators
+				if (operatorSymbols.indexOf(compiledTokens[index]) < 0)
+					continue;
+				
+				// fail when next token is not a compiled object
+				if (index + 1 == compiledTokens.length || compiledTokens[index + 1] is String)
+					throw new Error("Misplaced unary operator '" + compiledTokens[index] + "'");
+				
+				// skip infix operator
+				if (index > 0 && compiledTokens[index - 1] is ICompiledObject)
+					continue;
+				
+				// compile unary operator
+				//trace("compile unary operator", ObjectUtil.toString(compiledTokens.slice(index, index + 2)));
+				compiledTokens.splice(index, 2, compileFunction(compiledTokens[index], unaryOperators[compiledTokens[index]], [compiledTokens[index + 1]], evaluateToConstantIfPossible));
+			}
+		}
+		
+		/**
+		 * This function is for internal use only.
 		 * This will compile infix operators of the given type from left to right.
 		 * @param compiledTokens An Array of compiled tokens for an equation.  No '(' ')' or ',' tokens should appear in this Array.
-		 * @param operatorSymbols A String containing all the infix operator symbols to compile.
+		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
+		 * @param evaluateToConstantIfPossible When this is true, function calls will be simplified to constants where possible.
 		 */
 		private static function compileInfixOperators(compiledTokens:Array, operatorSymbols:Array, evaluateToConstantIfPossible:Boolean):void
 		{
-			//trace("compile infix operators '"+operatorSymbols+"': "+compiledTokens); 
-			var index:int;
-			while (true)
+			var index:int = 0;
+			while (index < compiledTokens.length)
 			{
-				// find first matching operator
-				for (index = 0; index < compiledTokens.length; index++)
-					if (operatorSymbols.indexOf(compiledTokens[index]) >= 0)
-						break;
-				
-				// return if no operator found
-				if (index == compiledTokens.length)
-					return; // done
-				
-				// stop if operator is out of place
-				if (index == 0 || index + 1 == compiledTokens.length)
-					break; // to throw error
-				
-				// find unary operators on the right side of the infix operator
-				var right:int = index + 1;
-				while (right < compiledTokens.length - 1 && unaryOperators[compiledTokens[right]] != undefined)
+				// skip tokens that are not infix operators
+				if (operatorSymbols.indexOf(compiledTokens[index]) < 0)
 				{
-					// eliminate two identical infix operators in a row
-					if (compiledTokens[right] == compiledTokens[right + 1])
-						compiledTokens.splice(right, 2);
-					else
-						right++;
+					index++;
+					continue;
+				}
+				
+				// special case code for infix operators ('**') that are evaluated prior to unary operators
+				var right:int = index + 1;
+				// find the next ICompiledObjecgt
+				while (right < compiledTokens.length && compiledTokens[right] is String)
+					right++;
+				// if there were String tokens, we need to compile unary operators on the right-hand-side
+				if (right > index + 1)
+				{
+					// extract the right-hand-side, compile unary operators, and then insert the result to the right of the infix operator
+					var rhs:Array = compiledTokens.splice(index + 1, right - index);
+					compileUnaryOperators(rhs, unaryOperatorSymbols, evaluateToConstantIfPossible);
+					if (rhs.length != 1)
+						throw new Error("Unable to parse second parameter of infix operator '" + compiledTokens[index] + "'");
+					compiledTokens.splice(index + 1, 0, rhs[0]);
 				}
 				
 				// stop if infix operator does not have compiled objects on either side
-				if (compiledTokens[index - 1] is String || compiledTokens[right] is String)
-					break; // to throw error
-				
-				// compile unary operators right to left
-				while (right - 1 > index)
-				{
-					var unarySymbol:String = compiledTokens[right - 1];
-					compiledTokens.splice(right - 1, 2, compileFunction(unarySymbol, unaryOperators[unarySymbol], [compiledTokens[right]], evaluateToConstantIfPossible));
-					right--;
-				}
+				if (index == 0 || index + 1 == compiledTokens.length || compiledTokens[index - 1] is String || compiledTokens[index + 1] is String)
+					throw new Error("Misplaced infix operator '" + compiledTokens[index] + "'");
 				
 				// compile a wrapper for the operator call
-				var operatorFunction:Function = operators[compiledTokens[index]];
-				var compiledParams:Array = [compiledTokens[index - 1], compiledTokens[right]];
-				//trace("compiled params = "+compiledParams);
+				var operatorFunction:Function = operators[compiledTokens[index]] as Function;
+				var compiledParams:Array = [compiledTokens[index - 1], compiledTokens[index + 1]];
 				// replace the tokens for this infix operator call with the compiled operator call
-				//trace("compile infix operator '"+compiledTokens[index]+"': '"+compiledTokens.slice(index-1,right-index+2)+"; "+index,right,compiledTokens.length,ObjectUtil.toString(compiledTokens));
+				//trace("compile infix operator", ObjectUtil.toString(compiledTokens.slice(index - 1, index + 2)));
 				var functionName:String = OPERATOR_FUNCTION_NAME_PREFIX + compiledTokens[index];
-				compiledTokens.splice(index - 1, right - index + 2, compileFunction(functionName, operatorFunction, compiledParams, evaluateToConstantIfPossible));
+				compiledTokens.splice(index - 1, 3, compileFunction(functionName, operatorFunction, compiledParams, evaluateToConstantIfPossible));
 			}
-			// outside of infinite loop
-			throw new Error("Misplaced infix operator '"+compiledTokens[index]+"'");
 		}
 
 		/**
@@ -633,10 +681,10 @@ package weave.compiler
 			if (compiledObject is CompiledConditionalBranch)
 			{
 				var ccb:CompiledConditionalBranch = compiledObject as CompiledConditionalBranch;
-				return decompile(ccb.condition) + "?" + decompile(ccb.trueBranch) + ":" + decompile(ccb.falseBranch);
+				return StringUtil.substitute("({0} ? {1} : {2})", decompile(ccb.condition), decompile(ccb.trueBranch), decompile(ccb.falseBranch));
 			}
 			
-			//trace("decompiling: "+ObjectUtil.toString(compiledObject));
+			//trace("decompiling: " + ObjectUtil.toString(compiledObject));
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			// If this is a simple call to get("var") and the variable name parses without
 			// the need for quotes, replace the function call with the variable name.
@@ -675,14 +723,14 @@ package weave.compiler
 		
 		/**
 		 * This function is for internal use only.
-		 * This creates a new Function that takes no parameters and returns the evaluation of the given compiled object.
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
-		 * @return A Function that will either return the value of the CompiledConstant or execute the CompiledFunctionCall.
+		 * @return A Function that takes no parameters and returns the result of evaluating the ICompiledObject.
 		 */
 		private static function createWrapperFunctionForCompiledObject(compiledObject:ICompiledObject):Function
 		{
 			if (compiledObject == null)
 				return null;
+			
 			if (compiledObject is CompiledConstant)
 			{
 				// create a new variable for the value to avoid the overhead of
@@ -690,6 +738,31 @@ package weave.compiler
 				var value:* = (compiledObject as CompiledConstant).value;
 				return function():* { return value; };
 			}
+			
+			if (compiledObject is CompiledConditionalBranch)
+			{
+				var ccb:CompiledConditionalBranch = compiledObject as CompiledConditionalBranch;
+				
+				if (ccb.condition is CompiledConstant)
+					return createWrapperFunctionForCompiledObject((ccb.condition as CompiledConstant).value ? ccb.trueBranch : ccb.falseBranch);
+				
+				var condition:Function = createWrapperFunctionForCompiledObject(ccb.condition);
+				
+				var trueIsConstant:Boolean = ccb.trueBranch is CompiledConstant;
+				var trueBranch:* = trueIsConstant ? (ccb.trueBranch as CompiledConstant).value : createWrapperFunctionForCompiledObject(ccb.trueBranch);
+				
+				var falseIsConstant:Boolean = ccb.falseBranch is CompiledConstant;
+				var falseBranch:* = falseIsConstant ? (ccb.falseBranch as CompiledConstant).value : createWrapperFunctionForCompiledObject(ccb.falseBranch);
+				
+				// optimized for speed
+				return function():*
+				{
+					if (condition())
+						return trueIsConstant ? trueBranch : trueBranch();
+					return falseIsConstant ? falseBranch : falseBranch();
+				};
+			}
+			
 			// create the variables that will be used inside the wrapper function
 			var call:CompiledFunctionCall;
 			var subCall:CompiledFunctionCall;
@@ -754,10 +827,10 @@ package weave.compiler
 		private static function test():void
 		{
 			var eqs:Array = [
+				'(- x * 3) / get("var") + -2 + pow(5,3) +operator**(6,3)',
+				'operator+ ( - ( - 2 + 1 ) ** - 4 , - 3 ) - ( - 4 + - 1 * - 7 )',
 				'-var---3+var2',
-				'(- x * 3) / get("var") + -2 + pow(5,3) + 6**3',
-				'add ( - ( - 2 + 1 ) ** - 4 , - 3 ) - ( - 4 + - 1 * - 7 )',
-				'(x + var) / add ( - ( 2 + 1 ) ** 4 , 3 ) - ( 4 + 1 )',
+				'(x + var) / operator+ ( - ( 2 + 1 ) ** 4 , 3 ) - ( 4 + 1 )',
 				'3',
 				'-3',
 				'var',
@@ -785,6 +858,7 @@ package weave.compiler
 			{
 				trace("  equation: "+eq);
 				var tokens:Array = getTokens(eq);
+				trace("    tokens: "+tokens.join(' '));
 				var decompiled:String = decompile(compileTokens(tokens, variableGetter, true));
 				trace("decompiled: "+decompiled);
 				var tokens2:Array = getTokens(decompiled);
