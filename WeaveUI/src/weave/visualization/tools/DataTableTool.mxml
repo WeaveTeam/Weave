@@ -526,7 +526,7 @@
 					keyTypeMap[key.keyType] = true;
 					// each record has a property named after the column title equal to the value in that column for the current key
 					for (i = 0; i < attrCols.length; i++)
-						record[columnTitles[i]] = (attrCols[i] as IAttributeColumn).getValueFromKey(key, String) as String;
+						record[columnTitles[i]] = (attrCols[i] as IAttributeColumn).getValueFromKey(key);
 					records.push(record);
 				}
 				
