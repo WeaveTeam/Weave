@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="MathLib,weave.compiler.MathLib,add,constrain,div,filterRange,getNiceNumber,getNiceNumbersInRange,inRange,interpolateColor,mod,mul,neg,normalize,roundSignificant,scale,sign,sub,toNumber" name="keywords">
+<meta content="MathLib,weave.compiler.MathLib,constrain,filterRange,getNiceNumber,getNiceNumbersInRange,inRange,interpolateColor,normalize,roundSignificant,scale,sign,toNumber" name="keywords">
 <title>weave.compiler.MathLib</title>
 </head>
 <body>
@@ -55,23 +55,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#add()">add</a>(x:Number, y:Number):Number</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">MathLib</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#constrain()">constrain</a>(value:Number, min:Number, max:Number):Number</div>
 <div class="summaryTableDescription">[static]
    This function constrains a number between min and max values.</div>
-</td><td class="summaryTableOwnerCol">MathLib</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#div()">div</a>(x:Number, y:Number):Number</div>
-<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">MathLib</td>
 </tr>
 <tr class="">
@@ -119,29 +105,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#mod()">mod</a>(x:Number, y:Number):Number</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">MathLib</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#mul()">mul</a>(x:Number, y:Number):Number</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">MathLib</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#neg()">neg</a>(x:Number):Number</div>
-<div class="summaryTableDescription">[static]
-   neg,add,sub,mul,div,mod
-   These basic functions correspond to math operators -+/.</div>
-</td><td class="summaryTableOwnerCol">MathLib</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#normalize()">normalize</a>(value:Number, min:Number, max:Number):Number</div>
 <div class="summaryTableDescription">[static]
    </div>
@@ -174,13 +137,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#sub()">sub</a>(x:Number, y:Number):Number</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">MathLib</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#toNumber()">toNumber</a>(value:*):Number</div>
 <div class="summaryTableDescription">[static]
    This function will cast a value of any type to a Number,
@@ -196,37 +152,10 @@ showHideInherited();
 <div class="MainContent">
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="add()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">add</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function add(x:Number, y:Number):Number</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">y</span>:Number</code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Number</code></td>
-</tr>
-</table>
-</div>
 <a name="constrain()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">constrain</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">constrain</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -259,33 +188,6 @@ showHideInherited();
 <tr>
 <td width="20"></td><td><code>Number</code> &mdash; If value < min, returns min.  If value > max, returns max.  Otherwise, returns value.
    </td>
-</tr>
-</table>
-</div>
-<a name="div()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">div</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function div(x:Number, y:Number):Number</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">y</span>:Number</code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Number</code></td>
 </tr>
 </table>
 </div>
@@ -469,84 +371,6 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="mod()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">mod</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function mod(x:Number, y:Number):Number</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">y</span>:Number</code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Number</code></td>
-</tr>
-</table>
-</div>
-<a name="mul()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">mul</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function mul(x:Number, y:Number):Number</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">y</span>:Number</code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Number</code></td>
-</tr>
-</table>
-</div>
-<a name="neg()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">neg</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function neg(x:Number):Number</code><p>
-   neg,add,sub,mul,div,mod
-   These basic functions correspond to math operators -+/.  Then are here for EquationParser to use.
-   </p><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Number</code></td>
-</tr>
-</table>
-</div>
 <a name="normalize()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -690,33 +514,6 @@ showHideInherited();
 <tr>
 <td width="20"></td><td><code>Number</code> &mdash; -1 if value < 0, 1 otherwise
    </td>
-</tr>
-</table>
-</div>
-<a name="sub()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">sub</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function sub(x:Number, y:Number):Number</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">y</span>:Number</code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Number</code></td>
 </tr>
 </table>
 </div>

@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="ConnectionInfo,weave.services.beans.ConnectionInfo,database,dbms,ip,is_superuser,name,pass,port,user" name="keywords">
+<meta content="ConnectionInfo,weave.services.beans.ConnectionInfo,database,dbms,ip,is_superuser,name,pass,port,user,dbmsList,getDefaultPort" name="keywords">
 <title>weave.services.beans.ConnectionInfo</title>
 </head>
 <body>
@@ -59,6 +59,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">ConnectionInfo</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dbmsList">dbmsList</a> : Array<div class="summaryTableDescription">[static][read-only]
+   This is a list of supported DBMS values.</div>
+</td><td class="summaryTableOwnerCol">ConnectionInfo</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#ip">ip</a> : String = ""<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ConnectionInfo</td>
 </tr>
@@ -98,6 +103,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ConnectionInfo</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getDefaultPort()">getDefaultPort</a>(dbms:String):int</div>
+<div class="summaryTableDescription">[static]
+   This function will get the default port for a DBMS.</div>
+</td><td class="summaryTableOwnerCol">ConnectionInfo</td>
+</tr>
 </table>
 </div>
 <script type="text/javascript" language="javascript">
@@ -126,6 +139,20 @@ showHideInherited();
 <div class="detailBody">
 <code>public var dbms:String = ""</code>
 <p>This property can be used as the source for data binding.</p>
+</div>
+<a name="dbmsList"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">dbmsList</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>dbmsList:Array</code>&nbsp;&nbsp;[read-only]<p>
+   This is a list of supported DBMS values.
+   </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get dbmsList():Array</code>
+<br>
 </div>
 <a name="ip"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -200,6 +227,33 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">obj</span>:Object</code></td>
+</tr>
+</table>
+</div>
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="getDefaultPort()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getDefaultPort</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getDefaultPort(dbms:String):int</code><p>
+   This function will get the default port for a DBMS.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">dbms</span>:String</code> &mdash; A supported DBMS.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>int</code> &mdash; The default port for the dbms.
+   </td>
 </tr>
 </table>
 </div>
