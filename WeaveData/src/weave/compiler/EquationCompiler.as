@@ -168,6 +168,10 @@ package weave.compiler
 		 */
 		private static var operators:Object = null;
 		/**
+		 * This object maps a unary operator like "-" to a Function that takes one parameter.
+		 */
+		private static var unaryOperators:Object = null;
+		/**
 		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
 		 * Each nested Array is a group of operators that should be evaluated in the same pass.
 		 */
@@ -187,6 +191,7 @@ package weave.compiler
 			functions = new Object();
 			constants = new Object();
 			operators = new Object();
+			unaryOperators = new Object();
 			impureFunctions = new Dictionary();
 			
 			// add cast functions
@@ -202,7 +207,7 @@ package weave.compiler
 			constants["NaN"] = NaN;
 			constants["true"] = true;
 			constants["false"] = false;
-			
+
 			/** operators **/
 			// access
 			//operators["."] = true;
@@ -245,6 +250,11 @@ package weave.compiler
 			// assignment
 			operators["="] = true; // for now, this is only here to make sure '==' will be captured as an operator
 
+			// unary operators
+			unaryOperators['-'] = function(x:*):Number { return -x; };
+			unaryOperators['!'] = operators['!'];
+			unaryOperators['~'] = operators['~'];
+			
 			// Evaluate operators in the same order as ActionScript.
 			orderedOperators = [
 				['*','/','%'],
@@ -496,7 +506,7 @@ package weave.compiler
 				if (neg == 0 || operators[tokens[neg - 1]] != undefined)
 				{
 					// replace '-' and the next token with a function call to neg().
-					tokens.splice(neg, 2, compileFunction("-", MathLib.neg, [tokens[neg + 1]], evaluateToConstantIfPossible));
+					tokens.splice(neg, 2, compileFunction("-", unaryOperators['-'], [tokens[neg + 1]], evaluateToConstantIfPossible));
 				}
 			}
 			// step 5: compile infix operators
@@ -588,7 +598,7 @@ package weave.compiler
 					break;
 				// if the second parameter should be negative, wrap it in a call to neg()
 				if ((right - index) % 2 == 0)
-					compiledTokens[right] = compileFunction("-", MathLib.neg, [compiledTokens[right]], evaluateToConstantIfPossible);
+					compiledTokens[right] = compileFunction("-", unaryOperators['-'], [compiledTokens[right]], evaluateToConstantIfPossible);
 				// compile a wrapper for the operator call
 				var mathFunction:Function = operators[compiledTokens[index]];
 				var compiledParams:Array = [compiledTokens[index - 1], compiledTokens[right]];
