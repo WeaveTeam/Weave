@@ -41,7 +41,7 @@ package weave.compiler
 			initStaticObjects();
 			includeLibraries(Math, MathLib, StringUtil, StringLib, BooleanLib, ArrayLib);
 			
-			StageUtils.callLater(null, test);
+			//StageUtils.callLater(null, test);
 		} /** end static code block **/
 		
 		/**
@@ -397,7 +397,7 @@ package weave.compiler
 		/**
 		 * This function will recursively compile a set of tokens into a compiled object representing a function that takes no parameters and returns a value.
 		 * Example set of input tokens:  add ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
-		 * @param tokens An Array of tokens for an equation.
+		 * @param tokens An Array of tokens for an equation.  This array will be modified in place.
 		 * @param variableGetter This function should return a value for a given variable name.  The function signature should be:  function(variableName:String):*
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid equation.
 		 */
@@ -548,13 +548,14 @@ package weave.compiler
 				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right), variableGetter, evaluateToConstantIfPossible);
 				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, right + 2), variableGetter, evaluateToConstantIfPossible);
 				
+				// optimization: eliminate unnecessary branch
 				var result:ICompiledObject;
 				if (evaluateToConstantIfPossible && condition is CompiledConstant)
 					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
 				else
 					result = compileFunction(OPERATOR_PREFIX + '?:', operators['?:'], [condition, trueBranch, falseBranch], evaluateToConstantIfPossible);
 				
-				tokens.splice(left - 1, right - left + 3, compileFunction(OPERATOR_PREFIX + '?:', operators['?:'], [condition, trueBranch, falseBranch], evaluateToConstantIfPossible));
+				tokens.splice(left - 1, right - left + 3, result);
 			}
 			// stop if any branch operators remain
 			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
@@ -852,10 +853,11 @@ package weave.compiler
 		
 		private static function test():void
 		{
-			var prevDebug:Boolean = debug;
-			debug = true;
-			
 			var eqs:Array = [
+				'0 ? trace("?: BUG") : -var',
+				'1 ? ~-~-var : trace("?: BUG")',
+				'!true && trace("&& BUG")',
+				'true || trace("|| BUG")',
 				'round(.5 - random() < 0 ? "1.6" : "1.4")',
 				'(- x * 3) / get("var") + -2 + pow(5,3) +operator**(6,3)',
 				'operator+ ( - ( - 2 + 1 ) ** - 4 , - 3 ) - ( - 4 + - 1 * - 7 )',
@@ -883,18 +885,27 @@ package weave.compiler
 				return vars[name];
 			}
 			
+			var prevDebug:Boolean = debug;
+//			debug = true;
 			
 			for each (var eq:String in eqs)
 			{
 				trace("  equation: "+eq);
+				
 				var tokens:Array = getTokens(eq);
-				trace("    tokens: "+tokens.join(' '));
-				var decompiled:String = decompile(compileTokens(tokens, variableGetter, true));
-				trace("decompiled: "+decompiled);
+				trace("    tokens:", tokens.join(' '));
+				var decompiled:String = decompile(compileTokens(tokens, variableGetter, false));
+				trace("decompiled:", decompiled);
+				
 				var tokens2:Array = getTokens(decompiled);
-				trace("   tokens2: "+tokens2.join(' '));
-				var recompiled:String = decompile(compileTokens(tokens2, variableGetter, true));
-				trace("recompiled: "+recompiled);
+				trace("   tokens2:", tokens2.join(' '));
+				var recompiled:String = decompile(compileTokens(tokens2, variableGetter, false));
+				trace("recompiled:", recompiled);
+
+				var tokens3:Array = getTokens(recompiled);
+				var optimized:String = decompile(compileTokens(tokens3, variableGetter, true));
+				trace(" optimized:", optimized);
+				
 				var f:Function = compileEquation(eq, variableGetter);
 				for each (var value:* in values)
 				{

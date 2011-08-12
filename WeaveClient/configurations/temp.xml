@@ -169,7 +169,7 @@
               <hierarchy>
                 <category name="DataTables">
                   <category name="Obesity">
-                    <attribute keyType="US State FIPS Code" name="Percent Obese 1995" geometryCollection="States" max="40" dataTable="Obesity" min="0"/>
+                    <attribute keyType="US State FIPS Code" geometryCollection="States" name="Percent Obese 1995" max="40" dataTable="Obesity" min="0"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1153,37 +1153,37 @@
           <category name="number of farms by state"/>
           <category name="number of nonprofits by state"/>
           <category name="obesity">
-            <attribute keyType="US State FIPS Code" name="US State FIPS Code" id="53566" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="State" id="53567" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 1995" id="53568" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 1996" id="53569" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 1997" id="53570" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 1998" id="53571" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 1999" id="53572" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2000" id="53573" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2001" id="53574" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2002" id="53575" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2003" id="53576" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2004" id="53577" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2005" id="53578" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2006" id="53579" dataTable="obesity"/>
-            <attribute keyType="US State FIPS Code" name="Percent Obese 2007" id="53580" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53566" name="US State FIPS Code"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53567" name="State"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53568" name="Percent Obese 1995"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53569" name="Percent Obese 1996"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53570" name="Percent Obese 1997"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53571" name="Percent Obese 1998"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53572" name="Percent Obese 1999"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53573" name="Percent Obese 2000"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53574" name="Percent Obese 2001"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53575" name="Percent Obese 2002"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53576" name="Percent Obese 2003"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53577" name="Percent Obese 2004"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53578" name="Percent Obese 2005"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53579" name="Percent Obese 2006"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53580" name="Percent Obese 2007"/>
           </category>
           <category name="Obesity">
-            <attribute keyType="US State FIPS Code" id="68866" geometryCollection="States" name="State" dataTable="Obesity"/>
-            <attribute keyType="US State FIPS Code" id="68867" max="40" dataTable="Obesity" min="0" name="Percent Obese 1995" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68868" max="40" dataTable="Obesity" min="0" name="Percent Obese 1996" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68869" max="40" dataTable="Obesity" min="0" name="Percent Obese 1997" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68870" max="40" dataTable="Obesity" min="0" name="Percent Obese 1998" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68871" max="40" dataTable="Obesity" min="0" name="Percent Obese 1999" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68872" max="40" dataTable="Obesity" min="0" name="Percent Obese 2000" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68873" max="40" dataTable="Obesity" min="0" name="Percent Obese 2001" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68874" max="40" dataTable="Obesity" min="0" name="Percent Obese 2002" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68875" max="40" dataTable="Obesity" min="0" name="Percent Obese 2003" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68876" max="40" dataTable="Obesity" min="0" name="Percent Obese 2004" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68877" max="40" dataTable="Obesity" min="0" name="Percent Obese 2005" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68878" max="40" dataTable="Obesity" min="0" name="Percent Obese 2006" geometryCollection="States"/>
-            <attribute keyType="US State FIPS Code" id="68879" max="40" dataTable="Obesity" min="0" name="Percent Obese 2007" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68866" name="State" dataTable="Obesity"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68867" max="40" min="0" dataTable="Obesity" name="Percent Obese 1995"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68868" max="40" min="0" dataTable="Obesity" name="Percent Obese 1996"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68869" max="40" min="0" dataTable="Obesity" name="Percent Obese 1997"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68870" max="40" min="0" dataTable="Obesity" name="Percent Obese 1998"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68871" max="40" min="0" dataTable="Obesity" name="Percent Obese 1999"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68872" max="40" min="0" dataTable="Obesity" name="Percent Obese 2000"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68873" max="40" min="0" dataTable="Obesity" name="Percent Obese 2001"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68874" max="40" min="0" dataTable="Obesity" name="Percent Obese 2002"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68875" max="40" min="0" dataTable="Obesity" name="Percent Obese 2003"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68876" max="40" min="0" dataTable="Obesity" name="Percent Obese 2004"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68877" max="40" min="0" dataTable="Obesity" name="Percent Obese 2005"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68878" max="40" min="0" dataTable="Obesity" name="Percent Obese 2006"/>
+            <attribute keyType="US State FIPS Code" geometryCollection="States" id="68879" max="40" min="0" dataTable="Obesity" name="Percent Obese 2007"/>
           </category>
           <category name="obesity by state"/>
           <category name="Obesity Years"/>
@@ -1655,7 +1655,7 @@
           <attribute keyType="Weave:Points_of_Interest_WGS" featureTypeName="Weave:Points_of_Interest_WGS" name="STATUS" title="STATUS" dataType="String"/>
           <attribute keyType="Weave:Points_of_Interest_WGS" featureTypeName="Weave:Points_of_Interest_WGS" name="Total___of_Employees" title="Total___of_Employees" dataType="Number"/>
           <attribute keyType="Weave:Points_of_Interest_WGS" featureTypeName="Weave:Points_of_Interest_WGS" name="Est_Enroll" title="Est_Enroll" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" projectionSRS="6.9:4326" name="Shape" dataType="Geometry" title="Shape" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Geometry" name="Shape" projectionSRS="6.9:4326" title="Shape" featureTypeName="Weave:Points_of_Interest_WGS"/>
         </category>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="SchoolDistricts_WGS2" name="Weave:SchoolDistricts_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:3735" title="COTA_Routes" name="Weave:COTA_Routes"/>
@@ -1667,7 +1667,7 @@
   <EquationColumn name="EquationEditorColumn">
     <columnTitle>equation</columnTitle>
     <dataType/>
-    <equation>round(1-random()?0:1)</equation>
+    <equation>round(.5 - random() &lt; 0 ? 1.4 : 1.6)</equation>
     <keyColumn encoding="dynamic"/>
     <variables encoding="dynamic">
       <ReferencedColumn name="obese1995">
@@ -1694,7 +1694,7 @@
               <hierarchy>
                 <category name="DataTables">
                   <category name="Obesity">
-                    <attribute keyType="US State FIPS Code" id="68879" max="40" dataTable="Obesity" min="0" name="Percent Obese 2007" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" geometryCollection="States" id="68879" max="40" min="0" dataTable="Obesity" name="Percent Obese 2007"/>
                   </category>
                 </category>
               </hierarchy>
