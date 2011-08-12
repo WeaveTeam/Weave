@@ -26,8 +26,8 @@ package weave.compiler
 	import mx.utils.StringUtil;
 	
 	import weave.api.compiler.ICompiledObject;
+	import weave.core.SessionManager;
 	import weave.core.StageUtils;
-	import weave.data.AttributeColumns.EquationColumnLib;
 	
 	/**
 	 * This class provides a static function compileEquation() that compiles an
@@ -40,6 +40,8 @@ package weave.compiler
 		{ /** begin static code block **/
 			initStaticObjects();
 			includeLibraries(Math, MathLib, StringUtil, StringLib, BooleanLib, ArrayLib);
+			
+			StageUtils.callLater(null, test);
 		} /** end static code block **/
 		
 		/**
@@ -54,7 +56,7 @@ package weave.compiler
 		public static function compileEquation(equation:String, variableGetter:Function):Function
 		{
 			var tokens:Array = getTokens(equation);
-			//trace("source:",equation,"tokens:"+ObjectUtil.toString(tokens));
+			//trace("source:", equation, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = compileTokens(tokens, variableGetter, true);
 			return createWrapperFunctionForCompiledObject(compiledObject);
 		}
@@ -149,12 +151,16 @@ package weave.compiler
 		 * This is the prefix used for the function notation of infix operators.
 		 * For example, the function notation for ( x + y ) is ( operator+(x,y) ).
 		 */
-		public static const OPERATOR_FUNCTION_NAME_PREFIX:String = "operator";
+		public static const OPERATOR_PREFIX:String = "operator";
 		
 		/**
 		 * This is a String containing all the characters that are treated as whitespace.
 		 */
 		private static const WHITESPACE:String = ' \r\n\t';
+		/**
+		 * This is the maximum allowed length of an operator.
+		 */		
+		private static const MAX_OPERATOR_LENGTH:int = 3;
 		/**
 		 * This object maps the name of a predefined constant to its value.
 		 */
@@ -252,8 +258,9 @@ package weave.compiler
 			// branching
 			operators["?"] = true;
 			operators[":"] = true;
+			operators["?:"] = function(c:*, t:*, f:*):* { return c ? t : f; };
 			// assignment
-			operators["="] = true; // for now, this is only here to make sure '==' will be captured as an operator
+			//operators["="] = true; 
 
 			// unary operators
 			unaryOperators['-'] = function(x:*):Number { return -x; };
@@ -278,11 +285,19 @@ package weave.compiler
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
 				if (operators[op] is Function)
-					functions[OPERATOR_FUNCTION_NAME_PREFIX + op] = operators[op];
+					functions[OPERATOR_PREFIX + op] = operators[op];
 			
 			// Save pointers to impure functions so the compiler will not reduce
 			// them to constants when all their parameters are constants.
 			impureFunctions[Math['random']] = true;
+			
+			// for trace debugging you must set debug = true
+			functions['trace'] = function(...args):void
+			{
+				if (debug)
+					trace.apply(null, args);
+			};
+			impureFunctions[functions['trace']] = true;
 		}
 
 		/**
@@ -362,11 +377,16 @@ package weave.compiler
 				if (operators[c] != undefined)
 				{
 					// special case: "operator" followed by an operator symbol is treated as a single token
-					if (equation.substring(index, endIndex) == OPERATOR_FUNCTION_NAME_PREFIX)
+					if (equation.substring(index, endIndex) == OPERATOR_PREFIX)
 					{
-						// this while loop works because any substring of a multi-character operator is also an operator itself
-						while (functions[ equation.substring(index, endIndex + 1) ] is Function)
-							endIndex++; // include operator symbol
+						for (var operatorLength:int = MAX_OPERATOR_LENGTH; operatorLength > 0; operatorLength--)
+						{
+							if (functions[equation.substring(index, endIndex + operatorLength)] is Function)
+							{
+								endIndex += operatorLength;
+								break;
+							}
+						}
 					}
 					break;
 				}
@@ -404,7 +424,8 @@ package weave.compiler
 					var funcToken:* = tokens[open - 1];
 					if (open > 0 && (functions[funcToken] != undefined || funcToken == GET_FUNCTION_NAME))
 					{
-						//trace("compiling function call", tokens[open-1] + "(", subArray.join(' '), ")");
+						if (debug)
+							trace("compiling function call", tokens[open-1] + "(", subArray.join(' '), ")");
 						compiledParams = [];
 						// special case: zero-length parameters; if subArray is empty, compiledParams is already set up
 						if (subArray.length > 0)
@@ -439,7 +460,8 @@ package weave.compiler
 					}
 					else // These parentheses do not correspond to a function call.
 					{
-						//trace("compiling tokens (", subArray.join(' '), ")");
+						if (debug)
+							trace("compiling tokens (", subArray.join(' '), ")");
 						if (open > 0 && !(tokens[open - 1] is Function) && operators[tokens[open - 1]] == undefined)
 							throw new Error("Missing operator or function name before parentheses");
 						// Replace the '(' and ')' tokens with the result of compiling subArray
@@ -458,7 +480,8 @@ package weave.compiler
 			// -------------------
 
 			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
-			//trace("compiling tokens", ObjectUtil.toString(tokens.join(' ')));
+			if (debug)
+				trace("compiling tokens", tokens.join(' '));
 			
 			// step 2: handle infix '.'
 			
@@ -515,26 +538,23 @@ package weave.compiler
 				var left:int = tokens.lastIndexOf('?');
 				var right:int = tokens.indexOf(':', left);
 				
-				// stop if any section has no tokens
-				if (left < 1 || right < 0 || left + 1 == right || right + 1 == tokens.length)
+				// stop if operator missing or any section has no tokens
+				if (right < 0 || left < 1 || left + 1 == right || right + 1 == tokens.length)
 					break;
 				
-				// false branch includes everything after the corresponding ':' up until the next ':' or the end
-				var end:int = tokens.indexOf(':', right + 1);
-				if (end < 0)
-					end = tokens.length;
-				
-				var condition:ICompiledObject = compileTokens([tokens[left - 1]], variableGetter, evaluateToConstantIfPossible);
+				if (debug)
+					trace("compiling conditional branch:", tokens.slice(left - 1, right + 2).join(' '));
+				var condition:ICompiledObject = compileTokens(tokens.slice(left - 1, left), variableGetter, evaluateToConstantIfPossible);
 				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right), variableGetter, evaluateToConstantIfPossible);
-				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, end), variableGetter, evaluateToConstantIfPossible);
+				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, right + 2), variableGetter, evaluateToConstantIfPossible);
 				
 				var result:ICompiledObject;
 				if (evaluateToConstantIfPossible && condition is CompiledConstant)
 					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
 				else
-					result = new CompiledConditionalBranch(condition, trueBranch, falseBranch);
+					result = compileFunction(OPERATOR_PREFIX + '?:', operators['?:'], [condition, trueBranch, falseBranch], evaluateToConstantIfPossible);
 				
-				tokens.splice(left - 1, end - left + 1, result);
+				tokens.splice(left - 1, right - left + 3, compileFunction(OPERATOR_PREFIX + '?:', operators['?:'], [condition, trueBranch, falseBranch], evaluateToConstantIfPossible));
 			}
 			// stop if any branch operators remain
 			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
@@ -570,7 +590,7 @@ package weave.compiler
 				return call;
 			// check for CompiledFunctionCall objects in the compiled parameters
 			for each (var param:ICompiledObject in compiledParams)
-				if (param is CompiledFunctionCall)
+				if (!(param is CompiledConstant))
 					return call; // this compiled funciton call cannot be evaluated to a constant
 			// if there are no CompiledFunctionCall objects in the compiled parameters, evaluate the compiled function call to a constant.
 			var callWrapper:Function = createWrapperFunctionForCompiledObject(call);
@@ -586,7 +606,8 @@ package weave.compiler
 		 */
 		private static function compileVariable(variableGetter:Function, variableName:String):CompiledFunctionCall
 		{
-			//trace('compile variableGetter('+variableName+')');
+			if (debug)
+				trace('compile get('+variableName+')');
 			return new CompiledFunctionCall(GET_FUNCTION_NAME, variableGetter, [new CompiledConstant(encodeString(variableName), variableName)]);
 		}
 
@@ -615,7 +636,8 @@ package weave.compiler
 					continue;
 				
 				// compile unary operator
-				//trace("compile unary operator", ObjectUtil.toString(compiledTokens.slice(index, index + 2)));
+				if (debug)
+					trace("compile unary operator", compiledTokens.slice(index, index + 2).join(' '));
 				compiledTokens.splice(index, 2, compileFunction(compiledTokens[index], unaryOperators[compiledTokens[index]], [compiledTokens[index + 1]], evaluateToConstantIfPossible));
 			}
 		}
@@ -663,8 +685,9 @@ package weave.compiler
 				var operatorFunction:Function = operators[compiledTokens[index]] as Function;
 				var compiledParams:Array = [compiledTokens[index - 1], compiledTokens[index + 1]];
 				// replace the tokens for this infix operator call with the compiled operator call
-				//trace("compile infix operator", ObjectUtil.toString(compiledTokens.slice(index - 1, index + 2)));
-				var functionName:String = OPERATOR_FUNCTION_NAME_PREFIX + compiledTokens[index];
+				if (debug)
+					trace("compile infix operator", compiledTokens.slice(index - 1, index + 2).join(' '));
+				var functionName:String = OPERATOR_PREFIX + compiledTokens[index];
 				compiledTokens.splice(index - 1, 3, compileFunction(functionName, operatorFunction, compiledParams, evaluateToConstantIfPossible));
 			}
 		}
@@ -678,13 +701,8 @@ package weave.compiler
 			if (compiledObject is CompiledConstant)
 				return (compiledObject as CompiledConstant).name;
 			
-			if (compiledObject is CompiledConditionalBranch)
-			{
-				var ccb:CompiledConditionalBranch = compiledObject as CompiledConditionalBranch;
-				return StringUtil.substitute("({0} ? {1} : {2})", decompile(ccb.condition), decompile(ccb.trueBranch), decompile(ccb.falseBranch));
-			}
-			
-			//trace("decompiling: " + ObjectUtil.toString(compiledObject));
+			if (debug)
+				trace("decompiling: " + ObjectUtil.toString(compiledObject));
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			// If this is a simple call to get("var") and the variable name parses without
 			// the need for quotes, replace the function call with the variable name.
@@ -711,13 +729,24 @@ package weave.compiler
 					}
 				}
 			}
+
 			// decompile each paramter
 			var params:Array = [];
 			for (var i:int = 0; i < call.compiledParams.length; i++)
 				params[i] = decompile(call.compiledParams[i]);
+			
 			// replace infix operator function calls with the preferred infix syntax
-			if (call.name.indexOf(OPERATOR_FUNCTION_NAME_PREFIX) == 0 && params.length == 2)
-				return '(' + params.join(' ' + call.name.replace(OPERATOR_FUNCTION_NAME_PREFIX, '') + ' ') + ')';
+			if (call.name.indexOf(OPERATOR_PREFIX) == 0)
+			{
+				var op:String = call.name.substr(OPERATOR_PREFIX.length);
+				if (call.compiledParams.length == 1)
+					return op + params[0];
+				if (call.compiledParams.length == 2)
+					return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
+				if (call.compiledParams.length == 3 && op == '?:')
+					return StringUtil.substitute("({0} ? {1} : {2})", params);
+			}
+			
 			return call.name + '(' + params.join(', ') + ')';
 		}
 		
@@ -735,40 +764,23 @@ package weave.compiler
 			{
 				// create a new variable for the value to avoid the overhead of
 				// accessing a member variable of the CompiledConstant object.
-				var value:* = (compiledObject as CompiledConstant).value;
+				const value:* = (compiledObject as CompiledConstant).value;
 				return function():* { return value; };
 			}
 			
-			if (compiledObject is CompiledConditionalBranch)
-			{
-				var ccb:CompiledConditionalBranch = compiledObject as CompiledConditionalBranch;
-				
-				if (ccb.condition is CompiledConstant)
-					return createWrapperFunctionForCompiledObject((ccb.condition as CompiledConstant).value ? ccb.trueBranch : ccb.falseBranch);
-				
-				var condition:Function = createWrapperFunctionForCompiledObject(ccb.condition);
-				
-				var trueIsConstant:Boolean = ccb.trueBranch is CompiledConstant;
-				var trueBranch:* = trueIsConstant ? (ccb.trueBranch as CompiledConstant).value : createWrapperFunctionForCompiledObject(ccb.trueBranch);
-				
-				var falseIsConstant:Boolean = ccb.falseBranch is CompiledConstant;
-				var falseBranch:* = falseIsConstant ? (ccb.falseBranch as CompiledConstant).value : createWrapperFunctionForCompiledObject(ccb.falseBranch);
-				
-				// optimized for speed
-				return function():*
-				{
-					if (condition())
-						return trueIsConstant ? trueBranch : trueBranch();
-					return falseIsConstant ? falseBranch : falseBranch();
-				};
-			}
-			
 			// create the variables that will be used inside the wrapper function
+			const BRANCH_OP:String = OPERATOR_PREFIX + '?:';
+			const AND_OP:String = OPERATOR_PREFIX + '&&';
+			const OR_OP:String = OPERATOR_PREFIX + '||';
+			const CONDITION_INDEX:int = 0;
+			const TRUE_INDEX:int = 1;
+			const FALSE_INDEX:int = 2;
+
+			const stack:Array = []; // used as a queue of function calls
 			var call:CompiledFunctionCall;
 			var subCall:CompiledFunctionCall;
 			var compiledParams:Array;
 			var result:*;
-			var stack:Array = []; // used as a queue of function calls
 			// return the wrapper function
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
 			return function():*
@@ -786,7 +798,19 @@ package weave.compiler
 					// check which parameters should be evaluated
 					for (; call.evalIndex < compiledParams.length; call.evalIndex++)
 					{
-						//trace(StringLib.lpad('', stack.length, '\t')+"["+call.evalIndex+"] "+compiledParams[call.evalIndex].name);
+						//trace(StringLib.lpad('', stack.length, '\t') + "[" + call.evalIndex + "] " + compiledParams[call.evalIndex].name);
+						
+						if (call.evalIndex > 0)
+						{
+							if (call.name == BRANCH_OP || call.name == AND_OP)
+							{
+								if (call.evalIndex != (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX))
+									continue;
+							}
+							if (call.name == OR_OP && call.evalIndex == (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX))
+								continue;
+						}
+						
 						subCall = compiledParams[call.evalIndex] as CompiledFunctionCall;
 						if (subCall != null)
 						{
@@ -824,9 +848,15 @@ package weave.compiler
 		}
 		
 		//-----------------------------------------------------------------
+		private static var debug:Boolean = false;
+		
 		private static function test():void
 		{
+			var prevDebug:Boolean = debug;
+			debug = true;
+			
 			var eqs:Array = [
+				'round(.5 - random() < 0 ? "1.6" : "1.4")',
 				'(- x * 3) / get("var") + -2 + pow(5,3) +operator**(6,3)',
 				'operator+ ( - ( - 2 + 1 ) ** - 4 , - 3 ) - ( - 4 + - 1 * - 7 )',
 				'-var---3+var2',
@@ -849,7 +879,7 @@ package weave.compiler
 			vars['x'] = 10;
 			var variableGetter:Function = function(name:String):*
 			{
-				//trace("get variable "+name+" = "+vars[name]);
+				//trace("get variable", name, "=", vars[name]);
 				return vars[name];
 			}
 			
@@ -865,7 +895,6 @@ package weave.compiler
 				trace("   tokens2: "+tokens2.join(' '));
 				var recompiled:String = decompile(compileTokens(tokens2, variableGetter, true));
 				trace("recompiled: "+recompiled);
-				//trace(ObjectUtil.toString(tokens));
 				var f:Function = compileEquation(eq, variableGetter);
 				for each (var value:* in values)
 				{
@@ -873,6 +902,8 @@ package weave.compiler
 					trace("f(var="+value+")\t= " + f(value));
 				}
 			}
+			
+			debug = prevDebug;
 		}
 	}
 }
