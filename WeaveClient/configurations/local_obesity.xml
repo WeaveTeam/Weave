@@ -1,6 +1,6 @@
 <Weave encoding="dynamic">
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
   <BinnedColumn name="defaultColorBinColumn">
     <binningDefinition encoding="dynamic">
       <SimpleBinningDefinition>
@@ -22,7 +22,7 @@
             <dataSourceName>obesity.csv</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy keyType="US State FIPS Code">
-                <attribute name="Percent Obese 2007" keyType="US State FIPS Code" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+                <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
@@ -34,7 +34,6 @@
     <excluded/>
     <included/>
     <includeMissingKeys>true</includeMissingKeys>
-    <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
@@ -43,7 +42,7 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="Jet" dataFormat="qualitative" category="visualization" source="OIC">
+      <colorRamp category="visualization" name="Jet" dataFormat="qualitative" source="OIC">
         <node color="0x000086" position="0"/>
         <node color="0x0000ff" position="0.1518324607329843"/>
         <node color="0x00ffff" position="0.3717277486910995"/>
@@ -56,14 +55,12 @@
   <WeaveProperties name="WeaveProperties">
     <axisFontBold>true</axisFontBold>
     <axisFontColor>0</axisFontColor>
-    <axisFontFamily>Sophia Nubian</axisFontFamily>
+    <axisFontFamily>Arial</axisFontFamily>
     <axisFontItalic>false</axisFontItalic>
     <axisFontSize>10</axisFontSize>
     <axisFontUnderline>false</axisFontUnderline>
     <backgroundColor>13421772</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
-    <dashboardMode>false</dashboardMode>
-    <dashedSelectionBox>5,5</dashedSelectionBox>
     <dataInfoURL/>
     <debugScreenBounds>false</debugScreenBounds>
     <enableAboutMenu>true</enableAboutMenu>
@@ -71,7 +68,6 @@
     <enableAddBarChart>true</enableAddBarChart>
     <enableAddColorLegend>true</enableAddColorLegend>
     <enableAddColormapHistogram>true</enableAddColormapHistogram>
-    <enableAddDataFilter>true</enableAddDataFilter>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddDataTable>true</enableAddDataTable>
     <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
@@ -82,14 +78,18 @@
     <enableAddMap>true</enableAddMap>
     <enableAddPieChart>true</enableAddPieChart>
     <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
+    <enableAddRadViz>true</enableAddRadViz>
+    <enableAddRadViz2>false</enableAddRadViz2>
+    <enableAddRamachandranPlot>true</enableAddRamachandranPlot>
     <enableAddRScriptEditor>true</enableAddRScriptEditor>
     <enableAddScatterplot>true</enableAddScatterplot>
+    <enableAddSP2>true</enableAddSP2>
+    <enableAddStickFigurePlot>true</enableAddStickFigurePlot>
     <enableAddThermometerTool>true</enableAddThermometerTool>
     <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
     <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
-    <enableCascadeAllWindows>true</enableCascadeAllWindows>
+    <enableAddWordle>true</enableAddWordle>
     <enableClearCurrentSelection>true</enableClearCurrentSelection>
-    <enableCloseAllWindows>true</enableCloseAllWindows>
     <enableCreateSubsets>true</enableCreateSubsets>
     <enableDataMenu>true</enableDataMenu>
     <enableDebugAlert>false</enableDebugAlert>
@@ -99,21 +99,17 @@
     <enableExportDataTable>true</enableExportDataTable>
     <enableExportToolImage>true</enableExportToolImage>
     <enableFullscreen>true</enableFullscreen>
-    <enableGeometryProbing>true</enableGeometryProbing>
     <enableGoFullscreen>true</enableGoFullscreen>
     <enableManageSavedSelections>true</enableManageSavedSelections>
     <enableManageSavedSubsets>true</enableManageSavedSubsets>
     <enableMenuBar>true</enableMenuBar>
-    <enableMinimizeAllWindows>true</enableMinimizeAllWindows>
-    <enableMouseWheel>true</enableMouseWheel>
+    <enableMenuBarOnTop>true</enableMenuBarOnTop>
     <enableNewDataset>true</enableNewDataset>
     <enableNewUserWizard>true</enableNewUserWizard>
-    <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
     <enableProbeAnimation>true</enableProbeAnimation>
     <enableProbeLines>true</enableProbeLines>
     <enableRefreshHierarchies>true</enableRefreshHierarchies>
     <enableRemoveSubsets>true</enableRemoveSubsets>
-    <enableRestoreAllMinimizedWindows>true</enableRestoreAllMinimizedWindows>
     <enableRightClick>true</enableRightClick>
     <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
     <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
@@ -121,14 +117,22 @@
     <enableSelectionsMenu>true</enableSelectionsMenu>
     <enableSessionBookmarks>true</enableSessionBookmarks>
     <enableSessionEdit>true</enableSessionEdit>
+    <enableSessionExport>true</enableSessionExport>
+    <enableSessionImport>true</enableSessionImport>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
     <enableSubsetsMenu>true</enableSubsetsMenu>
     <enableTaskbar>true</enableTaskbar>
-    <enableTileAllWindows>true</enableTileAllWindows>
     <enableToolAttributeEditing>true</enableToolAttributeEditing>
+    <enableToolAutoResizeAndPosition>true</enableToolAutoResizeAndPosition>
+    <enableToolBorders>true</enableToolBorders>
+    <enableToolClose>true</enableToolClose>
+    <enableToolDrag>true</enableToolDrag>
+    <enableToolMaximize>true</enableToolMaximize>
+    <enableToolMinimize>true</enableToolMinimize>
     <enableToolProbe>true</enableToolProbe>
+    <enableToolResize>true</enableToolResize>
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
@@ -149,12 +153,9 @@
     <probeOuterGlowStrength>3</probeOuterGlowStrength>
     <probeToolTipBackgroundAlpha>0.9</probeToolTipBackgroundAlpha>
     <probeToolTipBackgroundColor>15725756</probeToolTipBackgroundColor>
-    <probeToolTipFontColor>0</probeToolTipFontColor>
-    <rServiceURL>/OpenIndicatorsRServices/RService</rServiceURL>
-    <searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
-Google|http://www.google.com/search?q=
-Google Images|http://images.google.com/images?q=
-Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
+    <probeToolTipFontColor>NaN</probeToolTipFontColor>
+    <projectionDestinationSRS>EPSG:900913</projectionDestinationSRS>
+    <rServicesURL>/OpenIndicatorsRServices</rServicesURL>
     <selectionAlphaAmount>0.5</selectionAlphaAmount>
     <selectionBlurringAmount>4</selectionBlurringAmount>
     <shadowAlpha>0.5</shadowAlpha>
@@ -168,8 +169,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showEquationEditor>true</showEquationEditor>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
+    <showViewBar>false</showViewBar>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
-    <version>1.0 Beta Nightly Build</version>
+    <version>Beta 0.9.6 dev</version>
     <windowSnapGridSize>1</windowSnapGridSize>
   </WeaveProperties>
   <DBFDataSource name="DBFDataSource">
@@ -195,14 +197,14 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <keyType>US State FIPS Code</keyType>
     <shpUrl>carto_state/st99_d00.shp</shpUrl>
   </DBFDataSource>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns">
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn2">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
           <dataSourceName>obesity.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="US State FIPS Code">
-              <attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
+              <attribute name="Percent Obese 1995" title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="US State FIPS Code"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -214,14 +216,14 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>obesity.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="US State FIPS Code">
-              <attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+              <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn2">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -240,21 +242,21 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   <CSVDataSource name="obesity.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute keyType="US State FIPS Code" title="US State FIPS Code" csvColumn="US State FIPS Code"/>
-        <attribute keyType="US State FIPS Code" title="State" csvColumn="State"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2007" csvColumn="Percent Obese 2007"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2006" csvColumn="Percent Obese 2006"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2005" csvColumn="Percent Obese 2005"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2004" csvColumn="Percent Obese 2004"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2003" csvColumn="Percent Obese 2003"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2002" csvColumn="Percent Obese 2002"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2001" csvColumn="Percent Obese 2001"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 2000" csvColumn="Percent Obese 2000"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 1999" csvColumn="Percent Obese 1999"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 1998" csvColumn="Percent Obese 1998"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 1997" csvColumn="Percent Obese 1997"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 1996" csvColumn="Percent Obese 1996"/>
-        <attribute keyType="US State FIPS Code" title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
+        <attribute name="US State FIPS Code" title="US State FIPS Code" csvColumn="US State FIPS Code" keyType="US State FIPS Code"/>
+        <attribute name="State" title="State" csvColumn="State" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2006" title="Percent Obese 2006" csvColumn="Percent Obese 2006" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2005" title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2004" title="Percent Obese 2004" csvColumn="Percent Obese 2004" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2003" title="Percent Obese 2003" csvColumn="Percent Obese 2003" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2002" title="Percent Obese 2002" csvColumn="Percent Obese 2002" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2001" title="Percent Obese 2001" csvColumn="Percent Obese 2001" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 2000" title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 1999" title="Percent Obese 1999" csvColumn="Percent Obese 1999" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 1998" title="Percent Obese 1998" csvColumn="Percent Obese 1998" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 1997" title="Percent Obese 1997" csvColumn="Percent Obese 1997" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 1996" title="Percent Obese 1996" csvColumn="Percent Obese 1996" keyType="US State FIPS Code"/>
+        <attribute name="Percent Obese 1995" title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="US State FIPS Code"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString/>
@@ -266,30 +268,30 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
         <axisFontBold>true</axisFontBold>
         <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontFamily>Arial</axisFontFamily>
         <axisFontItalic>false</axisFontItalic>
         <axisFontSize>10</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
+        <axisLineAlpha>1</axisLineAlpha>
+        <axisLineColor>0</axisLineColor>
+        <axisLineThickness>2</axisLineThickness>
+        <axisTickAlpha>1</axisTickAlpha>
+        <axisTickColor>0</axisTickColor>
+        <axisTickLength>10</axisTickLength>
+        <axisTickThickness>2</axisTickThickness>
         <dataBounds>
           <xMax>1</xMax>
           <xMin>0</xMin>
           <yMax>9.5</yMax>
           <yMin>-0.5</yMin>
         </dataBounds>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
         <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
         <enableFixedAspectRatio>false</enableFixedAspectRatio>
         <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
         <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
         <layers encoding="dynamic">
           <SelectablePlotLayer name="plot">
@@ -307,46 +309,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <shapeSize>20</shapeSize>
-                <spatialCallbacks/>
               </ColorBinLegendPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -358,7 +320,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <subsetFilter encoding="dynamic">
               <GlobalObjectReference name="defaultSubsetKeyFilter"/>
             </subsetFilter>
-            <useTextBitmapFilters>true</useTextBitmapFilters>
           </SelectablePlotLayer>
         </layers>
         <marginBottom>5</marginBottom>
@@ -373,144 +334,57 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </children>
     <closeable>true</closeable>
     <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
+    <helpAvailable>false</helpAvailable>
+    <hideBorders>false</hideBorders>
+    <linkColormap>true</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
     <panelHeight>50.06%</panelHeight>
     <panelStyleList/>
     <panelWidth>16.719%</panelWidth>
     <panelX>0%</panelX>
     <panelY>49.94%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
+    <userControlsAvailable>true</userControlsAvailable>
   </ColorBinLegendTool>
   <CompoundBarChartTool name="CompoundBarChartTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>1</axesAlpha>
-        <axesColor>11579568</axesColor>
-        <axesThickness>10</axesThickness>
         <axisFontBold>true</axisFontBold>
         <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontFamily>Arial</axisFontFamily>
         <axisFontItalic>false</axisFontItalic>
         <axisFontSize>10</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
+        <axisLineAlpha>1</axisLineAlpha>
+        <axisLineColor>0</axisLineColor>
+        <axisLineThickness>2</axisLineThickness>
+        <axisTickAlpha>1</axisTickAlpha>
+        <axisTickColor>0</axisTickColor>
+        <axisTickLength>10</axisTickLength>
+        <axisTickThickness>2</axisTickThickness>
         <dataBounds>
           <xMax>48.5</xMax>
           <xMin>-0.5</xMin>
-          <yMax>338.1</yMax>
+          <yMax>343</yMax>
           <yMin>0</yMin>
         </dataBounds>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
         <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
         <enableFixedAspectRatio>false</enableFixedAspectRatio>
         <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>1</gridLineAlpha>
-        <gridLineColor>14540253</gridLineColor>
-        <gridLineThickness>1</gridLineThickness>
         <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
         <layers encoding="dynamic">
-          <AxisLayer name="yAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>-0.5</xMax>
-                  <xMin>-0.5</xMin>
-                  <yMax>338.1</yMax>
-                  <yMin>0</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>338.1</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>bottom</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>5</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <AxisLayer name="xAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>48.5</xMax>
-                  <xMin>-0.5</xMin>
-                  <yMax>0</yMax>
-                  <yMin>0</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>48.5</axisLineMaxValue>
-                <axisLineMinValue>-0.5</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>top</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>11</tickCountRequested>
-                <tickMaxValue>48</tickMaxValue>
-                <tickMinValue>0</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
           <SelectablePlotLayer name="plot">
             <backgroundIsVisible>true</backgroundIsVisible>
             <enableBitmapFilters>true</enableBitmapFilters>
@@ -520,7 +394,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp name="Doppler Radar" dataFormat="qualitative" category="aesthetic" source="OIC">
+                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -550,7 +424,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+                            <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -562,7 +436,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2006" keyType="US State FIPS Code" name="Percent Obese 2006" title="Percent Obese 2006"/>
+                            <attribute name="Percent Obese 2006" title="Percent Obese 2006" csvColumn="Percent Obese 2006" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -574,7 +448,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2005" keyType="US State FIPS Code" name="Percent Obese 2005" title="Percent Obese 2005"/>
+                            <attribute name="Percent Obese 2005" title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -586,7 +460,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2004" keyType="US State FIPS Code" name="Percent Obese 2004" title="Percent Obese 2004"/>
+                            <attribute name="Percent Obese 2004" title="Percent Obese 2004" csvColumn="Percent Obese 2004" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -598,7 +472,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2003" keyType="US State FIPS Code" name="Percent Obese 2003" title="Percent Obese 2003"/>
+                            <attribute name="Percent Obese 2003" title="Percent Obese 2003" csvColumn="Percent Obese 2003" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -610,7 +484,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2002" keyType="US State FIPS Code" name="Percent Obese 2002" title="Percent Obese 2002"/>
+                            <attribute name="Percent Obese 2002" title="Percent Obese 2002" csvColumn="Percent Obese 2002" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -622,7 +496,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2001" keyType="US State FIPS Code" name="Percent Obese 2001" title="Percent Obese 2001"/>
+                            <attribute name="Percent Obese 2001" title="Percent Obese 2001" csvColumn="Percent Obese 2001" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -634,7 +508,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2000" keyType="US State FIPS Code" name="Percent Obese 2000" title="Percent Obese 2000"/>
+                            <attribute name="Percent Obese 2000" title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -646,7 +520,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1999" keyType="US State FIPS Code" name="Percent Obese 1999" title="Percent Obese 1999"/>
+                            <attribute name="Percent Obese 1999" title="Percent Obese 1999" csvColumn="Percent Obese 1999" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -658,7 +532,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1998" keyType="US State FIPS Code" name="Percent Obese 1998" title="Percent Obese 1998"/>
+                            <attribute name="Percent Obese 1998" title="Percent Obese 1998" csvColumn="Percent Obese 1998" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -670,7 +544,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1997" keyType="US State FIPS Code" name="Percent Obese 1997" title="Percent Obese 1997"/>
+                            <attribute name="Percent Obese 1997" title="Percent Obese 1997" csvColumn="Percent Obese 1997" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -682,7 +556,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1996" keyType="US State FIPS Code" name="Percent Obese 1996" title="Percent Obese 1996"/>
+                            <attribute name="Percent Obese 1996" title="Percent Obese 1996" csvColumn="Percent Obese 1996" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -694,7 +568,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
+                            <attribute name="Percent Obese 1995" title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -747,8 +621,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </weight>
                   </SolidLineStyle>
                 </lineStyle>
-                <negativeError encoding="dynamic"/>
-                <positiveError encoding="dynamic"/>
                 <sortColumn encoding="dynamic">
                   <ReferencedColumn>
                     <dynamicColumnReference encoding="dynamic">
@@ -756,15 +628,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute name="Percent Obese 2007" keyType="US State FIPS Code" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+                            <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
-                <spatialCallbacks/>
-                <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -776,13 +646,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <subsetFilter encoding="dynamic">
               <GlobalObjectReference name="defaultSubsetKeyFilter"/>
             </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
           </SelectablePlotLayer>
           <PlotLayer name="probeLine">
             <isOverlay>false</isOverlay>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <ProbeLinePlotter>
+                <drawLine>false</drawLine>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
@@ -826,108 +696,32 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </weight>
                   </SolidLineStyle>
                 </lineStyle>
-                <spatialCallbacks/>
+                <x1>-0.5</x1>
+                <x2>47</x2>
+                <x3>0</x3>
+                <xColumn encoding="dynamic"/>
+                <y1>322.7</y1>
+                <y2>322.7</y2>
+                <y3>0</y3>
               </ProbeLinePlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
           </PlotLayer>
-        </layers>
-        <marginBottom>80</marginBottom>
-        <marginLeft>80</marginLeft>
-        <marginRight>10</marginRight>
-        <marginTop>10</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>20</shadowAmount>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <labelColumn encoding="dynamic">
-      <ReferencedColumn>
-        <dynamicColumnReference encoding="dynamic">
-          <HierarchyColumnReference>
-            <dataSourceName>obesity.csv</dataSourceName>
-            <hierarchyPath encoding="xml">
-              <hierarchy keyType="US State FIPS Code">
-                <attribute name="State" keyType="US State FIPS Code" csvColumn="State" title="State"/>
-              </hierarchy>
-            </hierarchyPath>
-          </HierarchyColumnReference>
-        </dynamicColumnReference>
-      </ReferencedColumn>
-    </labelColumn>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.94%</panelHeight>
-    <panelStyleList/>
-    <panelWidth>50.078%</panelWidth>
-    <panelX>49.922%</panelX>
-    <panelY>0%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showAllLabels>false</showAllLabels>
-    <showCloseDialog>false</showCloseDialog>
-    <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
-    <toolTitle/>
-  </CompoundBarChartTool>
-  <LineChartTool name="LineChartTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>1</axesAlpha>
-        <axesColor>11579568</axesColor>
-        <axesThickness>10</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>10</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <dataBounds>
-          <xMax>12</xMax>
-          <xMin>0</xMin>
-          <yMax>32.6</yMax>
-          <yMin>10.1</yMin>
-        </dataBounds>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>1</gridLineAlpha>
-        <gridLineColor>14540253</gridLineColor>
-        <gridLineThickness>1</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
           <AxisLayer name="yAxis">
             <isOverlay>false</isOverlay>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
+              <AxisPlotter>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>0</xMax>
-                  <xMin>0</xMin>
-                  <yMax>32.6</yMax>
-                  <yMin>10.1</yMin>
+                  <xMax>-0.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>343</yMax>
+                  <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>32.6</axisLineMaxValue>
-                <axisLineMinValue>10.1</axisLineMinValue>
+                <axisLineMaxValue>343</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -946,13 +740,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </labelNumberFormatter>
                 <labelTextAlignment>left</labelTextAlignment>
                 <labelVerticalAlign>bottom</labelVerticalAlign>
-                <overrideAxisName/>
                 <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
                 <tickCountRequested>5</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
+              </AxisPlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
           </AxisLayer>
@@ -960,18 +752,18 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <isOverlay>false</isOverlay>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
+              <AxisPlotter>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>12</xMax>
-                  <xMin>0</xMin>
-                  <yMax>10.1</yMax>
-                  <yMin>10.1</yMin>
+                  <xMax>48.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>0</yMax>
+                  <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>12</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>true</forceTickCount>
+                <axisLineMaxValue>48.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
@@ -989,16 +781,357 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </labelNumberFormatter>
                 <labelTextAlignment>left</labelTextAlignment>
                 <labelVerticalAlign>top</labelVerticalAlign>
-                <overrideAxisName/>
                 <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>13</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
+                <tickCountRequested>11</tickCountRequested>
+                <tickMaxValue>48</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
+              </AxisPlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
           </AxisLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>10</marginRight>
+        <marginTop>10</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>20</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <helpAvailable>true</helpAvailable>
+    <hideBorders>false</hideBorders>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <labelColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>obesity.csv</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy keyType="US State FIPS Code">
+                <attribute name="State" title="State" csvColumn="State" keyType="US State FIPS Code"/>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </labelColumn>
+    <linkColormap>true</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelHeight>49.94%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>50.078%</panelWidth>
+    <panelX>49.922%</panelX>
+    <panelY>0%</panelY>
+    <resizeable>true</resizeable>
+    <showAllLabels>false</showAllLabels>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+    <userControlsAvailable>true</userControlsAvailable>
+  </CompoundBarChartTool>
+  <MapTool name="MapTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Arial</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>10</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <axisLineAlpha>1</axisLineAlpha>
+        <axisLineColor>0</axisLineColor>
+        <axisLineThickness>2</axisLineThickness>
+        <axisTickAlpha>1</axisTickAlpha>
+        <axisTickColor>0</axisTickColor>
+        <axisTickLength>10</axisTickLength>
+        <axisTickThickness>2</axisTickThickness>
+        <dataBounds>
+          <xMax>-51.95899541908726</xMax>
+          <xMin>-182.4461051923526</xMin>
+          <yMax>87.72811692108135</yMax>
+          <yMin>2.8601226905953903</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <enableBitmapFilters>true</enableBitmapFilters>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <GeometryPlotter>
+                <fill>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
+                </fill>
+                <geometryColumn>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>DBFDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category keyType="US State FIPS Code" name="DBF Data">
+                                <attribute dataType="Geometry" name="the_geom"/>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                  <projection>EPSG:900913</projection>
+                </geometryColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <line>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>none</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </line>
+                <pointShapeSize>5</pointShapeSize>
+              </GeometryPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="label">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <enableBitmapFilters>true</enableBitmapFilters>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <GeometryLabelPlotter>
+                <angle>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </angle>
+                <bold>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </bold>
+                <color>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </color>
+                <font>
+                  <defaultValue>Arial</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </font>
+                <geometryColumn>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>DBFDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category keyType="US State FIPS Code" name="DBF Data">
+                                <attribute dataType="Geometry" name="the_geom"/>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                  <projection>EPSG:900913</projection>
+                </geometryColumn>
+                <hAlign>
+                  <defaultValue>center</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </hAlign>
+                <hideOverlappingText>true</hideOverlappingText>
+                <italic>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </italic>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <size>
+                  <defaultValue>10</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </size>
+                <sortColumn encoding="dynamic"/>
+                <text encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>DBFDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category keyType="US State FIPS Code" name="DBF Data">
+                              <attribute keyType="US State FIPS Code" name="NAME"/>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </text>
+                <underline>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </underline>
+                <vAlign>
+                  <defaultValue>center</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </vAlign>
+                <xScreenOffset>0</xScreenOffset>
+                <yScreenOffset>0</yScreenOffset>
+              </GeometryLabelPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>0</marginBottom>
+        <marginLeft>0</marginLeft>
+        <marginRight>0</marginRight>
+        <marginTop>0</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>20</shadowAmount>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBackground>true</enableBackground>
+    <helpAvailable>true</helpAvailable>
+    <hideBorders>false</hideBorders>
+    <linkColormap>false</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelHeight>50.06%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>50.078%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>0%</panelY>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+    <userControlsAvailable>true</userControlsAvailable>
+  </MapTool>
+  <LineChartTool name="LineChartTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Arial</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>10</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <axisLineAlpha>1</axisLineAlpha>
+        <axisLineColor>0</axisLineColor>
+        <axisLineThickness>2</axisLineThickness>
+        <axisTickAlpha>1</axisTickAlpha>
+        <axisTickColor>0</axisTickColor>
+        <axisTickLength>10</axisTickLength>
+        <axisTickThickness>2</axisTickThickness>
+        <dataBounds>
+          <xMax>12</xMax>
+          <xMin>0</xMin>
+          <yMax>32.6</yMax>
+          <yMin>10.1</yMin>
+        </dataBounds>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
           <SelectablePlotLayer name="plot">
             <backgroundIsVisible>true</backgroundIsVisible>
             <enableBitmapFilters>true</enableBitmapFilters>
@@ -1013,7 +1146,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
+                            <attribute name="Percent Obese 1995" title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1025,7 +1158,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1996" keyType="US State FIPS Code" name="Percent Obese 1996" title="Percent Obese 1996"/>
+                            <attribute name="Percent Obese 1996" title="Percent Obese 1996" csvColumn="Percent Obese 1996" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1037,7 +1170,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1997" keyType="US State FIPS Code" name="Percent Obese 1997" title="Percent Obese 1997"/>
+                            <attribute name="Percent Obese 1997" title="Percent Obese 1997" csvColumn="Percent Obese 1997" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1049,7 +1182,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1998" keyType="US State FIPS Code" name="Percent Obese 1998" title="Percent Obese 1998"/>
+                            <attribute name="Percent Obese 1998" title="Percent Obese 1998" csvColumn="Percent Obese 1998" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1061,7 +1194,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 1999" keyType="US State FIPS Code" name="Percent Obese 1999" title="Percent Obese 1999"/>
+                            <attribute name="Percent Obese 1999" title="Percent Obese 1999" csvColumn="Percent Obese 1999" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1073,7 +1206,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2000" keyType="US State FIPS Code" name="Percent Obese 2000" title="Percent Obese 2000"/>
+                            <attribute name="Percent Obese 2000" title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1085,7 +1218,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2001" keyType="US State FIPS Code" name="Percent Obese 2001" title="Percent Obese 2001"/>
+                            <attribute name="Percent Obese 2001" title="Percent Obese 2001" csvColumn="Percent Obese 2001" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1097,7 +1230,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2002" keyType="US State FIPS Code" name="Percent Obese 2002" title="Percent Obese 2002"/>
+                            <attribute name="Percent Obese 2002" title="Percent Obese 2002" csvColumn="Percent Obese 2002" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1109,7 +1242,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2003" keyType="US State FIPS Code" name="Percent Obese 2003" title="Percent Obese 2003"/>
+                            <attribute name="Percent Obese 2003" title="Percent Obese 2003" csvColumn="Percent Obese 2003" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1121,7 +1254,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2004" keyType="US State FIPS Code" name="Percent Obese 2004" title="Percent Obese 2004"/>
+                            <attribute name="Percent Obese 2004" title="Percent Obese 2004" csvColumn="Percent Obese 2004" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1133,7 +1266,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2005" keyType="US State FIPS Code" name="Percent Obese 2005" title="Percent Obese 2005"/>
+                            <attribute name="Percent Obese 2005" title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1145,7 +1278,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2006" keyType="US State FIPS Code" name="Percent Obese 2006" title="Percent Obese 2006"/>
+                            <attribute name="Percent Obese 2006" title="Percent Obese 2006" csvColumn="Percent Obese 2006" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1157,14 +1290,14 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
+                            <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </columns>
-                <curveType>none</curveType>
+                <curveType>ParallelCoordinatesPlotter.LINE_STRAIGHT</curveType>
                 <keySet>
                   <keyFilter encoding="dynamic">
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
@@ -1215,8 +1348,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <shapeBorderThickness>2</shapeBorderThickness>
                 <shapeSize>0</shapeSize>
                 <shapeToDraw>No Shape</shapeToDraw>
-                <spatialCallbacks/>
-                <zoomToSubset>true</zoomToSubset>
               </ParallelCoordinatesPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -1228,12 +1359,93 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <subsetFilter encoding="dynamic">
               <GlobalObjectReference name="defaultSubsetKeyFilter"/>
             </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
           </SelectablePlotLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <AxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>12</xMax>
+                  <xMin>0</xMin>
+                  <yMax>10.1</yMax>
+                  <yMin>10.1</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>12</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>13</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </AxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <AxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>0</xMax>
+                  <xMin>0</xMin>
+                  <yMax>32.6</yMax>
+                  <yMin>10.1</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>32.6</axisLineMaxValue>
+                <axisLineMinValue>10.1</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </AxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
           <SelectablePlotLayer name="label">
             <backgroundIsVisible>true</backgroundIsVisible>
             <enableBitmapFilters>true</enableBitmapFilters>
-            <layerIsSelectable>false</layerIsSelectable>
+            <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <TextGlyphPlotter>
@@ -1262,7 +1474,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute name="Percent Obese 2007" keyType="US State FIPS Code" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+                            <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1270,7 +1482,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                   </ReferencedColumn>
                 </dataY>
                 <font>
-                  <defaultValue>Sophia Nubian</defaultValue>
+                  <defaultValue>Arial</defaultValue>
                   <internalDynamicColumn encoding="dynamic"/>
                 </font>
                 <hAlign>
@@ -1298,14 +1510,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy keyType="US State FIPS Code">
-                            <attribute name="Percent Obese 2007" keyType="US State FIPS Code" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+                            <attribute name="Percent Obese 2007" title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
-                <spatialCallbacks/>
                 <text encoding="dynamic">
                   <ReferencedColumn>
                     <dynamicColumnReference encoding="dynamic">
@@ -1343,7 +1554,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <subsetFilter encoding="dynamic">
               <GlobalObjectReference name="defaultSubsetKeyFilter"/>
             </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
           </SelectablePlotLayer>
         </layers>
         <marginBottom>80</marginBottom>
@@ -1358,146 +1568,25 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </children>
     <closeable>true</closeable>
     <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <helpAvailable>true</helpAvailable>
+    <hideBorders>false</hideBorders>
+    <linkColormap>true</linkColormap>
+    <linkProbing>true</linkProbing>
+    <linkSelection>true</linkSelection>
+    <linkSubset>true</linkSubset>
+    <lockPanel>false</lockPanel>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
     <panelHeight>50.057%</panelHeight>
     <panelStyleList/>
     <panelWidth>83.307%</panelWidth>
     <panelX>16.693%</panelX>
     <panelY>49.943%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
+    <userControlsAvailable>true</userControlsAvailable>
   </LineChartTool>
-  <DataTableTool name="DataTableTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>10</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <dataBounds>
-          <xMax>NaN</xMax>
-          <xMin>NaN</xMin>
-          <yMax>NaN</yMax>
-          <yMin>NaN</yMin>
-        </dataBounds>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic"/>
-        <marginBottom>0</marginBottom>
-        <marginLeft>0</marginLeft>
-        <marginRight>0</marginRight>
-        <marginTop>0</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <columns encoding="dynamic">
-      <DynamicColumn encoding="dynamic" name="DynamicColumn">
-        <ReferencedColumn>
-          <dynamicColumnReference encoding="dynamic">
-            <HierarchyColumnReference>
-              <dataSourceName>DBFDataSource</dataSourceName>
-              <hierarchyPath encoding="xml">
-                <hierarchy>
-                  <category keyType="US State FIPS Code" name="DBF Data">
-                    <attribute keyType="US State FIPS Code" name="NAME"/>
-                  </category>
-                </hierarchy>
-              </hierarchyPath>
-            </HierarchyColumnReference>
-          </dynamicColumnReference>
-        </ReferencedColumn>
-      </DynamicColumn>
-      <DynamicColumn encoding="dynamic" name="DynamicColumn2">
-        <ReferencedColumn>
-          <dynamicColumnReference encoding="dynamic">
-            <HierarchyColumnReference>
-              <dataSourceName>obesity.csv</dataSourceName>
-              <hierarchyPath encoding="xml">
-                <hierarchy keyType="US State FIPS Code">
-                  <attribute csvColumn="Percent Obese 1995" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995"/>
-                </hierarchy>
-              </hierarchyPath>
-            </HierarchyColumnReference>
-          </dynamicColumnReference>
-        </ReferencedColumn>
-      </DynamicColumn>
-      <DynamicColumn encoding="dynamic" name="DynamicColumn3">
-        <ReferencedColumn>
-          <dynamicColumnReference encoding="dynamic">
-            <HierarchyColumnReference>
-              <dataSourceName>obesity.csv</dataSourceName>
-              <hierarchyPath encoding="xml">
-                <hierarchy keyType="US State FIPS Code">
-                  <attribute csvColumn="Percent Obese 2007" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007"/>
-                </hierarchy>
-              </hierarchyPath>
-            </HierarchyColumnReference>
-          </dynamicColumnReference>
-        </ReferencedColumn>
-      </DynamicColumn>
-    </columns>
-    <columnWidths encoding="dynamic">
-      <LinkableString name="DynamicColumn">20%</LinkableString>
-      <LinkableString name="DynamicColumn2">40%</LinkableString>
-      <LinkableString name="DynamicColumn3">40%</LinkableString>
-    </columnWidths>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
-    <filterByKeyType/>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>50%</panelHeight>
-    <panelStyleList/>
-    <panelWidth>50%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>0%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-    <showControls>false</showControls>
-    <sortFieldIndex>NaN</sortFieldIndex>
-    <sortInDescendingOrder>false</sortInDescendingOrder>
-    <toolTitle/>
-  </DataTableTool>
 </Weave>

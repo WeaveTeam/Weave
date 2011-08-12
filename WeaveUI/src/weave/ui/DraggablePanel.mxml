@@ -30,7 +30,6 @@
 				rollOut="handleMouseRollOut(event)"
 				horizontalScrollPolicy="off"
 				verticalScrollPolicy="off"
-				childIndexChange="handleChildIndexChange(event)"
 				creationPolicy="all"
 				resize="handleResize(event)"
 				creationComplete="handleCreationComplete()"
@@ -299,27 +298,6 @@
 			
 			
 			private var _dragCanvas:Canvas = new Canvas();
-			protected function handleChildIndexChange(event:Event):void
-			{
-				if(!contains(_dragCanvas) )
-					return;
-				
-				removeEventListener(IndexChangedEvent.CHILD_INDEX_CHANGE, handleChildIndexChange);
-					
-				// ensure the _dragCanvas is always on top
-				
-				// go through each child index starting at this one and shift all subsequent children down one in order				
-				for (var i:int = getChildIndex(_dragCanvas); i < numChildren-1; i++)
-				{
-					setChildIndex(getChildAt(i+1), i);
-				}
-				
-				// once all other (besides this child) windows are back one, bring the _dragCanvas to the top
-				setChildIndex(_dragCanvas, numChildren - 1);
-				
-				addEventListener(IndexChangedEvent.CHILD_INDEX_CHANGE, handleChildIndexChange);
-			}
-			
 			public static var showRollOverBorders:Boolean;
 			
 			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
@@ -767,7 +745,7 @@
 					{
 						// un-maximize
 						panel.maximized.value = false;
-						if (panel && panel.parent && panel.parent.contains(panel))
+						if (panel && panel.parent)
 							panel.parent.removeChild(panel);
 					}
 					catch (e:Error) { }
@@ -1429,8 +1407,6 @@
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
 				titleBar.addEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
 				
-				addEventListener(ChildExistenceChangedEvent.CHILD_ADD, handleChildIndexChange);
-				addEventListener(IndexChangedEvent.CHILD_INDEX_CHANGE, handleChildIndexChange);
 				minWidth  = 120;
 				
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
@@ -1579,7 +1555,7 @@
 				{
 					if ( /* enableHelpPanel.value && */ _helpPanel )
 					{
-						if( !titleBar.contains(helpButton) )
+						if (titleBar != helpButton.parent)
 							titleBar.addChild(helpButton);
 
 						helpButton.setStyle("cornerRadius",  buttonRadius.value);
@@ -1598,7 +1574,7 @@
 					
 					if ( Weave.properties.enableToolControls.value && _controlPanel )
 					{
-						if ( !titleBar.contains(userControlButton) )
+						if (titleBar != userControlButton.parent)
 							titleBar.addChild(userControlButton);						
 
 						userControlButton.setStyle("cornerRadius",  buttonRadius.value);
@@ -1617,7 +1593,7 @@
 					
 					if (closeable.value)
 					{
-						if( !titleBar.contains(closePanelButton) )
+						if (titleBar != closePanelButton.parent)
 							titleBar.addChild(closePanelButton);
 							
 						closePanelButton.setStyle("cornerRadius",  buttonRadius.value);
@@ -1634,11 +1610,11 @@
 					}
 					if (maximizable.value)
 					{
-						if( !titleBar.contains(maximizeButton) )
+						if (titleBar != maximizeButton.parent)
 							titleBar.addChild(maximizeButton);
 
 						maximizeButton.x = rightButtonX;
-						if(closeable.value)
+						if (closeable.value)
 							maximizeButton.x = maximizeButton.x - buttonSize - spaceBetweenButtons;
 							
 						maximizeButton.setStyle("cornerRadius",  buttonRadius.value);
@@ -1655,7 +1631,7 @@
 						
 					if (minimizable.value)
 					{
-						if( !titleBar.contains(minimizeButton) )
+						if (titleBar != minimizeButton.parent)
 							titleBar.addChild(minimizeButton);
 						
 						minimizeButton.setStyle("cornerRadius",  buttonRadius.value);
@@ -1680,7 +1656,7 @@
 					}
 					if (pinnable.value)
 					{
-						if (!titleBar.contains(pinButton))
+						if (titleBar != pinButton.parent)
 							titleBar.addChild(pinButton);
 						pinButton.setStyle("cornerRadius", buttonRadius.value);
 						pinButton.x = rightButtonX;
@@ -1701,7 +1677,7 @@
 					}
 					if (pinnableToBack.value)
 					{
-						if (!titleBar.contains(pinToBackButton))
+						if (titleBar != pinToBackButton.parent)
 							titleBar.addChild(pinToBackButton);
 						pinToBackButton.setStyle("cornerRadius", buttonRadius.value);
 						pinToBackButton.x = rightButtonX;
@@ -1937,8 +1913,6 @@
 				showCloseDialog.value = false;
 				
 				removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
-				removeEventListener(ChildExistenceChangedEvent.CHILD_ADD, handleChildIndexChange);
-				removeEventListener(IndexChangedEvent.CHILD_INDEX_CHANGE, handleChildIndexChange);
 				removeEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				removeEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
 				

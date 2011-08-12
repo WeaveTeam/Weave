@@ -111,8 +111,13 @@ package weave.data.DataSources
 		private function handleDBFDownload(event:ResultEvent, token:Object = null):void
 		{
 			dbfData = ByteArray(event.result);
+			if (dbfData.length == 0)
+			{
+				WeaveAPI.ErrorManager.reportError(new Error("Zero-byte DBF: " + dbfUrl.value));
+				return;
+			}
 			dbf = new DbfHeader( dbfData );	
-				
+			
 			if (_attributeHierarchy.value == null)
 			{	
 				var category:XML = <category name="DBF Data"/>;
@@ -141,7 +146,13 @@ package weave.data.DataSources
 			
 			if (shpfile)
 				disposeObjects(shpfile);
-			shpfile = registerLinkableChild(this, new ShpFileReader(ByteArray(event.result)));
+			var bytes:ByteArray = ByteArray(event.result);
+			if (bytes.length == 0)
+			{
+				WeaveAPI.ErrorManager.reportError(new Error("Zero-byte ShapeFile: " + shpUrl.value));
+				return;
+			}
+			shpfile = registerLinkableChild(this, new ShpFileReader(bytes));
 		}
 
 		/**
@@ -179,20 +190,20 @@ package weave.data.DataSources
 				
 			//The column names
 			var colName:String = proxyColumn.getMetadata('name');
-			var keyColName:String = keyColName.value;
-			if (keyColName == null)
-				keyColName = (dbf.fields[0] as DbfField).name;
+			var _keyColName:String = this.keyColName.value;
+			if (_keyColName == null)
+				_keyColName = (dbf.fields[0] as DbfField).name;
 
 			//Get a vector of all elements in that column
 			var dbfDataColumn:Array = getColumnValues(colName);
-			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, getColumnValues(keyColName));
-			var keysVector:Vector.<IQualifiedKey> = VectorUtils.copy(keysArray, new Vector.<IQualifiedKey>());
+			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, getColumnValues(_keyColName));
+			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
 
 			var newColumn:IAttributeColumn;
-			if( ColumnUtils.getDataType(proxyColumn) == DataTypes.GEOMETRY )
+			if (ObjectUtil.stringCompare(ColumnUtils.getDataType(proxyColumn), DataTypes.GEOMETRY, true) == 0)
 			{
 				newColumn = new GeometryColumn(leafNode);
-				(newColumn as GeometryColumn).setGeometries(keysVector, VectorUtils.copy(dbfDataColumn, new Vector.<GeneralizedGeometry>()));
+				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(dbfDataColumn));
 			}
 			else
 			{
@@ -218,12 +229,12 @@ package weave.data.DataSources
 				if (isNumericColumn)
 				{
 					newColumn = new NumberColumn(leafNode);
-					(newColumn as NumberColumn).updateRecords(keysVector, VectorUtils.copy(dbfDataColumn, new Vector.<Number>()));
+					(newColumn as NumberColumn).updateRecords(keysVector, Vector.<Number>(dbfDataColumn));
 				}
 				else
 				{
 					newColumn = new StringColumn(leafNode);
-					(newColumn as StringColumn).updateRecords(keysVector, VectorUtils.copy(dbfDataColumn, new Vector.<String>()));
+					(newColumn as StringColumn).updateRecords(keysVector, Vector.<String>(dbfDataColumn), true);
 				}
 			}
 

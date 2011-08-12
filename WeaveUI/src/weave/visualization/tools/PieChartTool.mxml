@@ -54,7 +54,7 @@
 				visualization.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 
-				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				

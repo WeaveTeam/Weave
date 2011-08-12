@@ -242,7 +242,7 @@
 			{
 				try
 				{
-					if (minimizeBox.contains(minimizedComponent))
+					if (minimizeBox == minimizedComponent.parent)
 						minimizeBox.removeChild(minimizedComponent);
 				}
 				catch (error:Error)
@@ -263,7 +263,7 @@
 			
 			public function getMinimizedComponentXYRelativeToStage(minimizedComponent:MinimizedComponent):Point
 			{
-				if(!minimizeBox.contains(minimizedComponent))
+				if (minimizeBox != minimizedComponent.parent)
 					return null;
 
 				var childIndex:int = minimizeBox.getChildIndex(minimizedComponent);

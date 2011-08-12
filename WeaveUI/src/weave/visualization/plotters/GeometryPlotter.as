@@ -26,6 +26,8 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.Weave;
 	import weave.api.copySessionState;
 	import weave.api.data.IAttributeColumn;
@@ -34,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.disposeObjects;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
@@ -381,30 +384,21 @@ package weave.visualization.plotters
 		}
 
 		// backwards compatibility 0.9.6
-		[Deprecated(replacement="line")] public function get lineStyle():DynamicLineStyle
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
 		{
-			var deprecated:DynamicLineStyle = new DynamicLineStyle(SolidLineStyle);
-			var callback:Function = function():void
-			{
-				copySessionState(deprecated.internalObject, line);
-			};
-			StageUtils.callLater(this, disposeObjects, [deprecated], false);
-			return registerLinkableChild(this, deprecated, callback);
+			try {
+				setSessionState(line, value[0].sessionState);
+			} catch (e:Error) { }
 		}
-		[Deprecated(replacement="fill")] public function get fillStyle():DynamicFillStyle
+		[Deprecated(replacement="fill")] public function set fillStyle(value:Object):void
 		{
-			var deprecated:DynamicFillStyle = new DynamicFillStyle(SolidFillStyle);
-			var callback:Function = function():void
-			{
-				fill.enableMissingDataFillPattern.value = (deprecated.internalObject is ExtendedSolidFillStyle);
-				copySessionState(deprecated.internalObject, fill);
-			};
-			StageUtils.callLater(this, disposeObjects, [deprecated], false);
-			return registerLinkableChild(this, deprecated, callback);
+			try {
+				setSessionState(fill, value[0].sessionState);
+			} catch (e:Error) { }
 		}
-		[Deprecated(replacement="geometryColumn")] public function get geometry():DynamicColumn
+		[Deprecated(replacement="geometryColumn")] public function set geometry(value:Object):void
 		{
-			return registerLinkableChild(this, geometryColumn.internalDynamicColumn);
+			setSessionState(geometryColumn.internalDynamicColumn, value);
 		}
 	}
 }

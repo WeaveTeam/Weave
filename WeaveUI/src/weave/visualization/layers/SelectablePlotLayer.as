@@ -92,6 +92,8 @@ package weave.visualization.layers
 					Weave.properties.selectionAlphaAmount
 				);
 
+			Weave.properties.enableBitmapFilters.addGroupedCallback(this, handleToggleBitmapFilters);
+			
 			percentWidth = 100;
 			percentHeight = 100;
 			
@@ -233,13 +235,13 @@ package weave.visualization.layers
 		{
 			if (!backgroundIsVisible.value && !selectionExists && !probeExists)
 			{
-				if (!contains(emptySelectionText))
-					addChild(emptySelectionText);
+				if (this != emptySelectionText.parent)
+					this.addChild(emptySelectionText);
 			}
 			else
 			{
-				if (contains(emptySelectionText))
-					removeChild(emptySelectionText);
+				if (this == emptySelectionText.parent)
+					this.removeChild(emptySelectionText);
 			}	
 		}
 		
@@ -278,7 +280,7 @@ package weave.visualization.layers
 			{
 				_plotLayer.alpha = Weave.properties.selectionAlphaAmount.value;
 				
-				if (enableBitmapFilters.value)
+				if (Weave.properties.enableBitmapFilters.value)
 				{
 					_plotLayer.plotFilters = [selectionBlur];
 					//selectionLayer.plotFilters = testFilter.generatedObject ? [testFilter.generatedObject] : null;
@@ -296,11 +298,10 @@ package weave.visualization.layers
 			}	
 		}
 
-		public const enableBitmapFilters:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), handleToggleBitmapFilters, true);
 		private function handleToggleBitmapFilters():void
 		{
 			handleSelectionChange();
-			if (enableBitmapFilters.value)
+			if (Weave.properties.enableBitmapFilters.value)
 			{
 				_selectionLayer.plotFilters = [shadow];
 				_probeLayer.plotFilters = [probeGlowInner, probeGlowOuter];

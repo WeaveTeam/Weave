@@ -29,6 +29,7 @@ package weave.data.DataSources
 	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.DataTypes;
@@ -197,8 +198,7 @@ package weave.data.DataSources
 			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
 			proxyColumn.setMetadata(leafNode);
 			var columnId:String = leafNode.attribute("id");
-			var url:String = url.value;
-			var request:URLRequest = new URLRequest(url);
+			var request:URLRequest = new URLRequest(url.value);
 			request.data = new URLVariables();
 			request.data.method = "listColumnValues";
 			request.data.columnId = columnId;
@@ -241,23 +241,23 @@ package weave.data.DataSources
 				// process keys into a vector
 				var keyStrings:Array = VectorUtils.copyXMLListToVector(keysList, []);
 				var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(hierarchyNode.@keyType, keyStrings);
-				var keysVector:Vector.<IQualifiedKey> = VectorUtils.copy(keysArray, new Vector.<IQualifiedKey>());
+				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
 				
 				// determine the data type, and create the appropriate type of IAttributeColumn
 				var newColumn:IAttributeColumn;
 				var dataVector:*;
 				
-				if (dataType == DataTypes.STRING)
-				{
-					newColumn = new StringColumn(hierarchyNode);
-					dataVector = VectorUtils.copyXMLListToVector(dataList, new Vector.<String>());
-					(newColumn as StringColumn).updateRecords(keysVector, dataVector);
-				}
-				else
+				if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
 					newColumn = new NumberColumn(hierarchyNode);
 					dataVector = VectorUtils.copyXMLListToVector(dataList, new Vector.<Number>());
 					(newColumn as NumberColumn).updateRecords(keysVector, dataVector);
+				}
+				else
+				{
+					newColumn = new StringColumn(hierarchyNode);
+					dataVector = VectorUtils.copyXMLListToVector(dataList, new Vector.<String>());
+					(newColumn as StringColumn).updateRecords(keysVector, dataVector, true);
 				}
 				// save pointer to new column inside the matching proxy column
 				proxyColumn.internalColumn = newColumn;

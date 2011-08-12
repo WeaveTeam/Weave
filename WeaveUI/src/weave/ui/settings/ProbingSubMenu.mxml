@@ -27,8 +27,15 @@
 				  height="100%" width="100%"
 				  >
 	<mx:Canvas id="admin">
-		<mx:VBox >
-		
+		<mx:VBox>
+					
+		<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
+					 id="enableBitmapFilters"
+					 label="Enable Bitmap Filters"
+					 selected="true"
+					 initialize="linkBindableProperty(Weave.properties.enableBitmapFilters, enableBitmapFilters, 'selected')"
+					 />
+		<mx:VBox enabled="{enableBitmapFilters.selected}" >						
 			<mx:HBox>
 				<mx:Label text="Probe Inner Glow Color" 
 						  width="200"		
@@ -109,7 +116,7 @@
 				<mx:ColorPicker id="probeTooltipBackgroundColor" change="backgroundColorPicked()"/>
 				<mx:Button label="Reset" click="Weave.properties.probeToolTipBackgroundColor.value = NaN;"/>
 			</mx:HBox>
-			
+			</mx:VBox>
 			<mx:VBox paddingLeft="10">
 				<mx:HBox>
 					<mx:CheckBox id="enableProbeAnimationCheck"
@@ -122,6 +129,15 @@
 								 label="Enable detailed geometry probing"
 								 toolTip="Check this box to use the detailed geometry probing. This probing is accurate but may decrease performance."
 								 initialize="linkBindableProperty(Weave.properties.enableGeometryProbing, enableDetailedProbing, 'selected')"/>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Maximum number of records shown" 
+							  width="200"							  							  
+							  toolTip="Set the maximum number of records displayed in probe toolTips"/>
+					<mx:NumericStepper id="maxRecordsShown"
+									   maximum="20"
+									   initialize="linkBindableProperty(Weave.properties.maxTooltipRecordsShown, maxRecordsShown, 'value' );"
+									   />
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>

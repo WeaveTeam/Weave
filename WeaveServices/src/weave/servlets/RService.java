@@ -41,8 +41,8 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
-//import org.rosuda.JRclient.REXP
 
+ 
 public class RService extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
@@ -59,9 +59,33 @@ public class RService extends GenericServlet
 
 	private String docrootPath = "";
 	private String rFolderName = "R_output";
+	
+	
 
-	// write separate class to start Rserve (TBD)
-
+	private String plotEvalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
+	{
+		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
+		String dir = docrootPath + rFolderName + "/";
+		(new File(dir)).mkdirs();
+		String str = String.format("jpeg(\"%s\")", dir + file);
+		evalScript(rConnection, str, showWarnings);
+		rConnection.eval(script);
+		rConnection.eval("dev.off()");		
+		return rFolderName + "/" + file;
+	}
+	
+	private REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
+	{
+		// rConnection.voidEval("");
+		REXP evalValue = null;
+		if(showWarnings)			
+			evalValue =  rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
+			
+		else
+			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");		
+		return evalValue;
+	}
+	
 	private RConnection getRConnection() throws RemoteException
 	{
 		RConnection rConnection = null; // establishing R connection
@@ -77,37 +101,15 @@ public class RService extends GenericServlet
 		}
 		return rConnection;
 	}
-
-	private String plotEvalScript(RConnection rConnection, String script,boolean showWarnings) throws RserveException, REXPMismatchException
+	
+	
+	
+	public RResult[] runScript(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
 	{
-		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
-		String dir = docrootPath + rFolderName + "/";
-		(new File(dir)).mkdirs();
-		String str = String.format("jpeg(\"%s\")", dir + file);
-		evalScript(rConnection,str,showWarnings);
-		rConnection.eval(script);
-		rConnection.eval("dev.off()");
-		return rFolderName + "/" + file;
-	}
-
-	private REXP evalScript(RConnection rConnection, String script,boolean showWarnings) throws RserveException, REXPMismatchException
-	{
-		REXP evalValue;
-		if(showWarnings)
-			evalValue = rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
-		else
-			evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
-		
-		if (evalValue.inherits("try-error"))
-			throw new RuntimeException(evalValue.asString());
-		return evalValue;
-	}
-
-	public RResult[] runScript(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults,boolean showWarnings) throws RemoteException
-	{
-
-		String output = "";
 		RConnection rConnection = getRConnection();
+		
+		//System.out.println(keys.length);
+		String output = "";
 		RResult[] results = null;
 		REXP evalValue;
 		try
@@ -137,9 +139,9 @@ public class RService extends GenericServlet
 				String[] rScript = script.split("\n");
 				for (int i = 0; i < rScript.length; i++)
 				{
-					REXP individualEvalValue = evalScript(rConnection, rScript[i],showWarnings);
+					REXP individualEvalValue = evalScript(rConnection, rScript[i], showWarnings);
 					// to-do remove debug information from string
-					String trimedString = individualEvalValue.toDebugString();
+					String trimedString = individualEvalValue.toString();
 					while (trimedString.indexOf('[') > 0)
 					{
 						int pos = trimedString.indexOf('[');
@@ -147,24 +149,16 @@ public class RService extends GenericServlet
 						System.out.println(trimedString + "\n");
 						trimedString = trimedString.substring(pos + 1);
 					}
-					trimedString = "[" + trimedString;
-					// String resultString = "Number of Elements:" +
-					// individualEvalValue.toDebugString().substring(beginPos
-					// ,endPos + 1) +"\n"+
-					// individualEvalValue.toDebugString().substring(endPos +
-					// 1);
+					trimedString = "[" + trimedString;					
 					output = output.concat(trimedString);
 					output += "\n";
 				}
 			}
 			else
 			{
-				REXP completeEvalValue = evalScript(rConnection, script,showWarnings);
-				// print debug info
-				output = completeEvalValue.toDebugString();
-				System.out.println("output: " + output);
+				REXP completeEvalValue = evalScript(rConnection, script, showWarnings);
+				output = completeEvalValue.toString();
 			}
-
 			// R Script to EVALUATE outputTA(from R Script Output TextArea)
 			if (showIntermediateResults)
 			{
@@ -173,7 +167,7 @@ public class RService extends GenericServlet
 				if (plotScript != "")
 				{
 					results = new RResult[outputNames.length + 2];
-					String plotEvalValue = plotEvalScript(rConnection, plotScript,showWarnings);
+					String plotEvalValue = plotEvalScript(rConnection, plotScript, showWarnings);
 					results[0] = new RResult("Plot Results", plotEvalValue);
 					results[1] = new RResult("Intermediate Results", output);
 					i = 2;
@@ -194,63 +188,45 @@ public class RService extends GenericServlet
 				{
 					String name;
 					// Boolean addedTolist = false;
-					if (iterationTimes == outputNames.length + 2)
-					{
+					if (iterationTimes == outputNames.length + 2){
 						name = outputNames[i - 2];
 					}
-					else
-					{
+					else{
 						name = outputNames[i - 1];
 					}
-
 					// Script to get R - output
-					evalValue = evalScript(rConnection, name,showWarnings);
-
-					if (evalValue.isVector())
-					{
+					evalValue = evalScript(rConnection, name, showWarnings);
+					if (evalValue.isVector()){
 						if (evalValue instanceof REXPString)
-						{
-							results[i] = new RResult(name, evalValue.asStrings());
-						}
+							results[i] = new RResult(name, evalValue.asStrings());						
 						else if (evalValue instanceof REXPInteger)
-						{
 							results[i] = new RResult(name, evalValue.asIntegers());
-						}
-						else if (evalValue instanceof REXPDouble)
-						{
+						else if (evalValue instanceof REXPDouble){
 							if (evalValue.dim() == null)
-							{
 								results[i] = new RResult(name, evalValue.asDoubles());
-							}
 							else
-							{
 								results[i] = new RResult(name, evalValue.asDoubleMatrix());
-							}
-
 						}
-						else
-						{
-							// if no previous cases were true, return debug
-							// string
+						else{
+							// if no previous cases were true, return debug String
 							results[i] = new RResult(name, evalValue.toDebugString());
 						}
 					}
-
-					else
+					else{
 						results[i] = new RResult(name, evalValue.toDebugString());
-
+					}
 					System.out.println(name + " = " + evalValue.toDebugString() + "\n");
-				}
-			}
+					
+				}//end of for - to store result
+			}//end of IF for intermediate results
 			else
 			{
-
 				int i;
 				int iterationTimes;
 				if (plotScript != "")
 				{
 					results = new RResult[outputNames.length + 1];
-					String plotEvalValue = plotEvalScript(rConnection, plotScript,showWarnings);
+					String plotEvalValue = plotEvalScript(rConnection, plotScript, showWarnings);
 					System.out.println(plotEvalValue);
 					results[0] = new RResult("Plot Results", plotEvalValue);
 					i = 1;
@@ -266,63 +242,44 @@ public class RService extends GenericServlet
 				// results = new RResult[outputNames.length];
 				for (; i < iterationTimes; i++)
 				{
-
 					String name;
 					// Boolean addedTolist = false;
-					if (iterationTimes == outputNames.length + 1)
-					{
+					if (iterationTimes == outputNames.length + 1){
 						name = outputNames[i - 1];
 					}
-					else
-					{
+					else{
 						name = outputNames[i];
 					}
 					// Script to get R - output
-					evalValue = evalScript(rConnection, name,showWarnings);
+					evalValue = evalScript(rConnection, name, showWarnings);				
 					System.out.println(evalValue);
 
-					if (evalValue.isVector())
-					{
+					if (evalValue.isVector()){
 						if (evalValue instanceof REXPString)
-						{
 							results[i] = new RResult(name, evalValue.asStrings());
-						}
 						else if (evalValue instanceof REXPInteger)
-						{
 							results[i] = new RResult(name, evalValue.asIntegers());
-						}
-						else if (evalValue instanceof REXPDouble)
-						{
+						else if (evalValue instanceof REXPDouble){
 							if (evalValue.dim() == null)
-							{
 								results[i] = new RResult(name, evalValue.asDoubles());
-							}
 							else
-							{
 								results[i] = new RResult(name, evalValue.asDoubleMatrix());
-							}
-
 						}
-						else
-						{
-							// if no previous cases were true, return debug
-							// string
+						else{
+							// if no previous cases were true, return debug String
 							results[i] = new RResult(name, evalValue.toDebugString());
 						}
 					}
-					else
-					{
+					else{
 						results[i] = new RResult(name, evalValue.toDebugString());
 					}
 
-					System.out.println(name + " = " + evalValue.toDebugString() + "\n");
+					System.out.println(name + " = " + evalValue.toDebugString() + "\n");					
 				}
 			}
 		}
-		catch (Exception e)
-		{
-			// e.printStackTrace();
-			// to-do remove debug information from string
+		catch (Exception e)	{
+			e.printStackTrace();
 			output += e.getMessage();
 			// to send error from R to As3 side results is created with one
 			// object
@@ -515,4 +472,5 @@ public class RService extends GenericServlet
 		}
 		return hclresult;
 	}
+
 }

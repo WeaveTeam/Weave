@@ -81,13 +81,14 @@ package weave
 		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
 		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
-		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; };
+		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:Number):Boolean { return value >= 1; }
 		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
+		private function verifyMaxTooltipRecordsShown(value:Number):Boolean { return 0 <= value && value <= 20; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
-//		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Viws TabBar
+//		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Views TabBar
 		public const windowSnapGridSize:LinkableNumber = new LinkableNumber(5, verifyWindowSnapGridSize); // window snap grid size in pixels
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
@@ -125,7 +126,8 @@ package weave
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 //		public const enableAddSP2:LinkableBoolean = new LinkableBoolean(true); // Add SP2 option tools menu
 //		public const enableAddWordle:LinkableBoolean = new LinkableBoolean(true); // Add Wordle option tools menu		
-//		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(true); // Add RamachandranPlot option tools menu		
+		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(false); // Add RamachandranPlot option tools menu		
+//		public const enableAddSurfacePlotter:LinkableBoolean = new LinkableBoolean(true); // Add Surface Plotter option tools menu
 		
 		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
@@ -135,6 +137,8 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
+		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
+		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
@@ -274,7 +278,9 @@ package weave
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
 		// temporary?
-		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService"); // url of Weave R service
+		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService");// url of Weave R service using Rserve
+		public const jriServiceURL:LinkableString = new LinkableString("/WeaveServices/JRIService");// url of Weave R service using JRI
+		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 		
 		//default URL
 		public const searchServiceURLs:LinkableString = new LinkableString(WIKIPEDIA_URL+"\n"+GOOGLE_URL+"\n"+GOOGLE_IMAGES_URL+"\n"+GOOGLE_MAPS_URL);
@@ -284,32 +290,38 @@ package weave
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
-		[Deprecated(replacement="panelTitleFontFamily")] public function get panelTitleFontStyle():LinkableString { return panelTitleFontFamily; }
-		[Deprecated(replacement="dashboardMode")] public function get enableToolBorders():LinkableBoolean
+		[Deprecated(replacement="panelTitleFontFamily")] public function set panelTitleFontStyle(value:String):void
 		{
-			var temp:LinkableBoolean = new LinkableBoolean();
-			var callback:Function = function():void
-			{
-				dashboardMode.value = !temp.value;
-				disposeObjects(temp);
-			}
-			return registerLinkableChild(this, temp, callback);
+			panelTitleFontFamily.value = value;
 		}
-		[Deprecated(replacement="dashboardMode")] public function get enableBorders():LinkableBoolean { return this['enableToolBorders']; }
-		[Deprecated(replacement="enableSessionBookmarks")] public function get enableSavePoint():LinkableBoolean { return enableSessionBookmarks; }
-		[Deprecated(replacement="showProbeToolTipEditor")] public function get showProbeColumnEditor():LinkableBoolean { return showProbeToolTipEditor; }
-		[Deprecated(replacement="enableAddWeaveDataSource")] public function get enableAddOpenIndicatorsDataSource():LinkableBoolean { return enableAddWeaveDataSource; }
-		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function get enableToolAutoResizeAndPosition():LinkableBoolean { return enablePanelCoordsPercentageMode; }
-		[Deprecated(replacement="rServiceURL")] public function get rServicesURL():LinkableString
+		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void
 		{
-			var temp:LinkableString = new LinkableString();
-			var callback:Function = function():void
-			{
-				if (temp.value != '/OpenIndicatorsDataServices')
-					rServiceURL.value = temp.value + '/RService';
-				disposeObjects(temp);
-			};
-			return registerLinkableChild(this, temp, callback);
+			dashboardMode.value = !value;
+		}
+		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void
+		{
+			dashboardMode.value = !value;
+		}
+		[Deprecated(replacement="enableSessionBookmarks")] public function set enableSavePoint(value:Boolean):void
+		{
+			enableSessionBookmarks.value = value;
+		}
+		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void
+		{
+			showProbeToolTipEditor.value = value;
+		}
+		[Deprecated(replacement="enableAddWeaveDataSource")] public function set enableAddOpenIndicatorsDataSource(value:Boolean):void
+		{
+			enableAddWeaveDataSource.value = value;
+		}
+		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void
+		{
+			enablePanelCoordsPercentageMode.value = value;
+		}
+		[Deprecated(replacement="rServiceURL")] public function set rServicesURL(value:String):void
+		{
+			if (value != '/OpenIndicatorsDataServices')
+				rServiceURL.value = value + '/RService';
 		}
 		//--------------------------------------------
 	}

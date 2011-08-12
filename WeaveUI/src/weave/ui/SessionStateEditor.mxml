@@ -458,9 +458,9 @@
 				if (oldValue == TEXT_EDITOR)
 				{
 					_editor = DATA_GRID;
-					if (editorBox.contains(sessionStateTextArea))
+					if (editorBox == sessionStateTextArea.parent)
 						editorBox.removeChild(sessionStateTextArea);
-					if (!editorBox.contains(sessionStateDataGrid))
+					if (editorBox != sessionStateDataGrid.parent)
 						editorBox.addChild(sessionStateDataGrid);
 
 					sessionStateTextArea.enabled = false;
@@ -476,9 +476,9 @@
 				else if (oldValue == DATA_GRID)
 				{
 					_editor = TEXT_EDITOR;
-					if (editorBox.contains(sessionStateDataGrid))
+					if (editorBox == sessionStateDataGrid.parent)
 						editorBox.removeChild(sessionStateDataGrid);
-					if (!editorBox.contains(sessionStateTextArea))
+					if (editorBox != sessionStateTextArea.parent)
 						editorBox.addChild(sessionStateTextArea);
 					
 					sessionStateTextArea.enabled = true;
@@ -546,9 +546,9 @@
 				{				
 					changeView(TEXT_EDITOR);
 					
-					if (editorBox.contains(sessionStateDataGrid))
+					if (editorBox == sessionStateDataGrid.parent)
 						editorBox.removeChild(sessionStateDataGrid);
-					if (!editorBox.contains(sessionStateTextArea))
+					if (editorBox != sessionStateTextArea.parent)
 						editorBox.addChild(sessionStateTextArea);
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.editable = true;

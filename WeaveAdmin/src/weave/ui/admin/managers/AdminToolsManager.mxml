@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.*"
+		 xmlns="weave.ui.admin.managers.*" 
+		 width="100%" height="100%" 
+		 label="Admin Tools"
+		 >
+	<mx:Box width="20%">
+		<mx:Button id="InvaidQueriesButton" label="Check for Invalid Queries"
+				   click="InvaidQueriesButton_clickHandler(event)"/>
+	</mx:Box>
+	
+
+
+<mx:Script>
+	<![CDATA[
+		import flash.display.DisplayObject;
+		import flash.display.Sprite;
+		
+		import mx.containers.TitleWindow;
+		import mx.controls.Alert;
+		import mx.controls.DataGrid;
+		import mx.core.IFlexDisplayObject;
+		import mx.events.CloseEvent;
+		import mx.events.FlexEvent;
+		import mx.managers.PopUpManager;
+		import mx.rpc.events.ResultEvent;
+		
+		import weave.services.AdminInterface;
+		import weave.services.DelayedAsyncInvocation;
+		import weave.services.WeaveAdminService;
+		import weave.services.beans.AttributeColumnInfo;
+		import weave.ui.admin.ColumnMetadataPopup;
+		import weave.utils.PopUpUtils;
+		
+		
+		
+		protected function InvaidQueriesButton_clickHandler(event:MouseEvent):void
+		{
+			  var weaveAdminService:WeaveAdminService = AdminInterface.instance.service;
+			  var connectionName:String = AdminInterface.instance.activeConnectionName;
+			  var password:String = AdminInterface.instance.activePassword;
+			  
+			  weaveAdminService.getInvalidQueryInfo(connectionName, password).addAsyncResponder(handleDataTableInfo, null, null);
+		}								
+		
+		
+	    private function handleDataTableInfo(event:ResultEvent, token:Object = null):void
+		{
+		    var result:Array = event.result as Array;//array of AttributeColumnInfo objects returned
+			if (result.length == 0)
+			{
+				WeaveAdminService.messageDisplay(null, "No invalid queries found.", false);
+				return;
+			}
+
+			var metadataArray:Array = new Array(); //array of metadata of the columns returned
+			for( var i:int = 0; i < result.length; i++ )
+			{
+				var item:AttributeColumnInfo = new AttributeColumnInfo(result[i]);
+				item.metadata.connection = item.connection;
+				item.metadata.sqlQuery = item.sqlQuery;
+				metadataArray.push(item.metadata);
+			}
+			
+				 
+			//var currentInvalidQueryGrid:DataGrid = new DataGrid();
+			//currentInvalidQueryGrid.dataProvider = metadataArray;
+			//this.addChild(currentInvalidQueryGrid);   
+			//PopUpUtils.confirm(this,metadataArray.length + " invalid queries found",'Would you like to remove these attribute columns?', yes, no);
+		    
+			//*popupDatagrid = PopUpUtils.createDisplayObjectAsPopUp(this,DataGrid);
+		    //*(popupDatagrid as DataGrid).dataProvider = metadataArray;
+				  
+				  
+				  
+			/* var tw:IFlexDisplayObject = PopUpUtils.createDisplayObjectAsPopUp(this,TitleWindow);
+			 var popUpDataGrid:DataGrid = new DataGrid();
+			 (tw as TitleWindow).title = metadataArray.length + " invalid query results returned";
+			 (tw as TitleWindow).addChild(popUpDataGrid);
+			 popUpDataGrid.dataProvider = metadataArray;
+		     (tw as TitleWindow).showCloseButton = true;
+			 (tw as TitleWindow).addEventListener(Event.CLOSE,closeDataGrid);
+		
+	*/
+				  
+			var metadataPopup:IFlexDisplayObject = PopUpUtils.createDisplayObjectAsPopUp(this,ColumnMetadataPopup);	  
+			(metadataPopup as ColumnMetadataPopup).popUpDataGrid.dataProvider = metadataArray;
+			(metadataPopup as ColumnMetadataPopup).title = metadataArray.length + " invalid attribute columns found";
+		}
+	]]>
+</mx:Script>
+</mx:HDividedBox>

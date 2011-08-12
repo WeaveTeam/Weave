@@ -173,9 +173,9 @@
 			
 			private function showOrHideParamSelector(show:Boolean):void
 			{
-				if (show && !outerVBox.contains(paramSelector))
+				if (show && outerVBox != paramSelector.parent)
 					outerVBox.addChildAt(paramSelector,0);
-				if (!show && outerVBox.contains(paramSelector))
+				if (!show && outerVBox == paramSelector.parent)
 					outerVBox.removeChild(paramSelector);
 			}
 			
@@ -234,13 +234,13 @@
 					}
 					
 					var child:DisplayObject = columnList.selectorControls;
-					if (child.parent && child.parent.contains(child))
+					if (child.parent)
 						child.parent.removeChild(child);
 					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
 					columnList.label = objectTitle ? objectTitle : 'Selected Attributes';
 					verticalDividedBox.addChild(columnList);
 				}
-				else if (verticalDividedBox.contains(columnList))
+				else if (verticalDividedBox == columnList.parent)
 				{
 					verticalDividedBox.removeChild(columnList);
 				}

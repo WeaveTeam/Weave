@@ -365,7 +365,7 @@ package weave.data.DataSources
 			var query:AsyncToken;
 			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
 			proxyColumn.setMetadata(leafNode);
-			if (ColumnUtils.getDataType(proxyColumn) == DataTypes.GEOMETRY)
+			if (ObjectUtil.stringCompare(ColumnUtils.getDataType(proxyColumn), DataTypes.GEOMETRY, true) == 0)
 			{
 				var tileService:IWeaveGeometryTileService = dataService.createTileService(proxyColumn.getMetadata('name'));
 				proxyColumn.internalColumn = new StreamedGeometryColumn(tileService, leafNode);
@@ -381,6 +381,10 @@ package weave.data.DataSources
 		private function handleGetAttributeColumnFault(event:FaultEvent, token:Object = null):void
 		{
 			var request:ColumnRequestToken = token as ColumnRequestToken;
+
+			if (request.proxyColumn.wasDisposed)
+				return;
+			
 			request.proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
 			trace("handleGetAttributeColumnFault", ObjectUtil.toString(request.pathInHierarchy), event.fault, event.message);
 			WeaveAPI.ErrorManager.reportError(event.fault);
@@ -423,6 +427,7 @@ package weave.data.DataSources
 				if (hierarchyNode == null)
 					hierarchyNode = <attribute/>;
 				hierarchyNode.@keyType = result.keyType;
+				hierarchyNode.@dataType = result.dataType;
 				hierarchyNode.@name = result.attributeColumnName;
 
 				hierarchyNode.@year = result.year;
@@ -446,31 +451,26 @@ package weave.data.DataSources
 					delete hierarchyNode["@max"];
 
 				var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(result.keyType, result.keys)
-				var keysVector:Vector.<IQualifiedKey> = VectorUtils.copy(keysArray, new Vector.<IQualifiedKey>());
-				if ((result.secKeys != null))
+				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
+				if (result.secKeys != null)
 				{
 					var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
-					var secKeyVector:Vector.<String> = VectorUtils.copy(result.secKeys, new Vector.<String>());
+					var secKeyVector:Vector.<String> = Vector.<String>(result.secKeys);
 					newColumn.updateRecords(keysVector, secKeyVector, result.data);
 					proxyColumn.internalColumn = newColumn;
 					proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
 				}
-				else if (result.dataType == AttributeColumnDataWithKeys.NUMBER_DATATYPE)
+				else if (ObjectUtil.stringCompare(result.dataType, DataTypes.NUMBER, true) == 0)
 				{
 					var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
-					newNumericColumn.updateRecords(keysVector, VectorUtils.copy(result.data, new Vector.<Number>()));
+					newNumericColumn.updateRecords(keysVector, Vector.<Number>(result.data));
 					proxyColumn.internalColumn = newNumericColumn;
-				}
-				else if (result.dataType == AttributeColumnDataWithKeys.STRING_DATATYPE)
-				{
-					// all data columns use same keyType BindableString object as DataTable
-					var newStringColumn:StringColumn = new StringColumn(hierarchyNode);
-					newStringColumn.updateRecords(keysVector, VectorUtils.copy(result.data, new Vector.<String>()));
-					proxyColumn.internalColumn = newStringColumn;
 				}
 				else
 				{
-					trace("ERROR! Unknown dataType: "+result.dataType+", data = "+result.data);
+					var newStringColumn:StringColumn = new StringColumn(hierarchyNode);
+					newStringColumn.updateRecords(keysVector, Vector.<String>(result.data), true);
+					proxyColumn.internalColumn = newStringColumn;
 				}
 				//trace("column downloaded: ",proxyColumn);
 				// run hierarchy callbacks because we just modified the hierarchy.

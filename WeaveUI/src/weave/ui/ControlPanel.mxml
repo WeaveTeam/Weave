@@ -96,13 +96,13 @@
 				if (array == null || array.length == 0)
 				{
 					closeable.value = true;
-					if (controlPanelControls.contains(controlPanelControls.buttons))
+					if (controlPanelControls == controlPanelControls.buttons.parent)
 						controlPanelControls.removeChild(controlPanelControls.buttons);
 				}
 				else
 				{
 					closeable.value = false;
-					if (!controlPanelControls.contains(controlPanelControls.buttons))
+					if (controlPanelControls != controlPanelControls.buttons.parent)
 						controlPanelControls.addChild(controlPanelControls.buttons);
 				}
 				

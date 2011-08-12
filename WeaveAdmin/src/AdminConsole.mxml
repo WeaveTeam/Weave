@@ -43,12 +43,10 @@
 			import weave.utils.EventUtils;
 			
 			private static const version:String = Weave.properties.version.value;
-			private var loginPopup:LoginPopup = new LoginPopup();
+			private var loginPopup:LoginPopup;
 			
 			private function handleCreationComplete():void
 			{
-				loginPopup.show(this);
-
 				BindingUtils.bindSetter(handleSQLConfigExists, AdminInterface.instance, "sqlConfigExists");
 
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
@@ -64,10 +62,49 @@
 				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
 				function handlePermissionChange(isSuperuser:Boolean):void
 				{
-					if (isSuperuser && !tabNavigator.contains(sqlConnectionManager))
-						tabNavigator.addChild(sqlConnectionManager);
-					if (!isSuperuser && tabNavigator.contains(sqlConnectionManager))
-						tabNavigator.removeChild(sqlConnectionManager);
+					if (isSuperuser != (tabNavigator == sqlConnectionManager.parent))
+					{
+						if (isSuperuser)
+						{
+							tabNavigator.addChild(sqlConnectionManager);
+							tabNavigator.addChild(adminToolsManager);
+						}
+						else
+						{
+							tabNavigator.removeChild(sqlConnectionManager);
+							tabNavigator.removeChild(adminToolsManager);
+						}
+					}
+				}
+				//Sets up bindings such that when AdminInterface.instance.userHasAuthenticated changes, 
+				//handleUserHasAuthenticatedChange() is invoked, passing as the argument
+				//the new value of AdminInterface.instance.userHasAuthenticated.
+				BindingUtils.bindSetter(handleUserHasAuthenticatedChange, AdminInterface.instance, "userHasAuthenticated");
+			}
+			
+			private var _previouslyAuthenticated:Boolean = true;
+			private function handleUserHasAuthenticatedChange(authenticated:Boolean):void
+			{
+				if (_previouslyAuthenticated == authenticated)
+					return;
+				
+				_previouslyAuthenticated = authenticated;
+				
+				if (authenticated)
+				{
+					if (loginPopup)
+						PopUpManager.removePopUp(loginPopup);
+					loginPopup = null;
+				}
+				else
+				{
+					if (!loginPopup)
+					{
+						loginPopup = new LoginPopup();
+						PopUpManager.addPopUp(loginPopup, this, true);
+						PopUpManager.centerPopUp(loginPopup);
+					}
+					loginPopup.enabled = true;
 				}
 			}
 			private function handleSQLConfigExists(exists:Boolean):void
@@ -109,8 +146,8 @@
 			<mx:Button label="Import shape data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SHAPEFILE_DATA_BUTTON_LABEL}"/>
 			<mx:Spacer width="100%"/>
 			<mx:Label text="{'Active Connection Name: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
-			<mx:Button label="Change database connection" enabled="{AdminInterface.instance.sqlConfigExists == true}"
-					   click="AdminInterface.instance.userHasAuthenticated = false"/>
+			<mx:Button label="Sign out" enabled="{AdminInterface.instance.sqlConfigExists == true}"
+					   click="AdminInterface.instance.activeConnectionName = AdminInterface.instance.activePassword = '';"/>
 		</mx:HBox>
 		<mx:HRule width="100%"/>
 		<mx:VDividedBox width="100%" height="100%" >
@@ -119,7 +156,7 @@
 				<managers:DataTableManager/>
 				<managers:GeometryCollectionManager/>
 				<managers:SQLConnectionManager id="sqlConnectionManager"/>
-							
+				<managers:AdminToolsManager id="adminToolsManager"/>
 			</mx:TabNavigator>
 			<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false">
 				

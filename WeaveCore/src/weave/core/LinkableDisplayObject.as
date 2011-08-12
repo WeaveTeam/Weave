@@ -75,7 +75,7 @@ package weave.core
 		{
 			if (_parent == parent)
 				return;
-			if (_parent && _displayObject && _parent.contains(_displayObject))
+			if (_parent && _displayObject && _parent == _displayObject.parent)
 				_parent.removeChild(_displayObject);
 			_parent = parent;
 			if (_parent && _displayObject)
@@ -97,7 +97,7 @@ package weave.core
 			{
 				if (_displayObject is UIComponent)
 					UIUtils.unlinkDisplayObjects(_displayObject as UIComponent, children);
-				if (_parent && _parent.contains(_displayObject))
+				if (_parent && _parent == _displayObject.parent)
 					_parent.removeChild(_displayObject);
 				removeEventListeners();
 				disposeObjects(_displayObject);

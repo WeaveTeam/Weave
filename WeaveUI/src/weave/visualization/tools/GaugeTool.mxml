@@ -26,22 +26,26 @@
 		 xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
 	<mx:Script>
 		<![CDATA[
-			import weave.utils.ColumnUtils;
+			import mx.containers.Canvas;
 			import mx.events.ChildExistenceChangedEvent;
 			import mx.events.FlexEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.events.SliderEvent;
+			import mx.managers.CursorManager;
 			
 			import weave.Weave;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
-			import weave.api.getCallbackCollection;
+			import weave.core.UIUtils;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapText;
+			import weave.utils.ColumnUtils;
+			import weave.utils.CustomCursorManager;
 			import weave.utils.DebugUtils;
-			import weave.core.UIUtils;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AxisPlotter;
@@ -56,7 +60,10 @@
 			{
 				super.childrenCreated();
 				cRampEditor.colorRamp = _plotter.colorRamp;
+				
+				visualization.marginBottom.addGroupedCallback(this, handleMarginChange);
 			}
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -70,12 +77,19 @@
 				plotLayer.selectionFilter.removeObject();
 				plotLayer.probeFilter.removeObject();
 
-				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
 				initColumnDefaults(_plotter.meterColumn);
 				toolTitle.addImmediateCallback(this, updateTitle);
+				_plotter.meterColumn.addGroupedCallback(this, updateMarginLabel, true);
+				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
+				
+				Weave.properties.axisFontColor.addGroupedCallback(this,updateMarginLabel);
+				Weave.properties.axisFontSize.addGroupedCallback(this,updateMarginLabel);
+				
+				visualization.marginBottom.value    = DEFAULT_MARGIN_BOTTOM;
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -100,13 +114,58 @@
 					title = "Gauge of " + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			
+			[Bindable]
+			private var marginLabelText:String = "";
+			
+			private function handleMarginLabelClick():void
+			{
+				AttributeSelectorPanel.openToolSelector(this,_plotter.meterColumn);
+			}
+			
+			private function showLinkCursor():void
+			{
+				if (Weave.properties.enableToolControls.value)
+					CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+			}
+			
+			private function updateMarginLabel():void
+			{
+				if (!parent)
+					return callLater(updateMarginLabel);
+				
+				marginLabelText = ColumnUtils.getTitle(_plotter.meterColumn);
+				
+				marginLabel.setStyle("color", Weave.properties.axisFontColor.value);
+				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			}
+			
+			private static const DEFAULT_MARGIN_BOTTOM:int = 35;
+			private function handleMarginChange():void
+			{
+				marginLabelCheckBox.selected = visualization.marginBottom.value != 0;
+				marginLabel.height = visualization.marginBottom.value;
+			}
+			
 		]]>
 	</mx:Script>
+	<mx:TextArea id="marginLabel"
+				 fontWeight="bold" click="handleMarginLabelClick()" 
+				 paddingLeft="5" paddingRight="5"
+				 text="{marginLabelText}" width="100%"
+				 rollOver="showLinkCursor();"
+				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				 rollOut="CursorManager.removeAllCursors()"
+				 wordWrap="true" selectable="false" editable="false"
+				 borderThickness="0" backgroundAlpha="0"
+				 bottom="0"
+				 textAlign="center"
+				 toolTip="{marginLabelText} &#13;&#09;Click here to select a different attribute."/>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Gauge" >
 			<ui:DynamicColumnComponent visTool="{this}" label="Gauge column:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">
+			<mx:CheckBox id="marginLabelCheckBox" label="Show attribute name" change="visualization.marginBottom.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="Click to hide the title."/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>

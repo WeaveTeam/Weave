@@ -21,16 +21,21 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.compiler.BooleanLib;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.EquationCompiler;
+	import weave.compiler.StringLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
+	import weave.data.QKeyManager;
 	
 	/**
 	 * This is a column of data derived from an equation with variables.
@@ -52,6 +57,7 @@ package weave.data.AttributeColumns
 		{
 			init();
 		}
+		
 		private function init():void
 		{
 			columnTitle.value = "Equation Column";
@@ -59,15 +65,6 @@ package weave.data.AttributeColumns
 			variables.childListCallbacks.addImmediateCallback(this, handleVariablesListChange);
 		}
 		
-		override public function getMetadata(propertyName:String):String
-		{
-			if (propertyName == AttributeColumnMetadata.TITLE)
-				return columnTitle.value;
-			if (propertyName == AttributeColumnMetadata.UNIT)
-				return unitType.value;
-			return super.getMetadata(propertyName);
-		}
-
 		/**
 		 * This is a title for the column.
 		 */
@@ -86,9 +83,57 @@ package weave.data.AttributeColumns
 		public const variables:LinkableHashMap = newLinkableChild(this, LinkableHashMap, handleVariablesChange);
 
 		/**
-		 * This is the unit of the data values returned by the equation.
+		 * This is either a type from the DataTypes class, or a keyType which implies that the default return type of getValueFromKey is IQualifiedKey.
 		 */
-		public const unitType:LinkableString = newLinkableChild(this, LinkableString);
+		public const dataType:LinkableString = newLinkableChild(this, LinkableString, handleDataTypeChange);
+		
+		/**
+		 * This is the Class corresponding to dataType.value.
+		 */		
+		private var _defaultDataType:Class = null;
+		
+		/**
+		 * This function intercepts requests for dataType and title metadata and uses the corresponding linkable variables.
+		 * @param propertyName A metadata property name.
+		 * @return The requested metadata value.
+		 */
+		override public function getMetadata(propertyName:String):String
+		{
+			if (propertyName == AttributeColumnMetadata.TITLE)
+				return columnTitle.value;
+			if (propertyName == AttributeColumnMetadata.DATA_TYPE)
+				return dataType.value;
+			return super.getMetadata(propertyName);
+		}
+
+		/**
+		 * This function gets called when dataType changes and sets _defaultDataType.
+		 */
+		private function handleDataTypeChange():void
+		{
+			var _dataType:String = this.dataType.value
+			if (ObjectUtil.stringCompare(_dataType, DataTypes.GEOMETRY, true) == 0) // treat values as geometries
+			{
+				// we don't have code to cast as a geometry yet, so don't attempt it
+				_defaultDataType = null;
+			}
+			else if (ObjectUtil.stringCompare(_dataType, DataTypes.NUMBER, true) == 0) // treat values as Numbers
+			{
+				_defaultDataType = Number;
+			}
+			else if (ObjectUtil.stringCompare(_dataType, DataTypes.STRING, true) == 0) // treat values as Strings
+			{
+				_defaultDataType = String;
+			}
+			else if ((_dataType || '') != '') // treat values as IQualifiedKeys
+			{
+				_defaultDataType = IQualifiedKey;
+			}
+			else
+			{
+				_defaultDataType = null;
+			}
+		}
 		
 		/**
 		 * This function creates an object in the variables LinkableHashMap if it doesn't already exist.
@@ -179,11 +224,30 @@ package weave.data.AttributeColumns
 		{
 			return !BooleanLib.isUndefined(getValueFromKey(key));
 		}
+
+		/**
+		 * This function gets called when the variables change.
+		 */
+		private function handleVariablesChange():void
+		{
+			//trace(equation.value, "handleVariablesChange");
+			
+			// clear the cached data
+			_equationResultCache = null;
+
+			// get new keys
+			handleVariablesListChange();
+		}
 		
+		/**
+		 * This function gets called when a variable is added, removed, or reordered.
+		 * The first column in the list will be used to get keys.
+		 */		
 		private function handleVariablesListChange():void
 		{
 			if (variables.childListCallbacks.lastObjectRemoved == _columnToGetKeysFrom)
 				_columnToGetKeysFrom = null;
+			
 			if (_columnToGetKeysFrom == null)
 			{
 				// save a pointer to the first column in the variables list (to get keys from)
@@ -192,23 +256,11 @@ package weave.data.AttributeColumns
 					_columnToGetKeysFrom = (columns[0] as IAttributeColumn);
 			}
 		}
-
-		/**
-		 * This function gets called when the variables change.
-		 */
-		private function handleVariablesChange():void
-		{
-			//trace(equation.value, "handleVariablesChange");
-			// clear the cached data
-			_equationResultCache = null;
-
-			handleVariablesListChange();
-		}
 		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
 		 */
-		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
+		override public function getValueFromKey(key:IQualifiedKey, dataTypeParam:Class = null):*
 		{
 			var value:*;
 			if (_equationIsConstant)
@@ -239,8 +291,25 @@ package weave.data.AttributeColumns
 					//trace('('+equation.value+')@"'+key+'" = '+value);
 				}
 			}
-			if (dataType != null)
-				value = EquationColumnLib.cast(value, dataType);
+			
+			// if dataType not specified, use default type specified by this.dataType.value
+			if (dataTypeParam == null)
+				dataTypeParam = _defaultDataType;
+			
+			if (dataTypeParam == IQualifiedKey)
+			{
+				if (!(value is IQualifiedKey))
+				{
+					if (!(value is String))
+						value = StringLib.toString(value);
+					value = WeaveAPI.QKeyManager.getQKey(this.dataType.value, value);
+				}
+			}
+			else if (dataTypeParam != null)
+			{
+				value = EquationColumnLib.cast(value, dataTypeParam);
+			}
+			
 			return value;
 		}
 

@@ -23,11 +23,14 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
+	import weave.core.LinkableBoolean;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -100,6 +103,7 @@ package weave.visualization.plotters
 		}
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
+		public const drawPartialBins:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
 		
 		/**
 		 * This function returns the collective bounds of all the bins.
@@ -140,11 +144,17 @@ package weave.visualization.plotters
 			
 			// convert record keys to bin keys
 			// save a mapping of each bin key found to a value of true
-			_tempBinKeyToSingleRecordKeyMap = new Object();
-			for (i = 0; i < recordKeys.length; i++)
-				_tempBinKeyToSingleRecordKeyMap[ binCol.getValueFromKey(recordKeys[i], String) ] = recordKeys[i];
-
 			var binName:String;
+			var _tempBinKeyToSingleRecordKeyMap:Object = new Object();
+			for (i = 0; i < recordKeys.length; i++)
+			{
+				binName = binCol.getValueFromKey(recordKeys[i], String);
+				var array:Array = _tempBinKeyToSingleRecordKeyMap[binName] as Array
+				if (!array)
+					array = _tempBinKeyToSingleRecordKeyMap[binName] = [];
+				array.push(recordKeys[i]);
+			}
+
 			var binNames:Array = [];
 			for (binName in _tempBinKeyToSingleRecordKeyMap)
 				binNames.push(binName);
@@ -160,7 +170,8 @@ package weave.visualization.plotters
 			for (i = 0; i < binNames.length; i++)
 			{
 				binName = binNames[i];
-				var binHeight:int = (binCol.getKeysFromBinName(binName) as Array).length;
+				var keys:Array = _tempBinKeyToSingleRecordKeyMap[binName] as Array;
+				var binHeight:int = drawPartialBins.value ? keys.length : (binCol.getKeysFromBinName(binName) as Array).length;
 				var binIndex:int = allBinNames.indexOf(binName);
 	
 				// project data coords to screen coords
@@ -174,8 +185,8 @@ package weave.visualization.plotters
 				tempBounds.setMaxPoint(tempPoint);
 	
 				// draw rectangle for bin
-				lineStyle.beginLineStyle(_tempBinKeyToSingleRecordKeyMap[binName], graphics);
-				fillStyle.beginFillStyle(_tempBinKeyToSingleRecordKeyMap[binName], graphics);
+				lineStyle.beginLineStyle(keys[0], graphics);
+				fillStyle.beginFillStyle(keys[0], graphics);
 				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 				graphics.endFill();
 				
@@ -195,24 +206,15 @@ package weave.visualization.plotters
 			// END template code
 		}
 		
-		private var _tempBinKeyToSingleRecordKeyMap:Object = {};
-		
 		private const tempPoint:Point = new Point();
 		private const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 
 		//------------------------
-		/**
-		 * This is provided for backwards compatibility.
-		 * This column object may change and it may be null, depending on the session state.
-		 */
-		[Deprecated(replacement="internalBinnedColumn")] public function get binnedColumn():BinnedColumn
+		// backwards compatibility
+		[Deprecated(replacement="internalBinnedColumn")] public function set binnedColumn(value:Object):void
 		{
-			// this prevents old session states from resetting the color column
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(fillStyle.color, fillStyle.color.internalDynamicColumn);
-			StageUtils.callLater(this, WeaveAPI.SessionManager.registerLinkableChild, [fillStyle.color, fillStyle.color.internalDynamicColumn], false);
-
-			// this allows old session state to set the binned column
-			return registerLinkableChild(this, internalBinnedColumn);
+			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			setSessionState(internalBinnedColumn, value);
 		}
 	}
 }

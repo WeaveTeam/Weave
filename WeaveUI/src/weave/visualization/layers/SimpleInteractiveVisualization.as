@@ -84,7 +84,7 @@ package weave.visualization.layers
 			linkSessionState(Weave.properties.axisFontColor, axisFontColor);
 			
 			// when the data bounds change, we need to update the axes
-			getCallbackCollection(dataBounds).addImmediateCallback(this, handleDataBoundsChange);
+			getCallbackCollection(zoomBounds).addImmediateCallback(this, handleDataBoundsChange);
 			enableAutoZoomToExtent.addImmediateCallback(this, handleDataBoundsChange);
 		}
 
@@ -224,7 +224,7 @@ package weave.visualization.layers
 		{
 			updateFullDataBounds();
 			handleDataBoundsChange();
-			handleZoomSettingsChange();
+			updateZoom();
 		}
 		
 		override protected function updateFullDataBounds():void
@@ -251,7 +251,7 @@ package weave.visualization.layers
 			if ((_xAxisLayer || _yAxisLayer) && enableAutoZoomToExtent.value)
 			{
 				// if axes are enabled and dataBounds is undefined, set dataBounds to default size
-				dataBounds.copyTo(tempBounds);
+				zoomBounds.getDataBounds(tempBounds);
 				// if bounds is empty, make it not empty
 				if (tempBounds.isEmpty())
 				{
@@ -264,7 +264,7 @@ package weave.visualization.layers
 					if (tempBounds.getHeight() == 0)
 						tempBounds.setYRange(0, 1);
 					
-					dataBounds.copyFrom(tempBounds);
+					zoomBounds.setDataBounds(tempBounds);
 					// this function will be called again after updating data bounds, so we can just return now
 					return;
 				}
@@ -272,7 +272,7 @@ package weave.visualization.layers
 			// update min,max values for axes
 			if (_xAxisLayer)
 			{
-				dataBounds.copyTo(tempBounds);
+				zoomBounds.getDataBounds(tempBounds);
 				tempBounds.yMax = tempBounds.yMin;
 				_xAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				_xAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.xMin;
@@ -280,7 +280,7 @@ package weave.visualization.layers
 			}
 			if (_yAxisLayer)
 			{
-				dataBounds.copyTo(tempBounds);
+				zoomBounds.getDataBounds(tempBounds);
 				tempBounds.xMax = tempBounds.xMin;
 				_yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				_yAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.yMin;
@@ -303,7 +303,7 @@ package weave.visualization.layers
 			
 			if (mouseIsRolledOver)
 			{
-				getScreenBounds(tempScreenBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
 				
 				// handle clicking above the visualization
 				queryBounds.copyFrom(tempScreenBounds);
@@ -369,7 +369,7 @@ package weave.visualization.layers
 				if (!StageUtils.mouseEvent.buttonDown)
 				{
 					
-					getScreenBounds(tempScreenBounds);
+					zoomBounds.getScreenBounds(tempScreenBounds);
 				
 					var ttPoint:Point;
 					
@@ -608,8 +608,8 @@ package weave.visualization.layers
 				yPoint.x = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				yPoint.y = bounds.getYMax() ;
 			}
-			dataBounds.copyTo(tempDataBounds);
-			getScreenBounds(tempScreenBounds);
+			zoomBounds.getDataBounds(tempDataBounds);
+			zoomBounds.getScreenBounds(tempScreenBounds);
 			tempDataBounds.projectPointTo(yPoint, tempScreenBounds);
 			yPoint = localToGlobal(yPoint);
 			

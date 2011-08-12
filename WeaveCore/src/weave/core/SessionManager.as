@@ -296,35 +296,36 @@ package weave.core
 			objectCC.delayCallbacks();
 
 			// set session state
-			var deprecatedNames:Array = getLinkablePropertyNames(linkableObject, true);
-			var propertyNames:Array = getLinkablePropertyNames(linkableObject);
-			for each (var names:Array in [deprecatedNames, propertyNames])
+			var name:String;
+			for each (name in getLinkablePropertyNames(linkableObject))
 			{
-				for each (var name:String in names)
+				if (!newState.hasOwnProperty(name))
+					continue;
+				
+				var property:ILinkableObject = null;
+				try
 				{
-					if (!(newState as Object).hasOwnProperty(name))
-						continue;
-					
-					var property:ILinkableObject = null;
-					try
-					{
-						property = linkableObject[name] as ILinkableObject;
-					}
-					catch (e:Error)
-					{
-						trace('SessionManager.setSessionState(): Unable to get property "'+name+'" of class "'+getQualifiedClassName(linkableObject)+'"',e.getStackTrace());
-					}
-
-					if (property == null)
-						continue;
-
-					// skip this property if it was not registered as a linkable child of the sessionedObject.
-					if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
-						continue;
-						
-					setSessionState(property, newState[name], removeMissingDynamicObjects);
+					property = linkableObject[name] as ILinkableObject;
 				}
+				catch (e:Error)
+				{
+					trace('SessionManager.setSessionState(): Unable to get property "'+name+'" of class "'+getQualifiedClassName(linkableObject)+'"',e.getStackTrace());
+				}
+
+				if (property == null)
+					continue;
+
+				// skip this property if it was not registered as a linkable child of the sessionedObject.
+				if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
+					continue;
+					
+				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
+			
+			// pass deprecated session state to deprecated setters
+			for each (name in getDeprecatedSetterNames(linkableObject))
+				if (newState.hasOwnProperty(name))
+					linkableObject[name] = newState[name];
 			
 			// resume callbacks after setting session state
 			objectCC.resumeCallbacks();
@@ -414,9 +415,9 @@ package weave.core
 		 */
 		private const classNameToSessionedPropertyNamesMap:Object = new Object();
 		/**
-		 * This maps a qualified class name to an Array of names of deprecated sessioned properties contained in that class.
+		 * This maps a qualified class name to an Array of names of deprecated setter functions contained in that class.
 		 */
-		private const classNameToDeprecatedSessionedPropertyNamesMap:Object = new Object();
+		private const classNameToDeprecatedSetterNamesMap:Object = new Object();
 
 		/**
 		 * This function will return all the descendant objects that implement ILinkableObject.
@@ -482,14 +483,36 @@ package weave.core
 				}
 			}
 		}
+		
+		weave_internal function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
+		{
+			if (linkableObject == null)
+			{
+				var error:Error = new Error("SessionManager.getDeprecatedSetterNames(): linkableObject cannot be null.");
+				WeaveAPI.ErrorManager.reportError(error);
+				return [];
+			}
+			
+			var className:String = getQualifiedClassName(linkableObject);
+			var names:Array = classNameToDeprecatedSetterNamesMap[className] as Array;
+			if (names == null)
+			{
+				names = [];
+				for each (var tag:XML in describeType(linkableObject).accessor.(@access != "readonly"))
+					if (tag.metadata.(@name == "Deprecated").length() > 0)
+						names.push(tag.attribute("name"));
+				names.sort();
+				classNameToDeprecatedSetterNamesMap[className] = names;
+			}
+			return names;
+		}
 
 		/**
 		 * This function gets a list of sessioned property names so accessor functions for non-sessioned properties do not have to be called.
 		 * @param linkableObject An object containing sessioned properties.
-		 * @param getDeprecatedNames If this is set to true, deprecated sessioned property names will be returned instead.
 		 * @return An Array containing the names of the sessioned properties of that object class.
 		 */
-		weave_internal function getLinkablePropertyNames(linkableObject:ILinkableObject, getDeprecatedNames:Boolean = false):Array
+		weave_internal function getLinkablePropertyNames(linkableObject:ILinkableObject):Array
 		{
 			if (linkableObject == null)
 			{
@@ -500,11 +523,9 @@ package weave.core
 
 			var className:String = getQualifiedClassName(linkableObject);
 			var propertyNames:Array = classNameToSessionedPropertyNamesMap[className] as Array;
-			var deprecatedNames:Array = classNameToDeprecatedSessionedPropertyNamesMap[className] as Array;
 			if (propertyNames == null)
 			{
-				propertyNames = new Array();
-				deprecatedNames = new Array();
+				propertyNames = [];
 				// iterate over the public properties, saving the names of the ones that implement ILinkableObject
 				var xml:XML = describeType(linkableObject);
 				//trace(xml.toXMLString());
@@ -516,23 +537,14 @@ package weave.core
 						if (ClassUtils.classImplements(tag.attribute("type"), ILinkableObjectQualifiedClassName))
 						{
 							var propName:String = tag.attribute("name").toString();
-							if (tag.metadata.(@name == "Deprecated").length() == 1)
-								deprecatedNames.push(propName);
-							else
-								propertyNames.push(propName);
+							propertyNames.push(propName);
 						}
 					}
 				}
-				deprecatedNames.sort();
 				propertyNames.sort();
-				// do not save property names if the class is dynamic
-				if (xml.attribute("isDynamic").toString() == "false")
-				{
-					classNameToSessionedPropertyNamesMap[className] = propertyNames;
-					classNameToDeprecatedSessionedPropertyNamesMap[className] = deprecatedNames;
-				}
+				classNameToSessionedPropertyNamesMap[className] = propertyNames;
 			}
-			return getDeprecatedNames ? deprecatedNames : propertyNames;
+			return propertyNames;
 		}
 		// qualified class name of ILinkableObject
 		internal static const ILinkableObjectQualifiedClassName:String = getQualifiedClassName(ILinkableObject);
@@ -698,7 +710,7 @@ package weave.core
 					var parentContainer:DisplayObjectContainer = displayObject.parent;
 					try
 					{
-						if (parentContainer && parentContainer.contains(displayObject))
+						if (parentContainer && parentContainer == displayObject.parent)
 							parentContainer.removeChild(displayObject);
 					}
 					catch (e:Error)

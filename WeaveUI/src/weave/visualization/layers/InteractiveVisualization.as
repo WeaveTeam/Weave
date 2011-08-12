@@ -31,10 +31,8 @@ package weave.visualization.layers
 	
 	import mx.containers.Canvas;
 	import mx.core.Application;
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -43,7 +41,6 @@ package weave.visualization.layers
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
@@ -73,6 +70,7 @@ package weave.visualization.layers
 			
 			enableZoomAndPan.value = true;
 			enableSelection.value = true;
+			enableProbe.value = true;
 			enableAutoZoomToExtent.value = true;
 			// adding a canvas as child gets the selection rectangle on top of the vis
 			addChild(selectionRectangleCanvas);
@@ -140,6 +138,7 @@ package weave.visualization.layers
 		
 		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const enableProbe:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		protected var activeKeyType:String = null;
 		protected var mouseDragActive:Boolean = false;
@@ -290,7 +289,7 @@ package weave.visualization.layers
 				if (event.ctrlKey && event.shiftKey)
 				{
 					// zoom to full extent
-					dataBounds.copyFrom(fullDataBounds);
+					zoomBounds.setDataBounds(fullDataBounds, true);
 				}
 				else
 				{
@@ -299,13 +298,13 @@ package weave.visualization.layers
 					var zoomOut:Boolean = (event.ctrlKey || event.shiftKey);
 
 					projectDragBoundsToDataQueryBounds(null, false);
-					dataBounds.copyTo(_tempBounds);
+					zoomBounds.getDataBounds(_tempBounds);
 					_tempBounds.setCenter(queryBounds.getXCenter(), queryBounds.getYCenter());
 					
 					var multiplier:Number = zoomOut ? 2 : 0.5;
 					_tempBounds.centeredResize(_tempBounds.getWidth() * multiplier, _tempBounds.getHeight() * multiplier);
 
-					dataBounds.copyFrom(_tempBounds);
+					zoomBounds.setDataBounds(_tempBounds);
 				}
 			}
 			else
@@ -313,7 +312,7 @@ package weave.visualization.layers
 				// clear selection or select all
 
 				// set up mouse drag rectangle to select or deselect visible area
-				getScreenBounds(_screenBounds);
+				zoomBounds.getScreenBounds(_screenBounds);
 				_screenBounds.getMinPoint(tempPoint);
 				mouseDragStageCoords.setMinPoint(localToGlobal(tempPoint));
 				_screenBounds.getMaxPoint(tempPoint);
@@ -382,13 +381,13 @@ package weave.visualization.layers
 		{
 			if (Weave.properties.enableMouseWheel.value && enableZoomAndPan.value)
 			{
-				dataBounds.copyTo(_tempBounds);
-				getScreenBounds(_screenBounds);
+				zoomBounds.getDataBounds(_tempBounds);
+				zoomBounds.getScreenBounds(_screenBounds);
 				if(event.delta > 0)
 					ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,2,false);
 				else if(event.delta < 0)
 						ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,0.5,false);
-				dataBounds.copyFrom(_tempBounds);
+				zoomBounds.setDataBounds(_tempBounds);
 			}
 		}
 		
@@ -445,9 +444,9 @@ package weave.visualization.layers
 				{
 					// pan the dragged distance
 					projectDragBoundsToDataQueryBounds(null, false);
-					dataBounds.copyTo(tempDataBounds);
+					zoomBounds.getDataBounds(tempDataBounds);
 					tempDataBounds.setCenter(tempDataBounds.getXCenter() - queryBounds.getWidth(), tempDataBounds.getYCenter() - queryBounds.getHeight());
-					dataBounds.copyFrom(tempDataBounds);
+					zoomBounds.setDataBounds(tempDataBounds);
 					// set begin point for next pan
 					mouseDragStageCoords.setMinPoint(mouseDragStageCoords.getMaxPoint(tempPoint));
 				}
@@ -458,7 +457,7 @@ package weave.visualization.layers
 						// zoom to selected data bounds if area > 0
 						projectDragBoundsToDataQueryBounds(null, true); // data bounds in same direction when zooming
 						if (queryBounds.getArea() > 0)
-							dataBounds.copyFrom(queryBounds);
+							zoomBounds.setDataBounds(queryBounds);
 					}
 				}
 			}
@@ -553,9 +552,9 @@ package weave.visualization.layers
 		/**
 		 * This function projects drag start,stop screen coordinates into data coordinates and stores the result in queryBounds.
 		 * @param layer If layer is null, InteractiveVisualization's screen/data bounds will be used.  Otherwise, uses IPlotLayer's bounds.
-		 * @param sameDirection Specify true when computing zoom coordinates.
+		 * @param zooming Specify true when computing zoom coordinates.
 		 */		
-		protected function projectDragBoundsToDataQueryBounds(layer:IPlotLayer, sameDirection:Boolean):void
+		protected function projectDragBoundsToDataQueryBounds(layer:IPlotLayer, zooming:Boolean):void
 		{
 			if (layer)
 			{
@@ -564,8 +563,8 @@ package weave.visualization.layers
 			}
 			else
 			{
-				dataBounds.copyTo(tempDataBounds);
-				getScreenBounds(tempScreenBounds);
+				zoomBounds.getDataBounds(tempDataBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
 			}
 			
 			// project stage coords to local layer coords
@@ -582,12 +581,21 @@ package weave.visualization.layers
 			queryBounds.setMinPoint(localMinPoint);
 			queryBounds.setMaxPoint(localMaxPoint);
 			
-			if (sameDirection)
+			if (zooming)
 			{
+				// swap min,max coordinates if necessary
 				if (queryBounds.getXDirection() != tempDataBounds.getXDirection())
 					queryBounds.setXRange(queryBounds.getXMax(), queryBounds.getXMin());
 				if (queryBounds.getYDirection() != tempDataBounds.getYDirection())
 					queryBounds.setYRange(queryBounds.getYMax(), queryBounds.getYMin());
+				
+				// expand rectangle if necessary to match screen aspect ratio
+				var xScale:Number = queryBounds.getXCoverage() / tempScreenBounds.getXCoverage();
+				var yScale:Number = queryBounds.getYCoverage() / tempScreenBounds.getYCoverage();
+				if (xScale > yScale)
+					queryBounds.setHeight( queryBounds.getYDirection() * tempScreenBounds.getYCoverage() * xScale );
+				if (yScale > xScale)
+					queryBounds.setWidth( queryBounds.getXDirection() * tempScreenBounds.getXCoverage() * yScale );
 			}
 		}
 		
@@ -628,7 +636,7 @@ package weave.visualization.layers
 
 				// when using the selection layer, clear the probe
 				setProbeKeys(layer, []);
-				projectDragBoundsToDataQueryBounds(layer, true);
+				projectDragBoundsToDataQueryBounds(layer, false);
 				
 				
 				// calculate minImportance
@@ -656,7 +664,7 @@ package weave.visualization.layers
 		
 		protected function handleProbe(allowCallLater:Boolean = true):void
 		{
-			if (!parent || !Weave.properties.enableToolProbe.value)
+			if (!parent || !Weave.properties.enableToolProbe.value || !enableProbe.value)
 				return;
 			
 			// NOTE: this code is hacked to work with only one global probe KeySet

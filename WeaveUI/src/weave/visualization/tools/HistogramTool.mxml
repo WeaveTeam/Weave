@@ -27,34 +27,34 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.registerLinkableChild;
-			import weave.api.linkBindableProperty;
-			import weave.utils.ColumnUtils;
 			import mx.events.FlexEvent;
 			
 			import weave.Weave;
-			import weave.core.LinkableBoolean;
-			import weave.core.SessionManager;
 			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.data.IBinningDefinition;
+			import weave.api.data.IKeySet;
 			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
+			import weave.core.LinkableBoolean;
+			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.StringLookup;
 			import weave.data.BinningDefinitions.EqualIntervalBinningDefinition;
-			import weave.api.data.IBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
-			import weave.api.data.IKeySet;
+			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapText;
+			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.HistogramPlotter;
 			import weave.visualization.plotters.ProbeLinePlotter;
-			import weave.primitives.ColorRamp;
 		
 			public var plotter:HistogramPlotter = null;
 
@@ -86,7 +86,7 @@
 
 				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
 				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
-				getCallbackCollection(visualization.dataBounds).addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, openAttributeSelector);
@@ -196,6 +196,9 @@
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
+			<mx:CheckBox id="drawPartialCheckBox"
+						 label="Draw partial histogram bars for selection and probe"
+						 initialize="linkBindableProperty(plotter.drawPartialBins, drawPartialCheckBox, 'selected');"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>

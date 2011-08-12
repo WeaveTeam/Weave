@@ -53,17 +53,6 @@ package weave.compiler
 		}
 		
 		/**
-		 * neg,add,sub,mul,div,mod
-		 * These basic functions correspond to math operators -+*%/.  Then are here for EquationParser to use.
-		 */
-		public static function neg(x:Number):Number { return -x; };
-		public static function add(x:Number, y:Number):Number { return x + y; };
-		public static function sub(x:Number, y:Number):Number { return x - y; };
-		public static function mul(x:Number, y:Number):Number { return x * y; };
-		public static function div(x:Number, y:Number):Number { return x / y; };
-		public static function mod(x:Number, y:Number):Number { return x % y; };
-		
-		/**
 		 * This function returns -1 if the given value is negative, and 1 otherwise.
 		 * @param value A value to test.
 		 * @return -1 if value < 0, 1 otherwise

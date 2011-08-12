@@ -52,7 +52,7 @@
 				visualization.enableFixedAspectRatio.value = true;
 				
 				
-				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				

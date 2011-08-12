@@ -46,7 +46,7 @@
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(StickFigureGlyphPlotter) as StickFigureGlyphPlotter;
 
-				getCallbackCollection(visualization.dataBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				

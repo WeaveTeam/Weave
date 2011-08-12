@@ -24,8 +24,9 @@ package weave.data.AttributeColumns
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
+	import weave.api.data.IQualifiedKey;
 	import weave.utils.ColumnUtils;
 	
 	/**
@@ -48,7 +49,7 @@ package weave.data.AttributeColumns
 			{
 				case AttributeColumnMetadata.KEY_TYPE:
 					return _keyType;
-				case AttributeColumnMetadata.UNIT:
+				case AttributeColumnMetadata.DATA_TYPE:
 					return internalColumn ? ColumnUtils.getKeyType(internalColumn) : null;
 			}
 			return super.getMetadata(propertyName);
@@ -69,17 +70,15 @@ package weave.data.AttributeColumns
 			// update unit
 			if (internalColumn != null)
 			{
-				_keyType = internalColumn.getMetadata(AttributeColumnMetadata.UNIT);
-				if (_keyType == null || _keyType == '')
-					_keyType = DEFAULT_KEY_TYPE;
+				_keyType = internalColumn.getMetadata(AttributeColumnMetadata.DATA_TYPE);
+				if ((_keyType || '') == '')
+					_keyType = DataTypes.STRING;
 			}
 			
 			resumeCallbacks();
 		}
 		
-		private const DEFAULT_KEY_TYPE:String = 'String';
-		
-		private var _keyType:String = DEFAULT_KEY_TYPE;
+		private var _keyType:String = DataTypes.STRING;
 		
 		/**
 		 * This object maps a String value from the internal column to an Array of keys that map to that value.

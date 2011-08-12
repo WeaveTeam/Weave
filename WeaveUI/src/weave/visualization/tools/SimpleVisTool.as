@@ -35,8 +35,10 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.disposeObjects;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -78,13 +80,15 @@ package weave.visualization.tools
 			{
 				invalidateDisplayList();
 			}
+			Weave.properties.axisFontSize.addGroupedCallback(this, updateTitleLabel);
+			Weave.properties.axisFontColor.addGroupedCallback(this, updateTitleLabel);
 		}
 		
 		/**
 		 * container for Flex components
 		 */
 		private const toolVBox:VBox = new VBox(); // simpleVisToolVBox contains titleLabel and visCanvas
-		private const visCanvas:Canvas = new Canvas(); // For linkDisplayObjects
+		protected const visCanvas:Canvas = new Canvas(); // For linkDisplayObjects
 		private const titleLabel:Label = new Label(); // For display of title inside the window area
 		
 		private var createdChildren:Boolean = false;
@@ -101,7 +105,9 @@ package weave.visualization.tools
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
 			toolVBox.addChild(visCanvas);
-			titleLabel.setStyle("fontWeight", "bold");
+			
+			titleLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
 			
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
@@ -116,6 +122,15 @@ package weave.visualization.tools
 			_userWindowSettings.targetTool = this;
 			
 			createdChildren = true;
+		}
+		
+		private function updateTitleLabel():void
+		{
+			if (!parent)
+				return callLater(updateTitleLabel);
+			
+			titleLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
 		}
 		
 		protected var _userWindowSettings:UserWindowSettings = new UserWindowSettings();
@@ -163,12 +178,12 @@ package weave.visualization.tools
 		{
 			if (!enableTitle.value)
 			{
-				if (toolVBox.contains(titleLabel))
+				if (toolVBox == titleLabel.parent)
 					toolVBox.removeChild(titleLabel);
 			}
 			else
 			{
-				if (!toolVBox.contains(titleLabel))
+				if (toolVBox != titleLabel.parent)
 					toolVBox.addChildAt(titleLabel,0);
 			}
 			invalidateDisplayList();
@@ -351,15 +366,9 @@ package weave.visualization.tools
 		}
 		
 		// backwards compatibility 0.9.6
-		[Deprecated(replacement="enableBorders")] public function get hideBorders():LinkableBoolean
+		[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void
 		{
-			var hide:LinkableBoolean = new LinkableBoolean(!enableBorders.value);
-			var callback:Function = function():void
-			{
-				enableBorders.value = !hide.value;
-				disposeObjects(hide);
-			};
-			return registerLinkableChild(this, hide, callback);
+			enableBorders.value = !value;
 		}
 	}
 }

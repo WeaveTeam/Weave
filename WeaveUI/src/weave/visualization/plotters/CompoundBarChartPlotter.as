@@ -81,6 +81,11 @@ package weave.visualization.plotters
 			heightColumns.addGroupedCallback(this, defineSortColumnIfUndefined);
 			registerNonSpatialProperty(colorColumn);
 			registerSpatialProperty(sortColumn);
+			
+			registerNonSpatialProperties(
+				Weave.properties.axisFontSize,
+				Weave.properties.axisFontColor
+			);
 		}
 		
 		/**
@@ -332,6 +337,8 @@ package weave.visualization.plotters
 								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 							}
 							dataBounds.projectPointTo(_tempPoint, screenBounds);
+							_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+							_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 							_bitmapText.x = _tempPoint.x;
 							_bitmapText.y = _tempPoint.y;
 							_bitmapText.draw(destination);
@@ -432,12 +439,27 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
+			var errorBounds:IBounds2D = getReusableBounds(); // the bounds of key + error bars
+			var keyBounds:IBounds2D = getReusableBounds(); // the bounds of just the key
 			var _groupMode:Boolean = groupMode.value;
+			var errorColumnsIncluded:Boolean = false; // are error columns the i = 1 and i=2 columns in height columns?
+			
+			// bar position depends on sorted index
+			var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
+			var minPos:Number = sortedIndex - 0.5;
+			var maxPos:Number = minPos + 1;
+			// this bar is between minPos and maxPos in the x or y range
+			if (horizontalMode.value)
+				keyBounds.setYRange(minPos, maxPos);
+			else
+				keyBounds.setXRange(minPos, maxPos);
+			
 			var _heightColumns:Array = heightColumns.getObjects();
 			if (_heightColumns.length == 1)
 			{
 				_heightColumns.push(positiveError);
 				_heightColumns.push(negativeError);
+				errorColumnsIncluded = true; 
 			}
 			
 			tempRange.setRange(0, 0); // bar starts at zero
@@ -447,7 +469,7 @@ package weave.visualization.plotters
 			{
 				var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 				var height:Number = heightColumn.getValueFromKey(recordKey, Number);
-				
+
 				if (heightColumn == positiveError)
 				{
 					if (tempRange.end == 0)
@@ -483,17 +505,25 @@ package weave.visualization.plotters
 							tempRange.begin += height;
 					}
 				}
+				
+				// if there are no error columns in _heightColumns, 
+				// or if there are error columns (which occurs only if there is one height column),
+				// we want to include the current range in keyBounds
+				if (!errorColumnsIncluded || i == 0) 
+				{
+					if (horizontalMode.value)
+						keyBounds.setXRange(tempRange.begin, tempRange.end);
+					else
+						keyBounds.setYRange(tempRange.begin, tempRange.end);
+				}
 			}
 			
-			// bar position depends on sorted index
-			var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
-			var minPos:Number = sortedIndex - 0.5;
-			var maxPos:Number = minPos + 1;
-			
 			if (horizontalMode.value)
-				return [getReusableBounds(tempRange.begin, minPos, tempRange.end, maxPos)]; // x,y swapped
+				errorBounds.setBounds(tempRange.begin, minPos, tempRange.end, maxPos); // x,y swapped
 			else
-				return [getReusableBounds(minPos, tempRange.begin, maxPos, tempRange.end)];
+				errorBounds.setBounds(minPos, tempRange.begin, maxPos, tempRange.end);
+			
+			return [keyBounds, errorBounds];
 		}
 		
 		override public function getBackgroundDataBounds():IBounds2D

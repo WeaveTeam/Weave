@@ -73,7 +73,7 @@
 				else if (value is DisplayObject)
 				{
 					var par:DisplayObjectContainer = (value as DisplayObject).parent;
-					if(par && par.contains(value))
+					if (par)
 						par.removeChild(value);
 					_helpText = value;
 				}

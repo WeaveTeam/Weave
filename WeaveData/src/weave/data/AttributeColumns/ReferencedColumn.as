@@ -28,6 +28,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableDynamicObject;
 	import weave.utils.ColumnUtils;
@@ -140,6 +141,9 @@ package weave.data.AttributeColumns
 		}
 		
 		// backwards compatibility
-		[Deprecated(replacement="dynamicColumnReference")] public function get columnReference():ILinkableObject { return dynamicColumnReference; }
+		[Deprecated(replacement="dynamicColumnReference")] public function set columnReference(value:Object):void
+		{
+			setSessionState(dynamicColumnReference, value);
+		}
 	}
 }

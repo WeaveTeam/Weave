@@ -59,4 +59,12 @@
     <servlet-name>RService</servlet-name>
     <url-pattern>/RService</url-pattern>
   </servlet-mapping>
+   <servlet>
+    <servlet-name>JRIService</servlet-name>
+    <servlet-class>weave.servlets.JRIService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>JRIService</servlet-name>
+    <url-pattern>/JRIService</url-pattern>
+  </servlet-mapping>
 </web-app>

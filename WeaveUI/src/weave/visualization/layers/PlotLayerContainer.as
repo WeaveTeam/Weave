@@ -28,6 +28,7 @@ package weave.visualization.layers
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
 	import weave.compiler.MathLib;
 	import weave.core.LinkableBoolean;
@@ -36,6 +37,7 @@ package weave.visualization.layers
 	import weave.core.UIUtils;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.LinkableBounds2D;
+	import weave.primitives.ZoomBounds;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
 
@@ -66,17 +68,17 @@ package weave.visualization.layers
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));
-		public const dataBounds:LinkableBounds2D = newLinkableChild(this, LinkableBounds2D, updateDataBounds, false);
-		public const marginRight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateScreenAndDataBounds, true);
-		public const marginLeft:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateScreenAndDataBounds, true);
-		public const marginTop:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateScreenAndDataBounds, true);
-		public const marginBottom:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateScreenAndDataBounds, true);
-		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateDataBounds, true);
-		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateDataBounds, true);
-		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateDataBounds, true);
-		public const enableFixedAspectRatio:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleZoomSettingsChange, true);
-		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), handleZoomSettingsChange, true);
-		public const includeNonSelectableLayersInAutoZoom:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleZoomSettingsChange, true);
+		public const zoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, updateZoom, false);
+		public const marginRight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginLeft:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginTop:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginBottom:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
+		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateZoom, true);
+		public const enableFixedAspectRatio:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
+		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
+		public const includeNonSelectableLayersInAutoZoom:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 
 		protected function handleLayersListChange():void
 		{
@@ -101,7 +103,7 @@ package weave.visualization.layers
 			
 			// make sure new layer has correct screenBounds
 			// and make sure dataBounds is updated to include new layer
-			updateScreenAndDataBounds();
+			updateZoom();
 		}
 		
 		private function spatialCallback():void
@@ -109,62 +111,16 @@ package weave.visualization.layers
 			updateFullDataBounds();
 
 			// since fullDataBounds (may have) changed, there are new constraints on the dataBounds
-			updateDataBounds();
+			updateZoom();
 		}
 		
-		protected function handleZoomSettingsChange():void
+		protected function updateZoom():void
 		{
-			if (enableFixedAspectRatio.value || enableAutoZoomToExtent.value)
-				updateDataBounds();
-		}
-		
-		private function updateScreenAndDataBounds():void
-		{
-			// copy old screen bounds
-			tempScreenBounds.copyFrom(_currentScreenBounds);
-			// get new screen bounds
-			getScreenBounds(_currentScreenBounds);
-			// set new screen bounds for each layer
-			for each (var plotLayer:PlotLayer in layers.getObjects(PlotLayer))
-			{
-				if(!plotLayer.lockScreenBounds)
-					plotLayer.setScreenBounds(_currentScreenBounds);
-			}
-			for each (var selectablePlotLayer:SelectablePlotLayer in layers.getObjects(SelectablePlotLayer))
-			{
-				if(!selectablePlotLayer.lockScreenBounds)
-					selectablePlotLayer.setScreenBounds(_currentScreenBounds);
-			}
+			var layer:IPlotLayer;
+			var plotLayer:PlotLayer;
+			var selectablePlotLayer:SelectablePlotLayer;
 			
-			// if screen bounds changed, need to make sure data bounds is still within desired constraints.
-			if (!_currentScreenBounds.equals(tempScreenBounds))
-			{
-				if (_currentScreenBounds.isEmpty() || tempScreenBounds.isEmpty())
-				{
-					updateDataBounds();
-				}
-				else if (enableFixedAspectRatio.value)
-				{
-					// get the old data bounds
-					dataBounds.copyTo(tempDataBounds);
-					// center the old screen bounds in the new screen bounds
-					tempScreenBounds.setCenter(_currentScreenBounds.getXCenter(), _currentScreenBounds.getYCenter());
-					
-					// get data bounds corresponding to new screen bounds, then set as new data bounds
-					tempBounds.copyFrom(_currentScreenBounds);
-					tempScreenBounds.projectCoordsTo(tempBounds, tempDataBounds);
-					
-					// save the new data bounds
-					if (!tempBounds.isEmpty())
-						dataBounds.copyFrom(tempBounds);
-					else
-						updateDataBounds();
-				}
-			}
-		}
-		
-		protected function getScreenBounds(outputScreenBounds:IBounds2D):void
-		{
+			// calculate new screen bounds in temp variable
 			// default behaviour is to set screenBounds beginning from lower-left corner and ending at upper-right corner
 			var left:Number = marginLeft.value;
 			var top:Number = marginTop.value;
@@ -172,13 +128,62 @@ package weave.visualization.layers
 			var bottom:Number = unscaledHeight - marginBottom.value;
 			// set screenBounds beginning from lower-left corner and ending at upper-right corner
 			//TODO: is other behavior required?
-			outputScreenBounds.setBounds(left, bottom, right, top);
+			tempScreenBounds.setBounds(left, bottom, right, top);
 			if (left > right)
-				outputScreenBounds.setWidth(0);
+				tempScreenBounds.setWidth(0);
 			if (top > bottom)
-				outputScreenBounds.setHeight(0);
+				tempScreenBounds.setHeight(0);
+			// copy current dataBounds to temp variable
+			zoomBounds.getDataBounds(tempDataBounds);
+			
+			// determine if dataBounds should be zoomed to fullDataBounds
+			if (enableAutoZoomToExtent.value || tempDataBounds.isUndefined())
+			{
+				if (!fullDataBounds.isEmpty())
+				{
+					tempDataBounds.copyFrom(fullDataBounds);
+					if (enableFixedAspectRatio.value)
+					{
+						var xScale:Number = tempDataBounds.getWidth() / tempScreenBounds.getXCoverage();
+						var yScale:Number = tempDataBounds.getHeight() / tempScreenBounds.getYCoverage();
+						// keep greater data-to-pixel ratio because we want to zoom out if necessary
+						if (xScale > yScale)
+							tempDataBounds.setHeight(tempScreenBounds.getYCoverage() * xScale);
+						if (yScale > xScale)
+							tempDataBounds.setWidth(tempScreenBounds.getXCoverage() * yScale);
+					}
+				}
+			}
+			
+			if (!tempScreenBounds.isEmpty())
+			{
+				var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
+				
+				if (!tempDataBounds.isUndefined() && !fullDataBounds.isUndefined())
+				{
+					// Enforce pan restrictions on tempDataBounds.
+					// Center of visible dataBounds should be a point inside fullDataBounds.
+					fullDataBounds.constrainBoundsCenterPoint(tempDataBounds);
+				}
+			}
+			
+			// save new screenBounds
+			zoomBounds.setBounds(tempDataBounds, tempScreenBounds, enableFixedAspectRatio.value);
+			// set new bounds for each layer
+			for each (layer in layers.getObjects(IPlotLayer))
+			{
+				layer.setDataBounds(tempDataBounds);
+				
+				plotLayer = layer as PlotLayer;
+				if (plotLayer && !plotLayer.lockScreenBounds)
+					plotLayer.setScreenBounds(tempScreenBounds);
+				
+				selectablePlotLayer = layer as SelectablePlotLayer;
+				if (selectablePlotLayer && !selectablePlotLayer.lockScreenBounds)
+					selectablePlotLayer.setScreenBounds(tempScreenBounds);
+			}
 		}
-
+		
 		protected function updateFullDataBounds():void
 		{
 			tempBounds.copyFrom(fullDataBounds);
@@ -211,87 +216,10 @@ package weave.visualization.layers
 		 */
 		public const fullDataBounds:IBounds2D = new Bounds2D();
 		
-		protected function updateDataBounds():void
-		{
-			dataBounds.copyTo(tempBounds);
-			if (enableAutoZoomToExtent.value || tempBounds.isUndefined())
-			{
-				if (!fullDataBounds.isEmpty())
-				{
-					dataBounds.copyFrom(fullDataBounds);
-				}
-			}
-
-			// read data and screen bounds to temp bounds objects
-			dataBounds.copyTo(tempDataBounds);
-			getScreenBounds(tempScreenBounds);
-			
-			if (!tempScreenBounds.isEmpty())
-			{
-				var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
-				
-				// enforce fixed aspect ratio on tempDataBounds
-				if (enableFixedAspectRatio.value)
-				{
-					if (enableAutoZoomToExtent.value)
-					{
-						// Zoom to full extent now before fixing the aspect ratio.
-						// This lets you see the full extent scaled to the entire screen bounds at a 1:1 aspect ratio.
-						tempDataBounds.copyFrom(fullDataBounds);
-					}
-					// make xDataPerPixel ratio match yDataPerPixel ratio by expanding the data bounds width or height
-					var xDataPerPixel:Number = Math.abs(tempDataBounds.getWidth() / tempScreenBounds.getWidth());
-					var yDataPerPixel:Number = Math.abs(tempDataBounds.getHeight() / tempScreenBounds.getHeight());
-					var desiredDataPerPixel:Number;
-					// if screen too small, prefer smaller data per pixel so enlarging the screen zooms in
-					if (minSize < minScreenSize.value && !enableAutoZoomToExtent.value)
-						desiredDataPerPixel = Math.min(xDataPerPixel, yDataPerPixel);
-					else // otherwise, prefer larger data per pixel so expanding the window will not change zoom level
-						desiredDataPerPixel = Math.max(xDataPerPixel, yDataPerPixel);
-					
-					if (xDataPerPixel != desiredDataPerPixel)
-						tempDataBounds.setWidth( tempDataBounds.getXDirection() * tempScreenBounds.getXCoverage() * desiredDataPerPixel );
-					else if (yDataPerPixel != desiredDataPerPixel)
-						tempDataBounds.setHeight( tempDataBounds.getYDirection() * tempScreenBounds.getYCoverage() * desiredDataPerPixel );
-				}
-				
-				// Enforce min,max zoom level on tempDataBounds.
-				if (!tempDataBounds.isUndefined() && !fullDataBounds.isUndefined())
-				{
-					var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
-					var currentZoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize, useXCoordinates);
-					var newZoomLevel:Number = MathLib.constrain(currentZoomLevel, minZoomLevel.value, maxZoomLevel.value);
-					if (newZoomLevel != currentZoomLevel)
-					{
-						var scale:Number = 1 / Math.pow(2, newZoomLevel - currentZoomLevel);
-						if (!isNaN(scale) && scale != 0)
-						{
-							tempDataBounds.setWidth(tempDataBounds.getWidth() * scale);
-							tempDataBounds.setHeight(tempDataBounds.getHeight() * scale);
-						}
-					}
-					// Enforce pan restrictions on tempDataBounds.
-					// Center of visible dataBounds should be a point inside fullDataBounds.
-					fullDataBounds.constrainBoundsCenterPoint(tempDataBounds);
-				}
-			}
-			
-			// set new data bounds on each layer
-			for each (var plotLayer:IPlotLayer in layers.getObjects(IPlotLayer))
-			{
-				plotLayer.setDataBounds(tempDataBounds);
-			}
-			
-			// TODO: determine if this currentlyUpdatingDataBounds 
-			
-			// save new data bounds
-			dataBounds.copyFrom(tempDataBounds);
-		}
-		
 		public function getZoomLevel():Number
 		{
-			dataBounds.copyTo(tempDataBounds);
-			getScreenBounds(tempScreenBounds);
+			zoomBounds.getDataBounds(tempDataBounds);
+			zoomBounds.getScreenBounds(tempScreenBounds);
 			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
 			var zoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize, useXCoordinates);
@@ -307,10 +235,10 @@ package weave.visualization.layers
 				var scale:Number = 1 / Math.pow(2, newConstrainedZoomLevel - currentZoomLevel);
 				if (!isNaN(scale) && scale != 0)
 				{
-					dataBounds.copyTo(tempDataBounds);
+					zoomBounds.getDataBounds(tempDataBounds);
 					tempDataBounds.setWidth(tempDataBounds.getWidth() * scale);
 					tempDataBounds.setHeight(tempDataBounds.getHeight() * scale);
-					dataBounds.copyFrom(tempDataBounds);
+					zoomBounds.setDataBounds(tempDataBounds);
 				}
 			}
 		}
@@ -336,7 +264,7 @@ package weave.visualization.layers
 			_prevUnscaledWidth = unscaledWidth;
 			_prevUnscaledHeight = unscaledHeight;
 			if (sizeChanged)
-				updateScreenAndDataBounds();
+				updateZoom();
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
@@ -349,6 +277,11 @@ package weave.visualization.layers
 		private const tempBounds:IBounds2D = new Bounds2D();
 		private const tempScreenBounds:IBounds2D = new Bounds2D();
 		private const tempDataBounds:IBounds2D = new Bounds2D();
-		private const _currentScreenBounds:IBounds2D = new Bounds2D();
+		
+		// backwards compatibility
+		[Deprecated(replacement="zoomBounds")] public function set dataBounds(value:Object):void
+		{
+			setSessionState(zoomBounds, value);
+		}
 	}
 }

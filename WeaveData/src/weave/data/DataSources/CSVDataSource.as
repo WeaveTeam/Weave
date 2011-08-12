@@ -28,9 +28,11 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
@@ -51,9 +53,43 @@ package weave.data.DataSources
 	{
 		public function CSVDataSource()
 		{
-			// when sessioned url or data change, reset hierarchy
-			url.addImmediateCallback(this, resetHierarchy);
-			csvDataString.addImmediateCallback(this, resetHierarchy);
+			url.addImmediateCallback(this, handleURLChange);
+		}
+		
+		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
+		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
+		public const csvDataString:LinkableString = newLinkableChild(this, LinkableString, handleCSVDataStringChange);
+		
+		// contains the parsed csv data
+		private var csvDataArray:Array = null;
+		
+		/**
+		 * The keys in this Dictionary are ProxyColumns that have been filled in with data via requestColumnFromSource().
+		 */
+		private const _columnToReferenceMap:Dictionary = new Dictionary();
+		
+		private function handleURLChange():void
+		{
+			if (url.value == '')
+				url.value = null;
+			if (url.value != null)
+			{
+				// if url is specified, do not use csvDataString
+				csvDataString.value = null;
+				WeaveAPI.URLRequestUtils.getURL(new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
+			}
+		}
+		
+		private function handleCSVDataStringChange():void
+		{
+			if (csvDataString.value == '')
+				csvDataString.value = null;
+			if (csvDataString.value != null)
+			{
+				// if csvDataString is specified, do not use url
+				url.value = null;
+				csvDataArray = WeaveAPI.CSVParser.parseCSV(csvDataString.value);
+			}
 		}
 		
 		override protected function get initializationComplete():Boolean
@@ -62,41 +98,12 @@ package weave.data.DataSources
 			return super.initializationComplete && csvDataArray != null;
 		}
 		
+		/**
+		 * This gets called when callbacks are triggered.
+		 */		
 		override protected function initialize():void
 		{
-			if (url.value != "" && url.value != null) // if url is specified
-			{
-				WeaveAPI.URLRequestUtils.getURL(new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
-			}
-			else if (csvDataString.value != null) // if data is specified
-			{
-				loadCSVData(csvDataString.value);
-			}
-			super.initialize();
-		}
-		
-		private function resetHierarchy():void
-		{
-			_attributeHierarchy.value = null;
-		}
-		
-		private function refreshColumns():void
-		{
-			// recalculate all columns previously requested because CSV data may have changed.
-			for (var proxyColumn:* in _columnToReferenceMap)
-				requestColumnFromSource(_columnToReferenceMap[proxyColumn] as IColumnReference, proxyColumn);
-		}
-
-		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
-		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
-		public const csvDataString:LinkableString = newLinkableChild(this, LinkableString);
-		
-		// contains the parsed csv data
-		private var csvDataArray:Array = null;
-		private function loadCSVData(csvData:String):void
-		{
-			this.csvDataArray = WeaveAPI.CSVParser.parseCSV(csvData);
-			if (_attributeHierarchy.value == null)
+			if (_attributeHierarchy.value == null && csvDataArray != null)
 			{
 				// loop through column names, adding indicators to hierarchy
 				var firstRow:Array = csvDataArray[0];
@@ -105,15 +112,19 @@ package weave.data.DataSources
 				{
 					var attr:XML = <attribute
 						title={ colName }
-						csvColumn={ colName }
-						keyType={ keyType.value }/>;
+					csvColumn={ colName }
+					keyType={ keyType.value }/>;
 					root.appendChild(attr);
 				}
 				_attributeHierarchy.value = root;
 			}
-			refreshColumns();
-		}
+			// recalculate all columns previously requested because CSV data may have changed.
+			for (var proxyColumn:* in _columnToReferenceMap)
+				requestColumnFromSource(_columnToReferenceMap[proxyColumn] as IColumnReference, proxyColumn);
 
+			super.initialize();
+		}
+		
 		/**
 		 * handleCSVDownload
 		 * Called when the CSV data is downloaded from a URL.
@@ -124,7 +135,13 @@ package weave.data.DataSources
 			// Only handle this download if it is for current url.
 			if (token == url.value)
 			{
-				loadCSVData(String(event.result));
+				var cc:ICallbackCollection = getCallbackCollection(this);
+				cc.delayCallbacks();
+				
+				csvDataArray = WeaveAPI.CSVParser.parseCSV(String(event.result));
+				
+				cc.triggerCallbacks(); // this causes initialize() to be called
+				cc.resumeCallbacks();
 			}
 		}
 
@@ -149,11 +166,6 @@ package weave.data.DataSources
 			// do nothing
 		}
 
-		/**
-		 * The keys in this Dictionary are ProxyColumns that have been filled in with data via requestColumnFromSource().
-		 */
-		private const _columnToReferenceMap:Dictionary = new Dictionary();
-		
 		/**
 		 * requestColumnFromSource
 		 * This function must be implemented by classes by extend AbstractDataSource.
@@ -184,7 +196,7 @@ package weave.data.DataSources
 			var csvDataColumn:Vector.<String> = getColumnValues(colIndex);
 			var keyStringsArray:Array = VectorUtils.copy(getColumnValues(keyColIndex), []);
 			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, keyStringsArray);
-			var keysVector:Vector.<IQualifiedKey> = VectorUtils.copy(keysArray, new Vector.<IQualifiedKey>());
+			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
 
 			// loop through values, determine column type
 			var nullValue:String;
@@ -222,10 +234,10 @@ package weave.data.DataSources
 			}
 			else
 			{
-				var stringVector:Vector.<String> = VectorUtils.copy(csvDataColumn, new Vector.<String>());
+				var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
 
 				newColumn = new StringColumn(leafNode);
-				(newColumn as StringColumn).updateRecords(keysVector, stringVector);
+				(newColumn as StringColumn).updateRecords(keysVector, stringVector, true);
 			}
 			proxyColumn.internalColumn = newColumn;
 			_columnToReferenceMap[proxyColumn] = columnReference;

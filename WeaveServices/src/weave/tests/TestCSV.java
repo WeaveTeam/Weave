@@ -48,14 +48,14 @@ public class TestCSV
 		System.out.println("Compare these results with Microsoft Excel\n");
 		
 		System.out.println("parseCSV(csvData, false), parseCSVToken, createCSVToken, parseCSVToken");
-		String[][] rows = CSVParser.defaultParser.parseCSV(csvData, false);
+		String[][] rows = CSVParser.defaultParser.parseCSV(csvData, true); // assuming this isn't sql server
 		for (int i = 0; i < rows.length; i++)
 		{
 			for (int j = 0; j < rows[i].length; j++)
 			{
 				String token = rows[i][j];
 				String parsed = CSVParser.defaultParser.parseCSVToken(token);
-				String created = CSVParser.defaultParser.createCSVToken(parsed);
+				String created = CSVParser.defaultParser.createCSVToken(parsed, false);
 				String parsedAgain = CSVParser.defaultParser.parseCSVToken(created);
 				System.out.println(String.format("rows[%s][%s] = %s = %s = %s = %s", i, j, token, parsed, created, parsedAgain));
 				if (!parsed.equals(parsedRows[i][j]))

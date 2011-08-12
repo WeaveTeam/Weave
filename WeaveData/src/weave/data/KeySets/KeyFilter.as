@@ -28,6 +28,7 @@ package weave.data.KeySets
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
+	import weave.core.StageUtils;
 	
 	/**
 	 * This class is used to include and exclude IQualifiedKeys from a set.
@@ -132,39 +133,34 @@ package weave.data.KeySets
 		
 		//----------------------------------------------------------
 		// backwards compatibility 0.9.6
-		[Deprecated] public function get sessionedKeyType():LinkableString { return handleDeprecatedSessionedProperty('sessionedKeyType'); }
-		[Deprecated(replacement="included")] public function get includedKeys():LinkableString { return handleDeprecatedSessionedProperty('includedKeys'); }
-		[Deprecated(replacement="excluded")] public function get excludedKeys():LinkableString { return handleDeprecatedSessionedProperty('excludedKeys'); }
-		private var _deprecatedProperties:Object = null;
-		private function handleDeprecatedSessionedProperty(propertyName:String):LinkableString
+		[Deprecated] public function set sessionedKeyType(value:String):void
 		{
-			if (_deprecatedProperties == null)
+			handleDeprecatedSessionedProperty('sessionedKeyType', value);
+		}
+		[Deprecated(replacement="included")] public function set includedKeys(value:String):void
+		{
+			handleDeprecatedSessionedProperty('includedKeys', value);
+		}
+		[Deprecated(replacement="excluded")] public function set excludedKeys(value:String):void
+		{
+			handleDeprecatedSessionedProperty('excludedKeys', value);
+		}
+		private function handleDeprecatedSessionedProperty(propertyName:String, value:String):void
+		{
+			if (_deprecatedState == null)
 			{
-				_deprecatedProperties = {};
-				var callbackCollection:ICallbackCollection = getCallbackCollection(this);
-				var applyDeprecatedSessionState:Function = function():void
-				{
-					// make sure this callback only runs once
-					callbackCollection.removeCallback(applyDeprecatedSessionState);
-					// get the values from the deprecated properties
-					var state:Object = {};
-					for (var name:String in _deprecatedProperties)
-					{
-						state[name] = (_deprecatedProperties[name] as LinkableString).value;
-						// dispose of the deprecated properties
-						disposeObjects(_deprecatedProperties[name]);
-					}
-					// apply the deprecated session state to 'included' and 'excluded' KeySets
-					state.sessionedKeys = state.includedKeys;
-					included.setSessionState(state);
-					state.sessionedKeys = state.excludedKeys;
-					excluded.setSessionState(state);
-				};
-				callbackCollection.addImmediateCallback(this, applyDeprecatedSessionState);
+				_deprecatedState = {};
+				StageUtils.callLater(this, _applyDeprecatedSessionState, null, false);
 			}
-			if (_deprecatedProperties[propertyName] == undefined)
-				_deprecatedProperties[propertyName] = newLinkableChild(this, LinkableString);
-			return _deprecatedProperties[propertyName] as LinkableString;
+			_deprecatedState[propertyName] = value;
+		}
+		private var _deprecatedState:Object = null;
+		private function _applyDeprecatedSessionState():void
+		{
+			_deprecatedState.sessionedKeys = _deprecatedState.includedKeys;
+			included.setSessionState(_deprecatedState);
+			_deprecatedState.sessionedKeys = _deprecatedState.excludedKeys;
+			excluded.setSessionState(_deprecatedState);
 		}
 	}
 }

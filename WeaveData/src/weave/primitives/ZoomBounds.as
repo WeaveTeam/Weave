@@ -19,6 +19,8 @@
 
 package weave.primitives
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
@@ -35,7 +37,7 @@ package weave.primitives
 	
 	/**
 	 * This object defines the data bounds of a visualization, either directly with
-	 * absolute coordinates or indirectly with center coordinates and a scale value.
+	 * absolute coordinates or indirectly with center coordinates and area.
 	 * Screen coordinates are never directly specified in the session state.
 	 * 
 	 * @author adufilie
@@ -46,17 +48,26 @@ package weave.primitives
 		{
 		}
 		
+		private const _tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
 		private const _dataBounds:Bounds2D = new Bounds2D();
 		private const _screenBounds:Bounds2D = new Bounds2D();
-		private var _useCenterCoords:Boolean = false;
+		private var _useFixedAspectRatio:Boolean = false;
 		
 		/**
-		 * The session state has two modes: absolute coordinates and center/scale coordinates.
+		 * The session state has two modes: absolute coordinates and centered area coordinates.
 		 * @return The current session state.
 		 */		
 		public function getSessionState():Object
 		{
-			if (_useCenterCoords)
+			if (_useFixedAspectRatio)
+			{
+				return {
+					xCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
+					yCenter: MathLib.roundSignificant(_dataBounds.getYCenter()),
+					area: MathLib.roundSignificant(_dataBounds.getArea())
+				};
+			}
+			else
 			{
 				return {
 					xMin: _dataBounds.getXMin(),
@@ -65,18 +76,10 @@ package weave.primitives
 					yMax: _dataBounds.getYMax()
 				};
 			}
-			else
-			{
-				return {
-					xCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
-					yCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
-					areaPerPixel: MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea())
-				};
-			}
 		}
 		
 		/**
-		 * The session state can be specified in two ways: absolute coordinates and center/scale coordinates.
+		 * The session state can be specified in two ways: absolute coordinates and centered area coordinates.
 		 * @param The new session state.
 		 */		
 		public function setSessionState(state:Object):void
@@ -92,37 +95,52 @@ package weave.primitives
 			}
 			else
 			{
-				var usedCenterCoords:Boolean = false;
+				var useFixedAspectRatio:Boolean = false;
 				if (state.hasOwnProperty("xCenter"))
 				{
+					useFixedAspectRatio = true;
 					if (MathLib.roundSignificant(_dataBounds.getXCenter()) != state.xCenter)
 					{
 						_dataBounds.setXCenter(state.xCenter);
 						cc.triggerCallbacks();
 					}
-					usedCenterCoords = true;
 				}
 				if (state.hasOwnProperty("yCenter"))
 				{
+					useFixedAspectRatio = true;
 					if (MathLib.roundSignificant(_dataBounds.getYCenter()) != state.yCenter)
 					{
 						_dataBounds.setYCenter(state.yCenter);
 						cc.triggerCallbacks();
 					}
-					usedCenterCoords = true;
 				}
-				if (state.hasOwnProperty("areaPerPixel"))
+				if (state.hasOwnProperty("area"))
 				{
-					if (MathLib.roundSignificant(_dataBounds.getArea() / _screenBounds.getArea()) != state.areaPerPixel)
+					useFixedAspectRatio = true;
+					if (MathLib.roundSignificant(_dataBounds.getArea()) != state.area)
 					{
-						var scale:Number = Math.sqrt(state.areaPerPixel);
-						_dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
+						// We can't change the screen area.  Adjust the dataBounds to match the specified area.
+						/*
+							Ad = Wd * Hd
+							Wd/Hd = Ws/Hs
+							Wd = Hd * Ws/Hs
+							Ad = Hd^2 * Ws/Hs
+							Hd^2 = Ad * Hs/Ws
+							Hd = sqrt(Ad * Hs/Ws)
+						*/
+						
+						var Ad:Number = state.area;
+						var HsWsRatio:Number = _screenBounds.getYCoverage() / _screenBounds.getXCoverage();
+						if (!isFinite(HsWsRatio)) // handle case if screenBounds is undefined
+							HsWsRatio = 1;
+						var Hd:Number = Math.sqrt(Ad * HsWsRatio);
+						var Wd:Number = Ad / Hd;
+						_dataBounds.centeredResize(Wd, Hd);
 						cc.triggerCallbacks();
 					}
-					usedCenterCoords = true;
 				}
 				
-				if (!usedCenterCoords)
+				if (!useFixedAspectRatio)
 				{
 					var names:Array = ["xMin", "yMin", "xMax", "yMax"];
 					for each (var name:String in names)
@@ -135,7 +153,7 @@ package weave.primitives
 					}
 				}
 				
-				_useCenterCoords = usedCenterCoords;
+				_useFixedAspectRatio = useFixedAspectRatio;
 			}
 			
 			cc.resumeCallbacks();
@@ -163,21 +181,69 @@ package weave.primitives
 		 * This function will set all the information required to define the session state of the ZoomBounds.
 		 * @param dataBounds The data range of a visualization.
 		 * @param screenBounds The pixel range of a visualization.
-		 * @param useCenterCoords If true, the session state will be defined by xCenter,yCenter,areaPerPixel.  If false, the session state will be defined by xMin,yMin,xMax,yMax.
+		 * @param useFixedAspectRatio Set this to true if you want to maintain an identical x and y data-per-pixel ratio.
 		 */		
-		public function setBounds(dataBounds:Bounds2D, screenBounds:IBounds2D, useCenterCoords:Boolean):void
+		public function setBounds(dataBounds:IBounds2D, screenBounds:IBounds2D, useFixedAspectRatio:Boolean):void
 		{
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			if (_useCenterCoords != useCenterCoords || !_dataBounds.equals(dataBounds) || (useCenterCoords && !_screenBounds.equals(screenBounds)))
+			if (_useFixedAspectRatio != useFixedAspectRatio || !_dataBounds.equals(dataBounds) || (useFixedAspectRatio && !_screenBounds.equals(screenBounds)))
 				cc.triggerCallbacks();
 			
 			_dataBounds.copyFrom(dataBounds);
 			_screenBounds.copyFrom(screenBounds);
-			_useCenterCoords = useCenterCoords;
+			_useFixedAspectRatio = useFixedAspectRatio;
+			_fixAspectRatio();
 			
 			cc.resumeCallbacks();
+		}
+		
+		/**
+		 * This function will zoom to the specified dataBounds and fix the aspect ratio if necessary.
+		 * @param dataBounds The bounds to zoom to.
+		 * @param zoomOutIfNecessary Set this to true if you are using a fixed aspect ratio and you want the resulting fixed bounds to be expanded to include the specified dataBounds.
+		 */
+		public function setDataBounds(dataBounds:IBounds2D, zoomOutIfNecessary:Boolean = false):void
+		{
+			if (_dataBounds.equals(dataBounds))
+				return;
+			
+			_dataBounds.copyFrom(dataBounds);
+			_fixAspectRatio(zoomOutIfNecessary);
+			
+			getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		/**
+		 * This function will update the screenBounds and fix the aspect ratio of the dataBounds if necessary.
+		 * @param screenBounds The new screenBounds.
+		 * @param useFixedAspectRatio Set this to true if you want to maintain an identical x and y data-per-pixel ratio.
+		 */
+		public function setScreenBounds(screenBounds:IBounds2D, useFixedAspectRatio:Boolean):void
+		{
+			if (_useFixedAspectRatio == useFixedAspectRatio && _screenBounds.equals(screenBounds))
+				return;
+			
+			_useFixedAspectRatio = useFixedAspectRatio;
+			_screenBounds.copyFrom(screenBounds);
+			_fixAspectRatio();
+			
+			getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		private function _fixAspectRatio(zoomOutIfNecessary:Boolean = false):void
+		{
+			if (_useFixedAspectRatio)
+			{
+				var xScale:Number = _dataBounds.getXCoverage() / _screenBounds.getXCoverage();
+				var yScale:Number = _dataBounds.getYCoverage() / _screenBounds.getYCoverage();
+				if (xScale != yScale)
+				{
+					var scale:Number = zoomOutIfNecessary ? Math.max(xScale, yScale) : Math.sqrt(xScale * yScale);
+					_dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
+				}
+			}
 		}
 	}
 }

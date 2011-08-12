@@ -23,10 +23,11 @@
 Author: skolman
 -->
 
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" title="Enter login criteria" 
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" title="Sign in" 
 		  paddingLeft="10" paddingTop="10" paddingRight="10" paddingBottom="10"
 		  xmlns:ui="weave.ui.*"
 		  xmlns="weave.ui.admin.*"
+		  backgroundAlpha="1"
 		  creationComplete="handleCreationComplete()">
 	
 	<mx:Script>
@@ -49,47 +50,6 @@ Author: skolman
 				//We force the selection by passing the flash dom object to javascript and explicitly set the focus.
 				//Does not work in Chrome
 				ExternalInterface.call('function browserFocus(){var f = document.getElementById(\'AdminConsole\'); if(f){ f.tabIndex=0; f.focus();}}');
-	
-				//Sets up bindings such that when AdminInterface.instance.userHasAuthenticated changes, 
-				//handleUserHasAuthenticatedChange() is invoked, passing as the argument
-				//the new value of AdminInterface.instance.userHasAuthenticated.
-				BindingUtils.bindSetter(handleUserHasAuthenticatedChange, AdminInterface.instance, "userHasAuthenticated");
-			}
-			
-			private var _parent:DisplayObject = null;
-			
-			public function show(parent:DisplayObject):void
-			{
-				_parent = parent;
-				if (parent)
-				{
-					initialize();
-					handleUserHasAuthenticatedChange(false);
-				}
-			}
-			
-			private var _previouslyAuthenticated:Boolean = true;
-			private function handleUserHasAuthenticatedChange(authenticated:Boolean):void
-			{
-				if (_previouslyAuthenticated == authenticated)
-					return;
-				
-				_previouslyAuthenticated = authenticated;
-				
-				if (authenticated)
-				{
-					PopUpManager.removePopUp(this);
-				}
-				else
-				{
-					PopUpManager.addPopUp(this, _parent, true);
-					PopUpManager.centerPopUp(this);
-					
-					passwordInput.text = '';
-					connectionInput.setFocus();
-					connectionInput.setSelection(0, connectionInput.text.length);
-					enabled = true;
-				}
 			}
 			
 			private function login():void
@@ -109,7 +69,7 @@ Author: skolman
 	
 	<mx:HBox>
 		<mx:Label text="Connection Name:" width="110" textAlign="right"/>
-		<mx:TextInput id="connectionInput" enter="login()" minWidth="150" change="AdminInterface.instance.activeConnectionName = connectionInput.text"/>
+		<mx:TextInput id="connectionInput" enter="login()" minWidth="150"/>
 		<!--<ui:CustomComboBox id="connectionCombo" minWidth="150" text="{AdminInterface.instance.activeConnectionName}" change="AdminInterface.instance.activeConnectionName = connectionCombo.text;" dataProvider="{AdminInterface.instance.connectionNames}"/>-->
 	</mx:HBox>
 	<mx:HBox>
@@ -117,7 +77,7 @@ Author: skolman
 		<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
 	</mx:HBox>
 	<ui:Center>
-		<mx:Button label="Log In" click="login()"/>
+		<mx:Button label="Sign in" click="login()"/>
 	</ui:Center>
 	
 </mx:Panel>

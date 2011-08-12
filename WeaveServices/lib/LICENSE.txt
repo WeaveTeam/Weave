@@ -27,7 +27,7 @@ LGPL version 2 or later
 
 BSD-style
 	jsr-275-1.0-beta-2.jar - http://jscience.org/doc/license.txt
-	postgresql-jdbc-8.3dev-600-copy-20070719.jdbc3.jar - http://kato.iki.fi/sw/db/postgresql/jdbc/copy/
+	postgresql-9.0-801.jdbc3.jar - http://jdbc.postgresql.org/license.html
 	paranamer-2.3.jar - https://github.com/paul-hammant/paranamer
 
 GPL 2.0
