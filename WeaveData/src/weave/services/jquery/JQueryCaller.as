@@ -101,7 +101,7 @@ package weave.services.jquery
 			delete uniqueIDToTokenMap[id];
 		}
 		
-		public static function jqueryFault(id:String, url:String):void
+		public static function jqueryFault(id:String, url:String,...params):void
 		{
 			var token:AsyncToken = uniqueIDToTokenMap[id] as AsyncToken;
 			

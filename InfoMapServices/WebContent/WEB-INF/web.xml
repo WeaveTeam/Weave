@@ -12,6 +12,7 @@
   <listener>
       <listener-class>infomap.scheduler.SolrSchedulerShutdown</listener-class>
 </listener>
+  
   <servlet>
     <servlet-name>GenerateThumbnail</servlet-name>
     <servlet-class>infomap.thumbnailr.GenerateThumbnail</servlet-class>
@@ -25,15 +26,13 @@
     <servlet-class>infomap.scheduler.SolrScheduler</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
+
   <servlet>
-    <description></description>
-    <display-name>SolrDataServices</display-name>
-    <servlet-name>SolrDataServices</servlet-name>
-    <servlet-class>infomap.datasources.SolrDataServices</servlet-class>
+    <servlet-name>AdminService</servlet-name>
+    <servlet-class>infomap.admin.AdminService</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>SolrDataServices</servlet-name>
-    <url-pattern>/SolrDataServices</url-pattern>
+    <servlet-name>AdminService</servlet-name>
+    <url-pattern>/AdminService</url-pattern>
   </servlet-mapping>
-  
 </web-app>

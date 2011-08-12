@@ -830,6 +830,10 @@ package weave
 					var userUI:NewUserWizard = new NewUserWizard();
 					WizardPanel.createWizard(instance,userUI);
 				});
+				
+				createToolMenuItem(Weave.properties.enableInfoMap, "Open Info Map", function():void {
+					InfoMapLoader.openPanel();
+				});
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)

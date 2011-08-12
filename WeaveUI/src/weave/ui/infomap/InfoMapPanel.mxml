@@ -24,26 +24,43 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	xmlns:ui="weave.ui.*"
 	horizontalScrollPolicy="off" verticalScrollPolicy="off"
 	borderThickness="0"
-	layout="absolute"
 	title="InfoMap Prototype"
-	>
+	clipContent="true"
+	autoLayout="true">
 	
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
 			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.CloseEvent;
+			import mx.events.CollectionEvent;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.Responder;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.XMLUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
+			import weave.core.UIUtils;
 			import weave.data.KeySets.KeySet;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.jquery.JQueryCaller;
 			import weave.ui.CustomContextMenuManager;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
+			
+			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
 			override protected function constructor():void
 			{
@@ -53,106 +70,130 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
-				linkBindableProperty(keywords,keywordsInput,"text");
+				UIUtils.linkDisplayObjects(map,nodes,false);
+				sortByTitle();
 			}
 			
-			public const keywords:LinkableString = registerLinkableChild(this,new LinkableString(),parseSolrResponseFromURL);
+			private function handleAddNodeButtonClick():void
+			{
+				addInfoMapNode(keywordsInput.text,operatorButton.selectedValue as String);
+			}
 			
-			
-			
+			public function addInfoMapNode(query:String,op:String=null):void
+			{
+				var className:String = getQualifiedClassName(InfoMapNode).split("::")[1];
+				var nodeName:String = nodes.generateUniqueName(className);
+				var node:InfoMapNode = new InfoMapNode();
+				node = nodes.requestObject(nodeName,InfoMapNode,false);
+				node.keywords.value = query;
+				if(op ==null)
+				{
+					//TODO: should take value from RadioButton. Value was null when last tried.
+					node.operator.value = "AND";	
+				}
+				else{
+					
+					node.operator.value = op;
+					operatorButton.selectedValue = op;
+				}
+			}
 			
 			private var loader:URLLoader = null;
-			private var query:String = "";
-			
-			private function parseSolrResponseFromURL():void
+			private function addRssFeed():void
 			{
-				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=10&indent=on&q=";	
-				query = (keywords.value as String);				
-				if(query=="")
+				
+				InfoMapAdminInterface.instance.addRssFeed(feedTitle.text,feedURL.text);
+				sortByTitle();
+			}
+			
+			private function deleteRssFeed():void
+			{
+				if(grid.selectedItem == null)
 					return;
 				
-				var temp:Array = query.split(",");				
-				if(temp.length != 0 || temp.length != 1)
-					query = temp.join(" OR ");
+				var url:String = (grid.selectedItem as Array)[1];
 				
-				var url:String = solrURL + query;
-				loader = new URLLoader();
-				var request:URLRequest = new URLRequest(url);
-				loader.addEventListener(Event.COMPLETE, xmlLoadCompleteHandler);
-				loader.load(request);
+				if (url =="")
+					return;
+				
+				InfoMapAdminInterface.instance.deleteRssFeed(url);
+				sortByTitle();
 			}
 			
-			private function xmlLoadCompleteHandler(event:Event):void {
-				// checks to avoid null point error
-				if(loader){
-					// checks for data presence
-					if(loader.data){
-						var xml:XML = new XML(loader.data);
-						parseSolrResponsefromXML(xml);
-					}
-				}
-				
+			private function sortByTitle():void
+			{
+				var dp:ArrayCollection = grid.dataProvider as ArrayCollection;
+				var sort:Sort = new Sort();
+				var sortF:SortField = new SortField("Title",true,false);
+				sort.fields = [sortF];
+				dp.sort = sort;
 			}
 			
-			[Bindable]
-			private var response:ArrayCollection = null;
-			
-			private function parseSolrResponsefromXML(result:XML):void{
+			private function startIndexing():void
+			{
+				WeaveAPI.URLRequestUtils.getURL(new URLRequest("http://129.63.8.219:8080/solr/select?clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
 				
-				response = new ArrayCollection();
-				for each(var doc:XML in result.result.doc)
-				{
-									
-					var docObject:Object = new Object();					
-					var link:String = doc.str.(@name=="link").text().toXMLString();
-					var linkLen:int = link.length;
-					var linkExtension:String = link.substring(linkLen-3,linkLen);
-					if(linkExtension == "pdf"){
-						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-					}
-					if(link.substring(linkLen-3,linkLen-1) == "doc"){
-						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-					}
-					
-					docObject.title = doc.str.(@name=="title").text().toXMLString();
-					docObject.link = link;
-					docObject.description = doc.str.(@name=="description").text().toXMLString();
-					docObject.datePub = doc.str.(@name=="date_published").text().toXMLString();
-					docObject.imgName = "http://129.63.8.219:8080/infomap/thumbnails/"+  doc.str.(@name=="imgName").text().toXMLString() +".jpg";					
-					response.addItem(docObject);
-				}
-				
-				var infoMapUIforNode:InfoMapUIforNode = new InfoMapUIforNode();
-				infoMapUIforNode.createUI(response,query);
-				this.addChild(infoMapUIforNode);				
 			}
-			
-		
 			
 		]]>
 	</mx:Script>
-	<mx:VBox width="100%" height="100%">
-		<mx:HBox paddingTop="5" paddingLeft="5" paddingBottom="5">
-			<mx:Label text="Keywords:"/>
-			<mx:TextInput id="keywordsInput" enabled="true" cornerRadius="5"/>
-		</mx:HBox>
-		<!--<mx:List verticalScrollPolicy="on" variableRowHeight="true" height="100%" width="100%" id="resultView" dataProvider="{response}">
-		
-		<mx:itemRenderer>
+	<!--the resize code is required so that the content is clipped by the canvas-->
+	<mx:Canvas id="map" clipContent="true" width="100%" height="100%" autoLayout="false" 
+			   verticalScrollPolicy="off" horizontalScrollPolicy="off"
+			   resize="map.scrollRect=new Rectangle(0,0,map.width,map.height)">
+		<mx:VBox width="100%" height="100%">
+			<mx:HBox paddingTop="5" paddingLeft="5" paddingBottom="5">
+				<mx:Label text="Keywords:"/>
+				<mx:TextInput id="keywordsInput" enabled="true" cornerRadius="5"/>
+				<mx:Button label="Add" id="addNodeButton" click="handleAddNodeButtonClick()"/>
+			</mx:HBox>
+			<mx:HBox>
+			<mx:Label text="Operator: "/>
+			<mx:RadioButtonGroup id="operatorButton" enabled="true"/>
+			<mx:RadioButton groupName="operatorButton" value="OR" label="OR"/>
+			<mx:RadioButton groupName="operatorButton" value="AND" label="AND" selected="true"/>
+			</mx:HBox>
+			<!--<mx:List verticalScrollPolicy="on" variableRowHeight="true" height="100%" width="100%" id="resultView" dataProvider="{response}">
 			
-			<mx:Component>
-				<mx:VBox width="100%" verticalScrollPolicy="off">
-					
-					<mx:Text width="100%" fontWeight="bold" fontSize="10" htmlText="{data.title}"/>
-					<mx:TextArea borderThickness="0" width="100%" height="100%" htmlText="{data.description}"/>
-					<mx:Text id="link" htmlText="{data.link}" width="100%">
+			<mx:itemRenderer>
+				
+				<mx:Component>
+					<mx:VBox width="100%" verticalScrollPolicy="off">
 						
-					</mx:Text>
-					<mx:HRule width="100%" strokeColor="#000"/>
-				</mx:VBox>
-			</mx:Component>
-		</mx:itemRenderer>	
-		</mx:List>-->
-	</mx:VBox>
+						<mx:Text width="100%" fontWeight="bold" fontSize="10" htmlText="{data.title}"/>
+						<mx:TextArea borderThickness="0" width="100%" height="100%" htmlText="{data.description}"/>
+						<mx:Text id="link" htmlText="{data.link}" width="100%">
+							
+						</mx:Text>
+						<mx:HRule width="100%" strokeColor="#000"/>
+					</mx:VBox>
+				</mx:Component>
+			</mx:itemRenderer>	
+			</mx:List>-->
+		</mx:VBox>
+		</mx:Canvas>
+	<ui:ControlPanel id="ctrlPanel">
+		<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
+		<mx:Label text="Enter RSS Feed: " />
+		<mx:HBox>
+			<mx:Label text="Title"/>
+			<mx:TextInput width="100" id="feedTitle" borderStyle="solid" cornerRadius="5" />
+			<mx:Label text="URL"/>
+			<mx:TextInput width="300" id="feedURL" borderStyle="solid" cornerRadius="5" />
+			<mx:Button label="Add" click="addRssFeed()" />
+		</mx:HBox>	
+			<mx:DataGrid id="grid" dataProvider="{InfoMapAdminInterface.instance.rssFeeds}" width="100%">
+				<mx:columns>
+					<mx:DataGridColumn dataField="0" sortDescending="true" headerText="Title"/>
+					<mx:DataGridColumn dataField="1" headerText="URL"/>
+				</mx:columns>
+			</mx:DataGrid>
+		<mx:HBox>
+			<mx:Button label="Delete Selected Feed" click="deleteRssFeed()"/>
+			<mx:Button label="Index Now" click="startIndexing()" />
+		</mx:HBox>
+			<mx:TextArea backgroundColor="0xCCCCCC" borderThickness="0" editable="false" width="500" height="100%" fontWeight="bold" text="The indexing is scheduled to run every hour. You can hit the Index Now button if you want to index your feeds you added recently. Please allow 10 -15 minutes for the results to show up."/>
+		</mx:VBox>
+		
+	</ui:ControlPanel>
 </ui:DraggablePanel>
