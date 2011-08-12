@@ -180,7 +180,8 @@ EquationEditor
 				EventUtils.addDelayedCallback(textEditor,Event.CHANGE,handleEqChange);
 				equationColumn.equation.addImmediateCallback(this,handleEquationChange);
 				
-				dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
+				if (dynamicColumn.globalName == null)
+					dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
 				
 				this.targets = [equationColumn];
 			}

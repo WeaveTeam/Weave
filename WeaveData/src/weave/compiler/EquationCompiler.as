@@ -495,18 +495,16 @@ package weave.compiler
 			}
 			// step 3: compile '**' infix operators, left to right
 			compileInfixOperators(tokens, ['**'], evaluateToConstantIfPossible);
-			// step 4: compile unary '-' operators, right to left
-			for (var neg:int = tokens.length - 2; neg >= 0; neg--) // start from second to last token
+			// step 4: compile unary operators, right to left
+			for (i = tokens.length - 2; i >= 0; i--) // start from second to last token
 			{
-				//TODO: ~ !
-				
-				if (tokens[neg] != '-')
+				if (unaryOperators[tokens[i]] == undefined)
 					continue;
-				// if '-' is the first token or the token to the left of it is an operator, it is a unary '-'.
-				if (neg == 0 || operators[tokens[neg - 1]] != undefined)
+				// it is a unary operator if it is the first token or the token to the left is an operator
+				if (i == 0 || operators[tokens[i - 1]] != undefined)
 				{
-					// replace '-' and the next token with a function call to neg().
-					tokens.splice(neg, 2, compileFunction("-", unaryOperators['-'], [tokens[neg + 1]], evaluateToConstantIfPossible));
+					// replace this and the next token with a unary operator call
+					tokens.splice(i, 2, compileFunction(tokens[i], unaryOperators[tokens[i]], [tokens[i + 1]], evaluateToConstantIfPossible));
 				}
 			}
 			// step 5: compile infix operators
@@ -518,7 +516,7 @@ package weave.compiler
 				return tokens[0];
 
 			if (tokens.length > 1)
-				throw new Error("Invalid equation: missing operator between " + decompile(tokens[0]) + ' and '+decompile(tokens[1]));
+				throw new Error("Invalid equation: missing operator between " + decompile(tokens[0]) + ' and ' + decompile(tokens[1]));
 
 			throw new Error("Empty equation");
 		}
@@ -575,38 +573,49 @@ package weave.compiler
 			while (true)
 			{
 				// find first matching operator
-				index = compiledTokens.length;
-				for (var i:int = 0; i < operatorSymbols.length; i++)
-				{
-					var testIndex:int = compiledTokens.indexOf(operatorSymbols[i]);
-					if (testIndex >= 0)
-						index = Math.min(index, testIndex);
-				}
-				// return if operator not found
+				for (index = 0; index < compiledTokens.length; index++)
+					if (operatorSymbols.indexOf(compiledTokens[index]) >= 0)
+						break;
+				
+				// return if no operator found
 				if (index == compiledTokens.length)
 					return; // done
+				
 				// stop if operator is out of place
 				if (index == 0 || index + 1 == compiledTokens.length)
 					break; // to throw error
-				// handle unary '-' to the right of the operator
+				
+				// find unary operators on the right side of the infix operator
 				var right:int = index + 1;
-				while (right < compiledTokens.length && compiledTokens[right] == '-')
-					right++;
-				if (right >= compiledTokens.length)
-					throw new Error("Misplaced unary '-'");
+				while (right < compiledTokens.length - 1 && unaryOperators[compiledTokens[right]] != undefined)
+				{
+					// eliminate two identical infix operators in a row
+					if (compiledTokens[right] == compiledTokens[right + 1])
+						compiledTokens.splice(right, 2);
+					else
+						right++;
+				}
+				
+				// stop if infix operator does not have compiled objects on either side
 				if (compiledTokens[index - 1] is String || compiledTokens[right] is String)
-					break;
-				// if the second parameter should be negative, wrap it in a call to neg()
-				if ((right - index) % 2 == 0)
-					compiledTokens[right] = compileFunction("-", unaryOperators['-'], [compiledTokens[right]], evaluateToConstantIfPossible);
+					break; // to throw error
+				
+				// compile unary operators right to left
+				while (right - 1 > index)
+				{
+					var unarySymbol:String = compiledTokens[right - 1];
+					compiledTokens.splice(right - 1, 2, compileFunction(unarySymbol, unaryOperators[unarySymbol], [compiledTokens[right]], evaluateToConstantIfPossible));
+					right--;
+				}
+				
 				// compile a wrapper for the operator call
-				var mathFunction:Function = operators[compiledTokens[index]];
+				var operatorFunction:Function = operators[compiledTokens[index]];
 				var compiledParams:Array = [compiledTokens[index - 1], compiledTokens[right]];
 				//trace("compiled params = "+compiledParams);
 				// replace the tokens for this infix operator call with the compiled operator call
 				//trace("compile infix operator '"+compiledTokens[index]+"': '"+compiledTokens.slice(index-1,right-index+2)+"; "+index,right,compiledTokens.length,ObjectUtil.toString(compiledTokens));
 				var functionName:String = OPERATOR_FUNCTION_NAME_PREFIX + compiledTokens[index];
-				compiledTokens.splice(index - 1, right - index + 2, compileFunction(functionName, mathFunction, compiledParams, evaluateToConstantIfPossible));
+				compiledTokens.splice(index - 1, right - index + 2, compileFunction(functionName, operatorFunction, compiledParams, evaluateToConstantIfPossible));
 			}
 			// outside of infinite loop
 			throw new Error("Misplaced infix operator '"+compiledTokens[index]+"'");
@@ -620,6 +629,13 @@ package weave.compiler
 		{
 			if (compiledObject is CompiledConstant)
 				return (compiledObject as CompiledConstant).name;
+			
+			if (compiledObject is CompiledConditionalBranch)
+			{
+				var ccb:CompiledConditionalBranch = compiledObject as CompiledConditionalBranch;
+				return decompile(ccb.condition) + "?" + decompile(ccb.trueBranch) + ":" + decompile(ccb.falseBranch);
+			}
+			
 			//trace("decompiling: "+ObjectUtil.toString(compiledObject));
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			// If this is a simple call to get("var") and the variable name parses without
