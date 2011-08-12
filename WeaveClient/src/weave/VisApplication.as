@@ -842,6 +842,19 @@ package weave
 //				createToolMenuItem(Weave.properties.enableAddStickFigurePlot, "Add Stick Figure Plot", createGlobalObject, [StickFigureGlyphTool]);
 //				createToolMenuItem(Weave.properties.enableAddSP2, "Add SP2", createGlobalObject, [SP2]);
 				
+<<<<<<< HEAD
+=======
+				_weaveMenu.addSeparatorToMenu(_toolsMenu);
+				
+				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
+					var userUI:NewUserWizard = new NewUserWizard();
+					WizardPanel.createWizard(instance,userUI);
+				});
+				
+				createToolMenuItem(Weave.properties.enableInfoMap, "Open Info Map", function():void {
+					InfoMapLoader.openPanel();
+				});
+>>>>>>> recently made changes with controls panel for Infomap tool
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)

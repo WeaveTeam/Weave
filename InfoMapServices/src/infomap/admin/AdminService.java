@@ -1,17 +1,33 @@
-package infomap.utils;
+package infomap.admin;
 
 import java.io.File;
-import java.lang.reflect.Array;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.rmi.RemoteException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import flex.messaging.cluster.RemoveNodeListener;
+
+import infomap.servlets.GenericServlet;
+import infomap.utils.ListUtils;
+import infomap.utils.SQLResult;
+import infomap.utils.SQLUtils;
 
 
 /**
  *class SolrDataServices
  */
-public class SolrSQLUtils {
+public class AdminService extends GenericServlet{
 	private static final long serialVersionUID = 1L;
        
     private static String username;
@@ -21,12 +37,12 @@ public class SolrSQLUtils {
     private static String database;
     private static Connection conn = null;
 	
-	public SolrSQLUtils() {
+	public AdminService() {
         
         getConnection();
     }
     
-    public void getConnection()
+    private void getConnection()
     {
     	try{
     		Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -36,11 +52,10 @@ public class SolrSQLUtils {
     		password = "oic3Ind2";
     		host = "129.63.8.219";
     		database = "solr_sources";
+    		port="3306";
     		
-    		String url = "jdbc:mysql://" + host + "/" + database +
-    		"?user=" + username + "&password=" + password;
-    		
-    		conn = DriverManager.getConnection(url);
+    		String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
     		
     	}catch (Exception e)
     	{
@@ -49,7 +64,37 @@ public class SolrSQLUtils {
     	
     }
 	
-    public void addRssFeed(String url, String title)
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	{
+    	super.doGet(request, response);
+    	PrintWriter out = response.getWriter();
+    	
+		out.println("Deployed!");
+	}
+    
+    synchronized public Object[][] getRssFeeds()
+    {
+    	if(conn == null)
+		{
+    		getConnection();
+		}
+    	
+    	String query = "SELECT title,url FROM rss_feeds";
+    	SQLResult result = null;
+		try
+		{
+			result = SQLUtils.getRowSetFromQuery(conn, query);
+		}
+		catch (Exception e)
+		{
+			System.out.println(query);
+			e.printStackTrace();
+		}
+		return  result.rows;	
+    }
+    
+    public String addRssFeed(String title,String url) throws RemoteException
 	{
 		try{
 			
@@ -57,54 +102,53 @@ public class SolrSQLUtils {
 			{
 				getConnection();
 			}
-			Statement stat = conn.createStatement();
 
 			String query = "SELECT * FROM rss_feeds WHERE url = '"+ url + "'";
 			
-			ResultSet checkIfExists = stat.executeQuery(query);
+			SQLResult checkResult = SQLUtils.getRowSetFromQuery(conn, query);
 			
-			//if url already exists then return
-			if(!checkIfExists.next())
-				return;
+			if (checkResult.rows.length != 0)
+			{
+				return "RSS Feed already exists";
+			}
 			
-			String insertRssFeed = "INSERT INTO rss_feeds (url,title) VALUE ('"+ url+"','"+title+"')";
+			Map<String, Object> valueMap = new HashMap<String, Object>();
 			
-			int result = stat.executeUpdate(insertRssFeed);
+			valueMap.put("title", title);
+			valueMap.put("url", url);
 			
-			System.out.println("adding rss feed : " + result);
+			SQLUtils.insertRow(conn, database, "rss_feeds", valueMap);
 			
-			stat.close();
-			conn.close();
-			
+			return "RSS Feed added successfully";
 		}catch (Exception e)
 		{
 			e.printStackTrace();
+			throw new RemoteException(e.getMessage());
 		}
 		
 		
 	}
-    public void deleteRssFeed(String title)
+    
+    
+    public String deleteRssFeed(String url) throws RemoteException
 	{
-		try{
+    	try{
 			
 			if(conn == null)
 			{
 				getConnection();
 			}
 			
-			String deleteFileSource = "DELETE FROM rss_feeds WHERE titile ='"+title+"')";
 			
-			Statement stat = conn.createStatement();
-			int result = stat.executeUpdate(deleteFileSource);
+			String query = "DELETE FROM rss_feeds WHERE url = '"+ url + "'";
 			
-			System.out.println("deleting rss feed: " + result);
+			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
 			
-			stat.close();
-			conn.close();
-			
+			return "RSS Feed was deleted";
 		}catch (Exception e)
 		{
 			e.printStackTrace();
+			throw new RemoteException(e.getMessage());
 		}
 		
 	}

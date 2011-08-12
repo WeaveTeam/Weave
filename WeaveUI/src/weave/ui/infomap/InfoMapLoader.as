@@ -31,6 +31,14 @@ package weave.ui.infomap
 			_infoMapMenuItem.enabled = _selectedKeySet.keys.length > 0;
 		}
 		
+		public static function openPanel():void
+		{
+			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
+			//show infomap panel
+			panel.restorePanel();
+			Weave.root.setNameOrder(["InfoMapPanel"]);
+		}
+		
 		/**
 		 * Creates a menu item
 		 **/
@@ -52,9 +60,7 @@ package weave.ui.infomap
 		
 		private static function handleMenutItemClick(event:ContextMenuEvent):void
 		{
-			var className:String = getQualifiedClassName(InfoMapPanel).split("::")[1];
-			var panelName:String = Weave.root.generateUniqueName(className);
-			var panel:InfoMapPanel = Weave.root.requestObject(panelName,InfoMapPanel,false);
+			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
 			
 			var keys:Array = _selectedKeySet.keys;
 			var probeString:String = "";
@@ -81,11 +87,11 @@ package weave.ui.infomap
 			// joins all keywords using comma
 			_keywords = uniqueTemp.join(",");
 			
-			panel.keywords.value = _keywords;
+			panel.addInfoMapNode(_keywords);
 			
 			//show infomap panel
 			panel.restorePanel();
-			Weave.root.setNameOrder([panelName]);
+			Weave.root.setNameOrder(["InfoMapPanel"]);
 		}
 	}
 }

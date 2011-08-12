@@ -27,7 +27,6 @@ public class GenerateThumbnail extends HttpServlet {
 	
 	private String pdf2ImgPath = "/home/skonecni/programs/atlassian-jira-enterprise-4.0-standalone/atlassian-jira/infomap/apps/pdfbox-app-1.6.0.jar";
 	
-	private String tempPath = "/home/skonecni/programs/atlassian-jira-enterprise-4.0-standalone/atlassian-jira/infomap/temp/";
 	
 	public void doGet(HttpServletRequest request,
                     HttpServletResponse response)
@@ -41,11 +40,11 @@ public class GenerateThumbnail extends HttpServlet {
 		
 		ArrayList<String> command = new ArrayList<String>();
 
-		System.out.println("******File Extension is***********");
-		System.out.println(url.substring(url.length()-4, url.length()));
+//		System.out.println("******File Extension is***********");
+//		System.out.println(url.substring(url.length()-4, url.length()));
 		if(".pdf".equals(url.substring(url.length()-4, url.length())))
 		{
-			System.out.println("******FILE IS A PDF***********");
+//			System.out.println("******FILE IS A PDF***********");
 			createImageFromPdf(url,imgName);
 			
 		}else if(".doc".equals(url.substring(url.length()-4, url.length())))
@@ -95,7 +94,7 @@ public class GenerateThumbnail extends HttpServlet {
 		
 		String[] args = (String[])command.toArray(temp);
 		
-		System.out.println("***commands is**"+ args.toString());
+//		System.out.println("***commands is**"+ args.toString());
 		
 		try
 		{
@@ -117,23 +116,25 @@ public class GenerateThumbnail extends HttpServlet {
 		command.add(pdf2ImgPath);
 		command.add("PDFToImage");
 		command.add("-imageType");
-		command.add("jpg");
+		command.add("png");
 //		command.add("-outputPrefix");
 //		command.add(imgName);
 		command.add("-startPage");
 		command.add("1");
 		command.add("-endPage");
 		command.add("1");
+		command.add("-resolution");
+		command.add("15");
 		command.add(url);
 		
 		runCommand(command);
 		
 		File pdf = new File(url);
 		
-		File img = new File(pdf.getParent()+ "/" + pdf.getName().substring(0, pdf.getName().length()-4) + "1.jpg");
+		File img = new File(pdf.getParent()+ "/" + pdf.getName().substring(0, pdf.getName().length()-4) + "1.png");
 		
 		
-		copyFile(img.getAbsolutePath(), thumbnailPath + imgName +".jpg");
+		copyFile(img.getAbsolutePath(), thumbnailPath + imgName +".png");
 		
 		img.delete();
 	}

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <<<<<<< HEAD
+<<<<<<< HEAD
 <flexLibProperties includeAllClasses="true" version="3">
   <includeClasses>
     <classEntry path="MXClasses"/>
@@ -210,6 +211,9 @@
   <includeClasses/>
 >>>>>>> replacing .flexLibProperties with upstream version
 =======
+=======
+<flexLibProperties includeAllClasses="true" version="3">
+>>>>>>> recently made changes with controls panel for Infomap tool
   <includeClasses>
     <classEntry path="MXClasses"/>
     <classEntry path="weave.Weave"/>
@@ -288,10 +292,8 @@
     <classEntry path="weave.ui.editors.WFSDataSourceEditor"/>
     <classEntry path="weave.ui.editors.WeaveDataSourceEditor"/>
     <classEntry path="weave.ui.editors.XLSDataSourceEditor"/>
-    <classEntry path="weave.ui.infomap.HoverComponent"/>
     <classEntry path="weave.ui.infomap.InfoMapLoader"/>
     <classEntry path="weave.ui.infomap.InfoMapPanel"/>
-    <classEntry path="weave.ui.infomap.InfoMapUIforNode"/>
     <classEntry path="weave.ui.infomap.SolrPreview"/>
     <classEntry path="weave.ui.probing.ProbeBox"/>
     <classEntry path="weave.ui.probing.WeaveProbeTemplate"/>
@@ -405,7 +407,7 @@
     <classEntry path="weave.visualization.tools.ThermometerTool"/>
     <classEntry path="weave.visualization.tools.TimeSliderTool"/>
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
-    <classEntry path="weave.ui.infomap.NodeHover"/>
+    <classEntry path="weave.ui.infomap.InfoMapAdminInterface"/>
   </includeClasses>
 >>>>>>> Node hover for InfoMap UI is Updated and flickering is removed
   <includeResources/>

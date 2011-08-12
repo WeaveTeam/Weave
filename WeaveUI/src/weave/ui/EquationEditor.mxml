@@ -26,7 +26,7 @@ EquationEditor
 
 @skolman
 -->
-<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="672" height="700"
 				backgroundColor="#EFF4BC" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
@@ -179,11 +179,16 @@ EquationEditor
 				textEditor.text = equationColumn.equation.value;
 				EventUtils.addDelayedCallback(textEditor,Event.CHANGE,handleEqChange);
 				equationColumn.equation.addImmediateCallback(this,handleEquationChange);
+
 				
 				if (dynamicColumn.globalName == null)
 					dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
 				
 				this.targets = [equationColumn];
+
+				
+//				dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
+
 			}
 			
 			public const dynamicColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(EquationColumn), handleGlobalColumnChange);
@@ -284,4 +289,4 @@ EquationEditor
 		]]>
 	</mx:Script>
 	
-</ControlPanel>
+</DraggablePanel>

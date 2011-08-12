@@ -8,7 +8,7 @@ WeaveJQueryCaller.getFile = function (url, id) {
 				weave.jqueryResult(id, data);
 			},
 			error: function (qXHR, textStatus, errorThrown) {
-				weave.jqueryFault(id, url);
+				weave.jqueryFault(id, url,qXHR, textStatus, errorThrown);
 			}
 		});
 }
