@@ -31,7 +31,7 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.compiler.BooleanLib;
 	import weave.compiler.CompiledConstant;
-	import weave.compiler.EquationCompiler;
+	import weave.compiler.Compiler;
 	import weave.compiler.StringLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -45,7 +45,7 @@ package weave.data.AttributeColumns
 	public class EquationColumn extends AbstractAttributeColumn
 	{
 		{ /** begin static code block **/
-			EquationCompiler.includeLibraries(
+			Compiler.includeLibraries(
 				WeaveAPI.StatisticsCache,
 				WeaveAPI.CSVParser,
 				WeaveAPI.QKeyManager,
@@ -181,7 +181,7 @@ package weave.data.AttributeColumns
 				_constantResult = undefined;
 				
 				// check if the equation evaluates to a constant
-				var constant:CompiledConstant = EquationCompiler.compileEquationToObject(equation.value, null, true) as CompiledConstant;
+				var constant:CompiledConstant = Compiler.compileToObject(equation.value, null, true) as CompiledConstant;
 				if (constant)
 				{
 					// save the constant result of the function
@@ -191,7 +191,7 @@ package weave.data.AttributeColumns
 				else
 				{
 					// compile into a function
-					compiledEquation = EquationCompiler.compileEquation(equation.value, variables.getObject);
+					compiledEquation = Compiler.compileToFunction(equation.value, variables.getObject);
 					_equationIsConstant = false;
 				}
 			}

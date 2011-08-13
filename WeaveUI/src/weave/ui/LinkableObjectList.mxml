@@ -72,7 +72,7 @@ LinkableObjectList
 			import weave.api.getCallbackCollection;
 			import weave.compiler.ArrayLib;
 			import weave.compiler.BooleanLib;
-			import weave.compiler.EquationCompiler;
+			import weave.compiler.Compiler;
 			import weave.compiler.MathLib;
 			import weave.compiler.StringLib;
 			import weave.core.LinkableHashMap;

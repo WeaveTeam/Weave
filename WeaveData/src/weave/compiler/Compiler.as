@@ -30,12 +30,11 @@ package weave.compiler
 	import weave.core.StageUtils;
 	
 	/**
-	 * This class provides a static function compileEquation() that compiles an
-	 * equation into a function that evaluates that equation.
+	 * This class provides a static function compileToFunction() that compiles an expression String into a Function.
 	 * 
 	 * @author adufilie
 	 */
-	public class EquationCompiler
+	public class Compiler
 	{
 		{ /** begin static code block **/
 			initStaticObjects();
@@ -45,54 +44,101 @@ package weave.compiler
 		} /** end static code block **/
 		
 		/**
-		 * This function compiles an equation String into a Function that takes no parameters and returns
-		 * a value, which is the equation evaluated using the variable values returned by variableGetter.
-		 * Variables may be surrounded by quotation marks (") to allow variable names that contain special characters.
+		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
+		 * Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
 		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
-		 * @param equation A mathematical equation to parse.
-		 * @param variableGetter A function to map to the get("var") calls in the equation.  Note that the equation 'x + 1' is equivalent to 'get("x") + 1'.
-		 * @return A Function generated from the equation String, or null if the String does not represent a valid equation.
+		 * @param expression An expression to compile.
+		 * @param variableGetter A function to map to the get("var") calls in the expression.  Note that the expression 'x + 1' is equivalent to 'get("x") + 1'.
+		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
-		public static function compileEquation(equation:String, variableGetter:Function):Function
+		public static function compileToFunction(expression:String, variableGetter:Function):Function
 		{
-			var tokens:Array = getTokens(equation);
-			//trace("source:", equation, "tokens:" + tokens.join(' '));
+			var tokens:Array = getTokens(expression);
+			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = compileTokens(tokens, variableGetter, true);
 			return createWrapperFunctionForCompiledObject(compiledObject);
 		}
 		
 		/**
-		 * This function will compile an equation into a compiled object representing a function that takes no parameters and returns a value.
+		 * This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.
 		 * This function is useful for inspecting the structure of the compiled function and decompiling individual parts.
-		 * @param equation A mathematical equation to parse.
-		 * @param variableGetter A function to map to the get("var") calls in the equation.  Note that the equation 'x + 1' is equivalent to 'get("x") + 1'.
-		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid equation.
+		 * @param expression An expression to parse.
+		 * @param variableGetter A function to map to the get("var") calls in the expression.  Note that the expression 'x + 1' is equivalent to 'get("x") + 1'.
+		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		public static function compileEquationToObject(equation:String, variableGetter:Function = null, evaluateToConstantIfPossible:Boolean = false):ICompiledObject
+		public static function compileToObject(expression:String, variableGetter:Function = null, evaluateToConstantIfPossible:Boolean = false):ICompiledObject
 		{
-			return compileTokens(getTokens(equation), variableGetter, evaluateToConstantIfPossible);
+			return compileTokens(getTokens(expression), variableGetter, evaluateToConstantIfPossible);
 		}
 		
+		/*
+			Escape Sequence     Character Represented
+			\b                  backspace character (ASCII 8)
+			\f                  form-feed character (ASCII 12)
+			\n                  line-feed character (ASCII 10)
+			\r                  carriage return character (ASCII 13)
+			\t                  tab character (ASCII 9)
+			\"                  double quotation mark
+			\'                  single quotation mark
+			\\                  backslash
+			\000 .. \377        a byte specified in octal
+			\x00 .. \xFF        a byte specified in hexadecimal
+			\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
+		*/
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '"':'"', '\\':'\\'};
+		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
+		
 		/**
-		 * This function surrounds a string with quotes (") and replaces all occurrences
-		 * of '"' in the original string with '""' as an escape sequence.
+		 * This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.
 		 * @param A String that may contain special characters.
-		 * @return The given variable name, encoded in the format accepted by compileEquation().
+		 * @return The given String formatted for ActionScript.
 		 */
 		public static function encodeString(string:String):String
 		{
-			return '"' + string.split('"').join('""') + '"';
+			var result:Array = new Array(string.length);
+			for (var i:int = 0; i < string.length; i++)
+			{
+				var esc:String = ENCODE_LOOKUP[string.charAt(i)];
+				result[i] += esc ? '\\' + esc : string.charAt(i);
+			}
+			return '"' + result.join("") + '"';
 		}
-
+		
 		/**
-		 * This function is for internal use only.
-		 * @param encodedString A String that was encoded in the same way that encodeString encodes Strings.
-		 * @return The decoding of the String.
+		 * This function is for internal use only.  It assumes the string it receives is valid.
+		 * @param encodedString A quoted String with special characters escaped using ActionScript string literal format.
+		 * @return The unescaped literal string.
 		 */
 		private static function decodeString(encodedString:String):String
 		{
-			return encodedString.substr(1, encodedString.length - 2).split('""').join('"');
+			// remove quotes
+			var input:String = encodedString.substr(1, encodedString.length - 2);
+			var output:String = "";
+			var begin:int = 0;
+			while (true)
+			{
+				var esc:int = input.indexOf("\\", begin);
+				if (esc < 0)
+				{
+					output += input.substring(begin);
+					break;
+				}
+				else
+				{
+					// look up escaped character
+					var c:String = input.charAt(esc + 1);
+					
+					//TODO: octal and hex escape sequences
+					
+					c = DECODE_LOOKUP[c] || c;
+					output += input.substring(begin, esc) + c;
+					// skip over escape sequence
+					begin = esc + 2;
+				}
+			}
+			return output;
 		}
+		   
 		
 		/**
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
@@ -118,7 +164,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function will add a variable to the constants available in equations.
+		 * This function will add a variable to the constants available in expressions.
 		 * @param constantName The name of the constant.
 		 * @param constantValue The value of the constant.
 		 */		
@@ -142,8 +188,8 @@ package weave.compiler
 		private static const libraries:Array = [];
 		
 		/**
-		 * This is the name of the function to use in equations for getting variables by name.
-		 * For example, the following two equations do the same thing:  (x + 3)   and   (get("x") + 3)
+		 * This is the name of the function to use in expressions for getting variables by name.
+		 * For example, the following two expressions do the same thing:  (x + 3)   and   (get("x") + 3)
 		 */
 		public static const GET_FUNCTION_NAME:String = "get";
 		
@@ -232,16 +278,16 @@ package weave.compiler
 			operators["*"] = function(x:*, y:*):Number { return x * y; };
 			operators["/"] = function(x:*, y:*):Number { return x / y; };
 			operators["%"] = function(x:*, y:*):Number { return x % y; };
-			operators["+"] = function(x:*, y:*):Number { return x + y; };
+			operators["+"] = function(x:*, y:*):* { return x + y; }; // also works for strings
 			operators["-"] = function(x:*, y:*):Number { return x - y; };
 			// bitwise
-			operators["~"] = function(x:*):int { return ~x; };
-			operators["&"] = function(x:*, y:*):int { return x & y; };
-			operators["|"] = function(x:*, y:*):int { return x | y; };
-			operators["^"] = function(x:*, y:*):int { return x ^ y; };
-			operators["<<"] = function(x:*, y:*):int { return x << y; };
-			operators[">>"] = function(x:*, y:*):int { return x >> y; };
-			operators[">>>"] = function(x:*, y:*):int { return x >>> y; };
+			operators["~"] = function(x:*):* { return ~x; };
+			operators["&"] = function(x:*, y:*):* { return x & y; };
+			operators["|"] = function(x:*, y:*):* { return x | y; };
+			operators["^"] = function(x:*, y:*):* { return x ^ y; };
+			operators["<<"] = function(x:*, y:*):* { return x << y; };
+			operators[">>"] = function(x:*, y:*):* { return x >> y; };
+			operators[">>>"] = function(x:*, y:*):* { return x >>> y; };
 			// comparison
 			operators["<"] = function(x:*, y:*):Boolean { return x < y; };
 			operators["<="] = function(x:*, y:*):Boolean { return x <= y; };
@@ -301,18 +347,18 @@ package weave.compiler
 		}
 
 		/**
-		 * @param equation An equation string to parse.
-		 * @return An Array containing all the tokens found in the equation.
+		 * @param expression An expression string to parse.
+		 * @return An Array containing all the tokens found in the expression.
 		 */
-		private static function getTokens(equation:String):Array
+		private static function getTokens(expression:String):Array
 		{
 			var tokens:Array = [];
-			var n:int = equation.length;
+			var n:int = expression.length;
 			// get a flat list of tokens
 			var i:int = 0;
 			while (i < n)
 			{
-				var token:String = getToken(equation, i);
+				var token:String = getToken(expression, i);
 				if (WHITESPACE.indexOf(token.charAt(0)) == -1)
 					tokens.push(token);
 				i += token.length;
@@ -321,55 +367,62 @@ package weave.compiler
 		}
 		/**
 		 * This function is for internal use only.
-		 * @param equation An equation to parse.
+		 * @param expression An expression to parse.
 		 * @param index The starting index of the token.
 		 * @return The token beginning at the specified index.
 		 */
-		private static function getToken(equation:String, index:int):String
+		private static function getToken(expression:String, index:int):String
 		{
 			var endIndex:int;
-			var n:int = equation.length;
-			var c:String = equation.charAt(index);
+			var n:int = expression.length;
+			var c:String = expression.charAt(index);
 			
 			// this function assumes operators has already been initialized
 
 			// handle operators (find the longest matching operator)
 			endIndex = index;
-			while (endIndex < n && operators[ equation.substring(index, endIndex + 1) ] != undefined)
+			while (endIndex < n && operators[ expression.substring(index, endIndex + 1) ] != undefined)
 				endIndex++;
 			if (index < endIndex)
-				return equation.substring(index, endIndex);
+				return expression.substring(index, endIndex);
 			
 			// handle whitespace (find the longest matching sequence)
 			endIndex = index;
-			while (endIndex < n && WHITESPACE.indexOf(equation.charAt(endIndex)) >= 0)
+			while (endIndex < n && WHITESPACE.indexOf(expression.charAt(endIndex)) >= 0)
 				endIndex++;
 			if (index < endIndex)
-				return equation.substring(index, endIndex);
+				return expression.substring(index, endIndex);
 			
 			// handle quoted string
-			if (c == '"')
+			if (c == '"' || c == "'")
 			{
-				// index points to the beginning '"'
-				// make endIndex point to the ending '"'
+				var quote:String = c;
+				// index points to the opening quote
+				// make endIndex point to the matching end quote
 				for (endIndex = index + 1; endIndex < n; endIndex++)
 				{
-					var twoChar:String = equation.substr(endIndex, 2);
-					if (twoChar == '""') // handle escaped '"'
-						endIndex++; // skip second '"' and continue
-					else if (equation.charAt(endIndex) == '"')
-						break; // found ending '"'
+					c = expression.charAt(endIndex);
+					// stop when matching quote found
+					if (c == quote)
+						break;
+					
+					// TODO: handle octal and hex escape sequences
+
+					// handle escape sequence
+					if (c == '\\')
+						endIndex++;
 				}
-				// if ending '"' was not found, append it now
+				// Note: If the last character is '\\', endIndex will be n+1.  The final '\\' will be removed when decoding the string
+				// if ending quote was not found, append it now
 				if (endIndex == n)
-					equation += '"';
+					expression += quote;
 				// return the quoted string, including the quotes
-				return equation.substring(index, endIndex + 1);
+				return expression.substring(index, endIndex + 1);
 			}
 			// handle everything else (go until a special character is found)
 			for (endIndex = index + 1; endIndex < n; endIndex++)
 			{
-				c = equation.charAt(endIndex);
+				c = expression.charAt(endIndex);
 				// whitespace or quotes terminates a token
 				if (WHITESPACE.indexOf(c) >= 0 || c == '"')
 					break;
@@ -377,11 +430,11 @@ package weave.compiler
 				if (operators[c] != undefined)
 				{
 					// special case: "operator" followed by an operator symbol is treated as a single token
-					if (equation.substring(index, endIndex) == OPERATOR_PREFIX)
+					if (expression.substring(index, endIndex) == OPERATOR_PREFIX)
 					{
 						for (var operatorLength:int = MAX_OPERATOR_LENGTH; operatorLength > 0; operatorLength--)
 						{
-							if (functions[equation.substring(index, endIndex + operatorLength)] is Function)
+							if (functions[expression.substring(index, endIndex + operatorLength)] is Function)
 							{
 								endIndex += operatorLength;
 								break;
@@ -391,15 +444,15 @@ package weave.compiler
 					break;
 				}
 			}
-			return equation.substring(index, endIndex);
+			return expression.substring(index, endIndex);
 		}
 
 		/**
 		 * This function will recursively compile a set of tokens into a compiled object representing a function that takes no parameters and returns a value.
-		 * Example set of input tokens:  add ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
-		 * @param tokens An Array of tokens for an equation.  This array will be modified in place.
+		 * Example set of input tokens:  pow ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
+		 * @param tokens An Array of tokens for an expression.  This array will be modified in place.
 		 * @param variableGetter This function should return a value for a given variable name.  The function signature should be:  function(variableName:String):*
-		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid equation.
+		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
 		private static function compileTokens(tokens:Array, variableGetter:Function, evaluateToConstantIfPossible:Boolean):ICompiledObject
 		{
@@ -456,7 +509,7 @@ package weave.compiler
 							func = variableGetter;
 						else
 							func = functions[funcToken] as Function;
-						tokens.splice(open - 1, 3, compileFunction(funcToken, func, compiledParams, funcToken != GET_FUNCTION_NAME && evaluateToConstantIfPossible));
+						tokens.splice(open - 1, 3, compileFunctionCall(funcToken, func, compiledParams, funcToken != GET_FUNCTION_NAME && evaluateToConstantIfPossible));
 					}
 					else // These parentheses do not correspond to a function call.
 					{
@@ -484,6 +537,7 @@ package weave.compiler
 				trace("compiling tokens", tokens.join(' '));
 			
 			// step 2: handle infix '.'
+			// TODO
 			
 			// step 3: compile constants and variable names
 			var token:*;
@@ -499,8 +553,8 @@ package weave.compiler
 					tokens[i] = new CompiledConstant(token, constants[token]);
 					continue;
 				}
-				// if the token starts with '"', treat it as a String
-				if (token.charAt(0) == '"')
+				// if the token starts with a quote, treat it as a String
+				if (token.charAt(0) == '"' || token.charAt(0) == "'")
 				{
 					// parse quoted String, handling '""' escape sequence.
 					tokens[i] = new CompiledConstant(token, decodeString(token));
@@ -521,7 +575,7 @@ package weave.compiler
 				tokens[i] = compileVariable(variableGetter, token);
 			}
 			
-			// step 4: compile '**' infix operators, left to right
+			// step 4: compile '**' infix operators
 			compileInfixOperators(tokens, ['**'], evaluateToConstantIfPossible);
 			
 			// step 5: compile unary operators
@@ -553,7 +607,7 @@ package weave.compiler
 				if (evaluateToConstantIfPossible && condition is CompiledConstant)
 					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
 				else
-					result = compileFunction(OPERATOR_PREFIX + '?:', operators['?:'], [condition, trueBranch, falseBranch], evaluateToConstantIfPossible);
+					result = compileFunctionCall(OPERATOR_PREFIX + '?:', operators['?:'], [condition, trueBranch, falseBranch], evaluateToConstantIfPossible);
 				
 				tokens.splice(left - 1, right - left + 3, result);
 			}
@@ -567,9 +621,9 @@ package weave.compiler
 				return tokens[0];
 
 			if (tokens.length > 1)
-				throw new Error("Invalid equation: missing operator between " + decompile(tokens[0]) + ' and ' + decompile(tokens[1]));
+				throw new Error("Missing operator between " + decompile(tokens[0]) + ' and ' + decompile(tokens[1]));
 
-			throw new Error("Empty equation");
+			throw new Error("Empty expression");
 		}
 
 		/**
@@ -582,7 +636,7 @@ package weave.compiler
 		 * @param evaluateToConstantIfPossible If this is true and all the compiledParameters are constants, the function will be called once and the result will be saved as a constant.
 		 * @return A CompiledObject that contains either a constant or a wrapper function that runs the functionToCompile after evaluating the compiledParams.
 		 */
-		private static function compileFunction(functionName:String, functionToCompile:Function, compiledParams:Array, evaluateToConstantIfPossible:Boolean):ICompiledObject
+		private static function compileFunctionCall(functionName:String, functionToCompile:Function, compiledParams:Array, evaluateToConstantIfPossible:Boolean):ICompiledObject
 		{
 			var call:CompiledFunctionCall = new CompiledFunctionCall(functionName, functionToCompile, compiledParams);
 			// if the compiled function call should not be evaluated to a constant, return it now.
@@ -615,7 +669,7 @@ package weave.compiler
 		/**
 		 * This function is for internal use only.
 		 * This will compile unary operators of the given type from right to left.
-		 * @param compiledTokens An Array of compiled tokens for an equation.  No '(' ')' or ',' tokens should appear in this Array.
+		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array.
 		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
 		 * @param evaluateToConstantIfPossible When this is true, function calls will be simplified to constants where possible.
 		 */
@@ -639,14 +693,14 @@ package weave.compiler
 				// compile unary operator
 				if (debug)
 					trace("compile unary operator", compiledTokens.slice(index, index + 2).join(' '));
-				compiledTokens.splice(index, 2, compileFunction(compiledTokens[index], unaryOperators[compiledTokens[index]], [compiledTokens[index + 1]], evaluateToConstantIfPossible));
+				compiledTokens.splice(index, 2, compileFunctionCall(compiledTokens[index], unaryOperators[compiledTokens[index]], [compiledTokens[index + 1]], evaluateToConstantIfPossible));
 			}
 		}
 		
 		/**
 		 * This function is for internal use only.
 		 * This will compile infix operators of the given type from left to right.
-		 * @param compiledTokens An Array of compiled tokens for an equation.  No '(' ')' or ',' tokens should appear in this Array.
+		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array.
 		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
 		 * @param evaluateToConstantIfPossible When this is true, function calls will be simplified to constants where possible.
 		 */
@@ -689,13 +743,13 @@ package weave.compiler
 				if (debug)
 					trace("compile infix operator", compiledTokens.slice(index - 1, index + 2).join(' '));
 				var functionName:String = OPERATOR_PREFIX + compiledTokens[index];
-				compiledTokens.splice(index - 1, 3, compileFunction(functionName, operatorFunction, compiledParams, evaluateToConstantIfPossible));
+				compiledTokens.splice(index - 1, 3, compileFunctionCall(functionName, operatorFunction, compiledParams, evaluateToConstantIfPossible));
 			}
 		}
 
 		/**
-		 * @param compiledObject A CompiledFunctionCall or CompiledConstant to decompile into an equation String.
-		 * @return The equation String generated from the compiledObject.
+		 * @param compiledObject A CompiledFunctionCall or CompiledConstant to decompile into an expression String.
+		 * @return The expression String generated from the compiledObject.
 		 */
 		public static function decompile(compiledObject:ICompiledObject):String
 		{
@@ -716,7 +770,7 @@ package weave.compiler
 					try
 					{
 						// If the variable name compiles into the same call to get(), it's safe to return just the variable name.
-						var recompiled:CompiledFunctionCall = compileEquationToObject(constant.value, null, false) as CompiledFunctionCall;
+						var recompiled:CompiledFunctionCall = compileToObject(constant.value, null, false) as CompiledFunctionCall;
 						if (recompiled && recompiled.name == GET_FUNCTION_NAME && recompiled.compiledParams.length == 1)
 						{
 							constant = recompiled.compiledParams[0] as CompiledConstant;
@@ -770,9 +824,9 @@ package weave.compiler
 			}
 			
 			// create the variables that will be used inside the wrapper function
-			const BRANCH_OP:String = OPERATOR_PREFIX + '?:';
-			const AND_OP:String = OPERATOR_PREFIX + '&&';
-			const OR_OP:String = OPERATOR_PREFIX + '||';
+			const OPERATOR_BRANCH:String = OPERATOR_PREFIX + '?:';
+			const OPERATOR_AND:String = OPERATOR_PREFIX + '&&';
+			const OPERATOR_OR:String = OPERATOR_PREFIX + '||';
 			const CONDITION_INDEX:int = 0;
 			const TRUE_INDEX:int = 1;
 			const FALSE_INDEX:int = 2;
@@ -803,12 +857,11 @@ package weave.compiler
 						
 						if (call.evalIndex > 0)
 						{
-							if (call.name == BRANCH_OP || call.name == AND_OP)
-							{
+							// handle branching and short-circuiting
+							if (call.name == OPERATOR_BRANCH || call.name == OPERATOR_AND)
 								if (call.evalIndex != (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX))
 									continue;
-							}
-							if (call.name == OR_OP && call.evalIndex == (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX))
+							if (call.name == OPERATOR_OR && call.evalIndex == (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX))
 								continue;
 						}
 						
@@ -854,6 +907,7 @@ package weave.compiler
 		private static function test():void
 		{
 			var eqs:Array = [
+				"1 + '\"abc ' + \"'x\\\"y\\\\\\'z\"",
 				'0 ? trace("?: BUG") : -var',
 				'1 ? ~-~-var : trace("?: BUG")',
 				'!true && trace("&& BUG")',
@@ -890,7 +944,7 @@ package weave.compiler
 			
 			for each (var eq:String in eqs)
 			{
-				trace("  equation: "+eq);
+				trace("expression: "+eq);
 				
 				var tokens:Array = getTokens(eq);
 				trace("    tokens:", tokens.join(' '));
@@ -906,7 +960,7 @@ package weave.compiler
 				var optimized:String = decompile(compileTokens(tokens3, variableGetter, true));
 				trace(" optimized:", optimized);
 				
-				var f:Function = compileEquation(eq, variableGetter);
+				var f:Function = compileToFunction(eq, variableGetter);
 				for each (var value:* in values)
 				{
 					vars['var'] = value;

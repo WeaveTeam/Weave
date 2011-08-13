@@ -59,7 +59,7 @@ EquationUIComponent
 			import weave.api.newLinkableChild;
 			import weave.compiler.CompiledConstant;
 			import weave.compiler.CompiledFunctionCall;
-			import weave.compiler.EquationCompiler;
+			import weave.compiler.Compiler;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.utils.DebugUtils;
@@ -118,7 +118,7 @@ EquationUIComponent
 				var errorString:String = '';
 				var compiledObject:ICompiledObject = null;
 				try{
-					compiledObject = EquationCompiler.compileEquationToObject(equation.value);
+					compiledObject = Compiler.compileToObject(equation.value);
 				}catch(e:Error){
 					
 					errorString = e.message;
@@ -147,7 +147,7 @@ EquationUIComponent
 					for (var i:int = 0; i < compiledFunctionCall.compiledParams.length; i++)
 					{
 						var compiledObjectParams:EquationUIComponent = new EquationUIComponent();
-						compiledObjectParams.equation.value = (EquationCompiler.decompile(compiledFunctionCall.compiledParams[i]));
+						compiledObjectParams.equation.value = (Compiler.decompile(compiledFunctionCall.compiledParams[i]));
 						compiledObjectParams.equation.addImmediateCallback(this, handleChildEquationChange); 
 						equationStringContainer.addChild(compiledObjectParams);
 						if (i < compiledFunctionCall.compiledParams.length - 1)
@@ -200,8 +200,8 @@ EquationUIComponent
 				
 				// compile, then decompile so we will get the preferred syntax
 				try {
-					var compiledObject:ICompiledObject = EquationCompiler.compileEquationToObject(equationString);
-					equationString = EquationCompiler.decompile(compiledObject);
+					var compiledObject:ICompiledObject = Compiler.compileToObject(equationString);
+					equationString = Compiler.decompile(compiledObject);
 				} catch (e:Error) { }
 				
 				return equationString;
@@ -268,7 +268,7 @@ EquationUIComponent
 					var draggedCompiledEquation:ICompiledObject = getEquationFromXML(draggedItem);
 					try
 					{
-						var compiledCurrentEquation:ICompiledObject = EquationCompiler.compileEquationToObject(currentEquationString);	
+						var compiledCurrentEquation:ICompiledObject = Compiler.compileToObject(currentEquationString);	
 						if(draggedCompiledEquation is CompiledFunctionCall && (draggedCompiledEquation as CompiledFunctionCall).compiledParams.length !=0)
 						{
 							(draggedCompiledEquation as CompiledFunctionCall).compiledParams[0] = compiledCurrentEquation;
@@ -278,7 +278,7 @@ EquationUIComponent
 					{
 						
 					}
-					equation.value = (EquationCompiler.decompile(draggedCompiledEquation));
+					equation.value = (Compiler.decompile(draggedCompiledEquation));
 				}
 				else if (draggedItem is String)
 				{
@@ -324,7 +324,7 @@ EquationUIComponent
 					
 					functionStringFormat += ")";
 				}
-				var equation:ICompiledObject = EquationCompiler.compileEquationToObject(functionStringFormat);
+				var equation:ICompiledObject = Compiler.compileToObject(functionStringFormat);
 				
 				return equation;
 			}
