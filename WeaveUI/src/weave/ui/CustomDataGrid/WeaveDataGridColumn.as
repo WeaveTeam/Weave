@@ -79,11 +79,14 @@ package weave.ui.CustomDataGrid
 		
 		private function extractDataFunction(item:Object, column:DataGridColumn):String
 		{
+			var xml:XML = <data/>;
+			
 			var col:IAttributeColumn = _attrColumn;
-			var stringValue:String = col.getValueFromKey(item[dataField] as IQualifiedKey, String) as String;
-			var normValue:Number = ColumnUtils.getNorm(col, item[dataField] as IQualifiedKey);
-
-			return "<data string='" + stringValue + "' norm='" + normValue + "'/>";				
+			
+			xml.@norm = ColumnUtils.getNorm(col, item[dataField] as IQualifiedKey);
+			xml.@string = col.getValueFromKey(item[dataField] as IQualifiedKey, String) as String;
+			
+			return xml.toXMLString();
 		}
 	}
 }
