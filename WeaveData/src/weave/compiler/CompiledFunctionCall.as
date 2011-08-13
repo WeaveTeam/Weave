@@ -19,8 +19,6 @@
 
 package weave.compiler
 {
-	import weave.api.compiler.ICompiledObject;
-
 	/**
 	 * This serves as a structure for storing the information required to make a function call.
 	 * This is used in the EquationParser class to avoid parsing tokens multiple times.

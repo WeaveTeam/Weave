@@ -25,10 +25,6 @@ package weave.compiler
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import weave.api.compiler.ICompiledObject;
-	import weave.core.SessionManager;
-	import weave.core.StageUtils;
-	
 	/**
 	 * This class provides a static function compileToFunction() that compiles an expression String into a Function.
 	 * 
@@ -191,18 +187,23 @@ package weave.compiler
 		 * This is the name of the function to use in expressions for getting variables by name.
 		 * For example, the following two expressions do the same thing:  (x + 3)   and   (get("x") + 3)
 		 */
-		public static const GET_FUNCTION_NAME:String = "get";
+		public static const GET_FUNCTION_NAME:String = 'get';
 		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
 		 * For example, the function notation for ( x + y ) is ( operator+(x,y) ).
 		 */
-		public static const OPERATOR_PREFIX:String = "operator";
+		public static const OPERATOR_PREFIX:String = 'operator';
+		
+		/**
+		 * This is the variable that can be used in expressions for the arguments passed to the function.
+		 */		
+		public static const ARGUMENTS_VARIABLE:String = 'arguments';
 		
 		/**
 		 * This is a String containing all the characters that are treated as whitespace.
 		 */
-		private static const WHITESPACE:String = ' \r\n\t';
+		private static const WHITESPACE:String = '\r\n \t';
 		/**
 		 * This is the maximum allowed length of an operator.
 		 */		
@@ -569,10 +570,18 @@ package weave.compiler
 						continue;
 					}
 				} catch (e:Error) { }
-				// treat everything else as a variable name.
-				// make a copy of the variable name that is safe for the wrapper function to use
-				// compile the token as a call to variableGetter.
-				tokens[i] = compileVariable(variableGetter, token);
+				// special case for arguments variable
+				if (token == ARGUMENTS_VARIABLE)
+				{
+					tokens[i] = new CompiledFunctionCall(ARGUMENTS_VARIABLE, null, []);
+				}
+				else
+				{
+					// treat everything else as a variable name.
+					// make a copy of the variable name that is safe for the wrapper function to use
+					// compile the token as a call to variableGetter.
+					tokens[i] = compileVariable(variableGetter, token);
+				}
 			}
 			
 			// step 4: compile '**' infix operators
@@ -784,6 +793,9 @@ package weave.compiler
 					}
 				}
 			}
+			// special case for arguments variable
+			if (call.name == ARGUMENTS_VARIABLE)
+				return ARGUMENTS_VARIABLE;
 
 			// decompile each paramter
 			var params:Array = [];
@@ -838,7 +850,7 @@ package weave.compiler
 			var result:*;
 			// return the wrapper function
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
-			return function():*
+			return function(...args):*
 			{
 				// initialize top-level function and push it onto the stack
 				call = compiledObject as CompiledFunctionCall;
@@ -880,7 +892,10 @@ package weave.compiler
 					// no parameters need to be evaluated, so make the function call now
 					try
 					{
-						result = call.method.apply(null, call.evaluatedParams);
+						if (call.name == ARGUMENTS_VARIABLE)
+							result = args;
+						else
+							result = call.method.apply(null, call.evaluatedParams);
 					}
 					catch (e:Error)
 					{

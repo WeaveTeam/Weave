@@ -53,13 +53,13 @@ EquationUIComponent
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.api.compiler.ICompiledObject;
 			import weave.api.core.ILinkableObject;
 			import weave.api.disposeObjects;
 			import weave.api.newLinkableChild;
 			import weave.compiler.CompiledConstant;
 			import weave.compiler.CompiledFunctionCall;
 			import weave.compiler.Compiler;
+			import weave.compiler.ICompiledObject;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.utils.DebugUtils;

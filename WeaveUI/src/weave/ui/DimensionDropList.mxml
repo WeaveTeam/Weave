@@ -54,7 +54,6 @@ DragDropDimensions
 			import weave.compiler.ArrayLib;
 			import weave.compiler.BooleanLib;
 			import weave.compiler.Compiler;
-			import weave.api.compiler.ICompiledObject;
 			import weave.compiler.MathLib;
 			import weave.compiler.StringLib;
 			import weave.data.AttributeColumns.DynamicColumn;

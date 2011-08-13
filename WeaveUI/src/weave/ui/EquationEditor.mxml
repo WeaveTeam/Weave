@@ -77,7 +77,7 @@ EquationEditor
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.api.compiler.ICompiledObject;
+			import weave.compiler.ICompiledObject;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
 			import weave.api.linkBindableProperty;
