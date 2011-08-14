@@ -4,22 +4,22 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="EquationCompiler,weave.compiler.EquationCompiler,GET_FUNCTION_NAME,OPERATOR_PREFIX,compileEquation,compileEquationToObject,decompile,encodeString,getAllLibraries,includeConstant,includeLibraries" name="keywords">
-<title>weave.compiler.EquationCompiler</title>
+<meta content="Compiler,weave.compiler.Compiler,OPERATOR_PREFIX,compileObjectToFunction,compileToFunction,compileToObject,decompileObject,encodeString,getAllLibraries,includeConstant,includeLibraries" name="keywords">
+<title>weave.compiler.Compiler</title>
 </head>
 <body>
 <script type="text/javascript" language="javascript" src="../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../cookies.js"></script><script type="text/javascript" language="javascript">
 <!--
-				asdocTitle = 'EquationCompiler - Weave AS3 documentation';
+				asdocTitle = 'Compiler - Weave AS3 documentation';
 				var baseRef = '../../';
 				window.onload = configPage;
 			--></script>
 <table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
 <tr>
-<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/compiler/EquationCompiler.html&amp;weave/compiler/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/compiler/Compiler.html&amp;weave/compiler/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
 </tr>
 <tr class="titleTableRow2">
-<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;EquationCompiler</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;Compiler</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
 </tr>
 <tr class="titleTableRow3">
 <td colspan="2">&nbsp;</td>
@@ -27,7 +27,7 @@
 </table>
 <script type="text/javascript" language="javascript">
 <!--
-if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class EquationCompiler"); titleBar_setSubNav(true,false,false,false,false,false,true,false,false,false,false,false,false,false);}
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class Compiler"); titleBar_setSubNav(true,false,false,false,false,false,true,false,false,false,false,false,false,false);}
 --></script>
 <div class="MainContent">
 <table cellspacing="0" cellpadding="0" class="classHeaderTable">
@@ -35,12 +35,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.compiler</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class EquationCompiler</td>
+<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class Compiler</td>
 </tr>
 </table>
 <p></p>
-  This class provides a static function compileEquation() that compiles an
-  equation into a function that evaluates that equation.
+  This class provides a static function compileToFunction() that compiles an expression String into a Function.
   
   <p></p>
 <br>
@@ -56,35 +55,42 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#compileEquation()">compileEquation</a>(equation:String, variableGetter:Function):Function</div>
-<div class="summaryTableDescription">[static] end static code block </div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+<a class="signatureLink" href="#compileObjectToFunction()">compileObjectToFunction</a>(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>, symbolTable:Object):Function</div>
+<div class="summaryTableDescription">[static]
+   This function is for internal use only.</div>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#compileEquationToObject()">compileEquationToObject</a>(equation:String, variableGetter:Function = null, evaluateToConstantIfPossible:Boolean = false):<a href="../api/compiler/ICompiledObject.html">ICompiledObject</a>
+<a class="signatureLink" href="#compileToFunction()">compileToFunction</a>(expression:String, symbolTable:Object):Function</div>
+<div class="summaryTableDescription">[static] end static code block </div>
+</td><td class="summaryTableOwnerCol">Compiler</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#compileToObject()">compileToObject</a>(expression:String, enableOptimizations:Boolean = false):<a href="../compiler/ICompiledObject.html">ICompiledObject</a>
 </div>
 <div class="summaryTableDescription">[static]
-   This function will compile an equation into a compiled object representing a function that takes no parameters and returns a value.</div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+   This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.</div>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#decompile()">decompile</a>(compiledObject:<a href="../api/compiler/ICompiledObject.html">ICompiledObject</a>):String</div>
+<a class="signatureLink" href="#decompileObject()">decompileObject</a>(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>):String</div>
 <div class="summaryTableDescription">[static]
    </div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#encodeString()">encodeString</a>(string:String):String</div>
+<a class="signatureLink" href="#encodeString()">encodeString</a>(string:String, doubleQuote:Boolean = true):String</div>
 <div class="summaryTableDescription">[static]
-   This function surrounds a string with quotes (") and replaces all occurrences
-   of '"' in the original string with '""' as an escape sequence.</div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+   This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.</div>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -92,15 +98,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#getAllLibraries()">getAllLibraries</a>():Array</div>
 <div class="summaryTableDescription">[static]
    This function gets a list of all the libraries currently being used by the compiler.</div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#includeConstant()">includeConstant</a>(constantName:String, constantValue:*):void</div>
 <div class="summaryTableDescription">[static]
-   This function will add a variable to the constants available in equations.</div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+   This function will add a variable to the constants available in expressions.</div>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -108,7 +114,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#includeLibraries()">includeLibraries</a>(... classesOrObjects):void</div>
 <div class="summaryTableDescription">[static]
    This function will include additional libraries to be supported by the compiler when compiling functions.</div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 </table>
 </div>
@@ -120,14 +126,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#GET_FUNCTION_NAME">GET_FUNCTION_NAME</a> : String = "get"<div class="summaryTableDescription">[static]
-   This is the name of the function to use in equations for getting variables by name.</div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#OPERATOR_PREFIX">OPERATOR_PREFIX</a> : String = "operator"<div class="summaryTableDescription">[static]
    This is the prefix used for the function notation of infix operators.</div>
-</td><td class="summaryTableOwnerCol">EquationCompiler</td>
+</td><td class="summaryTableOwnerCol">Compiler</td>
 </tr>
 </table>
 </div>
@@ -138,23 +139,55 @@ showHideInherited();
 <div class="MainContent">
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="compileEquation()"></a>
+<a name="compileObjectToFunction()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">compileEquation</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">compileObjectToFunction</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function compileEquation(equation:String, variableGetter:Function):Function</code><p> end static code block </p><span class="label">Parameters</span>
+<code>public static function compileObjectToFunction(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>, symbolTable:Object):Function</code><p>
+   This function is for internal use only.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">equation</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">compiledObject</span>:<a href="ICompiledObject.html">ICompiledObject</a></code> &mdash; Either a CompiledConstant or a CompiledFunctionCall.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">variableGetter</span>:Function</code></td>
+<td width="20px"></td><td><code><span class="label">symbolTable</span>:Object</code> &mdash; This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Function</code> &mdash; A Function that takes no parameters and returns the result of evaluating the ICompiledObject.
+   </td>
+</tr>
+</table>
+</div>
+<a name="compileToFunction()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">compileToFunction</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function compileToFunction(expression:String, symbolTable:Object):Function</code><p> end static code block </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">expression</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">symbolTable</span>:Object</code></td>
 </tr>
 </table>
 <p></p>
@@ -165,60 +198,54 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="compileEquationToObject()"></a>
+<a name="compileToObject()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">compileEquationToObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">compileToObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function compileEquationToObject(equation:String, variableGetter:Function = null, evaluateToConstantIfPossible:Boolean = false):<a href="../api/compiler/ICompiledObject.html">ICompiledObject</a></code><p>
-   This function will compile an equation into a compiled object representing a function that takes no parameters and returns a value.
+<code>public static function compileToObject(expression:String, enableOptimizations:Boolean = false):<a href="../compiler/ICompiledObject.html">ICompiledObject</a></code><p>
+   This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.
    This function is useful for inspecting the structure of the compiled function and decompiling individual parts.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">equation</span>:String</code> &mdash; A mathematical equation to parse.
+<td width="20px"></td><td><code><span class="label">expression</span>:String</code> &mdash; An expression to parse.
    </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">variableGetter</span>:Function</code> (default = <code>null</code>)<code></code> &mdash; A function to map to the get("var") calls in the equation.  Note that the equation 'x + 1' is equivalent to 'get("x") + 1'.
+<td width="20px"></td><td><code><span class="label">enableOptimizations</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true and all the compiledParameters are constants, the function will be called once and the result will be saved as a constant.
    </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">evaluateToConstantIfPossible</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
 </tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code><a href="../api/compiler/ICompiledObject.html">ICompiledObject</a></code> &mdash; 
-                        A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid equation.
+<td width="20"></td><td><code><a href="../compiler/ICompiledObject.html">ICompiledObject</a></code> &mdash; 
+                        A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
    
                         
                      </td>
 </tr>
 </table>
 </div>
-<a name="decompile()"></a>
+<a name="decompileObject()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">decompile</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">decompileObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function decompile(compiledObject:<a href="../api/compiler/ICompiledObject.html">ICompiledObject</a>):String</code><p>
+<code>public static function decompileObject(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>):String</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">compiledObject</span>:<a href="../api/compiler/ICompiledObject.html">ICompiledObject</a></code> &mdash; A CompiledFunctionCall or CompiledConstant to decompile into an equation String.
+<td width="20px"></td><td><code><span class="label">compiledObject</span>:<a href="ICompiledObject.html">ICompiledObject</a></code> &mdash; A CompiledFunctionCall or CompiledConstant to decompile into an expression String.
    </td>
 </tr>
 </table>
@@ -226,7 +253,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>String</code> &mdash; The equation String generated from the compiledObject.
+<td width="20"></td><td><code>String</code> &mdash; The expression String generated from the compiledObject.
    </td>
 </tr>
 </table>
@@ -238,13 +265,19 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function encodeString(string:String):String</code><p>
-   This function surrounds a string with quotes (") and replaces all occurrences
-   of '"' in the original string with '""' as an escape sequence.
+<code>public static function encodeString(string:String, doubleQuote:Boolean = true):String</code><p>
+   This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">string</span>:String</code> &mdash; String that may contain special characters.
+<td width="20px"></td><td><code><span class="label">string</span>:String</code> &mdash; A String that may contain special characters.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">doubleQuote</span>:Boolean</code> (default = <code>true</code>)<code></code> &mdash; If this is true, double-quote will be used.  If false, single-quote will be used.
    </td>
 </tr>
 </table>
@@ -252,7 +285,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>String</code> &mdash; The given variable name, encoded in the format accepted by compileEquation().
+<td width="20"></td><td><code>String</code> &mdash; The given String formatted for ActionScript.
    </td>
 </tr>
 </table>
@@ -283,7 +316,7 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static function includeConstant(constantName:String, constantValue:*):void</code><p>
-   This function will add a variable to the constants available in equations.
+   This function will add a variable to the constants available in expressions.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -318,21 +351,10 @@ showHideInherited();
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
-<a name="GET_FUNCTION_NAME"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">GET_FUNCTION_NAME</td><td class="detailHeaderType">constant</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const GET_FUNCTION_NAME:String = "get"</code><p>
-   This is the name of the function to use in equations for getting variables by name.
-   For example, the following two equations do the same thing:  (x + 3)   and   (get("x") + 3)
-   </p></div>
 <a name="OPERATOR_PREFIX"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">OPERATOR_PREFIX</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">OPERATOR_PREFIX</td><td class="detailHeaderType">constant</td>
 </tr>
 </table>
 <div class="detailBody">
