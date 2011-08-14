@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectProxy;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -32,6 +33,7 @@ package weave.data.AttributeColumns
 	import weave.compiler.BooleanLib;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
 	import weave.compiler.StringLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -181,17 +183,17 @@ package weave.data.AttributeColumns
 				_constantResult = undefined;
 				
 				// check if the equation evaluates to a constant
-				var constant:CompiledConstant = Compiler.compileToObject(equation.value, null, true) as CompiledConstant;
-				if (constant)
+				var compiledObject:ICompiledObject = Compiler.compileToObject(equation.value, true);
+				if (compiledObject is CompiledConstant)
 				{
 					// save the constant result of the function
 					_equationIsConstant = true;
-					_constantResult = constant.value;
+					_constantResult = (compiledObject as CompiledConstant).value;
 				}
 				else
 				{
 					// compile into a function
-					compiledEquation = Compiler.compileToFunction(equation.value, variables.getObject);
+					compiledEquation = Compiler.compileObjectToFunction(compiledObject, variableGetter);
 					_equationIsConstant = false;
 				}
 			}
@@ -257,6 +259,18 @@ package weave.data.AttributeColumns
 			}
 		}
 		
+		private function variableGetter(name:String):*
+		{
+			if (name == 'get')
+				return variables.getObject as Function;
+			return variables.getObject(name) || undefined;
+		}
+		
+		/**
+		 * This is the last error thrown from the compiledEquation.
+		 */		
+		private var _lastError:String;
+		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
 		 */
@@ -281,13 +295,19 @@ package weave.data.AttributeColumns
 					EquationColumnLib.currentRecordKey = key;
 					try
 					{
-						value = compiledEquation();
+						value = compiledEquation.apply(this, arguments);
 					}
 					catch (e:Error)
 					{
-						trace(e.message);
+						if (_lastError != e.message)
+						{
+							_lastError = e.message;
+							WeaveAPI.ErrorManager.reportError(e);
+						}
+						//value = e;
 					}
-					_equationResultCache[key] = value;
+					if (_equationResultCache)
+						_equationResultCache[key] = value;
 					//trace('('+equation.value+')@"'+key+'" = '+value);
 				}
 			}

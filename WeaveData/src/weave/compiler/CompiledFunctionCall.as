@@ -28,32 +28,35 @@ package weave.compiler
 	 */
 	public class CompiledFunctionCall implements ICompiledObject
 	{
-		public function CompiledFunctionCall(name:String, method:Function, compiledParams:Array)
+		public function CompiledFunctionCall(compiledName:ICompiledObject, compiledParams:Array)
 		{
-			constructor(name, method, compiledParams);
+			constructor(compiledName, compiledParams);
 		}
 		/**
 		 * This is the constructor code. The code is in a separate function because constructors do not get compiled.
 		 */
-		private function constructor(name:String, method:Function, compiledParams:Array):void
+		private function constructor(compiledName:ICompiledObject, compiledParams:Array):void
 		{
-			this.name = name;
-			this.method = method;
+			this.compiledMethod = compiledName;
 			this.compiledParams = compiledParams;
-			this.evaluatedParams = new Array(compiledParams.length);
-			// move constant values from the compiledParams array to the evaluatedParams array.
-			for (var i:int = 0; i < compiledParams.length; i++)
-				if (compiledParams[i] is CompiledConstant)
-					evaluatedParams[i] = (compiledParams[i] as CompiledConstant).value;
+			
+			// if name is constant, evaluate it once now
+			if (compiledName is CompiledConstant)
+				evaluatedMethod = (compiledName as CompiledConstant).value;
+			
+			if (compiledParams)
+			{
+				this.evaluatedParams = new Array(compiledParams.length);
+				// move constant values from the compiledParams array to the evaluatedParams array.
+				for (var i:int = 0; i < compiledParams.length; i++)
+					if (compiledParams[i] is CompiledConstant)
+						evaluatedParams[i] = (compiledParams[i] as CompiledConstant).value;
+			}
 		}
 		/**
-		 * This is the name of the function.  This is used for debugging/decompiling.
+		 * This is a compiled object that evaluates to a method.
 		 */
-		public var name:String;
-		/**
-		 * This is the Function to call.
-		 */
-		public var method:Function;
+		public var compiledMethod:ICompiledObject;
 		/**
 		 * This is an Array of CompiledObjects that must be evaluated before calling the method.
 		 */
@@ -62,6 +65,10 @@ package weave.compiler
 		 * This is used to keep track of which compiled parameter is currently being evaluated.
 		 */
 		public var evalIndex:int;
+		/**
+		 * This is used to store the result of evaluating the compiledMethod before evaluating the parameters.
+		 */
+		public var evaluatedMethod:Object;
 		/**
 		 * This is an Array of constants to use as parameters to the method.
 		 * This Array is used to store the results of evaluating the compiledParams Array before calling the method.

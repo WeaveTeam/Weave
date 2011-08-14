@@ -36,7 +36,12 @@ package weave.compiler
 		{
 			if (value == null)
 				return '';
-			return String(value);
+			try
+			{
+				return String(value);
+			}
+			catch (e:Error) { }
+			return '';
 		}
 		
 		public static function stringSearch(str:String, pattern:*):int

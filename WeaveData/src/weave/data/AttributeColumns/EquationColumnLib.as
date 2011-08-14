@@ -60,6 +60,18 @@ package weave.data.AttributeColumns
 		}
 		
 		/**
+		 * This function calls column.getValueFromKey(currentRecordKey, IQualifiedKey)
+		 * @param column A column, or null if you want the currentRecordKey to be returned.
+		 * @return The value at the current record in the column cast as an IQualifiedKey.
+		 */
+		public static function getKey(column:IAttributeColumn = null):IQualifiedKey
+		{
+			if (column)
+				return column.getValueFromKey(currentRecordKey, IQualifiedKey);
+			return currentRecordKey;
+		}
+		
+		/**
 		 * This function uses currentRecordKey when retrieving a value from a column.
 		 * @param object An IAttributeColumn or an ILinkableVariable to get a value from.
 		 * @param dataType Either a Class object or a String containing the qualified class name of the desired value type.
