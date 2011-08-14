@@ -89,23 +89,26 @@ package weave.compiler
 			\x00 .. \xFF        a byte specified in hexadecimal
 			\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
 		*/
-		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '"':'"', '\\':'\\'};
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
 		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
 		
 		/**
 		 * This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.
-		 * @param A String that may contain special characters.
+		 * @param string A String that may contain special characters.
+		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
 		 * @return The given String formatted for ActionScript.
 		 */
-		public static function encodeString(string:String):String
+		public static function encodeString(string:String, doubleQuote:Boolean = true):String
 		{
+			var quote:String = doubleQuote ? '"' : "'";
 			var result:Array = new Array(string.length);
 			for (var i:int = 0; i < string.length; i++)
 			{
-				var esc:String = ENCODE_LOOKUP[string.charAt(i)];
-				result[i] = esc ? '\\' + esc : string.charAt(i);
+				var chr:String = string.charAt(i);
+				var esc:String = chr == quote ? quote : ENCODE_LOOKUP[chr];
+				result[i] = esc ? '\\' + esc : chr;
 			}
-			return '"' + result.join("") + '"';
+			return quote + result.join("") + quote;
 		}
 		
 		/**
@@ -116,7 +119,9 @@ package weave.compiler
 		private static function decodeString(encodedString:String):String
 		{
 			// remove quotes
+			var quote:String = encodedString.charAt(0);
 			var input:String = encodedString.substr(1, encodedString.length - 2);
+			input = input.split(quote + quote).join(quote); // handle doubled quote escape sequences
 			var output:String = "";
 			var begin:int = 0;
 			while (true)
@@ -249,7 +254,8 @@ package weave.compiler
 			unaryOperators = new Object();
 			impureFunctions = new Object();
 			
-			// add cast functions
+			// add built-in functions
+			functions['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
 			functions['isNaN'] = isNaN;
 			functions['isFinite'] = isFinite;
 			functions['typeof'] = function(value:*):* { return typeof(value); };
@@ -328,7 +334,7 @@ package weave.compiler
 			// branching
 			operators["?"] = true;
 			operators[":"] = true;
-			operators["?:"] = function(c:*, t:*, f:*):* { return c ? t : f; };
+			operators["?:"] = functions['iif'];
 			// assignment
 			//operators["="] = true; 
 
@@ -414,13 +420,18 @@ package weave.compiler
 				for (endIndex = index + 1; endIndex < n; endIndex++)
 				{
 					c = expression.charAt(endIndex);
-					// stop when matching quote found
+					// stop when matching quote found, unless there are two together for an escape sequence
 					if (c == quote)
-						break;
+					{
+						if (endIndex < n - 1 && expression.charAt(endIndex + 1) == quote)
+							endIndex++; // skip second quote
+						else
+							break;
+					}
 					
 					// TODO: handle octal and hex escape sequences
 
-					// handle escape sequence
+					// handle remaining escape sequences
 					if (c == '\\')
 						endIndex++;
 				}
@@ -480,10 +491,11 @@ package weave.compiler
 					continue;
 				
 				// if the token starts with a quote, treat it as a String
-				if (str.charAt(0) == '"' || str.charAt(0) == "'")
+				var quote:String = str.charAt(0);
+				if (quote == '"' || quote == "'")
 				{
-					// parse quoted String, handling '""' escape sequence.
-					tokens[i] = new CompiledConstant(str, decodeString(str));
+					str = decodeString(str);
+					tokens[i] = new CompiledConstant(encodeString(str, quote == '"'), str);
 				}
 				else
 				{
@@ -499,19 +511,14 @@ package weave.compiler
 			// step 1: group tokens by parentheses and compile function calls
 			while (true)
 			{
-				/////////////////////////////////////////////////////////////////////////////////
-				/////////////////////////////////////////////////////////////////////////////////
-				/////////////////////////////////////////////////////////////////////////////////
-				// TODO: find the first '(' such that the next ')' appears before the next '(' //
-				/////////////////////////////////////////////////////////////////////////////////
-				/////////////////////////////////////////////////////////////////////////////////
-				/////////////////////////////////////////////////////////////////////////////////
-				
-				// find last index of '(', then find index of matching ')'
-				var open:int = tokens.lastIndexOf('(');
+				// find first ')' and work backwards to a '('
+				var open:int;
+				var close:int = tokens.indexOf(')');
+				for (open = close - 1; open >= 0; open--)
+					if (tokens[open] == '(')
+						break;
 				if (open < 0)
-					break; // no '(' found
-				var close:int = tokens.indexOf(')', open + 1);
+					break;
 				if (open < close)
 				{
 					// cut out tokens between '(' and ')'
@@ -845,13 +852,14 @@ package weave.compiler
 			}
 			
 			// create the variables that will be used inside the wrapper function
-			const OPERATOR_BRANCH:String = OPERATOR_PREFIX + '?:';
-			const OPERATOR_AND:String = OPERATOR_PREFIX + '&&';
-			const OPERATOR_OR:String = OPERATOR_PREFIX + '||';
 			const METHOD_INDEX:int = -1;
 			const CONDITION_INDEX:int = 0;
 			const TRUE_INDEX:int = 1;
 			const FALSE_INDEX:int = 2;
+			const BRANCH_LOOKUP:Dictionary = new Dictionary();
+			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '?:']] = true;
+			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '&&']] = true;
+			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '||']] = false;
 
 			const stack:Array = []; // used as a queue of function calls
 			var call:CompiledFunctionCall;
@@ -883,15 +891,11 @@ package weave.compiler
 						{
 							//trace(StringLib.lpad('', stack.length, '\t') + "[" + call.evalIndex + "] " + compiledParams[call.evalIndex].name);
 							
-							if (call.evalIndex > CONDITION_INDEX)
-							{
-								// handle branching and short-circuiting
-								if (call.evaluatedMethod == OPERATOR_BRANCH || call.evaluatedMethod == OPERATOR_AND)
-									if (call.evalIndex != (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX))
-										continue;
-								if (call.evaluatedMethod == OPERATOR_OR && call.evalIndex == (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX))
+							// handle branching and short-circuiting
+							result = BRANCH_LOOKUP[call.evaluatedMethod];
+							if (result !== undefined && call.evalIndex > CONDITION_INDEX)
+								if (result == (call.evalIndex != (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX)))
 									continue;
-							}
 							
 							if (call.evalIndex == METHOD_INDEX)
 								subCall = call.compiledMethod as CompiledFunctionCall;
@@ -923,7 +927,7 @@ package weave.compiler
 							// variable lookup -- call.compiledMethod is a constant and call.evaluatedMethod is the method name
 							result = symbolTable is Function ? symbolTable(call.evaluatedMethod) : symbolTable[call.evaluatedMethod];
 							if (result === undefined)
-								result = defaultSymbolTable[call.evaluatedMethod];
+								result = functions[call.evaluatedMethod] || defaultSymbolTable[call.evaluatedMethod];
 						}
 					}
 					catch (e:Error)
@@ -995,7 +999,7 @@ package weave.compiler
 			};
 			
 			var prevDebug:Boolean = debug;
-//			debug = true;
+			debug = true;
 			
 			for each (var eq:String in eqs)
 			{
