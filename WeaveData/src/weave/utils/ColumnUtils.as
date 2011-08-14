@@ -50,6 +50,11 @@ package weave.utils
 			if (title == '')
 				title = 'Undefined';
 			
+			// hack -- this should be replaced by a "default title formatting function" like "title (year)"
+			var year:String = column.getMetadata('year') || '';
+			if (year != '')
+				title += '(' + year + ')';
+			
 			// debug code
 			if (false)
 			{

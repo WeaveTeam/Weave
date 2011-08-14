@@ -39,6 +39,7 @@
 			import weave.core.SessionManager;
 			import weave.core.weave_internal;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;
             use namespace weave_internal;
 
@@ -60,14 +61,7 @@
 	 */
 	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
 	{
-		var path:XML = ref.hierarchyPath.value;
-		var attrXML:XML = HierarchyUtils.getNodeFromPath(path, path); // get leaf node
-		var dataSource:IDataSource = ref.getDataSource();
-		//February 17, 2011  Fixing bug below:  the xml has changed from dataTableName to dataTable
-		//var dataTableName:String = attrXML.@dataTableName;
-		var dataTableName:String = attrXML.@dataTable;
-		var colName:String = attrXML.@name;
-		var times:Array = getTimesFromDimension(dataSource, dataTableName, colName);
+		var times:Array = getTimesFromDimension(ref);
 		if (times.length > 0)
 			addToListOfDims(ref);
 		return times;
@@ -109,9 +103,30 @@
 			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
 			var path:XML = ref.hierarchyPath.value;
 			var attr:XML = path..attribute[0];
-			var yearValue:String = attr.@year;
-			if (yearValue.length > 0)
+			if (String(attr.@year) != '')
+			{
 				attr.@year = newTime;
+				if (attr.@csvColumn)
+				{
+					// this hack adds support for CSVDataSource
+					try
+					{
+						var search:XML = attr.copy();
+						delete search.@csvColumn;
+						var hierarchy:AttributeHierarchy = ref.getDataSource().attributeHierarchy as AttributeHierarchy;
+						var list:XMLList = hierarchy.value.descendants('attribute');
+						for (var j:int = 0; j < list.length(); j++)
+						{
+							if (HierarchyUtils.nodeContainsAttributes(list[j], search))
+							{
+								ref.hierarchyPath.value = hierarchy.getPathFromNode(list[j]);
+								break;
+							}
+						}
+					}
+					catch (e:Error) { }
+				}
+			}
 			ref.hierarchyPath.detectChanges();
 		}
 	}
@@ -133,22 +148,44 @@
 	/**
 	 * For a given datasource/dataTable/columnName, get the year values from the hierarchy
 	 * */
-	protected static function getTimesFromDimension(dataSource:IDataSource, dataTableName:String, columnName:String):Array
+	protected static function getTimesFromDimension(ref:HierarchyColumnReference):Array
 	{
+		var path:XML = ref.hierarchyPath.value;
+		var dataSource:IDataSource = ref.getDataSource();
+		var node:XML = (dataSource.attributeHierarchy as AttributeHierarchy).getNodeFromPath(path);
+		
 		var times:Array = [];
-		if (dataSource != null)
+		if (dataSource == null)
+			return times;
+
+		var hierarchy:XML = getSessionState(dataSource.attributeHierarchy) as XML;
+		if (!hierarchy)
+			return times;
+		
+		var attrList:XMLList;
+		if (node)
 		{
-			var hierarchy:XML = getSessionState(dataSource.attributeHierarchy) as XML;
-			//get a list of attribute tags containing identical name & dataTableName values
-			var attrList:XMLList = hierarchy.descendants("attribute").(String(attribute("dataTable")) == dataTableName && String(attribute("name")) == columnName && attribute("year"));
-			// get the year value from each attribute tag
-			for (var i:int = 0; i < attrList.length(); i++)
-			{
-				var year:String = attrList[i].@year.toString();
-				if (year.length > 0)
-					times.push(year);
-			}
+			// found matching node in hierarchy, so just search the current category
+			attrList = XML(node.parent()).child("attribute");
 		}
+		else
+		{
+			node = HierarchyUtils.getNodeFromPath(path, path); // get leaf node
+			//get a list of all attribute tags
+			attrList = hierarchy.descendants("attribute");
+		}
+		
+		// filter attribute tags by title or name
+		var property:String = String(node.@title) == '' ? 'name' : 'title';
+		attrList = attrList.(String(attribute(property)) == String(node["@" + property]) && attribute("year"));
+		// get the year value from each attribute tag
+		for (var i:int = 0; i < attrList.length(); i++)
+		{
+			var year:String = attrList[i].@year.toString();
+			if (year.length > 0)
+				times.push(year);
+		}
+
 		return times;		
 	}
 	
