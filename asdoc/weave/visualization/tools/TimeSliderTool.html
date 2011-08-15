@@ -482,7 +482,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getTimesFromDimension()">getTimesFromDimension</a>(dataSource:<a href="../../api/data/IDataSource.html">IDataSource</a>, dataTableName:String, columnName:String):Array</div>
+<a class="signatureLink" href="#getTimesFromDimension()">getTimesFromDimension</a>(ref:<a href="../../data/ColumnReferences/HierarchyColumnReference.html">HierarchyColumnReference</a>):Array</div>
 <div class="summaryTableDescription">[static]
   For a given datasource/dataTable/columnName, get the year values from the hierarchy
   </div>
@@ -863,24 +863,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected static function getTimesFromDimension(dataSource:<a href="../../api/data/IDataSource.html">IDataSource</a>, dataTableName:String, columnName:String):Array</code><p>
+<code>protected static function getTimesFromDimension(ref:<a href="../../data/ColumnReferences/HierarchyColumnReference.html">HierarchyColumnReference</a>):Array</code><p>
   For a given datasource/dataTable/columnName, get the year values from the hierarchy
   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">dataSource</span>:<a href="../../api/data/IDataSource.html">IDataSource</a></code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">dataTableName</span>:String</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">columnName</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">ref</span>:<a href="../../data/ColumnReferences/HierarchyColumnReference.html">HierarchyColumnReference</a></code></td>
 </tr>
 </table>
 <p></p>

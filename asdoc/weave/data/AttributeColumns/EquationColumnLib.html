@@ -139,7 +139,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getProperty()">getProperty</a>(object:Object, propertyName:String):*</div>
+<a class="signatureLink" href="#getProperty()">getProperty</a>(object:Object, propertyName:String, ... morePropertyNames):*</div>
 <div class="summaryTableDescription">[static]
    This function returns the result of accessing object[propertyName].</div>
 </td><td class="summaryTableOwnerCol">EquationColumnLib</td>
@@ -477,7 +477,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getProperty(object:Object, propertyName:String):*</code><p>
+<code>public static function getProperty(object:Object, propertyName:String, ... morePropertyNames):*</code><p>
    This function returns the result of accessing object[propertyName].
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -490,6 +490,13 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">propertyName</span>:String</code> &mdash; The name of the property to access.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code>... <span class="label">morePropertyNames</span></code> &mdash; Additional property names to follow to get a descendant property.
    </td>
 </tr>
 </table>
