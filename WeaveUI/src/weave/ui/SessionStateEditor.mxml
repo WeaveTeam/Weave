@@ -79,6 +79,8 @@
 		<![CDATA[
 			import com.as3xls.xls.formula.Functions;
 			
+			import flash.utils.describeType;
+			
 			import mx.collections.ArrayCollection;
 			import mx.containers.VBox;
 			import mx.controls.Alert;
@@ -775,25 +777,52 @@
 			};
 			private function symbolTableLookup(name:String):*
 			{
-				if (name == 'toString')
-					return ObjectUtil.toString as Function;
-				return ObjectUtil[name] || WeaveAPI[name] || symbolTable[name];
+				switch (name)
+				{
+					case 'clear': return function():void { log.text = ''; };
+					case 'print': return ObjectUtil.toString as Function;
+					case 'describeType': return describeType as Function;
+				}
+				return ObjectUtil[name] || WeaveAPI[name] || symbolTable[name] || undefined;
 			}
 			private function runCommand():void
 			{
-				var result:String;
+				var result:*;
 				var decompiled:String;
 				try
 				{
 					var obj:ICompiledObject = Compiler.compileToObject(console.text, true);
 					//decompiled = Compiler.decompileObject(obj);
-					result = Compiler.compileObjectToFunction(obj, symbolTableLookup).apply(sessionNav.getSelectedSessionedObject());
+					var func:Function = Compiler.compileObjectToFunction(obj, symbolTableLookup);
+					
+					Compiler.debug = true;
+					result = func.apply(sessionNav.getSelectedSessionedObject());
+					try
+					{
+						if (typeof result == 'object' && !(result is DisplayObject))
+						{
+							result = ObjectUtil.toString(result);
+							var max:int = 1024;
+							var text:String = result;
+							if (text.length > max)
+								text = text.substr(0, max) + '...';
+							result = StringUtil.trim(text);
+						}
+						else
+							result = String(result);
+					}
+					catch (e:Error)
+					{
+						result = String(result)
+					}
 				}
 				catch (e:Error)
 				{
-					result = e.message;
+					result = e;
 				}
-				log.text += StringUtil.substitute('\r{0}\r    {1}\r', StringUtil.trim(console.text), result);
+				Compiler.debug = false;
+				
+				log.text += StringUtil.substitute('\r{0}\r{1}\r', console.text, result);
 				console.setSelection(0, int.MAX_VALUE);
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
@@ -808,7 +837,7 @@
 						log.selectionEndIndex = log.text.indexOf('\r', log.selectionEndIndex);
 						log.validateNow();
 					}
-					console.text = log.text.substring(log.selectionBeginIndex, log.selectionEndIndex);
+					console.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join(', ');
 					console.setSelection(0, int.MAX_VALUE);
 				}
 			}

@@ -38,7 +38,7 @@ package weave.compiler
 	 */
 	public class Compiler
 	{
-		private static var debug:Boolean = false;
+		public static var debug:Boolean = false;
 		
 		{ /** begin static code block **/
 			initStaticObjects();
@@ -1186,10 +1186,13 @@ package weave.compiler
 								result = symbolTable(call.evaluatedMethod);
 							else if (symbolTable.hasOwnProperty(call.evaluatedMethod))
 								result = symbolTable(call.evaluatedMethod);
-							else if (functions.hasOwnProperty(call.evaluatedMethod))
-								result = functions[call.evaluatedMethod];
-							else
-								result = defaultSymbolTable[call.evaluatedMethod];
+							if (result == undefined)
+							{
+								if (functions.hasOwnProperty(call.evaluatedMethod))
+									result = functions[call.evaluatedMethod];
+								else
+									result = defaultSymbolTable[call.evaluatedMethod];
+							}
 						}
 					}
 					catch (e:Error)
