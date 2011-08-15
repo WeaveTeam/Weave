@@ -141,7 +141,7 @@ package weave.compiler
 		 * @param significantDigits The desired number of significant digits in the result.
 		 * @return The number, rounded to the specified number of significant digits.
 		 */
-		public static function roundSignificant(value:Number, significantDigits:uint = 15):Number
+		public static function roundSignificant(value:Number, significantDigits:uint = 14):Number
 		{
 			// it doesn't make sense to round infinity
 			if (isNaN(value) || value == Number.NEGATIVE_INFINITY || value == Number.POSITIVE_INFINITY)

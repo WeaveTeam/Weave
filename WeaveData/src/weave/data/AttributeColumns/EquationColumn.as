@@ -272,10 +272,18 @@ package weave.data.AttributeColumns
 		private var _lastError:String;
 		
 		/**
+		 * This is true while code inside getValueFromKey is executing.
+		 */		
+		private var in_getValueFromKey:Boolean = false;
+		
+		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataTypeParam:Class = null):*
 		{
+			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
+				return undefined;
+			
 			var value:*;
 			if (_equationIsConstant)
 			{
@@ -291,6 +299,8 @@ package weave.data.AttributeColumns
 				// if the data value was not cached for this key yet, cache it now.
 				if (value == undefined)
 				{
+					in_getValueFromKey = true; // prevent recursion caused by compiledEquation
+					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
 					EquationColumnLib.currentRecordKey = key;
 					try
@@ -309,6 +319,8 @@ package weave.data.AttributeColumns
 					if (_equationResultCache)
 						_equationResultCache[key] = value;
 					//trace('('+equation.value+')@"'+key+'" = '+value);
+					
+					in_getValueFromKey = false; // prevent recursion caused by compiledEquation
 				}
 			}
 			

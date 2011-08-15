@@ -98,16 +98,16 @@ EquationEditor
 			override protected function constructor():void
 			{
 				super.constructor();
-			}
-			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
 				
 				panelWidth.value = "60%";
 				panelHeight.value = "50%";
 				panelX.value = "20%";
 				panelY.value = "25%";
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
 				
 				var constantVBox:VBox = new VBox();
 				constantVBox.percentWidth = 100;

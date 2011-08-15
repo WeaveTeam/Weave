@@ -345,11 +345,14 @@ package weave.data.AttributeColumns
 		 * This function returns the result of accessing object[propertyName].
 		 * @param object An object to access a property of.
 		 * @param propertyName The name of the property to access.
+		 * @param morePropertyNames Additional property names to follow to get a descendant property.
 		 * @return The value of the property.
 		 */
-		public static function getProperty(object:Object, propertyName:String):*
+		public static function getProperty(object:Object, propertyName:String, ...morePropertyNames):*
 		{
-			return object is Object ? object[propertyName] : undefined;
+			for (var i:int = -1; i < morePropertyNames.length; i++)
+				object = object && object[i < 0 ? propertyName : morePropertyNames[i]];
+			return object;
 		}
 		/**
 		 * This applies a method of an object and returns its result.

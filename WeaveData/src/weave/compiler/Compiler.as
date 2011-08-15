@@ -44,7 +44,7 @@ package weave.compiler
 			initStaticObjects();
 			includeLibraries(Math, MathLib, StringUtil, StringLib, BooleanLib, ArrayLib);
 			
-			//StageUtils.callLater(null, test);
+			StageUtils.callLater(null, test);
 		} /** end static code block **/
 		
 		/**
@@ -73,79 +73,6 @@ package weave.compiler
 		public static function compileToObject(expression:String, enableOptimizations:Boolean = false):ICompiledObject
 		{
 			return compileTokens(getTokens(expression), enableOptimizations);
-		}
-		
-		/*
-			Escape Sequence     Character Represented
-			\b                  backspace character (ASCII 8)
-			\f                  form-feed character (ASCII 12)
-			\n                  line-feed character (ASCII 10)
-			\r                  carriage return character (ASCII 13)
-			\t                  tab character (ASCII 9)
-			\"                  double quotation mark
-			\'                  single quotation mark
-			\\                  backslash
-			\000 .. \377        a byte specified in octal
-			\x00 .. \xFF        a byte specified in hexadecimal
-			\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
-		*/
-		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
-		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
-		
-		/**
-		 * This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.
-		 * @param string A String that may contain special characters.
-		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
-		 * @return The given String formatted for ActionScript.
-		 */
-		public static function encodeString(string:String, doubleQuote:Boolean = true):String
-		{
-			var quote:String = doubleQuote ? '"' : "'";
-			var result:Array = new Array(string.length);
-			for (var i:int = 0; i < string.length; i++)
-			{
-				var chr:String = string.charAt(i);
-				var esc:String = chr == quote ? quote : ENCODE_LOOKUP[chr];
-				result[i] = esc ? '\\' + esc : chr;
-			}
-			return quote + result.join("") + quote;
-		}
-		
-		/**
-		 * This function is for internal use only.  It assumes the string it receives is valid.
-		 * @param encodedString A quoted String with special characters escaped using ActionScript string literal format.
-		 * @return The unescaped literal string.
-		 */
-		private static function decodeString(encodedString:String):String
-		{
-			// remove quotes
-			var quote:String = encodedString.charAt(0);
-			var input:String = encodedString.substr(1, encodedString.length - 2);
-			input = input.split(quote + quote).join(quote); // handle doubled quote escape sequences
-			var output:String = "";
-			var begin:int = 0;
-			while (true)
-			{
-				var esc:int = input.indexOf("\\", begin);
-				if (esc < 0)
-				{
-					output += input.substring(begin);
-					break;
-				}
-				else
-				{
-					// look up escaped character
-					var c:String = input.charAt(esc + 1);
-					
-					//TODO: octal and hex escape sequences
-					
-					c = DECODE_LOOKUP[c] || c;
-					output += input.substring(begin, esc) + c;
-					// skip over escape sequence
-					begin = esc + 2;
-				}
-			}
-			return output;
 		}
 		
 		/**
@@ -208,7 +135,11 @@ package weave.compiler
 		/**
 		 * This is the maximum allowed length of an operator.
 		 */		
-		private static const MAX_OPERATOR_LENGTH:int = 3;
+		private static const MAX_OPERATOR_LENGTH:int = 4;
+		/**
+		 * This is used to match number tokens.
+		 */		
+		private static const numberRegex:RegExp = /^(0x[0-9A-F]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 		/**
 		 * This object maps the name of a predefined constant to its value.
 		 */
@@ -224,9 +155,10 @@ package weave.compiler
 		 */
 		private static var operators:Object = null;
 		/**
-		 * This object maps a unary operator like "-" to a Function that takes one parameter.
+		 * This object maps an assignment operator like "=" to its corresponding function.
+		 * This object is used as a quick lookup to see if an operator is an assignment operator.
 		 */
-		private static var unaryOperators:Object = null;
+		private static var assignmentOperators:Object = null;
 		/**
 		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
 		 * Each nested Array is a group of operators that should be evaluated in the same pass.
@@ -251,7 +183,7 @@ package weave.compiler
 			functions = new Object();
 			constants = new Object();
 			operators = new Object();
-			unaryOperators = new Object();
+			assignmentOperators = new Object();
 			impureFunctions = new Object();
 			
 			// add built-in functions
@@ -262,9 +194,8 @@ package weave.compiler
 			functions['Number'] = MathLib.toNumber;
 			functions['String'] = StringLib.toString;
 			functions['Boolean'] = BooleanLib.toBoolean;
-			functions['Array'] = function(...values):Array { return values; };
-			functions['Class'] = function(value:*):Class
-			{
+			functions['Array'] = Array;
+			functions['Class'] = function(value:*):Class {
 				if (value is Class)
 					return value;
 				if (!(value is String))
@@ -276,9 +207,8 @@ package weave.compiler
 						return domain.getDefinition(value) as Class;
 				}
 				return null;
-			}
-			functions['trace'] = function(...args):void
-			{
+			};
+			functions['trace'] = function(...args):void {
 				// for trace debugging, debug must be set to true
 				if (debug)
 					trace.apply(null, args);
@@ -297,19 +227,32 @@ package weave.compiler
 			constants["Infinity"] = Infinity;
 
 			/** operators **/
-			// access
-			//operators["."] = true;
-			// grouping
-			operators["("] = true;
-			operators[")"] = true;
-			operators[","] = true;
+			// first, make sure all special characters are defined as operators whether or not they have functions associated with them
+			var specialChars:String = "~!#%^&*()-+=[{]}\\;:'\",<.>/?";
+			for (var i:int = 0; i < specialChars.length; i++)
+				operators[specialChars.charAt(i)] = true;
+			// now define the functions
+			// property access
+			operators["."] = function(object:*, ...chain):* {
+				for (var i:int = 0; i < chain.length; i++)
+					object = object[chain[i]];
+				return object;
+			};
+			// array creation
+			operators["[]"] = function(...args):* { return args; };
 			// math
 			operators["**"] = Math.pow;
 			operators["*"] = function(x:*, y:*):Number { return x * y; };
 			operators["/"] = function(x:*, y:*):Number { return x / y; };
 			operators["%"] = function(x:*, y:*):Number { return x % y; };
 			operators["+"] = function(x:*, y:*):* { return x + y; }; // also works for strings
-			operators["-"] = function(...args):Number { return args.length == 1 ? -args[0] : args[0] - args[1]; }; // works as unary or infix operator
+			operators["-"] = function(...args):* {
+				// this works as a unary or infix operator
+				if (args.length == 1)
+					return -args[0];
+				if (args.length == 2)
+					return args[0] - args[1];
+			};
 			// bitwise
 			operators["~"] = function(x:*):* { return ~x; };
 			operators["&"] = function(x:*, y:*):* { return x & y; };
@@ -327,21 +270,32 @@ package weave.compiler
 			operators["==="] = function(x:*, y:*):Boolean { return x === y; };
 			operators["!="] = function(x:*, y:*):Boolean { return x != y; };
 			operators["!=="] = function(x:*, y:*):Boolean { return x !== y; };
-			// boolean
+			// logic
 			operators["!"] = function(x:*):Boolean { return !x; };
 			operators["&&"] = function(x:*, y:*):* { return x && y; };
 			operators["||"] = function(x:*, y:*):* { return x || y; };
 			// branching
-			operators["?"] = true;
-			operators[":"] = true;
 			operators["?:"] = functions['iif'];
-			// assignment
-			//operators["="] = true; 
-
-			// unary operators
-			unaryOperators['-'] = function(x:*):Number { return -x; };
-			unaryOperators['!'] = operators['!'];
-			unaryOperators['~'] = operators['~'];
+			// multiple commands
+			operators[','] = function(...args):* { return args[args.length - 1]; };
+			//assignment operators -- first param becomes the parent, and the two remaining args are propertyName and value
+			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
+			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
+			assignmentOperators['-=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] -=   a[i + 1]; };
+			assignmentOperators['*=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] *=   a[i + 1]; };
+			assignmentOperators['/=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] /=   a[i + 1]; };
+			assignmentOperators['%=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] %=   a[i + 1]; };
+			assignmentOperators['<<=']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] <<=  a[i + 1]; };
+			assignmentOperators['>>=']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] >>=  a[i + 1]; };
+			assignmentOperators['>>>='] = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] >>>= a[i + 1]; };
+			assignmentOperators['&=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] &=   a[i + 1]; };
+			assignmentOperators['^=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] ^=   a[i + 1]; };
+			assignmentOperators['|=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] |=   a[i + 1]; };
+			for (var aop:String in assignmentOperators)
+			{
+				operators[aop] = assignmentOperators[aop];
+				impureFunctions[OPERATOR_PREFIX + aop] = true;
+			}
 			
 			// evaluate operators in the same order as ActionScript
 			orderedOperators = [
@@ -356,7 +310,8 @@ package weave.compiler
 				['&&'],
 				['||']
 			];
-			unaryOperatorSymbols = ['-','~','!'];
+			// unary operators
+			unaryOperatorSymbols = ['#','-','~','!'];
 
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
@@ -387,7 +342,7 @@ package weave.compiler
 		 * This function is for internal use only.
 		 * @param expression An expression to parse.
 		 * @param index The starting index of the token.
-		 * @return The token beginning at the specified index.
+		 * @return The token beginning at the specified index, or null if an invalid quoted string was found.
 		 */
 		private static function getToken(expression:String, index:int):String
 		{
@@ -395,12 +350,55 @@ package weave.compiler
 			var n:int = expression.length;
 			var c:String = expression.charAt(index);
 			
-			// this function assumes operators has already been initialized
+			// handle quoted string
+			if (c == '"' || c == "'")
+			{
+				var quote:String = c;
+				// index points to the opening quote
+				// make endIndex point to the matching end quote
+				for (c = null, endIndex = index + 1; endIndex < n; endIndex++)
+				{
+					c = expression.charAt(endIndex);
+					// stop when matching quote found, unless there are two together for an escape sequence
+					if (c == quote)
+					{
+						if (endIndex < n - 1 && expression.charAt(endIndex + 1) == quote)
+						{
+							// skip second quote
+							endIndex++;
+						}
+						else
+						{
+							// return the quoted string, including the quotes
+							return expression.substring(index, endIndex + 1);
+						}
+					}
+					else if (c == '\\') // handle escape sequences
+					{
+						endIndex++; // skip the next character
+						// TODO: handle octal and hex escape sequences
+					}
+				}
+				// invalid quoted string
+				throw new Error("Missing matching end quote: " + expression.substr(index));
+			}
+			
+			// handle numbers
+			var foundNumber:Object = numberRegex.exec(expression.substr(index))
+			if (foundNumber)
+				return foundNumber[0];
 
 			// handle operators (find the longest matching operator)
+			// this function assumes operators has already been initialized
 			endIndex = index;
-			while (endIndex < n && operators[ expression.substring(index, endIndex + 1) ] != undefined)
+			var op:String = null;
+			while (endIndex < n && op != '[') // special case for '[' so '[]' doesn't get treated as a single operator
+			{
+				op = expression.substring(index, endIndex + 1);
+				if (operators[op] == undefined)
+					break;
 				endIndex++;
+			}
 			if (index < endIndex)
 				return expression.substring(index, endIndex);
 			
@@ -410,44 +408,13 @@ package weave.compiler
 				endIndex++;
 			if (index < endIndex)
 				return expression.substring(index, endIndex);
-			
-			// handle quoted string
-			if (c == '"' || c == "'")
-			{
-				var quote:String = c;
-				// index points to the opening quote
-				// make endIndex point to the matching end quote
-				for (endIndex = index + 1; endIndex < n; endIndex++)
-				{
-					c = expression.charAt(endIndex);
-					// stop when matching quote found, unless there are two together for an escape sequence
-					if (c == quote)
-					{
-						if (endIndex < n - 1 && expression.charAt(endIndex + 1) == quote)
-							endIndex++; // skip second quote
-						else
-							break;
-					}
-					
-					// TODO: handle octal and hex escape sequences
 
-					// handle remaining escape sequences
-					if (c == '\\')
-						endIndex++;
-				}
-				// Note: If the last character is '\\', endIndex will be n+1.  The final '\\' will be removed when decoding the string
-				// if ending quote was not found, append it now
-				if (endIndex == n)
-					expression += quote;
-				// return the quoted string, including the quotes
-				return expression.substring(index, endIndex + 1);
-			}
 			// handle everything else (go until a special character is found)
 			for (endIndex = index + 1; endIndex < n; endIndex++)
 			{
 				c = expression.charAt(endIndex);
-				// whitespace or quotes terminates a token
-				if (WHITESPACE.indexOf(c) >= 0 || c == '"')
+				// whitespace terminates a token
+				if (WHITESPACE.indexOf(c) >= 0)
 					break;
 				// operator terminates a token
 				if (operators[c] != undefined)
@@ -482,8 +449,10 @@ package weave.compiler
 			var i:int;
 			var subArray:Array;
 			var compiledParams:Array;
+			var open:int;
+			var close:int;
 			
-			// step 0: compile quoted Strings and Numbers
+			// first step: compile quoted Strings and Numbers
 			for (i = 0; i < tokens.length; i++)
 			{
 				var str:String = tokens[i] as String;
@@ -491,11 +460,9 @@ package weave.compiler
 					continue;
 				
 				// if the token starts with a quote, treat it as a String
-				var quote:String = str.charAt(0);
-				if (quote == '"' || quote == "'")
+				if (str.charAt(0) == '"' || str.charAt(0) == "'")
 				{
-					str = decodeString(str);
-					tokens[i] = new CompiledConstant(encodeString(str, quote == '"'), str);
+					tokens[i] = compileStringLiteral(str, enableOptimizations);
 				}
 				else
 				{
@@ -507,82 +474,9 @@ package weave.compiler
 					} catch (e:Error) { }
 				}
 			}
-
-			// step 1: group tokens by parentheses and compile function calls
-			while (true)
-			{
-				// find first ')' and work backwards to a '('
-				var open:int;
-				var close:int = tokens.indexOf(')');
-				for (open = close - 1; open >= 0; open--)
-					if (tokens[open] == '(')
-						break;
-				if (open < 0)
-					break;
-				if (open < close)
-				{
-					// cut out tokens between '(' and ')'
-					subArray = tokens.splice(open + 1, close - open - 1);
-					
-					// if there is a non-operator token to the left, treat this as a function call.
-					if (open > 0 && operators[tokens[open - 1]] == undefined)
-					{
-						var funcToken:Object = tokens[open - 1];
-						var compiledMethod:ICompiledObject = funcToken as ICompiledObject;
-						if (!compiledMethod)
-						{
-							// The function token hasn't been compiled yet.
-							// Check the function table first and fall back to a variable lookup.
-							if (functions[funcToken] != undefined)
-								compiledMethod = new CompiledConstant(funcToken as String, functions[funcToken]);
-							else
-								compiledMethod = compileVariable(funcToken as String);
-						}
-						
-						if (debug)
-							trace("compiling function call", decompileObject(compiledMethod) + "(", subArray.join(' '), ")");
-						
-						// group tokens between commas and compile the function
-						compiledParams = [];
-						// special case for zero parameters: if subArray is empty, avoid compiling an empty set of tokens
-						if (subArray.length > 0)
-						{
-							while (true)
-							{
-								var comma:int = subArray.indexOf(',');
-								if (comma >= 0)
-								{
-									// compile the tokens before the comma as a parameter
-									compiledParams.push(compileTokens(subArray.splice(0, comma), enableOptimizations));
-									subArray.shift(); // remove comma
-								}
-								else
-								{
-									// compile remaining group of tokens as a parameter
-									compiledParams.push(compileTokens(subArray, enableOptimizations));
-									break;
-								}
-							}
-						}
-						// replace the function token, '(', and ')' tokens with a compiled function call
-						tokens.splice(open - 1, 3, compileFunctionCall(compiledMethod, compiledParams, enableOptimizations));
-					}
-					else // These parentheses do not correspond to a function call.
-					{
-						if (debug)
-							trace("compiling tokens (", subArray.join(' '), ")");
-						// Replace the '(' and ')' tokens with the result of compiling subArray
-						tokens.splice(open, 2, compileTokens(subArray, enableOptimizations));
-					}
-				}
-				else
-					throw new Error("Missing ')'");
-			}
-			// return null if there are extra ',' or ')' tokens
-			if (tokens.indexOf(',') >= 0)
-				throw new Error("Misplaced ',' in "+tokens.join(' '));
-			if (tokens.indexOf(')') >= 0)
-				throw new Error("Misplaced ')'");
+			
+			// next step: handle operators ".[]{}()"
+			compileBracketsAndProperties(tokens, enableOptimizations);
 
 			// -------------------
 
@@ -590,10 +484,10 @@ package weave.compiler
 			if (debug)
 				trace("compiling tokens", tokens.join(' '));
 			
-			// step 2: handle infix '.'
+			// next step: handle infix '.'
 			// TODO
 			
-			// step 3: compile constants and variable names
+			// next step: compile constants and variable names
 			for (i = 0; i < tokens.length; i++)
 			{
 				var token:String = tokens[i] as String;
@@ -612,17 +506,20 @@ package weave.compiler
 				tokens[i] = compileVariable(token);
 			}
 			
-			// step 4: compile '**' infix operators
+			// next step: compile unary '#' operators
+			compileUnaryOperators(tokens, ['#'], enableOptimizations);
+			
+			// next step: compile infix '**' operators
 			compileInfixOperators(tokens, ['**'], enableOptimizations);
 			
-			// step 5: compile unary operators
+			// next step: compile unary operators
 			compileUnaryOperators(tokens, unaryOperatorSymbols, enableOptimizations);
 			
-			// step 6: compile remaining infix operators in order
+			// next step: compile remaining infix operators in order
 			for (i = 0; i < orderedOperators.length; i++)
 				compileInfixOperators(tokens, orderedOperators[i], enableOptimizations);
 			
-			// step 7: compile conditional branches
+			// next step: compile conditional branches
 			while (true)
 			{
 				// true branch includes everything between the last '?' and the next ':'
@@ -652,8 +549,47 @@ package weave.compiler
 			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
 				throw new Error('Invalid conditional branch');
 			
-			// step 8: compile the last token
-			// there should be only a single token left
+			// next step: variable assignment, right to left
+			while (true)
+			{
+				for (i = tokens.length - 1; i >= 0; i--)
+					if (assignmentOperators.hasOwnProperty(tokens[i]))
+						break;
+				if (i < 0)
+					break;
+				if (i == 0 || i + 1 == tokens.length)
+					throw new Error("Misplaced '" + tokens[i] + "'");
+				var lhs:CompiledFunctionCall = tokens[i - 1] as CompiledFunctionCall;
+				var rhs:ICompiledObject = tokens[i + 1] as ICompiledObject;
+				if (!lhs || !rhs)
+					throw new Error("Invalid " + (!lhs ? 'left' : 'right') + "-hand-side of '" + tokens[i] + "'");
+				
+				// lhs should either be a constant or a call to operator.()
+				
+				if (lhs.evaluatedMethod is String) // lhs is a variable lookup
+				{
+					tokens.splice(i - 1, 3, compileOperator(tokens[i], [lhs.compiledMethod, tokens[i + 1]], enableOptimizations));
+					continue;
+				}
+				
+				// verify that lhs.compiledMethod.name is 'operator.'
+				var lhsMethod:CompiledConstant = lhs.compiledMethod as CompiledConstant;
+				if (lhsMethod && lhsMethod.name == OPERATOR_PREFIX + '.')
+				{
+					// switch to the assignment operator
+					lhs.compiledParams.push(tokens[i + 1]);
+					tokens.splice(i - 1, 3, compileOperator(tokens[i], lhs.compiledParams, enableOptimizations));
+					continue;
+				}
+				
+				throw new Error("Invalid left-hand-side of '" + tokens[i] + "'");
+			}
+
+			// next step: handle multiple commands
+			if (tokens.indexOf(',') >= 0)
+				return compileOperator(',', compileArray(tokens, enableOptimizations), enableOptimizations);
+
+			// last step: verify there is only one token left
 			if (tokens.length == 1)
 				return tokens[0];
 
@@ -665,6 +601,273 @@ package weave.compiler
 			}
 
 			throw new Error("Empty expression");
+		}
+
+		/*
+		Escape Sequence     Character Represented
+		\b                  backspace character (ASCII 8)
+		\f                  form-feed character (ASCII 12)
+		\n                  line-feed character (ASCII 10)
+		\r                  carriage return character (ASCII 13)
+		\t                  tab character (ASCII 9)
+		\"                  double quotation mark
+		\'                  single quotation mark
+		\\                  backslash
+		\000 .. \377        a byte specified in octal
+		\x00 .. \xFF        a byte specified in hexadecimal
+		\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
+		*/
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\', '{':'{'};
+		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
+		
+		/**
+		 * This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.
+		 * @param string A String that may contain special characters.
+		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
+		 * @return The given String formatted for ActionScript.
+		 */
+		public static function encodeString(string:String, doubleQuote:Boolean = true):String
+		{
+			var quote:String = doubleQuote ? '"' : "'";
+			var result:Array = new Array(string.length);
+			for (var i:int = 0; i < string.length; i++)
+			{
+				var chr:String = string.charAt(i);
+				var esc:String = chr == quote ? quote : ENCODE_LOOKUP[chr];
+				result[i] = esc ? '\\' + esc : chr;
+			}
+			return quote + result.join("") + quote;
+		}
+		
+		/**
+		 * This function is for internal use only.  It assumes the string it receives is valid.
+		 * @param encodedString A quoted String with special characters escaped using ActionScript string literal format.
+		 * @return The compiled string.
+		 */
+		private static function compileStringLiteral(quotedString:String, enableOptimizations:Boolean):ICompiledObject
+		{
+			// remove quotes
+			var quote:String = quotedString.charAt(0);
+			var input:String = quotedString.substr(1, quotedString.length - 2);
+			input = input.split(quote + quote).join(quote); // handle doubled quote escape sequences
+			var output:String = "";
+			var searchIndex:int = 0;
+			var compiledObjects:Array = [];
+			while (true)
+			{
+				var escapeIndex:int = input.indexOf("\\", searchIndex);
+				if (escapeIndex < 0)
+					escapeIndex = input.length;
+				var bracketIndex:int = input.indexOf("{", searchIndex);
+				if (bracketIndex < 0)
+					bracketIndex = input.length;
+				
+				if (bracketIndex == escapeIndex) // handle end of string
+				{
+					output += input.substring(searchIndex);
+					input = encodeString(output, quote == '"'); // convert to preferred syntax
+					
+					var compiledString:CompiledConstant = new CompiledConstant(input, output);
+					
+					if (compiledObjects.length == 0)
+						return compiledString;
+					
+					compiledObjects.unshift(compiledString);
+					return compileFunctionCall(new CompiledConstant('substitute', StringUtil.substitute), compiledObjects, enableOptimizations);
+				}
+				else if (escapeIndex < bracketIndex) // handle '\'
+				{
+					// look up escaped character
+					var c:String = input.charAt(escapeIndex + 1);
+					
+					//TODO: octal and hex escape sequences
+					
+					c = DECODE_LOOKUP[c] || c;
+					output += input.substring(searchIndex, escapeIndex) + c;
+					// skip over escape sequence
+					searchIndex = escapeIndex + 2;
+				}
+				else if (bracketIndex < escapeIndex) // handle '{'
+				{
+					// handle { } brackets for inline code
+					var tokens:Array = [];
+					var token:String = null;
+					var depth:int = 1;
+					escapeIndex = bracketIndex + 1;
+					while (escapeIndex < input.length)
+					{
+						token = getToken(input, escapeIndex);
+						if (token == '{')
+							depth++;
+						if (token == '}')
+							depth--;
+						if (depth == 0)
+							break;
+						if (WHITESPACE.indexOf(token.charAt(0)) == -1)
+							tokens.push(token);
+						escapeIndex += token.length;
+					}
+					if (escapeIndex == input.length)
+						throw new Error("Missing '}' in string literal inline code: " + input);
+					
+					// now bracketIndex points to '{' and escapeIndex points to matching '}'
+					//replace code between brackets with an int so the resulting string can be passed to StringUtil.substitute() with compiledObject as the next parameter
+					output += input.substring(searchIndex, bracketIndex) + '{' + compiledObjects.length + '}';
+					searchIndex = escapeIndex + 1;
+					compiledObjects.push(compileTokens(tokens, enableOptimizations));
+				}
+			}
+			return null; // unreachable
+		}
+		
+		/**
+		 * 
+		 * @param leftBracket
+		 * @param rightBracket
+		 * @param tokens
+		 * @param enableOptimizations
+		 */
+		private static function compileBracketsAndProperties(tokens:Array, enableOptimizations:Boolean):void
+		{
+			var token:Object;
+			var compiledToken:ICompiledObject;
+			var compiledParams:Array;
+			var open:int;
+			var close:int;
+			while (true)
+			{
+				// find first closing bracket or '.'
+				for (close = 0; close < tokens.length; close++)
+					if ('.])'.indexOf(tokens[close]) >= 0)
+						break;
+				if (close == tokens.length || close == 0)
+					break; // possible error
+				// work backwards to the preceeding opening bracket or stop if '.'
+				for (open = close; open >= 0; open--)
+					if ('.[('.indexOf(tokens[open]) >= 0)
+						break;
+				if (open < 0 || open + 1 == tokens.length)
+					break; // possible error
+				
+				// unless it's an operator, compile the token to the left
+				token = open > 0 ? tokens[open - 1] : null;
+				compiledToken = token as ICompiledObject;
+				if (open > 0 && !compiledToken && !operators.hasOwnProperty(token))
+				{
+					// The function token hasn't been compiled yet.
+					// Check the function table first and fall back to a variable lookup.
+					var constant:* = functions[token] || constants[token];
+					if (constant != undefined)
+						compiledToken = new CompiledConstant(token as String, constant);
+					else
+						compiledToken = compileVariable(token as String);
+				}
+
+				// handle access operator
+				if (tokens[open] == '.')
+				{
+					var propertyToken:String = tokens[open + 1] as String;
+					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
+						break; // error
+					
+					// the token on the right is a variable name, but we will store it as a String because it's a property lookup
+					compiledParams = [compiledToken, new CompiledConstant(encodeString(propertyToken), propertyToken)];
+					tokens.splice(open - 1, 3, compileOperator('.', compiledParams, enableOptimizations));
+					continue;
+				}
+
+				// cut out tokens between brackets
+				var subArray:Array = tokens.splice(open + 1, close - open - 1);
+				if (debug)
+					trace("compiling tokens (", subArray.join(' '), ")");
+				compiledParams = compileArray(subArray, enableOptimizations);
+
+				if (tokens[open] == '[') // this is either an array or a property access
+				{
+					if (compiledToken)
+					{
+						// property access
+						// the token on the left becomes the first parameter of the access operator
+						compiledParams.unshift(compiledToken);
+						// replace the token to the left and the brackets with the operator call
+						tokens.splice(open - 1, 3, compileOperator('.', compiledParams, enableOptimizations));
+					}
+					else
+					{
+						// array initialization -- replace '[' and ']' tokens
+						tokens.splice(open, 2, compileOperator('[]', compiledParams, enableOptimizations));
+					}
+					continue;
+				}
+				
+				if (tokens[open] == '{')
+				{
+					// TODO
+					throw new Error("Unsupported bracket operator: '{'");
+				}
+				
+				if (tokens[open] == '(')
+				{
+					if (compiledToken) // if there is a compiled token to the left, this is a function call
+					{
+						if (debug)
+							trace("compiling function call", decompileObject(compiledToken));
+						
+						// the token to the left is the method
+						// replace the function token, '(', and ')' tokens with a compiled function call
+						tokens.splice(open - 1, 3, compileFunctionCall(compiledToken, compiledParams, enableOptimizations));
+						continue;
+					}
+					else // These parentheses do not correspond to a function call.
+					{
+						if (compiledParams.length == 0)
+							throw new Error("Missing expression inside '()'");
+						
+						if (compiledParams.length == 1) // single command
+							tokens.splice(open, 2, compiledParams[0]);
+						else // multiple commands
+							tokens.splice(open, 2, compileOperator(',', compiledParams, enableOptimizations));
+						continue;
+					}
+				}
+				
+				break;
+			}
+			for each (token in tokens)
+				if (token is String && '.[](){}'.indexOf(token as String) >= 0)
+					new Error("Misplaced '" + token + "'");
+		}
+		
+		/**
+		 * This function will compile a list of expressions separated by ',' tokens.
+		 * @param tokens
+		 * @param enableOptimizations
+		 * @return 
+		 */
+		private static function compileArray(tokens:Array, enableOptimizations:Boolean):Array
+		{
+			// avoid compiling an empty set of tokens
+			if (tokens.length == 0)
+				return [];
+			
+			var compiledObjects:Array = [];
+			while (true)
+			{
+				var comma:int = tokens.indexOf(',');
+				if (comma >= 0)
+				{
+					// compile the tokens before the comma as a parameter
+					compiledObjects.push(compileTokens(tokens.splice(0, comma), enableOptimizations));
+					tokens.shift(); // remove comma
+				}
+				else
+				{
+					// compile remaining group of tokens as a parameter
+					compiledObjects.push(compileTokens(tokens, enableOptimizations));
+					break;
+				}
+			}
+			return compiledObjects;
 		}
 
 		/**
@@ -682,7 +885,7 @@ package weave.compiler
 			// if the compiled function call should not be evaluated to a constant, return it now.
 			// impure functions cannot be evaluated to constants because by definition they may return different results on the same input.
 			var constantMethod:CompiledConstant = compiledMethod as CompiledConstant;
-			if (!enableOptimizations || !constantMethod || impureFunctions[constantMethod.name] != undefined)
+			if (!enableOptimizations || !constantMethod || impureFunctions.hasOwnProperty(constantMethod.name))
 				return compiledFunctionCall;
 			// check for CompiledFunctionCall objects in the compiled parameters
 			for each (var param:ICompiledObject in compiledParams)
@@ -731,10 +934,7 @@ package weave.compiler
 				// compile unary operator
 				if (debug)
 					trace("compile unary operator", compiledTokens.slice(index, index + 2).join(' '));
-				var operatorName:String = compiledTokens[index]; // no 'operator' prefix
-				var compiledMethod:CompiledConstant = new CompiledConstant(operatorName, unaryOperators[operatorName]);
-				var compiledParams:Array = [compiledTokens[index + 1]];
-				compiledTokens.splice(index, 2, compileFunctionCall(compiledMethod, compiledParams, enableOptimizations));
+				compiledTokens.splice(index, 2, compileOperator(compiledTokens[index], [compiledTokens[index + 1]], enableOptimizations));
 			}
 		}
 		
@@ -777,15 +977,28 @@ package weave.compiler
 				if (index == 0 || index + 1 == compiledTokens.length || compiledTokens[index - 1] is String || compiledTokens[index + 1] is String)
 					throw new Error("Misplaced infix operator '" + compiledTokens[index] + "'");
 				
-				// compile a wrapper for the operator call
-				var operatorName:String = OPERATOR_PREFIX + compiledTokens[index];
-				var compiledMethod:CompiledConstant = new CompiledConstant(operatorName, functions[operatorName]);
-				var compiledParams:Array = [compiledTokens[index - 1], compiledTokens[index + 1]];
 				// replace the tokens for this infix operator call with the compiled operator call
 				if (debug)
 					trace("compile infix operator", compiledTokens.slice(index - 1, index + 2).join(' '));
-				compiledTokens.splice(index - 1, 3, compileFunctionCall(compiledMethod, compiledParams, enableOptimizations));
+				compiledTokens.splice(index - 1, 3, compileOperator(compiledTokens[index], [compiledTokens[index - 1], compiledTokens[index + 1]], enableOptimizations));
 			}
+		}
+		
+		/**
+		 * 
+		 * @param operatorName
+		 * @param compiledParams
+		 * @param enableOptimizations
+		 * @return 
+		 * 
+		 */
+		private static function compileOperator(operatorName:String, compiledParams:Array, enableOptimizations:Boolean):ICompiledObject
+		{
+			// special case for variable lookup
+			if (operatorName == '#')
+				return new CompiledFunctionCall(compiledParams[0], null);
+			operatorName = OPERATOR_PREFIX + operatorName;
+			return compileFunctionCall(new CompiledConstant(operatorName, functions[operatorName]), compiledParams, enableOptimizations);
 		}
 
 		/**
@@ -804,20 +1017,50 @@ package weave.compiler
 
 			// decompile the function name
 			var name:String = decompileObject(call.compiledMethod);
+			var constant:CompiledConstant;
 			
 			// special case for variable lookup
 			if (call.compiledParams == null)
-				return name;
+			{
+				constant = call.compiledMethod as CompiledConstant;
+				if (constant && constant.name === constant.value)
+					return name;
+				return "(#" + name + ")";
+			}
 			
 			// decompile each paramter
+			var i:int;
 			var params:Array = [];
-			for (var i:int = 0; i < call.compiledParams.length; i++)
+			for (i = 0; i < call.compiledParams.length; i++)
 				params[i] = decompileObject(call.compiledParams[i]);
 			
 			// replace infix operator function calls with the preferred infix syntax
 			if (name.indexOf(OPERATOR_PREFIX) == 0)
 			{
 				var op:String = name.substr(OPERATOR_PREFIX.length);
+				if (op == '.' && params.length >= 2)
+				{
+					var result:String = params[0];
+					for (i = 1; i < params.length; i++)
+					{
+						// if the evaluated param compiles as a variable, use the '.' syntax
+						constant = call.compiledParams[i] as CompiledConstant;
+						var variable:CompiledFunctionCall = null;
+						try {
+							variable = compileToObject(constant.value) as CompiledFunctionCall;
+							if (variable.evaluatedMethod != constant.value)
+								variable = null;
+						} catch (e:Error) { }
+						
+						if (variable)
+							result += '.' + variable.evaluatedMethod;
+						else
+							result += '[' + params[i] + ']';
+					}
+					return result;
+				}
+				if (op == '[]')
+					return '[' + params.join(', ') + ']'
 				if (call.compiledParams.length == 1)
 					return op + params[0];
 				if (call.compiledParams.length == 2)
@@ -860,6 +1103,9 @@ package weave.compiler
 			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '?:']] = true;
 			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '&&']] = true;
 			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '||']] = false;
+			const ASSIGN_OP_LOOKUP:Object = new Dictionary();
+			for each (var assigOp:Function in assignmentOperators)
+				ASSIGN_OP_LOOKUP[assigOp] = true;
 
 			const stack:Array = []; // used as a queue of function calls
 			var call:CompiledFunctionCall;
@@ -919,12 +1165,24 @@ package weave.compiler
 					{
 						if (compiledParams)
 						{
-							// function call
-							result = call.evaluatedMethod.apply(null, call.evaluatedParams);
+							// special case for assignment operators
+							if (ASSIGN_OP_LOOKUP[call.evaluatedMethod] && compiledParams.length == 2)
+							{
+								result = (call.evaluatedMethod as Function).call(null, defaultSymbolTable, call.evaluatedParams[0], call.evaluatedParams[1]);
+							}
+							else
+							{
+								// function call
+								result = call.evaluatedMethod.apply(null, call.evaluatedParams);
+							}
 						}
 						else
 						{
 							// variable lookup -- call.compiledMethod is a constant and call.evaluatedMethod is the method name
+							if (symbolTable is Function)
+								result = symbolTable(call.evaluatedMethod);
+							else
+								result = symbolTable.hasOwnProperty(call.evaluatedMethod);
 							result = symbolTable is Function ? symbolTable(call.evaluatedMethod) : symbolTable[call.evaluatedMethod];
 							if (result === undefined)
 								result = functions[call.evaluatedMethod] || defaultSymbolTable[call.evaluatedMethod];
