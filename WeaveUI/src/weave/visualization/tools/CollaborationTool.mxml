@@ -20,6 +20,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
+
+
+<!-- 
+/*
+	Whomeever this code gets passed onto, please feel free to delete or
+	rewrite the comments I have written. They are only painfully obvious
+	to facilitate the transferring of this code to the new maintainer.
+
+	~Andrew Wilkinson
+*/
+-->
+
+
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
@@ -46,29 +59,39 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
-			
+			//Guaranteed to run at the creation of the tool. Is used to register all the event listeners.
 			override protected function childrenCreated():void
 			{	
+				//Pops up the control panel when a user opens the tool
+				//so that they can type in the server to connect to.
 				toggleUserControlPanel();
+				
+				//Callbakcs to be heard from the collabService, this is how the collabservice
+				//can talk back to the Collaboration tool
 				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
 				collabService.addEventListener(CollaborationEvent.USERS_LIST, handleUserList);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				
+				//UI callbacks, related to the buttons.
 				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoom);
 				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
 				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
 				
 			}
-		
+			
+			//Sends a message from the text box(input) to the server as a TEXT message
 			private function sendToRoom(e:Event):void
 			{
 				if( e is KeyboardEvent && (e as KeyboardEvent).keyCode != Keyboard.ENTER || input.text=="")
 					return;
-				collabService.sendMessage( input.text );
-				input.text = "";		
+				collabService.sendTextMessage( input.text );
+				input.text = "";	//clear the input	
 			}
 			
+			
+			//On connection, the config page is removed, and all the buttons that are only available
+			//while connected are enabled.
 			private function connect(e:MouseEvent):void
 			{
 				if( username.text == "" || serverIP.text == "" || serverName.text == "" || roomToJoin.text == "" || port.text ==  "" )
@@ -86,6 +109,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			//Only dissconnect if you're sure you're connected to the server, otherwise
+			//collabservice.disconnect() will fail, and than all the buttons will be
+			//disabled
 			private function disconnect(e:MouseEvent):void
 			{
 				if( collabService.isConnectedToServer() == true)
@@ -98,22 +124,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 
+			//For when a text message is recieved from the server, it is displayed to the log
+			//NOTE: I could not get proper scrolling to work once the recieved text messages
+			//		went below the height of the log window. 
 			private function handleText(e:CollaborationEvent):void
 			{
 				if (log.verticalScrollPosition == log.maxVerticalScrollPosition)
 				{
 					log.text += e.getText();
-					log.verticalScrollPosition += 100;
+					log.verticalScrollPosition += 100; //always seems to be one line behind...
 				}
 				else
 					log.text += e.getText();	
 			}
 			
+			//Recieved whenever the userlist is updated by someone joining or leaving.
 			private function handleUserList( e:CollaborationEvent):void
 			{
 				users.text = e.getText();
 			}
 			
+			//If the collabService is disconnected for some reason, this ensures the collabUI
+			//resets which buttons are disabled and enabled.
 			private function handleDisconnect( e:CollaborationEvent):void
 			{
 				disconnect(null);
@@ -133,6 +165,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Button id="sendButton" label="Send" enabled="false"/>
 		</mx:HBox>
 	</mx:VBox>
+	
+	<!--
+		The input fields are filled with the defaults from the server I was testing
+		on. If you're making your own server, make sure annonymous login is enabled.
+	-->
 	
 	<ui:ControlPanel id="cPanel">
 		<mx:VBox label="Visualization Controls">
