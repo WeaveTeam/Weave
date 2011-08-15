@@ -44,7 +44,7 @@ package weave.compiler
 			initStaticObjects();
 			includeLibraries(Math, MathLib, StringUtil, StringLib, BooleanLib, ArrayLib);
 			
-			StageUtils.callLater(null, test);
+			//StageUtils.callLater(null, test);
 		} /** end static code block **/
 		
 		/**
@@ -1067,8 +1067,11 @@ package weave.compiler
 					return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
 				if (call.compiledParams.length == 3 && op == '?:')
 					return StringUtil.substitute("({0} ? {1} : {2})", params);
+				
+				if (op == ',')
+					name = ''; // clear name and use the parentheses code below
 			}
-			
+
 			return name + '(' + params.join(', ') + ')';
 		}
 		
@@ -1181,11 +1184,12 @@ package weave.compiler
 							// variable lookup -- call.compiledMethod is a constant and call.evaluatedMethod is the method name
 							if (symbolTable is Function)
 								result = symbolTable(call.evaluatedMethod);
+							else if (symbolTable.hasOwnProperty(call.evaluatedMethod))
+								result = symbolTable(call.evaluatedMethod);
+							else if (functions.hasOwnProperty(call.evaluatedMethod))
+								result = functions[call.evaluatedMethod];
 							else
-								result = symbolTable.hasOwnProperty(call.evaluatedMethod);
-							result = symbolTable is Function ? symbolTable(call.evaluatedMethod) : symbolTable[call.evaluatedMethod];
-							if (result === undefined)
-								result = functions[call.evaluatedMethod] || defaultSymbolTable[call.evaluatedMethod];
+								result = defaultSymbolTable[call.evaluatedMethod];
 						}
 					}
 					catch (e:Error)
