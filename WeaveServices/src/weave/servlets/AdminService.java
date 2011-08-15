@@ -598,7 +598,7 @@ public class AdminService extends GenericServlet
 				
 				String query = attributeColumnInfo.sqlQuery;
 				SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
-				System.out.println(query);
+//				System.out.println(query);
 			}
 			
 			catch(Exception e)
@@ -1176,6 +1176,43 @@ public class AdminService extends GenericServlet
 		return listOfFiles;
 	}
 
+	private boolean valueIsInt(String value)
+	{
+		boolean retVal = true;
+		try {
+			Integer.parseInt(value);
+		}
+		catch (Exception e) {
+			retVal = false;
+		}
+		return retVal;
+	}
+	private boolean valueIsDouble(String value)
+	{
+		boolean retVal = true;
+		try {
+			Double.parseDouble(value);
+		}
+		catch (Exception e) {
+			retVal = false;
+		}
+		return retVal;
+	}	
+	private boolean valueHasLeadingZero(String value)
+	{
+		boolean temp = valueIsInt(value);
+		if (!temp)
+			return false;
+			
+		if (value.length() < 2)
+			return false;
+		
+		if (value.charAt(0) == '0' && value.charAt(1) != '.')
+			return true;
+		
+		return false;
+	}
+	
 	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
@@ -1301,6 +1338,7 @@ public class AdminService extends GenericServlet
 				fieldLengths[i] = 0;
 				types[i] = IntType;
 			}
+
 			// Read the data and get the column type
 			for (int iRow = 1; iRow < rows.length; iRow++)
 			{
@@ -1326,29 +1364,45 @@ public class AdminService extends GenericServlet
 					}
 					if (nextLine[i].equals(outputNullValue))
 						continue;
-					
+
 					// 3.3.2 is a string, update the type.
+					// 04 is a string (but Integer.parseInt would not throw an exception)
 					try
 					{
-						// if this fails, it will throw an exception
 						String value = nextLine[i];
 						while (value.indexOf(',') > 0)
-							value = value.replace(",", "");
-						Integer.parseInt(value);
-						nextLine[i] = value;
+							value = value.replace(",", ""); // valid input format
+						
+						// if the value is an int or double with an extraneous leading zero, it's defined to be a string
+						if (valueHasLeadingZero(value))
+							types[i] = StringType;
+						
+						// if the type was determined to be a string before (or just above), continue
+						if (types[i] == StringType)
+							continue;
+						
+						// if the type is an int
+						if (types[i] == IntType)
+						{
+							// check that it's still an int
+							if (valueIsInt(value))
+								continue;
+						}
+						
+						// it either wasn't an int or is no longer an int, check for a double
+						if (valueIsDouble(value))
+						{
+							types[i] = DoubleType;
+							continue;
+						}
+						
+						// if we're down here, it must be a string
+						types[i] = StringType;
 					}
 					catch (Exception e)
 					{
-						try
-						{
-							Double.parseDouble(nextLine[i]);
-
-							types[i] = DoubleType;
-						}
-						catch (Exception e2)
-						{
-							types[i] = StringType;
-						}
+						// this shouldn't happen, but it's just to be safe
+						types[i] = StringType;
 					}
 				}
 			}
@@ -1519,12 +1573,12 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
-			System.out.println("ignoreKeyColumnQueries: " + ignoreKeyColumnQueries);
+//			System.out.println("ignoreKeyColumnQueries: " + ignoreKeyColumnQueries);
 			for (i = 0; i < sqlColumnNames.size(); i++)
 			{
 				// test each query
 				String columnName = sqlColumnNames.get(i);
-				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
+//				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
 				if (ignoreKeyColumnQueries && originalKeyColumName.equals(columnName))
 					continue;
 				
