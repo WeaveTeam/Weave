@@ -83,7 +83,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#compileToObject()">compileToObject</a>(expression:String, enableOptimizations:Boolean = false):<a href="../compiler/ICompiledObject.html">ICompiledObject</a>
+<a class="signatureLink" href="#compileToObject()">compileToObject</a>(expression:String):<a href="../compiler/ICompiledObject.html">ICompiledObject</a>
 </div>
 <div class="summaryTableDescription">[static]
    This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.</div>
@@ -229,20 +229,13 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function compileToObject(expression:String, enableOptimizations:Boolean = false):<a href="../compiler/ICompiledObject.html">ICompiledObject</a></code><p>
+<code>public static function compileToObject(expression:String):<a href="../compiler/ICompiledObject.html">ICompiledObject</a></code><p>
    This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.
    This function is useful for inspecting the structure of the compiled function and decompiling individual parts.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">expression</span>:String</code> &mdash; An expression to parse.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">enableOptimizations</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true and all the compiledParameters are constants, the function will be called once and the result will be saved as a constant.
    </td>
 </tr>
 </table>
