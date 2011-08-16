@@ -91,6 +91,13 @@ package weave.compiler
 				{
 					libraries.push(library);
 					
+					if (library is Class)
+					{
+						var className:String = getQualifiedClassName(library);
+						className = className.split('.').pop();
+						className = className.split(':').pop();
+						constants[className] = library;
+					}
 					var classInfo:XML = describeType(library);
 					for each (var constantName:String in classInfo.child("constant").attribute("name"))
 						constants[constantName] = library[constantName];
@@ -872,7 +879,7 @@ package weave.compiler
 			// if the compiled function call should not be evaluated to a constant, return it now.
 			// impure functions cannot be evaluated to constants because by definition they may return different results on the same input.
 			var constantMethod:CompiledConstant = compiledMethod as CompiledConstant;
-			if (!enableOptimizations || !constantMethod || impureFunctions.hasOwnProperty(constantMethod.value))
+			if (!enableOptimizations || !constantMethod || impureFunctions[constantMethod.value] != undefined)
 				return compiledFunctionCall;
 			// check for CompiledFunctionCall objects in the compiled parameters
 			for each (var param:ICompiledObject in compiledParams)
