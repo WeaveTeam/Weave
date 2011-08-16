@@ -93,11 +93,13 @@ package weave.compiler
 					
 					if (library is Class)
 					{
+						// save the class name as a symbol
 						var className:String = getQualifiedClassName(library);
 						className = className.split('.').pop();
 						className = className.split(':').pop();
 						constants[className] = library;
 					}
+					// save mappings to all constants and methods in the library
 					var classInfo:XML = describeType(library);
 					for each (var constantName:String in classInfo.child("constant").attribute("name"))
 						constants[constantName] = library[constantName];
@@ -129,7 +131,7 @@ package weave.compiler
 		/**
 		 * While this is set to true, compiler optimizations are enabled.
 		 */		
-		private static var enableOptimizations:Boolean = false;
+		private static var enableOptimizations:Boolean = true;
 		
 		/**
 		 * This is a list of objects and/or classes containing functions and constants supported by the compiler.
@@ -179,13 +181,6 @@ package weave.compiler
 		 */
 		private static var unaryOperatorSymbols:Array = null;
 		/**
-		 * This object maps a function to a value of true if the function is impure, meaning if
-		 * it is called more than once with the same arguments, it may produce different results.
-		 * The compiler checks this object to determine which function calls it cannot simplify to a constant.
-		 * Examples of an impure function is Math.random() and trace().
-		 */
-		private static var impureFunctions:Dictionary = null;
-		/**
 		 * This function will initialize the operators, constants, and functions.
 		 */
 		private static function initStaticObjects():void
@@ -193,7 +188,6 @@ package weave.compiler
 			constants = new Object();
 			operators = new Object();
 			assignmentOperators = new Object();
-			impureFunctions = new Dictionary();
 			
 			// add built-in functions
 			constants['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
@@ -203,10 +197,6 @@ package weave.compiler
 				if (debug)
 					trace.apply(null, args);
 			};
-			
-			// Save names of impure functions so the compiler will not reduce them to constants when all their parameters are constants.
-			impureFunctions[Math['random']] = true;
-			impureFunctions[constants['trace']] = true;
 			
 			// add constants
 			constants['isNaN'] = isNaN;
@@ -288,10 +278,7 @@ package weave.compiler
 			assignmentOperators['^=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] ^=   a[i + 1]; };
 			assignmentOperators['|=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] |=   a[i + 1]; };
 			for (var aop:String in assignmentOperators)
-			{
 				operators[aop] = assignmentOperators[aop];
-				impureFunctions[operators[aop]] = true;
-			}
 			
 			// evaluate operators in the same order as ActionScript
 			orderedOperators = [
@@ -779,6 +766,8 @@ package weave.compiler
 					if (compiledToken)
 					{
 						// property access
+						if (compiledParams.length == 0)
+							throw new Error("Missing parameter for bracket operator: '[]'");
 						// the token on the left becomes the first parameter of the access operator
 						compiledParams.unshift(compiledToken);
 						// replace the token to the left and the brackets with the operator call
@@ -872,11 +861,17 @@ package weave.compiler
 		private static function compileFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array):ICompiledObject
 		{
 			var compiledFunctionCall:CompiledFunctionCall = new CompiledFunctionCall(compiledMethod, compiledParams);
-			// if the compiled function call should not be evaluated to a constant, return it now.
-			// impure functions cannot be evaluated to constants because by definition they may return different results on the same input.
+			// If the compiled function call should not be evaluated to a constant, return it now.
+			// Only non-assignment operators will be evaluated to constants, except for the array operator [] which creates a mutable Array.
 			var constantMethod:CompiledConstant = compiledMethod as CompiledConstant;
-			if (!enableOptimizations || !constantMethod || impureFunctions[constantMethod.value] != undefined)
+			if (!enableOptimizations
+				|| !constantMethod
+				|| operators[constantMethod.name] == undefined
+				|| constantMethod.name == OPERATOR_PREFIX + '[]'
+				|| assignmentOperators[constantMethod.value] != undefined)
+			{
 				return compiledFunctionCall;
+			}
 			// check for CompiledFunctionCall objects in the compiled parameters
 			for each (var param:ICompiledObject in compiledParams)
 				if (!(param is CompiledConstant))
@@ -1184,14 +1179,16 @@ package weave.compiler
 					}
 					catch (e:Error)
 					{
-						if (debug) // TODO: add option to throw errors or not
+						if (debug)
 						{
+							/*
 							if (compiledParams && call.evaluatedMethod == null)
 							{
 								while (call.compiledMethod is CompiledFunctionCall && call.evaluatedMethod == null)
 									call = call.compiledMethod as CompiledFunctionCall;
 								throw new Error("Undefined method: " + call.evaluatedMethod || (call.compiledMethod as CompiledConstant).value);
 							}
+							*/
 							throw e;
 						}
 						result = undefined;

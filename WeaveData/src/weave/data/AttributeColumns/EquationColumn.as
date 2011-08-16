@@ -30,10 +30,10 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.compiler.StandardLib;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.data.QKeyManager;
@@ -46,12 +46,7 @@ package weave.data.AttributeColumns
 	public class EquationColumn extends AbstractAttributeColumn
 	{
 		{ /** begin static code block **/
-			Compiler.includeLibraries(
-				WeaveAPI.StatisticsCache,
-				WeaveAPI.CSVParser,
-				WeaveAPI.QKeyManager,
-				EquationColumnLib
-			);
+			Compiler.includeLibraries(WeaveAPI, WeaveAPI.CSVParser, WeaveAPI.StatisticsCache, WeaveAPI.QKeyManager, EquationColumnLib);
 		} /** end static code block **/
 
 		public function EquationColumn()
