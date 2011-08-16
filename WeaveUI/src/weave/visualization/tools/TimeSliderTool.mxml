@@ -150,14 +150,14 @@
 	 * */
 	protected static function getTimesFromDimension(ref:HierarchyColumnReference):Array
 	{
+		var times:Array = [];
+		
 		var path:XML = ref.hierarchyPath.value;
 		var dataSource:IDataSource = ref.getDataSource();
-		var node:XML = (dataSource.attributeHierarchy as AttributeHierarchy).getNodeFromPath(path);
-		
-		var times:Array = [];
 		if (dataSource == null)
 			return times;
 
+		var node:XML = (dataSource.attributeHierarchy as AttributeHierarchy).getNodeFromPath(path);
 		var hierarchy:XML = getSessionState(dataSource.attributeHierarchy) as XML;
 		if (!hierarchy)
 			return times;
