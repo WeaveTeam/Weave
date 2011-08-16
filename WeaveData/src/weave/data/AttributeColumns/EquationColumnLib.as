@@ -28,10 +28,8 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
-	import weave.compiler.BooleanLib;
 	import weave.compiler.Compiler;
-	import weave.compiler.MathLib;
-	import weave.compiler.StringLib;
+	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.data.StatisticsCache;
 	import weave.primitives.ColorRamp;
@@ -151,7 +149,7 @@ package weave.data.AttributeColumns
 			}
 			else if (object is ILinkableVariable)
 			{
-				result = MathLib.toNumber((object as ILinkableVariable).getSessionState());
+				result = StandardLib.asNumber((object as ILinkableVariable).getSessionState());
 			}
 			else
 				result = NaN;
@@ -182,7 +180,7 @@ package weave.data.AttributeColumns
 			}
 			else if (object is ILinkableVariable)
 			{
-				result = StringLib.toString((object as ILinkableVariable).getSessionState());
+				result = StandardLib.asString((object as ILinkableVariable).getSessionState());
 			}
 			else
 				result = '';
@@ -213,7 +211,7 @@ package weave.data.AttributeColumns
 			}
 			else if (object is ILinkableVariable)
 			{
-				result = BooleanLib.toBoolean((object as ILinkableVariable).getSessionState());
+				result = StandardLib.asBoolean((object as ILinkableVariable).getSessionState());
 			}
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
@@ -309,63 +307,25 @@ package weave.data.AttributeColumns
 			// cast the value as the desired type
 			if (newType == Number)
 			{
-				value = MathLib.toNumber(value);
+				value = StandardLib.asNumber(value);
 			}
 			else if (newType == String)
 			{
-				value = StringLib.toString(value);
+				value = StandardLib.asString(value);
 			}
 			else if (newType == Boolean)
 			{
-				value = BooleanLib.toBoolean(value);
+				value = StandardLib.asBoolean(value);
 			}
 			else if (newType == int)
 			{
-				value = MathLib.toNumber(value);
+				value = StandardLib.asNumber(value);
 				if (isNaN(value))
 					return NaN;
 				return int(value);
 			}
 
 			return value as newType;
-		}
-		
-		/**
-		 * @param dynamicObject An object implementing ILinkableDynamicObject.
-		 * @return The result of calling dynamicObject.internalObject.
-		 */
-		public static function getInternalObject(dynamicObject:ILinkableDynamicObject):ILinkableObject
-		{
-			if (dynamicObject != null)
-				return dynamicObject.internalObject;
-			return null;
-		}
-		
-		/**
-		 * This function returns the result of accessing object[propertyName].
-		 * @param object An object to access a property of.
-		 * @param propertyName The name of the property to access.
-		 * @param morePropertyNames Additional property names to follow to get a descendant property.
-		 * @return The value of the property.
-		 */
-		public static function getProperty(object:Object, propertyName:String, ...morePropertyNames):*
-		{
-			for (var i:int = -1; i < morePropertyNames.length; i++)
-				object = object && object[i < 0 ? propertyName : morePropertyNames[i]];
-			return object;
-		}
-		/**
-		 * This applies a method of an object and returns its result.
-		 * @param object An object that contains a public method.
-		 * @param methodName The name of the public method.
-		 * @param params A list of parameters to pass to the method.
-		 * @return The result of applying the function.
-		 */
-		public static function applyMethod(object:Object, methodName:String, ...params):*
-		{
-			if (object == null)
-				return undefined;
-			return (object[methodName] as Function).apply(null, params);
 		}
 		
 		/**

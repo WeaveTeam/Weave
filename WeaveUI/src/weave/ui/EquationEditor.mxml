@@ -77,7 +77,6 @@ EquationEditor
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.compiler.ICompiledObject;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
 			import weave.api.linkBindableProperty;
@@ -85,11 +84,8 @@ EquationEditor
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
-			import weave.compiler.ArrayLib;
-			import weave.compiler.BooleanLib;
 			import weave.compiler.Compiler;
-			import weave.compiler.MathLib;
-			import weave.compiler.StringLib;
+			import weave.compiler.ICompiledObject;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;

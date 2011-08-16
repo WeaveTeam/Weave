@@ -21,7 +21,7 @@ package weave.compiler
 {
 	/**
 	 * This serves as a structure for storing the information required to make a function call.
-	 * This is used in the EquationParser class to avoid parsing tokens multiple times.
+	 * This is used in the Compiler class to avoid parsing tokens multiple times.
 	 * To avoid function call overhead, no public functions are not defined in this class.
 	 * 
 	 * @author adufilie

@@ -69,11 +69,6 @@ LinkableObjectList
 			import weave.api.data.IDataSource;
 			import weave.api.data.IDynamicKeyFilter;
 			import weave.api.getCallbackCollection;
-			import weave.compiler.ArrayLib;
-			import weave.compiler.BooleanLib;
-			import weave.compiler.Compiler;
-			import weave.compiler.MathLib;
-			import weave.compiler.StringLib;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;

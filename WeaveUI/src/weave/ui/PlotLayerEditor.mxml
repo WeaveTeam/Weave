@@ -319,7 +319,7 @@
 						import weave.api.ui.IPlotLayer;
 						import weave.api.ui.IPlotter;
 						import weave.api.unlinkBindableProperty;
-						import weave.compiler.MathLib;
+						import weave.compiler.StandardLib;
 						import weave.core.LinkableBoolean;
 						import weave.core.LinkableHashMap;
 						import weave.core.SessionManager;
@@ -402,7 +402,7 @@
 							// copy gui values to session state
 							var plotter:IPlotter  = getPlotter(data as IPlotLayer);
 							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
-							var defaultColor:Number = MathLib.toNumber(geomPlotter.fill.color.defaultValue.value);
+							var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
 							if (enableDefaultColor.selected)
 							{
 								geomPlotter.fill.color.defaultValue.value = fillColor.selectedColor;
@@ -425,7 +425,7 @@
 							// copy session state values to gui
 							var plotter:IPlotter  = getPlotter(data as IPlotLayer);
 							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
-							var defaultColor:Number = MathLib.toNumber(geomPlotter.fill.color.defaultValue.value);
+							var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
 							if (isNaN(defaultColor))
 							{
 								enableDefaultColor.selected = false;

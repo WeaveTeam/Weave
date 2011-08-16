@@ -30,11 +30,10 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
-	import weave.compiler.StringLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.data.QKeyManager;
@@ -224,7 +223,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return !BooleanLib.isUndefined(getValueFromKey(key));
+			return !StandardLib.isUndefined(getValueFromKey(key));
 		}
 
 		/**
@@ -333,7 +332,7 @@ package weave.data.AttributeColumns
 				if (!(value is IQualifiedKey))
 				{
 					if (!(value is String))
-						value = StringLib.toString(value);
+						value = StandardLib.asString(value);
 					value = WeaveAPI.QKeyManager.getQKey(this.dataType.value, value);
 				}
 			}

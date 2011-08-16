@@ -42,7 +42,7 @@ package weave.compiler
 		
 		{ /** begin static code block **/
 			initStaticObjects();
-			includeLibraries(Math, MathLib, StringUtil, StringLib, BooleanLib, ArrayLib);
+			includeLibraries(Math, StringUtil, StandardLib);
 			
 			//StageUtils.callLater(null, test);
 		} /** end static code block **/
@@ -75,6 +75,8 @@ package weave.compiler
 			return compileTokens(getTokens(expression), enableOptimizations);
 		}
 		
+		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
+		
 		/**
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
 		 * @param classesOrObjects An Array of Class definitions or objects containing functions to be supported by the compiler.
@@ -93,7 +95,7 @@ package weave.compiler
 					for each (var constantName:String in classInfo.child("constant").attribute("name"))
 						constants[constantName] = library[constantName];
 					for each (var methodName:String in classInfo.child("method").attribute("name"))
-						functions[methodName] = library[methodName];
+						constants[methodName] = library[methodName];
 				}
 			}
 		}
@@ -118,6 +120,11 @@ package weave.compiler
 		}
 		
 		/**
+		 * While this is set to true, compiler optimizations are enabled.
+		 */		
+		private static var enableOptimizations:Boolean = false;
+		
+		/**
 		 * This is a list of objects and/or classes containing functions and constants supported by the compiler.
 		 */
 		private static const libraries:Array = [];
@@ -131,7 +138,7 @@ package weave.compiler
 		/**
 		 * This is a String containing all the characters that are treated as whitespace.
 		 */
-		private static const WHITESPACE:String = '\r\n \t';
+		private static const WHITESPACE:String = '\r\n \t\f';
 		/**
 		 * This is the maximum allowed length of an operator.
 		 */		
@@ -144,10 +151,6 @@ package weave.compiler
 		 * This object maps the name of a predefined constant to its value.
 		 */
 		private static var constants:Object = null;
-		/**
-		 * This object maps a function name to its Function definition.
-		 */
-		private static var functions:Object = null;
 		/**
 		 * This object maps an operator like "*" to a Function with the following signature:
 		 *     function(x:Number, y:Number):Number
@@ -169,62 +172,48 @@ package weave.compiler
 		 */
 		private static var unaryOperatorSymbols:Array = null;
 		/**
-		 * This object maps a function name to a value of true if the function is impure, meaning if
+		 * This object maps a function to a value of true if the function is impure, meaning if
 		 * it is called more than once with the same arguments, it may produce different results.
 		 * The compiler checks this object to determine which function calls it cannot simplify to a constant.
-		 * An example of an impure function is Math.random().
+		 * Examples of an impure function is Math.random() and trace().
 		 */
-		private static var impureFunctions:Object = null;
+		private static var impureFunctions:Dictionary = null;
 		/**
 		 * This function will initialize the operators, constants, and functions.
 		 */
 		private static function initStaticObjects():void
 		{
-			functions = new Object();
 			constants = new Object();
 			operators = new Object();
 			assignmentOperators = new Object();
-			impureFunctions = new Object();
+			impureFunctions = new Dictionary();
 			
 			// add built-in functions
-			functions['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
-			functions['isNaN'] = isNaN;
-			functions['isFinite'] = isFinite;
-			functions['typeof'] = function(value:*):* { return typeof(value); };
-			functions['Number'] = MathLib.toNumber;
-			functions['String'] = StringLib.toString;
-			functions['Boolean'] = BooleanLib.toBoolean;
-			functions['Array'] = Array;
-			functions['Class'] = function(value:*):Class {
-				if (value is Class)
-					return value;
-				if (!(value is String))
-					value = getQualifiedClassName(value);
-				if (value is String)
-				{
-					var domain:ApplicationDomain = ApplicationDomain.currentDomain;
-					if (domain.hasDefinition(value))
-						return domain.getDefinition(value) as Class;
-				}
-				return null;
-			};
-			functions['trace'] = function(...args):void {
+			constants['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
+			constants['typeof'] = function(value:*):* { return typeof(value); };
+			constants['trace'] = function(...args):void {
 				// for trace debugging, debug must be set to true
 				if (debug)
 					trace.apply(null, args);
 			};
 			
 			// Save names of impure functions so the compiler will not reduce them to constants when all their parameters are constants.
-			impureFunctions['random'] = true;
-			impureFunctions['trace'] = true;
+			impureFunctions[Math['random']] = true;
+			impureFunctions[constants['trace']] = true;
 			
-			// add constants so parser will not treat them as variable names
+			// add constants
+			constants['isNaN'] = isNaN;
+			constants['isFinite'] = isFinite;
 			constants["undefined"] = undefined;
 			constants["null"] = null;
 			constants["NaN"] = NaN;
 			constants["true"] = true;
 			constants["false"] = false;
 			constants["Infinity"] = Infinity;
+			constants['Number'] = Number;
+			constants['String'] = String;
+			constants['Boolean'] = Boolean;
+			constants['Array'] = Array;
 
 			/** operators **/
 			// first, make sure all special characters are defined as operators whether or not they have functions associated with them
@@ -275,7 +264,7 @@ package weave.compiler
 			operators["&&"] = function(x:*, y:*):* { return x && y; };
 			operators["||"] = function(x:*, y:*):* { return x || y; };
 			// branching
-			operators["?:"] = functions['iif'];
+			operators["?:"] = constants['iif'];
 			// multiple commands
 			operators[','] = function(...args):* { return args[args.length - 1]; };
 			//assignment operators -- first param becomes the parent, and the two remaining args are propertyName and value
@@ -294,7 +283,7 @@ package weave.compiler
 			for (var aop:String in assignmentOperators)
 			{
 				operators[aop] = assignmentOperators[aop];
-				impureFunctions[OPERATOR_PREFIX + aop] = true;
+				impureFunctions[operators[aop]] = true;
 			}
 			
 			// evaluate operators in the same order as ActionScript
@@ -316,7 +305,7 @@ package weave.compiler
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
 				if (operators[op] is Function)
-					functions[OPERATOR_PREFIX + op] = operators[op];
+					constants[OPERATOR_PREFIX + op] = operators[op];
 		}
 
 		/**
@@ -424,7 +413,7 @@ package weave.compiler
 					{
 						for (var operatorLength:int = MAX_OPERATOR_LENGTH; operatorLength > 0; operatorLength--)
 						{
-							if (functions[expression.substring(index, endIndex + operatorLength)] is Function)
+							if (constants[expression.substring(index, endIndex + operatorLength)] is Function)
 							{
 								endIndex += operatorLength;
 								break;
@@ -755,10 +744,8 @@ package weave.compiler
 				if (open > 0 && !compiledToken && !operators.hasOwnProperty(token))
 				{
 					// The function token hasn't been compiled yet.
-					// Check the function table first and fall back to a variable lookup.
-					var constant:* = functions[token] || constants[token];
-					if (constant != undefined)
-						compiledToken = new CompiledConstant(token as String, constant);
+					if (constants.hasOwnProperty(token))
+						compiledToken = new CompiledConstant(token as String, constants[token]);
 					else
 						compiledToken = compileVariable(token as String);
 				}
@@ -885,7 +872,7 @@ package weave.compiler
 			// if the compiled function call should not be evaluated to a constant, return it now.
 			// impure functions cannot be evaluated to constants because by definition they may return different results on the same input.
 			var constantMethod:CompiledConstant = compiledMethod as CompiledConstant;
-			if (!enableOptimizations || !constantMethod || impureFunctions.hasOwnProperty(constantMethod.name))
+			if (!enableOptimizations || !constantMethod || impureFunctions.hasOwnProperty(constantMethod.value))
 				return compiledFunctionCall;
 			// check for CompiledFunctionCall objects in the compiled parameters
 			for each (var param:ICompiledObject in compiledParams)
@@ -998,7 +985,7 @@ package weave.compiler
 			if (operatorName == '#')
 				return new CompiledFunctionCall(compiledParams[0], null);
 			operatorName = OPERATOR_PREFIX + operatorName;
-			return compileFunctionCall(new CompiledConstant(operatorName, functions[operatorName]), compiledParams, enableOptimizations);
+			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams, enableOptimizations);
 		}
 
 		/**
@@ -1103,9 +1090,9 @@ package weave.compiler
 			const TRUE_INDEX:int = 1;
 			const FALSE_INDEX:int = 2;
 			const BRANCH_LOOKUP:Dictionary = new Dictionary();
-			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '?:']] = true;
-			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '&&']] = true;
-			BRANCH_LOOKUP[functions[OPERATOR_PREFIX + '||']] = false;
+			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '?:']] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '&&']] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '||']] = false;
 			const ASSIGN_OP_LOOKUP:Object = new Dictionary();
 			for each (var assigOp:Function in assignmentOperators)
 				ASSIGN_OP_LOOKUP[assigOp] = true;
@@ -1188,8 +1175,8 @@ package weave.compiler
 								result = symbolTable(call.evaluatedMethod);
 							if (result == undefined)
 							{
-								if (functions.hasOwnProperty(call.evaluatedMethod))
-									result = functions[call.evaluatedMethod];
+								if (constants.hasOwnProperty(call.evaluatedMethod))
+									result = constants[call.evaluatedMethod];
 								else
 									result = defaultSymbolTable[call.evaluatedMethod];
 							}

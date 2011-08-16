@@ -18,7 +18,7 @@
 */
 package weave.primitives
 {
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	/**
 	 * LooseAxisDescription
 	 * 
@@ -97,7 +97,7 @@ package weave.primitives
 				
 				
 				
-				var ticks:Array = MathLib.getNiceNumbersInRange(dataMin, dataMax, numTicksReq);
+				var ticks:Array = StandardLib.getNiceNumbersInRange(dataMin, dataMax, numTicksReq);
 				
 				_numTicks = ticks.length;
 				

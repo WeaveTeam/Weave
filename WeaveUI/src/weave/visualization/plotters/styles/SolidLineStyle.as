@@ -25,7 +25,7 @@ package weave.visualization.plotters.styles
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.ui.ILineStyle;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.EquationColumnLib;
 	import weave.utils.ColumnUtils;
@@ -117,7 +117,7 @@ package weave.visualization.plotters.styles
 			var _joints:* = _defaultValues[joints];
 			var _miterLimit:* = _defaultValues[miterLimit];
 			
-			var lineEnabled:Boolean = _enabled != undefined ? _enabled : BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
+			var lineEnabled:Boolean = _enabled != undefined ? _enabled : StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			if (!lineEnabled)
 			{
 				target.lineStyle(0, 0, 0);

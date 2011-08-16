@@ -19,31 +19,31 @@
 
 package weave.compiler
 {
+	import flash.system.ApplicationDomain;
+	import flash.utils.getQualifiedClassName;
+
 	/**
-	 * This serves as a wrapper for a constant value to remember that it was compiled.
-	 * This is used in the Compiler class to avoid parsing tokens multiple times.
-	 * To avoid function call overhead, no public functions are defined in this class.
+	 * This provides a set of static functions for use with the Weave Compiler.
+	 * This set of functions allows access to almost any object, so it should be used with care when exposing these functions to users.
 	 * 
 	 * @author adufilie
 	 */
-	public class CompiledConstant implements ICompiledObject
+	public dynamic class GlobalLib
 	{
-		/**
-		 * @param name The name of the constant.
-		 * @param value The constant that was compiled.
-		 */
-		public function CompiledConstant(name:String, value:*)
 		{
-			this.name = name;
-			this.value = value;
+			GlobalLib['Class'] = function(value:*):Class {
+				if (value is Class)
+					return value;
+				if (!(value is String))
+					value = getQualifiedClassName(value);
+				if (value is String)
+				{
+					var domain:ApplicationDomain = ApplicationDomain.currentDomain;
+					if (domain.hasDefinition(value))
+						return domain.getDefinition(value) as Class;
+				}
+				return null;
+			};
 		}
-		/**
-		 * This is the name of the constant.  This is used for debugging/decompiling.
-		 */
-		public var name:String;
-		/**
-		 * This is the constant that was compiled.
-		 */
-		public var value:* = null;
 	}
 }

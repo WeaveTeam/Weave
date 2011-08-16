@@ -23,7 +23,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.compiler.StringLib;
+	import weave.compiler.StandardLib;
 	import weave.primitives.ColorRamp;
 	
 	/**
@@ -54,7 +54,7 @@ package weave.data.AttributeColumns
 			var color:Number = ramp.getColorFromNorm(norm);
 			// return a 6-digit hex value for a String version of the color
 			if (dataType == String && !isNaN(color))
-				return '0x' + StringLib.toBase(color, 16, 6);
+				return '0x' + StandardLib.numberToBase(color, 16, 6);
 			return color;
 		}
 

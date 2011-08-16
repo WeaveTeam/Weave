@@ -51,11 +51,6 @@ DragDropDimensions
 			import mx.managers.DragManager;
 			
 			import weave.Weave;
-			import weave.compiler.ArrayLib;
-			import weave.compiler.BooleanLib;
-			import weave.compiler.Compiler;
-			import weave.compiler.MathLib;
-			import weave.compiler.StringLib;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.api.data.IDataSource;
 			import weave.api.core.ILinkableObject;

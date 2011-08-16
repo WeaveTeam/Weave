@@ -38,8 +38,8 @@ package weave
 	import flash.text.TextField;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
-	import flash.utils.Timer;
 	import flash.ui.MouseCursor;
+	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
@@ -81,8 +81,7 @@ package weave
 	import weave.api.newLinkableChild;
 	import weave.api.services.IURLRequestUtils;
 	import weave.api.setSessionState;
-	import weave.compiler.BooleanLib;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
@@ -114,8 +113,8 @@ package weave
 	import weave.ui.JRITextEditor;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
-	import weave.ui.PrintPanel;
 	import weave.ui.PenTool;
+	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
@@ -333,7 +332,7 @@ package weave
 		 */
 		private function getEditableSettingFromURL():Boolean
 		{
-			return BooleanLib.toBoolean(_urlParams['editable'] as String);
+			return StandardLib.asBoolean(_urlParams['editable'] as String);
 		}
 				
 		private function getURLParams():void

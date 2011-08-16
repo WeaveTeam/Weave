@@ -28,7 +28,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	
 	/**
@@ -328,7 +328,7 @@ package weave.data.AttributeColumns
 					return number.toString();
 			else
 				return numberFormatter.format(
-						MathLib.roundSignificant(
+					StandardLib.roundSignificant(
 							number,
 							maxDerivedSignificantDigits
 						)

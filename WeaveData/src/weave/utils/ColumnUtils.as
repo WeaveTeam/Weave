@@ -25,7 +25,7 @@ package weave.utils
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * This class contains static functions that access values from IAttributeColumn objects.
@@ -127,7 +127,7 @@ package weave.utils
 		public static function getBoolean(column:IAttributeColumn, key:IQualifiedKey):Boolean
 		{
 			if (column != null)
-				return BooleanLib.toBoolean( column.getValueFromKey(key) );
+				return StandardLib.asBoolean( column.getValueFromKey(key) );
 			return false;
 		}
 		/**
@@ -187,7 +187,7 @@ package weave.utils
 				for (var kIndex:int = 0; kIndex < keys.length; kIndex++)
 				{
 					var value:* = column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType);
-					if (!allowMissingData && BooleanLib.isUndefined(value))
+					if (!allowMissingData && StandardLib.isUndefined(value))
 					{
 						// value is undefined, so remove this key and all associated data from the list
 						for each (var array:Array in result)

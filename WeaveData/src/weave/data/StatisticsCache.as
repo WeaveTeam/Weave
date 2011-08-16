@@ -28,7 +28,7 @@ package weave.data
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IStatisticsCache;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	
@@ -240,12 +240,12 @@ package weave.data
 				// BEGIN code to get custom min,max
 				var tempNumber:Number;
 				try {
-					tempNumber = MathLib.toNumber(column.getMetadata(AttributeColumnMetadata.MIN));
+					tempNumber = StandardLib.asNumber(column.getMetadata(AttributeColumnMetadata.MIN));
 					if (!isNaN(tempNumber))
 						min = tempNumber;
 				} catch (e:Error) { }
 				try {
-					tempNumber = MathLib.toNumber(column.getMetadata(AttributeColumnMetadata.MAX));
+					tempNumber = StandardLib.asNumber(column.getMetadata(AttributeColumnMetadata.MAX));
 					if (!isNaN(tempNumber))
 						max = tempNumber;
 				} catch (e:Error) { }
