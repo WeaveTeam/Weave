@@ -78,6 +78,38 @@ package weave.data.DataSources
 		}
 		
 		/**
+		 * For each tag matching tagName, replace attribute names of that tag using the nameMapping.
+		 * @param root
+		 * @param tagName
+		 * @param nameMapping
+		 */		
+		protected function convertOldHierarchyFormat(root:XML, tagName:String, nameMapping:Object):void
+		{
+			if (root == null)
+				return;
+			
+			var node:XML;
+			var oldName:String;
+			var value:String;
+			var nodes:XMLList;
+			var nameMap:Object;
+			
+			nodes = root.descendants(tagName);
+			for each (node in nodes)
+			{
+				for (oldName in nameMapping)
+				{
+					value = node.attribute(oldName);
+					if (value != '')
+					{
+						delete node['@' + oldName];
+						node['@' + nameMapping[oldName]] = value;
+					}
+				}
+			}
+		}
+		
+		/**
 		 * This variable is set to false when the session state changes and true when initialize() is called.
 		 */
 		private var _initializeCalled:Boolean = false;
