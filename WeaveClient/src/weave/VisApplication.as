@@ -19,6 +19,8 @@
 
 package weave
 {
+	import flash.display.Loader;
+	import flash.display.LoaderInfo;
 	import flash.display.StageDisplayState;
 	import flash.errors.IllegalOperationError;
 	import flash.events.ContextMenuEvent;
@@ -34,6 +36,7 @@ package weave
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
+	import flash.system.LoaderContext;
 	import flash.system.System;
 	import flash.text.TextField;
 	import flash.ui.ContextMenu;
@@ -261,6 +264,23 @@ package weave
 
 			//add event listerner on closing window to send a message to the sender LocalConnection close the connection
 			//addEventListener(Event.CLOSE,handleClosingEvent);
+			this.addEventListener(FlexEvent.APPLICATION_COMPLETE, setupConnection );
+			
+			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
+			
+			Weave.properties.enableExportToolImage.addGroupedCallback(this, setupContextMenu);
+			Weave.properties.dataInfoURL.addGroupedCallback(this, setupContextMenu);
+			Weave.properties.enableSubsetControls.addGroupedCallback(this, setupContextMenu);
+			Weave.properties.enableRightClick.addGroupedCallback(this, setupContextMenu);
+			Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
+			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
+			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange);
+//			Weave.properties.showViewBar.addGroupedCallback(this, addViewBar);
+		}
+		
+		//This needed to be a function because FlashVars can't be fetched till the application loads.
+		private function setupConnection( e:FlexEvent ):void
+		{
 			getURLParams();
 			if (getConnectionName() != null)
 			{
@@ -276,30 +296,19 @@ package weave
 				pendingAdminService.errorCallbacks.addGroupedCallback(this, errorHandler);
 				// when admin console responds, set adminService
 				DelayedAsyncResponder.addResponder(
-						pendingAdminService.invokeAsyncMethod("ping"),
-						function(..._):*
-						{
-							//Alert.show("Connected to Admin Console");
-							_this.enabled = true;
-							adminService = pendingAdminService;
-							toggleMenuBar();
-							StageUtils.callLater(this,setupVisMenuItems,null,false);
-						},
-						errorHandler
-					);
+					pendingAdminService.invokeAsyncMethod("ping"),
+					function(..._):*
+					{
+						//Alert.show("Connected to Admin Console");
+						_this.enabled = true;
+						adminService = pendingAdminService;
+						toggleMenuBar();
+						StageUtils.callLater(this,setupVisMenuItems,null,false);
+					},
+					errorHandler
+				);
 			}
-			
-			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-			
-			Weave.properties.enableExportToolImage.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.dataInfoURL.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableSubsetControls.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableRightClick.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange);
-//			Weave.properties.showViewBar.addGroupedCallback(this, addViewBar);
-			
+			loadPage();
 		}
 		
 		private function handleBackgroundColorChange():void
@@ -337,19 +346,24 @@ package weave
 				
 		private function getURLParams():void
 		{
-			//var address:String;
 			var queryString:String;
 			_urlParams = {};
-
+			
 			try
 			{
-				//address = ExternalInterface.call("window.location.href.toString");
+				//Checks address bar first
 				queryString = ExternalInterface.call("window.location.search.substring", 1); // get text after "?"
 				_urlParams = new URLVariables(queryString);
+				if ( _urlParams['defaults'] == undefined )
+					throw new Error( "Error" );
 			}
 			catch(e:Error)
 			{
-				trace(e.getStackTrace());
+				//Flashvars and swf check
+				_urlParams = LoaderInfo(this.root.loaderInfo).parameters;
+				if (_urlParams['defaults'] == undefined){
+						trace(e.getStackTrace());
+				}
 			}
 		}
 
@@ -546,7 +560,6 @@ package weave
 //*/			
 			
 			//drawConnection();
-			loadPage();
 
 		}
 		
