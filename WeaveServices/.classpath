@@ -113,20 +113,8 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="external-lib/JRI.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="external-lib/JRIEngine.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="external-lib/REngine.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="lib" path="lib/REngine.jar"/>
+	<classpathentry kind="lib" path="lib/JRI.jar"/>
+	<classpathentry kind="lib" path="lib/JRIEngine.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
