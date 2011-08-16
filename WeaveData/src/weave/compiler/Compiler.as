@@ -59,7 +59,7 @@ package weave.compiler
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
-			var compiledObject:ICompiledObject = compileTokens(tokens, true);
+			var compiledObject:ICompiledObject = compileTokens(tokens);
 			return compileObjectToFunction(compiledObject, symbolTable);
 		}
 		
@@ -67,14 +67,14 @@ package weave.compiler
 		 * This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.
 		 * This function is useful for inspecting the structure of the compiled function and decompiling individual parts.
 		 * @param expression An expression to parse.
-		 * @param enableOptimizations If this is true and all the compiledParameters are constants, the function will be called once and the result will be saved as a constant.
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		public static function compileToObject(expression:String, enableOptimizations:Boolean = false):ICompiledObject
+		public static function compileToObject(expression:String):ICompiledObject
 		{
-			return compileTokens(getTokens(expression), enableOptimizations);
+			return compileTokens(getTokens(expression));
 		}
 		
+		// TODO: add option to make resulting function throw an error instead of returning undefined
 		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
 		
 		/**
@@ -437,10 +437,9 @@ package weave.compiler
 		 * This function will recursively compile a set of tokens into a compiled object representing a function that takes no parameters and returns a value.
 		 * Example set of input tokens:  pow ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
 		 * @param tokens An Array of tokens for an expression.  This array will be modified in place.
-		 * @param enableOptimizations If this is true and all the compiledParameters are constants, the function will be called once and the result will be saved as a constant.
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		private static function compileTokens(tokens:Array, enableOptimizations:Boolean):ICompiledObject
+		private static function compileTokens(tokens:Array):ICompiledObject
 		{
 			var i:int;
 			var subArray:Array;
@@ -458,7 +457,7 @@ package weave.compiler
 				// if the token starts with a quote, treat it as a String
 				if (str.charAt(0) == '"' || str.charAt(0) == "'")
 				{
-					tokens[i] = compileStringLiteral(str, enableOptimizations);
+					tokens[i] = compileStringLiteral(str);
 				}
 				else
 				{
@@ -472,7 +471,7 @@ package weave.compiler
 			}
 			
 			// next step: handle operators ".[]{}()"
-			compileBracketsAndProperties(tokens, enableOptimizations);
+			compileBracketsAndProperties(tokens);
 
 			// -------------------
 
@@ -503,17 +502,17 @@ package weave.compiler
 			}
 			
 			// next step: compile unary '#' operators
-			compileUnaryOperators(tokens, ['#'], enableOptimizations);
+			compileUnaryOperators(tokens, ['#']);
 			
 			// next step: compile infix '**' operators
-			compileInfixOperators(tokens, ['**'], enableOptimizations);
+			compileInfixOperators(tokens, ['**']);
 			
 			// next step: compile unary operators
-			compileUnaryOperators(tokens, unaryOperatorSymbols, enableOptimizations);
+			compileUnaryOperators(tokens, unaryOperatorSymbols);
 			
 			// next step: compile remaining infix operators in order
 			for (i = 0; i < orderedOperators.length; i++)
-				compileInfixOperators(tokens, orderedOperators[i], enableOptimizations);
+				compileInfixOperators(tokens, orderedOperators[i]);
 			
 			// next step: compile conditional branches
 			while (true)
@@ -528,16 +527,16 @@ package weave.compiler
 				
 				if (debug)
 					trace("compiling conditional branch:", tokens.slice(left - 1, right + 2).join(' '));
-				var condition:ICompiledObject = compileTokens(tokens.slice(left - 1, left), enableOptimizations);
-				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right), enableOptimizations);
-				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, right + 2), enableOptimizations);
+				var condition:ICompiledObject = compileTokens(tokens.slice(left - 1, left));
+				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right));
+				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, right + 2));
 				
 				// optimization: eliminate unnecessary branch
 				var result:ICompiledObject;
 				if (enableOptimizations && condition is CompiledConstant)
 					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
 				else
-					result = compileFunctionCall(new CompiledConstant(OPERATOR_PREFIX + '?:', operators['?:']), [condition, trueBranch, falseBranch], enableOptimizations);
+					result = compileFunctionCall(new CompiledConstant(OPERATOR_PREFIX + '?:', operators['?:']), [condition, trueBranch, falseBranch]);
 				
 				tokens.splice(left - 1, right - left + 3, result);
 			}
@@ -564,7 +563,7 @@ package weave.compiler
 				
 				if (lhs.evaluatedMethod is String) // lhs is a variable lookup
 				{
-					tokens.splice(i - 1, 3, compileOperator(tokens[i], [lhs.compiledMethod, tokens[i + 1]], enableOptimizations));
+					tokens.splice(i - 1, 3, compileOperator(tokens[i], [lhs.compiledMethod, tokens[i + 1]]));
 					continue;
 				}
 				
@@ -574,7 +573,7 @@ package weave.compiler
 				{
 					// switch to the assignment operator
 					lhs.compiledParams.push(tokens[i + 1]);
-					tokens.splice(i - 1, 3, compileOperator(tokens[i], lhs.compiledParams, enableOptimizations));
+					tokens.splice(i - 1, 3, compileOperator(tokens[i], lhs.compiledParams));
 					continue;
 				}
 				
@@ -583,7 +582,7 @@ package weave.compiler
 
 			// next step: handle multiple commands
 			if (tokens.indexOf(',') >= 0)
-				return compileOperator(',', compileArray(tokens, enableOptimizations), enableOptimizations);
+				return compileOperator(',', compileArray(tokens));
 
 			// last step: verify there is only one token left
 			if (tokens.length == 1)
@@ -640,7 +639,7 @@ package weave.compiler
 		 * @param encodedString A quoted String with special characters escaped using ActionScript string literal format.
 		 * @return The compiled string.
 		 */
-		private static function compileStringLiteral(quotedString:String, enableOptimizations:Boolean):ICompiledObject
+		private static function compileStringLiteral(quotedString:String):ICompiledObject
 		{
 			// remove quotes
 			var quote:String = quotedString.charAt(0);
@@ -669,7 +668,7 @@ package weave.compiler
 						return compiledString;
 					
 					compiledObjects.unshift(compiledString);
-					return compileFunctionCall(new CompiledConstant('substitute', StringUtil.substitute), compiledObjects, enableOptimizations);
+					return compileFunctionCall(new CompiledConstant('substitute', StringUtil.substitute), compiledObjects);
 				}
 				else if (escapeIndex < bracketIndex) // handle '\'
 				{
@@ -710,7 +709,7 @@ package weave.compiler
 					//replace code between brackets with an int so the resulting string can be passed to StringUtil.substitute() with compiledObject as the next parameter
 					output += input.substring(searchIndex, bracketIndex) + '{' + compiledObjects.length + '}';
 					searchIndex = escapeIndex + 1;
-					compiledObjects.push(compileTokens(tokens, enableOptimizations));
+					compiledObjects.push(compileTokens(tokens));
 				}
 			}
 			return null; // unreachable
@@ -721,9 +720,8 @@ package weave.compiler
 		 * @param leftBracket
 		 * @param rightBracket
 		 * @param tokens
-		 * @param enableOptimizations
 		 */
-		private static function compileBracketsAndProperties(tokens:Array, enableOptimizations:Boolean):void
+		private static function compileBracketsAndProperties(tokens:Array):void
 		{
 			var token:Object;
 			var compiledToken:ICompiledObject;
@@ -766,7 +764,7 @@ package weave.compiler
 					
 					// the token on the right is a variable name, but we will store it as a String because it's a property lookup
 					compiledParams = [compiledToken, new CompiledConstant(encodeString(propertyToken), propertyToken)];
-					tokens.splice(open - 1, 3, compileOperator('.', compiledParams, enableOptimizations));
+					tokens.splice(open - 1, 3, compileOperator('.', compiledParams));
 					continue;
 				}
 
@@ -774,7 +772,7 @@ package weave.compiler
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
 				if (debug)
 					trace("compiling tokens (", subArray.join(' '), ")");
-				compiledParams = compileArray(subArray, enableOptimizations);
+				compiledParams = compileArray(subArray);
 
 				if (tokens[open] == '[') // this is either an array or a property access
 				{
@@ -784,12 +782,12 @@ package weave.compiler
 						// the token on the left becomes the first parameter of the access operator
 						compiledParams.unshift(compiledToken);
 						// replace the token to the left and the brackets with the operator call
-						tokens.splice(open - 1, 3, compileOperator('.', compiledParams, enableOptimizations));
+						tokens.splice(open - 1, 3, compileOperator('.', compiledParams));
 					}
 					else
 					{
 						// array initialization -- replace '[' and ']' tokens
-						tokens.splice(open, 2, compileOperator('[]', compiledParams, enableOptimizations));
+						tokens.splice(open, 2, compileOperator('[]', compiledParams));
 					}
 					continue;
 				}
@@ -809,7 +807,7 @@ package weave.compiler
 						
 						// the token to the left is the method
 						// replace the function token, '(', and ')' tokens with a compiled function call
-						tokens.splice(open - 1, 3, compileFunctionCall(compiledToken, compiledParams, enableOptimizations));
+						tokens.splice(open - 1, 3, compileFunctionCall(compiledToken, compiledParams));
 						continue;
 					}
 					else // These parentheses do not correspond to a function call.
@@ -820,7 +818,7 @@ package weave.compiler
 						if (compiledParams.length == 1) // single command
 							tokens.splice(open, 2, compiledParams[0]);
 						else // multiple commands
-							tokens.splice(open, 2, compileOperator(',', compiledParams, enableOptimizations));
+							tokens.splice(open, 2, compileOperator(',', compiledParams));
 						continue;
 					}
 				}
@@ -835,10 +833,9 @@ package weave.compiler
 		/**
 		 * This function will compile a list of expressions separated by ',' tokens.
 		 * @param tokens
-		 * @param enableOptimizations
 		 * @return 
 		 */
-		private static function compileArray(tokens:Array, enableOptimizations:Boolean):Array
+		private static function compileArray(tokens:Array):Array
 		{
 			// avoid compiling an empty set of tokens
 			if (tokens.length == 0)
@@ -851,13 +848,13 @@ package weave.compiler
 				if (comma >= 0)
 				{
 					// compile the tokens before the comma as a parameter
-					compiledObjects.push(compileTokens(tokens.splice(0, comma), enableOptimizations));
+					compiledObjects.push(compileTokens(tokens.splice(0, comma)));
 					tokens.shift(); // remove comma
 				}
 				else
 				{
 					// compile remaining group of tokens as a parameter
-					compiledObjects.push(compileTokens(tokens, enableOptimizations));
+					compiledObjects.push(compileTokens(tokens));
 					break;
 				}
 			}
@@ -870,10 +867,9 @@ package weave.compiler
 		 * This returns a Function with the signature:  function():*
 		 * @param compiledMethod A compiled object that evaluates to a Function.
 		 * @param compiledParams An array of compiled parameters that will be evaluated when the wrapper function is called.
-		 * @param enableOptimizations If this is true and all the compiledParameters are constants, the function will be called once and the result will be saved as a constant.
 		 * @return A CompiledObject that contains either a constant or a wrapper function that runs the functionToCompile after evaluating the compiledParams.
 		 */
-		private static function compileFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array, enableOptimizations:Boolean):ICompiledObject
+		private static function compileFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array):ICompiledObject
 		{
 			var compiledFunctionCall:CompiledFunctionCall = new CompiledFunctionCall(compiledMethod, compiledParams);
 			// if the compiled function call should not be evaluated to a constant, return it now.
@@ -906,9 +902,8 @@ package weave.compiler
 		 * This will compile unary operators of the given type from right to left.
 		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array.
 		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
-		 * @param enableOptimizations When this is true, function calls will be simplified to constants where possible.
 		 */
-		private static function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array, enableOptimizations:Boolean):void
+		private static function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
 			var index:int;
 			for (index = compiledTokens.length - 1; index >= 0; index--)
@@ -928,7 +923,7 @@ package weave.compiler
 				// compile unary operator
 				if (debug)
 					trace("compile unary operator", compiledTokens.slice(index, index + 2).join(' '));
-				compiledTokens.splice(index, 2, compileOperator(compiledTokens[index], [compiledTokens[index + 1]], enableOptimizations));
+				compiledTokens.splice(index, 2, compileOperator(compiledTokens[index], [compiledTokens[index + 1]]));
 			}
 		}
 		
@@ -937,9 +932,8 @@ package weave.compiler
 		 * This will compile infix operators of the given type from left to right.
 		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array.
 		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
-		 * @param enableOptimizations When this is true, function calls will be simplified to constants where possible.
 		 */
-		private static function compileInfixOperators(compiledTokens:Array, operatorSymbols:Array, enableOptimizations:Boolean):void
+		private static function compileInfixOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
 			var index:int = 0;
 			while (index < compiledTokens.length)
@@ -961,7 +955,7 @@ package weave.compiler
 				{
 					// extract the right-hand-side, compile unary operators, and then insert the result to the right of the infix operator
 					var rhs:Array = compiledTokens.splice(index + 1, right - index);
-					compileUnaryOperators(rhs, unaryOperatorSymbols, enableOptimizations);
+					compileUnaryOperators(rhs, unaryOperatorSymbols);
 					if (rhs.length != 1)
 						throw new Error("Unable to parse second parameter of infix operator '" + compiledTokens[index] + "'");
 					compiledTokens.splice(index + 1, 0, rhs[0]);
@@ -974,7 +968,7 @@ package weave.compiler
 				// replace the tokens for this infix operator call with the compiled operator call
 				if (debug)
 					trace("compile infix operator", compiledTokens.slice(index - 1, index + 2).join(' '));
-				compiledTokens.splice(index - 1, 3, compileOperator(compiledTokens[index], [compiledTokens[index - 1], compiledTokens[index + 1]], enableOptimizations));
+				compiledTokens.splice(index - 1, 3, compileOperator(compiledTokens[index], [compiledTokens[index - 1], compiledTokens[index + 1]]));
 			}
 		}
 		
@@ -982,17 +976,16 @@ package weave.compiler
 		 * 
 		 * @param operatorName
 		 * @param compiledParams
-		 * @param enableOptimizations
 		 * @return 
 		 * 
 		 */
-		private static function compileOperator(operatorName:String, compiledParams:Array, enableOptimizations:Boolean):ICompiledObject
+		private static function compileOperator(operatorName:String, compiledParams:Array):ICompiledObject
 		{
 			// special case for variable lookup
 			if (operatorName == '#')
 				return new CompiledFunctionCall(compiledParams[0], null);
 			operatorName = OPERATOR_PREFIX + operatorName;
-			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams, enableOptimizations);
+			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
 
 		/**
@@ -1266,17 +1259,19 @@ package weave.compiler
 				
 				var tokens:Array = getTokens(eq);
 				trace("    tokens:", tokens.join(' '));
-				var decompiled:String = decompileObject(compileTokens(tokens, false));
+				var decompiled:String = decompileObject(compileTokens(tokens));
 				trace("decompiled:", decompiled);
 				
 				var tokens2:Array = getTokens(decompiled);
 				trace("   tokens2:", tokens2.join(' '));
-				var recompiled:String = decompileObject(compileTokens(tokens2, false));
+				var recompiled:String = decompileObject(compileTokens(tokens2));
 				trace("recompiled:", recompiled);
 
+				enableOptimizations = true;
 				var tokens3:Array = getTokens(recompiled);
-				var optimized:String = decompileObject(compileTokens(tokens3, true));
+				var optimized:String = decompileObject(compileTokens(tokens3));
 				trace(" optimized:", optimized);
+				enableOptimizations = false;
 				
 				var f:Function = compileToFunction(eq, vars);
 				for each (var value:* in values)

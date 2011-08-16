@@ -791,7 +791,7 @@
 				var decompiled:String;
 				try
 				{
-					var obj:ICompiledObject = Compiler.compileToObject(console.text, true);
+					var obj:ICompiledObject = Compiler.compileToObject(console.text);
 					//decompiled = Compiler.decompileObject(obj);
 					var func:Function = Compiler.compileObjectToFunction(obj, symbolTableLookup);
 					

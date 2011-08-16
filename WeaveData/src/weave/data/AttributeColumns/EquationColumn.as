@@ -182,7 +182,7 @@ package weave.data.AttributeColumns
 				_constantResult = undefined;
 				
 				// check if the equation evaluates to a constant
-				var compiledObject:ICompiledObject = Compiler.compileToObject(equation.value, true);
+				var compiledObject:ICompiledObject = Compiler.compileToObject(equation.value);
 				if (compiledObject is CompiledConstant)
 				{
 					// save the constant result of the function
