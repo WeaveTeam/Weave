@@ -1026,76 +1026,6 @@ public class AdminService extends GenericServlet
 		} catch( Exception e ) {}
 		return fileName;
 	}
-	// /**
-	// * temporary solution -- An interface for modifying the XML configuration.
-	// * These functions depend on the SQLConfig implementation rather than the
-	// * interface. These functions should be replaced with some other interface
-	// * when an implementation of ISQLConfig is developed that uses a database.
-	// *
-	// * @throws RemoteException
-	// */
-	// synchronized public String getConfigEntryXML(String connectionName,
-	// String password, String entryType, String entryName) throws
-	// RemoteException
-	// {
-	// ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-	//
-	// SQLConfigXML tempConfig;
-	// try
-	// {
-	// tempConfig = new SQLConfigXML();
-	// SQLConfigUtils.migrateSQLConfigEntry(config, tempConfig, entryType,
-	// entryName);
-	// return tempConfig.getConfigEntryXML(entryType, entryName);
-	// }
-	// catch (Exception e)
-	// {
-	// e.printStackTrace();
-	// throw new RemoteException("getConfigEntryXML() threw " +
-	// e.getClass().getName(), e);
-	// }
-	// }
-	//
-	// /**
-	// * temporary solution -- An interface for modifying the XML configuration.
-	// * These functions depend on the SQLConfig implementation rather than the
-	// * interface. These functions should be replaced with some other interface
-	// * when an implementation of ISQLConfig is developed that uses a database.
-	// *
-	// * @throws RemoteException
-	// */
-	// synchronized public String overwriteConfigEntryXML(String connectionName,
-	// String password, String entryXML) throws RemoteException
-	// {
-	// ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-	//
-	// try
-	// {
-	// // start a block of code so tempConfig will not stay in memory
-	// EntryInfo info = null;
-	// {
-	// // make a new SQLConfig object and add the entry
-	// SQLConfigXML tempConfig = new SQLConfigXML();
-	// info = tempConfig.overwriteConfigEntryXML(entryXML);
-	// if (info.name == "")
-	// throw new RemoteException(info.type + " name cannot be empty.");
-	//
-	// createConfigEntryBackup(config, info.type, info.name);
-	//
-	// SQLConfigUtils.migrateSQLConfigEntry(tempConfig, config, info.type,
-	// info.name);
-	// }
-	// backupAndSaveConfig(config);
-	//
-	// return String.format("The %s entry \"%s\" was saved.", info.type,
-	// info.name);
-	// }
-	// catch (Exception e)
-	// {
-	// e.printStackTrace();
-	// throw new RemoteException(e.getMessage());
-	// }
-	// }
 
 	/**
 	 * getSortedUniqueValues
@@ -1711,25 +1641,10 @@ public class AdminService extends GenericServlet
 			}
 			converter.flushAndCommitAll();
 		}
-		catch (FileNotFoundException e)
-		{
-			e.printStackTrace();
-			throw new RemoteException("FileNotFoundException", e);
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			throw new RemoteException("IOException", e);
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-			throw new RemoteException("SQLException", e);
-		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException("Exception", e);
+			throw new RemoteException("Shapefile import failed", e);
 		}
 		finally
 		{

@@ -145,7 +145,7 @@ public class DatabaseConfig
 		// add index on name
 		try
 		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.geometryConfigTable, new String[]{GeometryCollectionInfo.NAME});
 		}
 		catch (SQLException e)
 		{
@@ -172,8 +172,8 @@ public class DatabaseConfig
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		try
 		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.NAME.toString());
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.DATATABLE.toString());
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.NAME.toString()});
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.DATATABLE.toString()});
 		}
 		catch (SQLException e)
 		{
