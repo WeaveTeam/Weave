@@ -192,7 +192,7 @@
 						// get all ReferencedColumn objects, excluding geometry columns
 						var refCols:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(spl.plotter, ReferencedColumn);
 						for each (var col:IAttributeColumn in refCols)
-							if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) == 0)
+							if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) != 0) // non-geometry
 								visualization.additionalProbeColumns.push(col);
 					}
 				}

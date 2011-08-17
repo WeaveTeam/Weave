@@ -69,7 +69,7 @@ package weave
 		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
 		public static const DEFAULT_FONT_SIZE:Number = 10;
 		public static const DEFAULT_AXIS_FONT_SIZE:Number = 11;
-		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xFFFFFF;
+		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
 		public static const DATA_GRID:String = "DataGrid";
 		public static const TEXT_EDITOR:String = "TextArea";
 		

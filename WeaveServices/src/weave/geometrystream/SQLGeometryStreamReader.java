@@ -29,7 +29,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-
 import weave.utils.SQLUtils;
 
 /**
@@ -81,8 +80,21 @@ public class SQLGeometryStreamReader
 		{
 			// copy binary data to stream
 			stmt = conn.createStatement();
-			query = "SELECT minImportance, maxImportance, xMinBounds, yMinBounds, xMaxBounds, yMaxBounds, tileID"
-				+ " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table) + " ORDER BY tileID";
+			query = "SELECT ";
+			String[] names = new String[]{
+				SQLGeometryStreamDestination.MIN_IMPORTANCE, SQLGeometryStreamDestination.MAX_IMPORTANCE,
+				SQLGeometryStreamDestination.X_MIN_BOUNDS, SQLGeometryStreamDestination.Y_MIN_BOUNDS,
+				SQLGeometryStreamDestination.X_MAX_BOUNDS, SQLGeometryStreamDestination.Y_MAX_BOUNDS,
+				SQLGeometryStreamDestination.TILE_ID
+			};
+			for (int i = 0; i < names.length; i++)
+			{
+				if (i > 0)
+					query += ", ";
+				query += SQLUtils.quoteSymbol(conn, names[i]);
+			}
+			query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
+			query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID);
 			rs = stmt.executeQuery(query);
 			while (rs.next())
 			{
@@ -121,7 +133,11 @@ public class SQLGeometryStreamReader
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
 			// loop through tileIDs, copying binary data to stream
-			cstmt = conn.prepareCall("SELECT tileData FROM " + SQLUtils.quoteSchemaTable(dbms, schema, table) + " WHERE tileID = ?");
+			cstmt = conn.prepareCall(
+				"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA) +
+				" FROM " + SQLUtils.quoteSchemaTable(dbms, schema, table) +
+				" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID) + " = ?"
+			);
 			for (int i = 0; i < tileIDs.size(); i++)
 			{
 				cstmt.setInt(1, tileIDs.get(i));

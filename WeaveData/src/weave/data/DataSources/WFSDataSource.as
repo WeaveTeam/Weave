@@ -78,11 +78,22 @@ package weave.data.DataSources
 					{
 						tag.@featureTypeName = tag.@featureType;
 						delete tag["@featureType"];
+						tag.@dataType = _convertOldDataType(tag.@dataType);
 					}
 				}
 			}
 			
 			super.initialize();
+		}
+		private function _convertOldDataType(value:String):String
+		{
+			if (value == 'Geometry')
+				return DataTypes.GEOMETRY;
+			if (value == 'String')
+				return DataTypes.STRING;
+			if (value == 'Number')
+				return DataTypes.NUMBER;
+			return value;
 		}
 		
 		/**

@@ -111,8 +111,25 @@ package weave.data.DataSources
 		
 		protected function _convertOldHierarchyFormat(root:XML):void
 		{
-			convertOldHierarchyFormat(root, "category", {dataTableName: "name"});
-			convertOldHierarchyFormat(root, "attribute", {attributeColumnName: "name", dataTableName: "dataTable"});
+			convertOldHierarchyFormat(root, "category", {
+				dataTableName: "name"
+			});
+			convertOldHierarchyFormat(root, "attribute", {
+				attributeColumnName: "name",
+				dataTableName: "dataTable",
+				dataType: _convertOldDataType
+			});
+		}
+		
+		protected function _convertOldDataType(value:String):String
+		{
+			if (value == 'Geometry')
+				return DataTypes.GEOMETRY;
+			if (value == 'String')
+				return DataTypes.STRING;
+			if (value == 'Number')
+				return DataTypes.NUMBER;
+			return value;
 		}
 
 		override public function getAttributeColumn(columnReference:IColumnReference):IAttributeColumn
