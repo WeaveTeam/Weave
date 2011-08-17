@@ -299,22 +299,26 @@ showHideInherited();
 <div class="detailBody">
 <code>protected function convertOldHierarchyFormat(root:XML, tagName:String, nameMapping:Object):void</code><p>
    For each tag matching tagName, replace attribute names of that tag using the nameMapping.
+   Example usage: convertOldHierarchyFormat(root, 'attribute', {dataTableName: "dataTable", dataType: myFunction})
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">root</span>:XML</code></td>
+<td width="20px"></td><td><code><span class="label">root</span>:XML</code> &mdash; The root XML hierachy tag.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">tagName</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">tagName</span>:String</code> &mdash; The name of tags that need to be converted from an old format.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">nameMapping</span>:Object</code></td>
+<td width="20px"></td><td><code><span class="label">nameMapping</span>:Object</code> &mdash; Maps attribute names to new attribute names or functions that convert the old values, with the following signature:  function(value:String):String
+   </td>
 </tr>
 </table>
 </div>

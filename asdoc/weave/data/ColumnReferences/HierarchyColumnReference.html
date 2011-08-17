@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="HierarchyColumnReference,weave.data.ColumnReferences.HierarchyColumnReference,hierarchyPath,getHashCode" name="keywords">
+<meta content="HierarchyColumnReference,weave.data.ColumnReferences.HierarchyColumnReference,hierarchyPath,getHashCode,getMetadata" name="keywords">
 <title>weave.data.ColumnReferences.HierarchyColumnReference</title>
 </head>
 <body>
@@ -113,6 +113,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    attributes of the leaf XML node in the hierarchyPath.</div>
 </td><td class="summaryTableOwnerCol">HierarchyColumnReference</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getMetadata()">getMetadata</a>(propertyName:String):String</div>
+<div class="summaryTableDescription">
+   This function gets metadata associated with the column.</div>
+</td><td class="summaryTableOwnerCol">HierarchyColumnReference</td>
+</tr>
 </table>
 </div>
 <a name="protectedMethodSummary"></a>
@@ -197,6 +205,31 @@ showHideInherited();
    This function generates a hash value containing a sorted list of names and values of the
    attributes of the leaf XML node in the hierarchyPath.
    </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>String</code></td>
+</tr>
+</table>
+</div>
+<a name="getMetadata()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getMetadata</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public override function getMetadata(propertyName:String):String</code><p>
+   This function gets metadata associated with the column.
+   For standard metadata property names, refer to the AttributeColumnMetadata class.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">propertyName</span>:String</code> &mdash; The name of the metadata property to retrieve.
+   </td>
+</tr>
+</table>
+<p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>

@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="IQualifiedKeyManager,weave.api.data.IQualifiedKeyManager,getAllKeyTypes,getAllQKeys,getQKey,getQKeys" name="keywords">
+<meta content="IQualifiedKeyManager,weave.api.data.IQualifiedKeyManager,getAllKeyTypes,getAllQKeys,getCompatibleKeyTypes,getKeyMappings,getQKey,getQKeys,registerKeyMapping" name="keywords">
 <title>weave.api.data.IQualifiedKeyManager</title>
 </head>
 <body>
@@ -35,7 +35,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.api.data</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IQualifiedKeyManager</td>
+<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IQualifiedKeyManager extends <a href="../core/ILinkableObject.html">ILinkableObject</a></td>
 </tr>
 <tr>
 <td class="classHeaderTableLabel">Implementors</td><td><a href="../../data/QKeyManager.html">QKeyManager</a></td>
@@ -47,6 +47,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
   The getQKey() function must be used to get IQualifiedKey objects.  Each QKey returned by
   getQKey() with the same parameters will be the same object, so IQualifiedKeys can be compared
   with the == operator or used as keys in a Dictionary.
+  
+  The callbacks for this class should be triggered whenever a new key is created.
   
   <p></p>
 <br>
@@ -79,6 +81,22 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#getCompatibleKeyTypes()">getCompatibleKeyTypes</a>(keyType:String):Array</div>
+<div class="summaryTableDescription">
+   This function returns an array of key types (Strings) for which there exist mappings to or from the given key type.</div>
+</td><td class="summaryTableOwnerCol">IQualifiedKeyManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getKeyMappings()">getKeyMappings</a>(sourceKeyType:String, destinationKeyType:String):Array</div>
+<div class="summaryTableDescription">
+   This function returns an Array of IColumnReference objects that refer to columns that provide a mapping from one key type to another.</div>
+</td><td class="summaryTableOwnerCol">IQualifiedKeyManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#getQKey()">getQKey</a>(keyType:String, localName:String):<a href="../data/IQualifiedKey.html">IQualifiedKey</a>
 </div>
 <div class="summaryTableDescription">
@@ -91,6 +109,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <a class="signatureLink" href="#getQKeys()">getQKeys</a>(keyType:String, keyStrings:Array):Array</div>
 <div class="summaryTableDescription">
    Get a list of QKey objects, all with the same key type.</div>
+</td><td class="summaryTableOwnerCol">IQualifiedKeyManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#registerKeyMapping()">registerKeyMapping</a>(column:<a href="IColumnReference.html">IColumnReference</a>):void</div>
+<div class="summaryTableDescription">
+   This function should be called to register a column as a key mapping between two key types.</div>
 </td><td class="summaryTableOwnerCol">IQualifiedKeyManager</td>
 </tr>
 </table>
@@ -140,6 +166,63 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>Array</code> &mdash; An array of QKeys
+   </td>
+</tr>
+</table>
+</div>
+<a name="getCompatibleKeyTypes()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getCompatibleKeyTypes</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getCompatibleKeyTypes(keyType:String):Array</code><p>
+   This function returns an array of key types (Strings) for which there exist mappings to or from the given key type.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">keyType</span>:String</code> &mdash; A key type.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; A list of compatible types.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getKeyMappings()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getKeyMappings</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getKeyMappings(sourceKeyType:String, destinationKeyType:String):Array</code><p>
+   This function returns an Array of IColumnReference objects that refer to columns that provide a mapping from one key type to another.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">sourceKeyType</span>:String</code> &mdash; The desired input key type.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">destinationKeyType</span>:String</code> &mdash; The desired output key type.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An Array of IColumnReference objects that refer to columns that provide a mapping from the source key type to the destination key type.
    </td>
 </tr>
 </table>
@@ -204,6 +287,23 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>Array</code> &mdash; An array of QKeys.
+   </td>
+</tr>
+</table>
+</div>
+<a name="registerKeyMapping()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">registerKeyMapping</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function registerKeyMapping(column:<a href="IColumnReference.html">IColumnReference</a>):void</code><p>
+   This function should be called to register a column as a key mapping between two key types.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">column</span>:<a href="IColumnReference.html">IColumnReference</a></code> &mdash; A reference to the column that maps keys of one key type to corresponding keys of another type.
    </td>
 </tr>
 </table>
