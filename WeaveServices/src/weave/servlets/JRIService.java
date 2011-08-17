@@ -23,6 +23,7 @@ import java.io.File;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.Vector;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -32,17 +33,12 @@ import javax.script.ScriptException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import weave.beans.KMeansClusteringResult;
-import weave.beans.HierarchicalClusteringResult;
-import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.config.WeaveContextParams;
 import weave.servlets.GenericServlet;
-import weave.utils.ListUtils;
 
 
  
-@SuppressWarnings("unused")
 public class JRIService extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
@@ -92,7 +88,6 @@ public class JRIService extends GenericServlet
 			engine.eval(script);
 			engine.eval("dev.off()");
 		} catch (ScriptException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 				
@@ -108,333 +103,79 @@ public class JRIService extends GenericServlet
 		return evalValue;
 		
 	}
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void assignNamesToVector(String[] inputNames,Object[][] inputValues,String[] keys,boolean useColumnAsList){
+		// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
+		Bindings bindedVectors = engine.createBindings();
+		for (int i = 0; i < inputNames.length; i++){
+			String name = inputNames[i];
+			if(useColumnAsList){//if column to consider as list in R
+				HashMap hm = new HashMap();
+				for(int keyID = 0; keyID < keys.length ;keyID++)
+					hm.put(keys[keyID], inputValues[i][keyID]);
+				bindedVectors.put(name, hm);
+			}
+			else				
+				bindedVectors.put(name, inputValues[i]);
+		}
+		engine.setBindings(bindedVectors, ScriptContext.ENGINE_SCOPE);	
+	}
+	public void evaluvateInputScript(String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException{
+		evalScript(engine, script, showWarnings);
+		if (showIntermediateResults){
+			Object storedRdatas = evalScript(engine, "ls()", showWarnings);
+			if(storedRdatas instanceof String[]){
+				String[] Rdatas =(String[])storedRdatas;
+				for(int i=0;i<Rdatas.length;i++){
+					String scriptToAcessRObj = Rdatas[i];
+					if(scriptToAcessRObj.compareTo("mycache") == 0)
+						continue;
+					Object RobjValue = evalScript(engine, scriptToAcessRObj, false);
+					//When function reference is called returns null
+					if(RobjValue == null)
+						continue;
+					resultVector.add(new RResult(scriptToAcessRObj, RobjValue));	
+				}
+			}			
+		}
+	}
 	
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static ScriptEngine engine = null;
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
-	{
-		ScriptEngine engine = getREngine();
-		String output = "";			
-		RResult[] results = null;
-		Object evalValue;
-		try
-		{
-			// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
-			Bindings n = engine.createBindings();
-			for (int i = 0; i < inputNames.length; i++){
-				String name = inputNames[i];
-				if(useColumnAsList){//if column to consider as list in R
-					HashMap hm = new HashMap();
-					for(int keyID = 0; keyID < keys.length ;keyID++){
-						hm.put(keys[keyID], inputValues[i][keyID]);
-					}					
-					n.put(name, hm);
-				}
-				else{//if column to consider as vector in R					
-					n.put(name, inputValues[i]);
-				}					
-			}
-			engine.setBindings(n, ScriptContext.ENGINE_SCOPE);	
-			// R Script to EVALUATE inputTA(from R Script Input TextArea)
-			if (showIntermediateResults)
+	{	
+		engine = null;
+		engine = getREngine();	
+		System.out.println("Script Context reference:"+engine.getContext().toString());
+		synchronized (engine) {		
+			RResult[] results = null;
+			Vector<RResult> resultVector = new Vector<RResult>();
+			try
 			{
-				String[] rScript = script.split("\n");
-				for (int i = 0; i < rScript.length; i++)
-				{
-					Object individualEvalValue = evalScript(engine, rScript[i], showWarnings);					
-					String trimedString = individualEvalValue.toString();
-//					while (trimedString.indexOf('[') > 0)
-//					{
-//						int pos = trimedString.indexOf('[');
-//						System.out.println(pos + "\n");
-//						System.out.println(trimedString + "\n");
-//						trimedString = trimedString.substring(pos + 1);
-//					}
-//					trimedString = "[" + trimedString;					
-					output = output.concat(trimedString);
-					output += "\n";
-				}
-			}
-			else
-			{
-				Object completeEvalValue = evalScript(engine, script, showWarnings);
-				output = completeEvalValue.toString();
-				System.out.println("Complete Evaluvation:" + " = " + output + "\n");
-			}
-				// R Script to EVALUATE outputTA(from R Script Output TextArea)
-			if (showIntermediateResults)
-			{
-				int i;
-				int iterationTimes;
-				if (plotScript != "")
-				{
-					results = new RResult[outputNames.length + 2];
+				assignNamesToVector( inputNames, inputValues, keys, useColumnAsList);
+				evaluvateInputScript( script, resultVector, showIntermediateResults, showWarnings );
+				if (plotScript != ""){// R Script to EVALUATE plotScript
 					String plotEvalValue = plotEvalScript(engine, plotScript, showWarnings);
-					results[0] = new RResult("Plot Results", plotEvalValue);
-					results[1] = new RResult("Intermediate Results", output);
-					i = 2;
-					iterationTimes = outputNames.length + 2;
+					resultVector.add(new RResult("Plot Results", plotEvalValue));
 				}
-				else
-				{
-					results = new RResult[outputNames.length + 1];
-					results[0] = new RResult("Intermediate Results", output);
-					i = 1;
-					iterationTimes = outputNames.length + 1;
+				for (int i = 0; i < outputNames.length; i++){// R Script to EVALUATE output Script
+					String name = outputNames[i];						
+					Object evalValue = evalScript(engine, name, showWarnings);					
+					resultVector.add(new RResult(name, evalValue));					
 				}
-				// to add intermediate results extra object is created as first
-				// input, so results length will be one greater than OutputNames
-				// int i =1;
-				// int iterationTimes =outputNames.length;
-				for (; i < iterationTimes; i++)
-				{
-					String name;
-					// Boolean addedTolist = false;
-					if (iterationTimes == outputNames.length + 2){
-						name = outputNames[i - 2];
-					}
-					else{
-						name = outputNames[i - 1];
-					}
-					// Script to get R - output
-					evalValue = evalScript(engine, name, showWarnings);
-					System.out.println("EvalValue" + " = " + evalValue.toString() + "\n");									
-					results[i] = new RResult(name, evalValue);
-					System.out.println(name + " = " + evalValue.toString() + "\n");
-					
-				}//end of for - to store result
-			}//end of IF for intermediate results
-			else
-			{
-				int i;
-				int iterationTimes;
-				if (plotScript != "")
-				{
-					results = new RResult[outputNames.length + 1];
-					String plotEvalValue = plotEvalScript(engine, plotScript, showWarnings);
-					System.out.println(plotEvalValue);
-					results[0] = new RResult("Plot Results", plotEvalValue);
-					i = 1;
-					iterationTimes = outputNames.length + 1;
-				}
-				else
-				{
-					results = new RResult[outputNames.length];
-					i = 0;
-					iterationTimes = outputNames.length;
-				}
-				// to outputNames script result
-				// results = new RResult[outputNames.length];
-				for (; i < iterationTimes; i++)
-				{
-					String name;
-					// Boolean addedTolist = false;
-					if (iterationTimes == outputNames.length + 1){
-						name = outputNames[i - 1];
-					}
-					else{
-						name = outputNames[i];
-					}
-					// Script to get R - output
-					evalValue = evalScript(engine, name, showWarnings);	
-					results[i] = new RResult(name, evalValue);
-					System.out.println(name + " = " + evalValue.toString() + "\n");					
-				}
+				// to clear R objects
+				evalScript(engine, "rm(list=ls())", false);
 			}
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Unable to run R script", e);
-			
-//			e.printStackTrace();
-//			output += e.getMessage();
-//			// to send error from R to As3 side results is created with one
-//			// object
-//			results = new RResult[1];
-//			results[0] = new RResult("Error Statement", output);
-		}
-		
-		return results;
-		
+			catch (Exception e)	{
+				throw new RemoteException("Unable to run R script", e);
+			}
+			finally{
+				results = new RResult[resultVector.size()];
+				resultVector.toArray(results);
+				((RScriptEngine)engine).close();			
+			}
+			return results;
+		}		
 	}
 
-//	public LinearRegressionResult linearRegression(double[] dataX, double[] dataY) throws RemoteException
-//	{
-//		if (dataX.length == 0 || dataY.length == 0)
-//			throw new RemoteException("Unable to run computation on zero-length arrays.");
-//		if (dataX.length != dataY.length)
-//			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
-//					+ " != " + dataY.length + ").");
-//		// System.out.println("entering linearRegression()");
-//		Rengine rEngine = getRengine();
-//		// System.out.println("got r connection");
-//		LinearRegressionResult result = new LinearRegressionResult();
-//		try
-//		{
-//
-//			// Push the data to R
-//			rEngine.assign("x", dataX);
-//			rEngine.assign("y", dataY);
-//
-//			// Perform the calculation
-//			rEngine.eval("fit <- lm(y~x)");
-//
-//			// option to draw the plot, regression line and store the image
-//
-//			rEngine.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Linear_Regression.jpg"));
-//			rEngine.eval("plot(x,y)");
-//			rEngine.eval("abline(fit)");
-//			rEngine.eval("dev.off()");
-//
-//			// Get the data from R
-//			result.setIntercept(rEngine.eval("coefficients(fit)[1]").asDouble());
-//			result.setSlope(rEngine.eval("coefficients(fit)[2]").asDouble());
-//			result.setRSquared(rEngine.eval("summary(fit)$r.squared").asDouble());
-//			result.setSummary("");// rConnection.eval("summary(fit)").asString());
-//			result.setResidual(rEngine.eval("resid(fit)").asDoubleArray());
-//
-//		}
-//		catch (Exception e)
-//		{
-//			e.printStackTrace();
-//			throw new RemoteException(e.getMessage());
-//		}
-//		finally
-//		{
-//			rEngine.end();
-//		}
-//		return result;
-//	}
 
-//	public KMeansClusteringResult kMeansClustering(double[] dataX, double[] dataY, int numberOfClusters, boolean showWarnings) throws RemoteException
-//	{
-//		int[] clusterNumber = new int[1];
-//		clusterNumber[0] = numberOfClusters;
-//		int[] iterations = new int[1];
-//		iterations[0] = 2;
-//
-//		if (dataX.length == 0 || dataY.length == 0)
-//			throw new RemoteException("Unable to run computation on zero-length arrays.");
-//		if (dataX.length != dataY.length)
-//			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
-//					+ " != " + dataY.length + ").");
-//
-//		Rengine rEngine = getRngine();
-//		KMeansClusteringResult kclresult = new KMeansClusteringResult();
-//
-//		try
-//		{
-//
-//			// Push the data to R
-//			rEngine.assign("x", dataX);
-//			rEngine.assign("y", dataY);
-//			rEngine.assign("clusternumber", clusterNumber);
-//			rEngine.assign("iter.max", iterations);
-//
-//			// Performing the calculation
-//			rEngine.eval("dataframe1 <- data.frame(x,y)");
-//			// Each run of the algorithm gives a different result, thus continue
-//			// till results are constant
-//			rEngine
-//					.eval("Clustering <- function(clusternumber, iter.max)\n{result1 <- kmeans(dataframe1, clusternumber, iter.max)\n result2 <- kmeans(dataframe1, clusternumber, (iter.max-1))\n while(result1$centers != result2$centers){ iter.max <- iter.max + 1 \n result1 <- kmeans(dataframe1, clusternumber, iter.max) \n result2 <- kmeans(dataframe1, clusternumber, (iter.max-1))} \n print(result1) \n print(result2)}");
-//			rEngine.eval("Cluster <- Clustering(clusternumber, iter.max)");
-//
-//			// option for drawing a graph, shows centroids
-//
-//			// Get the data from R
-//			// Returns a vector indicating which cluster each data point belongs
-//			// to
-//			kclresult.setClusterGroup(rEngine.eval("Cluster$cluster").asDoubleArray());
-//			// Returns the means of each of the clusters
-//			kclresult.setClusterMeans(rEngine.eval("Cluster$centers").asDoubleMatrix());
-//			// Returns the size of each cluster
-//			kclresult.setClusterSize(rEngine.eval("Cluster$size").asDoubleArray());
-//			// Returns the sum of squares within each cluster
-//			kclresult.setWithinSumOfSquares(rEngine.eval("Cluster$withinss").asDoubleArray());
-//			// Returns the image from R
-//			// option for storing the image of the graphic output from R
-//			String str = String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Kmeans_Clustering.jpg");
-//			System.out.println(str);
-//			evalScript(rEngine, str, showWarnings);
-//			rEngine
-//					.eval("plot(dataframe1,xlab= \"x\", ylab= \"y\", main = \"Kmeans Clustering\", col = Cluster$cluster) \n points(Cluster$centers, col = 1:5, pch = 10)");
-//			rEngine.eval("dev.off()");
-//			kclresult.setRImageFilePath("Kmeans_Clustering.jpg");
-//
-//		}
-//		catch (Exception e)
-//		{
-//			e.printStackTrace();
-//			throw new RemoteException(e.getMessage());
-//		}
-//		finally
-//		{
-//			rEngine.end();
-//		}
-//		return kclresult;
-//	}
-
-//	public HierarchicalClusteringResult hierarchicalClustering(double[] dataX, double[] dataY) throws RemoteException
-//	{
-//		String[] agglomerationMethod = new String[7];
-//		agglomerationMethod[0] = "ward";
-//		agglomerationMethod[1] = "average";
-//		agglomerationMethod[2] = "centroid";
-//		agglomerationMethod[3] = "single";
-//		agglomerationMethod[4] = "complete";
-//		agglomerationMethod[5] = "median";
-//		agglomerationMethod[6] = "mcquitty";
-//		String agglomerationMethodType = new String("ward");
-//
-//		if (dataX.length == 0 || dataY.length == 0)
-//			throw new RemoteException("Unable to run computation on zero-length arrays.");
-//		if (dataX.length != dataY.length)
-//			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
-//					+ " != " + dataY.length + ").");
-//
-//		Rengine rEngine = getRengine();
-//		HierarchicalClusteringResult hclresult = new HierarchicalClusteringResult();
-//		try
-//		{
-//
-//			// Push the data to R
-//			rEngine.assign("x", dataX);
-//			rEngine.assign("y", dataY);
-//
-//			// checking for user method match
-//			for (int j = 0; j < agglomerationMethod.length; j++)
-//			{
-//				if (agglomerationMethod[j].equals(agglomerationMethodType))
-//				{
-//					rEngine.assign("method", agglomerationMethod[j]);
-//				}
-//			}
-//
-//			// Performing the calculations
-//			rEngine.eval("dataframe1 <- data.frame(x,y)");
-//			rEngine.eval("HCluster <- hclust(d = dist(dataframe1), method)");
-//
-//			// option for drawing the hierarchical tree and storing the image
-//			rEngine.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Hierarchical_Clustering.jpg"));
-//			rEngine.eval("plot(HCluster, main = \"Hierarchical Clustering\")");
-//			rEngine.eval("dev.off()");
-//
-//			// Get the data from R
-//			hclresult.setClusterSequence(rEngine.eval("HCluster$merge").asDoubleMatrix());
-//			hclresult.setClusterMethod(rEngine.eval("HCluster$method").asStringArray());
-//			// hclresult.setClusterLabels(rConnection.eval("HCluster$labels").asStrings());
-//			hclresult.setClusterDistanceMeasure(rEngine.eval("HCluster$dist.method").asStringArray());
-//
-//		}
-//		catch (Exception e)
-//		{
-//			e.printStackTrace();
-//			throw new RemoteException(e.getMessage());
-//		}
-//		finally
-//		{
-//			rEngine.end();
-//		}
-//		return hclresult;
-//	}
 }

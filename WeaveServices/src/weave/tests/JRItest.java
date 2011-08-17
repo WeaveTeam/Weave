@@ -22,11 +22,8 @@ package weave.tests;
 //import weave.beans.WeaveRecordList;
 import java.rmi.RemoteException;
 import weave.beans.RResult;
-import weave.servlets.RScriptFactory;
 import weave.servlets.JRIService;
 import java.util.Properties;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 public class JRItest {
 
 	/**
@@ -50,6 +47,7 @@ public class JRItest {
 	}
 	 
 	
+	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 		System.out.println("hi");		
@@ -60,7 +58,7 @@ public class JRItest {
 		//System.out.println(classPathh);
 		String[] classPathArray = classPathh.split(";");
 		for(int i = 0; i<classPathArray.length ;i++){
-			System.out.println(classPathArray[i]);
+			//System.out.println(classPathArray[i]);
 		}
 		
 		String[] inputNames = {};
@@ -72,89 +70,40 @@ public class JRItest {
 		Object[] array1 = { 0, 10, 20, 30, 40, 50, 56, 45, 67, 56, 98, 23, 45, 76};
 		Object[] array2 = {10, 20, 30, 52, 34, 87, 34, 77, 44, 33, 88, 66, 22, 11};
 		String[] keys   = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n",};
-//		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
-		
-//		plotscript ="";
-//		script = "x<-5";
-//		inputNames = new String[]{};
-//		inputValues = new Object[][]{};
-//		resultNames = new String []{"x"};
-//		keys = new  String[]{};
-//		call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false);
-//		
-//		inputNames =  new String []{"x","y"};
-//		inputValues = new Object[][]{array1,array2};	
-//		keys = new String []{"0","1","2","3","4","5"};
-//		plotscript = "plot(x,y)";
-//		script = "df<-data.frame(x,y)";		
-//		resultNames =  new String []{"df"};			
-//		call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false);	
-		
+		Object[] array3 = {"aa","bb","cc","dd","ee","ff","gg","hh","ii","jj","kk","ll","mm","nn"};
+				
 
-//		inputNames =  new String []{"x","y"};
-//		inputValues = new Object[][]{array1,array2};	
-//		keys = new String []{"a","b","c","d","e","f"};
-//		//plotscript = "plot(x,y)";
-//		script = "fun<-function(arg1){\n" +
-//				"ans<-(arg1) + 5\n" +
-//				"return(ans)}\n" +
-//				"d<-lapply(x,fun)";		
-//		resultNames =  new String []{"d"};			
-//		call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false);
+		inputNames =  new String []{"x","y"};
+		inputValues = new Object[][]{array1,array2};
+		script = "fun<-function(arg1){\n" +
+				"ans<-(arg1) + 5\n" +
+				"return(ans)}\n" +
+				"d<-lapply(x,fun)";		
+		resultNames =  new String []{"d"};			
+		call(keys,inputNames,inputValues,resultNames,script,plotscript,true,false,false);
 		
 		inputNames =  new String []{"x","y"};
 		inputValues = new Object[][]{array1,array2};
-		//plotscript = "plot(x,y)";
+		plotscript = "plot(x,y)";
 		//keys = new  String[]{};
-	//	script = "d<-x[x>20]";		
-	//	resultNames =  new String []{"x","d"};			
-	//	call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false,false);
-		
+		script = "d<-x[x>20]";		
+		resultNames =  new String []{"x","d"};			
+		call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false,false);		
 		
 		script ="data1<-cbind(x,y) \n corelation<-cor(data1,use=\"complete\")";
-		resultNames =  new String []{"data1","corelation"};
-		call(keys,inputNames,inputValues,resultNames,script,plotscript,false,false,false);
-	
-		//new JRItest();
-	
-	}
-	
-	@SuppressWarnings("unused")
-	public JRItest() throws Exception {
-		log.info("RScriptTest " + (RScriptFactory.defaultHost != null ? "JRI" : "Rserve"));
-		ScriptEngine engine = testDiscovery();
-//		testFactory(engine);
-//		testEval(engine);
-//		testFunction(engine);
-//		testCall(engine);
-//		TestInf test = testInterface(engine);
-//		testOpaque(engine, test);
-//		testBean(test);
-//		testBean2(test);
-//		testBean3(test);
-//		testNamedArgs(engine, test);
-//		testMapModel(engine);
-//		testAsync(engine);
-//		((ScriptEngineEx)engine).close();
-	}
-	
-	public ScriptEngine testDiscovery() {
-		log.info("testDiscovery");
-		String extension = "R";
-		ScriptEngineManager manager = new ScriptEngineManager();
-		//List<ScriptEngineFactory> listt = manager.getEngineFactories();
+		resultNames =  new String []{"corelation"};
+		call(keys,inputNames,inputValues,resultNames,script,plotscript,true,false,false);
 		
-		ScriptEngine engine = manager.getEngineByExtension(extension);
-	//	engine.getFactory()
-		
-		assert engine != null;
-		log.info(engine);
-		return engine;
+		call(keys, new String []{},new Object[][]{},resultNames,"","",false,false,false);
+	
 	}
 	
-	private static class log {
-		static void info(Object str) {
-			System.out.println(str);
-		}
+	
+	public JRItest() {
+		
 	}
+	
+	
+	
+	
 }
