@@ -36,6 +36,7 @@ package weave.primitives
 		}
 		
 		private var _compiledMethod:Function;
+		public const compiler:Compiler = new Compiler();
 
 		private function handleChange():void
 		{
@@ -45,7 +46,7 @@ package weave.primitives
 		public function apply(thisArg:*, argArray:Array = null):*
 		{
 			if (_compiledMethod == null)
-				_compiledMethod = Compiler.compileToFunction(value, null);
+				_compiledMethod = compiler.compileToFunction(value, null, false);
 			return _compiledMethod.apply(thisArg, argArray);
 		}
 	}

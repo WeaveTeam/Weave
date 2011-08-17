@@ -45,9 +45,12 @@ package weave.data.AttributeColumns
 	 */
 	public class EquationColumn extends AbstractAttributeColumn
 	{
+		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
-			Compiler.includeLibraries(WeaveAPI, WeaveAPI.CSVParser, WeaveAPI.StatisticsCache, WeaveAPI.QKeyManager, EquationColumnLib);
+			compiler.includeLibraries(WeaveAPI, WeaveAPI.CSVParser, WeaveAPI.StatisticsCache, WeaveAPI.QKeyManager, EquationColumnLib);
+			compiler.includeConstant("IQualifiedKey", IQualifiedKey);
 		} /** end static code block **/
+		
 
 		public function EquationColumn()
 		{
@@ -177,7 +180,7 @@ package weave.data.AttributeColumns
 				_constantResult = undefined;
 				
 				// check if the equation evaluates to a constant
-				var compiledObject:ICompiledObject = Compiler.compileToObject(equation.value);
+				var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
 				if (compiledObject is CompiledConstant)
 				{
 					// save the constant result of the function
@@ -187,7 +190,7 @@ package weave.data.AttributeColumns
 				else
 				{
 					// compile into a function
-					compiledEquation = Compiler.compileObjectToFunction(compiledObject, variableGetter);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true);
 					_equationIsConstant = false;
 				}
 			}

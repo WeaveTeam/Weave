@@ -770,6 +770,7 @@
 			/////////////////////////////////////////////////////////////
 			// console
 			
+			private var compiler:Compiler = new Compiler();
 			private var symbolTable:Object = {
 				'JS':ExternalInterface.call,
 				'Weave':Weave,
@@ -791,11 +792,11 @@
 				var decompiled:String;
 				try
 				{
-					var obj:ICompiledObject = Compiler.compileToObject(console.text);
-					//decompiled = Compiler.decompileObject(obj);
-					var func:Function = Compiler.compileObjectToFunction(obj, symbolTableLookup);
-					
-					Compiler.debug = true;
+					compiler.debug = false;
+					var obj:ICompiledObject = compiler.compileToObject(console.text);
+					//decompiled = compiler.decompileObject(obj);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTableLookup, false);
+					compiler.debug = true;
 					result = func.apply(sessionNav.getSelectedSessionedObject());
 					try
 					{
@@ -820,7 +821,6 @@
 				{
 					result = e;
 				}
-				Compiler.debug = false;
 				
 				log.text += StringUtil.substitute('\r{0}\r{1}\r', console.text, result);
 				console.setSelection(0, int.MAX_VALUE);

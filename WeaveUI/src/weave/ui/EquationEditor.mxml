@@ -111,7 +111,7 @@ EquationEditor
 				constantVBox.label = "Constants";
 				var constants:Array = new Array();
 				
-				var libraries:Array = Compiler.getAllLibraries();
+				var libraries:Array = EquationColumn.compiler.getAllLibraries();
 				for each (var library:Object in libraries)
 				{
 					var functions:Array = new Array();
@@ -222,7 +222,7 @@ EquationEditor
 				{
 					var eqName:String = equationColumn.variables.getName(items[0] as ILinkableObject);
 				
-					eqName = "get(" + Compiler.encodeString(eqName) + ")";
+					eqName = "get(" + EquationColumn.compiler.encodeString(eqName) + ")";
 					
 					event.draggedItem = eqName;
 				}

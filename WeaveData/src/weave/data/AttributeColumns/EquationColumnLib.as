@@ -332,9 +332,5 @@ package weave.data.AttributeColumns
 		 * This is a macro for IQualifiedKey that can be used in equations.
 		 */		
 		public static const QKey:Class = IQualifiedKey;
-		
-		{ /** begin static code block **/
-			Compiler.includeConstant("IQualifiedKey", IQualifiedKey);
-		} /** end static code block **/
 	}
 }

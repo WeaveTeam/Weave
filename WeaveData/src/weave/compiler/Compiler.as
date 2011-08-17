@@ -32,35 +32,59 @@ package weave.compiler
 	import weave.core.StageUtils;
 	
 	/**
-	 * This class provides a static function compileToFunction() that compiles an expression String into a Function.
+	 * This class can compile simple ActionScript expressions into functions.
 	 * 
 	 * @author adufilie
 	 */
 	public class Compiler
 	{
-		public static var debug:Boolean = false;
-		
-		{ /** begin static code block **/
-			initStaticObjects();
+		public function Compiler()
+		{
+			initialize();
 			includeLibraries(Math, StringUtil, StandardLib);
 			
 			//StageUtils.callLater(null, test);
-		} /** end static code block **/
+		}
 		
+		/**
+		 * Set this to true to enable trace statements for debugging.
+		 */		
+		public var debug:Boolean = false;
+		
+		/**
+		 * This is the prefix used for the function notation of infix operators.
+		 * For example, the function notation for ( x + y ) is ( operator+(x,y) ).
+		 */
+		public static const OPERATOR_PREFIX:String = 'operator';
+		
+		/**
+		 * This is a String containing all the characters that are treated as whitespace.
+		 */
+		private static const WHITESPACE:String = '\r\n \t\f';
+		/**
+		 * This is the maximum allowed length of an operator.
+		 */		
+		private static const MAX_OPERATOR_LENGTH:int = 4;
+		/**
+		 * This is used to match number tokens.
+		 */		
+		private static const numberRegex:RegExp = /^(0x[0-9A-F]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
+
 		/**
 		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
 		 * Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
 		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
 		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
+		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
 		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
-		public static function compileToFunction(expression:String, symbolTable:Object):Function
+		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = compileTokens(tokens);
-			return compileObjectToFunction(compiledObject, symbolTable);
+			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors);
 		}
 		
 		/**
@@ -69,7 +93,7 @@ package weave.compiler
 		 * @param expression An expression to parse.
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		public static function compileToObject(expression:String):ICompiledObject
+		public function compileToObject(expression:String):ICompiledObject
 		{
 			return compileTokens(getTokens(expression));
 		}
@@ -81,7 +105,7 @@ package weave.compiler
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
 		 * @param classesOrObjects An Array of Class definitions or objects containing functions to be supported by the compiler.
 		 */		
-		public static function includeLibraries(...classesOrObjects):void
+		public function includeLibraries(...classesOrObjects):void
 		{
 			for (var i:int = 0; i < classesOrObjects.length; i++)
 			{
@@ -113,8 +137,8 @@ package weave.compiler
 		 * This function will add a variable to the constants available in expressions.
 		 * @param constantName The name of the constant.
 		 * @param constantValue The value of the constant.
-		 */		
-		public static function includeConstant(constantName:String, constantValue:*):void
+		 */
+		public function includeConstant(constantName:String, constantValue:*):void
 		{
 			constants[constantName] = constantValue;
 		}
@@ -123,7 +147,7 @@ package weave.compiler
 		 * This function gets a list of all the libraries currently being used by the compiler.
 		 * @return A new Array containing a list of all the objects and/or classes used as libraries in the compiler.
 		 */		
-		public static function getAllLibraries():Array
+		public function getAllLibraries():Array
 		{
 			return libraries.concat(); // make a copy
 		}
@@ -131,59 +155,41 @@ package weave.compiler
 		/**
 		 * While this is set to true, compiler optimizations are enabled.
 		 */		
-		private static var enableOptimizations:Boolean = true;
+		private var enableOptimizations:Boolean = true;
 		
 		/**
 		 * This is a list of objects and/or classes containing functions and constants supported by the compiler.
 		 */
-		private static const libraries:Array = [];
+		private const libraries:Array = [];
 		
-		/**
-		 * This is the prefix used for the function notation of infix operators.
-		 * For example, the function notation for ( x + y ) is ( operator+(x,y) ).
-		 */
-		public static const OPERATOR_PREFIX:String = 'operator';
-		
-		/**
-		 * This is a String containing all the characters that are treated as whitespace.
-		 */
-		private static const WHITESPACE:String = '\r\n \t\f';
-		/**
-		 * This is the maximum allowed length of an operator.
-		 */		
-		private static const MAX_OPERATOR_LENGTH:int = 4;
-		/**
-		 * This is used to match number tokens.
-		 */		
-		private static const numberRegex:RegExp = /^(0x[0-9A-F]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 		/**
 		 * This object maps the name of a predefined constant to its value.
 		 */
-		private static var constants:Object = null;
+		private var constants:Object = null;
 		/**
 		 * This object maps an operator like "*" to a Function with the following signature:
 		 *     function(x:Number, y:Number):Number
 		 * If there is no function associated with the operator, it maps the operator to a value of null.
 		 */
-		private static var operators:Object = null;
+		private var operators:Object = null;
 		/**
 		 * This object maps an assignment operator like "=" to its corresponding function.
 		 * This object is used as a quick lookup to see if an operator is an assignment operator.
 		 */
-		private static var assignmentOperators:Object = null;
+		private var assignmentOperators:Object = null;
 		/**
 		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
 		 * Each nested Array is a group of operators that should be evaluated in the same pass.
 		 */
-		private static var orderedOperators:Array = null;
+		private var orderedOperators:Array = null;
 		/**
 		 * This is an Array of all the unary operator symbols.
 		 */
-		private static var unaryOperatorSymbols:Array = null;
+		private var unaryOperatorSymbols:Array = null;
 		/**
-		 * This function will initialize the operators, constants, and functions.
+		 * This function will initialize the operators and constants.
 		 */
-		private static function initStaticObjects():void
+		private function initialize():void
 		{
 			constants = new Object();
 			operators = new Object();
@@ -306,7 +312,7 @@ package weave.compiler
 		 * @param expression An expression string to parse.
 		 * @return An Array containing all the tokens found in the expression.
 		 */
-		private static function getTokens(expression:String):Array
+		private function getTokens(expression:String):Array
 		{
 			var tokens:Array = [];
 			var n:int = expression.length;
@@ -327,7 +333,7 @@ package weave.compiler
 		 * @param index The starting index of the token.
 		 * @return The token beginning at the specified index, or null if an invalid quoted string was found.
 		 */
-		private static function getToken(expression:String, index:int):String
+		private function getToken(expression:String, index:int):String
 		{
 			var endIndex:int;
 			var n:int = expression.length;
@@ -426,7 +432,7 @@ package weave.compiler
 		 * @param tokens An Array of tokens for an expression.  This array will be modified in place.
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		private static function compileTokens(tokens:Array):ICompiledObject
+		private function compileTokens(tokens:Array):ICompiledObject
 		{
 			var i:int;
 			var subArray:Array;
@@ -608,7 +614,7 @@ package weave.compiler
 		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
 		 * @return The given String formatted for ActionScript.
 		 */
-		public static function encodeString(string:String, doubleQuote:Boolean = true):String
+		public function encodeString(string:String, doubleQuote:Boolean = true):String
 		{
 			var quote:String = doubleQuote ? '"' : "'";
 			var result:Array = new Array(string.length);
@@ -626,7 +632,7 @@ package weave.compiler
 		 * @param encodedString A quoted String with special characters escaped using ActionScript string literal format.
 		 * @return The compiled string.
 		 */
-		private static function compileStringLiteral(quotedString:String):ICompiledObject
+		private function compileStringLiteral(quotedString:String):ICompiledObject
 		{
 			// remove quotes
 			var quote:String = quotedString.charAt(0);
@@ -708,7 +714,7 @@ package weave.compiler
 		 * @param rightBracket
 		 * @param tokens
 		 */
-		private static function compileBracketsAndProperties(tokens:Array):void
+		private function compileBracketsAndProperties(tokens:Array):void
 		{
 			var token:Object;
 			var compiledToken:ICompiledObject;
@@ -824,7 +830,7 @@ package weave.compiler
 		 * @param tokens
 		 * @return 
 		 */
-		private static function compileArray(tokens:Array):Array
+		private function compileArray(tokens:Array):Array
 		{
 			// avoid compiling an empty set of tokens
 			if (tokens.length == 0)
@@ -858,7 +864,7 @@ package weave.compiler
 		 * @param compiledParams An array of compiled parameters that will be evaluated when the wrapper function is called.
 		 * @return A CompiledObject that contains either a constant or a wrapper function that runs the functionToCompile after evaluating the compiledParams.
 		 */
-		private static function compileFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array):ICompiledObject
+		private function compileFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array):ICompiledObject
 		{
 			var compiledFunctionCall:CompiledFunctionCall = new CompiledFunctionCall(compiledMethod, compiledParams);
 			// If the compiled function call should not be evaluated to a constant, return it now.
@@ -877,7 +883,7 @@ package weave.compiler
 				if (!(param is CompiledConstant))
 					return compiledFunctionCall; // this compiled funciton call cannot be evaluated to a constant
 			// if there are no CompiledFunctionCall objects in the compiled parameters, evaluate the compiled function call to a constant.
-			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null); // no symbol table required for evaluating a constant
+			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false); // no symbol table required for evaluating a constant
 			return new CompiledConstant(decompileObject(compiledFunctionCall), callWrapper());
 		}
 
@@ -887,7 +893,7 @@ package weave.compiler
 		 * @param variableName The name of the variable to get when the resulting wrapper function is evaluated.
 		 * @param A CompiledFunctionCall for getting the variable.
 		 */
-		private static function compileVariable(variableName:String):CompiledFunctionCall
+		private function compileVariable(variableName:String):CompiledFunctionCall
 		{
 			return new CompiledFunctionCall(new CompiledConstant(variableName, variableName), null); // params are null as a special case
 		}
@@ -898,7 +904,7 @@ package weave.compiler
 		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array.
 		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
 		 */
-		private static function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array):void
+		private function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
 			var index:int;
 			for (index = compiledTokens.length - 1; index >= 0; index--)
@@ -928,7 +934,7 @@ package weave.compiler
 		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array.
 		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
 		 */
-		private static function compileInfixOperators(compiledTokens:Array, operatorSymbols:Array):void
+		private function compileInfixOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
 			var index:int = 0;
 			while (index < compiledTokens.length)
@@ -974,7 +980,7 @@ package weave.compiler
 		 * @return 
 		 * 
 		 */
-		private static function compileOperator(operatorName:String, compiledParams:Array):ICompiledObject
+		private function compileOperator(operatorName:String, compiledParams:Array):ICompiledObject
 		{
 			// special case for variable lookup
 			if (operatorName == '#')
@@ -987,7 +993,7 @@ package weave.compiler
 		 * @param compiledObject A CompiledFunctionCall or CompiledConstant to decompile into an expression String.
 		 * @return The expression String generated from the compiledObject.
 		 */
-		public static function decompileObject(compiledObject:ICompiledObject):String
+		public function decompileObject(compiledObject:ICompiledObject):String
 		{
 			if (compiledObject is CompiledConstant)
 				return (compiledObject as CompiledConstant).name;
@@ -1061,9 +1067,10 @@ package weave.compiler
 		 * This function is for internal use only.
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
 		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
-		 * @return A Function that takes no parameters and returns the result of evaluating the ICompiledObject.
+		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public static function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -1076,7 +1083,7 @@ package weave.compiler
 				// create a new variable for the value to avoid the overhead of
 				// accessing a member variable of the CompiledConstant object.
 				const value:* = (compiledObject as CompiledConstant).value;
-				return function():* { return value; };
+				return function(...args):* { return value; };
 			}
 			
 			// create the variables that will be used inside the wrapper function
@@ -1099,10 +1106,10 @@ package weave.compiler
 			var result:*;
 			var defaultSymbolTable:Object = {};
 
-			// return the wrapper function
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
-			return function(...args):*
+			var wrapperFunction:Function = function(...args):*
 			{
+				defaultSymbolTable['self'] = wrapperFunction;
 				defaultSymbolTable['this'] = this;
 				defaultSymbolTable['arguments'] = args;
 				// initialize top-level function and push it onto the stack
@@ -1179,7 +1186,11 @@ package weave.compiler
 					}
 					catch (e:Error)
 					{
-						if (debug)
+						if (ignoreRuntimeErrors)
+						{
+							result = undefined;
+						}
+						else
 						{
 							/*
 							if (compiledParams && call.evaluatedMethod == null)
@@ -1191,7 +1202,6 @@ package weave.compiler
 							*/
 							throw e;
 						}
-						result = undefined;
 					}
 					// remove this call from the stack
 					stack.pop();
@@ -1209,11 +1219,14 @@ package weave.compiler
 				}
 				return null; // unreachable
 			};
+			
+			return wrapperFunction;
 		}
 		
 		//-----------------------------------------------------------------
 		private static function test():void
 		{
+			var compiler:Compiler = new Compiler();
 			var eqs:Array = [
 				"1 + '\"abc ' + \"'x\\\"y\\\\\\'z\"",
 				'0 ? trace("?: BUG") : -var',
@@ -1232,9 +1245,9 @@ package weave.compiler
 				'roundSignificant(random(),3)',
 				'rpad("hello", 4+(var+2)*2, "._,")',
 				'lpad("hello", 4+(var+2)*2, "._,")',
-				'substr("hello world", var*2, 5)',
-				'strlen(random())',
-				'concat("(0x", upper(toBase(0xFF00FF,16)), ") ", lpad(toBase(var*20, 2, 4), 9), ", base10: ", rpad(toBase(sign(var) * (var+10),10,3), 6), ", base16: ", toBase(var+10,16))'
+				'"hello world".substr(var*2, 5)',
+				'asString(random()).length',
+				'"(0x" + numberToBase(0xFF00FF,16).toUpperCase() + ") " + lpad(numberToBase(var*20, 2, 4), 9) + ", base10: " + rpad(toBase(sign(var) * (var+10),10,3), 6) + ", base16: " + numberToBase(var+10,16))'
 			];
 			var values:Array = [-2, -1, -0.5, 0, 0.5, 1, 2];
 			var vars:Object = {};
@@ -1247,38 +1260,34 @@ package weave.compiler
 				return vars[name];
 			};
 			
-			var prevDebug:Boolean = debug;
-			debug = true;
-			
+			compiler.debug = true;
 			for each (var eq:String in eqs)
 			{
 				trace("expression: "+eq);
 				
-				var tokens:Array = getTokens(eq);
+				var tokens:Array = compiler.getTokens(eq);
 				trace("    tokens:", tokens.join(' '));
-				var decompiled:String = decompileObject(compileTokens(tokens));
+				var decompiled:String = compiler.decompileObject(compiler.compileTokens(tokens));
 				trace("decompiled:", decompiled);
 				
-				var tokens2:Array = getTokens(decompiled);
+				var tokens2:Array = compiler.getTokens(decompiled);
 				trace("   tokens2:", tokens2.join(' '));
-				var recompiled:String = decompileObject(compileTokens(tokens2));
+				var recompiled:String = compiler.decompileObject(compiler.compileTokens(tokens2));
 				trace("recompiled:", recompiled);
 
-				enableOptimizations = true;
-				var tokens3:Array = getTokens(recompiled);
-				var optimized:String = decompileObject(compileTokens(tokens3));
+				compiler.enableOptimizations = true;
+				var tokens3:Array = compiler.getTokens(recompiled);
+				var optimized:String = compiler.decompileObject(compiler.compileTokens(tokens3));
 				trace(" optimized:", optimized);
-				enableOptimizations = false;
+				compiler.enableOptimizations = false;
 				
-				var f:Function = compileToFunction(eq, vars);
+				var f:Function = compiler.compileToFunction(eq, vars, false);
 				for each (var value:* in values)
 				{
 					vars['var'] = value;
 					trace("f(var="+value+")\t= " + f(value));
 				}
 			}
-			
-			debug = prevDebug;
 		}
 	}
 }
