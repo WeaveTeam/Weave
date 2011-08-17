@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="AbstractDataSource,weave.data.DataSources.AbstractDataSource,_attributeHierarchy,enableDebug,url,attributeHierarchy,initializationComplete,debug,dispose,getAttributeColumn,handleHierarchyChange,handleUnsupportedColumnReference,initialize,initializeHierarchySubtree,requestColumnFromSource,requestHierarchyFromSource" name="keywords">
+<meta content="AbstractDataSource,weave.data.DataSources.AbstractDataSource,_attributeHierarchy,enableDebug,url,attributeHierarchy,initializationComplete,convertOldHierarchyFormat,debug,dispose,getAttributeColumn,handleHierarchyChange,handleUnsupportedColumnReference,initialize,initializeHierarchySubtree,requestColumnFromSource,requestHierarchyFromSource" name="keywords">
 <title>weave.data.DataSources.AbstractDataSource</title>
 </head>
 <body>
@@ -139,6 +139,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <table id="summaryTableProtectedMethod" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#convertOldHierarchyFormat()">convertOldHierarchyFormat</a>(root:XML, tagName:String, nameMapping:Object):void</div>
+<div class="summaryTableDescription">
+   For each tag matching tagName, replace attribute names of that tag using the nameMapping.</div>
+</td><td class="summaryTableOwnerCol">AbstractDataSource</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -282,10 +290,38 @@ showHideInherited();
 </div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
+<a name="convertOldHierarchyFormat()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">convertOldHierarchyFormat</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected function convertOldHierarchyFormat(root:XML, tagName:String, nameMapping:Object):void</code><p>
+   For each tag matching tagName, replace attribute names of that tag using the nameMapping.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">root</span>:XML</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">tagName</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">nameMapping</span>:Object</code></td>
+</tr>
+</table>
+</div>
 <a name="debug()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">debug</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">debug</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
