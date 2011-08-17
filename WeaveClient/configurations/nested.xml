@@ -2,12 +2,14 @@
   <WeaveProperties name="WeaveProperties">
     <axisFontBold>true</axisFontBold>
     <axisFontColor>0</axisFontColor>
-    <axisFontFamily>Arial</axisFontFamily>
+    <axisFontFamily>Sophia Nubian</axisFontFamily>
     <axisFontItalic>false</axisFontItalic>
     <axisFontSize>11</axisFontSize>
     <axisFontUnderline>false</axisFontUnderline>
     <backgroundColor>13421772</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+    <dashboardMode>false</dashboardMode>
+    <dashedSelectionBox>5,5</dashedSelectionBox>
     <dataInfoURL/>
     <debugScreenBounds>false</debugScreenBounds>
     <enableAboutMenu>true</enableAboutMenu>
@@ -15,6 +17,8 @@
     <enableAddBarChart>true</enableAddBarChart>
     <enableAddColorLegend>true</enableAddColorLegend>
     <enableAddColormapHistogram>true</enableAddColormapHistogram>
+    <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
+    <enableAddDataFilter>true</enableAddDataFilter>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddDataTable>true</enableAddDataTable>
     <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
@@ -26,17 +30,16 @@
     <enableAddPieChart>true</enableAddPieChart>
     <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
     <enableAddRadViz>true</enableAddRadViz>
-    <enableAddRadViz2>true</enableAddRadViz2>
     <enableAddRamachandranPlot>true</enableAddRamachandranPlot>
     <enableAddRScriptEditor>true</enableAddRScriptEditor>
     <enableAddScatterplot>true</enableAddScatterplot>
-    <enableAddSP2>true</enableAddSP2>
-    <enableAddStickFigurePlot>true</enableAddStickFigurePlot>
     <enableAddThermometerTool>true</enableAddThermometerTool>
     <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
     <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
-    <enableAddWordle>true</enableAddWordle>
+    <enableBitmapFilters>true</enableBitmapFilters>
+    <enableCascadeAllWindows>true</enableCascadeAllWindows>
     <enableClearCurrentSelection>true</enableClearCurrentSelection>
+    <enableCloseAllWindows>true</enableCloseAllWindows>
     <enableCreateSubsets>true</enableCreateSubsets>
     <enableDataMenu>true</enableDataMenu>
     <enableDebugAlert>false</enableDebugAlert>
@@ -46,17 +49,21 @@
     <enableExportDataTable>true</enableExportDataTable>
     <enableExportToolImage>true</enableExportToolImage>
     <enableFullscreen>true</enableFullscreen>
+    <enableGeometryProbing>true</enableGeometryProbing>
     <enableGoFullscreen>true</enableGoFullscreen>
     <enableManageSavedSelections>true</enableManageSavedSelections>
     <enableManageSavedSubsets>true</enableManageSavedSubsets>
     <enableMenuBar>true</enableMenuBar>
-    <enableMenuBarOnTop>true</enableMenuBarOnTop>
+    <enableMinimizeAllWindows>true</enableMinimizeAllWindows>
+    <enableMouseWheel>true</enableMouseWheel>
     <enableNewDataset>true</enableNewDataset>
     <enableNewUserWizard>true</enableNewUserWizard>
+    <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
     <enableProbeAnimation>true</enableProbeAnimation>
     <enableProbeLines>true</enableProbeLines>
     <enableRefreshHierarchies>true</enableRefreshHierarchies>
     <enableRemoveSubsets>true</enableRemoveSubsets>
+    <enableRestoreAllMinimizedWindows>true</enableRestoreAllMinimizedWindows>
     <enableRightClick>true</enableRightClick>
     <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
     <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
@@ -64,25 +71,20 @@
     <enableSelectionsMenu>true</enableSelectionsMenu>
     <enableSessionBookmarks>true</enableSessionBookmarks>
     <enableSessionEdit>true</enableSessionEdit>
-    <enableSessionExport>true</enableSessionExport>
-    <enableSessionImport>true</enableSessionImport>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
     <enableSubsetsMenu>true</enableSubsetsMenu>
     <enableTaskbar>true</enableTaskbar>
+    <enableTileAllWindows>true</enableTileAllWindows>
     <enableToolAttributeEditing>true</enableToolAttributeEditing>
-    <enableToolAutoResizeAndPosition>true</enableToolAutoResizeAndPosition>
-    <enableToolBorders>true</enableToolBorders>
-    <enableToolClose>true</enableToolClose>
-    <enableToolDrag>true</enableToolDrag>
-    <enableToolMaximize>true</enableToolMaximize>
-    <enableToolMinimize>true</enableToolMinimize>
+    <enableToolControls>true</enableToolControls>
     <enableToolProbe>true</enableToolProbe>
-    <enableToolResize>true</enableToolResize>
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
+    <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
+    <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
     <panelTitleFontColor>16777215</panelTitleFontColor>
@@ -90,6 +92,7 @@
     <panelTitleFontItalic>false</panelTitleFontItalic>
     <panelTitleFontSize>10</panelTitleFontSize>
     <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
     <probeInnerGlowAlpha>0.9</probeInnerGlowAlpha>
     <probeInnerGlowBlur>5</probeInnerGlowBlur>
     <probeInnerGlowColor>16777215</probeInnerGlowColor>
@@ -101,7 +104,11 @@
     <probeToolTipBackgroundAlpha>0.9</probeToolTipBackgroundAlpha>
     <probeToolTipBackgroundColor>15725756</probeToolTipBackgroundColor>
     <probeToolTipFontColor>0</probeToolTipFontColor>
-    <rServicesURL>/WeaveServices</rServicesURL>
+    <rServiceURL>/WeaveServices/RService</rServiceURL>
+    <searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
+Google|http://www.google.com/search?q=
+Google Images|http://images.google.com/images?q=
+Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <selectionAlphaAmount>0.5</selectionAlphaAmount>
     <selectionBlurringAmount>4</selectionBlurringAmount>
     <shadowAlpha>0.5</shadowAlpha>
@@ -115,24 +122,24 @@
     <showEquationEditor>true</showEquationEditor>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
-    <showViewBar>false</showViewBar>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
-    <version>Beta 0.9.6 dev</version>
+    <version>1.0 Beta Nightly Build</version>
     <windowSnapGridSize>1</windowSnapGridSize>
   </WeaveProperties>
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
     <included/>
     <includeMissingKeys>true</includeMissingKeys>
+    <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
   <ColorColumn name="defaultColorColumn">
     <internalDynamicColumn encoding="dynamic">
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="Van Gogh" reverse="false" category="aesthetic" source="OIC">
+      <colorRamp category="aesthetic" reverse="false" name="Van Gogh" source="OIC">
         <node color="0x31415A" position="0"/>
         <node color="0x609DCD" position="0.15"/>
         <node color="0xE9B400" position="0.3"/>
@@ -160,8 +167,8 @@
   </FilteredColumn>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns"/>
-  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
+  <LinkableHashMap name="Probed Columns" encoding="dynamic"/>
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
   <UITest name="a">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -172,26 +179,66 @@
           <loadForCompatibility>true</loadForCompatibility>
           <percentHeight>100</percentHeight>
           <percentWidth>100</percentWidth>
-          <source>weave.swf</source>
+          <source>weave.swf?file=obesity-cube.xml&editable=false</source>
         </properties>
         <qualifiedClassName>mx.controls.SWFLoader</qualifiedClassName>
       </LinkableDisplayObject>
     </children>
     <closeable>true</closeable>
     <draggable>true</draggable>
-    <helpAvailable>false</helpAvailable>
-    <lockPanel>false</lockPanel>
+    <enableBorders>true</enableBorders>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
-    <panelHeight>87.634%</panelHeight>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>87.603%</panelHeight>
     <panelStyleList/>
-    <panelWidth>71.797%</panelWidth>
-    <panelX>1.1719%</panelX>
-    <panelY>1.0702%</panelY>
+    <panelWidth>71.787%</panelWidth>
+    <panelX>28.213%</panelX>
+    <panelY>12.397%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
-    <userControlsAvailable>false</userControlsAvailable>
+  </UITest>
+  <UITest name="b">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <LinkableDisplayObject name="a">
+        <children encoding="dynamic"/>
+        <eventListeners/>
+        <properties>
+          <loadForCompatibility>true</loadForCompatibility>
+          <percentHeight>100</percentHeight>
+          <percentWidth>100</percentWidth>
+          <source>weave.swf?file=obesity.xml&editable=false</source>
+        </properties>
+        <qualifiedClassName>mx.controls.SWFLoader</qualifiedClassName>
+      </LinkableDisplayObject>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>87.603%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>71.787%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>1.5348%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
   </UITest>
 </Weave>

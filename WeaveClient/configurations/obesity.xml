@@ -2242,7 +2242,7 @@
 		</children>
 		<closeable>true</closeable>
 		<draggable>true</draggable>
-		<enableBackground>true</enableBackground>
+		<enableBackground>false</enableBackground>
 		<helpAvailable>true</helpAvailable>
 		<hideBorders>false</hideBorders>
 		<linkColormap>false</linkColormap>
