@@ -46,7 +46,7 @@
 					<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
 	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
 										 focusIn="checkObjectWasDisposed()"/>
-					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off">
+					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
 	 					<mx:Button label="Link to global object" click="linkSelectedObject();"/>
 	 					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>

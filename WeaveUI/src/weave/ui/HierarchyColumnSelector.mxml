@@ -107,11 +107,23 @@
 				// when a column is clicked on, refresh the keyTypeCombo
 				function updateKeyTypeCombo():void
 				{
-					keyTypeCombo.dataProvider = WeaveAPI.QKeyManager.getAllKeyTypes();
-					var attribute:XML = HierarchyUtils.getLeafNodeFromPath(dimensionTreeView.selectedPath.value);
-					if (attribute)
-						keyTypeCombo.selectedLabel = attribute.attribute(AttributeColumnMetadata.KEY_TYPE);
-					keyTypeCombo.enabled = false; // temporary
+					var compatibleTypes:Array;
+					var keyType:String = null;
+					var node:XML = HierarchyUtils.getLeafNodeFromPath(dimensionTreeView.selectedPath.value);
+					if (node)
+					{
+						keyType = node.attribute(AttributeColumnMetadata.KEY_TYPE);
+						compatibleTypes = WeaveAPI.QKeyManager.getCompatibleKeyTypes(keyType);
+						compatibleTypes.push(keyType);
+						compatibleTypes.sort(Array.CASEINSENSITIVE);
+					}
+					else
+					{
+						compatibleTypes = [];
+					}
+					keyTypeCombo.dataProvider = compatibleTypes;
+					keyTypeCombo.selectedLabel = keyType;
+					keyTypeCombo.enabled = (compatibleTypes.length > 1);
 				}
 				getCallbackCollection(dynamicColumn).addGroupedCallback(this, updateKeyTypeCombo, true);
 				getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this, updateKeyTypeCombo, true);
