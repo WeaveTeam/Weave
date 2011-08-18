@@ -87,6 +87,16 @@
 				</mx:DataGrid>
 			</mx:VBox>
 		</mx:Canvas>
+		<mx:Canvas id="treeView" label="Categories" width="100%" height="100%">
+					<mx:VBox height="100%" width="100%">
+						<mx:HBox>
+							<mx:Button id="addCategory" label="Add Category..."/>
+							<mx:Button id="deleteCategory" label="Delete Category"/>
+						</mx:HBox>
+						<mx:Tree width="100%" height="100%">
+						</mx:Tree>
+					</mx:VBox>
+		</mx:Canvas>
 	</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[

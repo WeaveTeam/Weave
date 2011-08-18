@@ -194,6 +194,7 @@ public interface ISQLConfig
 		 */
 		public String connection;
 		public String schema, geometryConfigTable, dataConfigTable;
+		public String dataCategoryTable;
 	}
 
 	/**
@@ -210,7 +211,6 @@ public interface ISQLConfig
 		public static final String USER = "user";
 		public static final String PASS = "pass";
 		public static final String IS_SUPERUSER = "is_superuser";
-
 		public ConnectionInfo()
 		{
 		}

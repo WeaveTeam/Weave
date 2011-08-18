@@ -78,6 +78,8 @@ public class DatabaseConfig
 			throw new InvalidParameterException("DatabaseConfig: Geometry metadata table name not specified.");
 		if (dbInfo.dataConfigTable == null || dbInfo.dataConfigTable.length() == 0)
 			throw new InvalidParameterException("DatabaseConfig: Column metadata table name not specified.");
+		if (dbInfo.dataCategoryTable == null || dbInfo.dataConfigTable.length() == 0)
+			throw new InvalidParameterException("DatabaseConfig: Category table name not specified.");
 
 		this.connectionConfig = connectionConfig;
 		if (getConnection() == null)
@@ -96,11 +98,21 @@ public class DatabaseConfig
 		}
 		initGeometryCollectionSQLTable();
 		initAttributeColumnSQLTable();
+		try
+		{
+			initCategoryIDSQLTable();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
 	}
 
 	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
 	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
 	private final String SQLTYPE_INT = "INT";
+	private final String SQLTYPE_AUTOINC_INT = "INT NOT NULL AUTO_INCREMENT";
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();
@@ -152,7 +164,19 @@ public class DatabaseConfig
 			// ignore sql errors
 		}
 	}
-
+	private void initCategoryIDSQLTable() throws SQLException, RemoteException
+	{
+		List<String> columnNames = new Vector<String>();
+		List<String> columnTypes = new Vector<String>();
+		/* Create a table for category name -> ID mappings */
+		
+		columnNames.clear();
+		columnNames.add("category_name");
+		columnTypes.clear();
+		columnTypes.add(SQLTYPE_VARCHAR);
+		SQLUtils.createTable(getConnection(), dbInfo.schema, dbInfo.dataCategoryTable, columnNames, columnTypes);
+		
+	}
 	private void initAttributeColumnSQLTable() throws SQLException, RemoteException
 	{
 		// list column names

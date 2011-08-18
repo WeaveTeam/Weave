@@ -274,7 +274,7 @@ public class SQLConfigXML implements ISQLConfig
 		info.schema = XMLUtils.getStringFromXPath(doc, xpath, prefix + "schema");
 		info.geometryConfigTable = XMLUtils.getStringFromXPath(doc, xpath, prefix + "geometryConfigTable");
 		info.dataConfigTable = XMLUtils.getStringFromXPath(doc, xpath, prefix + "dataConfigTable");
-
+		info.dataCategoryTable = XMLUtils.getStringFromXPath(doc, xpath, prefix+ "dataCategoryTable");
 		if (info.schema.equals(""))
 			return null;
 		else

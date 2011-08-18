@@ -156,6 +156,7 @@ public final class SQLConfigManager
 				}
 				catch (Exception e)
 				{
+					//TODO Get rid of exception code dealing with failover to XML config.
 					//e.printStackTrace();
 					//System.out.println("Using configuration stored in "+configFileName);
 				}

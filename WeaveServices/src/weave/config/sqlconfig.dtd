@@ -6,6 +6,7 @@
 <!ATTLIST databaseConfig schema CDATA "">
 <!ATTLIST databaseConfig geometryConfigTable CDATA "">
 <!ATTLIST databaseConfig dataConfigTable CDATA "">
+<!ATTLIST databaseConfig dataCategoryTable CDATA "">
 
 <!ELEMENT connection EMPTY><!-- defines a connection for an SQL server -->
 <!ATTLIST connection name CDATA ""><!-- an identifying name for this connection (to be used elsewhere in the xml) -->

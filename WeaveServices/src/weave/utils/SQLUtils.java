@@ -881,7 +881,50 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-	
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param SchemaName A schema name accessible through the given connection
+	 * @param tableName The value to be used as the table name
+	 * @param columnNames The values to be used as the column names
+	 * @param columnTypes The SQL types to use when creating the ctable
+	 * @throws IllegalArgumentException 
+	 * @throws SQLException If the query fails.
+	 */
+	public static void createTable( Connection conn, String schemaName, String tableName, List<String> columnNames, List<String> columnTypes, String key) throws IllegalArgumentException, SQLException
+	{
+		if (columnNames.size() != columnTypes.size())
+			throw new IllegalArgumentException(String.format("columnNames length (%s) does not match columnTypes length (%s)", columnNames.size(), columnTypes.size()));
+		
+		//if table exists return
+		if( tableExists(conn, schemaName, tableName) )
+			return;
+		Statement stmt = null;
+		
+		String query = "CREATE TABLE " + 
+			quoteSchemaTable(conn, schemaName, tableName) + " ( ";
+		
+		for(int i = 0; i < columnNames.size(); i++)
+		{
+			if( i > 0 )
+				query += ", ";
+			query += quoteSymbol(conn, columnNames.get(i)) + " " + columnTypes.get(i);
+		}
+		query += ");";
+		try
+		{
+			stmt = conn.createStatement();
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			System.out.println(query);
+			throw e;
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
