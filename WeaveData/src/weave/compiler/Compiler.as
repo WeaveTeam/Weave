@@ -270,6 +270,7 @@ package weave.compiler
 			operators["?:"] = constants['iif'];
 			// multiple commands
 			operators[','] = function(...args):* { return args[args.length - 1]; };
+			operators['{}'] = operators[',']; // equivalent functionality but must be remembered as a different operator
 			//assignment operators -- first param becomes the parent, and the two remaining args are propertyName and value
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
@@ -435,10 +436,7 @@ package weave.compiler
 		private function compileTokens(tokens:Array):ICompiledObject
 		{
 			var i:int;
-			var subArray:Array;
-			var compiledParams:Array;
-			var open:int;
-			var close:int;
+			var token:String;
 			
 			// first step: compile quoted Strings and Numbers
 			for (i = 0; i < tokens.length; i++)
@@ -478,7 +476,7 @@ package weave.compiler
 			// next step: compile constants and variable names
 			for (i = 0; i < tokens.length; i++)
 			{
-				var token:String = tokens[i] as String;
+				token = tokens[i] as String;
 				// skip tokens that have already been compiled and skip operator tokens
 				if (token == null || operators[token] != undefined)
 					continue;
@@ -518,11 +516,23 @@ package weave.compiler
 				if (right < 0 || left < 1 || left + 1 == right || right + 1 == tokens.length)
 					break;
 				
+				// false branch includes everything after ':' and up until the next '?', ':', or ','
+				var end:int = right + 2;
+				while (end < tokens.length)
+				{
+					token = tokens[end] as String;
+					if (token && '?:,'.indexOf(token) >= 0)
+						break;
+					end++;
+				}
+				
 				if (debug)
 					trace("compiling conditional branch:", tokens.slice(left - 1, right + 2).join(' '));
+				
+				// condition includes only the token to the left of the '?'
 				var condition:ICompiledObject = compileTokens(tokens.slice(left - 1, left));
 				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right));
-				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, right + 2));
+				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, end));
 				
 				// optimization: eliminate unnecessary branch
 				var result:ICompiledObject;
@@ -531,7 +541,7 @@ package weave.compiler
 				else
 					result = compileFunctionCall(new CompiledConstant(OPERATOR_PREFIX + '?:', operators['?:']), [condition, trueBranch, falseBranch]);
 				
-				tokens.splice(left - 1, right - left + 3, result);
+				tokens.splice(left - 1, end - left + 1, result);
 			}
 			// stop if any branch operators remain
 			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
@@ -721,17 +731,19 @@ package weave.compiler
 			var compiledParams:Array;
 			var open:int;
 			var close:int;
+			var leftBracket:String;
+			var rightBracket:String;
 			while (true)
 			{
 				// find first closing bracket or '.'
 				for (close = 0; close < tokens.length; close++)
-					if ('.])'.indexOf(tokens[close]) >= 0)
+					if ('.])}'.indexOf(tokens[close]) >= 0)
 						break;
 				if (close == tokens.length || close == 0)
 					break; // possible error
 				// work backwards to the preceeding opening bracket or stop if '.'
 				for (open = close; open >= 0; open--)
-					if ('.[('.indexOf(tokens[open]) >= 0)
+					if ('.[({'.indexOf(tokens[open]) >= 0)
 						break;
 				if (open < 0 || open + 1 == tokens.length)
 					break; // possible error
@@ -760,6 +772,9 @@ package weave.compiler
 					tokens.splice(open - 1, 3, compileOperator('.', compiledParams));
 					continue;
 				}
+				
+				leftBracket = tokens[open];
+				rightBracket = tokens[close];
 
 				// cut out tokens between brackets
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
@@ -767,7 +782,7 @@ package weave.compiler
 					trace("compiling tokens (", subArray.join(' '), ")");
 				compiledParams = compileArray(subArray);
 
-				if (tokens[open] == '[') // this is either an array or a property access
+				if (leftBracket == '[') // this is either an array or a property access
 				{
 					if (compiledToken)
 					{
@@ -787,35 +802,28 @@ package weave.compiler
 					continue;
 				}
 				
-				if (tokens[open] == '{')
+				if (leftBracket == '(' && compiledToken) // if there is a compiled token to the left, this is a function call
 				{
-					// TODO
-					throw new Error("Unsupported bracket operator: '{'");
+					if (debug)
+						trace("compiling function call", decompileObject(compiledToken));
+					
+					// the token to the left is the method
+					// replace the function token, '(', and ')' tokens with a compiled function call
+					tokens.splice(open - 1, 3, compileFunctionCall(compiledToken, compiledParams));
+					continue;
 				}
-				
-				if (tokens[open] == '(')
+				else // '{' or '(' group that does not correspond to a function call
 				{
-					if (compiledToken) // if there is a compiled token to the left, this is a function call
-					{
-						if (debug)
-							trace("compiling function call", decompileObject(compiledToken));
-						
-						// the token to the left is the method
-						// replace the function token, '(', and ')' tokens with a compiled function call
-						tokens.splice(open - 1, 3, compileFunctionCall(compiledToken, compiledParams));
-						continue;
-					}
-					else // These parentheses do not correspond to a function call.
-					{
-						if (compiledParams.length == 0)
-							throw new Error("Missing expression inside '()'");
-						
-						if (compiledParams.length == 1) // single command
-							tokens.splice(open, 2, compiledParams[0]);
-						else // multiple commands
-							tokens.splice(open, 2, compileOperator(',', compiledParams));
-						continue;
-					}
+					if (compiledParams.length == 0)
+						throw new Error("Missing expression inside '" + leftBracket + rightBracket + "'");
+					
+					var op:String = leftBracket == '(' ? ',' : '{}';
+					
+					if (compiledParams.length == 1) // single command
+						tokens.splice(open, 2, compiledParams[0]);
+					else // multiple commands
+						tokens.splice(open, 2, compileOperator(op, compiledParams));
+					continue;
 				}
 				
 				break;
@@ -1047,17 +1055,20 @@ package weave.compiler
 					}
 					return result;
 				}
+				// variable number of params
 				if (op == '[]')
 					return '[' + params.join(', ') + ']'
-				if (call.compiledParams.length == 1)
-					return op + params[0];
-				if (call.compiledParams.length == 2)
-					return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
-				if (call.compiledParams.length == 3 && op == '?:')
-					return StringUtil.substitute("({0} ? {1} : {2})", params);
-				
+				if (op == '{}')
+					return '{' + params.join(', ') + '}';
 				if (op == ',')
-					name = ''; // clear name and use the parentheses code below
+					return '(' + params.join(', ') + ')';
+				
+				if (call.compiledParams.length == 1) // unary op
+					return op + params[0];
+				if (call.compiledParams.length == 2) // infix op
+					return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
+				if (call.compiledParams.length == 3 && op == '?:') // ternary op
+					return StringUtil.substitute("({0} ? {1} : {2})", params);
 			}
 
 			return name + '(' + params.join(', ') + ')';
