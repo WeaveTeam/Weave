@@ -78,32 +78,67 @@ public class SQLGeometryStreamReader
 		String query = "";
 		try
 		{
-			// copy binary data to stream
-			stmt = conn.createStatement();
-			query = "SELECT ";
-			String[] names = new String[]{
-				SQLGeometryStreamDestination.MIN_IMPORTANCE, SQLGeometryStreamDestination.MAX_IMPORTANCE,
-				SQLGeometryStreamDestination.X_MIN_BOUNDS, SQLGeometryStreamDestination.Y_MIN_BOUNDS,
-				SQLGeometryStreamDestination.X_MAX_BOUNDS, SQLGeometryStreamDestination.Y_MAX_BOUNDS,
-				SQLGeometryStreamDestination.TILE_ID
-			};
-			for (int i = 0; i < names.length; i++)
+			try
 			{
-				if (i > 0)
-					query += ", ";
-				query += SQLUtils.quoteSymbol(conn, names[i]);
+				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- FIND A BETTER SOLUTION LATER
+				// copy binary data to stream
+				stmt = conn.createStatement();
+				query = "SELECT ";
+				String[] names = new String[]{
+					SQLGeometryStreamDestination.MIN_IMPORTANCE.toLowerCase(), SQLGeometryStreamDestination.MAX_IMPORTANCE.toLowerCase(),
+					SQLGeometryStreamDestination.X_MIN_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MIN_BOUNDS.toLowerCase(),
+					SQLGeometryStreamDestination.X_MAX_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MAX_BOUNDS.toLowerCase(),
+					SQLGeometryStreamDestination.TILE_ID.toLowerCase()
+				};
+				for (int i = 0; i < names.length; i++)
+				{
+					if (i > 0)
+						query += ", ";
+					query += SQLUtils.quoteSymbol(conn, names[i]);
+				}
+				query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
+				query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID.toLowerCase());
+				rs = stmt.executeQuery(query);
+				while (rs.next())
+				{
+					data.writeFloat(rs.getFloat(1));
+					data.writeFloat(rs.getFloat(2));
+					data.writeDouble(rs.getDouble(3));
+					data.writeDouble(rs.getDouble(4));
+					data.writeDouble(rs.getDouble(5));
+					data.writeDouble(rs.getDouble(6));
+				}
+				// END HACK
 			}
-			query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
-			query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID);
-			rs = stmt.executeQuery(query);
-			while (rs.next())
+			catch (SQLException e)
 			{
-				data.writeFloat(rs.getFloat(1));
-				data.writeFloat(rs.getFloat(2));
-				data.writeDouble(rs.getDouble(3));
-				data.writeDouble(rs.getDouble(4));
-				data.writeDouble(rs.getDouble(5));
-				data.writeDouble(rs.getDouble(6));
+				// copy binary data to stream
+				stmt = conn.createStatement();
+				query = "SELECT ";
+				String[] names = new String[]{
+						SQLGeometryStreamDestination.MIN_IMPORTANCE, SQLGeometryStreamDestination.MAX_IMPORTANCE,
+						SQLGeometryStreamDestination.X_MIN_BOUNDS, SQLGeometryStreamDestination.Y_MIN_BOUNDS,
+						SQLGeometryStreamDestination.X_MAX_BOUNDS, SQLGeometryStreamDestination.Y_MAX_BOUNDS,
+						SQLGeometryStreamDestination.TILE_ID
+				};
+				for (int i = 0; i < names.length; i++)
+				{
+					if (i > 0)
+						query += ", ";
+					query += SQLUtils.quoteSymbol(conn, names[i]);
+				}
+				query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
+				query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID);
+				rs = stmt.executeQuery(query);
+				while (rs.next())
+				{
+					data.writeFloat(rs.getFloat(1));
+					data.writeFloat(rs.getFloat(2));
+					data.writeDouble(rs.getDouble(3));
+					data.writeDouble(rs.getDouble(4));
+					data.writeDouble(rs.getDouble(5));
+					data.writeDouble(rs.getDouble(6));
+				}
 			}
 		}
 		finally
@@ -131,21 +166,45 @@ public class SQLGeometryStreamReader
 		ResultSet rs = null;
 		try
 		{
-			String dbms = conn.getMetaData().getDatabaseProductName();
-			// loop through tileIDs, copying binary data to stream
-			cstmt = conn.prepareCall(
-				"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA) +
-				" FROM " + SQLUtils.quoteSchemaTable(dbms, schema, table) +
-				" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID) + " = ?"
-			);
-			for (int i = 0; i < tileIDs.size(); i++)
+			try
 			{
-				cstmt.setInt(1, tileIDs.get(i));
-				rs = cstmt.executeQuery();
-				while (rs.next())
-					data.write(rs.getBytes(1));
-				rs.close();
-				rs = null;
+				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- FIND A BETTER SOLUTION LATER
+				String dbms = conn.getMetaData().getDatabaseProductName();
+				// loop through tileIDs, copying binary data to stream
+				cstmt = conn.prepareCall(
+						"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA.toLowerCase()) +
+						" FROM " + SQLUtils.quoteSchemaTable(dbms, schema, table) +
+						" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID.toLowerCase()) + " = ?"
+				);
+				for (int i = 0; i < tileIDs.size(); i++)
+				{
+					cstmt.setInt(1, tileIDs.get(i));
+					rs = cstmt.executeQuery();
+					while (rs.next())
+						data.write(rs.getBytes(1));
+					rs.close();
+					rs = null;
+				}
+				// END HACK
+			}
+			catch (SQLException e)
+			{
+				String dbms = conn.getMetaData().getDatabaseProductName();
+				// loop through tileIDs, copying binary data to stream
+				cstmt = conn.prepareCall(
+						"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA) +
+						" FROM " + SQLUtils.quoteSchemaTable(dbms, schema, table) +
+						" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID) + " = ?"
+				);
+				for (int i = 0; i < tileIDs.size(); i++)
+				{
+					cstmt.setInt(1, tileIDs.get(i));
+					rs = cstmt.executeQuery();
+					while (rs.next())
+						data.write(rs.getBytes(1));
+					rs.close();
+					rs = null;
+				}
 			}
 		}
 		finally
