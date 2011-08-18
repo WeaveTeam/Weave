@@ -47,7 +47,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
-			import weave.compiler.MathLib;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -432,8 +432,8 @@
 			{
 				if ( _regressionPlotter.drawLine.value )
 				{
-					var slope:Number = MathLib.roundSignificant(_regressionPlotter.getSlope(), 4);
-					var intercept:Number = MathLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
+					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
+					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
 					lineEquation.text = "Equation: y = " + slope + "x"+ " + " + intercept;
 					equationText.text = "slope = " + slope + "\nintercept = " + intercept;
 					if (equationText.parent != this)

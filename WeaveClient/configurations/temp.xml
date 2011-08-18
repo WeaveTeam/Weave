@@ -30,11 +30,13 @@
     <enableAddPieChart>true</enableAddPieChart>
     <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
     <enableAddRadViz>true</enableAddRadViz>
+    <enableAddRamachandranPlot>false</enableAddRamachandranPlot>
     <enableAddRScriptEditor>true</enableAddRScriptEditor>
     <enableAddScatterplot>true</enableAddScatterplot>
     <enableAddThermometerTool>true</enableAddThermometerTool>
     <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
     <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+    <enableBitmapFilters>true</enableBitmapFilters>
     <enableCascadeAllWindows>true</enableCascadeAllWindows>
     <enableClearCurrentSelection>true</enableClearCurrentSelection>
     <enableCloseAllWindows>true</enableCloseAllWindows>
@@ -76,10 +78,13 @@
     <enableTaskbar>true</enableTaskbar>
     <enableTileAllWindows>true</enableTileAllWindows>
     <enableToolAttributeEditing>true</enableToolAttributeEditing>
+    <enableToolControls>true</enableToolControls>
     <enableToolProbe>true</enableToolProbe>
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
+    <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
+    <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
     <panelTitleFontColor>16777215</panelTitleFontColor>
@@ -87,6 +92,7 @@
     <panelTitleFontItalic>false</panelTitleFontItalic>
     <panelTitleFontSize>10</panelTitleFontSize>
     <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
     <probeInnerGlowAlpha>1</probeInnerGlowAlpha>
     <probeInnerGlowBlur>5</probeInnerGlowBlur>
     <probeInnerGlowColor>16777215</probeInnerGlowColor>
@@ -117,8 +123,8 @@
     <version>1.0 Beta Nightly Build</version>
     <windowSnapGridSize>5</windowSnapGridSize>
   </WeaveProperties>
-  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
-  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
     <included/>
@@ -163,7 +169,7 @@
               <hierarchy>
                 <category name="DataTables">
                   <category name="Obesity">
-                    <attribute min="0" keyType="US State FIPS Code" name="Percent Obese 1995" dataTable="Obesity" max="40" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" name="Percent Obese 1995" geometryCollection="States" max="40" dataTable="Obesity" min="0"/>
                   </category>
                 </category>
               </hierarchy>
@@ -173,7 +179,7 @@
       </ReferencedColumn>
     </internalDynamicColumn>
   </FilteredColumn>
-  <KeySet name="defaultSelectionKeySet"/>
+  <KeySet name="defaultSelectionKeySet">US State FIPS Code,08</KeySet>
   <KeySet name="defaultProbeKeySet"/>
   <WeaveDataSource name="OpenIndicatorsDataSource">
     <attributeHierarchy encoding="xml">
@@ -1147,37 +1153,37 @@
           <category name="number of farms by state"/>
           <category name="number of nonprofits by state"/>
           <category name="obesity">
-            <attribute keyType="US State FIPS Code" id="53566" dataTable="obesity" name="US State FIPS Code"/>
-            <attribute keyType="US State FIPS Code" id="53567" dataTable="obesity" name="State"/>
-            <attribute keyType="US State FIPS Code" id="53568" dataTable="obesity" name="Percent Obese 1995"/>
-            <attribute keyType="US State FIPS Code" id="53569" dataTable="obesity" name="Percent Obese 1996"/>
-            <attribute keyType="US State FIPS Code" id="53570" dataTable="obesity" name="Percent Obese 1997"/>
-            <attribute keyType="US State FIPS Code" id="53571" dataTable="obesity" name="Percent Obese 1998"/>
-            <attribute keyType="US State FIPS Code" id="53572" dataTable="obesity" name="Percent Obese 1999"/>
-            <attribute keyType="US State FIPS Code" id="53573" dataTable="obesity" name="Percent Obese 2000"/>
-            <attribute keyType="US State FIPS Code" id="53574" dataTable="obesity" name="Percent Obese 2001"/>
-            <attribute keyType="US State FIPS Code" id="53575" dataTable="obesity" name="Percent Obese 2002"/>
-            <attribute keyType="US State FIPS Code" id="53576" dataTable="obesity" name="Percent Obese 2003"/>
-            <attribute keyType="US State FIPS Code" id="53577" dataTable="obesity" name="Percent Obese 2004"/>
-            <attribute keyType="US State FIPS Code" id="53578" dataTable="obesity" name="Percent Obese 2005"/>
-            <attribute keyType="US State FIPS Code" id="53579" dataTable="obesity" name="Percent Obese 2006"/>
-            <attribute keyType="US State FIPS Code" id="53580" dataTable="obesity" name="Percent Obese 2007"/>
+            <attribute keyType="US State FIPS Code" name="US State FIPS Code" id="53566" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="State" id="53567" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 1995" id="53568" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 1996" id="53569" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 1997" id="53570" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 1998" id="53571" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 1999" id="53572" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2000" id="53573" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2001" id="53574" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2002" id="53575" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2003" id="53576" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2004" id="53577" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2005" id="53578" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2006" id="53579" dataTable="obesity"/>
+            <attribute keyType="US State FIPS Code" name="Percent Obese 2007" id="53580" dataTable="obesity"/>
           </category>
           <category name="Obesity">
-            <attribute keyType="US State FIPS Code" id="68866" dataTable="Obesity" name="State" geometryCollection="States"/>
-            <attribute id="68867" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 1995" dataTable="Obesity" min="0"/>
-            <attribute id="68868" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 1996" dataTable="Obesity" min="0"/>
-            <attribute id="68869" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 1997" dataTable="Obesity" min="0"/>
-            <attribute id="68870" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 1998" dataTable="Obesity" min="0"/>
-            <attribute id="68871" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 1999" dataTable="Obesity" min="0"/>
-            <attribute id="68872" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2000" dataTable="Obesity" min="0"/>
-            <attribute id="68873" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2001" dataTable="Obesity" min="0"/>
-            <attribute id="68874" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2002" dataTable="Obesity" min="0"/>
-            <attribute id="68875" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2003" dataTable="Obesity" min="0"/>
-            <attribute id="68876" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2004" dataTable="Obesity" min="0"/>
-            <attribute id="68877" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2005" dataTable="Obesity" min="0"/>
-            <attribute id="68878" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2006" dataTable="Obesity" min="0"/>
-            <attribute id="68879" max="40" geometryCollection="States" keyType="US State FIPS Code" name="Percent Obese 2007" dataTable="Obesity" min="0"/>
+            <attribute keyType="US State FIPS Code" id="68866" geometryCollection="States" name="State" dataTable="Obesity"/>
+            <attribute keyType="US State FIPS Code" id="68867" max="40" dataTable="Obesity" min="0" name="Percent Obese 1995" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68868" max="40" dataTable="Obesity" min="0" name="Percent Obese 1996" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68869" max="40" dataTable="Obesity" min="0" name="Percent Obese 1997" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68870" max="40" dataTable="Obesity" min="0" name="Percent Obese 1998" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68871" max="40" dataTable="Obesity" min="0" name="Percent Obese 1999" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68872" max="40" dataTable="Obesity" min="0" name="Percent Obese 2000" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68873" max="40" dataTable="Obesity" min="0" name="Percent Obese 2001" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68874" max="40" dataTable="Obesity" min="0" name="Percent Obese 2002" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68875" max="40" dataTable="Obesity" min="0" name="Percent Obese 2003" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68876" max="40" dataTable="Obesity" min="0" name="Percent Obese 2004" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68877" max="40" dataTable="Obesity" min="0" name="Percent Obese 2005" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68878" max="40" dataTable="Obesity" min="0" name="Percent Obese 2006" geometryCollection="States"/>
+            <attribute keyType="US State FIPS Code" id="68879" max="40" dataTable="Obesity" min="0" name="Percent Obese 2007" geometryCollection="States"/>
           </category>
           <category name="obesity by state"/>
           <category name="Obesity Years"/>
@@ -1516,7 +1522,7 @@
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -1550,7 +1556,7 @@
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -1586,70 +1592,70 @@
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Cities_WGS2" name="Weave:Cities_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="WATERSHEDShuc12_nrcs_WGS2" name="Weave:WATERSHEDShuc12_nrcs_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="Points_of_Interest_WGS" name="Weave:Points_of_Interest_WGS">
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="OBJECTID" featureTypeName="Weave:Points_of_Interest_WGS" title="OBJECTID" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Type" featureTypeName="Weave:Points_of_Interest_WGS" title="Type" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Class" featureTypeName="Weave:Points_of_Interest_WGS" title="Class" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Name" featureTypeName="Weave:Points_of_Interest_WGS" title="Name" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Street_Address" featureTypeName="Weave:Points_of_Interest_WGS" title="Street_Address" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Jurisdiction" featureTypeName="Weave:Points_of_Interest_WGS" title="Jurisdiction" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ZipCode" featureTypeName="Weave:Points_of_Interest_WGS" title="ZipCode" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Sub_Type" featureTypeName="Weave:Points_of_Interest_WGS" title="Sub_Type" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Updated" featureTypeName="Weave:Points_of_Interest_WGS" title="Updated" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Source" featureTypeName="Weave:Points_of_Interest_WGS" title="Source" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="TAZ" featureTypeName="Weave:Points_of_Interest_WGS" title="TAZ" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Alt_Name" featureTypeName="Weave:Points_of_Interest_WGS" title="Alt_Name" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="SigYEARS" featureTypeName="Weave:Points_of_Interest_WGS" title="SigYEARS" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="County" featureTypeName="Weave:Points_of_Interest_WGS" title="County" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="PROP_ID" featureTypeName="Weave:Points_of_Interest_WGS" title="PROP_ID" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="NET_RENT" featureTypeName="Weave:Points_of_Interest_WGS" title="NET_RENT" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="GROSS_BLDG" featureTypeName="Weave:Points_of_Interest_WGS" title="GROSS_BLDG" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="GROSS_LEAS" featureTypeName="Weave:Points_of_Interest_WGS" title="GROSS_LEAS" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="YEAR_BUILT" featureTypeName="Weave:Points_of_Interest_WGS" title="YEAR_BUILT" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="PHONE" featureTypeName="Weave:Points_of_Interest_WGS" title="PHONE" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ID" featureTypeName="Weave:Points_of_Interest_WGS" title="ID" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="FIRE_DISTR" featureTypeName="Weave:Points_of_Interest_WGS" title="FIRE_DISTR" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="TYPE_NAME" featureTypeName="Weave:Points_of_Interest_WGS" title="TYPE_NAME" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="HEIGHT" featureTypeName="Weave:Points_of_Interest_WGS" title="HEIGHT" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="FLOORS" featureTypeName="Weave:Points_of_Interest_WGS" title="FLOORS" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="SQFT" featureTypeName="Weave:Points_of_Interest_WGS" title="SQFT" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="CAPACITY" featureTypeName="Weave:Points_of_Interest_WGS" title="CAPACITY" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ACRES" featureTypeName="Weave:Points_of_Interest_WGS" title="ACRES" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="PARKING" featureTypeName="Weave:Points_of_Interest_WGS" title="PARKING" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="BEDS" featureTypeName="Weave:Points_of_Interest_WGS" title="BEDS" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ROOMS" featureTypeName="Weave:Points_of_Interest_WGS" title="ROOMS" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ACRES_DEVE" featureTypeName="Weave:Points_of_Interest_WGS" title="ACRES_DEVE" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="LEASING_AG" featureTypeName="Weave:Points_of_Interest_WGS" title="LEASING_AG" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="IND_ACRES" featureTypeName="Weave:Points_of_Interest_WGS" title="IND_ACRES" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="IND_BLDGS" featureTypeName="Weave:Points_of_Interest_WGS" title="IND_BLDGS" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="OWNER_DEVE" featureTypeName="Weave:Points_of_Interest_WGS" title="OWNER_DEVE" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="COMPANIES" featureTypeName="Weave:Points_of_Interest_WGS" title="COMPANIES" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="REMYRS_03" featureTypeName="Weave:Points_of_Interest_WGS" title="REMYRS_03" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="SCH_DIST" featureTypeName="Weave:Points_of_Interest_WGS" title="SCH_DIST" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Description" featureTypeName="Weave:Points_of_Interest_WGS" title="Description" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="OFFICE_SQF" featureTypeName="Weave:Points_of_Interest_WGS" title="OFFICE_SQF" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="NO_BLDGS" featureTypeName="Weave:Points_of_Interest_WGS" title="NO_BLDGS" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ACRE_DEVEL" featureTypeName="Weave:Points_of_Interest_WGS" title="ACRE_DEVEL" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="INMATES" featureTypeName="Weave:Points_of_Interest_WGS" title="INMATES" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="OPENED" featureTypeName="Weave:Points_of_Interest_WGS" title="OPENED" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="NO__BUSES" featureTypeName="Weave:Points_of_Interest_WGS" title="NO__BUSES" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="FACID" featureTypeName="Weave:Points_of_Interest_WGS" title="FACID" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="STATEID" featureTypeName="Weave:Points_of_Interest_WGS" title="STATEID" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ABBREV" featureTypeName="Weave:Points_of_Interest_WGS" title="ABBREV" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="OPENDATE" featureTypeName="Weave:Points_of_Interest_WGS" title="OPENDATE" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="WORTHY" featureTypeName="Weave:Points_of_Interest_WGS" title="WORTHY" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="OWNER" featureTypeName="Weave:Points_of_Interest_WGS" title="OWNER" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="MAJOR" featureTypeName="Weave:Points_of_Interest_WGS" title="MAJOR" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="STORES" featureTypeName="Weave:Points_of_Interest_WGS" title="STORES" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="OCCUPANCY" featureTypeName="Weave:Points_of_Interest_WGS" title="OCCUPANCY" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="ADDRESS2" featureTypeName="Weave:Points_of_Interest_WGS" title="ADDRESS2" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="BUILDIRN" featureTypeName="Weave:Points_of_Interest_WGS" title="BUILDIRN" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="DISTIRN" featureTypeName="Weave:Points_of_Interest_WGS" title="DISTIRN" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="GRADESPAN" featureTypeName="Weave:Points_of_Interest_WGS" title="GRADESPAN" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Est_Teache" featureTypeName="Weave:Points_of_Interest_WGS" title="Est_Teache" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="STATUS" featureTypeName="Weave:Points_of_Interest_WGS" title="STATUS" dataType="String"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Total___of_Employees" featureTypeName="Weave:Points_of_Interest_WGS" title="Total___of_Employees" dataType="Number"/>
-          <attribute keyType="Weave:Points_of_Interest_WGS" name="Est_Enroll" featureTypeName="Weave:Points_of_Interest_WGS" title="Est_Enroll" dataType="Number"/>
-          <attribute projectionSRS="6.9:4326" name="Shape" featureTypeName="Weave:Points_of_Interest_WGS" keyType="Weave:Points_of_Interest_WGS" title="Shape" dataType="Geometry"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="OBJECTID" title="OBJECTID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="Type" title="Type" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Class" title="Class" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Name" title="Name" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Street_Address" title="Street_Address" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Jurisdiction" title="Jurisdiction" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="ZipCode" title="ZipCode" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Sub_Type" title="Sub_Type" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="Updated" title="Updated" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Source" title="Source" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="TAZ" title="TAZ" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Alt_Name" title="Alt_Name" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="SigYEARS" title="SigYEARS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="County" title="County" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="PROP_ID" title="PROP_ID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="NET_RENT" title="NET_RENT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="GROSS_BLDG" title="GROSS_BLDG" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="GROSS_LEAS" title="GROSS_LEAS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="YEAR_BUILT" title="YEAR_BUILT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="PHONE" title="PHONE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="ID" title="ID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="FIRE_DISTR" title="FIRE_DISTR" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="TYPE_NAME" title="TYPE_NAME" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="HEIGHT" title="HEIGHT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="FLOORS" title="FLOORS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="SQFT" title="SQFT" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="CAPACITY" title="CAPACITY" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="ACRES" title="ACRES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="PARKING" title="PARKING" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="BEDS" title="BEDS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="ROOMS" title="ROOMS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="ACRES_DEVE" title="ACRES_DEVE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="LEASING_AG" title="LEASING_AG" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="IND_ACRES" title="IND_ACRES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="IND_BLDGS" title="IND_BLDGS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="OWNER_DEVE" title="OWNER_DEVE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="COMPANIES" title="COMPANIES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="REMYRS_03" title="REMYRS_03" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="SCH_DIST" title="SCH_DIST" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="Description" title="Description" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="OFFICE_SQF" title="OFFICE_SQF" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="NO_BLDGS" title="NO_BLDGS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="ACRE_DEVEL" title="ACRE_DEVEL" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="INMATES" title="INMATES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="OPENED" title="OPENED" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="NO__BUSES" title="NO__BUSES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="FACID" title="FACID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="STATEID" title="STATEID" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="ABBREV" title="ABBREV" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="OPENDATE" title="OPENDATE" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="WORTHY" title="WORTHY" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="OWNER" title="OWNER" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="MAJOR" title="MAJOR" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="STORES" title="STORES" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="OCCUPANCY" title="OCCUPANCY" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="ADDRESS2" title="ADDRESS2" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="BUILDIRN" title="BUILDIRN" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="DISTIRN" title="DISTIRN" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="GRADESPAN" title="GRADESPAN" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="Est_Teache" title="Est_Teache" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="String" name="STATUS" title="STATUS" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="Total___of_Employees" title="Total___of_Employees" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Number" name="Est_Enroll" title="Est_Enroll" featureTypeName="Weave:Points_of_Interest_WGS"/>
+          <attribute keyType="Weave:Points_of_Interest_WGS" dataType="Geometry" name="Shape" projectionSRS="6.9:4326" title="Shape" featureTypeName="Weave:Points_of_Interest_WGS"/>
         </category>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:4326" title="SchoolDistricts_WGS2" name="Weave:SchoolDistricts_WGS2"/>
         <category defaultSRS="urn:ogc:def:crs:EPSG:6.9:3735" title="COTA_Routes" name="Weave:COTA_Routes"/>
@@ -1658,7 +1664,54 @@
     </attributeHierarchy>
     <url>http://arcserver.morpc.org/arcgis/services/Weave/MapServer/WFSServer</url>
   </WFSDataSource>
-  <MapTool name="MapTool">
+  <EquationColumn name="EquationEditorColumn">
+    <columnTitle>equation</columnTitle>
+    <dataType/>
+    <equation>((this.equation.setSessionState(replace(this.equation.value, ", ", ",  ".substr(0, 2))) == undefined) &amp;&amp; 'done')</equation>
+    <keyColumn encoding="dynamic"/>
+    <variables encoding="dynamic">
+      <ReferencedColumn name="obese1995">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="Obesity">
+                    <attribute year="" keyType="US State FIPS Code" name="Percent Obese 1995" dataTable="Obesity"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+      <ReferencedColumn name="obese2007">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables">
+                  <category name="Obesity">
+                    <attribute keyType="US State FIPS Code" id="68879" max="40" dataTable="Obesity" min="0" name="Percent Obese 2007" geometryCollection="States"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </variables>
+  </EquationColumn>
+  <EquationColumn name="EquationEditorColumn2">
+    <columnTitle>Equation Column</columnTitle>
+    <dataType/>
+    <equation>(getKey(obese1995a) == getQKey('a', 'b'))+'; '+('a ' + ((getKey(obese1995a) == getQKey('a', 'b')) ? 'yes' : ('?' + applyMethod(this, 'getValueFromKey', getQKey('a', 'b')))))</equation>
+    <keyColumn encoding="dynamic"/>
+    <variables encoding="dynamic"/>
+  </EquationColumn>
+  <DataTableTool name="DataTableTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -1671,127 +1724,19 @@
         <axisFontItalic>false</axisFontItalic>
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
-        <dataBounds>
-          <xMax>180</xMax>
-          <xMin>-180</xMin>
-          <yMax>85.62758747368427</yMax>
-          <yMin>-92.00399147368417</yMin>
-        </dataBounds>
         <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
         <enableSelection>true</enableSelection>
         <enableZoomAndPan>true</enableZoomAndPan>
         <gridLineAlpha>NaN</gridLineAlpha>
         <gridLineColor>NaN</gridLineColor>
         <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <enableBitmapFilters>true</enableBitmapFilters>
-            <layerIsSelectable>false</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="GeometryCollections">
-                                <attribute dataType="Geometry" name="World Borders"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointShapeSize>5</pointShapeSize>
-                <spatialCallbacks/>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-        </layers>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic"/>
         <marginBottom>0</marginBottom>
         <marginLeft>0</marginLeft>
         <marginRight>0</marginRight>
@@ -1799,35 +1744,180 @@
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>20</shadowAmount>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>NaN</xMax>
+          <xMin>NaN</xMin>
+          <yMax>NaN</yMax>
+          <yMin>NaN</yMin>
+        </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
     <closeable>true</closeable>
+    <columns encoding="dynamic">
+      <DynamicColumn encoding="dynamic" name="DynamicColumn">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category name="DataTables">
+                    <category name="Obesity">
+                      <attribute year="" keyType="US State FIPS Code" name="State" dataTable="Obesity"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn encoding="dynamic" name="DynamicColumn2">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category name="DataTables">
+                    <category name="Obesity">
+                      <attribute year="" keyType="US State FIPS Code" name="Percent Obese 1995" dataTable="Obesity"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn encoding="dynamic" name="DynamicColumn3">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category name="DataTables">
+                    <category name="Obesity">
+                      <attribute year="" keyType="US State FIPS Code" name="Percent Obese 2007" dataTable="Obesity"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <ReferencedColumn name="ReferencedColumn">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName/>
+            <hierarchyPath encoding="xml">
+              <hierarchy title="Equations">
+                <attribute title="equation" name="EquationEditorColumn"/>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+      <ReferencedColumn name="ReferencedColumn3">
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName/>
+            <hierarchyPath encoding="xml">
+              <hierarchy title="Equations">
+                <attribute title="Equation Column" name="EquationEditorColumn2"/>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </columns>
+    <columnWidths encoding="dynamic">
+      <LinkableString name="DynamicColumn">15%</LinkableString>
+      <LinkableString name="DynamicColumn2">15%</LinkableString>
+      <LinkableString name="DynamicColumn3">15%</LinkableString>
+      <LinkableString name="ReferencedColumn">13%</LinkableString>
+      <LinkableString name="ReferencedColumn3">38%</LinkableString>
+    </columnWidths>
     <draggable>true</draggable>
-    <enableBackground>true</enableBackground>
     <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
-    <enableOverview>false</enableOverview>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <enableTitle>false</enableTitle>
+    <filterByKeyType/>
+    <lockedColumns>0</lockedColumns>
     <maximizable>true</maximizable>
-    <maximized>true</maximized>
+    <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>50%</panelHeight>
+    <panelHeight>99.656%</panelHeight>
     <panelStyleList/>
-    <panelWidth>50%</panelWidth>
-    <panelX>25%</panelX>
-    <panelY>25%</panelY>
+    <panelWidth>65.036%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>0%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
     <pinnedToBack>false</pinnedToBack>
-    <projectionSRS/>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
+    <showControls>false</showControls>
+    <sortFieldIndex>0</sortFieldIndex>
+    <sortInDescendingOrder>false</sortInDescendingOrder>
     <toolTitle/>
-  </MapTool>
+  </DataTableTool>
+  <EquationEditor name="EquationEditor2">
+    <buttonRadius>3</buttonRadius>
+    <closeable>false</closeable>
+    <draggable>true</draggable>
+    <dynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="EquationEditorColumn2"/>
+    </dynamicColumn>
+    <enableBorders>true</enableBorders>
+    <maximizable>false</maximizable>
+    <maximized>false</maximized>
+    <minimizable>false</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>50.401%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>59.964%</panelWidth>
+    <panelX>39.976%</panelX>
+    <panelY>49.255%</panelY>
+    <pinnable>false</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+  </EquationEditor>
+  <EquationEditor name="EquationEditor">
+    <buttonRadius>3</buttonRadius>
+    <closeable>false</closeable>
+    <draggable>true</draggable>
+    <dynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="EquationEditorColumn"/>
+    </dynamicColumn>
+    <enableBorders>true</enableBorders>
+    <maximizable>false</maximizable>
+    <maximized>false</maximized>
+    <minimizable>false</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>50.401%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>60.263%</panelWidth>
+    <panelX>32.518%</panelX>
+    <panelY>26.346%</panelY>
+    <pinnable>false</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+  </EquationEditor>
 </Weave>

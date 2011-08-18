@@ -75,6 +75,11 @@ package weave.services
 			return servlet.invokeAsyncMethod("getAttributeColumn", params);
 		}
 		
+		public function getAttributeColumnFromMetadata(Metadata:Object):AsyncToken
+		{
+			return servlet.invokeAsyncMethod("getAttributeColumn", arguments);
+		}
+		
 		// async result is a GeometryStreamMetadata object
 		public function getTileDescriptors(geometryCollectionName:String):AsyncToken
 		{

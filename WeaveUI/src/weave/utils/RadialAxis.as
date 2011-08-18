@@ -28,7 +28,7 @@ package weave.utils
 	
 	import weave.Weave;
 	import weave.api.primitives.IBounds2D;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * A class for dealing with the radial axis problem.   
@@ -149,7 +149,7 @@ package weave.utils
 					p.x = cos*labelsRadius;
 					p.y = sin*labelsRadius;
 					dataBounds.projectPointTo(p, screenBounds);
-					tickMarkLabel.text = ""+MathLib.roundSignificant(value,8);//formatter.format(value);
+					tickMarkLabel.text = ""+StandardLib.roundSignificant(value,8);//formatter.format(value);
 					tickMarkLabel.x = p.x;
 					tickMarkLabel.y = p.y;
 					tickMarkLabel.textFormat.size = Weave.properties.axisFontSize.value;

@@ -103,7 +103,7 @@ package weave.visualization.plotters
 		}
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
-		public const drawPartialBins:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
+		public const drawPartialBins:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
 		
 		/**
 		 * This function returns the collective bounds of all the bins.

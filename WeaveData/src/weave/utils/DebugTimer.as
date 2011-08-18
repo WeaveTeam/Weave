@@ -21,7 +21,7 @@ package weave.utils
 {
 	import flash.utils.getTimer;
 	
-	import weave.compiler.StringLib;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * DebugTimer
@@ -106,8 +106,8 @@ package weave.utils
 		{
 			var elapsedTime:int = (getTimer() - debugTimes.pop());
 			var elapsed:String = '['+elapsedTime+' ms elapsed] ';
-			var elapsedIndent:String = StringLib.lpad('| ', elapsed.length);
-			var indent:String = StringLib.rpad('', debugTimes.length * 2, '| ');
+			var elapsedIndent:String = StandardLib.lpad('| ', elapsed.length);
+			var indent:String = StandardLib.rpad('', debugTimes.length * 2, '| ');
 			var lines:Array = debugStrings.join(' ').split('\n');
 			for (var i:int = 0; i < lines.length; i++)
 			{

@@ -30,7 +30,7 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -229,7 +229,7 @@ package weave.visualization.layers
 		public function setZoomLevel(newZoomLevel:Number):void
 		{
 			var currentZoomLevel:Number = getZoomLevel();
-			var newConstrainedZoomLevel:Number = MathLib.constrain(newZoomLevel, minZoomLevel.value, maxZoomLevel.value);
+			var newConstrainedZoomLevel:Number = StandardLib.constrain(newZoomLevel, minZoomLevel.value, maxZoomLevel.value);
 			if (newConstrainedZoomLevel != currentZoomLevel)
 			{
 				var scale:Number = 1 / Math.pow(2, newConstrainedZoomLevel - currentZoomLevel);

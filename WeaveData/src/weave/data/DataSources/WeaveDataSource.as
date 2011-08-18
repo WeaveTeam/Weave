@@ -39,6 +39,7 @@ package weave.data.DataSources
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
+	import weave.core.LinkableXML;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -104,8 +105,31 @@ package weave.data.DataSources
 		override protected function handleHierarchyChange():void
 		{
 			super.handleHierarchyChange();
-			convertOldHierarchyFormat(_attributeHierarchy.value);
+			_convertOldHierarchyFormat(_attributeHierarchy.value);
 			_attributeHierarchy.detectChanges();
+		}
+		
+		protected function _convertOldHierarchyFormat(root:XML):void
+		{
+			convertOldHierarchyFormat(root, "category", {
+				dataTableName: "name"
+			});
+			convertOldHierarchyFormat(root, "attribute", {
+				attributeColumnName: "name",
+				dataTableName: "dataTable",
+				dataType: _convertOldDataType
+			});
+		}
+		
+		protected function _convertOldDataType(value:String):String
+		{
+			if (value == 'Geometry')
+				return DataTypes.GEOMETRY;
+			if (value == 'String')
+				return DataTypes.STRING;
+			if (value == 'Number')
+				return DataTypes.NUMBER;
+			return value;
 		}
 
 		override public function getAttributeColumn(columnReference:IColumnReference):IAttributeColumn
@@ -114,55 +138,12 @@ package weave.data.DataSources
 			if (hcr)
 			{
 				var hash:String = columnReference.getHashCode();
-				convertOldHierarchyFormat(hcr.hierarchyPath.value);
+				_convertOldHierarchyFormat(hcr.hierarchyPath.value);
 				hcr.hierarchyPath.detectChanges();
 				if (hash != columnReference.getHashCode())
 					return WeaveAPI.AttributeColumnCache.getColumn(columnReference);
 			}
 			return super.getAttributeColumn(columnReference);
-		}
-		
-		private function convertOldHierarchyFormat(root:XML):void
-		{
-			if (root == null)
-				return;
-			
-			var node:XML;
-			var oldName:String;
-			var value:String;
-			var nodes:XMLList;
-			var nameMap:Object;
-			
-			// backwards compatibility for category tags
-			nodes = root.descendants("category");
-			nameMap = {dataTableName: "name"};
-			for each (node in nodes)
-			{
-				for (oldName in nameMap)
-				{
-					value = node.attribute(oldName);
-					if (value != '')
-					{
-						delete node['@' + oldName];
-						node['@' + nameMap[oldName]] = value;
-					}
-				}
-			}
-			// backwards compatibility for attribute tags
-			nodes = root.descendants("attribute");
-			nameMap = {attributeColumnName: "name", dataTableName: "dataTable"}; // old name to new name
-			for each (node in nodes)
-			{
-				for (oldName in nameMap)
-				{
-					value = node.attribute(oldName);
-					if (value != '')
-					{
-						delete node['@' + oldName];
-						node['@' + nameMap[oldName]] = value;
-					}
-				}
-			}
 		}
 		
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
@@ -177,7 +158,7 @@ package weave.data.DataSources
 		 */
 		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
 		{
-			convertOldHierarchyFormat(subtreeNode);
+			_convertOldHierarchyFormat(subtreeNode);
 			var query:AsyncToken;
 			
 			//trace("requestHierarchyFromSource("+(subtreeNode?attributeHierarchy.getPathFromNode(subtreeNode).toXMLString():'')+")");

@@ -33,7 +33,7 @@ package weave.visualization.plotters
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -196,8 +196,8 @@ package weave.visualization.plotters
 			{
 				var tickIndex:int = parseInt(recordKey.localName);
 				tickValue = _axisDescription.tickMin + tickIndex * _axisDescription.tickDelta;
-				outputPoint.x = MathLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.xMin.value, axisLineDataBounds.xMax.value);
-				outputPoint.y = MathLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.yMin.value, axisLineDataBounds.yMax.value);
+				outputPoint.x = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.xMin.value, axisLineDataBounds.xMax.value);
+				outputPoint.y = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.yMin.value, axisLineDataBounds.yMax.value);
 			}
 			
 			return tickValue;

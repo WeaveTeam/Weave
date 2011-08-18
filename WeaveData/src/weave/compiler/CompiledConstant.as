@@ -19,11 +19,9 @@
 
 package weave.compiler
 {
-	import weave.api.compiler.ICompiledObject;
-
 	/**
 	 * This serves as a wrapper for a constant value to remember that it was compiled.
-	 * This is used in the EquationParser class to avoid parsing tokens multiple times.
+	 * This is used in the Compiler class to avoid parsing tokens multiple times.
 	 * To avoid function call overhead, no public functions are defined in this class.
 	 * 
 	 * @author adufilie

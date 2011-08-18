@@ -29,7 +29,7 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -152,7 +152,7 @@ package weave.visualization.plotters
 				
 				var internalMin:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalDynamicColumn);
 				var internalMax:Number = WeaveAPI.StatisticsCache.getMax(internalColorColumn.internalDynamicColumn);
-				var color:Number = internalColorColumn.ramp.getColorFromNorm(MathLib.normalize(binIndex, internalMin, internalMax));
+				var color:Number = internalColorColumn.ramp.getColorFromNorm(StandardLib.normalize(binIndex, internalMin, internalMax));
 				
 				var xMin:Number = screenBounds.getXNumericMin();
 				var xMax:Number = screenBounds.getXNumericMax();

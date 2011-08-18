@@ -26,7 +26,7 @@ package weave.visualization.plotters.styles
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 
 	/**
@@ -55,7 +55,7 @@ package weave.visualization.plotters.styles
 		{
 			if (enableMissingDataFillPattern.value)
 			{
-				var fillEnabled:Boolean = BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
+				var fillEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 				var fillColor:Number = color.getValueFromKey(recordKey, Number);
 				if (fillEnabled && isNaN(fillColor))
 				{

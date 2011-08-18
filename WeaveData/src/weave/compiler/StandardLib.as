@@ -20,13 +20,17 @@
 package weave.compiler
 {
 	import flash.utils.describeType;
+	
+	import mx.formatters.NumberFormatter;
+	import mx.utils.ObjectUtil;
 
 	/**
-	 * This provides a set of static functions that take Numbers as arguments and return Numbers.
+	 * This provides a set of useful static functions.
+	 * All the functions defined in this class are pure functions, meaning they always return the same result with the same arguments, and they have no side-effects.
 	 * 
 	 * @author adufilie
 	 */
-	public class MathLib
+	public class StandardLib
 	{
 		/**
 		 * This function will cast a value of any type to a Number,
@@ -34,7 +38,7 @@ package weave.compiler
 		 * @param value A value to cast to a Number.
 		 * @return The value cast to a Number, or NaN if the casting failed.
 		 */
-		public static function toNumber(value:*):Number
+		public static function asNumber(value:*):Number
 		{
 			if (value == null)
 				return NaN; // return NaN, because Number(null) == 0
@@ -53,16 +57,124 @@ package weave.compiler
 		}
 		
 		/**
-		 * neg,add,sub,mul,div,mod
-		 * These basic functions correspond to math operators -+*%/.  Then are here for EquationParser to use.
+		 * @param value A value to cast to a String.
+		 * @return The value cast to a String.
 		 */
-		public static function neg(x:Number):Number { return -x; };
-		public static function add(x:Number, y:Number):Number { return x + y; };
-		public static function sub(x:Number, y:Number):Number { return x - y; };
-		public static function mul(x:Number, y:Number):Number { return x * y; };
-		public static function div(x:Number, y:Number):Number { return x / y; };
-		public static function mod(x:Number, y:Number):Number { return x % y; };
+		public static function asString(value:*):String
+		{
+			if (value == null)
+				return '';
+			try
+			{
+				return String(value);
+			}
+			catch (e:Error) { }
+			return '';
+		}
 		
+		/**
+		 * This function attempts to derive a boolean value from different types of objects.
+		 * @param value An object to parse as a Boolean.
+		 */
+		public static function asBoolean(value:*):Boolean
+		{
+			if (value is Boolean)
+				return value;
+			if (value is String)
+				return ObjectUtil.stringCompare(value, "true", true) == 0;
+			if (isNaN(value))
+				return false;
+			if (value is Number)
+				return value != 0;
+			return value;
+		}
+		
+		public static function isDefined(value:*):Boolean
+		{
+			return !(value == undefined || (value is Number && isNaN(value)) || value == null);
+		}
+		public static function isUndefined(value:*):Boolean
+		{
+			return (value == undefined || (value is Number && isNaN(value)) || value == null);
+		}
+		
+		public static function lpad(str:String, length:uint, padString:String = ' '):String
+		{
+			if (str.length >= length)
+				return str;
+			while (str.length + padString.length < length)
+				padString += padString;
+			return padString.substr(0, length - str.length) + str;
+		}
+		public static function rpad(str:String, length:uint, padString:String = ' '):String
+		{
+			if (str.length >= length)
+				return str;
+			while (str.length + padString.length < length)
+				padString += padString;
+			return str + padString.substr(0, length - str.length);
+		}
+		
+		/**
+		 * This function performs find & replace operations on a String.
+		 * @param string A String to perform replacements on.
+		 * @param findStr A String to find.
+		 * @param replaceStr A String to replace occurrances of the 'findStr' String with.
+		 * @param moreFindAndReplace A list of additional find,replace parameters to use.
+		 * @return The String with all the specified replacements performed.
+		 */
+		public static function replace(string:String, findStr:String, replaceStr:String, ...moreFindAndReplace):String
+		{
+			string = string.split(findStr).join(replaceStr);
+			while (moreFindAndReplace.length > 1)
+			{
+				findStr = moreFindAndReplace.shift();
+				replaceStr = moreFindAndReplace.shift();
+				string = string.split(findStr).join(replaceStr);
+			}
+			return string;
+		}
+		
+		/**
+		 * @param number The Number to convert to a String.
+		 * @param base Specifies the numeric base (from 2 to 36) to use.
+		 * @param zeroPad This is the minimum number of digits to return.  The number will be padded with zeros if necessary.
+		 * @return The String representation of the number using the specified numeric base.
+		 */
+		public static function numberToBase(number:Number, base:int = 10, zeroPad:int = 1):String
+		{
+			var parts:Array = Math.abs(number).toString(base).split('.');
+			if (parts[0].length < zeroPad)
+				parts[0] = lpad(parts[0], zeroPad, '0');
+			if (number < 0)
+				parts[0] = '-' + parts[0];
+			return parts.join('.');
+		}
+		
+		/**
+		 * @param number The number to format.
+		 * @param formatterOrPrecision The NumberFormatter to use, or a precision value to use for the default NumberFormatter.
+		 */
+		public static function formatNumber(number:Number, formatterOrPrecision:Object = null):String
+		{
+			var formatter:NumberFormatter = formatterOrPrecision as NumberFormatter;
+			if (formatter)
+				return formatter.format(number);
+			
+			var precision:Number = asNumber(formatterOrPrecision);
+			if (isFinite(precision))
+				defaultNumberFormatter.precision = uint(precision);
+			else
+				defaultNumberFormatter.precision = -1;
+			
+			return defaultNumberFormatter.format(number);
+		}
+		
+		/**
+		 * This is the default NumberFormatter to use inside the formatNumber() function.
+		 */
+		private static const defaultNumberFormatter:NumberFormatter = new NumberFormatter();
+
 		/**
 		 * This function returns -1 if the given value is negative, and 1 otherwise.
 		 * @param value A value to test.
@@ -112,7 +224,7 @@ package weave.compiler
 		 * @param max The maximum value to accept.
 		 * @return If value is between min and max, returns true.  Otherwise, returns false.
 		 */
-		public static function inRange(value:Number, min:Number, max:Number):Boolean
+		public static function numberInRange(value:Number, min:Number, max:Number):Boolean
 		{
 			if (value < min || value > max)
 				return false;
@@ -152,7 +264,7 @@ package weave.compiler
 		 * @param significantDigits The desired number of significant digits in the result.
 		 * @return The number, rounded to the specified number of significant digits.
 		 */
-		public static function roundSignificant(value:Number, significantDigits:uint = 15):Number
+		public static function roundSignificant(value:Number, significantDigits:uint = 14):Number
 		{
 			// it doesn't make sense to round infinity
 			if (isNaN(value) || value == Number.NEGATIVE_INFINITY || value == Number.POSITIVE_INFINITY)

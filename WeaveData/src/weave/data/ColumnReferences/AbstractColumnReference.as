@@ -49,6 +49,8 @@ package weave.data.ColumnReferences
 			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, null, true);
 		}
 		
+		public function getMetadata(_:String):String { throw new Error("getMetadata() not implemented in AbstractColumnReference"); }
+		
 		/**
 		 * This is the name of an IDataSource in the top level session state.
 		 */

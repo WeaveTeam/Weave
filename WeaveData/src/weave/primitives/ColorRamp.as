@@ -21,7 +21,7 @@ package weave.primitives
 {
 	import flash.utils.ByteArray;
 	
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableXML;
 	import weave.utils.VectorUtils;
 	
@@ -67,7 +67,7 @@ package weave.primitives
 				var maxPos:Number = Math.max.apply(null, positions);
 				if (minPos < 0 || maxPos > 1)
 					for each (var node:Object in _colorNodes)
-						node.position = MathLib.normalize(node.position, minPos, maxPos);
+						node.position = StandardLib.normalize(node.position, minPos, maxPos);
 				
 				_colorNodes.sortOn("position");
 				
@@ -145,7 +145,7 @@ package weave.primitives
 				return leftNode.color;
 
 			var interpolationValue:Number = (normValue - leftNode.position) / (rightNode.position - leftNode.position);
-			return MathLib.interpolateColor(interpolationValue, leftNode.color, rightNode.color);
+			return StandardLib.interpolateColor(interpolationValue, leftNode.color, rightNode.color);
 		}
 
 		/************************

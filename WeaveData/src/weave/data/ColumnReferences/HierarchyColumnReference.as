@@ -21,8 +21,8 @@ package weave.data.ColumnReferences
 {
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.core.LinkableXML;
 	import weave.api.newLinkableChild;
+	import weave.core.LinkableXML;
 	import weave.utils.HierarchyUtils;
 
 	/**
@@ -35,7 +35,23 @@ package weave.data.ColumnReferences
 		public function HierarchyColumnReference()
 		{
 		}
-		
+
+		/**
+		 * This function gets metadata associated with the column.
+		 * For standard metadata property names, refer to the AttributeColumnMetadata class.
+		 * @param propertyName The name of the metadata property to retrieve.
+		 * @result The value of the specified metadata property.
+		 */
+		override public function getMetadata(propertyName:String):String
+		{
+			var _metadata:XML = HierarchyUtils.getLeafNodeFromPath(hierarchyPath.value);
+			var value:String = null;
+			if (_metadata != null && _metadata.attribute(propertyName).length() > 0)
+				value = _metadata.attribute(propertyName);
+			
+			return value;
+		}
+
 		// path in the IDataSource hierarchy
 		public const hierarchyPath:LinkableXML = newLinkableChild(this, LinkableXML, handlePathChange);
 		

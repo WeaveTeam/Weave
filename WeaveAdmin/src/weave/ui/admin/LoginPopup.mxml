@@ -50,47 +50,6 @@ Author: skolman
 				//We force the selection by passing the flash dom object to javascript and explicitly set the focus.
 				//Does not work in Chrome
 				ExternalInterface.call('function browserFocus(){var f = document.getElementById(\'AdminConsole\'); if(f){ f.tabIndex=0; f.focus();}}');
-	
-				//Sets up bindings such that when AdminInterface.instance.userHasAuthenticated changes, 
-				//handleUserHasAuthenticatedChange() is invoked, passing as the argument
-				//the new value of AdminInterface.instance.userHasAuthenticated.
-				BindingUtils.bindSetter(handleUserHasAuthenticatedChange, AdminInterface.instance, "userHasAuthenticated");
-			}
-			
-			private var _parent:DisplayObject = null;
-			
-			public function show(parent:DisplayObject):void
-			{
-				_parent = parent;
-				if (parent)
-				{
-					initialize();
-					handleUserHasAuthenticatedChange(false);
-				}
-			}
-			
-			private var _previouslyAuthenticated:Boolean = true;
-			private function handleUserHasAuthenticatedChange(authenticated:Boolean):void
-			{
-				if (_previouslyAuthenticated == authenticated)
-					return;
-				
-				_previouslyAuthenticated = authenticated;
-				
-				if (authenticated)
-				{
-					PopUpManager.removePopUp(this);
-				}
-				else
-				{
-					PopUpManager.addPopUp(this, _parent, true);
-					PopUpManager.centerPopUp(this);
-					
-					passwordInput.text = '';
-					connectionInput.setFocus();
-					connectionInput.setSelection(0, connectionInput.text.length);
-					enabled = true;
-				}
 			}
 			
 			private function login():void

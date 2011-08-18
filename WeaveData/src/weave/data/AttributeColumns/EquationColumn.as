@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectProxy;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -29,10 +30,10 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.compiler.BooleanLib;
 	import weave.compiler.CompiledConstant;
-	import weave.compiler.EquationCompiler;
-	import weave.compiler.StringLib;
+	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.data.QKeyManager;
@@ -44,14 +45,12 @@ package weave.data.AttributeColumns
 	 */
 	public class EquationColumn extends AbstractAttributeColumn
 	{
+		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
-			EquationCompiler.includeLibraries(
-				WeaveAPI.StatisticsCache,
-				WeaveAPI.CSVParser,
-				WeaveAPI.QKeyManager,
-				EquationColumnLib
-			);
+			compiler.includeLibraries(WeaveAPI, WeaveAPI.CSVParser, WeaveAPI.StatisticsCache, WeaveAPI.QKeyManager, EquationColumnLib);
+			compiler.includeConstant("IQualifiedKey", IQualifiedKey);
 		} /** end static code block **/
+		
 
 		public function EquationColumn()
 		{
@@ -181,17 +180,17 @@ package weave.data.AttributeColumns
 				_constantResult = undefined;
 				
 				// check if the equation evaluates to a constant
-				var constant:CompiledConstant = EquationCompiler.compileEquationToObject(equation.value, null, true) as CompiledConstant;
-				if (constant)
+				var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
+				if (compiledObject is CompiledConstant)
 				{
 					// save the constant result of the function
 					_equationIsConstant = true;
-					_constantResult = constant.value;
+					_constantResult = (compiledObject as CompiledConstant).value;
 				}
 				else
 				{
 					// compile into a function
-					compiledEquation = EquationCompiler.compileEquation(equation.value, variables.getObject);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true);
 					_equationIsConstant = false;
 				}
 			}
@@ -222,7 +221,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return !BooleanLib.isUndefined(getValueFromKey(key));
+			return !StandardLib.isUndefined(getValueFromKey(key));
 		}
 
 		/**
@@ -257,11 +256,31 @@ package weave.data.AttributeColumns
 			}
 		}
 		
+		private function variableGetter(name:String):*
+		{
+			if (name == 'get')
+				return variables.getObject as Function;
+			return variables.getObject(name) || undefined;
+		}
+		
+		/**
+		 * This is the last error thrown from the compiledEquation.
+		 */		
+		private var _lastError:String;
+		
+		/**
+		 * This is true while code inside getValueFromKey is executing.
+		 */		
+		private var in_getValueFromKey:Boolean = false;
+		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataTypeParam:Class = null):*
 		{
+			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
+				return undefined;
+			
 			var value:*;
 			if (_equationIsConstant)
 			{
@@ -277,18 +296,28 @@ package weave.data.AttributeColumns
 				// if the data value was not cached for this key yet, cache it now.
 				if (value == undefined)
 				{
+					in_getValueFromKey = true; // prevent recursion caused by compiledEquation
+					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
 					EquationColumnLib.currentRecordKey = key;
 					try
 					{
-						value = compiledEquation();
+						value = compiledEquation.apply(this, arguments);
 					}
 					catch (e:Error)
 					{
-						trace(e.message);
+						if (_lastError != e.message)
+						{
+							_lastError = e.message;
+							WeaveAPI.ErrorManager.reportError(e);
+						}
+						//value = e;
 					}
-					_equationResultCache[key] = value;
+					if (_equationResultCache)
+						_equationResultCache[key] = value;
 					//trace('('+equation.value+')@"'+key+'" = '+value);
+					
+					in_getValueFromKey = false; // prevent recursion caused by compiledEquation
 				}
 			}
 			
@@ -301,7 +330,7 @@ package weave.data.AttributeColumns
 				if (!(value is IQualifiedKey))
 				{
 					if (!(value is String))
-						value = StringLib.toString(value);
+						value = StandardLib.asString(value);
 					value = WeaveAPI.QKeyManager.getQKey(this.dataType.value, value);
 				}
 			}

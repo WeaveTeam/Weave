@@ -29,7 +29,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IStreamedColumn;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * NumericColumn
@@ -185,7 +185,7 @@ package weave.data.AttributeColumns
 			else
 			{
 				return numberFormatter.format(
-						MathLib.roundSignificant(
+					StandardLib.roundSignificant(
 							number,
 							maxDerivedSignificantDigits
 						)

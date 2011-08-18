@@ -27,6 +27,11 @@
 	implements="weave.api.core.ILinkableObject"
 	show="this.invalidateSize();"
 	>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+		]]>
+	</mx:Script>
 	<ui:DimensionTreeSelector height="100%" visible="true" id="dimensionTreeView"/>
 	<mx:HBox id="dummyHBox" minWidth="0" width="100%"
 			 borderColor="#000000" 
@@ -36,18 +41,20 @@
 					  keyUp="loadFilteredCategories();"
 					  clear="loadFilteredCategories();"
 					  width="100%"/>
-		<!--<mx:Button label="clear" enabled="{searchCategoryTerms.text.length > 0}" click="searchCategoryTerms.text=''; loadFilteredCategories();"/>-->
 		<ui:TextInputWithPrompt id="searchAttrTerms"
 					  prompt="Search attribute columns"
 					  keyUp="loadFilteredAttributes();"
 					  clear="loadFilteredAttributes();"
 					  width="100%"/>
-		<!--<mx:Button label="clear" enabled="{searchAttrTerms.text.length > 0}" click="searchAttrTerms.text=''; loadFilteredAttributes();"/>-->
-		<!--<ui:ConnectionComponent/>-->
+		<mx:HBox id="keyTypeControls" width="100%" toolTip="Select a desired key type.  Use this feature when you want to match up this data to a key type other than its own.">
+			<mx:Label text="Key type:"/>
+			<ui:CustomComboBox id="keyTypeCombo" width="100%"/>
+		</mx:HBox>
 	</mx:HBox>
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IDataSource;
 			import weave.api.getSessionState;
 			import weave.api.core.ICallbackCollection;
@@ -88,9 +95,43 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
+				
+				// remove the dummy because we don't want it on the screen
 				removeChild(dummyHBox);
+				// alter the category selection interface
 				dimensionTreeView.categoryVBox.addChildAt(searchCategoryTerms, 0);
+				// alter the attribute selection interface
 				dimensionTreeView.attributeVBox.addChildAt(searchAttrTerms, 0);
+				//dimensionTreeView.attributeVBox.addChild(keyTypeControls);
+				
+				// when a column is clicked on, refresh the keyTypeCombo
+				function updateKeyTypeCombo():void
+				{
+					var compatibleTypes:Array;
+					var keyType:String = null;
+					var node:XML = HierarchyUtils.getLeafNodeFromPath(dimensionTreeView.selectedPath.value);
+					if (node)
+					{
+						keyType = node.attribute(AttributeColumnMetadata.KEY_TYPE);
+						compatibleTypes = WeaveAPI.QKeyManager.getCompatibleKeyTypes(keyType);
+						compatibleTypes.push(keyType);
+						compatibleTypes.sort(Array.CASEINSENSITIVE);
+					}
+					else
+					{
+						compatibleTypes = [];
+					}
+					keyTypeCombo.dataProvider = compatibleTypes;
+					keyTypeCombo.selectedLabel = keyType;
+					keyTypeCombo.enabled = (compatibleTypes.length > 1);
+				}
+				getCallbackCollection(dynamicColumn).addGroupedCallback(this, updateKeyTypeCombo, true);
+				getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this, updateKeyTypeCombo, true);
+				
+				
+				
+				
+				
 				registerLinkableChild(this, dimensionTreeView);
 
 				linkSessionState(multiDataSource.attributeHierarchy, dimensionTreeView.attributeHierarchy);

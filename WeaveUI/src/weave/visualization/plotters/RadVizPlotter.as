@@ -30,7 +30,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -205,7 +205,7 @@ package weave.visualization.plotters
 		private function jitterRecords(recordKey:IQualifiedKey):void
 		{
 			var index:Number = randomArrayIndexMap[recordKey];
-			var jitter:Number = Math.abs(MathLib.toNumber(jitterLevel.value));
+			var jitter:Number = Math.abs(StandardLib.asNumber(jitterLevel.value));
 			var xJitter:Number = (randomValueArray[index])/(jitter);
 			if(randomValueArray[index+1] % 2) xJitter *= -1;
 			var yJitter:Number = (randomValueArray[index+2])/(jitter);

@@ -27,7 +27,7 @@ package weave.visualization.plotters.styles
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IFillStyle;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 
 	/**
@@ -69,11 +69,11 @@ package weave.visualization.plotters.styles
 			//TODO: fill _bitmapData
 			//WeaveAPI.URLRequestUtils.getContent(new URLRequest(url), handleResult);
 			
-			var fillEnabled:Boolean = _bitmapData && BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
+			var fillEnabled:Boolean = _bitmapData && StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			if (fillEnabled)
 			{
-				var _repeat:Boolean = BooleanLib.toBoolean( repeat.getValueFromKey(recordKey, Boolean) );
-				var _smooth:Boolean = BooleanLib.toBoolean( smooth.getValueFromKey(recordKey, Boolean) );
+				var _repeat:Boolean = StandardLib.asBoolean( repeat.getValueFromKey(recordKey, Boolean) );
+				var _smooth:Boolean = StandardLib.asBoolean( smooth.getValueFromKey(recordKey, Boolean) );
 				target.beginBitmapFill(_bitmapData, null, _repeat, _smooth);
 			}
 			else

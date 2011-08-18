@@ -23,7 +23,7 @@ package weave.data.AttributeColumns
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.compiler.StringLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	
 	/**
@@ -89,7 +89,7 @@ package weave.data.AttributeColumns
 			}
 			
 			if (dataType == String)
-				return StringLib.formatNumber(value);
+				return StandardLib.formatNumber(value);
 			else if (dataType != null)
 				return EquationColumnLib.cast(undefined, dataType);
 			

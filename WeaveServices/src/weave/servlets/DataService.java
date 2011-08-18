@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -293,8 +294,11 @@ public class DataService extends GenericServlet
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
+		String debug = "";
+		for (Entry<String,String> e : params.entrySet())
+			debug += "; " + e;
 		if (infoList.size() > 1)
-			throw new RemoteException("More than one matching column found. "+params);
+			throw new RemoteException("More than one matching column found. "+params+debug);
 		
 		AttributeColumnInfo info = infoList.get(0);
 		String dataWithKeysQuery = info.sqlQuery;

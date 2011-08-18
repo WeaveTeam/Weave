@@ -125,6 +125,13 @@ package weave.data.DataSources
 			super.initialize();
 		}
 		
+		override protected function handleHierarchyChange():void
+		{
+			super.handleHierarchyChange();
+			convertOldHierarchyFormat(_attributeHierarchy.value, "attribute", {name: "csvColumn"});
+			_attributeHierarchy.detectChanges();
+		}
+
 		/**
 		 * handleCSVDownload
 		 * Called when the CSV data is downloaded from a URL.

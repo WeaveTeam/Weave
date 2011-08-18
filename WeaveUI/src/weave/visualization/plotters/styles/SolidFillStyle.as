@@ -24,7 +24,7 @@ package weave.visualization.plotters.styles
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IFillStyle;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 
 	/**
@@ -56,7 +56,7 @@ package weave.visualization.plotters.styles
 		 */
 		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
-			var fillEnabled:Boolean = BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
+			var fillEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			var fillColor:Number = color.getValueFromKey(recordKey, Number);
 			if (!fillEnabled)
 			{

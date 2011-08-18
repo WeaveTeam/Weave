@@ -103,7 +103,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
-			import weave.compiler.MathLib;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -429,7 +429,7 @@
 				var percentageMode:Boolean = true; // temporary solution
 
 				if (Weave.properties.enablePanelCoordsPercentageMode.value && _sessionPanelCoordsAsPercentages)
-					destinationLinkableString.value = MathLib.roundSignificant(100 * coordinate / maxCoordinate, 5) + "%";
+					destinationLinkableString.value = StandardLib.roundSignificant(100 * coordinate / maxCoordinate, 5) + "%";
 				else
 					destinationLinkableString.value = String(coordinate);
 			}
@@ -483,10 +483,10 @@
 				_height = Math.round(bottom / snap) * snap - y;
 				
 				// constrain width,height before x,y because the x,y constrain code depends on width,height
-				width = Math.round(MathLib.constrain(_width, minWidth, snappedParentWidth));
-				height = Math.round(MathLib.constrain(_height, minHeight, snappedParentHeight));
-				x = Math.round(MathLib.constrain(x, 0, snappedParentWidth - width));
-				y = Math.round(MathLib.constrain(y, 0, snappedParentHeight - height));
+				width = Math.round(StandardLib.constrain(_width, minWidth, snappedParentWidth));
+				height = Math.round(StandardLib.constrain(_height, minHeight, snappedParentHeight));
+				x = Math.round(StandardLib.constrain(x, 0, snappedParentWidth - width));
+				y = Math.round(StandardLib.constrain(y, 0, snappedParentHeight - height));
 				
 				// copy the x,y,width,height coordinates to the corresponding sessioned properties.
 				copyCoordinateToLinkableString(panelWidth, width, parent.width);
@@ -1311,20 +1311,20 @@
 				{
 					if (_rightSideResize)
 					{
-						this.width  = MathLib.constrain( (parentMousePoint.x - this.x), minWidth, (snappedParentWidth - this.x) );
+						this.width  = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (snappedParentWidth - this.x) );
 					}
 					else if (_leftSideResize)
 					{
-						this.x 		= MathLib.constrain( (parentMousePoint.x), 0, _rightSideBeforeLeftResize - minWidth );
+						this.x 		= StandardLib.constrain( (parentMousePoint.x), 0, _rightSideBeforeLeftResize - minWidth );
 						this.width  = (_rightSideBeforeLeftResize - this.x);
 					}
 					if (_bottomResize)
 					{
-						this.height = MathLib.constrain( (parentMousePoint.y - this.y), minHeight, (snappedParentHeight - this.y) );
+						this.height = StandardLib.constrain( (parentMousePoint.y - this.y), minHeight, (snappedParentHeight - this.y) );
 					}
 					else if (_topSideResize)
 					{
-						this.y 		= MathLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
+						this.y 		= StandardLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
 						this.height = (_bottomSideBeforeTopResize - this.y);
 					}		
 				}

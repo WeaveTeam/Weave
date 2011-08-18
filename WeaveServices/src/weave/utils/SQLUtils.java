@@ -974,22 +974,31 @@ public class SQLUtils
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
 	 * @param tableName The name of an existing table
-	 * @param columnName The name of the column to index
+	 * @param columnNames The names of the columns to use
 	 * @throws SQLException If the query fails.
 	 */
-	public static void createIndex(Connection conn, String schemaName, String tableName, String columnName) throws SQLException
+	public static void createIndex(Connection conn, String schemaName, String tableName, String[] columnNames) throws SQLException
 	{
+		String columnNamesStr = "";
+		for (int i = 0; i < columnNames.length; i++)
+			columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
+		
+		String query = String.format(
+				"CREATE INDEX %s ON %s (%s)",
+				SQLUtils.quoteSymbol(conn, tableName + "_index"),
+				SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+				columnNamesStr
+		);
 		Statement stmt = null;
 		try
 		{
-			String query = String.format(
-					"CREATE INDEX %s ON %s (%S)",
-					SQLUtils.quoteSymbol(conn, tableName + "_index"),
-					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-					columnName
-			);
 			stmt = conn.createStatement();
 			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			//System.out.println(query);
+			throw e;
 		}
 		finally
 		{
