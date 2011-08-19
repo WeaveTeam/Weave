@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SecondaryKeyNumColumn,weave.data.AttributeColumns.SecondaryKeyNumColumn,_currentSecondaryKeyValue,_keyToNumericDataMapping,_uniqueKeysA,_uniqueSecondaryKeys,maxDerivedSignificantDigits,currentSecondaryKey,keys,keysLastUpdated,numberFormatter,secondaryKeys,allSecondaryKeys,containsKey,deriveStringFromNumber,getMetadata,getValueFromKey,getValueFromKeys,toString,updateRecords" name="keywords">
+<meta content="SecondaryKeyNumColumn,weave.data.AttributeColumns.SecondaryKeyNumColumn,_keyToNumericDataMapping,_keyToNumericDataMappingAB,_uniqueKeysA,_uniqueKeysAB,_uniqueSecondaryKeys,secondaryKeyFilter,keys,secondaryKeys,containsKey,deriveStringFromNumber,getMetadata,getValueFromKey,toString,updateRecords" name="keywords">
 <title>weave.data.AttributeColumns.SecondaryKeyNumColumn</title>
 </head>
 <body>
@@ -78,30 +78,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#currentSecondaryKey">currentSecondaryKey</a> : String<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keys">keys</a> : Array<div class="summaryTableDescription">[read-only]</div>
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keysLastUpdated">keysLastUpdated</a> : Array<div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxDerivedSignificantDigits">maxDerivedSignificantDigits</a> : uint = 10<div class="summaryTableDescription">
-   maxDerivedSignificantDigits:
-   maximum number of significant digits to return when calling deriveStringFromNorm()
-   </div>
-</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#numberFormatter">numberFormatter</a> : NumberFormatter<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#secondaryKeys">secondaryKeys</a> : Array<div class="summaryTableDescription">[read-only]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#secondaryKeys">secondaryKeys</a> : Array<div class="summaryTableDescription">[static][read-only]</div>
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
 <tr class="hideInheritedProperty">
@@ -135,6 +116,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_keyToNumericDataMapping">_keyToNumericDataMapping</a> : Dictionary<div class="summaryTableDescription">
    _keyToNumericDataMapping
    This object maps keys to data values.</div>
+</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_keyToNumericDataMappingAB">_keyToNumericDataMappingAB</a> : Dictionary<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
 <tr class="hideInheritedProtectedProperty">
@@ -184,13 +169,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#allSecondaryKeys()">allSecondaryKeys</a>():Array</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#containsKey()">containsKey</a>(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>):Boolean</div>
 <div class="summaryTableDescription">
    </div>
@@ -230,17 +208,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getValueFromKey()">getValueFromKey</a>(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</div>
+<a class="signatureLink" href="#getValueFromKey()">getValueFromKey</a>(qkey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</div>
 <div class="summaryTableDescription">
    get data from key value
    </div>
-</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#getValueFromKeys()">getValueFromKeys</a>(primaryQKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, secondaryKeyString:String):*</div>
-<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
 <tr class="hideInheritedMethod">
@@ -277,7 +248,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#updateRecords()">updateRecords</a>(keysA:Vector, keysB:Vector, data:Array, clearExistingRecords:Boolean = false):void</div>
+<a class="signatureLink" href="#updateRecords()">updateRecords</a>(keysA:Vector, keysB:Vector, data:Array):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
@@ -316,9 +287,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_currentSecondaryKeyValue">_currentSecondaryKeyValue</a> : <a href="../../core/LinkableString.html">LinkableString</a>
-<div class="summaryTableDescription">
-   </div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#secondaryKeyFilter">secondaryKeyFilter</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription">[static]
+   This is the value used to filter the data.</div>
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
 </table>
@@ -337,7 +308,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_uniqueSecondaryKeys">_uniqueSecondaryKeys</a> : Array<div class="summaryTableDescription"></div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_uniqueKeysAB">_uniqueKeysAB</a> : Array<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_uniqueSecondaryKeys">_uniqueSecondaryKeys</a> : Array<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">SecondaryKeyNumColumn</td>
 </tr>
 </table>
@@ -349,42 +324,16 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
-<a name="currentSecondaryKey"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">currentSecondaryKey</td><td class="detailHeaderType">property</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>currentSecondaryKey:String</code>&nbsp;&nbsp;[read-write]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get currentSecondaryKey():String</code>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set currentSecondaryKey(value:String):void</code>
-<br>
-</div>
 <a name="keys"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">keys</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">keys</td><td class="detailHeaderType">property</td>
 </tr>
 </table>
 <div class="detailBody">
 <code>keys:Array</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get keys():Array</code>
-<br>
-</div>
-<a name="keysLastUpdated"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">keysLastUpdated</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>keysLastUpdated:Array</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get keysLastUpdated():Array</code>
 <br>
 </div>
 <a name="_keyToNumericDataMapping"></a>
@@ -398,30 +347,14 @@ showHideInherited();
    _keyToNumericDataMapping
    This object maps keys to data values.
    </p></div>
-<a name="maxDerivedSignificantDigits"></a>
+<a name="_keyToNumericDataMappingAB"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">maxDerivedSignificantDigits</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">_keyToNumericDataMappingAB</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public var maxDerivedSignificantDigits:uint = 10</code><p>
-   maxDerivedSignificantDigits:
-   maximum number of significant digits to return when calling deriveStringFromNorm()
-   </p></div>
-<a name="numberFormatter"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">numberFormatter</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>numberFormatter:NumberFormatter</code>&nbsp;&nbsp;[read-write]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get numberFormatter():NumberFormatter</code>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set numberFormatter(value:NumberFormatter):void</code>
-<br>
+<code>protected var _keyToNumericDataMappingAB:Dictionary</code>
 </div>
 <a name="secondaryKeys"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -432,7 +365,7 @@ showHideInherited();
 <div class="detailBody">
 <code>secondaryKeys:Array</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
 <br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get secondaryKeys():Array</code>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get secondaryKeys():Array</code>
 <br>
 </div>
 <a name="constructorDetail"></a>
@@ -453,26 +386,10 @@ showHideInherited();
 </div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="allSecondaryKeys()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">allSecondaryKeys</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function allSecondaryKeys():Array</code>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Array</code></td>
-</tr>
-</table>
-</div>
 <a name="containsKey()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">containsKey</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">containsKey</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -544,45 +461,18 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public override function getValueFromKey(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</code><p>
+<code>public override function getValueFromKey(qkey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</code><p>
    get data from key value
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">key</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code></td>
+<td width="20px"></td><td><code><span class="label">qkey</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code></td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">dataType</span>:Class</code> (default = <code>null</code>)<code></code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>*</code></td>
-</tr>
-</table>
-</div>
-<a name="getValueFromKeys()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">getValueFromKeys</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function getValueFromKeys(primaryQKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, secondaryKeyString:String):*</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">primaryQKey</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">secondaryKeyString</span>:String</code></td>
 </tr>
 </table>
 <p></p>
@@ -616,7 +506,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function updateRecords(keysA:Vector, keysB:Vector, data:Array, clearExistingRecords:Boolean = false):void</code><span class="label">Parameters</span>
+<code>public function updateRecords(keysA:Vector, keysB:Vector, data:Array):void</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">keysA</span>:Vector</code></td>
@@ -633,24 +523,19 @@ showHideInherited();
 <tr>
 <td width="20px"></td><td><code><span class="label">data</span>:Array</code></td>
 </tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">clearExistingRecords</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
-</tr>
 </table>
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
-<a name="_currentSecondaryKeyValue"></a>
+<a name="secondaryKeyFilter"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">_currentSecondaryKeyValue</td><td class="detailHeaderType">constant</td>
+<td class="detailHeaderName">secondaryKeyFilter</td><td class="detailHeaderType">constant</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public const _currentSecondaryKeyValue:<a href="../../core/LinkableString.html">LinkableString</a></code><p>
+<code>public static const secondaryKeyFilter:<a href="../../core/LinkableString.html">LinkableString</a></code><p>
+   This is the value used to filter the data.
    </p></div>
 <a name="_uniqueKeysA"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -663,6 +548,15 @@ showHideInherited();
    _uniqueKeys
    This is a list of unique keys this column defines values for.
    </p></div>
+<a name="_uniqueKeysAB"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">_uniqueKeysAB</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected const _uniqueKeysAB:Array</code>
+</div>
 <a name="_uniqueSecondaryKeys"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -670,7 +564,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected const _uniqueSecondaryKeys:Array</code>
+<code>protected static const _uniqueSecondaryKeys:Array</code>
 </div>
 <br>
 <br>
