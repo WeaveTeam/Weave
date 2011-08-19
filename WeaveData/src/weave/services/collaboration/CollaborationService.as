@@ -114,7 +114,7 @@ package weave.services.collaboration
 		private var roomToJoin:String;
 		private var username:String;
 		
-		//private var server:String = 			"129.63.17.121";
+		private var server:String = 			"daisy";
 		private var compName:String = 			"@conference";
 		
 		//The port defines a secure connection
@@ -327,7 +327,7 @@ package weave.services.collaboration
 				
 				// handle a message from a user
 				var o:Object = decodeObject(e.data.body);
-				WeaveAPI.ErrorManager.reportError( new Error( ObjectUtil.toString( o )) );
+				//WeaveAPI.ErrorManager.reportError( new Error( ObjectUtil.toString( o )) );
 				
 				//var room:String = e.data.from.node;
 				var userAlias:String = e.data.from.resource;
@@ -473,10 +473,11 @@ package weave.services.collaboration
 			//if no one else is in room, start logging
 			if( userList.length == 0)
 			{
-				if( stateLog != null )
-					throw new Error();
-				stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
-				getCallbackCollection( stateLog ).addImmediateCallback( this, handleStateChange );
+				if( stateLog == null )
+				{
+					stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
+					getCallbackCollection( stateLog ).addImmediateCallback( this, handleStateChange );
+				}
 				stateSet = true;
 			}
 			//If you are the user at the top of the list than send session
