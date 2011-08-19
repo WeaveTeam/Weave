@@ -54,7 +54,7 @@ import org.postgresql.PGConnection;
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
-	public static String POSTGRESQL = "PostGreSQL";
+	public static String POSTGRESQL = "PostGreSQL"; // NOTE: this should actually be PostgreSQL with a lower-case 'g'.  Thorough testing is required before changing this.
 	public static String SQLSERVER = "Microsoft SQL Server";
 	
 	/**
