@@ -92,7 +92,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
-	import weave.core.WeaveJavaScriptAPI;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;

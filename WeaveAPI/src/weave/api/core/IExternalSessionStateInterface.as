@@ -49,12 +49,11 @@ package weave.api.core
 	public interface IExternalSessionStateInterface
 	{
 		/**
-		 * This function gets an object representing the current session state of an object.
+		 * This function gets the current session state of a linkable object.  Nested XML objects will be converted to Strings before returning.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @param allowXMLObjects If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
 		 * @return An object containing the values from the sessioned properties.
 		 */
-		function getSessionState(objectPath:Array, allowXMLObjects:Boolean = false):Object;
+		function getSessionState(objectPath:Array):Object;
 		
 		/**
 		 * This function updates the current session state of an object.
@@ -110,19 +109,18 @@ package weave.api.core
 		function removeObject(objectPath:Array):Boolean;
 
 		/**
-		 * This function converts a session state from Object format to XML format.
+		 * This function serializes a session state from Object format to XML String format.
 		 * @param sessionState A session state object.
 		 * @param tagName The name to use for the root XML tag that gets generated from the session state.
 		 * @return An XML serialization of the session state.
 		 */
-		function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):XML;
+		function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String;
 
 		/**
-		 * This function converts a session state from XML format to Object format.
+		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
 		 * @param sessionState A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
-		 * @param allowXMLObjects If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
 		 * @return The deserialized session state object.
 		 */
-		function convertSessionStateXMLToObject(sessionStateXML:*, allowXMLObjects:Boolean = false):Object;
+		function convertSessionStateXMLToObject(sessionStateXML:Object):Object;
 	}
 }

@@ -26,6 +26,8 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLEncoder;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
+	
 	/**
 	 * XMLEncoder
 	 * This extension of SimpleXMLEncoder adds support for encoding TypedSessionState objects, XML values, and null values.
@@ -58,7 +60,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				throw new Error("XMLEncoder: Unable to convert XMLNode to XML: "+ObjectUtil.toString(result));
+				WeaveAPI.ErrorManager.reportError(new Error("XMLEncoder: Unable to convert XMLNode to XML: "+ObjectUtil.toString(result)));
 			}
 			return null; // unreachable
 		}
@@ -80,13 +82,12 @@ package weave.core
 		
 		override public function encodeValue(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
 		{
-			if (obj is DynamicState)
+			var typedState:DynamicState = DynamicState.cast(obj);
+			if (typedState)
 			{
-				var typedState:DynamicState = obj as DynamicState;
 				if (typedState.className == null)
 				{
-					trace("invalid TypedSessionState: class="+typedState.className+", name="+typedState.objectName);
-					return null;
+					WeaveAPI.ErrorManager.reportError(new Error("invalid TypedSessionState: class="+typedState.className+", name="+typedState.objectName));
 				}
 				//trace(ObjectUtil.toString(typedState));
 				var qualifiedClassName:Array = typedState.className.split("::");
@@ -135,6 +136,7 @@ package weave.core
 				parentNode.appendChild(nullNode);
 				return nullNode;
 			}
+			
 			return super.encodeValue(obj, qname, parentNode);
 		}
 		

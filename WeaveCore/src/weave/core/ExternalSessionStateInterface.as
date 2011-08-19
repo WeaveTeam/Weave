@@ -40,7 +40,7 @@ package weave.core
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveJavaScriptAPI implements IExternalSessionStateInterface
+	public class ExternalSessionStateInterface implements IExternalSessionStateInterface
 	{
 		/**
 		 * This function sets the root object that will be used by the other functions in this class.
@@ -92,19 +92,17 @@ package weave.core
 			return object;
 		}
 		/**
-		 * This function gets an object representing the current session state of an object.
+		 * This function gets an object representing the current session state of an object.  Nested XML objects will be converted to Strings before returning.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @param allowXMLObjects If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
 		 * @return An object containing the values from the sessioned properties.
 		 */
-		public function getSessionState(objectPath:Array, allowXMLObjects:Boolean = false):Object
+		public function getSessionState(objectPath:Array):Object
 		{
 			var object:ILinkableObject = getObject(objectPath);
 			if (object == null)
 				return null;
 			var state:Object = WeaveAPI.SessionManager.getSessionState(object);
-			if (!allowXMLObjects)
-				convertSessionStateToPrimitives(state);
+			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
 		}
 		/**
@@ -241,29 +239,30 @@ package weave.core
 				dynamicObject.removeObject();
 			return true;
 		}
+		
 		/**
-		 * This function converts a session state from Object format to XML format.
+		 * This function serializes a session state from Object format to XML String format.
 		 * @param sessionState A session state object.
 		 * @param tagName The name to use for the root XML tag that gets generated from the session state.
 		 * @return An XML serialization of the session state.
 		 */
-		public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):XML
+		public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String
 		{
-			return WeaveXMLEncoder.encode(sessionState, tagName);
+			var result:XML = WeaveXMLEncoder.encode(sessionState, tagName);
+			return result.toXMLString();
 		}
+
 		/**
-		 * This function converts a session state from XML format to Object format.
+		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
 		 * @param sessionState A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
-		 * @param allowXMLObjects If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
 		 * @return The deserialized session state object.
 		 */
-		public function convertSessionStateXMLToObject(sessionStateXML:*, allowXMLObjects:Boolean = false):Object
+		public function convertSessionStateXMLToObject(sessionStateXML:Object):Object
 		{
 			if (!(sessionStateXML is XML))
 				sessionStateXML = XML(sessionStateXML);
-			var state:Object = WeaveXMLDecoder.decode(sessionStateXML);
-			if (!allowXMLObjects)
-				convertSessionStateToPrimitives(state);
+			var state:Object = WeaveXMLDecoder.decode(sessionStateXML as XML);
+			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
 		}
 	}
