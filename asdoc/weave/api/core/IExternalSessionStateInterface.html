@@ -38,7 +38,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IExternalSessionStateInterface</td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Implementors</td><td><a href="../../core/WeaveJavaScriptAPI.html">WeaveJavaScriptAPI</a></td>
+<td class="classHeaderTableLabel">Implementors</td><td><a href="../../core/ExternalSessionStateInterface.html">ExternalSessionStateInterface</a></td>
 </tr>
 </table>
 <p></p>
@@ -63,15 +63,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#convertSessionStateObjectToXML()">convertSessionStateObjectToXML</a>(sessionState:Object, tagName:String = "sessionState"):XML</div>
+<a class="signatureLink" href="#convertSessionStateObjectToXML()">convertSessionStateObjectToXML</a>(sessionState:Object, tagName:String = "sessionState"):String</div>
 <div class="summaryTableDescription">
-   This function converts a session state from Object format to XML format.</div>
+   This function serializes a session state from Object format to XML String format.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#convertSessionStateXMLToObject()">convertSessionStateXMLToObject</a>(sessionStateXML:*, allowXMLObjects:Boolean = false):Object</div>
+<a class="signatureLink" href="#convertSessionStateXMLToObject()">convertSessionStateXMLToObject</a>(sessionStateXML:Object):Object</div>
 <div class="summaryTableDescription">
    This function converts a session state from XML format to Object format.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
@@ -95,9 +95,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getSessionState()">getSessionState</a>(objectPath:Array, allowXMLObjects:Boolean = false):Object</div>
+<a class="signatureLink" href="#getSessionState()">getSessionState</a>(objectPath:Array):Object</div>
 <div class="summaryTableDescription">
-   This function gets an object representing the current session state of an object.</div>
+   This function gets the current session state of a linkable object.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
 </tr>
 <tr class="">
@@ -149,8 +149,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):XML</code><p>
-   This function converts a session state from Object format to XML format.
+<code>public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String</code><p>
+   This function serializes a session state from Object format to XML String format.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -169,7 +169,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>XML</code> &mdash; An XML serialization of the session state.
+<td width="20"></td><td><code>String</code> &mdash; An XML serialization of the session state.
    </td>
 </tr>
 </table>
@@ -181,19 +181,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function convertSessionStateXMLToObject(sessionStateXML:*, allowXMLObjects:Boolean = false):Object</code><p>
-   This function converts a session state from XML format to Object format.
+<code>public function convertSessionStateXMLToObject(sessionStateXML:Object):Object</code><p>
+   This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">sessionStateXML</span>:*</code> &mdash; A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">allowXMLObjects</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
+<td width="20px"></td><td><code><span class="label">sessionStateXML</span>:Object</code> &mdash; A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
    </td>
 </tr>
 </table>
@@ -263,19 +256,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getSessionState(objectPath:Array, allowXMLObjects:Boolean = false):Object</code><p>
-   This function gets an object representing the current session state of an object.
+<code>public function getSessionState(objectPath:Array):Object</code><p>
+   This function gets the current session state of a linkable object.  Nested XML objects will be converted to Strings before returning.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code> &mdash; A sequence of child names used to refer to an object appearing in the session state.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">allowXMLObjects</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
    </td>
 </tr>
 </table>

@@ -4,22 +4,22 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="WeaveJavaScriptAPI,weave.core.WeaveJavaScriptAPI,convertSessionStateObjectToXML,convertSessionStateXMLToObject,getChildNames,getObject,getObjectType,getSessionState,removeObject,requestObject,setChildNameOrder,setLinkableObjectRoot,setSessionState" name="keywords">
-<title>weave.core.WeaveJavaScriptAPI</title>
+<meta content="ExternalSessionStateInterface,weave.core.ExternalSessionStateInterface,convertSessionStateObjectToXML,convertSessionStateXMLToObject,getChildNames,getObject,getObjectType,getSessionState,removeObject,requestObject,setChildNameOrder,setLinkableObjectRoot,setSessionState" name="keywords">
+<title>weave.core.ExternalSessionStateInterface</title>
 </head>
 <body>
 <script type="text/javascript" language="javascript" src="../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../cookies.js"></script><script type="text/javascript" language="javascript">
 <!--
-				asdocTitle = 'WeaveJavaScriptAPI - Weave AS3 documentation';
+				asdocTitle = 'ExternalSessionStateInterface - Weave AS3 documentation';
 				var baseRef = '../../';
 				window.onload = configPage;
 			--></script>
 <table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
 <tr>
-<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/core/WeaveJavaScriptAPI.html&amp;weave/core/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/core/ExternalSessionStateInterface.html&amp;weave/core/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
 </tr>
 <tr class="titleTableRow2">
-<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;WeaveJavaScriptAPI</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a></td>
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;ExternalSessionStateInterface</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a></td>
 </tr>
 <tr class="titleTableRow3">
 <td colspan="2">&nbsp;</td>
@@ -27,7 +27,7 @@
 </table>
 <script type="text/javascript" language="javascript">
 <!--
-if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class WeaveJavaScriptAPI"); titleBar_setSubNav(false,false,false,false,false,false,true,false,false,false,false,false,false,false);}
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class ExternalSessionStateInterface"); titleBar_setSubNav(false,false,false,false,false,false,true,false,false,false,false,false,false,false);}
 --></script>
 <div class="MainContent">
 <table cellspacing="0" cellpadding="0" class="classHeaderTable">
@@ -35,7 +35,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.core</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class WeaveJavaScriptAPI</td>
+<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class ExternalSessionStateInterface</td>
 </tr>
 <tr>
 <td class="classHeaderTableLabel">Implements</td><td><a href="../api/core/IExternalSessionStateInterface.html">IExternalSessionStateInterface</a></td>
@@ -63,18 +63,18 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#convertSessionStateObjectToXML()">convertSessionStateObjectToXML</a>(sessionState:Object, tagName:String = "sessionState"):XML</div>
+<a class="signatureLink" href="#convertSessionStateObjectToXML()">convertSessionStateObjectToXML</a>(sessionState:Object, tagName:String = "sessionState"):String</div>
 <div class="summaryTableDescription">
-   This function converts a session state from Object format to XML format.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+   This function serializes a session state from Object format to XML String format.</div>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#convertSessionStateXMLToObject()">convertSessionStateXMLToObject</a>(sessionStateXML:*, allowXMLObjects:Boolean = false):Object</div>
+<a class="signatureLink" href="#convertSessionStateXMLToObject()">convertSessionStateXMLToObject</a>(sessionStateXML:Object):Object</div>
 <div class="summaryTableDescription">
    This function converts a session state from XML format to Object format.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -82,7 +82,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#getChildNames()">getChildNames</a>(objectPath:Array):Array</div>
 <div class="summaryTableDescription">
    This function gets a list of names of children of an object appearing in the session state.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -90,15 +90,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#getObjectType()">getObjectType</a>(objectPath:Array):String</div>
 <div class="summaryTableDescription">
    This function will get the qualified class name of an object appearing in the session state.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getSessionState()">getSessionState</a>(objectPath:Array, allowXMLObjects:Boolean = false):Object</div>
+<a class="signatureLink" href="#getSessionState()">getSessionState</a>(objectPath:Array):Object</div>
 <div class="summaryTableDescription">
    This function gets an object representing the current session state of an object.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -106,7 +106,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#removeObject()">removeObject</a>(objectPath:Array):Boolean</div>
 <div class="summaryTableDescription">
    This function will remove a dynamically created object if it is the child of an ILinkableCompositeObject.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -115,7 +115,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">
    This function will dynamically create an object at the specified location in the session state if its parent implements
    ILinkableCompositeObject.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -123,7 +123,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#setChildNameOrder()">setChildNameOrder</a>(hashMapPath:Array, orderedChildNames:Array):Boolean</div>
 <div class="summaryTableDescription">
    This function will reorder children of an object implementing ILinkableHashMap.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -131,7 +131,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#setLinkableObjectRoot()">setLinkableObjectRoot</a>(root:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</div>
 <div class="summaryTableDescription">
    This function sets the root object that will be used by the other functions in this class.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -139,7 +139,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#setSessionState()">setSessionState</a>(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean</div>
 <div class="summaryTableDescription">
    This function updates the current session state of an object.</div>
-</td><td class="summaryTableOwnerCol">WeaveJavaScriptAPI</td>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 </table>
 </div>
@@ -157,8 +157,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):XML</code><p>
-   This function converts a session state from Object format to XML format.
+<code>public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String</code><p>
+   This function serializes a session state from Object format to XML String format.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -177,7 +177,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>XML</code> &mdash; An XML serialization of the session state.
+<td width="20"></td><td><code>String</code> &mdash; An XML serialization of the session state.
    </td>
 </tr>
 </table>
@@ -189,19 +189,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function convertSessionStateXMLToObject(sessionStateXML:*, allowXMLObjects:Boolean = false):Object</code><p>
-   This function converts a session state from XML format to Object format.
+<code>public function convertSessionStateXMLToObject(sessionStateXML:Object):Object</code><p>
+   This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">sessionStateXML</span>:*</code> &mdash; A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">allowXMLObjects</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
+<td width="20px"></td><td><code><span class="label">sessionStateXML</span>:Object</code> &mdash; A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
    </td>
 </tr>
 </table>
@@ -300,19 +293,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getSessionState(objectPath:Array, allowXMLObjects:Boolean = false):Object</code><p>
-   This function gets an object representing the current session state of an object.
+<code>public function getSessionState(objectPath:Array):Object</code><p>
+   This function gets an object representing the current session state of an object.  Nested XML objects will be converted to Strings before returning.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code> &mdash; A sequence of child names used to refer to an object appearing in the session state.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">allowXMLObjects</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true, this function will allow XML objects to be returned in the session state.  If not, XML objects will be converted to Strings before returning.
    </td>
 </tr>
 </table>

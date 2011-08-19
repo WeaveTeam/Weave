@@ -892,7 +892,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    This function gets a list of names of children of an object appearing in the session state.</td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html#getChildNames()">getChildNames</a>(objectPath) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html">WeaveJavaScriptAPI</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html#getChildNames()">getChildNames</a>(objectPath) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html">ExternalSessionStateInterface</a></td>
 </tr>
 <tr>
 <td width="20"></td><td>
@@ -2203,6 +2203,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    This function gets the object associated with the specified name.</td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html#getObject()">getObject</a>(objectPath) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html">ExternalSessionStateInterface</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function returns a pointer to an object appearing in the session state.</td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableDynamicObject.html#getObject()">getObject</a>() &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableDynamicObject.html">LinkableDynamicObject</a></td>
 </tr>
 <tr>
@@ -2215,13 +2222,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <tr>
 <td width="20"></td><td>
    </td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html#getObject()">getObject</a>(objectPath) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html">WeaveJavaScriptAPI</a></td>
-</tr>
-<tr>
-<td width="20"></td><td>
-   This function returns a pointer to an object appearing in the session state.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/CSSUtils.html#getObjectFromCSS()">getObjectFromCSS</a>(cssProperties) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/CSSUtils.html">CSSUtils</a></td>
@@ -2253,7 +2253,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    This function will get the qualified class name of an object appearing in the session state.</td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html#getObjectType()">getObjectType</a>(objectPath) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html">WeaveJavaScriptAPI</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html#getObjectType()">getObjectType</a>(objectPath) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html">ExternalSessionStateInterface</a></td>
 </tr>
 <tr>
 <td width="20"></td><td>
@@ -2853,11 +2853,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <td width="20"></td><td></td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/IExternalSessionStateInterface.html#getSessionState()">getSessionState</a>(objectPath, allowXMLObjects) &mdash; Method in interface weave.api.core.<a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/IExternalSessionStateInterface.html">IExternalSessionStateInterface</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/IExternalSessionStateInterface.html#getSessionState()">getSessionState</a>(objectPath) &mdash; Method in interface weave.api.core.<a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/IExternalSessionStateInterface.html">IExternalSessionStateInterface</a></td>
 </tr>
 <tr>
 <td width="20"></td><td>
-   This function gets an object representing the current session state of an object.</td>
+   This function gets the current session state of a linkable object.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/ILinkableCompositeObject.html#getSessionState()">getSessionState</a>() &mdash; Method in interface weave.api.core.<a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/ILinkableCompositeObject.html">ILinkableCompositeObject</a></td>
@@ -2879,6 +2879,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <tr>
 <td width="20"></td><td>
    </td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html#getSessionState()">getSessionState</a>(objectPath) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ExternalSessionStateInterface.html">ExternalSessionStateInterface</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function gets an object representing the current session state of an object.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableDynamicObject.html#getSessionState()">getSessionState</a>() &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableDynamicObject.html">LinkableDynamicObject</a></td>
@@ -2906,13 +2913,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <tr>
 <td width="20"></td><td>
    </td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html#getSessionState()">getSessionState</a>(objectPath, allowXMLObjects) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/WeaveJavaScriptAPI.html">WeaveJavaScriptAPI</a></td>
-</tr>
-<tr>
-<td width="20"></td><td>
-   This function gets an object representing the current session state of an object.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html#getSessionState()">getSessionState</a>() &mdash; Method in class weave.primitives.<a onclick="javascript:loadClassListFrame('weave/primitives/class-list.html');" href="weave/primitives/ZoomBounds.html">ZoomBounds</a></td>
