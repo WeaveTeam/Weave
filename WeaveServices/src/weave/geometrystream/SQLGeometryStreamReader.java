@@ -79,7 +79,7 @@ public class SQLGeometryStreamReader
 		SQLException pg = null;
 		try
 		{
-			if (conn.getMetaData().getDatabaseProductName().equals(SQLUtils.POSTGRESQL))
+			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(SQLUtils.POSTGRESQL))
 			{////////////////////////////////////////////////////////////////////////////////
 				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- CLEAN UP THIS CODE
 				try
@@ -153,8 +153,9 @@ public class SQLGeometryStreamReader
 		{
 			if (pg != null)
 			{
-				System.out.println("Attempted both upper and lower-case column names in queries, both failed:");
-				pg.printStackTrace(); // print both so postgresql users know that both queries were attempted
+				System.out.println("Attempted both upper and lower-case column names in queries, both failed.");
+				pg.printStackTrace();
+				throw pg;
 			}
 			e.printStackTrace();
 			throw e; // don't suppress the exception!
@@ -185,7 +186,7 @@ public class SQLGeometryStreamReader
 		SQLException pg = null;
 		try
 		{
-			if (conn.getMetaData().getDatabaseProductName().equals(SQLUtils.POSTGRESQL))
+			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(SQLUtils.POSTGRESQL))
 			{////////////////////////////////////////////////////////////////////////////////
 				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- CLEAN UP THIS CODE
 				try
@@ -234,8 +235,9 @@ public class SQLGeometryStreamReader
 		{
 			if (pg != null)
 			{
-				System.out.println("Attempted both upper and lower-case column names in queries, both failed:");
-				pg.printStackTrace(); // print both so postgresql users know that both queries were attempted
+				System.out.println("Attempted both upper and lower-case column names in queries, both failed.");
+				pg.printStackTrace();
+				throw pg;
 			}
 			e.printStackTrace();
 			throw e; // don't suppress the exception!

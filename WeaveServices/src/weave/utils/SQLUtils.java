@@ -340,7 +340,7 @@ public class SQLUtils
 	 */
 	public static String caseSensitiveCompareOperator(Connection conn) throws SQLException
 	{
-		if (conn.getMetaData().getDatabaseProductName().toLowerCase().equals(MYSQL.toLowerCase()))
+		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
 		{
 			return "= BINARY";
 		}
