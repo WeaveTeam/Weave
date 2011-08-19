@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" 
-		 xmlns:userControls="weave.ui.userControls.*"		 
-	     layout="absolute"
-		 mouseMove="handleMouseMove(event)"
-		 mouseDown="handleMouseDown(event)"
-		 mouseUp="handleMouseUp(event)">
+			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:ui="weave.ui.*" 
+			   xmlns:userControls="weave.ui.userControls.*"		 
+			   layout="absolute"
+			   mouseMove="handleMouseMove(event)"
+			   mouseDown="handleMouseDown(event)"
+			   mouseUp="handleMouseUp(event)">
 	<mx:Script>
 		<![CDATA[
 			import flash.utils.getQualifiedClassName;
@@ -48,6 +48,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.ui.IPlotLayer;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -66,7 +67,7 @@
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
-
+			
 			
 			public var _plotter:RadVizPlotter ;
 			private var _anchorPlotter:AnchorPlotter ;
@@ -83,7 +84,7 @@
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
-
+				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
 				var columnsToInit:Array = [];
 				for (var i:int = 0; i < count; i++)
@@ -93,7 +94,7 @@
 				
 				if(columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
-								
+				
 				_plotter.setAnchorLocations();
 				_anchorLayer = visualization.layers.requestObject("anchorLayer", SelectablePlotLayer, false );
 				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, false) ;
@@ -109,11 +110,11 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-
+				
 				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn ;
 				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
 				columnList.hashMap = _plotter.columns;
-
+				
 				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
 				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
@@ -121,7 +122,7 @@
 				
 				plotLayer.rawChildren.addChild(probeSprite);
 			}
-						
+			
 			private var tempBounds:Bounds2D = new Bounds2D();
 			private var screenBounds:Bounds2D = new Bounds2D();			
 			private var tempPoint:Point = new Point();					
@@ -129,14 +130,15 @@
 			private var _probedKeys:Array ;
 			private var _probedAnchor:AnchorPoint;
 			private var dataBounds:Bounds2D = new Bounds2D();
-			private var isDragging:Boolean = false;
-			private var anchorXOffsetFromMouse:Number;
+			private var isDragging:Boolean = false;			
 			private var enableAutoZoom:Boolean;
 			
-			private var probeSprite:Sprite = new Sprite() ;
+			private var probeSprite:Sprite = new Sprite() ;			
 			
 			private function drawProbeLines():void
 			{ 
+				if(!Weave.properties.enableProbeLines.value) return;
+				
 				var probeKeySet:IKeySet = (plotLayer.probeFilter.internalObject) as IKeySet;
 				if(!probeKeySet) return;
 				
@@ -147,9 +149,9 @@
 				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
 				
 				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);		 		
-			
+				
 			}
-						
+			
 			private function handleMouseDown(event:MouseEvent):void
 			{
 				tempPoint = visualization.globalToLocal(new Point(event.stageX,event.stageY));
@@ -163,20 +165,16 @@
 				
 				_probedKeys = (_anchorLayer.spatialIndex as SpatialIndex).getKeysBoundingBoxOverlap(tempBounds);
 				if( !_probedKeys.length ) return;
-
-				var key:IQualifiedKey = _probedKeys[0];
-				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;
 				
-				tempBounds.copyFrom(_plotter.getDataBoundsFromRecordKey(key) as Bounds2D);
-				screenBounds.projectPointTo(tempPoint, dataBounds);
-				anchorXOffsetFromMouse = tempPoint.x - _probedAnchor.x.value;													
+				var key:IQualifiedKey = _probedKeys[0];
+				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;													
 				
 				visualization.enableSelection.value = false;
 				enableAutoZoom = visualization.enableAutoZoomToExtent.value;
 				visualization.enableAutoZoomToExtent.value = false;
 				isDragging = true;
 			}
-						
+			
 			private function handleMouseUp(event:MouseEvent):void
 			{
 				if(!isDragging) return;				
@@ -191,12 +189,12 @@
 			{
 				if(!isDragging) return;
 				if(!_probedAnchor) return ;
-
+				
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
-								
+				
 				screenBounds.projectPointTo(tempPoint, dataBounds);
-																
-				_probedAnchor.x.value = tempPoint.x - anchorXOffsetFromMouse;
+				
+				_probedAnchor.x.value = tempPoint.x;
 				_probedAnchor.y.value = tempPoint.y;				
 			}
 			
@@ -262,23 +260,11 @@
 				reseedJitterButton.selected = false; 
 			}
 			
-			/* private function handleAnchorReorderButtonClick(event:MouseEvent = null):void
+			private function handleAnchorReorderButtonClick(event:MouseEvent = null):void
 			{
-				switch( algorithmComboBox.selectedIndex )
-				{
-					case 0: 
-						_plotter.applyRandomAnchorLayout(); break;
-					case 1:
-						_plotter.applyNearestNeighborAlgorithm(); break;
-					case 2:
-						_plotter.applyGreedyLayoutAlgorithm(); break;
-					case 3:
-						_plotter.applyIncrementalLayoutAlgorithm(); break;
-					default:
-						break;
-				}
+				//_plotter.currentAlgorithm.value = algorithmComboBox.selectedItem.toString();				
 				anchorReorderButton.selected = false; 
-			} */
+			} 
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -319,14 +305,49 @@
 								liveDragging="true"/>
 				</mx:HBox>
 			</mx:VBox>
-			<!--<mx:Spacer height="10"/>
+			<mx:Spacer height="10"/>
 			<userControls:ControlsSubsetBox>
-				<mx:Label text="Label angle" fontWeight="bold"/>
-				<mx:HSlider id="labelAngleSlider"
-						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-						dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
-						initialize="linkBindableProperty(_anchorPlotter.labelAngleRatio, labelAngleSlider, 'value')"/>
-			</userControls:ControlsSubsetBox>-->
+			<mx:Label text="Label angle" fontWeight="bold"/>
+			<mx:HSlider id="labelAngleSlider"
+			snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+			dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
+			initialize="linkBindableProperty(_anchorPlotter.labelAngleRatio, labelAngleSlider, 'value')"/>
+			</userControls:ControlsSubsetBox>
+			
+			
+		</mx:VBox>
+		
+		<mx:VBox id="attributesPanel" label="Attributes for RadViz">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
+			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" />
+			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
+		</mx:VBox>		
+		
+		<mx:VBox id="advancedPanel" label="Advanced">			
+			<mx:VBox
+				borderStyle="solid" 
+				backgroundColor="0xFFFFFF" 
+				backgroundAlpha="0.7">
+				<mx:HBox
+					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
+					<mx:Label text="Normalization method:"
+							  color="0x000000" fontSize="12"
+							  toolTip="Select the type of normalization used to calculate record coordinates"/>
+					<mx:RadioButtonGroup id="normalizationType"/>
+					<mx:VBox>
+						<mx:RadioButton groupName="normalizationType"
+										id="localNorm"
+										value="true"
+										label="Local"
+										width="100"/>
+						<mx:RadioButton groupName="normalizationType"
+										id="globalNorm"
+										value="false"
+										label="Global"
+										width="100"/>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:VBox>
 			<mx:Spacer height="10"/>
 			<mx:VBox
 				borderStyle="solid" 
@@ -365,7 +386,7 @@
 				</mx:HBox>
 			</mx:VBox>
 			<mx:Spacer height="10"/>
-			<!--<mx:VBox borderStyle="solid" 
+			<mx:VBox borderStyle="solid" 
 					 backgroundColor="0xFFFFFF" 
 					 backgroundAlpha="0.7"
 					 id="controls4">
@@ -374,34 +395,21 @@
 							  color="0x000000" fontSize="12" 
 							  toolTip="Use this control to reorder the dimensional anchors"/>					
 				</mx:HBox>
-
-					<mx:ComboBox id="algorithmComboBox" labelField="label">
-						<mx:ArrayCollection>
-							<mx:Object label="Random Swapping" />
-							<mx:Object label="Nearest Neighbor" />
-							<mx:Object label="Greedy Layout"/>
-							<mx:Object label="Incremental Search"/>
-						</mx:ArrayCollection>
-					</mx:ComboBox>
+				<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
+							 initialize="linkBindableProperty(_plotter.currentAlgorithm,algorithmComboBox,'selectedItem')"/>
 				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
 					<mx:Label text="Number of Iterations"/>
 					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
 								  initialize="linkBindableProperty(_plotter.iterations, iterationsTextInput, 'text')"/>
 				</mx:HBox>
-					<mx:HBox backgroundColor="0xFFFFFF" 
-							 cornerRadius="5" 
-							 borderStyle="solid" borderThickness="1" borderColor="0x222222">
-						<mx:LinkButton id="anchorReorderButton" click="handleAnchorReorderButtonClick(event)" 
-									   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00" />
-					</mx:HBox>
-
-			</mx:VBox>-->
+				<mx:HBox backgroundColor="0xFFFFFF" 
+						 cornerRadius="5" 
+						 borderStyle="solid" borderThickness="1" borderColor="0x222222">
+					<mx:LinkButton id="anchorReorderButton" click="handleAnchorReorderButtonClick(event)" 
+								   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00" />
+				</mx:HBox>
+				
+			</mx:VBox>
 		</mx:VBox>
-		
-		<mx:VBox id="attributesPanel" label="Attributes for RadViz">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
-			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
-		</mx:VBox>		
 	</ui:ControlPanel>
 </SimpleVisTool>
