@@ -54,7 +54,7 @@ import org.postgresql.PGConnection;
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
-	public static String POSTGRESQL = "PostGreSQL";
+	public static String POSTGRESQL = "PostGreSQL"; // NOTE: this should actually be PostgreSQL with a lower-case 'g'.  Thorough testing is required before changing this.
 	public static String SQLSERVER = "Microsoft SQL Server";
 	
 	/**
@@ -340,7 +340,7 @@ public class SQLUtils
 	 */
 	public static String caseSensitiveCompareOperator(Connection conn) throws SQLException
 	{
-		if (conn.getMetaData().getDatabaseProductName().toLowerCase().equals(MYSQL.toLowerCase()))
+		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
 		{
 			return "= BINARY";
 		}
