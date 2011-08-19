@@ -92,7 +92,7 @@ package weave.core
 			return object;
 		}
 		/**
-		 * This function gets an object representing the current session state of an object.  Nested XML objects will be converted to Strings before returning.
+		 * This function gets the current session state of an object.  Nested XML objects will be converted to Strings before returning.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
 		 * @return An object containing the values from the sessioned properties.
 		 */
