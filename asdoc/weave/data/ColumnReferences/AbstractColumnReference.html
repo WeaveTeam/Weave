@@ -108,7 +108,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#getMetadata()">getMetadata</a>(_:String):String</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This function gets metadata associated with the column.</div>
 </td><td class="summaryTableOwnerCol">AbstractColumnReference</td>
 </tr>
 </table>
@@ -228,10 +229,14 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getMetadata(_:String):String</code><span class="label">Parameters</span>
+<code>public function getMetadata(_:String):String</code><p>
+   This function gets metadata associated with the column.
+   For standard metadata property names, refer to the AttributeColumnMetadata class.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">_</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">_</span>:String</code> &mdash; The name of the metadata property to retrieve.
+   </td>
 </tr>
 </table>
 <p></p>
