@@ -78,6 +78,7 @@ EquationEditor
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IDataSource;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -167,14 +168,14 @@ EquationEditor
 //				linkBindableProperty(equationColumn.equation, textEditor, "text");
 //				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
 				
-				titleInput.text = equationColumn.columnTitle.value;
-				EventUtils.addDelayedCallback(titleInput,Event.CHANGE,handleEqTitleChange);
-				equationColumn.columnTitle.addImmediateCallback(this,handleColumnTitleChange);
+				titleInput.text = equationColumn.getMetadata(AttributeColumnMetadata.TITLE);
+				EventUtils.addDelayedCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
+				equationColumn.addImmediateCallback(this,handleTitleSessionStateChange);
 				
 				
 				textEditor.text = equationColumn.equation.value;
-				EventUtils.addDelayedCallback(textEditor,Event.CHANGE,handleEqChange);
-				equationColumn.equation.addImmediateCallback(this,handleEquationChange);
+				EventUtils.addDelayedCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
+				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
 				
 				if (dynamicColumn.globalName == null)
 					dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
@@ -258,21 +259,23 @@ EquationEditor
 				attrSelector.restorePanel();
 			}
 			
-			private function handleEqTitleChange():void
+			private function handleTitleTextEntry():void
 			{
-				equationColumn.columnTitle.value = titleInput.text;
+				equationColumn.setMetadata(AttributeColumnMetadata.TITLE, titleInput.text);
 			}
-			private function handleColumnTitleChange():void
+			private function handleTitleSessionStateChange():void
 			{
-				titleInput.text = equationColumn.columnTitle.value;
+				// get the actual metadata string instead of the result of applying the title function
+				if (equationColumn.metadata.value)
+					titleInput.text = equationColumn.metadata.value[AttributeColumnMetadata.TITLE];
 			}
 			
 			
-			private function handleEqChange():void
+			private function handleEquationTextEntry():void
 			{
 				equationColumn.equation.value = textEditor.text;
 			}
-			private function handleEquationChange():void
+			private function handleEquationSessionStateChange():void
 			{
 				textEditor.text = equationColumn.equation.value;
 			}

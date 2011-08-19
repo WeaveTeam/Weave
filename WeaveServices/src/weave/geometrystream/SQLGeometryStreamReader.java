@@ -76,70 +76,88 @@ public class SQLGeometryStreamReader
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "";
+		SQLException pg = null;
 		try
 		{
-			try
-			{
-				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- FIND A BETTER SOLUTION LATER
-				// copy binary data to stream
-				stmt = conn.createStatement();
-				query = "SELECT ";
-				String[] names = new String[]{
-					SQLGeometryStreamDestination.MIN_IMPORTANCE.toLowerCase(), SQLGeometryStreamDestination.MAX_IMPORTANCE.toLowerCase(),
-					SQLGeometryStreamDestination.X_MIN_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MIN_BOUNDS.toLowerCase(),
-					SQLGeometryStreamDestination.X_MAX_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MAX_BOUNDS.toLowerCase(),
-					SQLGeometryStreamDestination.TILE_ID.toLowerCase()
-				};
-				for (int i = 0; i < names.length; i++)
+			if (conn.getMetaData().getDatabaseProductName().equals(SQLUtils.POSTGRESQL))
+			{////////////////////////////////////////////////////////////////////////////////
+				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- CLEAN UP THIS CODE
+				try
 				{
-					if (i > 0)
-						query += ", ";
-					query += SQLUtils.quoteSymbol(conn, names[i]);
+					// copy binary data to stream
+					stmt = conn.createStatement();
+					query = "SELECT ";
+					String[] names = new String[]{
+						SQLGeometryStreamDestination.MIN_IMPORTANCE.toLowerCase(), SQLGeometryStreamDestination.MAX_IMPORTANCE.toLowerCase(),
+						SQLGeometryStreamDestination.X_MIN_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MIN_BOUNDS.toLowerCase(),
+						SQLGeometryStreamDestination.X_MAX_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MAX_BOUNDS.toLowerCase(),
+						SQLGeometryStreamDestination.TILE_ID.toLowerCase()
+					};
+					for (int i = 0; i < names.length; i++)
+					{
+						if (i > 0)
+							query += ", ";
+						query += SQLUtils.quoteSymbol(conn, names[i]);
+					}
+					query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
+					query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID.toLowerCase());
+					rs = stmt.executeQuery(query);
+					while (rs.next())
+					{
+						data.writeFloat(rs.getFloat(1));
+						data.writeFloat(rs.getFloat(2));
+						data.writeDouble(rs.getDouble(3));
+						data.writeDouble(rs.getDouble(4));
+						data.writeDouble(rs.getDouble(5));
+						data.writeDouble(rs.getDouble(6));
+					}
+					return; // if this succeeds, we don't want to run the second query
 				}
-				query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
-				query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID.toLowerCase());
-				rs = stmt.executeQuery(query);
-				while (rs.next())
+				catch (SQLException e)
 				{
-					data.writeFloat(rs.getFloat(1));
-					data.writeFloat(rs.getFloat(2));
-					data.writeDouble(rs.getDouble(3));
-					data.writeDouble(rs.getDouble(4));
-					data.writeDouble(rs.getDouble(5));
-					data.writeDouble(rs.getDouble(6));
+					pg = e; // will be printed below if second try fails
 				}
 				// END HACK
-			}
-			catch (SQLException e)
+			}////////////////////////////////////////////////////////////////////////////////
+			
+			
+			// copy binary data to stream
+			stmt = conn.createStatement();
+			query = "SELECT ";
+			String[] names = new String[]{
+					SQLGeometryStreamDestination.MIN_IMPORTANCE, SQLGeometryStreamDestination.MAX_IMPORTANCE,
+					SQLGeometryStreamDestination.X_MIN_BOUNDS, SQLGeometryStreamDestination.Y_MIN_BOUNDS,
+					SQLGeometryStreamDestination.X_MAX_BOUNDS, SQLGeometryStreamDestination.Y_MAX_BOUNDS,
+					SQLGeometryStreamDestination.TILE_ID
+			};
+			for (int i = 0; i < names.length; i++)
 			{
-				// copy binary data to stream
-				stmt = conn.createStatement();
-				query = "SELECT ";
-				String[] names = new String[]{
-						SQLGeometryStreamDestination.MIN_IMPORTANCE, SQLGeometryStreamDestination.MAX_IMPORTANCE,
-						SQLGeometryStreamDestination.X_MIN_BOUNDS, SQLGeometryStreamDestination.Y_MIN_BOUNDS,
-						SQLGeometryStreamDestination.X_MAX_BOUNDS, SQLGeometryStreamDestination.Y_MAX_BOUNDS,
-						SQLGeometryStreamDestination.TILE_ID
-				};
-				for (int i = 0; i < names.length; i++)
-				{
-					if (i > 0)
-						query += ", ";
-					query += SQLUtils.quoteSymbol(conn, names[i]);
-				}
-				query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
-				query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID);
-				rs = stmt.executeQuery(query);
-				while (rs.next())
-				{
-					data.writeFloat(rs.getFloat(1));
-					data.writeFloat(rs.getFloat(2));
-					data.writeDouble(rs.getDouble(3));
-					data.writeDouble(rs.getDouble(4));
-					data.writeDouble(rs.getDouble(5));
-					data.writeDouble(rs.getDouble(6));
-				}
+				if (i > 0)
+					query += ", ";
+				query += SQLUtils.quoteSymbol(conn, names[i]);
 			}
+			query += " FROM " + SQLUtils.quoteSchemaTable(conn, schema, table);
+			query += " ORDER BY " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID);
+			rs = stmt.executeQuery(query);
+			while (rs.next())
+			{
+				data.writeFloat(rs.getFloat(1));
+				data.writeFloat(rs.getFloat(2));
+				data.writeDouble(rs.getDouble(3));
+				data.writeDouble(rs.getDouble(4));
+				data.writeDouble(rs.getDouble(5));
+				data.writeDouble(rs.getDouble(6));
+			}
+		}
+		catch (SQLException e)
+		{
+			if (pg != null)
+			{
+				System.out.println("Attempted both upper and lower-case column names in queries, both failed:");
+				pg.printStackTrace(); // print both so postgresql users know that both queries were attempted
+			}
+			e.printStackTrace();
+			throw e; // don't suppress the exception!
 		}
 		finally
 		{
@@ -164,48 +182,63 @@ public class SQLGeometryStreamReader
 	
 		CallableStatement cstmt = null;
 		ResultSet rs = null;
+		SQLException pg = null;
 		try
 		{
-			try
-			{
-				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- FIND A BETTER SOLUTION LATER
-				String dbms = conn.getMetaData().getDatabaseProductName();
-				// loop through tileIDs, copying binary data to stream
-				cstmt = conn.prepareCall(
-						"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA.toLowerCase()) +
-						" FROM " + SQLUtils.quoteSchemaTable(dbms, schema, table) +
-						" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID.toLowerCase()) + " = ?"
-				);
-				for (int i = 0; i < tileIDs.size(); i++)
+			if (conn.getMetaData().getDatabaseProductName().equals(SQLUtils.POSTGRESQL))
+			{////////////////////////////////////////////////////////////////////////////////
+				// BACKWARDS COMPATIBILITY POSTGRESQL HACK -- CLEAN UP THIS CODE
+				try
 				{
-					cstmt.setInt(1, tileIDs.get(i));
-					rs = cstmt.executeQuery();
-					while (rs.next())
-						data.write(rs.getBytes(1));
-					rs.close();
-					rs = null;
+					// loop through tileIDs, copying binary data to stream
+					cstmt = conn.prepareCall(
+							"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA.toLowerCase()) +
+							" FROM " + SQLUtils.quoteSchemaTable(conn, schema, table) +
+							" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID.toLowerCase()) + " = ?"
+					);
+					for (int i = 0; i < tileIDs.size(); i++)
+					{
+						cstmt.setInt(1, tileIDs.get(i));
+						rs = cstmt.executeQuery();
+						while (rs.next())
+							data.write(rs.getBytes(1));
+						rs.close();
+						rs = null;
+					}
+					return; // if this succeeds, we don't want to run the second query
+				}
+				catch (SQLException e)
+				{
+					pg = e; // will be printed below if second try fails
 				}
 				// END HACK
-			}
-			catch (SQLException e)
+			}////////////////////////////////////////////////////////////////////////////////
+			
+			// loop through tileIDs, copying binary data to stream
+			cstmt = conn.prepareCall(
+					"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA) +
+					" FROM " + SQLUtils.quoteSchemaTable(conn, schema, table) +
+					" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID) + " = ?"
+			);
+			for (int i = 0; i < tileIDs.size(); i++)
 			{
-				String dbms = conn.getMetaData().getDatabaseProductName();
-				// loop through tileIDs, copying binary data to stream
-				cstmt = conn.prepareCall(
-						"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA) +
-						" FROM " + SQLUtils.quoteSchemaTable(dbms, schema, table) +
-						" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID) + " = ?"
-				);
-				for (int i = 0; i < tileIDs.size(); i++)
-				{
-					cstmt.setInt(1, tileIDs.get(i));
-					rs = cstmt.executeQuery();
-					while (rs.next())
-						data.write(rs.getBytes(1));
-					rs.close();
-					rs = null;
-				}
+				cstmt.setInt(1, tileIDs.get(i));
+				rs = cstmt.executeQuery();
+				while (rs.next())
+					data.write(rs.getBytes(1));
+				rs.close();
+				rs = null;
 			}
+		}
+		catch (SQLException e)
+		{
+			if (pg != null)
+			{
+				System.out.println("Attempted both upper and lower-case column names in queries, both failed:");
+				pg.printStackTrace(); // print both so postgresql users know that both queries were attempted
+			}
+			e.printStackTrace();
+			throw e; // don't suppress the exception!
 		}
 		finally
 		{

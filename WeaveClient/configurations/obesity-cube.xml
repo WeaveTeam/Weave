@@ -6,7 +6,6 @@
     <axisFontItalic>false</axisFontItalic>
     <axisFontSize>11</axisFontSize>
     <axisFontUnderline>false</axisFontUnderline>
-    <backgroundColor>0xFFFFFF</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
     <dashboardMode>false</dashboardMode>
     <dashedSelectionBox>5,5</dashedSelectionBox>

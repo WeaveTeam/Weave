@@ -66,14 +66,13 @@ package weave.utils
 		}
 		
 		
-		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function,delay:int=500):void
+		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
 		{
-			var _timer:Timer = new Timer(delay,1);
-			var f:Function = function(event:Event):void{callback.apply();};
-			var ef:Function = function(event:Event):void{_timer.stop();_timer.start();};
-			_timer.addEventListener(TimerEvent.TIMER_COMPLETE,f);
-			eventDispatcher.addEventListener(event,ef);
-			
+			var _timer:Timer = new Timer(delay, 1);
+			var callback_apply:Function = function(event:Event):void { callback.apply(); };
+			var restart_timer:Function = function(event:Event):void { _timer.stop(); _timer.start(); };
+			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
+			eventDispatcher.addEventListener(event, restart_timer);
 		}
 	}
 }

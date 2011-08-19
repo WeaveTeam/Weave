@@ -191,7 +191,7 @@ package weave.data
 				if (!refList) // none registered yet
 					keyType_to_refHash_Array[type] = [refHash]; // create new
 				else
-					(refList[type] as Array).push(refHash); // append
+					refList.push(refHash); // append
 			}
 			
 			getCallbackCollection(this).triggerCallbacks();
