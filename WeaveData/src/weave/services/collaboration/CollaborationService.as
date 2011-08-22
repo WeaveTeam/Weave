@@ -114,9 +114,6 @@ package weave.services.collaboration
 		private var roomToJoin:String;
 		private var username:String;
 		
-		private var server:String = 			"daisy";
-		private var compName:String = 			"@conference";
-		
 		//The port defines a secure connection
 		//5222(unsecure) , 5223(secure)
 		private var baseEncoder:Base64Encoder = new Base64Encoder();
@@ -209,12 +206,14 @@ package weave.services.collaboration
 			//Clears the Users list in the tool
 			dispatchEvent( new CollaborationEvent(CollaborationEvent.USERS_LIST, "") );
 			
-			//Remove Event Listeners 
-			connection.removeEventListener(LoginEvent.LOGIN, onLogin);
-			connection.removeEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
-			connection.removeEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
-			connection.removeEventListener(MessageEvent.MESSAGE, onReceiveMessage);
-			
+			if( connection ) 
+			{
+				//Remove Event Listeners 
+				connection.removeEventListener(LoginEvent.LOGIN, onLogin);
+				connection.removeEventListener(XIFFErrorEvent.XIFF_ERROR, onError);
+				connection.removeEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
+				connection.removeEventListener(MessageEvent.MESSAGE, onReceiveMessage);
+			}	
 			if( _room != null)
 			{
 				room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
@@ -222,8 +221,8 @@ package weave.services.collaboration
 				room.removeEventListener(RoomEvent.USER_JOIN, onUserJoin);
 				room.removeEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
 			}
-			
-			connection.disconnect();
+			if( connection )
+				connection.disconnect();
 		}
 		
 		//Sends messages to the room on the server
@@ -288,7 +287,7 @@ package weave.services.collaboration
 			//and can be used for private messages and most user to user functions
 			room.nickname = username;
 			postMessageToUser( "set alias to: " + room.nickname + "\n" );
-			room.roomJID = new UnescapedJID(roomName + compName + '.' + serverName);
+			room.roomJID = new UnescapedJID(roomName + "@conference" + '.' + serverName);
 			
 			room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
 			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
@@ -326,7 +325,14 @@ package weave.services.collaboration
 				var i:int;
 				
 				// handle a message from a user
-				var o:Object = decodeObject(e.data.body);
+				var o:Object;
+				try
+				{
+					o = decodeObject(e.data.body);
+				} catch( e:Error ) {
+					trace( "Bad incoming message, ignoring..." );
+					return;
+				}
 				//WeaveAPI.ErrorManager.reportError( new Error( ObjectUtil.toString( o )) );
 				
 				//var room:String = e.data.from.node;

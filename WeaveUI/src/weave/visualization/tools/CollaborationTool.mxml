@@ -175,11 +175,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox label="Visualization Controls">
 			<mx:HBox width="100%">
 				<mx:Label text="IP:"/>
-				<mx:TextInput id="serverIP" width="50%" text="129.63.223.101"/>	
+				<mx:TextInput id="serverIP" width="50%" text="129.63.17.205"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="ServerName:"/>
-				<mx:TextInput id="serverName" width="50%" text="Android-Lappy"/>	
+				<mx:TextInput id="serverName" width="50%" text="VAST-SERVER"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:"/>
