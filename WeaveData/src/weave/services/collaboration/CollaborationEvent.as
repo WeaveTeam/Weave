@@ -28,7 +28,7 @@ package weave.services.collaboration
 	public class CollaborationEvent extends Event
 	{
 		public static const TEXT:String 		= "collab_text_receive";
-		public static const USERS_LIST:String 	= "collab_users_list_receive";
+//		public static const USERS_LIST:String 	= "collab_users_list_receive";
 		public static const DISCONNECT:String 	= "collab_disconnect";
 		
 		//generic data

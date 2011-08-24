@@ -41,6 +41,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			
+			import org.igniterealtime.xiff.events.OutgoingDataEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -57,7 +60,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.collaboration.CollaborationService;
 			import weave.ui.AlertTextBox;
 			
-			private var collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
+			public var collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
+			
+			private var labelWidth:Number = 80;
+			private var textAreaWidth:Number = 200;
 			
 			//Guaranteed to run at the creation of the tool. Is used to register all the event listeners.
 			override protected function childrenCreated():void
@@ -69,7 +75,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//Callbakcs to be heard from the collabService, this is how the collabservice
 				//can talk back to the Collaboration tool
 				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
-				collabService.addEventListener(CollaborationEvent.USERS_LIST, handleUserList);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				
 				//UI callbacks, related to the buttons.
@@ -129,19 +134,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//		went below the height of the log window. 
 			private function handleText(e:CollaborationEvent):void
 			{
-				if (log.verticalScrollPosition == log.maxVerticalScrollPosition)
-				{
-					log.text += e.getText();
-					log.verticalScrollPosition += 100; //always seems to be one line behind...
-				}
-				else
-					log.text += e.getText();	
-			}
-			
-			//Recieved whenever the userlist is updated by someone joining or leaving.
-			private function handleUserList( e:CollaborationEvent):void
-			{
-				users.text = e.getText();
+				log.text += e.getText();
+				callLater(
+					function():void {
+						log.verticalScrollPosition = log.maxVerticalScrollPosition;
+					}
+				);
 			}
 			
 			//If the collabService is disconnected for some reason, this ensures the collabUI
@@ -150,16 +148,99 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				disconnect(null);
 			}
+			
 		]]>
 	</mx:Script>
 
 	
 	<mx:VBox width="100%" height="100%" paddingBottom="10" paddingLeft="10" paddingRight="10"
 			 paddingTop="10">
-		<mx:HBox width="100%" height="100%">
+		<mx:HDividedBox width="100%" height="100%">
 			<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
-			<mx:TextArea id="users" height="100%" editable="false"/>
-		</mx:HBox>
+			<mx:List id="users" height="100%" width="20%" minWidth="100"
+					 editable="false" dataProvider="{collabService.userList}">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox width="100%" height="100%">
+							
+							<mx:Script>
+								<![CDATA[
+									import mx.collections.ArrayCollection;
+									import mx.controls.Alert;
+									import mx.events.CloseEvent;
+									
+									private var roleID:String = "";
+									
+									private function changeRole(event:MouseEvent):void
+									{
+										if( outerDocument.collabService.role != "moderator" )
+											return;
+										
+										roleID = event.currentTarget.name;
+										var role:String = getRole(roleID);
+										if( !role ) return;
+										
+										if( role == "moderator" )
+											if( roleID == outerDocument.collabService.username )
+												Alert.show("You are about to remove your own moderator status. Continue?", "Warning", Alert.YES | Alert.NO, null, handleMod);
+											else
+												setRole(roleID, "participant");
+										else
+											setRole(roleID, "moderator");
+									}
+									private function handleMod(e:CloseEvent):void
+									{
+										if( e.detail == Alert.YES )
+											setRole(roleID, "participant");
+									}
+									private function getRole(id:String):String
+									{
+										var list:ArrayCollection = outerDocument.collabService.userList;
+										for( var i:int = 0; i < list.length; i++ )
+										{
+											if( list[i].name == id )
+												return list[i].role;
+										}
+										return null;
+									}
+									private function setRole(id:String, role:String):void
+									{
+										var list:ArrayCollection = outerDocument.collabService.userList;
+										for( var i:int = 0; i < list.length; i++ )
+										{
+											if( list[i].name == id )
+											{
+												switch( getRole(id) )
+												{
+													case "moderator":
+														outerDocument.collabService.role = role;
+														outerDocument.collabService.userList[i].role = role;
+														outerDocument.collabService.userList[i].affiliation = "none";
+														break;
+													case "participant":
+														outerDocument.collabService.role = role;
+														outerDocument.collabService.userList[i].role = role;
+														outerDocument.collabService.userList[i].affiliation = "owner";
+														break;
+												}
+												outerDocument.collabService.userList.refresh();
+												return;
+											}
+										}
+									}
+								]]>
+							</mx:Script>
+							
+							<mx:Label text="{data.name}" fontSize="14" horizontalCenter="0" left="5" />
+							<mx:Spacer width="100%" />
+							<mx:Image id="img" right="15" click="changeRole(event)" name="{data.name}"
+									  source="{ ((data.role == 'moderator') ? 'http://localhost/star.png' : 'http://localhost/unstar.png' ) }" />
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
+			<!--<mx:TextArea id="users" height="100%" editable="false"/>-->
+		</mx:HDividedBox>
 		<mx:HBox width="100%">
 			<mx:TextInput id="input" width="100%" enabled="false"/>
 			<mx:Button id="sendButton" label="Send" enabled="false"/>
@@ -174,27 +255,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<ui:ControlPanel id="cPanel">
 		<mx:VBox label="Visualization Controls">
 			<mx:HBox width="100%">
-				<mx:Label text="IP:"/>
-				<mx:TextInput id="serverIP" width="50%" text="129.63.17.205"/>	
+				<mx:Label text="IP:" width="{labelWidth}" />
+				<mx:TextInput id="serverIP" width="{textAreaWidth}" text="129.63.17.205"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Label text="ServerName:"/>
-				<mx:TextInput id="serverName" width="50%" text="VAST-SERVER"/>	
+				<mx:Label text="ServerName:" width="{labelWidth}" />
+				<mx:TextInput id="serverName" width="{textAreaWidth}" text="VAST-SERVER"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Label text="Port:"/>
-				<mx:TextInput id="port" width="50%" text="5222"/>	
+				<mx:Label text="Port:" width="{labelWidth}" />
+				<mx:TextInput id="port" width="{textAreaWidth}" text="5222"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Label text="Username:"/>
-				<mx:TextInput id="username" width="50%"/>	
+				<mx:Label text="Username:" width="{labelWidth}" />
+				<mx:TextInput id="username" width="{textAreaWidth}"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Label text="Room Name:"/>
-				<mx:TextInput id="roomToJoin" width="50%" text="Test"/>	
+				<mx:Label text="Room Name:" width="{labelWidth}" />
+				<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test"/>	
 			</mx:HBox>
-			<mx:Button id="connectButton" label="Connect" enabled="true"/>
-			<mx:Button id="disconnectButton" label="Disconnect" enabled="false"/>
+			<mx:HBox width="100%">
+				<mx:Button id="connectButton" label="Connect" enabled="true"/>
+				<mx:Button id="disconnectButton" label="Disconnect" enabled="false"/>
+			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 	

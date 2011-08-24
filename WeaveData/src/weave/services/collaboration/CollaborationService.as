@@ -39,6 +39,7 @@ package weave.services.collaboration
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.charts.renderers.BoxItemRenderer;
+	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.events.CloseEvent;
 	import mx.events.FlexEvent;
@@ -80,6 +81,26 @@ package weave.services.collaboration
 	
 	public class CollaborationService extends EventDispatcher implements IDisposableObject
 	{
+		private var root:ILinkableObject;
+		private var connection:XMPPConnection;
+		private var selfJID:String;
+		private var serverIP:String;
+		private var serverName:String;
+		private var port:int;
+		private var roomToJoin:String;
+		private var _room:Room;
+
+		private var baseEncoder:Base64Encoder = new Base64Encoder();
+		private var baseDecoder:Base64Decoder = new Base64Decoder();
+		private var connectedToRoom:Boolean   = false;
+		private var connectedToServer:Boolean = false;
+		private var stateSet:Boolean  		  = false;
+		private var stateLog:SessionStateLog  = null;
+		
+		public var userList:ArrayCollection  = new ArrayCollection();
+		public var username:String;
+		public var role:String;
+
 		public function CollaborationService( root:ILinkableObject )
 		{
 			this.root = root;
@@ -90,9 +111,6 @@ package weave.services.collaboration
 				registerClassAlias(getQualifiedClassName(c), c);
 		}
 		
-		private var root:ILinkableObject;
-		
-		private var _room:Room;
 		//This is here just to warn us in the many places that room is called, if it is null
 		private function get room():Room
 		{
@@ -100,32 +118,6 @@ package weave.services.collaboration
 				throw new Error("Not Connected to Collaboration Server");
 			return _room;
 		}
-		
-		//the connection to the server.
-		private var connection:XMPPConnection;
-	
-		//Contains a user's "Buddy List"
-		/* public static var roster:Roster; */
-		private var selfJID:String;
-		
-		private var serverIP:String;
-		private var serverName:String;
-		private var port:int;
-		private var roomToJoin:String;
-		private var username:String;
-		
-		//The port defines a secure connection
-		//5222(unsecure) , 5223(secure)
-		private var baseEncoder:Base64Encoder = new Base64Encoder();
-		private var baseDecoder:Base64Decoder = new Base64Decoder();
-		
-		//setting a room that doesn't exist will register that
-		//new room with the server
-		private var connectedToRoom:Boolean = 	false;
-		private var connectedToServer:Boolean = false;
-		private var stateSet:Boolean = 			false;
-		
-		private var stateLog:SessionStateLog = 	null;
 		
 		// this will be called by SessionManager to clean everything up
 		public function dispose():void
@@ -161,7 +153,6 @@ package weave.services.collaboration
 		{
 			//if already connected disconnect and start over
 			if (connectedToServer == true) disconnect();
-			connectedToServer = true;
 			
 			//These values all come from the tool as inputs
 			this.serverIP = serverIP;
@@ -203,8 +194,7 @@ package weave.services.collaboration
 			
 			postMessageToUser( "Disconnected from server\n" );
 			
-			//Clears the Users list in the tool
-			dispatchEvent( new CollaborationEvent(CollaborationEvent.USERS_LIST, "") );
+			userList.removeAll();
 			
 			if( connection ) 
 			{
@@ -268,12 +258,9 @@ package weave.services.collaboration
 		//Goes through the room user list, sorts it, and reports it back to the Tool
 		private function updateUsersList():void
 		{
-			var s:String = '';
-			var sorted:Array = room.toArray().sortOn( "displayName" ) as Array;
-			for (var i:int = 0; i < sorted.length; i++)
-				s += (sorted[i] as RoomOccupant).displayName + '\n';
-						
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.USERS_LIST, s));
+			userList.removeAll();
+			for( var i:int = 0; i < room.length; i++ )
+				userList.addItem( { name: room[i].displayName, role: room[i].role } );
 		}
 		
 		//After you connect to a server, onLogin will direct you here
@@ -304,11 +291,11 @@ package weave.services.collaboration
 		//rooms on the same server, if that becomes neccessary.
 		private function onLogin(e:LoginEvent):void
 		{
+			connectedToServer = true;
 			var message:String = "";
 			
 			message += "connected as ";
-			if( connection.useAnonymousLogin == true )
-				message += "anonymous user: ";
+			if( connection.useAnonymousLogin == true ) message += "anonymous user: ";
 			message += connection.username + "\n";
 			postMessageToUser( message );
 			
@@ -364,15 +351,17 @@ package weave.services.collaboration
 							// received echo back from local state change
 							// search history for diff with matching id
 							var foundID:Boolean = false;
-							for (i = 0; i < stateLog.undoHistory.length; i++)
+							if( stateLog )
 							{
-								if (stateLog.undoHistory[i].id == ssm.id)
+								for (i = 0; i < stateLog.undoHistory.length; i++)
 								{
-									foundID = true;
-									break;
+									if (stateLog.undoHistory[i].id == ssm.id)
+									{
+										foundID = true;
+										break;
+									}
 								}
 							}
-							
 	 						// remove everything up until the diff with the matching id
 							if (foundID)
 								stateLog.undoHistory.splice(0, i + 1);
@@ -444,6 +433,7 @@ package weave.services.collaboration
 		private function onRoomJoin(e:RoomEvent):void
 		{
 			selfJID = room.userJID.resource;
+			role = room.role;
 			var userList:Array = room.toArray();
 			connectedToRoom = true;
 			updateUsersList();
