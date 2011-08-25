@@ -100,7 +100,7 @@ package weave.services.collaboration
 		
 		public var userList:ArrayCollection  = new ArrayCollection();
 		public var username:String;
-		public var role:String;
+		public var myRole:String;
 
 		public function CollaborationService( root:ILinkableObject )
 		{
@@ -139,12 +139,12 @@ package weave.services.collaboration
 				sendSessionStateDiff( entry.id, entry.forward );
 			}
 		}
-		
+		[Bindable]
 		public function isConnectedToServer():Boolean 
 		{
 			return connectedToServer;
 		}
-		
+		[Bindable]
 		public function isConnectedToRoom():Boolean 
 		{
 			return connectedToRoom;
@@ -194,6 +194,7 @@ package weave.services.collaboration
 				disposeObjects(stateLog);
 			
 			postMessageToUser( "Disconnected from server\n" );
+			connectedToRoom = false;
 			
 			userList.removeAll();
 			
@@ -440,8 +441,7 @@ package weave.services.collaboration
 		private function onRoomJoin(e:RoomEvent):void
 		{
 			selfJID = room.userJID.resource;
-			role = room.role;
-			var userList:Array = room.toArray();
+			myRole = room.role;
 			connectedToRoom = true;
 			updateUsersList();
 		}
@@ -450,7 +450,6 @@ package weave.services.collaboration
 		//it'll fire the timeout event
 		private function onTimeout(e:RoomEvent):void
 		{
-			connectedToRoom = false;
 			postMessageToUser( "You've timed out from the server.\n" );
 			disconnect();
 		}

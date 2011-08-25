@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
 -->
 
 
@@ -78,20 +78,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				
 				//UI callbacks, related to the buttons.
-				input.addEventListener(KeyboardEvent.KEY_DOWN, sendToRoom);
+				input.addEventListener(KeyboardEvent.KEY_UP, sendToRoom);
 				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
 				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
 				
 			}
-			
+
 			//Sends a message from the text box(input) to the server as a TEXT message
-			private function sendToRoom(e:Event):void
+			private function sendToRoom(e:KeyboardEvent):void
 			{
-				if( e is KeyboardEvent && (e as KeyboardEvent).keyCode != Keyboard.ENTER || input.text=="")
+				if( e.keyCode != Keyboard.ENTER || input.text=="")
 					return;
 				collabService.sendTextMessage( input.text );
-				input.text = "";	//clear the input	
+				input.text = "";	//clear the input
 			}
 			
 			
@@ -161,7 +161,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					 editable="false" dataProvider="{collabService.userList}">
 				<mx:itemRenderer>
 					<mx:Component>
-						<mx:HBox width="100%" height="100%">
+						<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off">
 							
 							<mx:Script>
 								<![CDATA[
@@ -173,7 +173,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									
 									private function changeRole(event:MouseEvent):void
 									{
-										if( outerDocument.collabService.role != "moderator" )
+										if( outerDocument.collabService.myRole != "moderator" )
 											return;
 										
 										roleID = event.currentTarget.name;
@@ -210,19 +210,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 										{
 											if( list[i].name == id )
 											{
+												if( id == outerDocument.collabService.username )
+													outerDocument.collabService.myRole = role;
 												switch( getRole(id) )
 												{
 													case "moderator":
-														outerDocument.collabService.role = role;
-														outerDocument.collabService.userList[i].role = role;
 														outerDocument.collabService.userList[i].affiliation = "none";
 														break;
 													case "participant":
-														outerDocument.collabService.role = role;
-														outerDocument.collabService.userList[i].role = role;
 														outerDocument.collabService.userList[i].affiliation = "owner";
 														break;
 												}
+												outerDocument.collabService.userList[i].role = role;
 												outerDocument.collabService.userList.refresh();
 												return;
 											}
@@ -231,10 +230,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								]]>
 							</mx:Script>
 							
-							<mx:Label text="{data.name}" fontSize="14" horizontalCenter="0" left="5" />
+							<mx:Label text="{data.name}" fontSize="14" horizontalCenter="0" left="5" width="100%" />
 							<mx:Spacer width="100%" />
 							<mx:Image id="img" right="15" click="changeRole(event)" name="{data.name}"
-									  source="{ ((data.role == 'moderator') ? 'http://localhost/star.png' : 'http://localhost/unstar.png' ) }" />
+									  source="{ ((data.role == 'moderator') ? 'http://129.63.17.193/star.png' : 'http://129.63.17.193/unstar.png' ) }" />
 						</mx:HBox>
 					</mx:Component>
 				</mx:itemRenderer>
@@ -275,8 +274,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Button id="connectButton" label="Connect" enabled="true"/>
-				<mx:Button id="disconnectButton" label="Disconnect" enabled="false"/>
+				<mx:Button id="connectButton" label="Connect" enabled="{!collabService.isConnectedToServer()}"/>
+				<mx:Button id="disconnectButton" label="Disconnect" enabled="{collabService.isConnectedToServer()}"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
