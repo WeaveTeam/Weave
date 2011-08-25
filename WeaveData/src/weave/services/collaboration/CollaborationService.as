@@ -96,6 +96,7 @@ package weave.services.collaboration
 		private var connectedToServer:Boolean = false;
 		private var stateSet:Boolean  		  = false;
 		private var stateLog:SessionStateLog  = null;
+		private var mess:Boolean              = false;
 		
 		public var userList:ArrayCollection  = new ArrayCollection();
 		public var username:String;
@@ -245,8 +246,13 @@ package weave.services.collaboration
 		//Handles sending session state changes
 		public function sendSessionStateDiff( diffID:int, diff:Object, target:String=null ):void
 		{
-			var message:SessionStateMessage = new SessionStateMessage(diffID, diff);
-			sendEncodedObject( message, target );
+			if( mess == false )
+			{
+				var message:SessionStateMessage = new SessionStateMessage(diffID, diff);
+				sendEncodedObject( message, target );
+			}
+			else
+				mess = false;
 		}
 		
 		//When a message is recieved pass it on to the user
@@ -373,15 +379,16 @@ package weave.services.collaboration
 						else
 						{
 							// rewind local changes
-							for (i = stateLog.undoHistory.length - 1; i >= 0; i--)
-								setSessionState(root, stateLog.undoHistory[i].backward, false);
+/*							for (i = stateLog.undoHistory.length - 1; i >= 0; i--)
+								setSessionState(root, stateLog.undoHistory[i].backward, false);*/
 							
 							// apply remote change
+							mess = true;
 							setSessionState(root, ssm.diff, false);
 							
 							// replay local changes
-							for (i = 0; i < stateLog.undoHistory.length; i++)
-								setSessionState(root, stateLog.undoHistory[i].forward, false);
+/*							for (i = 0; i < stateLog.undoHistory.length; i++)
+								setSessionState(root, stateLog.undoHistory[i].forward, false);*/
 						}
 					}
 				}
