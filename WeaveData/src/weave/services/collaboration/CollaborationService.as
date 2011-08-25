@@ -30,6 +30,7 @@ package weave.services.collaboration
 	import com.modestmaps.extras.ui.FullScreenButton;
 	
 	import flash.events.ErrorEvent;
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.net.registerClassAlias;
 	import flash.text.engine.BreakOpportunity;
@@ -451,7 +452,15 @@ package weave.services.collaboration
 		private function onTimeout(e:RoomEvent):void
 		{
 			postMessageToUser( "You've timed out from the server.\n" );
-			disconnect();
+			Alert.show( "Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler );
+		}
+		
+		private function disconnectHandler( e:CloseEvent ):void
+		{
+			if( e.detail == 1 )
+				connect( this.serverIP, this.serverName, this.port, this.roomToJoin, this.username );
+			else
+				disconnect();			
 		}
 		
 		//handled whenever any user joins the same room as this
