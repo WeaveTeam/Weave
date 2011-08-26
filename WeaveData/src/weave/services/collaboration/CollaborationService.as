@@ -114,10 +114,13 @@ package weave.services.collaboration
 		}
 		
 		//This is here just to warn us in the many places that room is called, if it is null
-		private function get room():Room
+		public function get room():Room
 		{
-			if( _room == null)
-				throw new Error("Not Connected to Collaboration Server");
+			if( _room == null){
+				//throw new Error("Not Connected to Collaboration Server");
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.TEXT, "You are not currently connected to a Collaboration server. No message has been sent.\n"));
+				connectedToRoom = false;
+			}
 			return _room;
 		}
 		

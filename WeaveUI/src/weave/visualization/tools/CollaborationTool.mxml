@@ -41,7 +41,9 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.controls.ToolTip;
 			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
 			
 			import org.igniterealtime.xiff.events.OutgoingDataEvent;
 			
@@ -79,7 +81,7 @@
 				
 				//UI callbacks, related to the buttons.
 				input.addEventListener(KeyboardEvent.KEY_UP, sendToRoom);
-				sendButton.addEventListener(MouseEvent.CLICK, sendToRoom);
+				sendButton.addEventListener(MouseEvent.CLICK, sendToRoomButton);
 				connectButton.addEventListener(MouseEvent.CLICK, connect);
 				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
 				
@@ -90,7 +92,17 @@
 			{
 				if( e.keyCode != Keyboard.ENTER || input.text=="")
 					return;
-				collabService.sendTextMessage( input.text );
+				if( collabService.room != null )
+					collabService.sendTextMessage( input.text );
+				input.text = "";	//clear the input
+			}
+			
+			private function sendToRoomButton(e:MouseEvent):void
+			{
+				if( input.text == "" )
+					return;
+				if( collabService.room != null )
+					collabService.sendTextMessage( input.text );
 				input.text = "";	//clear the input
 			}
 			
@@ -149,6 +161,21 @@
 				disconnect(null);
 			}
 			
+			private var toolTipper:ToolTip = new ToolTip()
+			
+			protected function users_itemRollOverHandler(event:ListEvent):void
+			{
+				toolTipper.text = collabService.userList[event.rowIndex].name;
+				toolTipper.x = mouseX;
+				toolTipper.y = mouseY;
+				addChild( toolTipper );
+			}
+			
+			protected function users_itemRollOutHandler(event:ListEvent):void
+			{
+				removeChild( toolTipper );				
+			}
+			
 		]]>
 	</mx:Script>
 
@@ -158,7 +185,7 @@
 		<mx:HDividedBox width="100%" height="100%">
 			<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
 			<mx:List id="users" height="100%" width="20%" minWidth="100"
-					 editable="false" dataProvider="{collabService.userList}">
+					 editable="false" dataProvider="{collabService.userList}" itemRollOver="users_itemRollOverHandler(event)" itemRollOut="users_itemRollOutHandler(event)">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -274,8 +301,8 @@
 				<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Button id="connectButton" label="Connect" enabled="{!collabService.isConnectedToServer()}"/>
-				<mx:Button id="disconnectButton" label="Disconnect" enabled="{collabService.isConnectedToServer()}"/>
+				<mx:Button id="connectButton" label="Connect" enabled="{!collabService.isConnectedToRoom()}"/>
+				<mx:Button id="disconnectButton" label="Disconnect" enabled="{collabService.isConnectedToRoom()}"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
