@@ -2,17 +2,17 @@
 
 <!-- This is the build script to build all the projects and their dependencies. To use these scripts, you must
 	first do the following
-	1) Setup FLEX_HOME as an operating system environment variable pointing to where you installed your Flex 3.5 SDK.
-		This Flex 3.5 SDK must be downloaded directly from Adobe-do not attempt to merge the SDK provided in FlashBuilder.
-		e.g.) C:\Flex 3.5 SDK
-	2) Add the Flex 3.5 SDK's bin folder to your operating system's PATH variable.
+	1) Setup FLEX_HOME as an operating system environment variable pointing to where you installed your Flex 3.6 SDK.
+		This Flex 3.6 SDK must be downloaded directly from Adobe-do not attempt to merge the SDK provided in FlashBuilder.
+		e.g.) C:\Flex 3.6 SDK
+	2) Add the Flex 3.6 SDK's bin folder to your operating system's PATH variable.
 	3) Add ANT's bin folder to your operating system's PATH variable.
 		e.g.) C:\ant\bin
      Change SDK_VERSION property below to contain everything after the "framework_" from the file
 		${FLEX_HOME}/frameworks/rsls/framework_*.swf
 		For example, if yours is
-		${FLEX_HOME}/frameworks/rsls/framework_3.5.0.12683.swf
-		then the SDK_VERSION would be 3.5.0.12683
+		${FLEX_HOME}/frameworks/rsls/framework_3.6.0.16995.swf
+		then the SDK_VERSION would be 3.6.0.16995
 	5) Restart Eclipse to let it register the updated PATH.
 	6) Change WEAVE_DOCROOT property located in this file. It should be the same as the WEAVE_DOCROOT
 		defined in your linked resources variable if you are using Eclipse.
@@ -31,8 +31,9 @@
 	<!-- This property's value is defined as an environment variable -->
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
 	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs"/>
-	<property name="SDK_VERSION" value="3.5.0.12683"/>
+	<property name="SDK_VERSION" value="3.6.0.16995"/>
 
+    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
 
 	<!-- These are the projects -->

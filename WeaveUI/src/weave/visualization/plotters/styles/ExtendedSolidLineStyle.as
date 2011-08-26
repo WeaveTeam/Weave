@@ -25,7 +25,7 @@ package weave.visualization.plotters.styles
 	import flash.geom.Matrix;
 	
 	import weave.api.data.IQualifiedKey;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * Allows the line to be drawn using the missing style pattern.
@@ -43,7 +43,7 @@ package weave.visualization.plotters.styles
 		private var _matrix:Matrix = null;
 		override public function beginLineStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
-			var lineEnabled:Boolean = BooleanLib.toBoolean( enabled.getValueFromKey(recordKey) );
+			var lineEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			var lineWeight:Number = weight.getValueFromKey(recordKey, Number);
 			var lineColor:Number = color.getValueFromKey(recordKey, Number);
 

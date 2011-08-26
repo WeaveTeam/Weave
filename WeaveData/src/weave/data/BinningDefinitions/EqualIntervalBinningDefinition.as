@@ -25,7 +25,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.newLinkableChild;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
@@ -80,12 +80,12 @@ package weave.data.BinningDefinitions
 						//****binMax = dataMin + (iBin + 1) * (dataMax - dataMin) / numberOfBins.value;
 						binMax = binMin + dataInterval.value;
 						// TEMPORARY SOLUTION -- round bin boundaries
-						binMax = MathLib.roundSignificant(binMax, 4);
+						binMax = StandardLib.roundSignificant(binMax, 4);
 					}
 					
 					// TEMPORARY SOLUTION -- round bin boundaries
 					if (iBin > 0)
-						binMin = MathLib.roundSignificant(binMin, 4);
+						binMin = StandardLib.roundSignificant(binMin, 4);
 					
 					// skip bins with no values
 					if (binMin == binMax && !maxInclusive)

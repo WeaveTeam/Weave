@@ -37,7 +37,7 @@ EquationUIComponent
 	-->
 	<mx:VBox verticalGap="0">
 		<mx:Image click="handleCloseButtonClick(event)" id="closeButton" source="@Embed(source='/weave/resources/images/cancel_small.png')" alpha="0.5" toolTip="Erase this part of the equation."/>
-		<mx:Image click="handleEditButtonClick(event)" id="editButton" source="@Embed(source='/weave/resources/images/pencil.png')" alpha="0.5" toolTip="Expand or collapse this part of the equation."/>
+		<mx:Image mouseDown="handleEditButtonClick(event)" id="editButton" source="@Embed(source='/weave/resources/images/pencil.png')" alpha="0.5" toolTip="Expand or collapse this part of the equation."/>
 	</mx:VBox>
 	<mx:VBox id="equationStringContainer"/>
 	
@@ -53,15 +53,16 @@ EquationUIComponent
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.api.compiler.ICompiledObject;
 			import weave.api.core.ILinkableObject;
 			import weave.api.disposeObjects;
 			import weave.api.newLinkableChild;
 			import weave.compiler.CompiledConstant;
 			import weave.compiler.CompiledFunctionCall;
-			import weave.compiler.EquationCompiler;
+			import weave.compiler.Compiler;
+			import weave.compiler.ICompiledObject;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
+			import weave.data.AttributeColumns.EquationColumn;
 			import weave.utils.DebugUtils;
 
 			private static const UNDEFINED:String = 'undefined';
@@ -117,49 +118,54 @@ EquationUIComponent
 				
 				var errorString:String = '';
 				var compiledObject:ICompiledObject = null;
-				try{
-					compiledObject = EquationCompiler.compileEquationToObject(equation.value);
-				}catch(e:Error){
-					
+				try
+				{
+					compiledObject = EquationColumn.compiler.compileToObject(equation.value);
+				}
+				catch(e:Error)
+				{
 					errorString = e.message;
 				}
 				//add check for null or empty equation
 				clearEquation();
 				
-				//disable function view when function is "get". We do this to force users to drop it on the get function and not on the input box of the get function
-				if (compiledObject != null && compiledObject is CompiledFunctionCall)
-				{
-					if((compiledObject as CompiledFunctionCall).name == "get")
-						enableFunctionView = false;
-				}
+				var compiledFunctionCall:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 				
+				// disable function view when appropriate
+				// special case for get() in order to force drag-and-drop to replace the entire get function instead of the get function parameter
+				if (!compiledFunctionCall || !compiledFunctionCall.compiledParams || compiledFunctionCall.compiledParams.length == 0 || EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledMethod) == "get")
+					enableFunctionView = false;
 				
-				if (compiledObject is CompiledFunctionCall && enableFunctionView)
+				if (enableFunctionView)
 				{
-					var compiledFunctionCall:CompiledFunctionCall = (compiledObject as CompiledFunctionCall);
-						
 					var openCompiledObjectName:Label = new Label();
 					
-					openCompiledObjectName.text = compiledFunctionCall.name;
-					openCompiledObjectName.text  += "(" ;
+					openCompiledObjectName.text = EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledMethod);
 					equationStringContainer.addChild(openCompiledObjectName);
-				
-					for (var i:int = 0; i < compiledFunctionCall.compiledParams.length; i++)
+					if (compiledFunctionCall.compiledParams.length > 0)
 					{
-						var compiledObjectParams:EquationUIComponent = new EquationUIComponent();
-						compiledObjectParams.equation.value = (EquationCompiler.decompile(compiledFunctionCall.compiledParams[i]));
-						compiledObjectParams.equation.addImmediateCallback(this, handleChildEquationChange); 
-						equationStringContainer.addChild(compiledObjectParams);
-						if (i < compiledFunctionCall.compiledParams.length - 1)
+						openCompiledObjectName.text += "(";
+						for (var i:int = 0; i < compiledFunctionCall.compiledParams.length; i++)
 						{
-							var comma:Label = new Label();
-							comma.text = ",";
-							equationStringContainer.addChild(comma);
+							var compiledObjectParams:EquationUIComponent = new EquationUIComponent();
+							compiledObjectParams.equation.value = (EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledParams[i]));
+							compiledObjectParams.equation.addImmediateCallback(this, handleChildEquationChange); 
+							equationStringContainer.addChild(compiledObjectParams);
+							if (i < compiledFunctionCall.compiledParams.length - 1)
+							{
+								var comma:Label = new Label();
+								comma.text = ",";
+								equationStringContainer.addChild(comma);
+							}
 						}
+						var closeCompiledObjectName:Label = new Label();
+						closeCompiledObjectName.text = ")";
+						equationStringContainer.addChild(closeCompiledObjectName);
 					}
-					var closeCompiledObjectName:Label = new Label();
-					closeCompiledObjectName.text = ")";
-					equationStringContainer.addChild(closeCompiledObjectName);
+					else
+					{
+						openCompiledObjectName.text += "()";
+					}
 				}
 				else
 				{
@@ -200,8 +206,8 @@ EquationUIComponent
 				
 				// compile, then decompile so we will get the preferred syntax
 				try {
-					var compiledObject:ICompiledObject = EquationCompiler.compileEquationToObject(equationString);
-					equationString = EquationCompiler.decompile(compiledObject);
+					var compiledObject:ICompiledObject = EquationColumn.compiler.compileToObject(equationString);
+					equationString = EquationColumn.compiler.decompileObject(compiledObject);
 				} catch (e:Error) { }
 				
 				return equationString;
@@ -268,7 +274,7 @@ EquationUIComponent
 					var draggedCompiledEquation:ICompiledObject = getEquationFromXML(draggedItem);
 					try
 					{
-						var compiledCurrentEquation:ICompiledObject = EquationCompiler.compileEquationToObject(currentEquationString);	
+						var compiledCurrentEquation:ICompiledObject = EquationColumn.compiler.compileToObject(currentEquationString);	
 						if(draggedCompiledEquation is CompiledFunctionCall && (draggedCompiledEquation as CompiledFunctionCall).compiledParams.length !=0)
 						{
 							(draggedCompiledEquation as CompiledFunctionCall).compiledParams[0] = compiledCurrentEquation;
@@ -278,7 +284,7 @@ EquationUIComponent
 					{
 						
 					}
-					equation.value = (EquationCompiler.decompile(draggedCompiledEquation));
+					equation.value = (EquationColumn.compiler.decompileObject(draggedCompiledEquation));
 				}
 				else if (draggedItem is String)
 				{
@@ -324,7 +330,7 @@ EquationUIComponent
 					
 					functionStringFormat += ")";
 				}
-				var equation:ICompiledObject = EquationCompiler.compileEquationToObject(functionStringFormat);
+				var equation:ICompiledObject = EquationColumn.compiler.compileToObject(functionStringFormat);
 				
 				return equation;
 			}

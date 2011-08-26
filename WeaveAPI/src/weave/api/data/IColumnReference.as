@@ -49,7 +49,7 @@ package weave.api.data
 		/**
 		 * This function returns the IDataSource that knows how to get the column this object refers to.
 		 * @return The IDataSource that can be used to retrieve the column that this object refers to.
-		 */		
+		 */
 		function getDataSource():IDataSource;
 		
 		/**
@@ -57,5 +57,13 @@ package weave.api.data
 		 * @return The hash code for comparing two IColumnReferences.
 		 */
 		function getHashCode():String;
+		
+		/**
+		 * This function gets metadata associated with the column.
+		 * For standard metadata property names, refer to the AttributeColumnMetadata class.
+		 * @param propertyName The name of the metadata property to retrieve.
+		 * @result The value of the specified metadata property.
+		 */
+		function getMetadata(propertyName:String):String;
 	}
 }

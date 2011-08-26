@@ -29,6 +29,7 @@ package weave.services
 	import mx.utils.UIDUtil;
 	
 	import weave.StringDefinition;
+	import weave.Weave;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.GeometryCollectionInfo;
@@ -596,7 +597,7 @@ package weave.services
 		{
 			var connectionName:String = createWeaveService();
 			ExternalInterface.call(
-					'function(){ window.open("weave.html?defaults='+fileName+'&connectionName='+connectionName+'","_blank","width=800,height=600,location=0,toolbar=0,menubar=0,resizable=1") }'
+					'function(){ window.open("weave.html?file='+fileName+'&connectionName='+connectionName+'","_blank","width=800,height=600,location=0,toolbar=0,menubar=0,resizable=1") }'
 				);
 		}
 		

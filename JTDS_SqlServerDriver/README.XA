@@ -1,0 +1,62 @@
+XA support in jTDS
+==================
+
+This version of jTDS includes a XADataSource class which allows the driver to
+be used with J2EE servers that only support XA JDBC connections. The class name
+is net.sourceforge.jtds.jdbcx.JtdsDataSource.
+
+By default the driver will emulate distributed transactions fooling the J2EE
+environment into believing that two phase commit is supported. This emulation
+has the serious drawback that when used in a true distributed environment, the
+driver may not be able to commit or rollback when requested by the transaction
+manager. In this situation data loss or corruption can occur.
+
+In general this emulation is safe to use when jTDS is the only transactional
+resource manager or where the database is read only and never updated.
+Emulation is much faster than support for true distributed transactions and
+this may be another reason to consider using the driver in this mode if the
+risks are understood.
+
+Many J2EE servers provide their own XA emulations that allow the normal
+net.sourceforge.jtds.jdbc.Driver to be used. The recommendation is to use the
+vendor's emulation, if available, rather than the XADataSource as this
+configuration is likely to be more stable.
+
+The driver will support true distributed transactions with MS SQL2000 provided
+that the extended stored procedure in JtdsXA.dll is installed in the target
+server. To disable the XA emulation and use the stored procedure, set the
+connection property "xaemulation" to "false". This implementation is very
+immature and cannot be recommended for production use at this stage. It may
+however be useful for development when true two phase commit support is
+required.
+
+Another connection property, "LogFile" has been added to JtdsDataSource which
+allows the jTDS logging to be enabled in a J2EE environment. The parameter
+value specifies the output file path for the logging information.
+
+Two example configurations for the popular JBoss server are included in the
+conf directory. One configuration uses the Driver interface and the server's XA
+emulation the other shows how to use the driver's XA support in either emulated
+or real mode.
+
+
+Installing JtdsXA.dll
+=====================
+
+For true distributed transaction support JtdsXA.dll has to be installed on the
+server. The installation procedure consists of two simple steps:
+
+ 1. Copy JtdsXA.dll from the XA directory to the <SQL_Server_Root>/binn
+    directory of the SQL Server installation.
+
+ 2. From the command prompt run the following command in the directory where
+    you extracted jTDS:
+
+    isql -Usa -P<sa_password> -S<server_name_or_ip> -iXA\instjtds.sql
+
+    Alternatively, use any DB tool (such as Query Analyzer or any JDBC tool) to
+    execute the script within the 'master' database. Don't forget to log in as
+    'sa'.
+
+This will install the xp_jtdsxa extended stored procedure, used by jTDS to
+provide true distributed transacition support.

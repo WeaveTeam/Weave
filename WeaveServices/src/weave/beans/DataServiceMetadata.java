@@ -24,16 +24,18 @@ public class DataServiceMetadata
 	public DataServiceMetadata()
 	{
 	}
-	public DataServiceMetadata(String serverName, String[] dataTableNames, String[] geometryCollectionNames)
+	public DataServiceMetadata(String serverName, String[] dataTableNames, String[] geometryCollectionNames, String[] geometryCollectionKeyTypes)
 	{
 		this.serverName = serverName;
 		this.dataTableNames = dataTableNames;
 		this.geometryCollectionNames = geometryCollectionNames;
+		this.geometryCollectionKeyTypes = geometryCollectionKeyTypes;
 	}
 	
 	private String serverName;
 	private String[] dataTableNames;
 	private String[] geometryCollectionNames;
+	private String[] geometryCollectionKeyTypes;
 	
 	public String getServerName()
 	{
@@ -58,5 +60,13 @@ public class DataServiceMetadata
 	public void setGeometryCollectionNames(String[] geometryCollectionNames)
 	{
 		this.geometryCollectionNames = geometryCollectionNames;
+	}
+	public String[] getGeometryCollectionKeyTypes()
+	{
+		return geometryCollectionKeyTypes;
+	}
+	public void setGeometryCollectionKeyTypes(String[] geometryCollectionKeyTypes)
+	{
+		this.geometryCollectionKeyTypes = geometryCollectionKeyTypes;
 	}
 }

@@ -19,22 +19,30 @@
 
 package weave
 {
+	import flash.display.Loader;
+	import flash.display.LoaderInfo;
 	import flash.display.StageDisplayState;
+	import flash.errors.IllegalOperationError;
 	import flash.events.ContextMenuEvent;
+	import flash.events.ErrorEvent;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
+	import flash.filters.BevelFilter;
 	import flash.geom.Point;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
+	import flash.system.LoaderContext;
 	import flash.system.System;
 	import flash.text.TextField;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
+	import flash.ui.MouseCursor;
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
@@ -54,6 +62,7 @@ package weave
 	import mx.core.UIComponent;
 	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
+	import mx.managers.CursorManagerPriority;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -65,6 +74,7 @@ package weave
 	import weave.Reports.WeaveReport;
 	import weave.SearchEngineUtils;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
@@ -72,17 +82,17 @@ package weave
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.newLinkableChild;
 	import weave.api.services.IURLRequestUtils;
 	import weave.api.setSessionState;
-	import weave.compiler.BooleanLib;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
-	import weave.core.WeaveJavaScriptAPI;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
@@ -107,6 +117,7 @@ package weave
 	import weave.ui.JRITextEditor;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
+	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
@@ -122,8 +133,10 @@ package weave
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
 	import weave.ui.settings.GlobalUISettings;
+	import weave.ui.settings.InteractivitySubMenu;
 	import weave.utils.BitmapUtils;
 	import weave.utils.CSSUtils;
+	import weave.utils.CustomCursorManager;
 	import weave.utils.DebugUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.NumberUtils;
@@ -170,7 +183,7 @@ package weave
 		
 		
 		// The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
-		private var _defaultsXML:XML = null;
+		private var _configFileXML:XML = null;
 		
 		// The array of data tables that are used in this application, one or more data tables are needed to visualize some data
 		private var _dataTableNames:Array = [];
@@ -195,7 +208,7 @@ package weave
 		public function VisApplication()
 		{
 			super();
-			this.setStyle('backgroundColor',0xCCCCCC);
+			this.setStyle('backgroundColor',Weave.properties.backgroundColor.value);
 			this.pageTitle = "Open Indicators Weave";
 
 			visDesktop = new VisDesktop();
@@ -230,7 +243,7 @@ package weave
 			setStyle("verticalGap", 0);
 			setStyle("horizingalGap", 0);
 
-			// default has menubar and taskbar unless specified otherwise in defaults file
+			// default has menubar and taskbar unless specified otherwise in config file
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableTaskbar.addGroupedCallback(this, toggleTaskBar, true);
 			
@@ -252,33 +265,7 @@ package weave
 
 			//add event listerner on closing window to send a message to the sender LocalConnection close the connection
 			//addEventListener(Event.CLOSE,handleClosingEvent);
-			getURLParams();
-			if (getConnectionName() != null)
-			{
-				// disable interface until connected to admin console
-				var _this:VisApplication = this;
-				_this.enabled = false;
-				var errorHandler:Function = function(..._):void
-				{
-					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
-					_this.enabled = true;
-				};
-				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getConnectionName());
-				pendingAdminService.errorCallbacks.addGroupedCallback(this, errorHandler);
-				// when admin console responds, set adminService
-				DelayedAsyncResponder.addResponder(
-						pendingAdminService.invokeAsyncMethod("ping"),
-						function(..._):*
-						{
-							//Alert.show("Connected to Admin Console");
-							_this.enabled = true;
-							adminService = pendingAdminService;
-							toggleMenuBar();
-							StageUtils.callLater(this,setupVisMenuItems,null,false);
-						},
-						errorHandler
-					);
-			}
+			this.addEventListener(FlexEvent.APPLICATION_COMPLETE, setupConnection );
 			
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			
@@ -288,8 +275,41 @@ package weave
 			Weave.properties.enableRightClick.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange);
+			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange, true);
 //			Weave.properties.showViewBar.addGroupedCallback(this, addViewBar);
+		}
+
+		//This needed to be a function because FlashVars can't be fetched till the application loads.
+		private function setupConnection( e:FlexEvent ):void
+		{
+			getFlashVars();
+			if (getFlashVarConnectionName() != null)
+			{
+				// disable interface until connected to admin console
+				var _this:VisApplication = this;
+				_this.enabled = false;
+				var errorHandler:Function = function(..._):void
+				{
+					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
+					_this.enabled = true;
+				};
+				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarConnectionName());
+				pendingAdminService.errorCallbacks.addGroupedCallback(this, errorHandler);
+				// when admin console responds, set adminService
+				DelayedAsyncResponder.addResponder(
+					pendingAdminService.invokeAsyncMethod("ping"),
+					function(..._):*
+					{
+						//Alert.show("Connected to Admin Console");
+						_this.enabled = true;
+						adminService = pendingAdminService;
+						toggleMenuBar();
+						StageUtils.callLater(this,setupVisMenuItems,null,false);
+					},
+					errorHandler
+				);
+			}
+			loadPage();
 		}
 		
 		private function handleBackgroundColorChange():void
@@ -302,46 +322,50 @@ package weave
 		// The desktop is the entire viewable area minus the space for the optional menu bar and taskbar
 		public var visDesktop:VisDesktop = null;
 		
-		//get parameters from URL. Used for setting connectionName for LocalConnection
-		private var _urlParams:Object;
-		private function getConnectionName():String
+		private var _flashVars:Object;
+		private function getFlashVarConnectionName():String
 		{
-			return _urlParams['connectionName'] as String;
+			return _flashVars['connectionName'] as String;
 		}
 		
-		private function getClientConfigFileName():String
+		private function getFlashVarConfigFileName():String
 		{
-			if (_urlParams['defaults'] == undefined)
+			if (_flashVars[CONFIG_FILE_FLASH_VAR_NAME] == undefined)
 				return null;
 			
-			return unescape(_urlParams['defaults'] as String);
+			return unescape(_flashVars[CONFIG_FILE_FLASH_VAR_NAME] as String);
 		}
 		
 		/**
-		 * @return true or false, depending what the 'editable' URL parameter is set to.
+		 * @return true, false, or undefined depending what the 'editable' FlashVar is set to.
 		 */
-		private function getEditableSettingFromURL():Boolean
+		private function getFlashVarEditable():*
 		{
-			return BooleanLib.toBoolean(_urlParams['editable'] as String);
+			var name:String = 'editable';
+			if (_flashVars.hasOwnProperty(name))
+				return StandardLib.asBoolean(_flashVars['editable'] as String);
+			return undefined;
 		}
 				
-		private function getURLParams():void
+		private function getFlashVars():void
 		{
-			//var address:String;
-			var queryString:String;
-			_urlParams = {};
-
+			// We want FlashVars to take priority over the address bar parameters.
+			_flashVars = LoaderInfo(this.root.loaderInfo).parameters;
+			
+			// check address bar for any variables not found in FlashVars
 			try
 			{
-				//address = ExternalInterface.call("window.location.href.toString");
-				queryString = ExternalInterface.call("window.location.search.substring", 1); // get text after "?"
-				_urlParams = new URLVariables(queryString);
+				var urlParams:URLVariables = new URLVariables(ExternalInterface.call("window.location.search.substring", 1)); // text after '?'
+				for (var key:String in urlParams)
+					if (!_flashVars.hasOwnProperty(key))
+						_flashVars[key] = urlParams[key];
+				// backwards compatibility with old param name
+				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && urlParams.hasOwnProperty('defaults'))
+					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = urlParams['defaults'];
 			}
-			catch(e:Error)
-			{
-				trace(e.getStackTrace());
-			}
+			catch(e:Error) { }
 		}
+		public const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 
 		private function get _applicationVBox():Application { return application as Application; }
 		
@@ -536,7 +560,6 @@ package weave
 //*/			
 			
 			//drawConnection();
-			loadPage();
 
 		}
 		
@@ -596,7 +619,7 @@ package weave
 		{
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
-			fileSaveDialogBox.textInput = getClientConfigFileName();
+			fileSaveDialogBox.textInput = getFlashVarConfigFileName();
 			fileSaveDialogBox.title = "Save File";
 			fileSaveDialogBox.message = "Save current Session State to server?";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
@@ -656,7 +679,7 @@ package weave
 		public static var showBorders:Boolean ;
 		private function toggleMenuBar():void
 		{
-			if (Weave.properties.enableMenuBar.value || adminService || getEditableSettingFromURL())
+			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
 			{
 				DraggablePanel.showRollOverBorders = true;
 				if (!_weaveMenu)
@@ -964,7 +987,7 @@ package weave
 		}
 		
 		private var _alreadyLoaded:Boolean = false;
-		private var _defaultsFilename:String = null;
+		private var _configFileName:String = null;
 		/**
 		 * loadPage():void
 		 * @author abaumann
@@ -976,20 +999,20 @@ package weave
 			if (_alreadyLoaded)
 				return;
 			
-			if (!getConnectionName())
+			if (!getFlashVarConnectionName())
 				enabled = false;
 			
 			// Name for the file that defines layout and tool settings.  This is extracted from a parameter passed to the HTML page.
-			_defaultsFilename = getClientConfigFileName(); 	
+			_configFileName = getFlashVarConfigFileName(); 	
 	
-			if (_defaultsFilename == null)
+			if (_configFileName == null)
 			{
-				_defaultsFilename = "defaults.xml";
+				_configFileName = "defaults.xml";
 			}
 			
 			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
 		
-			WeaveAPI.URLRequestUtils.getURL(new URLRequest(_defaultsFilename + noCacheHack), handleDefaultsFileDownloaded, handleDefaultsFileFault);
+			WeaveAPI.URLRequestUtils.getURL(new URLRequest(_configFileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault);
 			
 			_alreadyLoaded = true;
 		}
@@ -997,12 +1020,12 @@ package weave
 		private var _stateLoaded:Boolean = false;
 		private function loadSessionState(state:XML):void
 		{
-			_defaultsXML = state;
+			_configFileXML = state;
 			var i:int = 0;
 			
 			StageUtils.callLater(this,toggleMenuBar,null,false);
 			
-			if (!getConnectionName())
+			if (!getFlashVarConnectionName())
 				enabled = true;
 			
 			// backwards compatibility:
@@ -1028,7 +1051,7 @@ package weave
 				tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
 			}
 			
-			Weave.setSessionStateXML(_defaultsXML, true);
+			Weave.setSessionStateXML(_configFileXML, true);
 			fixCommonSessionStateProblems();
 
 			if (_weaveMenu && _toolsMenu)
@@ -1213,19 +1236,19 @@ package weave
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Tile All Windows", tileWindows, null, Weave.properties.enableTileAllWindows.value ));
 			
 			
-			label = function():String { 
-				if ( stage.displayState == StageDisplayState.FULL_SCREEN) 
+			label = function():String {
+				if ( stage && stage.displayState == StageDisplayState.FULL_SCREEN) 
 					return 'Exit Fullscreen'; 
 				
 				return 'Go Fullscreen';
 			};
 			click = function():void{
-				if (stage.displayState == StageDisplayState.NORMAL )
+				if (stage && stage.displayState == StageDisplayState.NORMAL )
 				{
 					// set full screen display
 					stage.displayState = StageDisplayState.FULL_SCREEN;
 				}
-				else
+				else if (stage)
 				{
 					// set normal display
 					stage.displayState = StageDisplayState.NORMAL;
@@ -1289,13 +1312,13 @@ package weave
 			return newToolMenuItem;
 		}
 
-		// Handle a file fault when trying to download the defaults file -- for now, this just pops up a window showing that the file could not be downloaded
-		private function handleDefaultsFileFault(event:FaultEvent, token:Object = null):void
+		// Handle a file fault when trying to download the config file -- for now, this just pops up a window showing that the file could not be downloaded
+		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
 		{
 			//if connection name exists then user might be creating a new config file.
-			if (getConnectionName() == '' || getConnectionName() == null)
+			if (getFlashVarConnectionName() == '' || getFlashVarConnectionName() == null)
 			{
-				Alert.show("No data specified for page or defaults file not found.  Please provide a defaults.xml file that specifies what data to show when no '?defaults=filename.xml' is specified in page URL.", "Missing Config URL");
+				Alert.show("Missing client config file.  Please provide a defaults.xml file that specifies what to show in this situation.", "Missing Config File");
 			}		
 		}
 
@@ -1394,12 +1417,9 @@ package weave
 
 		
 		/**
-		 * handleDefaultsFileDownloaded(event:ResultEvent):void
-		 * @author abaumann
-		 * This function handles parsing the defaults file once it has downloaded.  Ideally this contains very little specific information,
-		 * other classes should be able to be restored from the defaults
+		 * This function handles parsing the config file once it has downloaded.
 		 */
-		private function handleDefaultsFileDownloaded(event:ResultEvent, token:Object = null):void
+		private function handleConfigFileDownloaded(event:ResultEvent, token:Object = null):void
 		{
 			var xml:XML = null;
 			try
@@ -1412,18 +1432,23 @@ package weave
 			}
 			if (xml)
 				loadSessionState(xml);
-			if (getEditableSettingFromURL())
+			if (getFlashVarEditable())
 			{
 				Weave.properties.enableMenuBar.value = true;
 				Weave.properties.enableSessionMenu.value = true;
 				Weave.properties.enableSessionEdit.value = true;
 				Weave.properties.enableUserPreferences.value = true;
 			}
+			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
+			{
+				Weave.properties.enableMenuBar.value = false;
+				Weave.properties.dashboardMode.value = true;
+			}
 			
 			// enable JavaScript API after initial session state has loaded.
 			WeaveAPI.initializeExternalInterface();
 			
-			if (getEditableSettingFromURL())
+			if (getFlashVarEditable())
 				addHistorySlider();
 		}
 		
@@ -1509,6 +1534,7 @@ package weave
 				
 				SessionedTextBox.createContextMenuItems(this);
 				
+				PenTool.createContextMenuItems(this);
 					
 				//HelpPanel.createContextMenuItems(this);
 				if (Weave.properties.dataInfoURL.value)
@@ -1522,13 +1548,13 @@ package weave
 				
 				// Add context menu items for handling search queries
 				SearchEngineUtils.createContextMenuItems(this);
-				// Additional record queries can be defined in the defaults file.  Here they are extracted and added as context menu items with their
+				// Additional record queries can be defined in the config file.  Here they are extracted and added as context menu items with their
 				// associated actions.
-				if (_defaultsXML)
+				if (_configFileXML)
 				{
-					for(var i:int = 0; i < _defaultsXML.recordQuery.length(); i++)
+					for(var i:int = 0; i < _configFileXML.recordQuery.length(); i++)
 					{
-						SearchEngineUtils.addSearchQueryContextMenuItem(_defaultsXML.recordQuery[i], this);	
+						SearchEngineUtils.addSearchQueryContextMenuItem(_configFileXML.recordQuery[i], this);	
 					}
 				}
 			}
@@ -1606,7 +1632,7 @@ package weave
 			{
 				_sessionFileLoader = new FileReference();
 				
-				_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
+				_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _configFileName = _sessionFileLoader.name; } );
 				_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadSessionState( XML(e.target.data) );} );
 			}
 			
@@ -1681,6 +1707,8 @@ package weave
    			}
    			
 		}
+		
+		
 		/** END CONTEXT MENU CODE **/
 
 		

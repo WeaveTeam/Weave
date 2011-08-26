@@ -18,7 +18,6 @@
 */
 package weave.utils
 {
-	import weave.compiler.MathLib;
 	/**
 	 * A utility class for determining optimal tick mark values
 	 * 

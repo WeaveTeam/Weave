@@ -62,8 +62,10 @@ package weave.visualization.plotters
 			// set up x,y columns to be derived from the geometry column
 			var xeq:EquationColumn = dataX.requestLocalObject(EquationColumn, true);
 			var yeq:EquationColumn = dataY.requestLocalObject(EquationColumn, true);
-			xeq.equation.value = 'applyMethod(getProperty(getItem(getValue(geom), 0), "bounds"),"getXCenter")';
-			yeq.equation.value = 'applyMethod(getProperty(getItem(getValue(geom), 0), "bounds"),"getYCenter")';
+			xeq.equation.value = 'getValue(geom)[0].bounds.getXCenter()';
+			yeq.equation.value = 'getValue(geom)[0].bounds.getYCenter()';
+			xeq.equation.lock();
+			yeq.equation.lock();
 			linkSessionState(geometryColumn, xeq.requestVariable("geom", ReprojectedGeometryColumn, true));
 			linkSessionState(geometryColumn, yeq.requestVariable("geom", ReprojectedGeometryColumn, true));
 		}

@@ -26,7 +26,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -80,7 +80,7 @@ package weave.data.BinningDefinitions
 			splitBins.push(dataMin.value, dataMax.value);
 			// remove bad values
 			for (i = splitBins.length - 1; i >= 0; i--)
-				if (!isFinite(MathLib.toNumber(splitBins[i])))
+				if (!isFinite(StandardLib.asNumber(splitBins[i])))
 					splitBins.splice(i, 1);
 			// sort numerically
 			splitBins.sort(Array.NUMERIC);

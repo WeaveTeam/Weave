@@ -110,30 +110,22 @@
 
 			printJob.printAsBitmap = true;
 
-			// HACK: to stop from showing this window resized during the print process -- we still see printVbox resized inside this when we first choose to print
-			this.width = 0;
-			this.height = 0;
-			this.x = parent.width + 500;
-			this.y = parent.height + 500;
+//			// HACK: to stop from showing this window resized during the print process -- we still see printVbox resized inside this when we first choose to print
+//			this.width = 0;
+//			this.height = 0;
+//			this.x = parent.width + 500;
+//			this.y = parent.height + 500;
 
 			printVbox.scaleX = 1.0;
    		   	printVbox.scaleY = 1.0;
    		   	
-   		   	
-   		   	
-   		   	
-   		   	// HACK: to stop it from cutting off the side of the image
-   		   	printVbox.setStyle("paddingRight", 60);
+//   		// HACK: to stop it from cutting off the side of the image
+//   		printVbox.setStyle("paddingRight", 60);
 
 			printVbox.validateProperties();
-
-			//close popup
-			PopUpManager.removePopUp(this);
 			
             // Start the print job.
             if (printJob.start() != true) return;
-
-
 
             // Add the object to print. Do not scale it.
             //printJob.addObject(this, FlexPrintJobScaleType.NONE);
@@ -141,6 +133,9 @@
 
             // Send the job to the printer.
             printJob.send();	
+			
+			//close popup
+			PopUpManager.removePopUp(this);
 		}
 		
 		//handle when "Save as Image" is clicked

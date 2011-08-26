@@ -30,7 +30,7 @@ package weave.primitives
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
@@ -62,9 +62,9 @@ package weave.primitives
 			if (_useFixedAspectRatio)
 			{
 				return {
-					xCenter: MathLib.roundSignificant(_dataBounds.getXCenter()),
-					yCenter: MathLib.roundSignificant(_dataBounds.getYCenter()),
-					area: MathLib.roundSignificant(_dataBounds.getArea())
+					xCenter: StandardLib.roundSignificant(_dataBounds.getXCenter()),
+					yCenter: StandardLib.roundSignificant(_dataBounds.getYCenter()),
+					area: StandardLib.roundSignificant(_dataBounds.getArea())
 				};
 			}
 			else
@@ -99,7 +99,7 @@ package weave.primitives
 				if (state.hasOwnProperty("xCenter"))
 				{
 					useFixedAspectRatio = true;
-					if (MathLib.roundSignificant(_dataBounds.getXCenter()) != state.xCenter)
+					if (StandardLib.roundSignificant(_dataBounds.getXCenter()) != state.xCenter)
 					{
 						_dataBounds.setXCenter(state.xCenter);
 						cc.triggerCallbacks();
@@ -108,7 +108,7 @@ package weave.primitives
 				if (state.hasOwnProperty("yCenter"))
 				{
 					useFixedAspectRatio = true;
-					if (MathLib.roundSignificant(_dataBounds.getYCenter()) != state.yCenter)
+					if (StandardLib.roundSignificant(_dataBounds.getYCenter()) != state.yCenter)
 					{
 						_dataBounds.setYCenter(state.yCenter);
 						cc.triggerCallbacks();
@@ -117,7 +117,7 @@ package weave.primitives
 				if (state.hasOwnProperty("area"))
 				{
 					useFixedAspectRatio = true;
-					if (MathLib.roundSignificant(_dataBounds.getArea()) != state.area)
+					if (StandardLib.roundSignificant(_dataBounds.getArea()) != state.area)
 					{
 						// We can't change the screen area.  Adjust the dataBounds to match the specified area.
 						/*

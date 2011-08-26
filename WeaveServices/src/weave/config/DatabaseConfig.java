@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import java.rmi.RemoteException;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -146,7 +145,7 @@ public class DatabaseConfig
 		// add index on name
 		try
 		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.geometryConfigTable, new String[]{GeometryCollectionInfo.NAME});
 		}
 		catch (SQLException e)
 		{
@@ -173,8 +172,8 @@ public class DatabaseConfig
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		try
 		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.NAME.toString());
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.DATATABLE.toString());
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.NAME.toString()});
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.DATATABLE.toString()});
 		}
 		catch (SQLException e)
 		{
@@ -354,49 +353,31 @@ public class DatabaseConfig
 
 	public void removeGeometryCollection(String name) throws RemoteException
 	{
-		CallableStatement cstmt = null;
-		String query = "";
 		try
 		{
 			Connection conn = getConnection();
-			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.geometryConfigTable) + " WHERE "
-					+ SQLUtils.quoteSymbol(conn, "name") + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
-			// prepare call and set string parameters
-			cstmt = conn.prepareCall(query);
-			cstmt.setString(1, name);
-			cstmt.execute();
+			Map<String,String> whereParams = new HashMap<String,String>();
+			whereParams.put("name", name);
+			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
 		}
-		catch (Exception e)
+		catch (SQLException e)
 		{
 			throw new RemoteException(String.format("Unable to remove GeometryCollection \"%s\"", name), e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(cstmt);
 		}
 	}
 
 	public void removeDataTable(String name) throws RemoteException
 	{
-		CallableStatement cstmt = null;
-		String query = "";
 		try
 		{
 			Connection conn = getConnection();
-			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.dataConfigTable) + " WHERE "
-					+ SQLUtils.quoteSymbol(conn, "dataTable") + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
-			// prepare call and set string parameters
-			cstmt = conn.prepareCall(query);
-			cstmt.setString(1, name);
-			cstmt.execute();
+			Map<String,String> whereParams = new HashMap<String,String>();
+			whereParams.put("dataTable", name);
+			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.dataConfigTable, whereParams);
 		}
-		catch (Exception e)
+		catch (SQLException e)
 		{
 			throw new RemoteException(String.format("Unable to remove DataTable \"%s\"", name), e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(cstmt);
 		}
 	}
 

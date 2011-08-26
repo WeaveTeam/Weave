@@ -48,7 +48,7 @@ package weave.ui.CustomDataGrid
 		// This function is called when the label for this cell is set.  Instead of just showing the text value, we use the value it represents
 		// to color in the cell.  
 		override public function set text(value:String):void
-		{					
+		{
 		    // extract data if this is a valid XML
 		    try 
 		    {

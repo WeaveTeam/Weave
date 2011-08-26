@@ -1,0 +1,127 @@
+SSL (TLS) support for jTDS
+==========================
+
+  Author: Rob Worsnop
+  Version: $Id: README.SSL,v 1.1 2005-01-13 17:26:50 alin_sinpalean Exp $
+
+The challenge
+=============
+
+At this point it should be noted that the solution has been tested against SQL
+Server 2000 (SQL2K), and nothing else. Everything in this section applies to SQL
+Server 2000. Having said that, the changes made to support SSL will not affect
+the behavior of jTDS with other products when using plain sockets.
+
+  Requesting encryption
+  ---------------------
+
+  SQL2K allows clients to discover whether or not SSL is supported before
+  starting an SSL session. This is done via a special TDS message. SQL2K's
+  response depends on whether or not a digital certificate is installed. The
+  request for encryption is also a notification of encryption. In other words,
+  once a client has requested encryption, and it is supported, SQL2K then
+  expects an SSL handshake.
+
+  Header confusion
+  ----------------
+
+  To my mind, the most logical approach for SSL in SQL2K would be for the server
+  to switch from expecting TDS packets to expecting SSL or TLS records. The
+  application data SSL records would then contain TDS packets, whereas the
+  handshake records would just be pure SSL. This would make adding SSL trivially
+  easy ­ JSSE would do all of this for us.
+
+  Unfortunately this is not how it works. Instead, the handshake records are
+  enclosed in TDS packets. Then, after the handshake, things get reversed: the
+  TDS packets are delivered inside SSL records (as encrypted application data).
+
+  Handshake batching fussiness
+  ----------------------------
+
+  After sending the Client Hello message, and receiving a response from the
+  server, the client then sends two or three (depending on whether or not an
+  existing SSL session if being resumed) more records. These are Client Key
+  Exchange (new sessions only), Change Cipher Spec, and Finished.
+
+  SQL2K will not tolerate these records being sent separately: they must all be
+  delivered in the same TDS packet.
+
+  JSSE transmits these records separately; hence the challenge.
+
+The requirements
+================
+
+o If SSL is configured (see further down for more details on this), then jTDS
+  must send an encryption request, and handle the response appropriately.
+o All SSL handshake records written by JSSE must be intercepted and enclosed in
+  TDS packets before transmission. Application data records must be passed on
+  unmodified.
+o Client Key Exchange and Change Cipher Spec messages written by JSSE must be
+  intercepted and deferred until a Finished message is written. Then all three
+  (or two if resumed session) messages are transmitted in a TDS packet.
+o All traffic returned from SQL2K must be inspected. When a TDS header is
+  discovered, it must be stripped off before passing on the data up to JSSE.
+
+The approach
+============
+
+The JSSE API allows SSL to be tunneled through an existing socket. The existing
+socket specified becomes a delegate.
+
+So, if SSL is switched on, we create a plain socket, send the encryption request
+on it, and then specify that socket as the delegate for JSSE. Well, almost.
+Actually, after the encryption request, the plain socket is wrapped in a socket
+implementation of our own, and this wrapper is actually what JSSE sees. By
+overriding Socket.getOutputStream and Socket.getInputStream, and providing
+custom implementations of those interfaces, we are able to intercept all traffic
+being sent by JSSE and SQL2K. It is, therefore, in the custom I/O streams that
+we are able to provide the mediation between JSSE and SQL2K.
+
+The input stream is relatively simple. Traffic from SQL2K is inspected and it is
+determined whether or not a TDS packet or an SSL record has been sent. If a TDS
+packet is detected then its header is stripped off. To ensure that we know where
+the packet/record boundaries are, the stream will, using the length attribute,
+read in the entire packet/record and store it in a buffer. JSSE is then fed
+bytes from this buffer until it is exhausted.
+
+The output stream is more complex. Although it will always receive SSL or TLS
+records from JSSE, its required action depends on the contents of those records.
+It is therefore necessary to parse the records to a greater extent than is done
+by the input stream. This is true particularly of the handshake records, which
+have a sub-type descriptor as part of the record body (which has its own
+header). To reflect this requirement, there is a fairly elaborate set of
+classes, one for each record type. Some of these classes add little value, and
+are basically identical to others. But constructing them adds virtually no
+overhead and their existence makes the code more readable and debugging a lot
+simpler ­ seeing in the debugger, for example, that a TLSChgCipherSpecRecord has
+just been written is certainly helpful. They are justifiable also for reasons of
+symmetry: it is necessary, for example, to have a class that parses a handshake
+record, so why not have classes for other record types, too?
+
+How to use it
+=============
+
+An optional property, "ssl", has been added to the URL. Its legal values are:
+
+  o off ­ SSL is not request or used. This is the default.
+  o request ­ SSL is requested; if the server does not support it then a plain
+    connection is used.
+  o require ­ SSL is requested; if the server does not support it then an
+    exception is thrown.
+  o authenticate ­ Same as require except the server's certificate must be
+    signed by a trusted CA.
+
+Additional libraries
+====================
+
+If JDK 1.3 or below is used, the optional JSSE 1.0.3 will be required. JSSE has
+been integrated into JDK 1.4.
+
+Future work
+===========
+
+Some of the classes in the net.sourceforge.jtds.ssl package contain code that
+deals with TDS packets. Much of this code duplicates functionality that already
+exists in jTDS. But, without refactoring other parts of jTDS, it was not
+possible to make use of it. If any refactoring is to be done, it probably ought
+to be done as a separate task, by jTDS developers.

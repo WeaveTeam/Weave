@@ -23,6 +23,7 @@ package weave.data.ColumnReferences
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
@@ -47,6 +48,23 @@ package weave.data.ColumnReferences
 		{
 			// Whenever any property of the column reference changes, the hash value needs to be updated.
 			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, null, true);
+			getCallbackCollection(this).addGroupedCallback(this, registerThisRef);
+		}
+		
+		private function registerThisRef():void
+		{
+			WeaveAPI.QKeyManager.registerKeyMapping(this);
+		}
+		
+		/**
+		 * This function gets metadata associated with the column.
+		 * For standard metadata property names, refer to the AttributeColumnMetadata class.
+		 * @param propertyName The name of the metadata property to retrieve.
+		 * @result The value of the specified metadata property.
+		 */
+		public function getMetadata(_:String):String
+		{
+			throw new Error("getMetadata() not implemented in AbstractColumnReference");
 		}
 		
 		/**

@@ -22,11 +22,13 @@ package weave.geometrystream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
 
 import weave.utils.SQLUtils;
 import weave.utils.SerialIDGenerator;
@@ -58,13 +60,21 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 
 		if (!overwriteTables)
 			if (SQLUtils.tableExists(conn, sqlSchema, sqlMetadataTable) || SQLUtils.tableExists(conn, sqlSchema, sqlGeometryTable))
-				throw new SQLException("SQL Tables already exist and overwriteTables is false.");
+				throw new SQLException("SQL Tables already exist.");
 		createTileTable(sqlMetadataTable);
 		createTileTable(sqlGeometryTable);
 	}
 	
 	public static final String SQL_TABLE_METADATA_SUFFIX = "_metadata";
 	public static final String SQL_TABLE_GEOMETRY_SUFFIX = "_geometry";
+	public static final String MIN_IMPORTANCE = "minImportance";
+	public static final String MAX_IMPORTANCE = "maxImportance";
+	public static final String X_MIN_BOUNDS = "xMinBounds";
+	public static final String Y_MIN_BOUNDS = "yMinBounds";
+	public static final String X_MAX_BOUNDS = "xMaxBounds";
+	public static final String Y_MAX_BOUNDS = "yMaxBounds";
+	public static final String TILE_ID = "tileID";
+	public static final String TILE_DATA = "tileData";
 	private Connection conn;
 	private String dbms;
 	private String sqlSchema;
@@ -86,39 +96,35 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 
 	protected void createTileTable(String sqlTable) throws SQLException
 	{
-		// create sql table
-		String quotedSchemaTable = SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable);
-		Statement stmt = null;
-		try
-		{
-			stmt = conn.createStatement();
+		// create schema if it doesn't exist
+		if (!SQLUtils.schemaExists(conn, sqlSchema))
+			SQLUtils.createSchema(conn, sqlSchema);
 
-			// create schema if it doesn't exist
-			if (!SQLUtils.schemaExists(conn, sqlSchema))
-				stmt.executeUpdate("CREATE SCHEMA " + sqlSchema);
-
-			// overwrite table
-			if (overwriteTables)
-				stmt.executeUpdate("DROP TABLE IF EXISTS " + quotedSchemaTable);
-    		String query = "CREATE TABLE "+quotedSchemaTable+" ("
-    			+ " minImportance DOUBLE PRECISION, maxImportance DOUBLE PRECISION,"
-    			+ " xMinBounds DOUBLE PRECISION, yMinBounds DOUBLE PRECISION, xMaxBounds DOUBLE PRECISION, yMaxBounds DOUBLE PRECISION,"
-    			+ " tileID INT, tileData " + SQLUtils.binarySQLType(dbms) + ","
-    			+ " PRIMARY KEY (tileID)"
-    			+ ")";
-    		stmt.executeUpdate(query);
-			query = "CREATE INDEX " + SQLUtils.quoteSymbol(dbms, sqlTable + "_index")
-				+ " ON " + quotedSchemaTable + " (xMinBounds,yMinBounds,xMaxBounds,yMaxBounds)";
-			stmt.executeUpdate(query);
-		}
-		catch (Exception e)
+		// overwrite table
+		if (overwriteTables)
+			SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
+		
+		String doubleType = SQLUtils.getDoubleTypeString(conn);
+		String[] def = new String[]{
+				MIN_IMPORTANCE, doubleType,
+				MAX_IMPORTANCE, doubleType,
+				X_MIN_BOUNDS, doubleType,
+				Y_MIN_BOUNDS, doubleType,
+				X_MAX_BOUNDS, doubleType,
+				Y_MAX_BOUNDS, doubleType,
+				TILE_ID, "BIGINT PRIMARY KEY",
+				TILE_DATA, SQLUtils.binarySQLType(dbms)
+		};
+		
+		List<String> colNames = new Vector<String>();
+		List<String> colTypes = new Vector<String>();
+		for (int i = 0; i < def.length; i += 2)
 		{
-			e.printStackTrace();
+			colNames.add(def[i]);
+			colTypes.add(def[i + 1]);
 		}
-		finally
-		{
-			SQLUtils.cleanup(stmt);
-		}
+		SQLUtils.createTable(conn, sqlSchema, sqlTable, colNames, colTypes);
+		SQLUtils.createIndex(conn, sqlSchema, sqlTable, new String[]{X_MIN_BOUNDS,Y_MIN_BOUNDS,X_MAX_BOUNDS,Y_MAX_BOUNDS});
 	}
 
 	public void writeMetadataTiles(List<StreamTile> tiles) throws Exception
@@ -140,45 +146,29 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 	protected void writeTilesToSQL(List<StreamTile> streamTiles, String sqlTable, SerialIDGenerator tileIDGenerator)
 		throws IOException, SQLException
 	{
-		String quotedSchemaTable = SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable);
-		
-		CallableStatement cstmt = null;
-		try
+		// loop through tiles, adding entries to sql table
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		DataOutputStream data = new DataOutputStream(baos);
+		for (int i = 0; i < streamTiles.size(); i++)
 		{
-			// loop through tiles, adding entries to sql table
-			cstmt = conn.prepareCall("insert into "+quotedSchemaTable+" values (?,?, ?,?,?,?, ?,?);");
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			DataOutputStream data = new DataOutputStream(baos);
-			StreamTile tile;
-			int paramIndex, tileID;
-			for (int i = 0; i < streamTiles.size(); i++)
-			{
-				tileID = tileIDGenerator.getNext();
-				// reset temp output stream
-				baos.reset();
-				// copy tile data to temp output stream
-				tile = streamTiles.get(i);
-				tile.writeStream(data, tileID);
-				// save tile data in sql table
-				paramIndex = 1;
-				cstmt.setDouble(paramIndex++, tile.minImportance);
-				cstmt.setDouble(paramIndex++, tile.maxImportance);
-				cstmt.setDouble(paramIndex++, tile.queryBounds.xMin);
-				cstmt.setDouble(paramIndex++, tile.queryBounds.yMin);
-				cstmt.setDouble(paramIndex++, tile.queryBounds.xMax);
-				cstmt.setDouble(paramIndex++, tile.queryBounds.yMax);
-				cstmt.setInt(paramIndex++, tileID);
-				cstmt.setBytes(paramIndex++, baos.toByteArray());
-				cstmt.executeUpdate();
-			}
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		finally
-		{
-			SQLUtils.cleanup(cstmt);
+			int tileID = tileIDGenerator.getNext();
+			// reset temp output stream
+			baos.reset();
+			// copy tile data to temp output stream
+			StreamTile tile = streamTiles.get(i);
+			tile.writeStream(data, tileID);
+
+			// save tile data in sql table
+			Map<String, Object> values = new HashMap<String, Object>();
+			values.put(MIN_IMPORTANCE, tile.minImportance);
+			values.put(MAX_IMPORTANCE, tile.maxImportance);
+			values.put(X_MIN_BOUNDS, tile.queryBounds.xMin);
+			values.put(Y_MIN_BOUNDS, tile.queryBounds.yMin);
+			values.put(X_MAX_BOUNDS, tile.queryBounds.xMax);
+			values.put(Y_MAX_BOUNDS, tile.queryBounds.yMax);
+			values.put(TILE_ID, tileID);
+			values.put(TILE_DATA, baos.toByteArray());
+			SQLUtils.insertRow(conn, sqlSchema, sqlTable, values);
 		}
 	}
 }

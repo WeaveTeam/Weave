@@ -78,11 +78,22 @@ package weave.data.DataSources
 					{
 						tag.@featureTypeName = tag.@featureType;
 						delete tag["@featureType"];
+						tag.@dataType = _convertOldDataType(tag.@dataType);
 					}
 				}
 			}
 			
 			super.initialize();
+		}
+		private function _convertOldDataType(value:String):String
+		{
+			if (value == 'Geometry')
+				return DataTypes.GEOMETRY;
+			if (value == 'String')
+				return DataTypes.STRING;
+			if (value == 'Number')
+				return DataTypes.NUMBER;
+			return value;
 		}
 		
 		/**
@@ -194,8 +205,6 @@ package weave.data.DataSources
 				var propertyName:String = propertiesList[i].attribute("name");
 				var propertyType:String = propertiesList[i].attribute("type");
 				// handle case for   <xs:simpleType><xs:restriction base="xs:string"><xs:maxLength value="2"/></xs:restriction></xs:simpleType>
-				if (propertyType == '')
-					propertyType = propertiesList[i].descendants().(@base)[0].attribute("base");
 				// convert missing propertyType to string
 				if (propertyType == '')
 					propertyType = "xs:string";
@@ -278,8 +287,7 @@ package weave.data.DataSources
 			propertyNamesArray.push(propertyName);
 			query = wfsDataService.getFeature(featureTypeName, propertyNamesArray);
 			var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-			DelayedAsyncResponder.addResponder(query, 
-				handleColumnDownload, handleColumnDownloadFail, token);
+			DelayedAsyncResponder.addResponder(query, handleColumnDownload, handleColumnDownloadFail, token);
 		}
 		
 		private function getQName(xmlContainingNamespaceInfo:XML, qname:String):QName
@@ -303,6 +311,9 @@ package weave.data.DataSources
 			var request:ColumnRequestToken = token as ColumnRequestToken;
 			var hierarchyPath:XML = request.pathInHierarchy;
 			var proxyColumn:ProxyColumn = request.proxyColumn;
+			
+			if (proxyColumn.wasDisposed)
+				return;
 			
 			var result:XML = null;
 			var i:int;

@@ -77,19 +77,16 @@ EquationEditor
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.api.compiler.ICompiledObject;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IDataSource;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
-			import weave.compiler.ArrayLib;
-			import weave.compiler.BooleanLib;
-			import weave.compiler.EquationCompiler;
-			import weave.compiler.MathLib;
-			import weave.compiler.StringLib;
+			import weave.compiler.Compiler;
+			import weave.compiler.ICompiledObject;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -98,16 +95,16 @@ EquationEditor
 			override protected function constructor():void
 			{
 				super.constructor();
-			}
-			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
 				
 				panelWidth.value = "60%";
 				panelHeight.value = "50%";
 				panelX.value = "20%";
 				panelY.value = "25%";
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
 				
 				var constantVBox:VBox = new VBox();
 				constantVBox.percentWidth = 100;
@@ -115,7 +112,7 @@ EquationEditor
 				constantVBox.label = "Constants";
 				var constants:Array = new Array();
 				
-				var libraries:Array = EquationCompiler.getAllLibraries();
+				var libraries:Array = EquationColumn.compiler.getAllLibraries();
 				for each (var library:Object in libraries)
 				{
 					var functions:Array = new Array();
@@ -171,16 +168,17 @@ EquationEditor
 //				linkBindableProperty(equationColumn.equation, textEditor, "text");
 //				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
 				
-				titleInput.text = equationColumn.columnTitle.value;
-				EventUtils.addDelayedCallback(titleInput,Event.CHANGE,handleEqTitleChange);
-				equationColumn.columnTitle.addImmediateCallback(this,handleColumnTitleChange);
+				titleInput.text = equationColumn.getMetadata(AttributeColumnMetadata.TITLE);
+				EventUtils.addDelayedCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
+				equationColumn.addImmediateCallback(this,handleTitleSessionStateChange);
 				
 				
 				textEditor.text = equationColumn.equation.value;
-				EventUtils.addDelayedCallback(textEditor,Event.CHANGE,handleEqChange);
-				equationColumn.equation.addImmediateCallback(this,handleEquationChange);
+				EventUtils.addDelayedCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
+				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
 				
-				dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
+				if (dynamicColumn.globalName == null)
+					dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
 				
 				this.targets = [equationColumn];
 			}
@@ -225,7 +223,7 @@ EquationEditor
 				{
 					var eqName:String = equationColumn.variables.getName(items[0] as ILinkableObject);
 				
-					eqName = "get(" + EquationCompiler.encodeString(eqName) + ")";
+					eqName = "get(" + EquationColumn.compiler.encodeString(eqName) + ")";
 					
 					event.draggedItem = eqName;
 				}
@@ -261,21 +259,23 @@ EquationEditor
 				attrSelector.restorePanel();
 			}
 			
-			private function handleEqTitleChange():void
+			private function handleTitleTextEntry():void
 			{
-				equationColumn.columnTitle.value = titleInput.text;
+				equationColumn.setMetadata(AttributeColumnMetadata.TITLE, titleInput.text);
 			}
-			private function handleColumnTitleChange():void
+			private function handleTitleSessionStateChange():void
 			{
-				titleInput.text = equationColumn.columnTitle.value;
+				// get the actual metadata string instead of the result of applying the title function
+				if (equationColumn.metadata.value)
+					titleInput.text = equationColumn.metadata.value[AttributeColumnMetadata.TITLE];
 			}
 			
 			
-			private function handleEqChange():void
+			private function handleEquationTextEntry():void
 			{
 				equationColumn.equation.value = textEditor.text;
 			}
-			private function handleEquationChange():void
+			private function handleEquationSessionStateChange():void
 			{
 				textEditor.text = equationColumn.equation.value;
 			}

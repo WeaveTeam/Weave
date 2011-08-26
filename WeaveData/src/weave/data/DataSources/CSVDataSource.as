@@ -88,7 +88,7 @@ package weave.data.DataSources
 			{
 				// if csvDataString is specified, do not use url
 				url.value = null;
-				csvDataArray = null;
+				csvDataArray = WeaveAPI.CSVParser.parseCSV(csvDataString.value);
 			}
 		}
 		
@@ -98,19 +98,12 @@ package weave.data.DataSources
 			return super.initializationComplete && csvDataArray != null;
 		}
 		
+		/**
+		 * This gets called when callbacks are triggered.
+		 */		
 		override protected function initialize():void
 		{
-			if (csvDataString.value != null && csvDataArray == null) // if data is specified and not loaded yet
-			{
-				loadCSVData(csvDataString.value);
-			}
-			super.initialize();
-		}
-		
-		private function loadCSVData(csvData:String):void
-		{
-			this.csvDataArray = WeaveAPI.CSVParser.parseCSV(csvData);
-			if (_attributeHierarchy.value == null)
+			if (_attributeHierarchy.value == null && csvDataArray != null)
 			{
 				// loop through column names, adding indicators to hierarchy
 				var firstRow:Array = csvDataArray[0];
@@ -119,8 +112,8 @@ package weave.data.DataSources
 				{
 					var attr:XML = <attribute
 						title={ colName }
-						csvColumn={ colName }
-						keyType={ keyType.value }/>;
+					csvColumn={ colName }
+					keyType={ keyType.value }/>;
 					root.appendChild(attr);
 				}
 				_attributeHierarchy.value = root;
@@ -128,8 +121,17 @@ package weave.data.DataSources
 			// recalculate all columns previously requested because CSV data may have changed.
 			for (var proxyColumn:* in _columnToReferenceMap)
 				requestColumnFromSource(_columnToReferenceMap[proxyColumn] as IColumnReference, proxyColumn);
+
+			super.initialize();
 		}
 		
+		override protected function handleHierarchyChange():void
+		{
+			super.handleHierarchyChange();
+			convertOldHierarchyFormat(_attributeHierarchy.value, "attribute", {name: "csvColumn"});
+			_attributeHierarchy.detectChanges();
+		}
+
 		/**
 		 * handleCSVDownload
 		 * Called when the CSV data is downloaded from a URL.
@@ -143,9 +145,9 @@ package weave.data.DataSources
 				var cc:ICallbackCollection = getCallbackCollection(this);
 				cc.delayCallbacks();
 				
-				loadCSVData(String(event.result));
+				csvDataArray = WeaveAPI.CSVParser.parseCSV(String(event.result));
 				
-				cc.triggerCallbacks();
+				cc.triggerCallbacks(); // this causes initialize() to be called
 				cc.resumeCallbacks();
 			}
 		}

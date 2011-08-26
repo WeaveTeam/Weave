@@ -31,48 +31,55 @@
     title="Session State Editor"
 	backgroundColor="#EFF4BC" 
     xmlns:sessioning="weave.core.*">
-
-    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
-			 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
-		<mx:HBox width="100%">
-			<mx:Button label="Reload" toolTip="Reloads to previous save state" click="refresh()" paddingLeft="5" paddingRight="5"/>
-			<mx:Button label="Apply" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
-			<mx:Button label="Save &amp; Close" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
-			<mx:Button label="Cancel" click="removePanel()" paddingLeft="5" paddingRight="5"/>
-		</mx:HBox>
-		<mx:HDividedBox width="100%" height="100%">
-			<mx:VBox id="listVBox" width="100%" height="100%">
-				<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
-				<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
- 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
-									 focusIn="checkObjectWasDisposed()"/>
-				<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off">
- 					<mx:TextInput id="linkNameInput" width="100%"/>
- 					<mx:Button label="Link to global object" click="linkSelectedObject();"/>
- 					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>
- 				</mx:HBox>
-			</mx:VBox>
-			<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
-				<mx:HBox width="100%" horizontalAlign="right">
-					<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText()" change="searchTermChanged()" width="100%" minWidth="100"/>
-					<mx:Button label="Search" click="highlightSearchText()" repeatDelay="1"/>
-				</mx:HBox>
-				<mx:Canvas id="editorBox" width="100%" height="100%">
-					<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11" 
-								 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
-					<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
-								 fontFamily="Courier New" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
-								 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24"> 
-					</mx:DataGrid>
-				</mx:Canvas>
-				<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
-							 selected="true"/>
-			</mx:VBox>
-		</mx:HDividedBox>
-	</mx:VBox>
+	<mx:VDividedBox id="vDividedBox" width="100%" height="100%">
+	    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
+				 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
+			<mx:HBox width="100%">
+				<mx:Button label="Reload" toolTip="Reloads to previous save state" click="refresh()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="Apply" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="Save &amp; Close" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="Cancel" click="removePanel()" paddingLeft="5" paddingRight="5"/>
+			</mx:HBox>
+			<mx:HDividedBox width="100%" height="100%">
+				<mx:VBox id="listVBox" width="100%" height="100%">
+					<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
+					<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
+	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
+										 focusIn="checkObjectWasDisposed()"/>
+					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
+	 					<mx:TextInput id="linkNameInput" width="100%"/>
+	 					<mx:Button label="Link to global object" click="linkSelectedObject();"/>
+	 					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 				</mx:HBox>
+				</mx:VBox>
+				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
+					<mx:HBox width="100%" horizontalAlign="right">
+						<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText()" change="searchTermChanged()" width="100%" minWidth="100"/>
+						<mx:Button label="Search" click="highlightSearchText()" repeatDelay="1"/>
+					</mx:HBox>
+					<mx:Canvas id="editorBox" width="100%" height="100%">
+						<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11" 
+									 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
+						<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
+									 fontFamily="Courier New" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
+									 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24"> 
+						</mx:DataGrid>
+					</mx:Canvas>
+					<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
+								 selected="true"/>
+				</mx:VBox>
+			</mx:HDividedBox>
+		</mx:VBox>
+		<mx:VBox width="100%" height="0" paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5" verticalScrollPolicy="off">
+			<mx:TextArea id="log" click="handleConsoleLogClick()" mouseDown="handleConsoleLogClick()" width="100%" height="100%" minHeight="0" editable="false"/>
+			<mx:TextInput id="console" width="100%" enter="runCommand()"/>
+		</mx:VBox>
+	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
 			import com.as3xls.xls.formula.Functions;
+			
+			import flash.utils.describeType;
 			
 			import mx.collections.ArrayCollection;
 			import mx.containers.VBox;
@@ -88,6 +95,7 @@
 			import mx.events.ListEvent;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.WeaveProperties;
@@ -102,6 +110,9 @@
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.setSessionState;
+			import weave.compiler.Compiler;
+			import weave.compiler.GlobalLib;
+			import weave.compiler.ICompiledObject;
 			import weave.core.DynamicState;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
@@ -755,6 +766,79 @@
 				defaultEditor.restorePanel();
 			}
 			
+			
+			
+			/////////////////////////////////////////////////////////////
+			// console
+			
+			private static const compiler:Compiler = new Compiler();
+			
+			{ /** begin static code block **/
+				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil);
+			} /** end static code block **/
+			
+			private const symbolTable:Object = {
+				'JS':ExternalInterface.call,
+				'application':Application.application,
+				'print': ObjectUtil.toString as Function,
+				'clear': function():void { log.text = ''; }
+			};
+			
+			private function runCommand():void
+			{
+				var result:*;
+				var decompiled:String;
+				try
+				{
+					compiler.debug = false;
+					var obj:ICompiledObject = compiler.compileToObject(console.text);
+					//decompiled = compiler.decompileObject(obj);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false);
+					compiler.debug = true;
+					result = func.apply(sessionNav.getSelectedSessionedObject());
+					try
+					{
+						if (typeof result == 'object' && !(result is DisplayObject))
+						{
+							result = ObjectUtil.toString(result);
+							var max:int = 1024;
+							var text:String = result;
+							if (text.length > max)
+								text = text.substr(0, max) + '...';
+							result = StringUtil.trim(text);
+						}
+						else
+							result = String(result);
+					}
+					catch (e:Error)
+					{
+						result = String(result)
+					}
+				}
+				catch (e:Error)
+				{
+					result = e;
+				}
+				
+				log.text += StringUtil.substitute('\r{0}\r{1}\r', console.text, result);
+				console.setSelection(0, int.MAX_VALUE);
+				log.validateNow();
+				log.verticalScrollPosition = log.maxVerticalScrollPosition;
+			}
+			private function handleConsoleLogClick():void
+			{
+				if (console.selectionBeginIndex == 0 && console.selectionEndIndex == console.text.length)
+				{
+					if (log.selectionBeginIndex == log.selectionEndIndex)
+					{
+						log.selectionBeginIndex = log.text.lastIndexOf('\r', log.selectionBeginIndex) + 1;
+						log.selectionEndIndex = log.text.indexOf('\r', log.selectionEndIndex);
+						log.validateNow();
+					}
+					console.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join(', ');
+					console.setSelection(0, int.MAX_VALUE);
+				}
+			}
 		]]>
 	</mx:Script>
 </ui:DraggablePanel>

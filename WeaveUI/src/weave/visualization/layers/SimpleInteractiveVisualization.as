@@ -42,7 +42,7 @@ package weave.visualization.layers
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
-	import weave.compiler.MathLib;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -234,13 +234,13 @@ package weave.visualization.layers
 			var niceMinMax:Array;
 			if(_xAxisLayer && enableAutoZoomXToNiceNumbers.value)
 			{
-				niceMinMax = MathLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), _xAxisLayer.axisPlotter.tickCountRequested.value);
+				niceMinMax = StandardLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), _xAxisLayer.axisPlotter.tickCountRequested.value);
 				
 				fullDataBounds.setXRange(niceMinMax.shift(), niceMinMax.pop()); // first & last ticks
 			}
 			if(_yAxisLayer && enableAutoZoomYToNiceNumbers.value)
 			{
-				niceMinMax = MathLib.getNiceNumbersInRange(fullDataBounds.getYMin(), fullDataBounds.getYMax(), _yAxisLayer.axisPlotter.tickCountRequested.value);
+				niceMinMax = StandardLib.getNiceNumbersInRange(fullDataBounds.getYMin(), fullDataBounds.getYMax(), _yAxisLayer.axisPlotter.tickCountRequested.value);
 				
 				fullDataBounds.setYRange(niceMinMax.shift(), niceMinMax.pop()); // first & last ticks
 			}

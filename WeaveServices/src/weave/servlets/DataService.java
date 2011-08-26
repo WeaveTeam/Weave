@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -86,11 +87,12 @@ public class DataService extends GenericServlet
 		configManager.detectConfigChanges();
 		// encoding method is set to null here because we don't know what format it will be converted to later
 		ISQLConfig config = configManager.getConfig();
-		return new DataServiceMetadata(
-		        config.getServerName(),
-		        config.getDataTableNames(null).toArray(new String[0]),
-		        config.getGeometryCollectionNames(null).toArray(new String[0])
-		    );
+		String[] tableNames = config.getDataTableNames(null).toArray(new String[0]);
+		String[] geomNames = config.getGeometryCollectionNames(null).toArray(new String[0]);
+		String[] geomKeyTypes = new String[geomNames.length];
+		for (int i = 0; i < geomNames.length; i++)
+			geomKeyTypes[i] = config.getGeometryCollectionInfo(geomNames[i]).keyType;
+		return new DataServiceMetadata(config.getServerName(), tableNames, geomNames, geomKeyTypes);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -293,8 +295,11 @@ public class DataService extends GenericServlet
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
+		String debug = "";
+		for (Entry<String,String> e : params.entrySet())
+			debug += "; " + e;
 		if (infoList.size() > 1)
-			throw new RemoteException("More than one matching column found. "+params);
+			throw new RemoteException("More than one matching column found. "+params+debug);
 		
 		AttributeColumnInfo info = infoList.get(0);
 		String dataWithKeysQuery = info.sqlQuery;

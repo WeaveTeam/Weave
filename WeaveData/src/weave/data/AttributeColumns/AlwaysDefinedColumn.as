@@ -21,7 +21,7 @@ package weave.data.AttributeColumns
 {
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
-	import weave.compiler.BooleanLib;
+	import weave.compiler.StandardLib;
 	import weave.core.UntypedLinkableVariable;
 	
 	/**
@@ -71,7 +71,7 @@ package weave.data.AttributeColumns
 		{
 			var value:* = internalDynamicColumn.getValueFromKey(key, dataType);
 
-			if (BooleanLib.isUndefined(value))
+			if (StandardLib.isUndefined(value))
 			{
 				value = _cachedDefaultValue;
 				if (dataType != null)

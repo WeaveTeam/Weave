@@ -37,7 +37,7 @@ package weave
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.SessionManager;
-	import weave.core.WeaveJavaScriptAPI;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumnCache;
@@ -78,7 +78,7 @@ package weave
 			// register singleton implementations for framework classes
 			WeaveAPI.registerSingleton(ISessionManager, SessionManager);
 			WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-			WeaveAPI.registerSingleton(IExternalSessionStateInterface, WeaveJavaScriptAPI);
+			WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
 			WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
 			WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
@@ -88,7 +88,7 @@ package weave
 			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
 			
 			// initialize the session state interface to point to Weave.root
-			(WeaveAPI.ExternalSessionStateInterface as WeaveJavaScriptAPI).setLinkableObjectRoot(root);
+			(WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).setLinkableObjectRoot(root);
 			
 			// FOR BACKWARDS COMPATIBILITY
 			ExternalInterface.addCallback("createObject", WeaveAPI.ExternalSessionStateInterface.requestObject);

@@ -25,6 +25,7 @@ package weave.services.beans
 		public var sqlQuery:String;
 		public var metadata:Object;
 		
+		
 		public function AttributeColumnInfo(o:Object)
 		{
 			connection = o.connection;

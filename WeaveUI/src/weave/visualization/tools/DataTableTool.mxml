@@ -100,7 +100,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.compiler.MathLib;
+			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
@@ -526,7 +526,7 @@
 					keyTypeMap[key.keyType] = true;
 					// each record has a property named after the column title equal to the value in that column for the current key
 					for (i = 0; i < attrCols.length; i++)
-						record[columnTitles[i]] = (attrCols[i] as IAttributeColumn).getValueFromKey(key, String) as String;
+						record[columnTitles[i]] = (attrCols[i] as IAttributeColumn).getValueFromKey(key);
 					records.push(record);
 				}
 				

@@ -21,20 +21,24 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectProxy;
 	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.compiler.BooleanLib;
 	import weave.compiler.CompiledConstant;
-	import weave.compiler.EquationCompiler;
-	import weave.compiler.StringLib;
+	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
+	import weave.core.UntypedLinkableVariable;
 	import weave.data.QKeyManager;
 	
 	/**
@@ -44,14 +48,12 @@ package weave.data.AttributeColumns
 	 */
 	public class EquationColumn extends AbstractAttributeColumn
 	{
+		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
-			EquationCompiler.includeLibraries(
-				WeaveAPI.StatisticsCache,
-				WeaveAPI.CSVParser,
-				WeaveAPI.QKeyManager,
-				EquationColumnLib
-			);
+			compiler.includeLibraries(WeaveAPI, WeaveAPI.CSVParser, WeaveAPI.StatisticsCache, WeaveAPI.AttributeColumnCache, WeaveAPI.QKeyManager, EquationColumnLib);
+			compiler.includeConstant("IQualifiedKey", IQualifiedKey);
 		} /** end static code block **/
+		
 
 		public function EquationColumn()
 		{
@@ -60,15 +62,12 @@ package weave.data.AttributeColumns
 		
 		private function init():void
 		{
-			columnTitle.value = "Equation Column";
+			setMetadata(AttributeColumnMetadata.TITLE, "Equation Column");
 			equation.value = 'undefined';
 			variables.childListCallbacks.addImmediateCallback(this, handleVariablesListChange);
+			getCallbackCollection(this).addImmediateCallback(this, resetMetadataFunctions);
 		}
 		
-		/**
-		 * This is a title for the column.
-		 */
-		public const columnTitle:LinkableString = newLinkableChild(this, LinkableString);
 		/**
 		 * This is the column to get keys from.
 		 */
@@ -81,16 +80,18 @@ package weave.data.AttributeColumns
 		 * This is a list of named variables made available to the compiled equation.
 		 */
 		public const variables:LinkableHashMap = newLinkableChild(this, LinkableHashMap, handleVariablesChange);
-
-		/**
-		 * This is either a type from the DataTypes class, or a keyType which implies that the default return type of getValueFromKey is IQualifiedKey.
-		 */
-		public const dataType:LinkableString = newLinkableChild(this, LinkableString, handleDataTypeChange);
 		
 		/**
-		 * This is the Class corresponding to dataType.value.
-		 */		
-		private var _defaultDataType:Class = null;
+		 * This holds the metadata for the column.
+		 */
+		public const metadata:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
+		
+		
+		private var _cachedMetadata:Object = {};
+		private function resetMetadataFunctions():void
+		{
+			_cachedMetadata = {};
+		}
 		
 		/**
 		 * This function intercepts requests for dataType and title metadata and uses the corresponding linkable variables.
@@ -99,19 +100,61 @@ package weave.data.AttributeColumns
 		 */
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.TITLE)
-				return columnTitle.value;
-			if (propertyName == AttributeColumnMetadata.DATA_TYPE)
-				return dataType.value;
-			return super.getMetadata(propertyName);
+			if (_cachedMetadata.hasOwnProperty(propertyName))
+				return _cachedMetadata[propertyName] as String;
+			
+			var value:String = metadata.value ? metadata.value[propertyName] as String : null;
+			if (value != null)
+			{
+				if (value.charAt(0) == '{' && value.charAt(value.length - 1) == '}')
+				{
+					try
+					{
+						var func:Function = compiler.compileToFunction(value, variableGetter, true);
+						value = func.apply(this, arguments);
+					}
+					catch (e:Error)
+					{
+						if (_lastError != e.message)
+						{
+							_lastError = e.message;
+							WeaveAPI.ErrorManager.reportError(e);
+						}
+					}
+				}
+			}
+			else
+			{
+				value = super.getMetadata(propertyName);
+			}
+			_cachedMetadata[propertyName] = value;
+			return value;
 		}
+
+		/**
+		 * This function will store an individual metadata value in the metadata linkable variable.
+		 * @param propertyName
+		 * @param value
+		 */
+		public function setMetadata(propertyName:String, value:String):void
+		{
+			value = StringUtil.trim(value);
+			var _metadata:Object = metadata.value || {};
+			_metadata[propertyName] = value;
+			metadata.value = _metadata; // this triggers callbacks
+		}
+		
+		/**
+		 * This is the Class corresponding to dataType.value.
+		 */		
+		private var _defaultDataType:Class = null;
 
 		/**
 		 * This function gets called when dataType changes and sets _defaultDataType.
 		 */
 		private function handleDataTypeChange():void
 		{
-			var _dataType:String = this.dataType.value
+			var _dataType:String = getMetadata(AttributeColumnMetadata.DATA_TYPE);
 			if (ObjectUtil.stringCompare(_dataType, DataTypes.GEOMETRY, true) == 0) // treat values as geometries
 			{
 				// we don't have code to cast as a geometry yet, so don't attempt it
@@ -181,17 +224,17 @@ package weave.data.AttributeColumns
 				_constantResult = undefined;
 				
 				// check if the equation evaluates to a constant
-				var constant:CompiledConstant = EquationCompiler.compileEquationToObject(equation.value, null, true) as CompiledConstant;
-				if (constant)
+				var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
+				if (compiledObject is CompiledConstant)
 				{
 					// save the constant result of the function
 					_equationIsConstant = true;
-					_constantResult = constant.value;
+					_constantResult = (compiledObject as CompiledConstant).value;
 				}
 				else
 				{
 					// compile into a function
-					compiledEquation = EquationCompiler.compileEquation(equation.value, variables.getObject);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true);
 					_equationIsConstant = false;
 				}
 			}
@@ -222,7 +265,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return !BooleanLib.isUndefined(getValueFromKey(key));
+			return !StandardLib.isUndefined(getValueFromKey(key));
 		}
 
 		/**
@@ -257,11 +300,31 @@ package weave.data.AttributeColumns
 			}
 		}
 		
+		private function variableGetter(name:String):*
+		{
+			if (name == 'get')
+				return variables.getObject as Function;
+			return variables.getObject(name) || undefined;
+		}
+		
+		/**
+		 * This is the last error thrown from the compiledEquation.
+		 */		
+		private var _lastError:String;
+		
+		/**
+		 * This is true while code inside getValueFromKey is executing.
+		 */		
+		private var in_getValueFromKey:Boolean = false;
+		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataTypeParam:Class = null):*
 		{
+			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
+				return undefined;
+			
 			var value:*;
 			if (_equationIsConstant)
 			{
@@ -277,18 +340,28 @@ package weave.data.AttributeColumns
 				// if the data value was not cached for this key yet, cache it now.
 				if (value == undefined)
 				{
+					in_getValueFromKey = true; // prevent recursion caused by compiledEquation
+					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
 					EquationColumnLib.currentRecordKey = key;
 					try
 					{
-						value = compiledEquation();
+						value = compiledEquation.apply(this, arguments);
 					}
 					catch (e:Error)
 					{
-						trace(e.message);
+						if (_lastError != e.message)
+						{
+							_lastError = e.message;
+							WeaveAPI.ErrorManager.reportError(e);
+						}
+						//value = e;
 					}
-					_equationResultCache[key] = value;
+					if (_equationResultCache)
+						_equationResultCache[key] = value;
 					//trace('('+equation.value+')@"'+key+'" = '+value);
+					
+					in_getValueFromKey = false; // prevent recursion caused by compiledEquation
 				}
 			}
 			
@@ -301,8 +374,8 @@ package weave.data.AttributeColumns
 				if (!(value is IQualifiedKey))
 				{
 					if (!(value is String))
-						value = StringLib.toString(value);
-					value = WeaveAPI.QKeyManager.getQKey(this.dataType.value, value);
+						value = StandardLib.asString(value);
+					value = WeaveAPI.QKeyManager.getQKey(getMetadata(AttributeColumnMetadata.DATA_TYPE), value);
 				}
 			}
 			else if (dataTypeParam != null)
@@ -317,5 +390,10 @@ package weave.data.AttributeColumns
 		 * This is a mapping from keys to cached data values.
 		 */
 		private var _equationResultCache:Dictionary = new Dictionary();
+
+		
+		//---------------------------------
+		// backwards compatibility
+		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadata(AttributeColumnMetadata.TITLE, value); }
 	}
 }

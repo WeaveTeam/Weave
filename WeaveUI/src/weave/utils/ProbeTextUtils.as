@@ -32,7 +32,7 @@ package weave.utils
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.compiler.StringLib;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
 	import weave.visualization.layers.InteractiveVisualization;
@@ -83,7 +83,7 @@ package weave.utils
 				for (var iHeader:int = 0; iHeader < headers.length; iHeader++)
 				{
 					var header:IAttributeColumn = headers[iHeader] as IAttributeColumn;
-					var headerValue:String = StringLib.toString(header.getValueFromKey(key, String));
+					var headerValue:String = StandardLib.asString(header.getValueFromKey(key, String));
 					if (headerValue == '')
 						continue;
 					if (record != '')
@@ -101,11 +101,14 @@ package weave.utils
 					if (value == '' || value == 'NaN')
 						continue;
 					var title:String = ColumnUtils.getTitle(column);
-					var line:String = StringLib.lpad(value, 8) + ' (' + title + ')\n';
+					var line:String = StandardLib.lpad(value, 8) + ' (' + title + ')\n';
 					if(lookup[line]  == undefined )
 					{
-						record += line;
-						lookup[line] = true;
+						if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
+						{
+							record += line;
+							lookup[line] = true;
+						}
 					}
 				}
 				if (record != '')
