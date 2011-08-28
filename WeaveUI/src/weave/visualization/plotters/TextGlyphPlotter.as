@@ -28,15 +28,19 @@ package weave.visualization.plotters
 	import mx.utils.ObjectUtil;
 	
 	import weave.WeaveProperties;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.EquationColumnLib;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ObjectPool;
+	import weave.utils.ProbeTextUtils;
 	
 	/**
 	 * TextGlyphPlotter
@@ -51,6 +55,11 @@ package weave.visualization.plotters
 			xScreenOffset.value = 0;
 			yScreenOffset.value = 0;
 			setKeySource(text);
+		}
+		
+		public function setBaseKeySource(source:IKeySet):void
+		{
+			setKeySource(source);
 		}
 		
 		private const bitmapText:BitmapText = new BitmapText();
@@ -104,11 +113,14 @@ package weave.visualization.plotters
 				tempPoint.x = dataX.getValueFromKey(recordKey, Number);
 				tempPoint.y = dataY.getValueFromKey(recordKey, Number);
 				dataBounds.projectPointTo(tempPoint, screenBounds);
+								
+				var fips:IAttributeColumn = ProbeTextUtils.probedColumns.getObject("ReferencedColumn5") as IAttributeColumn;
+				var k:IQualifiedKey = EquationColumnLib.getKeysFromValue(fips, recordKey, IQualifiedKey) [0];
 				
 				// round to nearest pixel to get clearer text
 				bitmapText.x = Math.round(tempPoint.x + xScreenOffset.value);
 				bitmapText.y = Math.round(tempPoint.y + yScreenOffset.value);
-				bitmapText.text = text.getValueFromKey(recordKey, String) as String;
+				bitmapText.text = text.getValueFromKey(k, String) as String;
 				bitmapText.verticalAlign = vAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.horizontalAlign = hAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.angle = angle.getValueFromKey(recordKey, Number);

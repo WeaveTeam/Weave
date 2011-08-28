@@ -128,6 +128,58 @@ package weave.data.AttributeColumns
 			return value;
 		}
 		
+		private static var key:IQualifiedKey;
+		private static var cubekeys:Array;
+		
+		/**
+		 * This function gets a value from a data column, using a filter column and a key column to filter the data
+		 * @param keyColumn column from which to get keys
+		 * @param filter column to use to filter data (usually year)
+		 * @param data column to get return value
+		 * @param filterValue value in filtercolumn to use to filter data 
+		 * @return the correct filtered value from the data column
+		 * @author kmanohar
+		 */		
+		public static function getValueFromFilteredColumn(keyColumn:IAttributeColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:Object):Object
+		{
+			var val:Object;
+			
+			key = getKey();
+			cubekeys = getKeysFromValue(keyColumn, key, IQualifiedKey) ;
+			
+			for each(var cubekey:IQualifiedKey in cubekeys)
+			{
+				if(getValueFromKey(filter, cubekey) == filterValue)
+				{
+					val =  getValueFromKey(data, cubekey);
+					return val;
+				}
+			}			
+			return NaN;
+		}
+		
+		/**
+		 * This function  
+		 * @param column An attribute column
+		 * @param value The value to look up
+		 * @param dataType The class of the value parameter
+		 * @return An array of record keys with the given value under the given column
+		 */		
+		public static function getKeysFromValue(column:IAttributeColumn, value:Object, dataType:*):Array
+		{
+			var reverseLookup:Dictionary = new Dictionary(true);
+			for each(var key:IQualifiedKey in column.keys)
+			{
+				var val:* = column.getValueFromKey(key, dataType);
+				if(!reverseLookup[val])
+					reverseLookup[val] = [];
+				reverseLookup[val].push(key);
+			}
+			var x:Array = reverseLookup[value];
+			//trace(ObjectUtil.toString(value));
+			return reverseLookup[value];
+		}
+		
 		/**
 		 * This function uses currentRecordKey when retrieving a value from a column if no key is specified.
 		 * @param object An IAttributeColumn or an ILinkableVariable to get a value from.

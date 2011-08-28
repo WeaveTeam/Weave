@@ -286,7 +286,7 @@
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY,labelPlotter.sortColumn);
-				
+				labelPlotter.setBaseKeySource(_plotter.keySet);
 				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
 				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
 				Weave.properties.axisFontColor.addGroupedCallback(this, updateLabel);
@@ -425,6 +425,27 @@
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 initialize="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
 			<settings:GridLineSettings tool="{this}"/>
+		</mx:VBox>
+		<mx:VBox label="Advanced">
+			<mx:CheckBox id="filterDataCheckBox" initialize="linkBindableProperty(_plotter.useFilterColumns, filterDataCheckBox, 'selected')"
+						 label="Enable data filtering"
+						 toolTip="Enable/disable filtering data by value under filter column"/>
+			<mx:HBox>				
+				<mx:Spacer width="10"/>
+				<mx:VBox enabled="{filterDataCheckBox.selected}">				
+					<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
+											   toolTip="Attribute used to filter data - its values will appear on the x axis (usually year)"/>
+					<mx:HBox>
+						<mx:Label text="Enter a list of values (filters) to appear on the x axis"/>
+						<mx:TextInput id="filterValuesText" initialize="linkBindableProperty(_plotter.filterValues, filterValuesText, 'text')"/>
+						<mx:ComboBox  id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"/>						
+					</mx:HBox>
+					<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+											   toolTip="Attribute shown on Y axes"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
+											   toolTip="Specify column to get keys from (not a unique identifier column)"/>
+				</mx:VBox>
+			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
