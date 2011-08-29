@@ -25,12 +25,12 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.ISimpleGeometry;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -38,16 +38,15 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.UntypedLinkableVariable;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
+	import weave.data.AttributeColumns.EquationColumnLib;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
-	import weave.utils.ProbeTextUtils;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	
 	/**	
@@ -85,7 +84,7 @@ package weave.visualization.plotters
 		public const yData:DynamicColumn = registerSpatialProperty( new DynamicColumn(), handleFilterColumnsChange);
 		public const keyColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn(), handleFilterColumnsChange);
 		
-		public const filterValues:LinkableString = newLinkableChild(this, LinkableString, handleFilterColumnsChange, true);
+		public const filterValues:LinkableString = newLinkableChild(this, LinkableString);
 		public const filterDataType:LinkableString = registerSpatialProperty( new LinkableString(), handleFilterColumnsChange);
 		
 		[Bindable] public var dataTypes:Array = ['Number', 'String', 'int', 'Boolean'];
@@ -167,15 +166,18 @@ package weave.visualization.plotters
 			columns.removeAllObjects();
 			columns.delayCallbacks();
 			var ClassReference:Class = getDefinitionByName(filterDataType.value) as Class;
+			var temp:*;
+			temp = new ClassReference();
 			
-			for each( var value:String in values)
+			for each( var value:Object in values)
 			{
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.variables.copyObject("key", keyColumn);
 				col.variables.copyObject("filter", filterColumn);
 				col.variables.copyObject("data", yData);
-				col.columnTitle = value;
-				col.equation.value = 'getValueFromFilteredColumn(get("key"), get("filter"), get("data"), "'+value+'")';
+				col.columnTitle = value.toString();
+				temp = EquationColumnLib.cast(value, ClassReference); 
+				col.equation.value = 'getValueFromFilteredColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+filterDataType.value+',Number)';
 			}
 			columns.resumeCallbacks();			
 		}
@@ -370,7 +372,7 @@ package weave.visualization.plotters
 				// begin the line style for the parallel coordinates line
 				// we want to use the missing data line style since the line is the shape we are showing 
 				// (rather than just a border of another shape)
-				lineStyle.beginLineStyle(recordKey, graphics);
+				lineStyle.beginLineStyle(recordKey, graphics);				
 				
 				// if we aren't continuing a new line (it is a new line segment)	
 				if (!continueLine)

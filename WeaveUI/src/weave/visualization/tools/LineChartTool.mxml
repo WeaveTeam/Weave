@@ -37,6 +37,7 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -56,6 +57,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.DebugUtils;
 			import weave.utils.ProbeTextUtils;
+			import weave.utils.VectorUtils;
 			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -113,6 +115,7 @@
 				toolTitle.addImmediateCallback(this, updateTitle);
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
+				_plotter.filterColumn.addGroupedCallback(this, handleFilterColumnChange);
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -126,6 +129,17 @@
 				}
 				else
 					visualization.additionalProbeColumns = null;
+			}
+			
+			private function handleFilterColumnChange():void
+			{
+				var filterValues:Array = [];
+				for each(var key:IQualifiedKey in _plotter.filterColumn.keys)
+				{
+					filterValues.push(_plotter.filterColumn.getValueFromKey(key));
+				}
+				filterValues.sort();
+				_plotter.filterValues.value = VectorUtils.removeDuplicatesFromSortedArray(filterValues);
 			}
 			
 			override protected function childrenCreated():void
@@ -430,22 +444,27 @@
 			<mx:CheckBox id="filterDataCheckBox" initialize="linkBindableProperty(_plotter.useFilterColumns, filterDataCheckBox, 'selected')"
 						 label="Enable data filtering"
 						 toolTip="Enable/disable filtering data by value under filter column"/>
-			<mx:HBox>				
-				<mx:Spacer width="10"/>
-				<mx:VBox enabled="{filterDataCheckBox.selected}">				
-					<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
-											   toolTip="Attribute used to filter data - its values will appear on the x axis (usually year)"/>
-					<mx:HBox>
-						<mx:Label text="Enter a list of values (filters) to appear on the x axis"/>
-						<mx:TextInput id="filterValuesText" initialize="linkBindableProperty(_plotter.filterValues, filterValuesText, 'text')"/>
-						<mx:ComboBox  id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"/>						
-					</mx:HBox>
-					<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-											   toolTip="Attribute shown on Y axes"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
-											   toolTip="Specify column to get keys from (not a unique identifier column)"/>
-				</mx:VBox>
-			</mx:HBox>
+			<mx:VBox paddingLeft="20" enabled="{filterDataCheckBox.selected}" borderStyle="solid">				
+				<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
+										   toolTip="Attribute used to filter data - its values will appear on the x axis"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+										   toolTip="Column containing data values shown on y axis"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
+										   toolTip="Specify column to get keys from"/>
+			</mx:VBox>
+			<mx:Button label="Customize filter values" id="customizeValuesBtn" toggle="true"/>
+			<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
+				<mx:HBox>
+					<mx:Label text="Enter a list of filter column values"/>
+					<mx:TextInput id="filterValuesText" initialize="linkBindableProperty(_plotter.filterValues, filterValuesText, 'text')"
+								  toolTip="These values will appear on the x axis"/>
+				</mx:HBox>
+				<mx:HBox>						
+					<mx:Label text="Filter datatypes:"/>
+					<mx:ComboBox id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"
+								 toolTip="dataType of the filter values"/>						
+				</mx:HBox>
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

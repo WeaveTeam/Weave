@@ -113,14 +113,11 @@ package weave.visualization.plotters
 				tempPoint.x = dataX.getValueFromKey(recordKey, Number);
 				tempPoint.y = dataY.getValueFromKey(recordKey, Number);
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-								
-				var fips:IAttributeColumn = ProbeTextUtils.probedColumns.getObject("ReferencedColumn5") as IAttributeColumn;
-				var k:IQualifiedKey = EquationColumnLib.getKeysFromValue(fips, recordKey, IQualifiedKey) [0];
-				
+
 				// round to nearest pixel to get clearer text
 				bitmapText.x = Math.round(tempPoint.x + xScreenOffset.value);
 				bitmapText.y = Math.round(tempPoint.y + yScreenOffset.value);
-				bitmapText.text = text.getValueFromKey(k, String) as String;
+				bitmapText.text = text.getValueFromKey(recordKey, String) as String;
 				bitmapText.verticalAlign = vAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.horizontalAlign = hAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.angle = angle.getValueFromKey(recordKey, Number);

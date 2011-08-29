@@ -133,14 +133,16 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * This function gets a value from a data column, using a filter column and a key column to filter the data
-		 * @param keyColumn column from which to get keys
-		 * @param filter column to use to filter data (usually year)
-		 * @param data column to get return value
-		 * @param filterValue value in filtercolumn to use to filter data 
+		 * @param keyColumn An IAttributeColumn to get keys from
+		 * @param filter column to use to filter data (ex: year)
+		 * @param data An IAttributeColumn to get a value from
+		 * @param filterValue value in filtercolumn to use to filter data
+		 * @param filterDataType Class object of the desired filter value type
+		 * @param dataType Class object of the desired value type 
 		 * @return the correct filtered value from the data column
 		 * @author kmanohar
 		 */		
-		public static function getValueFromFilteredColumn(keyColumn:IAttributeColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:Object):Object
+		public static function getValueFromFilteredColumn(keyColumn:IAttributeColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:Object, filterDataType:* = null, dataType:* = null):Object
 		{
 			var val:Object;
 			
@@ -149,13 +151,13 @@ package weave.data.AttributeColumns
 			
 			for each(var cubekey:IQualifiedKey in cubekeys)
 			{
-				if(getValueFromKey(filter, cubekey) == filterValue)
+				if(getValueFromKey(filter, cubekey, filterDataType) == filterValue)
 				{
-					val =  getValueFromKey(data, cubekey);
+					val =  getValueFromKey(data, cubekey, dataType);
 					return val;
 				}
 			}			
-			return NaN;
+			return cast(NaN, dataType);
 		}
 		
 		/**
@@ -165,7 +167,7 @@ package weave.data.AttributeColumns
 		 * @param dataType The class of the value parameter
 		 * @return An array of record keys with the given value under the given column
 		 */		
-		public static function getKeysFromValue(column:IAttributeColumn, value:Object, dataType:*):Array
+		public static function getKeysFromValue(column:IAttributeColumn, value:Object, dataType:* = null):Array
 		{
 			var reverseLookup:Dictionary = new Dictionary(true);
 			for each(var key:IQualifiedKey in column.keys)
