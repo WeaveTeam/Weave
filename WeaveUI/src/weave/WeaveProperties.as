@@ -24,6 +24,7 @@ package weave
 	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
@@ -31,6 +32,7 @@ package weave
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.ui.SessionStateEditor;
+	import weave.ui.controlBars.WeaveMenuItem2;
 	import weave.utils.DebugUtils;
 
 	use namespace weave_internal;
@@ -128,6 +130,8 @@ package weave
 //		public const enableAddWordle:LinkableBoolean = new LinkableBoolean(true); // Add Wordle option tools menu		
 		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(false); // Add RamachandranPlot option tools menu		
 //		public const enableAddSurfacePlotter:LinkableBoolean = new LinkableBoolean(true); // Add Surface Plotter option tools menu
+		
+		public const enableCustomMenus:LinkableBoolean = new LinkableBoolean(true); // enable the "Custom Menus" menu in the menu bar
 		
 		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
@@ -286,6 +290,9 @@ package weave
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);
 
+		public const customMenuItems:LinkableHashMap = new LinkableHashMap(WeaveMenuItem2);
+		
+		
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
 		[Deprecated(replacement="panelTitleFontFamily")] public function set panelTitleFontStyle(value:String):void

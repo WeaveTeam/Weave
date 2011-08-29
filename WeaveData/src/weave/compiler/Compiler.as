@@ -316,15 +316,19 @@ package weave.compiler
 		private function getTokens(expression:String):Array
 		{
 			var tokens:Array = [];
-			var n:int = expression.length;
-			// get a flat list of tokens
-			var i:int = 0;
-			while (i < n)
+			
+			if (expression !== null)
 			{
-				var token:String = getToken(expression, i);
-				if (WHITESPACE.indexOf(token.charAt(0)) == -1)
-					tokens.push(token);
-				i += token.length;
+				var n:int = expression.length;
+				// get a flat list of tokens
+				var i:int = 0;
+				while (i < n)
+				{
+					var token:String = getToken(expression, i);
+					if (WHITESPACE.indexOf(token.charAt(0)) == -1)
+						tokens.push(token);
+					i += token.length;
+				}
 			}
 			return tokens;
 		}

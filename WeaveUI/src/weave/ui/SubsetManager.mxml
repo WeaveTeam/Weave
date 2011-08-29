@@ -49,24 +49,27 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-			import weave.api.copySessionState;
-			import weave.api.data.IKeyFilter;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.core.Application;
 			import mx.events.CollectionEvent;
 			import mx.events.CollectionEventKind;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.data.KeySets.KeyFilter;
-			import weave.data.KeySets.KeySet;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IKeyFilter;
+			import weave.compiler.Compiler;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
+			import weave.ui.controlBars.WeaveMenuBar2;
 			import weave.ui.controlBars.WeaveMenuItem;
+			import weave.ui.controlBars.WeaveMenuItem2;
 			
 			[Bindable]
 			private var _hashMap:LinkableHashMap = savedSubsetsMap;
@@ -201,6 +204,98 @@
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 			}
+			/**
+			 * Create the menu items used for the WeaveMenuItem associated with this class
+			 **/
+			public static function setupMenu2(parentMenu:WeaveMenuBar2, destinationMenu:WeaveMenuItem2):void
+			{
+				if (!destinationMenu)
+					return;
+				
+				if (destinationMenu.children)
+					destinationMenu.childMenus.removeAllObjects();
+				
+				var menuItem:WeaveMenuItem2;
+				var clickFunction:Function;
+				
+				// menu item to create subset from selected
+				if (Weave.properties.enableCreateSubsets.value)
+				{
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Create Subset from Selected Records"',
+								'createSubsetClickFunction()',
+								null,
+								'selectionActive()'
+							);
+				}
+				
+				// menu item to remove selected records
+				if (Weave.properties.enableRemoveSubsets.value)
+				{
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Remove Selected Records from Subset"',
+								'removeSelectedRecordsClickFunction()',
+								null,
+								'selectionActive()'
+							);
+				}
+				
+				// menu item to show all records
+				if (Weave.properties.enableShowAllRecords.value)
+				{
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Show All Records"',
+								'showAllRecordsClickFunction()',
+								null,
+								'subsetActive()'
+							);
+				}
+				
+				// menu item to save subsets
+				if (Weave.properties.enableSaveCurrentSubset.value)
+				{
+					parentMenu.addSeparatorToMenu(destinationMenu);
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Save Current Subset..."',
+								'saveSubset()',
+								null,
+								'subsetActive()'
+							);
+				}
+				
+				if (Weave.properties.enableManageSavedSubsets.value)
+				{
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Manage Saved Subsets..."',
+								'manageSavedSubsetsClickFunction()',
+								null,
+								'manageSavedSubsetsEnableFunction()'
+							);
+				}
+				
+				// get the saved subsets map and get the names of the saved subsets
+				var subsets:Array = savedSubsetsMap.getObjects();
+				
+				// if we have at least one saved subset, we will add a separator before them
+				if (subsets.length > 0)
+					parentMenu.addSeparatorToMenu(destinationMenu);
+				
+				for (var i:int = 0; i < subsets.length; i++)
+				{
+					var label:String = subsetsListLabelFunction(subsets[i]);
+					var name:String = savedSubsetsMap.getName(subsets[i]);
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"' + label + '"',
+								'copySessionStateClickFunction("' + name + '")'
+							);
+				}
+			}
 			
 			private static function get savedSubsetsMap():LinkableHashMap
 			{
@@ -224,6 +319,7 @@
 				maximizable.value = false;
 				closeable.value = false;
 			}
+			
 			
 			/**
 			 * Handle deleting of an existing subset
@@ -276,6 +372,83 @@
 					savedSubsetsMap.copyObject(e.textInput, globalSubset);
 				});
 			}
+			
+			
+			//////////////////////////////////////////////
+			// CLICK FUNCTIONS EXPOSED THROUGH COMPILER //
+			//////////////////////////////////////////////
+			{ /** begin static code block **/
+				Compiler.includeLibraries(SubsetManager);
+			} /** end static code block **/
+			
+			public static function subsetActive():Boolean
+			{
+				// a subset is available when the included or excluded keys are of length 1 or more
+				return globalSubset.included.keys.length > 0 || globalSubset.excluded.keys.length > 0;
+			}
+			public static function selectionActive():Boolean
+			{
+				return globalSelection.keys.length > 0;
+			}
+
+			public static function createSubsetClickFunction():void
+			{
+				globalSubset.replaceKeys(false, true, globalSelection.keys);
+				globalSelection.clearKeys();
+			}
+			public static function removeSelectedRecordsClickFunction():void
+			{
+				// we will use the selected records as excluded keys and clear the current selection which is no longer valid
+				globalSubset.excludeKeys(globalSelection.keys);
+				globalSelection.clearKeys();
+			}
+			public static function showAllRecordsClickFunction():void
+			{
+				globalSubset.replaceKeys(true, true);
+				globalSelection.clearKeys();
+			}
+			public static function manageSavedSubsetsClickFunction():void
+			{
+				// when a user clicks this option we will create the SelectionManager as a popup 
+				_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SubsetManager, true) as SubsetManager;
+				
+				// this makes it so the popup is not draggable
+				_popupManager.isPopUp = false;
+				
+				PopUpManager.centerPopUp(_popupManager);
+			}
+			public static function manageSavedSubsetsEnableFunction():Boolean
+			{
+				// we can manage subsets when there is at least one saved subset
+				return savedSubsetsMap.getNames().length > 0;
+			}
+			public static function copySessionStateClickFunction(subsetName:String):void
+			{
+				var subset:ILinkableObject = savedSubsetsMap.getObject(subsetName);
+				if (!subset)
+					return;
+				copySessionState(subset, globalSelection);
+			}			
+//			public static function copySessionStateClickFunction(i:int):void
+//			{
+//				var subsets:Array = savedSubsetsMap.getObjects();
+//				if (i < 0 || i >= subsets.length)
+//					return;
+//				copySessionState(subsets[i], globalSelection);
+//			}
+			public static function enableFunction():Boolean
+			{
+				return savedSubsetsMap.getNames().length > 0;
+			}
+			public static function manageSavedSelectionsClickFunction():void 
+			{
+				// create the SelectionManager as a modal PopUp
+				_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SubsetManager, true) as SubsetManager;
+				// this will disable dragging of this popup
+				_popupManager.isPopUp = false;
+				PopUpManager.centerPopUp(_popupManager);
+			}
+
 		]]>
 	</mx:Script>
 </DraggablePanel>

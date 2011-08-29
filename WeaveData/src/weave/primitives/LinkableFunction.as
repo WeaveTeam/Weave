@@ -35,19 +35,55 @@ package weave.primitives
 			getCallbackCollection(this).addImmediateCallback(this, handleChange);
 		}
 		
+		/**
+		 * The result of compiling <code>this.value</code>. 
+		 */		
 		private var _compiledMethod:Function;
+		
+		/**
+		 * The Compiler object which compiles <code>this.value</code>. 
+		 */		
 		public const compiler:Compiler = new Compiler();
+		
+		/**
+		 * Gets the compiled method for <code>this.value</code>.
+		 * @return The compiled method or null if compiling failed. 
+		 */		
+		public function get compiledMethod():Function 
+		{
+			return _compiledMethod;
+		}
 
+		/**
+		 * When <code>this.value</code> changes, this method is called and will compile the function.
+		 */		
 		private function handleChange():void
 		{
 			_compiledMethod = null;
+			compile();
 		}
 		
+		/**
+		 * Calls the compiled method if it was successfully compiled. 
+		 * @param thisArg The reference to the parent of the function. This is usually the 
+		 * <code>this</code> pointer.
+		 * @param argArray The array of arguments to pass to the function.
+		 * @return The value returned by the compiled method.
+		 */		
 		public function apply(thisArg:*, argArray:Array = null):*
 		{
 			if (_compiledMethod == null)
-				_compiledMethod = compiler.compileToFunction(value, null, false);
+				compile();
+			
 			return _compiledMethod.apply(thisArg, argArray);
+		}
+		
+		/**
+		 * Compile the value of <code>this.value</code> to a function call. 
+		 */		
+		public function compile():void
+		{
+			_compiledMethod = compiler.compileToFunction(value, null, false);
 		}
 	}
 }

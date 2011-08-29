@@ -49,22 +49,26 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-			import weave.api.copySessionState;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.core.Application;
 			import mx.events.CollectionEvent;
 			import mx.events.CollectionEventKind;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.data.KeySets.KeySet;
+			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
+			import weave.compiler.Compiler;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
+			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
+			import weave.ui.controlBars.WeaveMenuBar2;
 			import weave.ui.controlBars.WeaveMenuItem;
+			import weave.ui.controlBars.WeaveMenuItem2;
 			
 			[Bindable]
 			private var _hashMap:LinkableHashMap = savedSelectionsMap;
@@ -146,7 +150,74 @@
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 			}
-			
+			/**
+			 * Create the menu items used for the WeaveMenuItem associated with this class
+			 **/
+			public static function setupMenu2(parentMenu:WeaveMenuBar2, destinationMenu:WeaveMenuItem2):void
+			{
+				if(!destinationMenu)
+					return;
+				
+				destinationMenu.childMenus.removeAllObjects();
+				
+				var menuItem:WeaveMenuItem2;
+				var clickFunction:Function;
+
+				// menu item to save the current selection
+				if (Weave.properties.enableSaveCurrentSelection.value)
+				{
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Save Current Selection..."',
+								'saveSelection()',
+								null,
+								'selectionActive()'
+							);
+				}
+				
+				// meny item to clear the current selection
+				if (Weave.properties.enableClearCurrentSelection.value)
+				{
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Clear Current Selection"',
+								'globalSelection.clearKeys()',
+								null,
+								'selectionActive()'
+							);
+				}
+				
+				parentMenu.addSeparatorToMenu(destinationMenu);
+				
+				// menu item to manage saved selections
+				if (Weave.properties.enableManageSavedSelections.value)
+				{
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"Manage Saved Selections..."',
+								'manageSavedSelectionsClickFunction()',
+								null,
+								'enableFunction()'
+							);
+				}
+
+				var selections:Array = savedSelectionsMap.getObjects();
+				if (selections.length > 0)
+					parentMenu.addSeparatorToMenu(destinationMenu);
+				
+				// for each saved selection
+				for (var i:int = 0; i < selections.length; i++)
+				{
+					var label:String = selectionsListLabelFunction(selections[i]);
+					var name:String = savedSelectionsMap.getName(selections[i]);
+					menuItem = parentMenu.getNewChildForMenu(destinationMenu);
+					menuItem.init(
+								'"' + label + '"',
+								'copySessionStateClickFunction("' + name + '")'
+							);
+				}
+			}
+
 			private static function get savedSelectionsMap():LinkableHashMap
 			{
 				return Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS) as LinkableHashMap;
@@ -161,9 +232,11 @@
 				// Disable certain features on this manager so that it is purely modal and has to be closed manually
 				// before doing anything else
 				minimizable.value = false;
-				draggable.value = false;
+				draggable.value = false; 
 				maximizable.value = false;
 				closeable.value = false;
+				this.setStyle("horizontalAlign", "center");
+				this.setStyle("verticalAlign", "middle");
 			}
 			
 			/**
@@ -220,6 +293,48 @@
 					savedSelectionsMap.copyObject(e.textInput, globalSelection);
 				});
 			}
+			
+			
+			//////////////////////////////////////////////
+			// CLICK FUNCTIONS EXPOSED THROUGH COMPILER //
+			//////////////////////////////////////////////
+			{ /** begin static code block **/
+				compiler.includeLibraries(SelectionManager);
+			} /** end static code block **/
+			
+			private static const compiler:Compiler = new Compiler();
+			
+			public static function copySessionStateClickFunction(selectionName:String):void
+			{
+				var selection:ILinkableObject = savedSelectionsMap.getObject(selectionName);
+				if (!selection)
+					return;
+				copySessionState(selection, globalSelection);
+			}
+//			public static function copySessionStateClickFunction(i:int):void
+//			{
+//				var selections:Array = savedSelectionsMap.getObjects();
+//				if (i < 0 || i >= selections.length)
+//					return;
+//				copySessionState(selections[i], globalSelection);
+//			}
+			public static function selectionActive():Boolean
+			{
+				return globalSelection.keys.length > 0;
+			}
+			public static function enableFunction():Boolean
+			{
+				return savedSelectionsMap.getNames().length > 0;
+			}
+			public static function manageSavedSelectionsClickFunction():void 
+			{
+				// create the SelectionManager as a modal PopUp
+				_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SelectionManager, true) as SelectionManager;
+				// this will disable dragging of this popup
+				_popupManager.isPopUp = false;
+				PopUpManager.centerPopUp(_popupManager);
+			}
+			
 		]]>
 	</mx:Script>
 </DraggablePanel>
