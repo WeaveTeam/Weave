@@ -377,9 +377,9 @@
 			//////////////////////////////////////////////
 			// CLICK FUNCTIONS EXPOSED THROUGH COMPILER //
 			//////////////////////////////////////////////
-			{ /** begin static code block **/
-				Compiler.includeLibraries(SubsetManager);
-			} /** end static code block **/
+//			{ /** begin static code block **/
+////				Compiler.includeLibraries(SubsetManager);
+//			} /** end static code block **/
 			
 			public static function subsetActive():Boolean
 			{
