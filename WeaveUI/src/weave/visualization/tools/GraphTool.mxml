@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!-- 
+	I apologize to those who must maintain or modify this code... 
+	@author kmonico
+-->
+
+<SimpleVisTool xmlns="weave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="weave.ui.*" 
+		 xmlns:userControls="weave.ui.userControls.*"
+		 layout="absolute">
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Application;
+			
+			import weave.Weave;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
+			import weave.api.primitives.IBounds2D;
+			import weave.api.registerLinkableChild;
+			import weave.api.setSessionState;
+			import weave.core.LinkableBoolean;
+			import weave.core.StageUtils;
+			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.primitives.Bounds2D;
+			import weave.ui.CustomContextMenuManager;
+			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.GraphLabelPlotter;
+			import weave.visualization.plotters.GraphPlotter;
+
+			
+			[Bindable] public var _plotter:GraphPlotter = null;
+			public var _labelPlotter:GraphLabelPlotter = null;
+			override protected function constructor():void
+			{
+				super.constructor();
+				// lock dynamic objects into place
+				_plotter = initDefaultPlotter(GraphPlotter) as GraphPlotter;
+				var layers:Array = visualization.layers.getObjects(SelectablePlotLayer);
+				// create new label layer
+				var labelLayer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("label"), SelectablePlotLayer, true);
+				_labelPlotter = labelLayer.getDynamicPlotter().requestLocalObject(GraphLabelPlotter, true);
+				visualization.layers.setNameOrder([ visualization.layers.getName(labelLayer) ]);
+				visualization.enableAutoZoomToExtent.value = true;
+				visualization.enableFixedAspectRatio.value = true;
+				visualization.enableZoomAndPan.value = false;
+				visualization.enableSelection.value = false;
+
+				toolTitle.addImmediateCallback(this, updateTitle);
+				_plotter.nodesColumn.addImmediateCallback(this, updateProbeColumns);
+				_plotter.algorithmRunning.addGroupedCallback(this, handleAlgorithmRunning, false);
+				
+				linkSessionState(_plotter.lineStyle, _labelPlotter.lineStyle);
+				linkSessionState(_plotter.fillStyle, _labelPlotter.fillStyle);
+				linkSessionState(_plotter.colorColumn, _labelPlotter.colorColumn);
+				linkSessionState(_plotter.radius, _labelPlotter.radius);
+				linkSessionState(_plotter.layoutAlgorithm, _labelPlotter.layoutAlgorithm);
+				linkSessionState(_plotter.nodesColumn, _labelPlotter.nodesColumn);
+//				linkSessionState(_plotter.edgeSourceColumn, _labelPlotter.edgeSourceColumn);
+//				linkSessionState(_plotter.edgeTargetColumn, _labelPlotter.edgeTargetColumn);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+
+				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
+				(nodeComponent as DynamicColumnComponent).dynamicObject = nodesColumn;
+				(labelComponent as DynamicColumnComponent).dynamicObject = labelColumn;
+				(edgeSourceComponent as DynamicColumnComponent).dynamicObject = edgeSourceColumn;
+				(edgeTargetComponent as DynamicColumnComponent).dynamicObject = edgeTargetColumn;
+				(edgeColorComponent as DynamicColumnComponent).dynamicObject = edgeColorColumn.internalDynamicColumn;
+								
+				this.contextMenu = (Application.application as Application).contextMenu;
+				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
+				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
+				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);
+							
+				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
+				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
+				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+			}
+
+			/***********************************************************
+			 * the event listeners for MouseEvents                     *
+			 ***********************************************************/
+			private var _isDragging:Boolean = false;
+			private var _probedKeys:Array = [];
+			private var _probedKey:IQualifiedKey = null;
+			private const _dragSourcePoint:Point = new Point();
+			private function handleMouseMove(event:MouseEvent):void
+			{
+				if (!_isDragging)
+					return;
+
+				var screenPoint:Point = projectGlobalToScreen(event.stageX, event.stageY);
+				var dataPoint:Point = projectScreenPointToData(screenPoint);
+				var dx:Number = dataPoint.x - _dragSourcePoint.x;
+				var dy:Number = dataPoint.y - _dragSourcePoint.y;
+				_plotter.updateDraggedKeys(_probedKeys, dx, dy, false);
+				_dragSourcePoint.x = dataPoint.x;
+				_dragSourcePoint.y = dataPoint.y;
+			}
+			private function handleMouseDown(event:MouseEvent):void
+			{
+				var ctrlKey:Boolean = StageUtils.ctrlKey;
+				var shiftKey:Boolean = StageUtils.shiftKey;
+				visualization.enableSelection.value = ctrlKey || shiftKey;
+				if (ctrlKey || shiftKey)
+					return;	
+
+				var probedKey:IQualifiedKey = visualization.lastProbedKey;
+				if (!probedKey)
+					return;
+				_probedKeys = visualization.lastSelectedKeys || []; // save these keys 
+				var boundsArray:Array = _plotter.getDataBoundsFromRecordKey(probedKey);
+				if (!boundsArray || boundsArray.length == 0)
+					return;
+				var bounds:IBounds2D = boundsArray[0];
+				
+				if (_probedKeys.indexOf(probedKey) < 0)
+					_probedKeys.push(probedKey);
+				
+				_dragSourcePoint.x = bounds.getXCenter();
+				_dragSourcePoint.y = bounds.getYCenter();
+				_probedKey = probedKey;
+				_isDragging = true;
+				
+//				_plotter.setDraggableLayerKeys(_probedKeys);
+			}
+			private function handleMouseUp(event:MouseEvent):void
+			{
+				visualization.enableSelection.value = false;
+				
+				// if we aren't dragging, return
+				if (_isDragging == false)
+					return;
+				
+				// stop dragging
+				_isDragging = false;
+				var screenPoint:Point = projectGlobalToScreen(event.stageX, event.stageY);
+				var dataPoint:Point = projectScreenPointToData(screenPoint);
+				var dx:Number = dataPoint.x - _dragSourcePoint.x;
+				var dy:Number = dataPoint.y - _dragSourcePoint.y;
+				_plotter.updateDraggedKeys(_probedKeys, dx, dy, true);				
+			}
+			private function handleLayoutGraph_click(event:ContextMenuEvent):void
+			{
+				_plotter.resetIterations(1);
+				var keySet:IKeySet = plotLayer.selectionFilter.internalObject as IKeySet;
+				var keys:Array = (keySet && keySet.keys.length > 0) ? keySet.keys : null;
+				_plotter.continueComputation(keys);
+			}
+			private function handleScaleSelection_click(event:ContextMenuEvent):void
+			{
+				var keySet:IKeySet = plotLayer.selectionFilter.internalObject as IKeySet;
+				var keys:Array = (keySet && keySet.keys.length > 0) ? keySet.keys : null;
+				_plotter.scaleNodes(keys, 2);
+			}
+			private function handleResetPositions(event:ContextMenuEvent):void
+			{
+				_plotter.resetIterations(1);
+				_plotter.resetAllNodes();
+			}
+			private function handleSpatialCallbacks(event:ContextMenuEvent):void
+			{
+				StageUtils.callLater(this, _plotter.spatialCallbacks.triggerCallbacks, null, true);
+			}
+			
+			override public function getSelectableAttributeNames():Array
+			{
+				return ["Color", "Node IDs", "Edge Source IDs", "Edge Target IDs", "Edge Color Column"];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				return [_plotter.colorColumn, _plotter.nodesColumn, _plotter.edgeSourceColumn, _plotter.edgeTargetColumn, _plotter.edgeColorColumn];
+			}
+			
+			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+//			public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleShowLabels);
+			private function updateProbeColumns():void
+			{
+				if (!_plotter)
+					return;
+				
+				if (includeToolAttributesInProbe.value)
+				{
+					visualization.additionalProbeColumns = [ _plotter.nodesColumn ];//.getObjects(IAttributeColumn);
+					if (visualization.additionalProbeColumns.length == 0) 
+						visualization.additionalProbeColumns = null;
+				}
+				else 
+					visualization.additionalProbeColumns = null;
+			}
+			
+//			private function invalidateAxes():void
+//			{
+//				updateTitle();
+//			}
+			
+			private function updateTitle():void
+			{
+				title = "Graph Tool";
+ 			}
+
+			public function get colorColumn():DynamicColumn
+			{
+				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				return fc.internalDynamicColumn;
+			}
+			
+			//public function get colorColumn():AlwaysDefinedColumn { return _plotter.colorColumn; }
+			public function get nodesColumn():DynamicColumn { return _plotter.nodesColumn; }
+			public function get labelColumn():DynamicColumn { return _labelPlotter.labelColumn; }
+			public function get edgeSourceColumn():DynamicColumn { return _plotter.edgeSourceColumn; }
+			public function get edgeTargetColumn():DynamicColumn { return _plotter.edgeTargetColumn; }
+			public function get edgeColorColumn():AlwaysDefinedColumn { return _plotter.edgeColorColumn; }
+			
+			private function alphaSliderFormatFunction(item:Number):String {
+				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+			}
+			
+			[Bindable] private var algorithmRunning:Boolean = false;
+			[Bindable] private var shouldStop:Boolean = false; 
+			private function handleStartComputation():void 
+			{ 
+				algorithmRunning = true;
+				shouldStop = false;
+				_plotter.algorithmRunning.value = true;
+				_plotter.shouldStop.value = false;
+				_plotter.recomputePositions();
+			}
+			private function handleStopComputation(event:ContextMenuEvent = null):void
+			{
+				if (!algorithmRunning)
+					return;
+				
+				shouldStop = true;
+				algorithmRunning = false;
+				_plotter.algorithmRunning.value = false;
+				_plotter.shouldStop.value = true;
+			}
+			private function handleContinueComputation():void
+			{
+				algorithmRunning = true;
+				shouldStop = false;
+				_plotter.algorithmRunning.value = true;
+				_plotter.shouldStop.value = false;
+				_plotter.continueComputation(null);
+			}
+			private function handleAlgorithmRunning():void
+			{
+				algorithmRunning = _plotter.algorithmRunning.value;
+				shouldStop = !algorithmRunning;					
+			}
+
+			
+			
+			/********************************************
+			 * utility functions and temporary objects  *
+			 ********************************************/
+			
+			private function projectGlobalToScreen(x:Number, y:Number):Point
+			{
+				_tempPoint.x = x;
+				_tempPoint.y = y;
+				return visualization.globalToLocal(_tempPoint);
+			}
+			private function projectScreenPointToData(p:Point):Point
+			{
+				var dataBounds:IBounds2D = getDataBounds();
+				var screenBounds:IBounds2D = getScreenBounds();
+				screenBounds.projectPointTo(p, dataBounds);
+				return p;
+			}
+			private function getDataBounds():IBounds2D
+			{
+				plotLayer.getDataBounds(_dataBounds);
+				return _dataBounds;
+			}
+			private function getScreenBounds():IBounds2D
+			{
+				plotLayer.getScreenBounds(_screenBounds);
+				return _screenBounds;
+			}
+			private function projectBoundsToData(b:IBounds2D):IBounds2D
+			{
+				var dataBounds:IBounds2D = getDataBounds();
+				var screenBounds:IBounds2D = getScreenBounds();
+				screenBounds.projectCoordsTo(b, dataBounds);
+				return _tempBounds;
+			}
+
+			private const _screenBounds:IBounds2D = new Bounds2D();
+			private const _dataBounds:IBounds2D = new Bounds2D();
+			private const _tempBounds:IBounds2D = new Bounds2D();
+			private const _tempPoint:Point = new Point();
+			
+//			private function handleShowLabels():void
+//			{
+//				setSessionState(_labelPlotter.labelColumn, labelColumn);
+//				setSessionState(_labelPlotter.nodesColumn, nodesColumn);
+//				setSessionState(_labelPlotter.colorColumn, colorColumn);
+//				setSessionState(_labelPlotter.radius, _plotter.radius);
+//				_labelPlotter.setBaseKeySource(_plotter.keySet);
+//				var newNameOrder:Array = [visualization.layers.getName(_plotter)];
+//				if (showLabels.value)
+//					newNameOrder.unshift(visualization.layers.getName(_labelPlotter));
+//				visualization.layers.setNameOrder(newNameOrder);				
+//			}
+			
+		]]>
+	</mx:Script>
+	
+	<ui:ControlPanel>
+		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
+			<!--<mx:CheckBox label="Show Labels:" id="chkShowLabels"
+						 initialize="linkBindableProperty(showLabels, chkShowLabels, 'selected');"/>-->
+			<mx:HBox width="100%" 
+					 borderStyle="inset" 
+					 backgroundColor="0xFFFFFF" 
+					 backgroundAlpha="0.7">
+				<mx:Label text="Point Opacity:" 
+						  color="0x000000" fontSize="12" 
+						  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+				
+				<mx:HSlider id="alphaSlider"
+							width="100%"
+							alpha="1.0"
+							snapInterval="0.1"
+							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
+							dataTipFormatFunction="alphaSliderFormatFunction"
+							minimum="0.1" maximum="1.0" value="1.0"
+							liveDragging="true"
+							initialize="linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, 'value')"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Curved Lines:"
+						  color="0x0" fontSize="12"
+						  toolTip="Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes."/>
+				<mx:CheckBox id="drawCurvedLines"
+							 initialize="linkBindableProperty(_plotter.drawCurvedLines, drawCurvedLines, 'selected')"/>
+			</mx:HBox>
+		</mx:VBox>
+		
+		<mx:VBox id="attributesPanel" label="Attributes for Graph">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="Nodes"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="Labels"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="Edge Sources"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="Edge Targets"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="Edge Colors"/>
+			<userControls:ControlsSubsetBox>
+				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+							 initialize="linkBindableProperty(includeToolAttributesInProbe, probeColumnsCheckBox, 'selected')"/>
+			</userControls:ControlsSubsetBox>
+			<mx:HBox>
+				<mx:Label text="Algorithm"/>
+				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
+							 initialize="linkBindableProperty(_plotter.currentAlgorithm, algorithmChoice, 'selectedItem')"/>
+			</mx:HBox>
+			<mx:VBox>
+				<mx:Button id="recomputePositions" enabled="{!algorithmRunning}" label="Recalculate Node Positions" click="handleStartComputation()"/> 
+				<mx:Button id="stopComputation" enabled="{algorithmRunning}" label="Stop Calculations" click="handleStopComputation()"/> 
+				<mx:Button id="continueComputation" enabled="{!algorithmRunning}" label="Continue Calculations" click="handleContinueComputation()"/>
+			</mx:VBox>
+		</mx:VBox>
+	</ui:ControlPanel>
+</SimpleVisTool>
