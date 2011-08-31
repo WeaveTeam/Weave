@@ -176,17 +176,18 @@ package weave.data.AttributeColumns
 			if(_reverseKeyLookupCache[col])
 				if(_reverseKeyLookupCache[col][value])
 					return _reverseKeyLookupCache[col][value];
-			//var reverseLookup:Dictionary = new Dictionary(true);
-			_reverseKeyLookupCache[col] = new Dictionary(true);
+			
+			var reverseLookup:Dictionary = new Dictionary(true);
+			
 			for each(var key:IQualifiedKey in column.keys)
 			{
 				var val:* = column.getValueFromKey(key, dataType);
-				if(!_reverseKeyLookupCache[col][val])
-					_reverseKeyLookupCache[col][val] = [];
-				_reverseKeyLookupCache[col][val].push(key);
+				if(!reverseLookup[val])
+					reverseLookup[val] = [];
+				reverseLookup[val].push(key);
 			}			
-			
-			return _reverseKeyLookupCache[col][value];
+			_reverseKeyLookupCache[col] = reverseLookup;
+			return reverseLookup[value];
 		}
 		
 		/**

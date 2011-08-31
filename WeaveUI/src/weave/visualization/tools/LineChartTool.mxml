@@ -160,11 +160,12 @@
 				labelColumn.copyLocalObject(labelPlotter.text);
 				
 				var labelEquation:EquationColumn = labelPlotter.text.requestLocalObject(EquationColumn, false) as EquationColumn;
+				labelEquation.delayCallbacks();
 				labelEquation.variables.copyObject("labelColumn",labelColumn);
 				labelEquation.variables.copyObject("keyColumn", _plotter.keyColumn);
 				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + "Equation");
 				labelEquation.equation.value = 'key = getKeysFromValue(get("keyColumn"), getKey(), QKey)[0], getValueFromKey(get("labelColumn"), key, String)';
-				
+				labelEquation.resumeCallbacks();
 				/* 
 				if(!_plotter.lineStyle.color.internalDynamicColumn)
 					return;
@@ -223,6 +224,7 @@
 				for each( var value:Object in values)
 				{
 					var col:EquationColumn = _plotter.columns.requestObject(_plotter.columns.generateUniqueName("line"), EquationColumn, false);
+					col.delayCallbacks();
 					col.variables.copyObject("key", _plotter.keyColumn);					
 					col.variables.copyObject("filter", _plotter.filterColumn);
 					col.variables.copyObject("data", _plotter.yData); 
@@ -237,6 +239,7 @@
 					col.setMetadata(AttributeColumnMetadata.TITLE, value.toString());					
 					temp = EquationColumnLib.cast(value, ClassReference); 
 					col.equation.value = 'getValueFromFilterColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+_plotter.filterDataType.value+',Number)';
+					col.resumeCallbacks();
 				}				
 				_plotter.validFilterData = true;
 				_plotter.columns.resumeCallbacks();
