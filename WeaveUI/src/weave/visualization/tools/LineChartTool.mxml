@@ -26,14 +26,9 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.flash_proxy;
-			
-			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.WeaveProperties;
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
@@ -41,28 +36,23 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableBoolean;
-			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.EquationColumn;
+			import weave.data.AttributeColumns.EquationColumnLib;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
-			import weave.primitives.LinkableBounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColumnListComponent;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
-			import weave.utils.DebugUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.AxisLayer;
-			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.AxisPlotter;
-			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
@@ -116,6 +106,12 @@
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
 				_plotter.filterColumn.addGroupedCallback(this, handleFilterColumnChange);
+				_plotter.displayFilterColumn.addGroupedCallback(this, updateFilterEquationColumns);
+				_plotter.filterColumn.addGroupedCallback(this, updateFilterEquationColumns);
+				_plotter.keyColumn.addGroupedCallback(this, updateFilterEquationColumns);
+				_plotter.yData.addGroupedCallback(this, updateFilterEquationColumns);
+				_plotter.filterValues.addGroupedCallback(this, updateFilterEquationColumns);
+				_plotter.filterDataType.addGroupedCallback(this, updateFilterEquationColumns);
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -131,6 +127,9 @@
 					visualization.additionalProbeColumns = null;
 			}
 			
+			/**
+			 * This function populates _plotter.filterValues using _plotter.filterColumn's values
+			 */
 			private function handleFilterColumnChange():void
 			{
 				var filterValues:Array = [];
@@ -140,6 +139,108 @@
 				}
 				filterValues.sort();
 				_plotter.filterValues.value = VectorUtils.removeDuplicatesFromSortedArray(filterValues);
+			}
+			
+			/**
+			 * This function generates a label equation using the current Label column and the plotter's filterColumn
+			 * and makes it the new Label column
+			 */
+			private function updateLabelColumn():void
+			{
+				if(!_plotter.displayFilterColumn.value) 
+					return;
+				if(!labelPlotter.text.internalColumn)
+					return;
+				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.filterColumn))
+					return;
+				if(labelPlotter.text.internalColumn is EquationColumn)
+					return;
+				
+				var labelColumn:DynamicColumn = new DynamicColumn();
+				labelColumn.copyLocalObject(labelPlotter.text);
+				
+				var labelEquation:EquationColumn = labelPlotter.text.requestLocalObject(EquationColumn, false) as EquationColumn;
+				labelEquation.variables.copyObject("labelColumn",labelColumn);
+				labelEquation.variables.copyObject("keyColumn", _plotter.keyColumn);
+				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + "Equation");
+				labelEquation.equation.value = 'key = getKeysFromValue(get("keyColumn"), getKey(), QKey)[0], getValueFromKey(get("labelColumn"), key, String)';
+				
+				/* 
+				if(!_plotter.lineStyle.color.internalDynamicColumn)
+					return;
+				
+				if(_plotter.lineStyle.color.internalDynamicColumn is EquationColumn)
+					return;
+				
+				var color:DynamicColumn = new DynamicColumn();
+				color.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+				
+				var equation:EquationColumn = colorColumn.requestLocalObject(EquationColumn, false) as EquationColumn;
+				equation.variables.copyObject("colorColumn", color);
+				equation.variables.copyObject("key", _plotter.keyColumn);
+				equation.columnTitle = ColumnUtils.getTitle(color)+'Equation';
+				equation.equation.value = 'key = getKeysFromValue(get("key"), getKey(), QKey)[0], getValueFromKey(get("colorColumn"), key, Number)';
+				 */
+			}
+						
+			private function updateFilterEquationColumns():void
+			{
+				var str:String = _plotter.filterValues.value;
+				
+				// check that values list string exists
+				if(!str || !_plotter.displayFilterColumn.value)
+				{
+					_plotter.validFilterData = false;
+					return;
+				}
+				
+				// check for null columns
+				if(!(_plotter.filterColumn.internalColumn && _plotter.yData.internalColumn && _plotter.keyColumn.internalColumn))
+				{
+					_plotter.validFilterData = false;
+					return;
+				}
+				// check that column keytypes are the same
+				var keytypes:Array = [ColumnUtils.getKeyType(_plotter.filterColumn), ColumnUtils.getKeyType(_plotter.keyColumn), ColumnUtils.getKeyType(_plotter.yData)];
+				if(!((keytypes[0] == keytypes[1]) && (keytypes[0] == keytypes[2])))
+				{
+					_plotter.validFilterData = false;
+					return;
+				}
+				
+				var values:Array = str.split(",");
+				
+				_plotter.columns.removeAllObjects();
+				_plotter.columns.delayCallbacks();
+				var ClassReference:Class = getDefinitionByName(_plotter.filterDataType.value) as Class;
+				var temp:*;
+				temp = new ClassReference();
+				
+				var keyCol:DynamicColumn;
+				var filterCol:DynamicColumn;
+				var dataCol:DynamicColumn;
+				
+				for each( var value:Object in values)
+				{
+					var col:EquationColumn = _plotter.columns.requestObject(_plotter.columns.generateUniqueName("line"), EquationColumn, false);
+					col.variables.copyObject("key", _plotter.keyColumn);					
+					col.variables.copyObject("filter", _plotter.filterColumn);
+					col.variables.copyObject("data", _plotter.yData); 
+					
+					
+					/* filterCol = col.variables.requestObject("filter", DynamicColumn, true);
+					dataCol = col.variables.requestObject("data", DynamicColumn, true);
+					linkSessionState(_plotter.keyColumn, keyCol);
+					linkSessionState(_plotter.filterColumn, filterCol);
+					linkSessionState(_plotter.yData, dataCol); */
+					
+					col.setMetadata(AttributeColumnMetadata.TITLE, value.toString());					
+					temp = EquationColumnLib.cast(value, ClassReference); 
+					col.equation.value = 'getValueFromFilterColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+_plotter.filterDataType.value+',Number)';
+				}				
+				_plotter.validFilterData = true;
+				_plotter.columns.resumeCallbacks();
+				
 			}
 			
 			override protected function childrenCreated():void
@@ -441,17 +542,21 @@
 			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
-			<mx:CheckBox id="filterDataCheckBox" initialize="linkBindableProperty(_plotter.useFilterColumns, filterDataCheckBox, 'selected')"
-						 label="Enable data filtering"
+			<mx:CheckBox id="filterDataCheckBox" initialize="linkBindableProperty(_plotter.displayFilterColumn, filterDataCheckBox, 'selected')"
+						 label="Display filtered records"
 						 toolTip="Enable/disable filtering data by value under filter column"/>
-			<mx:VBox paddingLeft="20" enabled="{filterDataCheckBox.selected}" borderStyle="solid">				
+			<mx:VBox paddingLeft="20" borderStyle="solid">				
 				<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
 										   toolTip="Attribute used to filter data - its values will appear on the x axis"/>
 				<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-										   toolTip="Column containing data values shown on y axis"/>
+										   toolTip="Column containing data values shown on y axis. All columns must have the same keyType"/>
 				<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
-										   toolTip="Specify column to get keys from"/>
+										   toolTip="Specify column to get keys from. All columns must have the same keyType"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
+										   toolTip="Attribute used for record label text. All columns must have the same keyType"/>
 			</mx:VBox>
+			<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the filter column keyType"
+					   click="updateLabelColumn()"/>
 			<mx:Button label="Customize filter values" id="customizeValuesBtn" toggle="true"/>
 			<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
 				<mx:HBox>

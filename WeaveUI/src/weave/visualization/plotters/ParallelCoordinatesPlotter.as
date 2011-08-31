@@ -79,13 +79,13 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
 		
-		public const useFilterColumns:LinkableBoolean = registerSpatialProperty( new LinkableBoolean(false), handleFilterColumnsChange);
-		public const filterColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn(), handleFilterColumnsChange);
-		public const yData:DynamicColumn = registerSpatialProperty( new DynamicColumn(), handleFilterColumnsChange);
-		public const keyColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn(), handleFilterColumnsChange);
+		public const displayFilterColumn:LinkableBoolean = registerSpatialProperty( new LinkableBoolean(false));
+		public const filterColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn());
+		public const yData:DynamicColumn = registerSpatialProperty( new DynamicColumn());
+		public const keyColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn());
 		
 		public const filterValues:LinkableString = newLinkableChild(this, LinkableString);
-		public const filterDataType:LinkableString = registerSpatialProperty( new LinkableString(), handleFilterColumnsChange);
+		public const filterDataType:LinkableString = registerSpatialProperty( new LinkableString());
 		
 		[Bindable] public var dataTypes:Array = ['Number', 'String', 'int', 'Boolean'];
 		
@@ -99,7 +99,7 @@ package weave.visualization.plotters
 			// GET list of all keys in all columns
 			_combinedKeySet.delayCallbacks();			
 				
-			if(useFilterColumns.value)
+			if(displayFilterColumn.value && validFilterData)
 			{
 				var keys:Array = [];
 				var previousKeys:Array = keyColumn.keys;
@@ -119,8 +119,7 @@ package weave.visualization.plotters
 					if(keys.length)
 					{						
 						_combinedKeySet.replaceKeys(keys);
-					}
-					
+					}					
 				}
 			}
 			else
@@ -142,45 +141,8 @@ package weave.visualization.plotters
 			if (_columns.length == 1)
 				_columns.push(_columns[0]);
 		}
-		
-		private var _useFilterValues:Boolean = false;
-		private var oldColumns:Array;
-		private function handleFilterColumnsChange():void
-		{
-			var str:String = filterValues.value;
-			if(!str) return;
-			var values:Array = str.split(",");
-			
-			if(useFilterColumns.value)
-			{
-				if(filterColumn.internalColumn && yData.internalColumn && keyColumn.internalColumn)
-					_useFilterValues = true;
-			}
-			
-			else 
-			{
-				_useFilterValues = false;
-				return;
-			}
-			oldColumns = columns.getObjects(IAttributeColumn);
-			columns.removeAllObjects();
-			columns.delayCallbacks();
-			var ClassReference:Class = getDefinitionByName(filterDataType.value) as Class;
-			var temp:*;
-			temp = new ClassReference();
-			
-			for each( var value:Object in values)
-			{
-				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
-				col.variables.copyObject("key", keyColumn);
-				col.variables.copyObject("filter", filterColumn);
-				col.variables.copyObject("data", yData);
-				col.columnTitle = value.toString();
-				temp = EquationColumnLib.cast(value, ClassReference); 
-				col.equation.value = 'getValueFromFilteredColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+filterDataType.value+',Number)';
-			}
-			columns.resumeCallbacks();			
-		}
+						
+		public var validFilterData:Boolean = false;
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const curveType:LinkableString  = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));

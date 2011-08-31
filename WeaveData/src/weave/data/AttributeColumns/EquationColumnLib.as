@@ -34,6 +34,7 @@ package weave.data.AttributeColumns
 	import weave.core.ClassUtils;
 	import weave.data.StatisticsCache;
 	import weave.primitives.ColorRamp;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * EquationColumnLib
@@ -142,7 +143,7 @@ package weave.data.AttributeColumns
 		 * @return the correct filtered value from the data column
 		 * @author kmanohar
 		 */		
-		public static function getValueFromFilteredColumn(keyColumn:IAttributeColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:Object, filterDataType:* = null, dataType:* = null):Object
+		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:Object, filterDataType:* = null, dataType:* = null):Object
 		{
 			var val:Object;
 			
@@ -160,26 +161,32 @@ package weave.data.AttributeColumns
 			return cast(NaN, dataType);
 		}
 		
+		private static var _reverseKeyLookupCache:Dictionary = new Dictionary(true);
+		
 		/**
-		 * This function  
+		 * This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
 		 * @param column An attribute column
 		 * @param value The value to look up
 		 * @param dataType The class of the value parameter
 		 * @return An array of record keys with the given value under the given column
 		 */		
-		public static function getKeysFromValue(column:IAttributeColumn, value:Object, dataType:* = null):Array
+		public static function getKeysFromValue(column:DynamicColumn, value:Object, dataType:* = null):Array
 		{
-			var reverseLookup:Dictionary = new Dictionary(true);
+			var col:* = (column.internalColumn as ReferencedColumn).internalColumn;
+			if(_reverseKeyLookupCache[col])
+				if(_reverseKeyLookupCache[col][value])
+					return _reverseKeyLookupCache[col][value];
+			//var reverseLookup:Dictionary = new Dictionary(true);
+			_reverseKeyLookupCache[col] = new Dictionary(true);
 			for each(var key:IQualifiedKey in column.keys)
 			{
 				var val:* = column.getValueFromKey(key, dataType);
-				if(!reverseLookup[val])
-					reverseLookup[val] = [];
-				reverseLookup[val].push(key);
-			}
-			var x:Array = reverseLookup[value];
-			//trace(ObjectUtil.toString(value));
-			return reverseLookup[value];
+				if(!_reverseKeyLookupCache[col][val])
+					_reverseKeyLookupCache[col][val] = [];
+				_reverseKeyLookupCache[col][val].push(key);
+			}			
+			
+			return _reverseKeyLookupCache[col][value];
 		}
 		
 		/**
