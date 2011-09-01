@@ -107,8 +107,10 @@ package weave.primitives
 			}
 			else
 			{
-				setMinPoint(other.getMinPoint(tempPoint));
-				setMaxPoint(other.getMaxPoint(tempPoint));
+				other.getMinPoint(tempPoint);
+				setMinPoint(tempPoint);
+				other.getMaxPoint(tempPoint);
+				setMaxPoint(tempPoint);
 			}
 		}
 		
@@ -331,8 +333,10 @@ package weave.primitives
 			}
 			else
 			{
-				includePoint(otherBounds.getMinPoint(tempPoint));
-				includePoint(otherBounds.getMaxPoint(tempPoint));
+				otherBounds.getMinPoint(tempPoint);
+				includePoint(tempPoint);
+				otherBounds.getMaxPoint(tempPoint);
+				includePoint(tempPoint);
 			}
 		}
 
@@ -397,8 +401,14 @@ package weave.primitives
 				return contains(o.xMin, o.yMin)
 					&& contains(o.xMax, o.yMax);
 			}
-			return containsPoint(other.getMinPoint(tempPoint))
-				&& containsPoint(other.getMaxPoint(tempPoint));
+			
+			other.getMinPoint(tempPoint);
+			if (containsPoint(tempPoint))
+			{
+				other.getMaxPoint(tempPoint);
+				return containsPoint(tempPoint);
+			}
+			return false;
 		}
 
 		/**
@@ -656,11 +666,10 @@ package weave.primitives
 		 * This function stores the xCenter and yCenter coordinates into a Point object.
 		 * @param value The Point object to store the xCenter and yCenter coordinates in.
 		 */
-		public function getCenterPoint(output:Point):Point
+		public function getCenterPoint(output:Point):void
 		{
 			output.x = getXCenter();
 			output.y = getYCenter();
-			return output;
 		}
 		
 		/**
@@ -689,13 +698,11 @@ package weave.primitives
 		/**
 		 * This function stores the xMin and yMin coordinates in a Point object. 
 		 * @param output The Point to store the xMin and yMin coordinates in.
-		 * @return The output Point object.
 		 */		
-		public function getMinPoint(output:Point):Point
+		public function getMinPoint(output:Point):void
 		{
 			output.x = xMin;
 			output.y = yMin;
-			return output;
 		}
 		/**
 		 * This function sets the xMin and yMin values from a Point object. 
@@ -710,13 +717,11 @@ package weave.primitives
 		/**
 		 * This function stores the xMax and yMax coordinates in a Point object. 
 		 * @param output The Point to store the xMax and yMax coordinates in.
-		 * @return The output Point object.
 		 */		
-		public function getMaxPoint(output:Point):Point
+		public function getMaxPoint(output:Point):void
 		{
 			output.x = xMax;
 			output.y = yMax;
-			return output;
 		}
 		/**
 		 * This function sets the xMax and yMax values from a Point object. 

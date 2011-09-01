@@ -455,6 +455,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </ReferencedColumn>
   </LinkableHashMap>
   <EquationColumn name="EquationEditorColumn2">
+    <metadata><projectionSRS>{geom.getMetadata('projectionSRS')}</projectionSRS></metadata>
     <columnTitle>obesity-cube-state-geom</columnTitle>
     <dataType/>
     <equation>getValueFromKey(geom, getValue(fips, QKey))</equation>
