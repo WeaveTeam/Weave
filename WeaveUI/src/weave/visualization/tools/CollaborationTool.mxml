@@ -131,14 +131,12 @@
 			//disabled
 			private function disconnect(e:MouseEvent):void
 			{
-				if( collabService.isConnectedToServer() == true)
-				{
+				if( collabService.isConnectedToServer == true)
 					collabService.disconnect();
-					input.enabled = false;
-					sendButton.enabled = false;
-					disconnectButton.enabled = false;
-					connectButton.enabled = true;
-				}
+				input.enabled = false;
+				sendButton.enabled = false;
+				disconnectButton.enabled = false;
+				connectButton.enabled = true;					
 			}
 
 			//For when a text message is recieved from the server, it is displayed to the log
@@ -301,8 +299,8 @@
 				<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test"/>	
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Button id="connectButton" label="Connect" enabled="{!collabService.isConnectedToRoom()}"/>
-				<mx:Button id="disconnectButton" label="Disconnect" enabled="{collabService.isConnectedToRoom()}"/>
+				<mx:Button id="connectButton" label="Connect" enabled="{!collabService.isConnectedToRoom}"/>
+				<mx:Button id="disconnectButton" label="Disconnect" enabled="{collabService.isConnectedToRoom}"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>

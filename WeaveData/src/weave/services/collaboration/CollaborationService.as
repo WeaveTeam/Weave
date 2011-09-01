@@ -120,6 +120,7 @@ package weave.services.collaboration
 				//throw new Error("Not Connected to Collaboration Server");
 				dispatchEvent(new CollaborationEvent(CollaborationEvent.TEXT, "You are not currently connected to a Collaboration server. No message has been sent.\n"));
 				connectedToRoom = false;
+				disconnect();
 			}
 			return _room;
 		}
@@ -127,7 +128,7 @@ package weave.services.collaboration
 		// this will be called by SessionManager to clean everything up
 		public function dispose():void
 		{
-			if( isConnectedToRoom() == true) disconnect();
+			if( isConnectedToRoom == true) disconnect();
 		}
 		
 		//If the Session state changes in anyway, a diff is created and stored in the
@@ -136,7 +137,7 @@ package weave.services.collaboration
 		private function handleStateChange():void
 		{
 			// note: this code may need to be changed later if SessionStateLog implementation changes.
-			if (isConnectedToRoom() && stateSet)
+			if (isConnectedToRoom && stateSet)
 			{ 
 				var log:Array 	 = stateLog.undoHistory;
 				var entry:Object = log[log.length - 1];
@@ -144,12 +145,12 @@ package weave.services.collaboration
 			}
 		}
 		[Bindable]
-		public function isConnectedToServer():Boolean 
+		public function get isConnectedToServer():Boolean 
 		{
 			return connectedToServer;
 		}
 		[Bindable]
-		public function isConnectedToRoom():Boolean 
+		public function get isConnectedToRoom():Boolean 
 		{
 			return connectedToRoom;
 		}
@@ -196,6 +197,8 @@ package weave.services.collaboration
 			// stop logging
 			if (stateLog)
 				disposeObjects(stateLog);
+			
+			dispatchEvent( new CollaborationEvent(CollaborationEvent.DISCONNECT, null) );
 			
 			postMessageToUser( "Disconnected from server\n" );
 			connectedToRoom = false;
@@ -462,8 +465,9 @@ package weave.services.collaboration
 		{
 			if( e.detail == 1 )
 				connect( this.serverIP, this.serverName, this.port, this.roomToJoin, this.username );
-			else
-				disconnect();			
+			else{
+				disconnect();		
+			}
 		}
 		
 		//handled whenever any user joins the same room as this
