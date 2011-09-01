@@ -288,6 +288,7 @@ package weave.services.collaboration
 			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 			room.addEventListener(RoomEvent.USER_JOIN, onUserJoin);
 			room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
+			room.addEventListener(RoomEvent.NICK_CONFLICT, nickConflictError);
 			
 			room.join();
 		}
@@ -456,7 +457,7 @@ package weave.services.collaboration
 		
 		private function disconnectHandler( e:CloseEvent ):void
 		{
-			if( e.detail == 1 )
+			if( e.detail == Alert.YES )
 				connect( this.serverIP, this.serverName, this.port, this.roomToJoin, this.username );
 			else{
 				disconnect();		
@@ -505,6 +506,11 @@ package weave.services.collaboration
 		{
 			postMessageToUser( e.nickname + " has left the room.\n" );
 			updateUsersList();
+		}
+		private function nickConflictError(e:RoomEvent):void
+		{
+			dispatchEvent(new Event("NICK_ERROR"));
+			postMessageToUser( "The nickname already exists! Please choose another.\n" );
 		}
 		
 		//Used to convert data to binary

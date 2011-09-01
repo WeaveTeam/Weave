@@ -46,6 +46,7 @@
 			import mx.events.ListEvent;
 			
 			import org.igniterealtime.xiff.events.OutgoingDataEvent;
+			import org.igniterealtime.xiff.events.RoomEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -123,13 +124,22 @@
 					sendButton.enabled = true;
 					disconnectButton.enabled = true;
 					connectButton.enabled = false;
+					usernameError.visible = false;
+					collabService.addEventListener("NICK_ERROR", nickConflictError);
 				}
 			}
+			private function nickConflictError(e:Event):void
+			{
+				disconnect();
+				toggleUserControlPanel();
+				usernameError.visible = true;
+			}
+			
 			
 			//Only dissconnect if you're sure you're connected to the server, otherwise
 			//collabservice.disconnect() will fail, and than all the buttons will be
 			//disabled
-			private function disconnect(e:MouseEvent):void
+			private function disconnect(e:MouseEvent = null):void
 			{
 				if( collabService.isConnectedToServer == true)
 					collabService.disconnect();
@@ -256,9 +266,11 @@
 							</mx:Script>
 							
 							<mx:Label text="{data.name}" fontSize="14" horizontalCenter="0" left="5" width="100%" />
+							<!--
 							<mx:Spacer width="100%" />
 							<mx:Image id="img" right="15" click="changeRole(event)" name="{data.name}"
 									  source="{ ((data.role == 'moderator') ? 'http://129.63.17.193/star.png' : 'http://129.63.17.193/unstar.png' ) }" />
+							-->
 						</mx:HBox>
 					</mx:Component>
 				</mx:itemRenderer>
@@ -293,6 +305,7 @@
 			<mx:HBox width="100%">
 				<mx:Label text="Username:" width="{labelWidth}" />
 				<mx:TextInput id="username" width="{textAreaWidth}"/>	
+				<mx:Label id="usernameError" text="Username already exists, please try another." visible="false" />
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Room Name:" width="{labelWidth}" />
