@@ -27,14 +27,18 @@ package weave.services.collaboration
 	//that contains it.
 	public class CollaborationEvent extends Event
 	{
+		public static const NICK_ERROR:String = 'collab_nick_error';
+		public static const LOCKED_ERROR:String = 'collab_locked_error';
+
 		public static const LOG:String 		= "collab_log";
 //		public static const USERS_LIST:String 	= "collab_users_list_receive";
+		public static const CONNECT:String 	= "collab_connect";
 		public static const DISCONNECT:String 	= "collab_disconnect";
 		
 		//generic data
 		public var data:Object;
 		
-		public function CollaborationEvent(type:String, data:Object)
+		public function CollaborationEvent(type:String, data:Object = null)
 		{
 			this.data = data;
 			super(type);

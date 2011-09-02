@@ -44,6 +44,7 @@
 			import mx.controls.ToolTip;
 			import mx.events.CloseEvent;
 			import mx.events.ListEvent;
+			import mx.utils.StringUtil;
 			
 			import org.igniterealtime.xiff.events.OutgoingDataEvent;
 			import org.igniterealtime.xiff.events.RoomEvent;
@@ -63,10 +64,10 @@
 			import weave.services.collaboration.CollaborationService;
 			import weave.ui.AlertTextBox;
 			
-			public var collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
+			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
-			private var labelWidth:Number = 80;
-			private var textAreaWidth:Number = 200;
+			private const labelWidth:Number = 80;
+			private const textAreaWidth:Number = 200;
 			
 			//Guaranteed to run at the creation of the tool. Is used to register all the event listeners.
 			override protected function childrenCreated():void
@@ -77,32 +78,28 @@
 				
 				//Callbakcs to be heard from the collabService, this is how the collabservice
 				//can talk back to the Collaboration tool
-				collabService.addEventListener(CollaborationEvent.LOG, handleText);
+				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
-				
-				//UI callbacks, related to the buttons.
-				input.addEventListener(KeyboardEvent.KEY_UP, sendToRoom);
-				sendButton.addEventListener(MouseEvent.CLICK, sendToRoomButton);
-				connectButton.addEventListener(MouseEvent.CLICK, connect);
-				disconnectButton.addEventListener(MouseEvent.CLICK, disconnect);
-				
+				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
+				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
+				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
 			}
 
 			//Sends a message from the text box(input) to the server as a TEXT message
-			private function sendToRoom(e:KeyboardEvent):void
+			private function handleInputKeyUp(e:KeyboardEvent):void
 			{
 				if( e.keyCode != Keyboard.ENTER || input.text=="")
 					return;
-				if( collabService.room != null )
+				if( collabService.isConnected )
 					collabService.sendTextMessage( input.text );
 				input.text = "";	//clear the input
 			}
 			
-			private function sendToRoomButton(e:MouseEvent):void
+			private function sendToRoomButton():void
 			{
 				if( input.text == "" )
 					return;
-				if( collabService.room != null )
+				if( collabService.isConnected )
 					collabService.sendTextMessage( input.text );
 				input.text = "";	//clear the input
 			}
@@ -110,23 +107,38 @@
 			
 			//On connection, the config page is removed, and all the buttons that are only available
 			//while connected are enabled.
-			private function connect(e:MouseEvent):void
+			private function connect():void
 			{
 				if( username.text == "" || serverIP.text == "" || serverName.text == "" || roomToJoin.text == "" || port.text ==  "" )
 				{
 					Alert.show( "Can't leave any field blank" );
 				}
 				else
-				{	
+				{
 					collabService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, username.text);
 					cPanel.removePanel();
-					input.enabled = true;
-					sendButton.enabled = true;
-					disconnectButton.enabled = true;
-					connectButton.enabled = false;
+					updateEnabledSettings();
 					usernameError.visible = false;
-					collabService.addEventListener("NICK_ERROR", nickConflictError);
+					serverNameError.visible = false;
 				}
+			}
+			override protected function toggleUserControlPanel():void
+			{
+				super.toggleUserControlPanel();
+				updateEnabledSettings();
+			}
+			private function updateEnabledSettings():void
+			{
+				connectButton.enabled = !collabService.isConnected;
+				disconnectButton.enabled = collabService.isConnected;
+				input.enabled = collabService.isConnected;
+				sendButton.enabled = collabService.isConnected;
+			}
+			
+			private function lockedError(e:Event):void
+			{
+				toggleUserControlPanel();
+				serverNameError.visible = true;
 			}
 			private function nickConflictError(e:Event):void
 			{
@@ -139,7 +151,7 @@
 			//Only dissconnect if you're sure you're connected to the server, otherwise
 			//collabservice.disconnect() will fail, and than all the buttons will be
 			//disabled
-			private function disconnect(e:MouseEvent = null):void
+			private function disconnect():void
 			{
 				if( collabService.isConnectedToServer == true)
 					collabService.disconnect();
@@ -152,9 +164,9 @@
 			//For when a text message is recieved from the server, it is displayed to the log
 			//NOTE: I could not get proper scrolling to work once the recieved text messages
 			//		went below the height of the log window. 
-			private function handleText(e:CollaborationEvent):void
+			private function handleLogEvent(e:CollaborationEvent):void
 			{
-				log.text += e.getText();
+				log.text += e.getText() + '\n';
 				callLater(
 					function():void {
 						log.verticalScrollPosition = log.maxVerticalScrollPosition;
@@ -166,7 +178,11 @@
 			//resets which buttons are disabled and enabled.
 			private function handleDisconnect( e:CollaborationEvent):void
 			{
-				disconnect(null);
+				updateEnabledSettings();
+			}
+			private function handleConnect( e:CollaborationEvent):void
+			{
+				updateEnabledSettings();
 			}
 			
 			private var toolTipper:ToolTip = new ToolTip()
@@ -182,6 +198,11 @@
 			protected function users_itemRollOutHandler(event:ListEvent):void
 			{
 				removeChild( toolTipper );				
+			}
+			
+			private function trimInput(event:Event):void
+			{
+				event.target.text = StringUtil.trim(event.target.text); // hack
 			}
 			
 		]]>
@@ -278,8 +299,8 @@
 			<!--<mx:TextArea id="users" height="100%" editable="false"/>-->
 		</mx:HDividedBox>
 		<mx:HBox width="100%">
-			<mx:TextInput id="input" width="100%" enabled="false"/>
-			<mx:Button id="sendButton" label="Send" enabled="false"/>
+			<mx:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
+			<mx:Button id="sendButton" label="Send" enabled="false" click="sendToRoomButton();"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -292,28 +313,29 @@
 		<mx:VBox label="Visualization Controls">
 			<mx:HBox width="100%">
 				<mx:Label text="IP:" width="{labelWidth}" />
-				<mx:TextInput id="serverIP" width="{textAreaWidth}" text="129.63.17.205"/>	
+				<mx:TextInput id="serverIP" width="{textAreaWidth}" text="129.63.17.205" change="trimInput(event);"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="ServerName:" width="{labelWidth}" />
-				<mx:TextInput id="serverName" width="{textAreaWidth}" text="VAST-SERVER"/>	
+				<mx:TextInput id="serverName" width="{textAreaWidth}" text="VAST-SERVER" change="trimInput(event);"/>
+				<mx:Label id="serverNameError" text="Server cannot be reached, please try another." visible="false" width="{serverNameError.visible ? NaN : 0}" />
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:" width="{labelWidth}" />
-				<mx:TextInput id="port" width="{textAreaWidth}" text="5222"/>
+				<mx:TextInput id="port" width="{textAreaWidth}" text="5222" change="trimInput(event);"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Username:" width="{labelWidth}" />
-				<mx:TextInput id="username" width="{textAreaWidth}"/>	
-				<mx:Label id="usernameError" text="Username already exists, please try another." visible="false" />
+				<mx:TextInput id="username" width="{textAreaWidth}" change="trimInput(event);"/>	
+				<mx:Label id="usernameError" text="Username already exists, please try another." visible="false" width="{usernameError.visible ? NaN : 0}"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Room Name:" width="{labelWidth}" />
-				<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test"/>	
+				<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test" change="trimInput(event);"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
-				<mx:Button id="connectButton" label="Connect" enabled="{!collabService.isConnectedToRoom}"/>
-				<mx:Button id="disconnectButton" label="Disconnect" enabled="{collabService.isConnectedToRoom}"/>
+				<mx:Button id="connectButton" label="Connect" click="connect();" />
+				<mx:Button id="disconnectButton" label="Disconnect" enabled="false" click="disconnect();"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>

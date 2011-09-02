@@ -50,6 +50,9 @@ package weave.core
 		
 		public function dispose():void
 		{
+			if (_undoHistory == null)
+				throw new Error("SessionStateLog.dispose() called more than once");
+			
 			_subject = null;
 			_undoHistory = null;
 			_redoHistory = null;
