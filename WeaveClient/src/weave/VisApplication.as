@@ -92,7 +92,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
-	import weave.core.WeaveJavaScriptAPI;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
@@ -163,48 +163,50 @@ package weave
 	use namespace weave_internal;
 
 	
-	/**	VisApplication
-   	 *  @author abaumann
- 	 * 	A class that extends Application to provide a workspace to add tools, handle setting of settings from files, etc.
- 	 **/
+	/**	
+ 	 * A class that extends Application to provide a workspace to add tools, handle setting of settings from files, etc.
+	 * 
+	 * @author abaumann
+ 	 */
 	public class VisApplication extends Application implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
-
 
 		{ /** BEGIN STATIC CODE BLOCK **/ 
 			Weave.initialize(); // referencing this here causes all WeaveAPI implementations to be registered.
 		} /** END STATIC CODE BLOCK **/ 
 		
-		
-		// Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
-		// view to add new tools, manage windows, do advanced tasks, etc.
-		private var _weaveMenu:WeaveMenuBar = null;
-		
-		
-		// The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
-		private var _configFileXML:XML = null;
-		
-		// The array of data tables that are used in this application, one or more data tables are needed to visualize some data
-		private var _dataTableNames:Array = [];
-		
-		// This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
-		private var _oicLogoPane:OICLogoPane = new OICLogoPane();
-
-		//this sprite will be used to draw curved lines to show connections between two UIComponents
-		//private var _connectionsLayer:Sprite = new Sprite();
-		
 		/**
-		 * static methods
+		 * Global VisApplication instance
 		 */
-		
-		// global VisApplication instance
 		private static var _thisInstance:VisApplication = null;
+		/**
+		 * Gets the global VisApplication instance.
+		 */
 		public static function get instance():VisApplication
 		{
 			return _thisInstance;
 		}
 
+		/**
+		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
+		 * view to add new tools, manage windows, do advanced tasks, etc.
+		 */
+		private var _weaveMenu:WeaveMenuBar = null;
+		
+		/**
+		 * The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
+		 */
+		private var _configFileXML:XML = null;
+		
+		/**
+		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
+		 */
+		private var _oicLogoPane:OICLogoPane = new OICLogoPane();
+
+		/**
+		 * Constructor.
+		 */
 		public function VisApplication()
 		{
 			super();
@@ -221,8 +223,6 @@ package weave
 				width = parent.width;
 				height = parent.height;
 			}, true);
-			
-//			this.frameRate = 60;
 			
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
 			
@@ -249,8 +249,6 @@ package weave
 			
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
-			
-			
 			this.autoLayout = true;
 			
 			// no scrolling -- need to make "workspaces" you can switch between
@@ -263,8 +261,6 @@ package weave
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
 
-			//add event listerner on closing window to send a message to the sender LocalConnection close the connection
-			//addEventListener(Event.CLOSE,handleClosingEvent);
 			this.addEventListener(FlexEvent.APPLICATION_COMPLETE, setupConnection );
 			
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
@@ -276,10 +272,11 @@ package weave
 			Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange, true);
-//			Weave.properties.showViewBar.addGroupedCallback(this, addViewBar);
 		}
 
-		//This needed to be a function because FlashVars can't be fetched till the application loads.
+		/**
+		 * This needed to be a function because FlashVars can't be fetched till the application loads.
+		 */
 		private function setupConnection( e:FlexEvent ):void
 		{
 			getFlashVars();
@@ -317,17 +314,23 @@ package weave
 			VisApplication.instance.setStyle("backgroundGradientColors", [Weave.properties.backgroundColor.value, Weave.properties.backgroundColor.value]);
 		}
 		
-		// This VBox holds the optional menu bar, visDesktop, and optional task bar (stacked vertically)
-		//private var _applicationVBox:VBox = new VBox();
-		// The desktop is the entire viewable area minus the space for the optional menu bar and taskbar
+		/**
+		 * The desktop is the entire viewable area minus the space for the optional menu bar and taskbar
+		 */
 		public var visDesktop:VisDesktop = null;
-		
+
+		/**
+		 * The mapping for the flash vars.
+		 */
 		private var _flashVars:Object;
 		private function getFlashVarConnectionName():String
 		{
 			return _flashVars['connectionName'] as String;
 		}
-		
+
+		/**
+		 * Gets the name of the config file.
+		 */
 		private function getFlashVarConfigFileName():String
 		{
 			if (_flashVars[CONFIG_FILE_FLASH_VAR_NAME] == undefined)
@@ -346,7 +349,10 @@ package weave
 				return StandardLib.asBoolean(_flashVars['editable'] as String);
 			return undefined;
 		}
-				
+		
+		/**
+		 * Gets the flash vars.
+		 */
 		private function getFlashVars():void
 		{
 			// We want FlashVars to take priority over the address bar parameters.
@@ -369,48 +375,6 @@ package weave
 
 		private function get _applicationVBox():Application { return application as Application; }
 		
-//		[Embed("/weave/resources/images/panelButtonEnlarged.png")]
-//		public var panelButton:Class;
-//		[Embed("/weave/resources/images/panelButtonRed.png")]
-//		public var panelButtonRed:Class;
-//		[Embed("/weave/resources/images/panelButtonBlue.png")]
-//		public var panelButtonBlue:Class;
-//		private var buttonHBox:HBox= new HBox();
-//		private var _userPreferencesIcon:Button = new Button();
-//		private var _viewStack:ViewStack = new ViewStack();
-//		private var _viewTabBar:ViewBar = new ViewBar();
-//		private var _addTab:HBox = new HBox();
-
-//		private function addViewBar():void
-//		{
-//			_userPreferencesIcon.emphasized=true;
-//			_userPreferencesIcon.setStyle("skin", panelButton);
-//			_userPreferencesIcon.setStyle("overSkin", panelButtonBlue);
-//			_userPreferencesIcon.setStyle("paddingLeft", 1);
-//			_userPreferencesIcon.buttonMode=true;
-//			_userPreferencesIcon.move(5,0);
-//			_userPreferencesIcon.width=25;
-//			_userPreferencesIcon.height=23;
-//			_userPreferencesIcon.toolTip="Click to open the User Preferences Panel";
-//			_userPreferencesIcon.addEventListener(MouseEvent.CLICK, handleUserPreferencesIconClicked);
-//
-//			_viewTabBar.dataProvider=_viewStack;
-//			_viewTabBar.setStyle("horizontalGap", 2);
-//			_viewTabBar.setStyle("paddingTop", 5);
-//			_viewTabBar.setStyle("fontFamily", WeaveProperties.DEFAULT_FONT_FAMILY );
-//			_viewTabBar.setStyle("fontWeight", "bold");
-//			_viewTabBar.rotation = -90;
-//			_viewTabBar.move(0,this.height);
-//			_viewTabBar.height=30;
-//			_viewTabBar.width=this.height - _userPreferencesIcon.height;
-//			
-//			addChild(_userPreferencesIcon);
-//			addChild(_viewTabBar);
-//			_viewTabBar.visible = _userPreferencesIcon.visible = Weave.properties.showViewBar.value ;
-//			_viewStack.x = (Weave.properties.showViewBar.value) ? 30 : 0 ;
-//			
-//		}
-
 		private var _maxProgressBarValue:int = 0;
 		private var _progressBar:ProgressBar = new ProgressBar;
 		private function handleProgressIndicatorCounterChange():void
@@ -467,49 +431,11 @@ package weave
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			/*var mapc:MapComponent = new MapComponent();
-			mapc.initialize();
-			mapc.validateNow();
-			mapc.extent = new MapExtent(90, -90, 180, -180);
-			mapc.provider = "OPEN_STREET_MAP";
-			mapc.enabled = true;
-			mapc.visible = true;
-			mapc.percentHeight = 100;
-			mapc.percentWidth = 50;
-			mapc.alpha = 1;
-			visDesktop.addChild(mapc);			
-			*/
 			
 			_applicationVBox.addChild(visDesktop);
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;
 
-//			_applicationVBox.label="Admin View";
-//			_applicationVBox.percentWidth = 100;
-//			_applicationVBox.percentHeight = 100;
-//			_applicationVBox.setStyle("verticalGap", 1);
-//			_applicationVBox.setStyle("cornerRadius", 0);
-//			addChild(_viewStack);
-//			
-//			_applicationHBox.percentWidth = 100;
-//			_applicationHBox.percentHeight = 100;
-//			_applicationHBox.setStyle("verticalGap", 0);
-//			_applicationHBox.setStyle("cornerRadius", 0);
-//			
-//			_viewStack.percentHeight=100;
-//			_viewStack.percentWidth=100;
-//			
-//			_addTab.label="+";
-//			_viewStack.addChild(_addTab);
-//			_applicationVBox.addChild(_applicationHBox);
-//			_applicationHBox.addChild(visDesktop);
-//			_viewStack.addChild(_applicationVBox);
-//			
-//			_viewStack.selectedChild=_applicationVBox;
-//			addViewBar();
-//			_viewTabBar.addEventListener(ItemClickEvent.ITEM_CLICK, handleTabSelected);
-//			addEventListener(ResizeEvent.RESIZE,handleTabBarResize);
-			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
@@ -533,63 +459,10 @@ package weave
 			_progressBar.minHeight = 16;
 			_progressBar.minWidth = 135; // constant
 
-			
-			
-			/*visDesktop.width =  this.width;
-			visDesktop.height = this.height;*/
-			
-//			Weave.properties.fontFamily.value = getStyle("fontFamily");
-//			Weave.properties.fontSize.value = getStyle("fontSize"); //default fontSize 10
 			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
 			
 			visDesktop.addEventListener(ChildExistenceChangedEvent.CHILD_REMOVE, function(e:Event):void { setupWindowMenu() } );
-			
-/*			
-			var prevTab:int = 0;
-			var bar:TabBar = new TabBar();
-			var states:Array = [null,null,null];
-			bar.dataProvider = ['a','b','c'];
-			bar.percentWidth = 100;
-			var tabChange:Function = function(newTab:int):void{
-				states[prevTab] = Weave.root.getSessionState();
-				Weave.root.setSessionState(states[newTab] ? states[newTab] : states[prevTab], true);
-				prevTab = newTab;
-			};
-			BindingUtils.bindSetter(tabChange, bar, 'selectedIndex');
-			addChildAt(bar, 0);
-//*/			
-			
-			//drawConnection();
-
 		}
-		
-
-//		private function handleTabBarResize(event:ResizeEvent):void
-//		{
-//			_viewTabBar.move(0,this.height);
-//			_viewTabBar.width=this.height - _userPreferencesIcon.height;
-//		}
-//		private function handleTabSelected(event:ItemClickEvent):void
-//		{
-//			var _newChild:HBox = new HBox();
-//			if (event.label == "+") _viewStack.addChild(_newChild);
-//			_newChild.label="View "+(_viewStack.numChildren-1);
-//			_viewTabBar.width=this.height - _userPreferencesIcon.height;
-//		}
-//		private function handleUserPreferencesIconClicked(event:MouseEvent):void
-//		{
-//			openGlobalUIPreferencesPanel();
-//		}
-//		private var _adminMode:Boolean = false;
-//		public function get adminMode():Boolean
-//		{
-//			return _adminMode;
-//		}
-//		public function set adminMode(value:Boolean):void
-//		{
-//			//disable admin features:
-//			_adminMode = value;
-//		}
 
 		private var adminService:LocalAsyncService = null;
 		
@@ -624,8 +497,6 @@ package weave
 			fileSaveDialogBox.message = "Save current Session State to server?";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
 			PopUpManager.centerPopUp(fileSaveDialogBox);
-			//fileSaveDialogBox.fileNameTextBox.text = getClientConfigFileName();
-			//fileSaveDialogBox.yes = handleOverwriteAlert;
 		}
 		
 		private function handleFileSaveClose(event:AlertTextBoxEvent):void
@@ -647,7 +518,6 @@ package weave
 			Weave.properties.enableSessionMenu.value = false;
 			Weave.properties.enableSessionEdit.value = false;
 			
-			//var clientConfigFileName:String = getClientConfigFileName();
 			var token:AsyncToken = adminService.invokeAsyncMethod(
 					'saveWeaveFile',
 					[Weave.getSessionStateXML().toXMLString(), fileName, true]
@@ -692,8 +562,6 @@ package weave
 					
 					_applicationVBox.addChildAt(_weaveMenu, 0);
 					
-					//if (visDesktop == _oicLogoPane.parent)
-					//	visDesktop.removeChild(_oicLogoPane);
 					if (_applicationVBox == _oicLogoPane.parent)
 						_applicationVBox.removeChild(_oicLogoPane);
 				}
@@ -712,10 +580,6 @@ package weave
 
 		   			_weaveMenu = null;
 					
-					// TODO: the OIC logo pane needs to be better worked out -- it cannot interfere with tool functionality or be in the way...
-					//_oicLogoPane.setStyle("right", 0);
-					//_oicLogoPane.setStyle("top", 0);
-					//addChildAt(_oicLogoPane, this.numChildren);
 					_applicationVBox.addChildAt(_oicLogoPane, _applicationVBox.numChildren);
 					_applicationVBox.setStyle("horizontalAlign", "right");
 				}
@@ -773,31 +637,12 @@ package weave
 						function():Boolean { return Weave.properties.enableRefreshHierarchies.value }
 					)
 				);
-//				_weaveMenu.addMenuItemToMenu(_dataMenu,
-//					new WeaveMenuItem(
-//						"Import new dataset ...",
-//						function ():void {
-//							var loader:DatasetLoader = createGlobalObject(DatasetLoader) as DatasetLoader;
-//							loader.browseForFiles();
-//						},
-//						null,
-//						function():Boolean { return Weave.properties.enableNewDataset.value; }
-//					)
-//				);
+
 				if(Weave.properties.enableAddDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu,new WeaveMenuItem("Add New Datasource",AddDataSourceComponent.showAsPopup));
 				
 				if(Weave.properties.enableEditDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu,new WeaveMenuItem("Edit Datasources",EditDataSourceComponent.showAsPopup));
-				
-					
-
-				/*
-				if (Weave.properties.enableAddWeaveDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_importMenu, new WeaveMenuItem("Add WeaveDataSource", null, createGlobalObject, [WeaveDataSource, "WeaveDataSource"], false));
-				if (Weave.properties.enableAddGrailsDataSource.value)
-        	  		_weaveMenu.addMenuItemToMenu(_importMenu, new WeaveMenuItem("Add GrailsDataSource", null, createGlobalObject, [GrailsDataSource, "GrailsDataSource"], false));
-				*/
 			}
 			
 			
@@ -806,13 +651,11 @@ package weave
 				_exportMenu = _weaveMenu.addMenuToMenuBar("Export", false);
 				if (Weave.properties.enableExportApplicationScreenshot.value)
 					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [this]));
-//				_visMenu.addMenuItemToMenu(_exportMenu, new VisMenuItem("Data Table...", null, createGlobalObject, [DataTableTool]));
 			}
 			
 			if (Weave.properties.enableDynamicTools.value)
 			{
 				_toolsMenu = _weaveMenu.addMenuToMenuBar("Tools", false);
-				//_visMenu.addMenuItemToMenu(_toolsMenu, new VisMenuItem("Equation Editor", null, createGlobalObject, [EquationEditor]));
 
 				createToolMenuItem(Weave.properties.showColorController, "Show Color Controller", ColorBinEditor.openDefaultEditor);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", ProbeToolTipEditor.openDefaultEditor );
@@ -845,13 +688,6 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
 				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
 				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
-
-//				_weaveMenu.addSeparatorToMenu(_toolsMenu);
-//				
-//				createToolMenuItem(Weave.properties.enableAddWordle, "Add Wordle", createGlobalObject, [WeaveWordleTool]);
-//				createToolMenuItem(Weave.properties.enableAddStickFigurePlot, "Add Stick Figure Plot", createGlobalObject, [StickFigureGlyphTool]);
-//				createToolMenuItem(Weave.properties.enableAddSP2, "Add SP2", createGlobalObject, [SP2]);
-				
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
@@ -910,48 +746,12 @@ package weave
 			if (Weave.properties.enableAboutMenu.value)
 			{
 				_aboutMenu = _weaveMenu.addMenuToMenuBar("About", false);
-				//_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Help", function():void { HelpPanel.showAsPopup(); }));
-				
-				//_weaveMenu.addSeparatorToMenu(_aboutMenu);
 				
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Weave Version: " + Weave.properties.version.value));
 				
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Visit http://www.openindicators.org", function ():void {
 					navigateToURL(new URLRequest("http://www.openindicators.org"), "_blank");
 				}));
-				
-				
-				
-				/*// name of XML defaults file:
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Session State Used:"), true );
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("", function():String {
-																					if (_defaultsFilename == null) 
-																						return "\tNo file selected."; 
-																					return "\t"+_defaultsFilename} ) );
-				
-				// name of each data source used:
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Data Source(s) Used:"), true );
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("", function ():String {
-					if (Weave.getNames(IDataSource).length == 0)
-						return "\tNo data sources specified.";
-					return "\t"+Weave.getNames(IDataSource).toString();
-				} ) );*/
-				// name of each shape layer used:
-				/*_visMenu.addMenuItemToMenu(_aboutMenu, new VisMenuItem("Shape Data Used in Maps:"), true );
-				_visMenu.addMenuItemToMenu(_aboutMenu, new VisMenuItem("", function ():String {
-						var shapeNames:Array = [];
-						for (var i:int = 0; i < visDesktop.numChildren; i++)
-						{
-							var mapTool:MapTool = visDesktop.getChildAt(i) as MapTool;
-							
-							//if (mapTool)
-							//	shapeNames.push(mapTool.
-						}
-						
-						return null; 
-					}
-				
-				) );*/
 			}
 		}
 		
@@ -989,9 +789,9 @@ package weave
 		private var _alreadyLoaded:Boolean = false;
 		private var _configFileName:String = null;
 		/**
-		 * loadPage():void
-		 * @author abaumann
 		 * This function will load all the tools, settings, etc
+		 *
+ 		 * @author abaumann
 		 */
 		private function loadPage():void
 		{
@@ -1256,10 +1056,7 @@ package weave
 			};
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, Weave.properties.enableGoFullscreen.value));
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
-			//_visMenu.addSeparatorToMenu(windowMenu);
-			//_visMenu.addMenuItemToMenu("Window", new VisMenuItem("[submenu] Load Window Layout", null));
-			//_visMenu.addMenuItemToMenu("Window", new VisMenuItem("[submenu] Save Window Layout", null));
-			
+
 			var panels:Array = Weave.root.getObjects(DraggablePanel);
 			for (var i:int = 0; i < panels.length; i++)
 			{	
@@ -1312,7 +1109,9 @@ package weave
 			return newToolMenuItem;
 		}
 
-		// Handle a file fault when trying to download the config file -- for now, this just pops up a window showing that the file could not be downloaded
+		/**
+		 * Handle a file fault when trying to download the config file -- for now, this just pops up a window showing that the file could not be downloaded.
+		 */
 		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
 		{
 			//if connection name exists then user might be creating a new config file.
@@ -1323,9 +1122,10 @@ package weave
 		}
 
 		/**
+		 * This function arranges all DraggablePanels along a diagonal
+		 * 
 		 * @author kmanohar
-		 * <br/>This function arranges all DraggablePanels along a diagonal
-		 */		
+		 */
 		private function cascadeWindows():void
 		{
 			var panels:Array = getWindowsOnStage();
@@ -1344,9 +1144,11 @@ package weave
 		}
 		
 		/**
+		 * This function tiles all the DraggablePanels on stage
+		 * 
+		 * @TODO: create a ui for this so the user can specify how to divide the stage
+		 * 
 		 * @author kmanohar
-		 * <br/> This function tiles all the DraggablePanels on stage
-		 * <br/> TO DO: create a ui for this so the user can specify how to divide the stage
 		 */		
 		private function tileWindows():void
 		{
@@ -1392,8 +1194,9 @@ package weave
 		}
 		
 		/**
-		 * @author kmanohar
 		 * @return an Array containing all DraggablePanels on stage that are not minimized
+		 *
+ 		 * @author kmanohar
 		 */		
 		private function getWindowsOnStage():Array
 		{
@@ -1407,14 +1210,6 @@ package weave
 			}
 			return panelsOnStage;
 		}
-		
-		// The tool "grid" (rows and columns) are used in a non-dynamic view -- The _toolColumnSpace is a vertical box that 
-		// holds all the columns of tools
-		private var _toolColumnSpace:VDividedBox = null;
-		
-		// This array keeps track of the tools that are active in the display
-		private var _activeTools:Array = [];
-
 		
 		/**
 		 * This function handles parsing the config file once it has downloaded.
@@ -1499,14 +1294,14 @@ package weave
 		}
 
 		
-		/** BEGIN CONTEXT MENU CODE **/
 		private var _printToolMenuItem:ContextMenuItem = null;
-		
 		/**
-		 * setupContextMenu():void
-		 * @author abaumann
 		 * This function creates the context menu for this application by getting context menus from each
-		 * class that defines them -- TODO: generalize this better...
+		 * class that defines them 
+		 *  
+		 * @TODO generalize this better...
+		 * 
+		 * @author abaumann 
 		 */
 		private function setupContextMenu():void
 		{ 
@@ -1608,10 +1403,10 @@ package weave
 		}
 		
 		/** 
-		 *  Static methods to encapsulate the list of reports within the ObjectRepository
-		 *  addReportsToMenu loops through the reports in the Object Repository and 
-		 *     adds them to the tools menu
-		 * */
+		 * Static methods to encapsulate the list of reports within the ObjectRepository
+		 * addReportsToMenu loops through the reports in the Object Repository and 
+		 * adds them to the tools menu
+		 */
 		public static function getReportsMenuItems():Array
 		{
 			var reportsMenuItems:Array = [];
@@ -1625,7 +1420,6 @@ package weave
 		}
 		
 		private var _sessionFileLoader:FileReference = null;
-		private var _sessionFileSaver:FileReference = null;
 		private function handleImportSessionState():void
 		{			
 			if (_sessionFileLoader == null)
@@ -1646,17 +1440,6 @@ package weave
 			
 			exportSessionStatePanel = PopUpManager.createPopUp(this,ExportSessionStatePanel,false) as ExportSessionStatePanel;
 			PopUpManager.centerPopUp(exportSessionStatePanel);
-			
-//			if (_sessionFileSaver == null)
-//			{
-//				_sessionFileSaver = new FileReference();
-//			}
-//			
-//			// Create a date that we can append to the end of each file to make them unique
-//   			var date:Date = new Date();
-//   			var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
-//
-//   			_sessionFileSaver.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
 		}
 		
 		public function printOrExportImage(component:UIComponent):void
@@ -1681,14 +1464,18 @@ package weave
 			if (_weaveMenu)  _weaveMenu.visible    = visMenuVisible;
 			if (VisTaskbar.instance) VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
-		
+
+		/**
+		 * Update the page title.
+		 */
 		public function updatePageTitle():void
 		{
 			ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
 		}
 		
-		
-		// Add a context menu item that goes to an associated url in a new browser window/tab
+		/** 
+		 * Add a context menu item that goes to an associated url in a new browser window/tab
+		 */
 		private function addLinkContextMenuItem(text:String, url:String, separatorBefore:Boolean=false):void
 		{
 			CustomContextMenuManager.createAndAddMenuItemToDestination(text, 
@@ -1697,8 +1484,9 @@ package weave
                                                               "linkMenuItems");	
 		}
 
-			
-		// TODO: This should be removed -- ideally VisApplication has no context menu items itself, only other classes do
+		/**
+		 * @TODO: This should be removed -- ideally VisApplication has no context menu items itself, only other classes do
+		 */
 		protected function handleContextMenuItemSelect(event:ContextMenuEvent):void
 		{
 			if (event.currentTarget == _printToolMenuItem)
@@ -1708,88 +1496,24 @@ package weave
    			
 		}
 		
-		
-		/** END CONTEXT MENU CODE **/
-
-		
-		public function drawConnection(fromUI:UIComponent,toUI:UIComponent=null,clear:Boolean=true):void
-		{
-			var fromPoint:Point = fromUI.localToGlobal(new Point(0,0));
-			var toPoint:Point = new Point();
-			
-			if (toUI)
-				toPoint = toUI.localToGlobal(new Point(0,0));
-			else{
-				var toPointX:Number = 0;
-				var toPointY:Number = 0;
-				
-				if (fromPoint.y <= mouseY)
-					toPointY = mouseY-12;
-				else 
-					toPointY = mouseY+12;
-				
-				if (fromPoint.x <= mouseX)
-					toPointX= mouseX-12;
-				else 
-					toPointX= mouseX+12;
-						
-				toPoint = new Point(toPointX,toPointY);
-			}
-				
-			
-			// start curve anchor at halfway point between origin and destination
-			var curveAnchor:Point = new Point(
-				(fromPoint.x + fromPoint.x)/2,
-				(toPoint.y + toPoint.y)/2);
-			
-//			VisApplication.instance.rawChildren.addChild(_connectionsLayer);
-//			
-//			if (clear)
-//				_connectionsLayer.graphics.clear();
-//			
-//			_connectionsLayer.graphics.lineStyle(4,0x8AA37B,1);
-//			
-//			//DrawUtils.drawCurvedLine(_connectionsLayer.graphics,fromPoint.x,fromPoint.y,toPoint.x,toPoint.y,2);
-//			_connectionsLayer.graphics.moveTo(fromPoint.x,fromPoint.y);
-//			_connectionsLayer.graphics.curveTo(curveAnchor.x,curveAnchor.y,toPoint.x,toPoint.y);
-
-		}
-		
-//		public function drawConnections(fromUI:UIComponent,toUIs:Array):void
+//		private function testColumn(column:IAttributeColumn):void
 //		{
-//			_connectionsLayer.graphics.clear();
-//			
-//			for each(var ui:UIComponent in toUIs)
+//			var key:IQualifiedKey;
+//			var keys:Array = column ? column.keys : [];
+//			trace(getQualifiedClassName(column), column);
+//			trace("keys: "+keys);
+//			for each (key in keys)
 //			{
-//				drawConnection(fromUI,ui,false);
+//				var debug:String = "key = "+key.keyType+'#'+key.localName+":";
+//				for each (var type:Class in [null, Number, String, Boolean])
+//				{
+//					var value:* = column.getValueFromKey(key, type);
+//					var typeStr:String = type ? String(type) : '('+getQualifiedClassName(value)+')';
+//					debug += "\n\t"+typeStr+":\t"+value;
+//				}
+//				trace(debug);
 //			}
-//			
 //		}
-		
-//		public function removeConnections():void
-//		{
-//			_connectionsLayer.graphics.clear();			
-//		}
-		
-		
-		private function testColumn(column:IAttributeColumn):void
-		{
-			var key:IQualifiedKey;
-			var keys:Array = column ? column.keys : [];
-			trace(getQualifiedClassName(column), column);
-			trace("keys: "+keys);
-			for each (key in keys)
-			{
-				var debug:String = "key = "+key.keyType+'#'+key.localName+":";
-				for each (var type:Class in [null, Number, String, Boolean])
-				{
-					var value:* = column.getValueFromKey(key, type);
-					var typeStr:String = type ? String(type) : '('+getQualifiedClassName(value)+')';
-					debug += "\n\t"+typeStr+":\t"+value;
-				}
-				trace(debug);
-			}
-		}
 		
 		private function trace(...args):void
 		{

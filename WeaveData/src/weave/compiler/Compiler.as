@@ -270,7 +270,7 @@ package weave.compiler
 			operators["?:"] = constants['iif'];
 			// multiple commands
 			operators[','] = function(...args):* { return args[args.length - 1]; };
-			operators['{}'] = operators[',']; // equivalent functionality but must be remembered as a different operator
+			operators[';'] = operators[',']; // equivalent functionality but must be remembered as a different operator
 			//assignment operators -- first param becomes the parent, and the two remaining args are propertyName and value
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
@@ -431,9 +431,10 @@ package weave.compiler
 		 * This function will recursively compile a set of tokens into a compiled object representing a function that takes no parameters and returns a value.
 		 * Example set of input tokens:  pow ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
 		 * @param tokens An Array of tokens for an expression.  This array will be modified in place.
+		 * @param allowEmptyExpression If tokens is an empty Array, setting this to true will return an empty compiled object instead of throwing an error. 
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		private function compileTokens(tokens:Array):ICompiledObject
+		private function compileTokens(tokens:Array, allowEmptyExpression:Boolean = false):ICompiledObject
 		{
 			var i:int;
 			var token:String;
@@ -511,6 +512,9 @@ package weave.compiler
 				// true branch includes everything between the last '?' and the next ':'
 				var left:int = tokens.lastIndexOf('?');
 				var right:int = tokens.indexOf(':', left);
+				var comma:int = tokens.indexOf(',', left);
+				if (comma >= 0 && comma < right)
+					throw new Error("Expecting colon before comma");
 				
 				// stop if operator missing or any section has no tokens
 				if (right < 0 || left < 1 || left + 1 == right || right + 1 == tokens.length)
@@ -525,7 +529,6 @@ package weave.compiler
 						break;
 					end++;
 				}
-				
 				if (debug)
 					trace("compiling conditional branch:", tokens.slice(left - 1, right + 2).join(' '));
 				
@@ -583,9 +586,9 @@ package weave.compiler
 				throw new Error("Invalid left-hand-side of '" + tokens[i] + "'");
 			}
 
-			// next step: handle multiple commands
+			// next step: handle multiple comma-separated expressions
 			if (tokens.indexOf(',') >= 0)
-				return compileOperator(',', compileArray(tokens));
+				return compileOperator(',', compileArray(tokens, ','));
 
 			// last step: verify there is only one token left
 			if (tokens.length == 1)
@@ -598,6 +601,9 @@ package weave.compiler
 				throw new Error("Missing operator between " + leftToken + ' and ' + rightToken);
 			}
 
+			if (allowEmptyExpression)
+				return compileOperator(';', tokens);
+			
 			throw new Error("Empty expression");
 		}
 
@@ -779,8 +785,8 @@ package weave.compiler
 				// cut out tokens between brackets
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
 				if (debug)
-					trace("compiling tokens (", subArray.join(' '), ")");
-				compiledParams = compileArray(subArray);
+					trace("compiling tokens", leftBracket, subArray.join(' '), rightBracket);
+				compiledParams = compileArray(subArray, leftBracket == '{' ? ';' : ',');
 
 				if (leftBracket == '[') // this is either an array or a property access
 				{
@@ -814,10 +820,10 @@ package weave.compiler
 				}
 				else // '{' or '(' group that does not correspond to a function call
 				{
-					if (compiledParams.length == 0)
-						throw new Error("Missing expression inside '" + leftBracket + rightBracket + "'");
+					var op:String = leftBracket == '(' ? ',' : ';';
 					
-					var op:String = leftBracket == '(' ? ',' : '{}';
+					if (op == ',' && compiledParams.length == 0)
+						throw new Error("Missing expression inside '" + leftBracket + rightBracket + "'");
 					
 					if (compiledParams.length == 1) // single command
 						tokens.splice(open, 2, compiledParams[0]);
@@ -838,7 +844,7 @@ package weave.compiler
 		 * @param tokens
 		 * @return 
 		 */
-		private function compileArray(tokens:Array):Array
+		private function compileArray(tokens:Array, separator:String):Array
 		{
 			// avoid compiling an empty set of tokens
 			if (tokens.length == 0)
@@ -847,17 +853,17 @@ package weave.compiler
 			var compiledObjects:Array = [];
 			while (true)
 			{
-				var comma:int = tokens.indexOf(',');
-				if (comma >= 0)
+				var index:int = tokens.indexOf(separator);
+				if (index >= 0)
 				{
 					// compile the tokens before the comma as a parameter
-					compiledObjects.push(compileTokens(tokens.splice(0, comma)));
+					compiledObjects.push(compileTokens(tokens.splice(0, index), separator == ';'));
 					tokens.shift(); // remove comma
 				}
 				else
 				{
 					// compile remaining group of tokens as a parameter
-					compiledObjects.push(compileTokens(tokens));
+					compiledObjects.push(compileTokens(tokens, separator == ';'));
 					break;
 				}
 			}
@@ -1058,8 +1064,8 @@ package weave.compiler
 				// variable number of params
 				if (op == '[]')
 					return '[' + params.join(', ') + ']'
-				if (op == '{}')
-					return '{' + params.join(', ') + '}';
+				if (op == ';')
+					return '{' + params.join('; ') + '}';
 				if (op == ',')
 					return '(' + params.join(', ') + ')';
 				
@@ -1239,6 +1245,7 @@ package weave.compiler
 		{
 			var compiler:Compiler = new Compiler();
 			var eqs:Array = [
+				"(a = 1, 0) ? (a = 2, a + 1) : (4, a + 100), a",
 				"1 + '\"abc ' + \"'x\\\"y\\\\\\'z\"",
 				'0 ? trace("?: BUG") : -var',
 				'1 ? ~-~-var : trace("?: BUG")',

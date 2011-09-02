@@ -57,7 +57,7 @@ package weave.data
 		
 		/**
 		 * This function decompresses the projection database and loads the definitions into ProjProjection.defs.
-		 */		
+		 */
 		private static function initializeProjections():void
 		{
 			var ba:ByteArray = (new ProjDatabase()) as ByteArray;
@@ -68,14 +68,6 @@ package weave.data
 		}
 
 
-		/**
-		 * This is the singleton instance of this class.
-		 */
-		public static function get instance():ProjectionManager
-		{
-			return WeaveAPI.ProjectionManager as ProjectionManager;
-		}
-		
 		/**
 		 * This is a multi-dimensional lookup:   unprojectedColumn -> Object, destinationSRS -> ProxyColumn
 		 * Example: cache[column][destinationSRS] is a ProxyColumn containing geometries reprojected to the given SRS.
@@ -116,7 +108,7 @@ package weave.data
 			srsCache[destinationProjectionSRS] = proxyColumn;
 			
 			// create a WorkerThread that will reproject the geometries
-			new WorkerThread(unprojectedColumn, proxyColumn, destinationProjectionSRS);
+			new WorkerThread(this, unprojectedColumn, proxyColumn, destinationProjectionSRS);
 			
 			return proxyColumn;
 		}
@@ -132,27 +124,6 @@ package weave.data
 				return true;
 			else
 				return false;			
-		}
-		
-		/**
-		 * getProjection
-		 * @param srsCode The SRS Code of a projection.
-		 * @return A cached ProjProjection object for the specified SRS Code.
-		 */
-		public function getProjection(srsCode:String):ProjProjection
-		{
-			if (!srsCode)
-				return null;
-			
-			srsCode = srsCode.toUpperCase();
-			
-			if (srsToProjMap.hasOwnProperty(srsCode))
-				return srsToProjMap[srsCode];
-			
-			if (projectionExists(srsCode))
-				return srsToProjMap[srsCode] = new ProjProjection(srsCode);
-			
-			return null;
 		}
 		
 		/**
@@ -263,6 +234,27 @@ package weave.data
 			inputAndOutput.copyFrom(_tempBounds);
 			return inputAndOutput;
 		}
+		
+		/**
+		 * getProjection
+		 * @param srsCode The SRS Code of a projection.
+		 * @return A cached ProjProjection object for the specified SRS Code.
+		 */
+		public function getProjection(srsCode:String):ProjProjection
+		{
+			if (!srsCode)
+				return null;
+			
+			srsCode = srsCode.toUpperCase();
+			
+			if (srsToProjMap.hasOwnProperty(srsCode))
+				return srsToProjMap[srsCode];
+			
+			if (projectionExists(srsCode))
+				return srsToProjMap[srsCode] = new ProjProjection(srsCode);
+			
+			return null;
+		}
 
 		/**
 		 * srsToProjMap
@@ -287,6 +279,10 @@ package weave.data
 
 import flash.geom.Point;
 
+import org.openscales.proj4as.Proj4as;
+import org.openscales.proj4as.ProjPoint;
+import org.openscales.proj4as.ProjProjection;
+
 import weave.api.data.AttributeColumnMetadata;
 import weave.api.data.DataTypes;
 import weave.api.data.IAttributeColumn;
@@ -302,14 +298,12 @@ import weave.primitives.BLGNode;
 import weave.primitives.GeneralizedGeometry;
 import weave.utils.BLGTreeUtils;
 import weave.utils.ColumnUtils;
-import org.openscales.proj4as.Proj4as;
-import org.openscales.proj4as.ProjPoint;
-import org.openscales.proj4as.ProjProjection;
 	
 internal class WorkerThread
 {
-	public function WorkerThread(unprojectedColumn:IAttributeColumn, proxyColumn:ProxyColumn, destinationProjectionSRS:String)
+	public function WorkerThread(projectionManager:ProjectionManager, unprojectedColumn:IAttributeColumn, proxyColumn:ProxyColumn, destinationProjectionSRS:String)
 	{
+		this.projectionManager = projectionManager;
 		this.unprojectedColumn = unprojectedColumn;
 		this.proxyColumn = proxyColumn;
 		this.destinationProjSRS = destinationProjectionSRS;
@@ -319,6 +313,7 @@ internal class WorkerThread
 	}
 	
 	// values passed to the constructor -- these will not change.
+	private var projectionManager:ProjectionManager;
 	private var unprojectedColumn:IAttributeColumn;
 	private var proxyColumn:ProxyColumn;
 	private var destinationProjSRS:String;
@@ -349,8 +344,8 @@ internal class WorkerThread
 		// if there is no destination projection, don't reproject.
 		var sourceProjSRS:String = unprojectedColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
 		if (sourceProjSRS == destinationProjSRS ||
-			!ProjectionManager.instance.projectionExists(sourceProjSRS) ||
-			!ProjectionManager.instance.projectionExists(destinationProjSRS))
+			!projectionManager.projectionExists(sourceProjSRS) ||
+			!projectionManager.projectionExists(destinationProjSRS))
 		{
 			proxyColumn.setMetadata(null);
 			proxyColumn.internalColumn = unprojectedColumn;
@@ -397,8 +392,8 @@ internal class WorkerThread
 		keysVector = new Vector.<IQualifiedKey>();
 		geomVector = new Vector.<GeneralizedGeometry>();
 		coordsVector = new Vector.<Array>();
-		sourceProj = ProjectionManager.instance.getProjection(sourceProjSRS);
-		destinationProj = ProjectionManager.instance.getProjection(destinationProjSRS);
+		sourceProj = projectionManager.getProjection(sourceProjSRS);
+		destinationProj = projectionManager.getProjection(destinationProjSRS);
 		
 		processGeometries(taskID);
 	}

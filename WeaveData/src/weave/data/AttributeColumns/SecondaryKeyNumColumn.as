@@ -24,10 +24,12 @@ package weave.data.AttributeColumns
 	
 	import mx.formatters.NumberFormatter;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	
@@ -40,6 +42,7 @@ package weave.data.AttributeColumns
 		public function SecondaryKeyNumColumn(metadata:XML = null)
 		{
 			super(metadata);
+			registerLinkableChild(this, secondaryKeyFilter);
 		}
 
 		/**
@@ -58,13 +61,19 @@ package weave.data.AttributeColumns
 			switch (propertyName)
 			{
 				case AttributeColumnMetadata.TITLE:
-					if (value != null)
-						return value + ' (' + _currentSecondaryKeyValue.value + ')';
+					if (value != null && secondaryKeyFilter.value)
+						return value + ' (' + secondaryKeyFilter.value + ')';
+					break;
+				case AttributeColumnMetadata.KEY_TYPE:
+					if (secondaryKeyFilter.value == null)
+						return value + TYPE_SUFFIX
 					break;
 			}
 			
 			return value;
 		}
+		
+		private var TYPE_SUFFIX:String = ',Year';
 		
 		private var _minNumber:Number = NaN; // returned by getMetadata
 		private var _maxNumber:Number = NaN; // returned by getMetadata
@@ -74,6 +83,7 @@ package weave.data.AttributeColumns
 		 * This object maps keys to data values.
 		 */
 		protected var _keyToNumericDataMapping:Dictionary = new Dictionary();
+		protected var _keyToNumericDataMappingAB:Dictionary = new Dictionary();
 
 		/**
 		 * uniqueStrings
@@ -82,40 +92,14 @@ package weave.data.AttributeColumns
 		private var _uniqueStrings:Vector.<String> = new Vector.<String>();
 
 		/**
-		 * */
-		public const _currentSecondaryKeyValue:LinkableString = newLinkableChild(this, LinkableString);
-		public function set currentSecondaryKey(key:String):void
-		{
-			if (_currentSecondaryKeyValue.value != key)
-			{
-				_currentSecondaryKeyValue.value = key;
-				triggerCallbacks();
-			}
-		}
-		public function get currentSecondaryKey():String
-		{
-			return _currentSecondaryKeyValue.value;
-		}
+		 * This is the value used to filter the data.
+		 */
+		public static const secondaryKeyFilter:LinkableString = new LinkableString();
 		
-		protected const _uniqueSecondaryKeys:Array = new Array();
-		public function get secondaryKeys():Array
+		protected static const _uniqueSecondaryKeys:Array = new Array();
+		public static function get secondaryKeys():Array
 		{
 			return _uniqueSecondaryKeys;
-		}
-		public function allSecondaryKeys():Array
-		{
-			var allSecKeys:Array = new Array();
-			for each (var key:IQualifiedKey in _uniqueKeysA)
-			{
-				var foo:Object = _keyToNumericDataMapping[key];
-				var bar:Array = foo as Array;
-				//for each (var keyB:String in foo)
-				for (var keyB:String in foo)
-				{
-					allSecKeys.push(keyB);
-				}
-			}
-			return allSecKeys;
 		}
 
 		/**
@@ -123,8 +107,11 @@ package weave.data.AttributeColumns
 		 * This is a list of unique keys this column defines values for.
 		 */
 		protected const _uniqueKeysA:Array = new Array();
+		protected const _uniqueKeysAB:Array = new Array();
 		override public function get keys():Array
 		{
+			if (secondaryKeyFilter.value == null) // when no secondary key specified, use the real unique keys
+				return _uniqueKeysAB;
 			return _uniqueKeysA;
 		}
 
@@ -136,60 +123,15 @@ package weave.data.AttributeColumns
 		{
 			if (_keyToNumericDataMapping[key] == null)
 				return false;
-			return _keyToNumericDataMapping[key][currentSecondaryKey] != undefined;
+			return _keyToNumericDataMapping[key][secondaryKeyFilter.value] != undefined;
 		}
 
-		private var _keysLastUpdated:Array = new Array();		
-		public function get keysLastUpdated():Array
+		public function updateRecords(keysA:Vector.<IQualifiedKey>, keysB:Vector.<String>, data:Array):void
 		{
-			return _keysLastUpdated;
-		}
-
-		/**
-		 * removeRecords
-		 * This function may be removed later.
-		 * Keep this function private until it is needed.
-		 */
-		private function removeRecords(keysToRemove:Array):void
-		{
-			var key:Object; // IQualifiedKey
-
-			// remove records and keep track of which keys were removed
-			var index:int = 0;
-			for each (key in keysToRemove)
-			{
-				if (_keyToNumericDataMapping[key][currentSecondaryKey] != undefined)
-				{
-					delete _keyToNumericDataMapping[key][currentSecondaryKey];
-					_keysLastUpdated[index++] = key;
-				}
-			}
-			_keysLastUpdated.length = index; // trim to new size
+			if (_uniqueStrings.length > 0)
+				throw new Error("Replacing existing records is not supported");
 			
-			// update list of unique keys
-			index = 0;
-			for (key in _keyToNumericDataMapping)
-			{
-				_uniqueKeysA[index++] = key;
-			}
-			_uniqueKeysA.length = index; // trim to new size
-			index = 0;
-			for (key in _keyToNumericDataMapping[0])
-			{
-				_uniqueSecondaryKeys[index++] = key;
-			}
-			_uniqueSecondaryKeys.length = index; // trim to new size
-
-			// run callbacks while keysLastUpdated is set
-			triggerCallbacks();
-
-			// clear keys last updated
-			_keysLastUpdated.length = 0;
-		}
-		
-		public function updateRecords(keysA:Vector.<IQualifiedKey>, keysB:Vector.<String>, data:Array, clearExistingRecords:Boolean = false):void
-		{
-			var index:int, qkeyA:IQualifiedKey, keyB:String;
+			var index:int, qkeyA:IQualifiedKey, keyB:String, qkeyAB:IQualifiedKey;
 			var _keyA:*;
 			var dataObject:Object = null;
 
@@ -199,12 +141,8 @@ package weave.data.AttributeColumns
 				keysA.length = data.length; // numericData.length;
 			}
 			
-			// save a map of keys that changed			
-			var keysThatChanged:Dictionary = clearExistingRecords ? _keyToNumericDataMapping : new Dictionary();
-
-			// clear previous data mapping if requested
-			if (clearExistingRecords)
-				_keyToNumericDataMapping = new Dictionary();
+			// clear previous data mapping
+			_keyToNumericDataMapping = new Dictionary();
 			
 			//if it's string data - create list of unique strings
 			if (data[0] is String)
@@ -233,6 +171,7 @@ package weave.data.AttributeColumns
 			{
 				qkeyA = keysA[index] as IQualifiedKey;
 				keyB = keysB[index] as String;
+				qkeyAB = WeaveAPI.QKeyManager.getQKey(qkeyA.keyType + TYPE_SUFFIX, qkeyA.localName + ',' + keyB);
 				//if we don't already have keyB - add it to _uniqueKeysB
 				//  @todo - optimize this - searching every time is not the optimal method
 				if (_uniqueSecondaryKeys.indexOf(keyB) < 0)
@@ -250,36 +189,32 @@ package weave.data.AttributeColumns
 						_uniqueStrings[iString] = dataObject as String;
 					}
 					_keyToNumericDataMapping[qkeyA][keyB] = iString;
+					_keyToNumericDataMappingAB[qkeyAB] = iString;
 				}
 				else
 				{
 					_keyToNumericDataMapping[qkeyA][keyB] = data[index];//Number(data[index]);
+					_keyToNumericDataMappingAB[qkeyAB] = data[index];//Number(data[index]);
 					
 					_minNumber = isNaN(_minNumber) ? data[index] : Math.min(_minNumber, data[index]);
 					_maxNumber = isNaN(_maxNumber) ? data[index] : Math.max(_maxNumber, data[index]);
 				}
-				if (!keysThatChanged[qkeyA])
-					keysThatChanged[qkeyA] = new Dictionary();
-				keysThatChanged[qkeyA][keyB] = true; // remember that this key changed
 			}
-			_currentSecondaryKeyValue.value = keysB[0];
+			
+			_uniqueSecondaryKeys.sort();
+			
 			// save list of unique keys
 			index = 0;
 			for (_keyA in _keyToNumericDataMapping)
 				_uniqueKeysA[index++] = _keyA;
 			_uniqueKeysA.length = index; // trim to new size
 			
-			// update _keysLastUpdated
 			index = 0;
-			for (_keyA in keysThatChanged)
-				_keysLastUpdated[index++] = _keyA;
-			_keysLastUpdated.length = index; // trim to new size
+			for (_keyA in _keyToNumericDataMappingAB)
+				_uniqueKeysAB[index++] = _keyA;
+			_uniqueKeysAB.length = index; // trim to new size
 			
-			// run callbacks while keysLastUpdated is set
 			triggerCallbacks();
-			
-			// clear keys last updated
-			_keysLastUpdated.length = 0;
 		}
 
 		/**
@@ -287,47 +222,23 @@ package weave.data.AttributeColumns
 		 * the NumberFormatter to use when generating a string from a number
 		 */
 		private var _numberFormatter:NumberFormatter = new NumberFormatter();
-		public function get numberFormatter():NumberFormatter
-		{
-			return _numberFormatter;
-		}
-		public function set numberFormatter(value:NumberFormatter):void
-		{
-			_numberFormatter = value;
-		}
 
 		/**
 		 * maxDerivedSignificantDigits:
 		 * maximum number of significant digits to return when calling deriveStringFromNorm()
 		 */		
-		public var maxDerivedSignificantDigits:uint = 10;
+		private var maxDerivedSignificantDigits:uint = 10;
 		
 		// get a string value for a given numeric value
 		public function deriveStringFromNumber(number:Number):String
 		{
 			if (int(number) == number && (_uniqueStrings.length > 0) && (number < _uniqueStrings.length))
-			{
 				return _uniqueStrings[number];
-				//return the first value for this key
-				/*
-				var primKeyMapping:Object = _keyToNumericDataMapping[number];
-				if (primKeyMapping)
-				{
-					//not sure how to get first object - temporary simple way to do it
-					var firstOne:Object = null;
-					for each (firstOne in primKeyMapping) 
-					{
-						break;
-					}
-					var secKeyMapping:Object = _keyToNumericDataMapping[number][0];
-					return secKeyMapping as String;
-				}
-				*/
-			}
-			if (numberFormatter == null)
-					return number.toString();
+			
+			if (_numberFormatter == null)
+				return number.toString();
 			else
-				return numberFormatter.format(
+				return _numberFormatter.format(
 					StandardLib.roundSignificant(
 							number,
 							maxDerivedSignificantDigits
@@ -335,36 +246,26 @@ package weave.data.AttributeColumns
 					);
 		}
 
-		public function getValueFromKeys(primaryQKey:IQualifiedKey, secondaryKeyString:String):*
-		{
-			if (_keyToNumericDataMapping[primaryQKey] && (_keyToNumericDataMapping[primaryQKey][secondaryKeyString] != null))
-				return (_keyToNumericDataMapping[primaryQKey][secondaryKeyString]);
-			else
-				return NaN;			
-		}
 		/**
 		 * get data from key value
 		 */
-		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
+		override public function getValueFromKey(qkey:IQualifiedKey, dataType:Class = null):*
 		{
+			var value:Object = undefined;
+			
+			if (_keyToNumericDataMappingAB[qkey] || _keyToNumericDataMapping[qkey])
+				value = _keyToNumericDataMappingAB[qkey] || _keyToNumericDataMapping[qkey][secondaryKeyFilter.value];
+			
 			if (dataType == String)
 			{
-				if (_keyToNumericDataMapping[key])
-				{
-					var obj:Object = _keyToNumericDataMapping[key][currentSecondaryKey];
-					if (obj != null)
-					{
-						if (obj is String)
-							return obj as String;
-						else
-							return deriveStringFromNumber(_keyToNumericDataMapping[key][currentSecondaryKey]);
-					}
-				}
-				else
-					return null;
+				if (value is String)
+					return value;
+				else if (value != null)
+					return deriveStringFromNumber(Number(value));
+				return null;
 			}
-			var ret:Object = getValueFromKeys(key, currentSecondaryKey);
-			return ret;
+			
+			return StandardLib.asNumber(value);
 		}
 
 		override public function toString():String

@@ -205,8 +205,6 @@ package weave.data.DataSources
 				var propertyName:String = propertiesList[i].attribute("name");
 				var propertyType:String = propertiesList[i].attribute("type");
 				// handle case for   <xs:simpleType><xs:restriction base="xs:string"><xs:maxLength value="2"/></xs:restriction></xs:simpleType>
-				if (propertyType == '')
-					propertyType = propertiesList[i].descendants().(@base)[0].attribute("base");
 				// convert missing propertyType to string
 				if (propertyType == '')
 					propertyType = "xs:string";

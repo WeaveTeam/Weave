@@ -19,6 +19,7 @@
 
 package weave.data.AttributeColumns
 {
+	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
@@ -326,6 +327,22 @@ package weave.data.AttributeColumns
 			}
 
 			return value as newType;
+		}
+		
+		/**
+		 * This function transforms an x,y coordinate pair from one coordinate reference system to another.
+		 * @param sourceSRS Specifies the source coordinate reference system.
+		 * @param destinationSRS Specifies the destination coordinate reference system.
+		 * @param x The X coordinate in the coordinate reference system specified by sourceSRS.
+		 * @param y The Y coordinate in the coordinate reference system specified by sourceSRS.
+		 * @return A new Point object containing the transformed coordinates.
+		 */		
+		public static function transformCoords(sourceSRS:String, destinationSRS:String, x:Number, y:Number):Point
+		{
+			var _tempPoint:Point = new Point();
+			_tempPoint.x = x;
+			_tempPoint.y = y;
+			return WeaveAPI.ProjectionManager.transformPoint(sourceSRS, destinationSRS, _tempPoint);
 		}
 		
 		/**

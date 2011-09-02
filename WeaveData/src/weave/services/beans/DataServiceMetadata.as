@@ -27,10 +27,12 @@ package weave.services.beans
 			this.serverName = result.serverName;
 			this.dataTableNames = result.dataTableNames;
 			this.geometryCollectionNames = result.geometryCollectionNames;
+			this.geometryCollectionKeyTypes = result.geometryCollectionKeyTypes;
 		}
 		
 		public var serverName:String;
 		public var dataTableNames:Array;
 		public var geometryCollectionNames:Array;
+		public var geometryCollectionKeyTypes:Array;
 	}
 }

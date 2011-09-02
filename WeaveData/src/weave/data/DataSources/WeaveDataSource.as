@@ -255,8 +255,9 @@ package weave.data.DataSources
 				for (i = 0; i < result.geometryCollectionNames.length; i++)
 				{
 					var gcName:String = result.geometryCollectionNames[i];
+					var keyType:String = result.geometryCollectionKeyTypes[i];
 					if (parent.category.(@name == gcName).length() == 0)
-						parent.appendChild(<attribute name={ gcName } dataType={ DataTypes.GEOMETRY }/>);
+						parent.appendChild(<attribute title={ gcName } name={ gcName } dataType={ DataTypes.GEOMETRY } keyType={ keyType }/>);
 				}
 				
 				_attributeHierarchy.detectChanges();
@@ -289,6 +290,7 @@ package weave.data.DataSources
 					var geomName:String = hierarchyNode.@name;
 					hierarchyNode.appendChild(
 						<attribute
+							title={ geomName }
 							name={ geomName }
 							dataType={ DataTypes.GEOMETRY }
 							keyType={ result.geometryCollectionKeyType }
@@ -305,6 +307,7 @@ package weave.data.DataSources
 					for (var property:String in metadata)
 						if (metadata[property] != null && metadata[property] != '')
 							node['@'+property] = metadata[property];
+					node.@title = node.@name;
 					hierarchyNode.appendChild(node);
 				}
 			}

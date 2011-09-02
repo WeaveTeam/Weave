@@ -52,7 +52,6 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.api.disposeObjects;
 			import flash.utils.getQualifiedClassName;
 			
 			import mx.collections.ArrayCollection;
@@ -84,6 +83,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.data.IDataSource;
+			import weave.api.disposeObjects;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
@@ -135,8 +135,7 @@
 					linkToObject(null);
 					return;
 				}
-				var refColumn:ReferencedColumn = hierarchySelector.dynamicColumn.internalObject as ReferencedColumn;
-				columnList.hashMap.copyObject(null,refColumn);
+				columnList.hashMap.copyObject(null, hierarchySelector.dynamicColumn.internalObject);
 			}
 			
 			private var _prevLinkedColumn:DynamicColumn = null;
@@ -228,7 +227,7 @@
 					}
 					else
 					{
-						columns = (columnOrHashMap as ILinkableHashMap).getObjects(ReferencedColumn);
+						columns = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
 						if (columns.length > 0)
 							hierarchySelector.dynamicColumn.copyLocalObject(columns[0]);
 					}

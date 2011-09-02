@@ -87,11 +87,12 @@ public class DataService extends GenericServlet
 		configManager.detectConfigChanges();
 		// encoding method is set to null here because we don't know what format it will be converted to later
 		ISQLConfig config = configManager.getConfig();
-		return new DataServiceMetadata(
-		        config.getServerName(),
-		        config.getDataTableNames(null).toArray(new String[0]),
-		        config.getGeometryCollectionNames(null).toArray(new String[0])
-		    );
+		String[] tableNames = config.getDataTableNames(null).toArray(new String[0]);
+		String[] geomNames = config.getGeometryCollectionNames(null).toArray(new String[0]);
+		String[] geomKeyTypes = new String[geomNames.length];
+		for (int i = 0; i < geomNames.length; i++)
+			geomKeyTypes[i] = config.getGeometryCollectionInfo(geomNames[i]).keyType;
+		return new DataServiceMetadata(config.getServerName(), tableNames, geomNames, geomKeyTypes);
 	}
 	
 	@SuppressWarnings("unchecked")

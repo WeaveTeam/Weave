@@ -121,11 +121,11 @@ package weave.data.DataSources
 			if (_attributeHierarchy.value == null)
 			{	
 				var category:XML = <category name="DBF Data"/>;
-				category.appendChild(<attribute dataType={ DataTypes.GEOMETRY } name={ THE_GEOM_COLUMN } keyType={ keyType.value }/>);
+				category.appendChild(<attribute dataType={ DataTypes.GEOMETRY } title={ THE_GEOM_COLUMN } name={ THE_GEOM_COLUMN } keyType={ keyType.value }/>);
 				
 				for each( var column:DbfField in dbf.fields)
 				{
-					category.appendChild( <attribute name={column.name}/> );
+					category.appendChild( <attribute title={ column.name } name={column.name} keyType={ keyType.value }/> );
 				}
 				
 				

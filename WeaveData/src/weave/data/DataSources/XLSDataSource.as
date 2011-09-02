@@ -86,7 +86,7 @@ package weave.data.DataSources
 				var category:XML = <category name="XLS Data"/>;
 				for each (var colName:String in firstRow)
 				{
-					category.appendChild(<attribute name={colName} keyType={ keyType.value }/>);
+					category.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
 				}
 				_attributeHierarchy.value = <hierarchy>{ category }</hierarchy>;
 			}

@@ -448,7 +448,8 @@ package weave.visualization.layers
 					tempDataBounds.setCenter(tempDataBounds.getXCenter() - queryBounds.getWidth(), tempDataBounds.getYCenter() - queryBounds.getHeight());
 					zoomBounds.setDataBounds(tempDataBounds);
 					// set begin point for next pan
-					mouseDragStageCoords.setMinPoint(mouseDragStageCoords.getMaxPoint(tempPoint));
+					mouseDragStageCoords.getMaxPoint(tempPoint);
+					mouseDragStageCoords.setMinPoint(tempPoint);
 				}
 				else if (mode == ZOOM_MODE)
 				{

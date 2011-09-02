@@ -254,7 +254,7 @@ package weave.api.primitives
 		 * This function stores the xCenter and yCenter coordinates into a Point object.
 		 * @param value The Point object to store the xCenter and yCenter coordinates in.
 		 */
-		function getCenterPoint(output:Point):Point;
+		function getCenterPoint(output:Point):void;
 		
 		/**
 		 * This function will shift the bounds coordinates so that the xCenter and yCenter
@@ -274,9 +274,8 @@ package weave.api.primitives
 		/**
 		 * This function stores the xMin and yMin coordinates in a Point object. 
 		 * @param output The Point to store the xMin and yMin coordinates in.
-		 * @return The output Point object.
 		 */		
-		function getMinPoint(output:Point):Point;
+		function getMinPoint(output:Point):void;
 		/**
 		 * This function sets the xMin and yMin values from a Point object. 
 		 * @param value The Point containing new xMin and yMin coordinates.
@@ -286,9 +285,8 @@ package weave.api.primitives
 		/**
 		 * This function stores the xMax and yMax coordinates in a Point object. 
 		 * @param output The Point to store the xMax and yMax coordinates in.
-		 * @return The output Point object.
 		 */		
-		function getMaxPoint(output:Point):Point;
+		function getMaxPoint(output:Point):void;
 		/**
 		 * This function sets the xMax and yMax values from a Point object. 
 		 * @param value The Point containing new xMax and yMax coordinates.

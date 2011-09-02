@@ -42,7 +42,6 @@ Displays catoegories in a tree view and the attributes in a list.
 
 	<mx:Script>
 		<![CDATA[
-			import weave.api.newLinkableChild;
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import mx.collections.IList;
@@ -57,12 +56,15 @@ Displays catoegories in a tree view and the attributes in a list.
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
-			import weave.primitives.AttributeHierarchy;
 			import weave.api.core.ILinkableObject;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableString;
 			import weave.core.LinkableXML;
 			import weave.core.SessionManager;
+			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;
 			
 			/*************************
@@ -79,7 +81,7 @@ Displays catoegories in a tree view and the attributes in a list.
 			public const categoryFilter:LinkableString = newLinkableChild(this, LinkableString, handleHierarchyChange);
 			
 			// the currently selected path to an attribute or category
-			public const selectedPath:LinkableXML = newLinkableChild(this, LinkableXML, handleSelectedPathChange);
+			public const selectedPath:LinkableXML = registerLinkableChild(this, new LinkableXML(null, StandardLib.isDefined), handleSelectedPathChange);
 
 			/*************************/
 			private var arrColl:ArrayCollection;
