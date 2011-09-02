@@ -117,7 +117,7 @@ package weave.services.collaboration
 		{
 			if( _room == null){
 				//throw new Error("Not Connected to Collaboration Server");
-				dispatchEvent(new CollaborationEvent(CollaborationEvent.TEXT, "You are not currently connected to a Collaboration server. No message has been sent.\n"));
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, "You are not currently connected to a Collaboration server. No message has been sent.\n"));
 				connectedToRoom = false;
 				disconnect();
 			}
@@ -260,7 +260,7 @@ package weave.services.collaboration
 		//When a message is recieved pass it on to the user
 		private function postMessageToUser( message:String ) :void
 		{
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.TEXT, message));
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, message));
 		}
 		
 		//Goes through the room user list, sorts it, and reports it back to the Tool
@@ -433,7 +433,7 @@ package weave.services.collaboration
 			//401 == Not Authorized to connect to server
 			//was a specific error I was running into
 			if( e.errorCode == 401 )
-				dispatchEvent( new CollaborationEvent( CollaborationEvent.TEXT, "Not Authorized to connect to Server, please check IP and server name, and try again.\n" ) );
+				dispatchEvent( new CollaborationEvent( CollaborationEvent.LOG, "Not Authorized to connect to Server, please check IP and server name, and try again.\n" ) );
 			
 			dispatchEvent( new CollaborationEvent(CollaborationEvent.DISCONNECT, null) );
 		}

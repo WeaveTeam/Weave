@@ -77,7 +77,7 @@
 				
 				//Callbakcs to be heard from the collabService, this is how the collabservice
 				//can talk back to the Collaboration tool
-				collabService.addEventListener(CollaborationEvent.TEXT, handleText);
+				collabService.addEventListener(CollaborationEvent.LOG, handleText);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				
 				//UI callbacks, related to the buttons.
