@@ -116,7 +116,6 @@
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.CustomDataGrid.WeaveDataGridImageColumn;
-			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
@@ -171,19 +170,9 @@
 				sortInDescendingOrder.addGroupedCallback(this,sortCallback);
 				columns.addGroupedCallback(this, function():void{ sortCallback(true); });
 				
-				// create the export CSV context menu item and disable it
-				var applicationContextMenu:ContextMenu = (Application.application as Application).contextMenu;
-				this.contextMenu = applicationContextMenu;
-				var handleExportCSV:Function = function (... args):void { exportCSV(); }
-				_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination('Export CSV', this, handleExportCSV, '5 DataTable');
-				enableContextMenuItems(false);
-				applicationContextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, toggleContextMenuItems);
-				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
 				addEventListener(ResizeEvent.RESIZE, handleResize);
 			}
-			private var _exportCSVContextMenuItem:ContextMenuItem = null;
-			
 			private function handleResize(event:ResizeEvent):void
 			{
 				callLater(handleSessionedWidthChange);
@@ -771,21 +760,8 @@
 					lockedColumns.value = 0;
 				dataGrid.lockedColumnCount = lockedColumns.value;
 			}
-
-			private function enableContextMenuItems(newValue:Boolean):void
-			{
-				trace(newValue);
-				_exportCSVContextMenuItem.enabled = newValue;
-				_exportCSVContextMenuItem.visible = newValue;
-				_exportCSVContextMenuItem.separatorBefore = newValue;
-			}
 			
-			protected function toggleContextMenuItems(event:Event):void
-			{
-				trace('togglecontextmenuitems');
-				enableContextMenuItems(DraggablePanel.activePanel == this);
-			}
-			
+		
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
