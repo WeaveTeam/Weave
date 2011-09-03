@@ -74,7 +74,7 @@
 						textArea.text += '\n\n';
 					
 					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
-					if (error is Fault || !SessionManager.runningDebugFlashPlayer)
+					if (error is Fault)
 					{
 						var f:Fault = error as Fault;
 						var errorString:String = f.faultCode;
@@ -84,10 +84,14 @@
 							errorString += ': ' + f.faultDetail;
 						textArea.text += errorString;
 					}
-					else
+					else if (SessionManager.runningDebugFlashPlayer)
 					{
 						// get partial stack trace
 						textArea.text += error.message + '\nStack trace: ' + DebugUtils.getCompactStackTrace(error).join('; ');
+					}
+					else
+					{
+						textArea.text += error.toString();
 					}
 				}
 				textArea.validateProperties();
