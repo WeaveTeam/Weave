@@ -1316,7 +1316,7 @@ package weave
 			if (Weave.properties.enableRightClick.value)
 			{
 				// Add item for the DataTableTool
-				//DataTableTool.createContextMenuItems(this);
+				DataTableTool.createContextMenuItems(this);
 				
 				// Add item for the DatasetLoader
 				//DatasetLoader.createContextMenuItems(this);
@@ -1328,7 +1328,6 @@ package weave
 				}
 				
 				SessionedTextBox.createContextMenuItems(this);
-				
 				PenTool.createContextMenuItems(this);
 					
 				//HelpPanel.createContextMenuItems(this);

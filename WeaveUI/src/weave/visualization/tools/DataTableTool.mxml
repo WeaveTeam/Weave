@@ -47,8 +47,6 @@
 						 headerRelease="handleHeaderRelease(event)"
 						 paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
 						 
-						 mouseDown="handleMouseDown(event)"
-						 
 						 fontWeight="normal"
 						 alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
 						 rollOverColor="0xDADAFF"
@@ -116,6 +114,7 @@
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.CustomDataGrid.WeaveDataGridImageColumn;
+			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
@@ -156,8 +155,6 @@
 				
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				
-//				linkBindableProperty(showForKeyType,keyTypeCombo,"text");
-				
 				columns.addGroupedCallback(this, handleColumnsChange, true);
 				columns.childListCallbacks.addGroupedCallback(this, handleColumnListChange, true);
 				
@@ -169,10 +166,23 @@
 				sortFieldIndex.addGroupedCallback(this,sortCallback);
 				sortInDescendingOrder.addGroupedCallback(this,sortCallback);
 				columns.addGroupedCallback(this, function():void{ sortCallback(true); });
-				
+
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
 				addEventListener(ResizeEvent.RESIZE, handleResize);
+				
+				enableContextMenuItems(false);
 			}
+			public static function createContextMenuItems(destination:Object):void
+			{
+				// create the export CSV context menu item and disable it
+				var application:Application = destination as Application;
+				var applicationContextMenu:ContextMenu = application.contextMenu;
+				_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination('Export CSV', application, function(... args):void { }, '5 DataTable');
+//				_exportCSVContextMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, exportCSV);
+				applicationContextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, toggleContextMenuItems);
+			}
+			private static var _exportCSVContextMenuItem:ContextMenuItem = null;
+			
 			private function handleResize(event:ResizeEvent):void
 			{
 				callLater(handleSessionedWidthChange);
@@ -218,7 +228,9 @@
 							tableArea.removeChild(bottomControls);
 					}
 				}
-				catch (e:Error) {}
+				catch (e:Error) 
+				{
+				}
 			}
 			
 			[Bindable]
@@ -231,29 +243,29 @@
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
-				
 				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
 				
 				AttributeSelectorPanel.openDefaultSelector(imageCol);
 			}
 			
-			private function exportCSV():void
+			private function exportCSV(... args):void
 			{
-				fr.save(generateTableCSV(), "Weave Data Export.csv");
+				if (DraggablePanel.activePanel != this)
+					return;
+				
+				try
+				{
+					fr.save(generateTableCSV(), "Weave Data Export.csv");
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(new Error('Error saving exported CSV file.\n' + e.message, e.errorID));
+				}
 			}
 			
 			private function handleDoubleClick(event:Event):void
 			{
-				//dataGrid.selectedIndices = [];
 				handleItemSelection(event);
-			}
-			
-			private function handleMouseDown(event:MouseEvent):void
-			{
-//				for each(var d:DataGridColumn in dataGrid.columns)
-//				{
-//					d.sortDescending = false;
-//				}	
 			}
 			
 			public const sortFieldIndex:LinkableNumber = newLinkableChild(this,LinkableNumber);
@@ -264,8 +276,8 @@
 				if (event!=null)
 				{
 					var c:DataGridColumn = dataGrid.columns[event.columnIndex];
-					// we do a callLater to get the corret sorting order. 
-					//There is a bug in flex because of which the c.sortDescending will always return false
+					// we do a callLater to get the correct sorting order. 
+					// There is a bug in flex because of which the c.sortDescending will always return false
 					callLater(getOrder,[c,event.columnIndex]);
 				}
 			}
@@ -283,15 +295,15 @@
 					return;
 
 				var c:DataGridColumn = dataGrid.columns[sortFieldIndex.value];
-				if(c==null)
+				if(c == null)
 					return;
 
-				//sort by the column specified in the session state
+				// sort by the column specified in the session state
 				if (forced || dataGrid.sortIndex != sortFieldIndex.value)
 				{
 					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
 				}
-				//flip the sorting order if it is wrong
+				// flip the sorting order if it is wrong
 				if (c.sortDescending != sortInDescendingOrder.value)
 				{
 					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));	
@@ -304,14 +316,6 @@
 				sortCallback();
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
 			}
-			
-			
-			private function placeArrow():void
-			{
-				dataGrid.mx_internal::_placeSortArrow();
-			}
-			
-			private var prevRowCount:int = 0;
 			
 			private function handleDataSourceChange():void
 			{
@@ -328,21 +332,6 @@
 						addItem(attrColumn);
 					}
 					
-					// for each column, give it a valid sessioned width if necessary
-//					var columnNames:Array = columns.getNames();
-//					_guiWidthChanged = true; // don't let handleSessionedWidth() run
-//					for each (var colName:String in columnNames)
-//					{
-//						var temp:LinkableString = columnWidths.getObject(colName) as LinkableString;
-//						if (!temp.value)
-//						{
-//							// Because the vertical scroll bar is included in the dataGrid.width,
-//							// this value may be cause the horizontal bar to be shown when it shouldn't. 
-//							temp.value = Math.floor(Math.max(100 / attrColumns.length - 1, 1)) + "%";
-//						}
-//					}
-//					_guiWidthChanged = false;
-					
 					// remove values which lack associated columns
 					var _sessionedWidthNames:Array = columnWidths.getNames();
 					for each (var name:String in _sessionedWidthNames)
@@ -352,7 +341,6 @@
 					}
 					handleSessionedWidthChange(); // run the callback for the sessionedWidths
 				} catch (error:Error) {
-					//Errors from SDK should not be ignored.  If they are, program behavior becomes undefined.
 					WeaveAPI.ErrorManager.reportError(error);
 				}
 			}
@@ -404,18 +392,6 @@
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			private function handleSubsetChange():void
 			{
-//				var subsetKeys:Array = _subset.getIncludedKeys();
-//				if(subsetKeys.length == 0)
-//				{
-//					updateDataRowKeys();
-//					return;
-//				}
-//				dataRowKeys = [];
-//				for(var i:int = 0; i<subsetKeys.length; i++)
-//				{
-//					dataRowKeys.push({key: subsetKeys[i]});
-//				}	
-
 				dataRowKeys.refresh();
 			}
 			
@@ -426,7 +402,6 @@
 				else 
 					return false;
 			}
-			
 			
 			private function moveSelectedToTop():void
 			{
@@ -558,9 +533,7 @@
 					keyObjects.push({key: key});
 				}
 				dataRowKeys.source = keyObjects;
-			}
-			
-			
+			}			
 			
 			private function handleColumnsChange():void
 			{
@@ -671,7 +644,7 @@
 			
 			public function addItem(attrColumn:IAttributeColumn):void
 			{				
-				var dgc:WeaveDataGridImageColumn	= new WeaveDataGridImageColumn(attrColumn);
+				var dgc:WeaveDataGridImageColumn = new WeaveDataGridImageColumn(attrColumn);
 				_currentDataGridColumns.push(dgc);
 				var columnName:String = columns.getName(attrColumn);
 				var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, true);
@@ -695,34 +668,10 @@
 				else
 					dataGrid.horizontalScrollPolicy = "auto";
 			}
-			public function deleteItem(selectedIndex:int):void
-			{
-				var dgc:WeaveDataGridImageColumn	= new WeaveDataGridImageColumn(_visibleColumns[selectedIndex]);
-				
-				if(isAttributeColumnAdded(dgc.attrColumn)){
-					var spliceIndex:int = indexOfAttributeColumnAdded(dgc.attrColumn);
-					_currentDataGridColumns.splice(spliceIndex,1);
-					
-					validateHScrollBar();
-					
-					dataGrid.columns = _currentDataGridColumns;	
-					
-					dataGrid.invalidateDisplayList();
-				}
-			}
-			
-			private function isAttributeColumnAdded(attrCol:IAttributeColumn):Boolean
-			{
-				for each (var col:WeaveDataGridImageColumn in _currentDataGridColumns)
-				{
-					if (col.attrColumn == attrCol)
-						return true;
-				}
-				return false;
-			}
 			
 			private function indexOfAttributeColumnAdded(attrCol:IAttributeColumn):int
 			{
+				// TODO: O(n) lookups are bad. These should be indexed in a dictionary...
 				for(var i:int = 0; i < _currentDataGridColumns.length; i++)
 				{
 					if(_currentDataGridColumns[i].attrColumn == attrCol)
@@ -744,7 +693,9 @@
 					}
 					
 					updateKeyTypeComboBox();
-				}else{
+				}
+				else
+				{
 					var keyCols:Array = columns.getNames(KeyColumn);
 					for each(var keyCol:String in keyCols)
 					{
@@ -760,8 +711,25 @@
 					lockedColumns.value = 0;
 				dataGrid.lockedColumnCount = lockedColumns.value;
 			}
+
+			private static function enableContextMenuItems(newValue:Boolean):void
+			{
+				if (!_exportCSVContextMenuItem)
+					return;
+				
+				_exportCSVContextMenuItem.enabled = newValue;
+				_exportCSVContextMenuItem.visible = newValue;
+				_exportCSVContextMenuItem.separatorBefore = newValue;
+			}
 			
-		
+			protected static function toggleContextMenuItems(event:Event):void
+			{
+				var tool:DataTableTool = DraggablePanel.activePanel as DataTableTool; 
+				enableContextMenuItems(tool != null);
+				if (tool)
+					_exportCSVContextMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, tool.exportCSV);
+
+			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
