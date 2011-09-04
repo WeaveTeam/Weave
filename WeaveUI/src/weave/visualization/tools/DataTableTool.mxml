@@ -177,12 +177,16 @@
 				// create the export CSV context menu item and disable it
 				var application:Application = destination as Application;
 				var applicationContextMenu:ContextMenu = application.contextMenu;
-				_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination('Export CSV', application, function(... args):void { }, '5 DataTable');
-//				_exportCSVContextMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, exportCSV);
+				_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination('Export CSV', application, staticExportCSV, '5 DataTable');
 				applicationContextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, toggleContextMenuItems);
 			}
 			private static var _exportCSVContextMenuItem:ContextMenuItem = null;
-			
+			private static function staticExportCSV(... args):void
+			{
+				var tool:DataTableTool = DraggablePanel.activePanel as DataTableTool;
+				if (tool)
+					tool.exportCSV();
+			}
 			private function handleResize(event:ResizeEvent):void
 			{
 				callLater(handleSessionedWidthChange);
@@ -248,11 +252,8 @@
 				AttributeSelectorPanel.openDefaultSelector(imageCol);
 			}
 			
-			private function exportCSV(... args):void
+			private function exportCSV():void
 			{
-				if (DraggablePanel.activePanel != this)
-					return;
-				
 				try
 				{
 					fr.save(generateTableCSV(), "Weave Data Export.csv");
@@ -714,6 +715,7 @@
 
 			private static function enableContextMenuItems(newValue:Boolean):void
 			{
+				// when loading this from the session state, this is called before the context menu is setup
 				if (!_exportCSVContextMenuItem)
 					return;
 				
@@ -724,11 +726,7 @@
 			
 			protected static function toggleContextMenuItems(event:Event):void
 			{
-				var tool:DataTableTool = DraggablePanel.activePanel as DataTableTool; 
-				enableContextMenuItems(tool != null);
-				if (tool)
-					_exportCSVContextMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, tool.exportCSV);
-
+				enableContextMenuItems(DraggablePanel.activePanel is DataTableTool);
 			}
 		]]>
 	</mx:Script>
