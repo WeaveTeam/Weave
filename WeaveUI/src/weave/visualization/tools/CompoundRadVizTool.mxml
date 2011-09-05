@@ -69,7 +69,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.visualization.plotters.styles.SolidFillStyle;
 			
 			
-			public var _plotter:CompoundRadVizPlotter ;
+			[Bindable]
+			private var _plotter:CompoundRadVizPlotter ;
 			private var _anchorPlotter:AnchorPlotter ;
 			private var _anchorLayer:SelectablePlotLayer ;
 			
