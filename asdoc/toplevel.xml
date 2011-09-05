@@ -8478,7 +8478,7 @@
  Class:   LinkableObjectList
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/LinkableObjectList.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:02 EDT
  ]]></description>
 </packageRec>
 <classRec name='LinkableObjectList' fullname='weave.ui:LinkableObjectList' sourcefile='weave/ui/LinkableObjectList-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:List' isFinal='false' isDynamic='false' >
@@ -8534,7 +8534,7 @@
  Class:   PrintPanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/PrintPanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='PrintPanel' fullname='weave.ui:PrintPanel' sourcefile='weave/ui/PrintPanel-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:TitleWindow' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -8667,7 +8667,7 @@
  Class:   CustomDataGridColumn
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/CustomDataGridColumn.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='CustomDataGridColumn' fullname='weave.ui:CustomDataGridColumn' sourcefile='weave/ui/CustomDataGridColumn-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls.dataGridClasses:DataGridColumn' isFinal='false' isDynamic='false' >
@@ -8686,7 +8686,7 @@
  Class:   CustomDataGridColumn_inlineComponent1
  Source:  CustomDataGridColumn_inlineComponent1
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:03 EDT
  ]]></description>
 </packageRec>
 <classRec name='CustomDataGridColumn_inlineComponent1' fullname='weave.ui:CustomDataGridColumn_inlineComponent1' sourcefile='weave/ui/CustomDataGridColumn_inlineComponent1-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:Label' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -8744,7 +8744,7 @@
  Class:   DimensionTreeSelector
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/DimensionTreeSelector.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:07 EDT
  ]]></description>
 </packageRec>
 <classRec name='DimensionTreeSelector' fullname='weave.ui:DimensionTreeSelector' sourcefile='weave/ui/DimensionTreeSelector-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:HDividedBox' interfaces='weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -8873,7 +8873,7 @@
  Class:   ControlPanelControls
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ControlPanelControls.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:08 EDT
  ]]></description>
 </packageRec>
 <classRec name='ControlPanelControls' fullname='weave.ui:ControlPanelControls' sourcefile='weave/ui/ControlPanelControls-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -8969,7 +8969,7 @@
  Class:   DimensionDropList
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/DimensionDropList.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:09 EDT
  ]]></description>
 </packageRec>
 <classRec name='DimensionDropList' fullname='weave.ui:DimensionDropList' sourcefile='weave/ui/DimensionDropList-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:List' interfaces='weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -9008,7 +9008,7 @@
  Class:   TreeWithSearch
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/TreeWithSearch.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:09 EDT
  ]]></description>
 </packageRec>
 <classRec name='TreeWithSearch' fullname='weave.ui:TreeWithSearch' sourcefile='weave/ui/TreeWithSearch-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -9107,7 +9107,7 @@
  Class:   CustomSplitBinningEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/CustomSplitBinningEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:24 EDT
+ Time:   2011.09.05 04:03:11 EDT
  ]]></description>
 </packageRec>
 <classRec name='CustomSplitBinningEditor' fullname='weave.ui:CustomSplitBinningEditor' sourcefile='weave/ui/CustomSplitBinningEditor-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -9151,7 +9151,7 @@
  Class:   BinningDefinitionEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/BinningDefinitionEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='BinningDefinitionEditor' fullname='weave.ui:BinningDefinitionEditor' sourcefile='weave/ui/BinningDefinitionEditor-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient;weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -9327,7 +9327,7 @@
  Class:   Center
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/Center.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:12 EDT
  ]]></description>
 </packageRec>
 <classRec name='Center' fullname='weave.ui:Center' sourcefile='weave/ui/Center-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:Box' isFinal='false' isDynamic='false' >
@@ -9351,7 +9351,7 @@
  Class:   AlertTextBox
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/AlertTextBox.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:13 EDT
  ]]></description>
 </packageRec>
 <classRec name='AlertTextBox' fullname='weave.ui:AlertTextBox' sourcefile='weave/ui/AlertTextBox-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:TitleWindow' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -9492,7 +9492,7 @@
  Class:   DynamicColumnComponent
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/DynamicColumnComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:13 EDT
  ]]></description>
 </packageRec>
 <classRec name='DynamicColumnComponent' fullname='weave.ui:DynamicColumnComponent' sourcefile='weave/ui/DynamicColumnComponent-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:HBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -9586,7 +9586,7 @@
  Class:   Indent
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/Indent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:15 EDT
  ]]></description>
 </packageRec>
 <classRec name='Indent' fullname='weave.ui:Indent' sourcefile='weave/ui/Indent-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:HBox' isFinal='false' isDynamic='false' >
@@ -9622,7 +9622,7 @@
  Class:   HelpComponent
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/HelpComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='HelpComponent' fullname='weave.ui:HelpComponent' sourcefile='weave/ui/HelpComponent-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:Image' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -9714,7 +9714,7 @@
  Class:   SessionStatesDisplay
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/SessionStatesDisplay.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='SessionStatesDisplay' fullname='weave.ui:SessionStatesDisplay' sourcefile='weave/ui/SessionStatesDisplay-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:Panel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -9818,7 +9818,7 @@
  Class:   ToolLinkageControls
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ToolLinkageControls.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='ToolLinkageControls' fullname='weave.ui:ToolLinkageControls' sourcefile='weave/ui/ToolLinkageControls-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -9930,7 +9930,7 @@
  Class:   HierarchyColumnSelector
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/HierarchyColumnSelector.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='HierarchyColumnSelector' fullname='weave.ui:HierarchyColumnSelector' sourcefile='weave/ui/HierarchyColumnSelector-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -10055,7 +10055,7 @@
  Class:   DraggablePanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/DraggablePanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:09 EDT
  ]]></description>
 </packageRec>
 <classRec name='DraggablePanel' fullname='weave.ui:DraggablePanel' sourcefile='weave/ui/DraggablePanel-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:TitleWindow' interfaces='weave.api.core:IDisposableObject;weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -10537,7 +10537,7 @@
  Class:   ControlPanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ControlPanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='ControlPanel' fullname='weave.ui:ControlPanel' sourcefile='weave/ui/ControlPanel-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -10617,7 +10617,7 @@
  Class:   DatasetLoader
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/DatasetLoader.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='DatasetLoader' fullname='weave.ui:DatasetLoader' sourcefile='weave/ui/DatasetLoader-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -10774,7 +10774,7 @@
  Class:   DataFilter
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/DataFilter.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='DataFilter' fullname='weave.ui:DataFilter' sourcefile='weave/ui/DataFilter-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -10816,7 +10816,7 @@
  Class:   ErrorLogPanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ErrorLogPanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:15 EDT
  ]]></description>
 </packageRec>
 <classRec name='ErrorLogPanel' fullname='weave.ui:ErrorLogPanel' sourcefile='weave/ui/ErrorLogPanel-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -10855,7 +10855,7 @@
  Class:   HelpPanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/HelpPanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:03 EDT
  ]]></description>
 </packageRec>
 <classRec name='HelpPanel' fullname='weave.ui:HelpPanel' sourcefile='weave/ui/HelpPanel-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -10896,7 +10896,7 @@
  Class:   ColorRampEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ColorRampEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='ColorRampEditor' fullname='weave.ui:ColorRampEditor' sourcefile='weave/ui/ColorRampEditor-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:HBox' interfaces='mx.binding:IBindingClient;weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -11055,7 +11055,7 @@
  Class:   WizardViewStack
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/WizardViewStack.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:17 EDT
  ]]></description>
 </packageRec>
 <classRec name='WizardViewStack' fullname='weave.ui:WizardViewStack' sourcefile='weave/ui/WizardViewStack-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:ViewStack' isFinal='false' isDynamic='false' >
@@ -11097,7 +11097,7 @@
  Class:   WizardPanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/WizardPanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='WizardPanel' fullname='weave.ui:WizardPanel' sourcefile='weave/ui/WizardPanel-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -11228,7 +11228,7 @@
  Class:   SessionNavigator
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/SessionNavigator.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:29 EDT
+ Time:   2011.09.05 04:03:20 EDT
  ]]></description>
 </packageRec>
 <classRec name='SessionNavigator' fullname='weave.ui:SessionNavigator' sourcefile='weave/ui/SessionNavigator-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:Tree' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -11341,7 +11341,7 @@
  Class:   PlotLayerEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/PlotLayerEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:29 EDT
+ Time:   2011.09.05 04:03:20 EDT
  ]]></description>
 </packageRec>
 <classRec name='PlotLayerEditor' fullname='weave.ui:PlotLayerEditor' sourcefile='weave/ui/PlotLayerEditor-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:List' interfaces='weave.api.core:IDisposableObject' isFinal='false' isDynamic='false' >
@@ -11394,7 +11394,7 @@
  Class:   PlotLayerEditor_inlineComponent1
  Source:  PlotLayerEditor_inlineComponent1
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:03 EDT
  ]]></description>
 </packageRec>
 <classRec name='PlotLayerEditor_inlineComponent1' fullname='weave.ui:PlotLayerEditor_inlineComponent1' sourcefile='weave/ui/PlotLayerEditor_inlineComponent1-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -11704,7 +11704,7 @@
  Class:   NumberClassifierEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/NumberClassifierEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:30 EDT
+ Time:   2011.09.05 04:03:20 EDT
  ]]></description>
 </packageRec>
 <classRec name='NumberClassifierEditor' fullname='weave.ui:NumberClassifierEditor' sourcefile='weave/ui/NumberClassifierEditor-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient;weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -11812,7 +11812,7 @@
  Class:   EquationUIComponent
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/EquationUIComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:30 EDT
+ Time:   2011.09.05 04:03:20 EDT
  ]]></description>
 </packageRec>
 <classRec name='EquationUIComponent' fullname='weave.ui:EquationUIComponent' sourcefile='weave/ui/EquationUIComponent-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:Box' interfaces='weave.api.core:IDisposableObject;weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -11915,7 +11915,7 @@
  Class:   ExportSessionStatePanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ExportSessionStatePanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='ExportSessionStatePanel' fullname='weave.ui:ExportSessionStatePanel' sourcefile='weave/ui/ExportSessionStatePanel-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -11973,7 +11973,7 @@
  Class:   PopupDialog
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/PopupDialog.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='PopupDialog' fullname='weave.ui:PopupDialog' sourcefile='weave/ui/PopupDialog-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:Panel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -12064,7 +12064,7 @@
  Class:   ColumnListComponent
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ColumnListComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='ColumnListComponent' fullname='weave.ui:ColumnListComponent' sourcefile='weave/ui/ColumnListComponent-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -12178,7 +12178,7 @@
  Class:   JRITextEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/JRITextEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:32 EDT
+ Time:   2011.09.05 04:03:21 EDT
  ]]></description>
 </packageRec>
 <classRec name='JRITextEditor' fullname='weave.ui:JRITextEditor' sourcefile='weave/ui/JRITextEditor-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -12430,7 +12430,7 @@
  Class:   ProbeToolTipEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ProbeToolTipEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='ProbeToolTipEditor' fullname='weave.ui:ProbeToolTipEditor' sourcefile='weave/ui/ProbeToolTipEditor-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:ControlPanel' isFinal='false' isDynamic='false' >
@@ -12512,7 +12512,7 @@
  Class:   EquationEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/EquationEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='EquationEditor' fullname='weave.ui:EquationEditor' sourcefile='weave/ui/EquationEditor-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:ControlPanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -12658,7 +12658,7 @@
  Class:   AttributeSelectorPanel
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/AttributeSelectorPanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:12 EDT
  ]]></description>
 </packageRec>
 <classRec name='AttributeSelectorPanel' fullname='weave.ui:AttributeSelectorPanel' sourcefile='weave/ui/AttributeSelectorPanel-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:ControlPanel' isFinal='false' isDynamic='false' >
@@ -12758,7 +12758,7 @@
  Class:   RTextEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/RTextEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:24 EDT
+ Time:   2011.09.05 04:03:11 EDT
  ]]></description>
 </packageRec>
 <classRec name='RTextEditor' fullname='weave.ui:RTextEditor' sourcefile='weave/ui/RTextEditor-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -12961,7 +12961,7 @@
  Class:   ConnectionComponent
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ConnectionComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='ConnectionComponent' fullname='weave.ui:ConnectionComponent' sourcefile='weave/ui/ConnectionComponent-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:Image' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -13087,7 +13087,7 @@
  Class:   UserWindowSettings
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/UserWindowSettings.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='UserWindowSettings' fullname='weave.ui:UserWindowSettings' sourcefile='weave/ui/UserWindowSettings-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -13352,7 +13352,7 @@
  Class:   RecordDataTable
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/RecordDataTable.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='RecordDataTable' fullname='weave.ui:RecordDataTable' sourcefile='weave/ui/RecordDataTable-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -13435,7 +13435,7 @@
  Class:   OICLogoPane
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/OICLogoPane.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='OICLogoPane' fullname='weave.ui:OICLogoPane' sourcefile='weave/ui/OICLogoPane-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:Button' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -13499,7 +13499,7 @@
  Class:   SelectionManager
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/SelectionManager.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='SelectionManager' fullname='weave.ui:SelectionManager' sourcefile='weave/ui/SelectionManager-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -13624,7 +13624,7 @@
  Class:   SubsetManager
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/SubsetManager.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:07 EDT
  ]]></description>
 </packageRec>
 <classRec name='SubsetManager' fullname='weave.ui:SubsetManager' sourcefile='weave/ui/SubsetManager-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -13756,7 +13756,7 @@
  Class:   NewUserWizard
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/NewUserWizard.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:34 EDT
+ Time:   2011.09.05 04:03:23 EDT
  ]]></description>
 </packageRec>
 <classRec name='NewUserWizard' fullname='weave.ui:NewUserWizard' sourcefile='weave/ui/NewUserWizard-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:WizardViewStack' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -14049,7 +14049,7 @@
  Class:   SessionStateEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/SessionStateEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='SessionStateEditor' fullname='weave.ui:SessionStateEditor' sourcefile='weave/ui/SessionStateEditor-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -14330,7 +14330,7 @@
  Class:   TextBox
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/TextBox.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='TextBox' fullname='weave.ui:TextBox' sourcefile='weave/ui/TextBox-generated.as' namespace='weave.ui' access='public' baseclass='mx.containers:HBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -14412,7 +14412,7 @@
  Class:   AutoResizingTextArea
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/AutoResizingTextArea.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='AutoResizingTextArea' fullname='weave.ui:AutoResizingTextArea' sourcefile='weave/ui/AutoResizingTextArea-generated.as' namespace='weave.ui' access='public' baseclass='mx.controls:TextArea' isFinal='false' isDynamic='false' >
@@ -14464,7 +14464,7 @@
  Class:   ColorBinEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/ColorBinEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='ColorBinEditor' fullname='weave.ui:ColorBinEditor' sourcefile='weave/ui/ColorBinEditor-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:ControlPanel' isFinal='false' isDynamic='false' >
@@ -14524,7 +14524,7 @@
  Class:   LabelWithWordWrap
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/LabelWithWordWrap.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='LabelWithWordWrap' fullname='weave.ui:LabelWithWordWrap' sourcefile='weave/ui/LabelWithWordWrap-generated.as' namespace='weave.ui' access='public' baseclass='weave.ui:AutoResizingTextArea' isFinal='false' isDynamic='false' >
@@ -17179,7 +17179,7 @@
  Class:   FontControl
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/FontControl.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:02 EDT
  ]]></description>
 </packageRec>
 <classRec name='FontControl' fullname='weave.ui.settings:FontControl' sourcefile='weave/ui/settings/FontControl-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:HBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -17273,7 +17273,7 @@
  Class:   LegendSubMenu
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/LegendSubMenu.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:20 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='LegendSubMenu' fullname='weave.ui.settings:LegendSubMenu' sourcefile='weave/ui/settings/LegendSubMenu-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' isFinal='false' isDynamic='false' >
@@ -17317,7 +17317,7 @@
  Class:   AppearancesSubMenu
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/AppearancesSubMenu.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='AppearancesSubMenu' fullname='weave.ui.settings:AppearancesSubMenu' sourcefile='weave/ui/settings/AppearancesSubMenu-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' isFinal='false' isDynamic='false' >
@@ -17394,7 +17394,7 @@
  Class:   Main_ToolbarSubMenu
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/Main_ToolbarSubMenu.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='Main_ToolbarSubMenu' fullname='weave.ui.settings:Main_ToolbarSubMenu' sourcefile='weave/ui/settings/Main_ToolbarSubMenu-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -18075,7 +18075,7 @@
  Class:   GridLineSettings
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/GridLineSettings.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:07 EDT
  ]]></description>
 </packageRec>
 <classRec name='GridLineSettings' fullname='weave.ui.settings:GridLineSettings' sourcefile='weave/ui/settings/GridLineSettings-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -18180,7 +18180,7 @@
  Class:   InteractivitySubMenu
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/InteractivitySubMenu.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:08 EDT
  ]]></description>
 </packageRec>
 <classRec name='InteractivitySubMenu' fullname='weave.ui.settings:InteractivitySubMenu' sourcefile='weave/ui/settings/InteractivitySubMenu-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' isFinal='false' isDynamic='false' >
@@ -18264,7 +18264,7 @@
  Class:   SelectionSubMenu
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/SelectionSubMenu.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:24 EDT
+ Time:   2011.09.05 04:03:11 EDT
  ]]></description>
 </packageRec>
 <classRec name='SelectionSubMenu' fullname='weave.ui.settings:SelectionSubMenu' sourcefile='weave/ui/settings/SelectionSubMenu-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -18397,7 +18397,7 @@
  Class:   BorderItemRenderer
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/BorderItemRenderer.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:13 EDT
  ]]></description>
 </packageRec>
 <classRec name='BorderItemRenderer' fullname='weave.ui.settings:BorderItemRenderer' sourcefile='weave/ui/settings/BorderItemRenderer-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:Canvas' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -18457,7 +18457,7 @@
  Class:   ProbingSubMenu
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/ProbingSubMenu.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='ProbingSubMenu' fullname='weave.ui.settings:ProbingSubMenu' sourcefile='weave/ui/settings/ProbingSubMenu-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -18663,7 +18663,7 @@
  Class:   GlobalUISettings
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/GlobalUISettings.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='GlobalUISettings' fullname='weave.ui.settings:GlobalUISettings' sourcefile='weave/ui/settings/GlobalUISettings-generated.as' namespace='weave.ui.settings' access='public' baseclass='weave.ui:ControlPanel' isFinal='false' isDynamic='false' >
@@ -18733,7 +18733,7 @@
  Class:   Main_Window_ControlsSubMenu
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/settings/Main_Window_ControlsSubMenu.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='Main_Window_ControlsSubMenu' fullname='weave.ui.settings:Main_Window_ControlsSubMenu' sourcefile='weave/ui/settings/Main_Window_ControlsSubMenu-generated.as' namespace='weave.ui.settings' access='public' baseclass='mx.containers:VBox' isFinal='false' isDynamic='false' >
@@ -20706,6 +20706,28 @@
 </method>
 <method name='phi3z' fullname='org.openscales.proj4as.proj:ProjEqdc/private:phi3z' isStatic='false' isFinal='false' isOverride='false'  param_names='ml;e0;e1;e2;e3' param_types='Number;Number;Number;Number;Number' param_defaults='undefined;undefined;undefined;undefined;undefined' result_type='Number'>
 </method>
+<classRec name='ProjGstmerc' fullname='org.openscales.proj4as.proj:ProjGstmerc' sourcefile='/home/build/Weave/WeaveData/src/org/openscales/proj4as/proj/ProjGstmerc.as' namespace='org.openscales.proj4as.proj' access='public' baseclass='org.openscales.proj4as.proj:AbstractProjProjection' isFinal='false' isDynamic='false' >
+</classRec>
+<method name='ProjGstmerc' fullname='org.openscales.proj4as.proj:ProjGstmerc/ProjGstmerc' isStatic='false' isFinal='false' isOverride='false'  param_names='data' param_types='org.openscales.proj4as.proj:ProjParams' param_defaults='undefined' result_type='*'>
+</method>
+<method name='forward' fullname='org.openscales.proj4as.proj:ProjGstmerc/forward' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
+</method>
+<method name='init' fullname='org.openscales.proj4as.proj:ProjGstmerc/init' isStatic='false' isFinal='false' isOverride='true'  result_type='void'>
+</method>
+<method name='inverse' fullname='org.openscales.proj4as.proj:ProjGstmerc/inverse' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
+</method>
+<field name='cp' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:cp' type='Number' isStatic='false' isConst='false' >
+</field>
+<field name='lc' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:lc' type='Number' isStatic='false' isConst='false' >
+</field>
+<field name='n2' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:n2' type='Number' isStatic='false' isConst='false' >
+</field>
+<field name='rs' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:rs' type='Number' isStatic='false' isConst='false' >
+</field>
+<field name='xs' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:xs' type='Number' isStatic='false' isConst='false' >
+</field>
+<field name='ys' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:ys' type='Number' isStatic='false' isConst='false' >
+</field>
 <packageRec name='org.openscales.proj4as.proj.null' fullname='org.openscales.proj4as.proj.null'>
 <description><![CDATA[   NAME                       OBLIQUE MERCATOR (HOTINE)
 
@@ -20790,28 +20812,6 @@
 <field name='ts2' fullname='org.openscales.proj4as.proj:ProjOmerc/private:ts2' type='Number' isStatic='false' isConst='false' >
 </field>
 <field name='u' fullname='org.openscales.proj4as.proj:ProjOmerc/private:u' type='Number' isStatic='false' isConst='false' >
-</field>
-<classRec name='ProjGstmerc' fullname='org.openscales.proj4as.proj:ProjGstmerc' sourcefile='/home/build/Weave/WeaveData/src/org/openscales/proj4as/proj/ProjGstmerc.as' namespace='org.openscales.proj4as.proj' access='public' baseclass='org.openscales.proj4as.proj:AbstractProjProjection' isFinal='false' isDynamic='false' >
-</classRec>
-<method name='ProjGstmerc' fullname='org.openscales.proj4as.proj:ProjGstmerc/ProjGstmerc' isStatic='false' isFinal='false' isOverride='false'  param_names='data' param_types='org.openscales.proj4as.proj:ProjParams' param_defaults='undefined' result_type='*'>
-</method>
-<method name='forward' fullname='org.openscales.proj4as.proj:ProjGstmerc/forward' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
-</method>
-<method name='init' fullname='org.openscales.proj4as.proj:ProjGstmerc/init' isStatic='false' isFinal='false' isOverride='true'  result_type='void'>
-</method>
-<method name='inverse' fullname='org.openscales.proj4as.proj:ProjGstmerc/inverse' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
-</method>
-<field name='cp' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:cp' type='Number' isStatic='false' isConst='false' >
-</field>
-<field name='lc' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:lc' type='Number' isStatic='false' isConst='false' >
-</field>
-<field name='n2' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:n2' type='Number' isStatic='false' isConst='false' >
-</field>
-<field name='rs' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:rs' type='Number' isStatic='false' isConst='false' >
-</field>
-<field name='xs' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:xs' type='Number' isStatic='false' isConst='false' >
-</field>
-<field name='ys' fullname='org.openscales.proj4as.proj:ProjGstmerc/private:ys' type='Number' isStatic='false' isConst='false' >
 </field>
 <classRec name='ProjStere' fullname='org.openscales.proj4as.proj:ProjStere' sourcefile='/home/build/Weave/WeaveData/src/org/openscales/proj4as/proj/ProjStere.as' namespace='org.openscales.proj4as.proj' access='public' baseclass='org.openscales.proj4as.proj:AbstractProjProjection' isFinal='false' isDynamic='false' >
 </classRec>
@@ -21081,16 +21081,6 @@
 </field>
 <field name='sin_p14' fullname='org.openscales.proj4as.proj:ProjOrtho/private:sin_p14' type='Number' isStatic='false' isConst='false' >
 </field>
-<classRec name='ProjEqc' fullname='org.openscales.proj4as.proj:ProjEqc' sourcefile='/home/build/Weave/WeaveData/src/org/openscales/proj4as/proj/ProjEqc.as' namespace='org.openscales.proj4as.proj' access='public' baseclass='org.openscales.proj4as.proj:AbstractProjProjection' isFinal='false' isDynamic='false' >
-</classRec>
-<method name='ProjEqc' fullname='org.openscales.proj4as.proj:ProjEqc/ProjEqc' isStatic='false' isFinal='false' isOverride='false'  param_names='data' param_types='org.openscales.proj4as.proj:ProjParams' param_defaults='undefined' result_type='*'>
-</method>
-<method name='forward' fullname='org.openscales.proj4as.proj:ProjEqc/forward' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
-</method>
-<method name='init' fullname='org.openscales.proj4as.proj:ProjEqc/init' isStatic='false' isFinal='false' isOverride='true'  result_type='void'>
-</method>
-<method name='inverse' fullname='org.openscales.proj4as.proj:ProjEqc/inverse' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
-</method>
 <packageRec name='org.openscales.proj4as.proj.null' fullname='org.openscales.proj4as.proj.null'>
 <description><![CDATA[   NAME                            MOLLWEIDE
 
@@ -21125,6 +21115,16 @@
 <method name='init' fullname='org.openscales.proj4as.proj:ProjMoll/init' isStatic='false' isFinal='false' isOverride='true'  result_type='void'>
 </method>
 <method name='inverse' fullname='org.openscales.proj4as.proj:ProjMoll/inverse' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
+</method>
+<classRec name='ProjEqc' fullname='org.openscales.proj4as.proj:ProjEqc' sourcefile='/home/build/Weave/WeaveData/src/org/openscales/proj4as/proj/ProjEqc.as' namespace='org.openscales.proj4as.proj' access='public' baseclass='org.openscales.proj4as.proj:AbstractProjProjection' isFinal='false' isDynamic='false' >
+</classRec>
+<method name='ProjEqc' fullname='org.openscales.proj4as.proj:ProjEqc/ProjEqc' isStatic='false' isFinal='false' isOverride='false'  param_names='data' param_types='org.openscales.proj4as.proj:ProjParams' param_defaults='undefined' result_type='*'>
+</method>
+<method name='forward' fullname='org.openscales.proj4as.proj:ProjEqc/forward' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
+</method>
+<method name='init' fullname='org.openscales.proj4as.proj:ProjEqc/init' isStatic='false' isFinal='false' isOverride='true'  result_type='void'>
+</method>
+<method name='inverse' fullname='org.openscales.proj4as.proj:ProjEqc/inverse' isStatic='false' isFinal='false' isOverride='true'  param_names='p' param_types='org.openscales.proj4as:ProjPoint' param_defaults='undefined' result_type='org.openscales.proj4as:ProjPoint'>
 </method>
 <packageRec name='org.openscales.proj4as.proj.null' fullname='org.openscales.proj4as.proj.null'>
 <description><![CDATA[   NAME                    SINUSOIDAL
@@ -23128,7 +23128,7 @@
  Class:   WeavePopUpMenuButton
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/controlBars/WeavePopUpMenuButton.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:28 EDT
+ Time:   2011.09.05 04:03:17 EDT
  ]]></description>
 </packageRec>
 <classRec name='WeavePopUpMenuButton' fullname='weave.ui.controlBars:WeavePopUpMenuButton' sourcefile='weave/ui/controlBars/WeavePopUpMenuButton-generated.as' namespace='weave.ui.controlBars' access='public' baseclass='mx.controls:Button' isFinal='false' isDynamic='false' >
@@ -23171,7 +23171,7 @@
  Class:   VisTaskbar
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/controlBars/VisTaskbar.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='VisTaskbar' fullname='weave.ui.controlBars:VisTaskbar' sourcefile='weave/ui/controlBars/VisTaskbar-generated.as' namespace='weave.ui.controlBars' access='public' baseclass='mx.containers:Box' interfaces='mx.binding:IBindingClient;weave.api.core:ILinkableObject' isFinal='false' isDynamic='false' >
@@ -23277,7 +23277,7 @@
  Class:   WeaveMenuBar
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/controlBars/WeaveMenuBar.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:07 EDT
  ]]></description>
 </packageRec>
 <classRec name='WeaveMenuBar' fullname='weave.ui.controlBars:WeaveMenuBar' sourcefile='weave/ui/controlBars/WeaveMenuBar-generated.as' namespace='weave.ui.controlBars' access='public' baseclass='mx.containers:HBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -26754,7 +26754,7 @@
  Class:   ColormapEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/colormap/colormapEditor/ColormapEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:24 EDT
+ Time:   2011.09.05 04:03:11 EDT
  ]]></description>
 </packageRec>
 <classRec name='ColormapEditor' fullname='weave.ui.colormap.colormapEditor:ColormapEditor' sourcefile='weave/ui/colormap/colormapEditor/ColormapEditor-generated.as' namespace='weave.ui.colormap.colormapEditor' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -27499,6 +27499,27 @@
 <see><![CDATA[ShpPoint 
   ]]></see>
 </field>
+<classRec name='ShpPolyline' fullname='org.vanrijkom.shp:ShpPolyline' sourcefile='/home/build/Weave/WeaveData/src/org/vanrijkom/shp/ShpPolyline.as' namespace='org.vanrijkom.shp' access='public' baseclass='org.vanrijkom.shp:ShpPolygon' isFinal='true' isDynamic='false' >
+<description><![CDATA[
+ The ShpPoint class parses an ESRI Shapefile Polyline record from a ByteArray.
+ ]]></description>
+<author><![CDATA[Edwin van Rijkom
+ 
+ ]]></author>
+</classRec>
+<method name='ShpPolyline' fullname='org.vanrijkom.shp:ShpPolyline/ShpPolyline' isStatic='false' isFinal='false' isOverride='false'  param_names='src;size' param_types='flash.utils:ByteArray;uint' param_defaults='null;0' result_type='*'>
+<description><![CDATA[
+  Constructor.
+  ]]></description>
+<param><![CDATA[src
+  ]]></param>
+<param><![CDATA[size
+  ]]></param>
+<return><![CDATA[
+  
+  ]]></return>
+<inherit><![CDATA[  ]]></inherit>
+</method>
 <classRec name='ShpTools' fullname='org.vanrijkom.shp:ShpTools' sourcefile='/home/build/Weave/WeaveData/src/org/vanrijkom/shp/ShpTools.as' namespace='org.vanrijkom.shp' access='public' baseclass='Object' isFinal='false' isDynamic='false' >
 <description><![CDATA[
  The ShpTools class contains static tool methods for working with
@@ -27534,27 +27555,6 @@
   ]]></return>
 <see><![CDATA[ShpRecord 
   ]]></see>
-</method>
-<classRec name='ShpPolyline' fullname='org.vanrijkom.shp:ShpPolyline' sourcefile='/home/build/Weave/WeaveData/src/org/vanrijkom/shp/ShpPolyline.as' namespace='org.vanrijkom.shp' access='public' baseclass='org.vanrijkom.shp:ShpPolygon' isFinal='true' isDynamic='false' >
-<description><![CDATA[
- The ShpPoint class parses an ESRI Shapefile Polyline record from a ByteArray.
- ]]></description>
-<author><![CDATA[Edwin van Rijkom
- 
- ]]></author>
-</classRec>
-<method name='ShpPolyline' fullname='org.vanrijkom.shp:ShpPolyline/ShpPolyline' isStatic='false' isFinal='false' isOverride='false'  param_names='src;size' param_types='flash.utils:ByteArray;uint' param_defaults='null;0' result_type='*'>
-<description><![CDATA[
-  Constructor.
-  ]]></description>
-<param><![CDATA[src
-  ]]></param>
-<param><![CDATA[size
-  ]]></param>
-<return><![CDATA[
-  
-  ]]></return>
-<inherit><![CDATA[  ]]></inherit>
 </method>
 <classRec name='ShpError' fullname='org.vanrijkom.shp:ShpError' sourcefile='/home/build/Weave/WeaveData/src/org/vanrijkom/shp/ShpError.as' namespace='org.vanrijkom.shp' access='public' baseclass='Error' isFinal='false' isDynamic='false' >
 <description><![CDATA[
@@ -29392,7 +29392,7 @@
  Class:   MeterToolInputSelector
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/MeterToolInputSelector.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:08 EDT
  ]]></description>
 </packageRec>
 <classRec name='MeterToolInputSelector' fullname='weave.visualization.tools:MeterToolInputSelector' sourcefile='weave/visualization/tools/MeterToolInputSelector-generated.as' namespace='weave.visualization.tools' access='public' baseclass='mx.containers:VBox' isFinal='false' isDynamic='false' >
@@ -29420,7 +29420,7 @@
  Class:   MapOverviewWindow
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/MapOverviewWindow.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:09 EDT
  ]]></description>
 </packageRec>
 <classRec name='MapOverviewWindow' fullname='weave.visualization.tools:MapOverviewWindow' sourcefile='weave/visualization/tools/MapOverviewWindow-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' isFinal='false' isDynamic='false' >
@@ -29517,7 +29517,7 @@
  Class:   RScriptTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/RScriptTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='RScriptTool' fullname='weave.visualization.tools:RScriptTool' sourcefile='weave/visualization/tools/RScriptTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -29653,7 +29653,7 @@
  Class:   WeaveWordleTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/WeaveWordleTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:19 EDT
+ Time:   2011.09.05 04:03:04 EDT
  ]]></description>
 </packageRec>
 <classRec name='WeaveWordleTool' fullname='weave.visualization.tools:WeaveWordleTool' sourcefile='weave/visualization/tools/WeaveWordleTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' isFinal='false' isDynamic='false' >
@@ -29696,7 +29696,7 @@
  Class:   PieChartTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/PieChartTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:13 EDT
  ]]></description>
 </packageRec>
 <classRec name='PieChartTool' fullname='weave.visualization.tools:PieChartTool' sourcefile='weave/visualization/tools/PieChartTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -29842,7 +29842,7 @@
  Class:   BarChartTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/BarChartTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='BarChartTool' fullname='weave.visualization.tools:BarChartTool' sourcefile='weave/visualization/tools/BarChartTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -29986,7 +29986,7 @@
  Class:   StickFigureGlyphTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/StickFigureGlyphTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:03 EDT
  ]]></description>
 </packageRec>
 <classRec name='StickFigureGlyphTool' fullname='weave.visualization.tools:StickFigureGlyphTool' sourcefile='weave/visualization/tools/StickFigureGlyphTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -30185,7 +30185,7 @@
  Class:   HistogramTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/HistogramTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='HistogramTool' fullname='weave.visualization.tools:HistogramTool' sourcefile='weave/visualization/tools/HistogramTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -30322,7 +30322,7 @@
  Class:   GaugeTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/GaugeTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:15 EDT
  ]]></description>
 </packageRec>
 <classRec name='GaugeTool' fullname='weave.visualization.tools:GaugeTool' sourcefile='weave/visualization/tools/GaugeTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -30468,7 +30468,7 @@
  Class:   PieChartHistogramTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/PieChartHistogramTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:24 EDT
+ Time:   2011.09.05 04:03:11 EDT
  ]]></description>
 </packageRec>
 <classRec name='PieChartHistogramTool' fullname='weave.visualization.tools:PieChartHistogramTool' sourcefile='weave/visualization/tools/PieChartHistogramTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -30604,7 +30604,7 @@
  Class:   RamachandranPlotTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/RamachandranPlotTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='RamachandranPlotTool' fullname='weave.visualization.tools:RamachandranPlotTool' sourcefile='weave/visualization/tools/RamachandranPlotTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -30909,7 +30909,7 @@
  Class:   SliderTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/SliderTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:17 EDT
  ]]></description>
 </packageRec>
 <classRec name='SliderTool' fullname='weave.visualization.tools:SliderTool' sourcefile='weave/visualization/tools/SliderTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -31159,7 +31159,7 @@
  Class:   SP2
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/SP2.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:17 EDT
  ]]></description>
 </packageRec>
 <classRec name='SP2' fullname='weave.visualization.tools:SP2' sourcefile='weave/visualization/tools/SP2-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -31347,7 +31347,7 @@
  Class:   TimeSliderTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/TimeSliderTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='TimeSliderTool' fullname='weave.visualization.tools:TimeSliderTool' sourcefile='weave/visualization/tools/TimeSliderTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SliderTool' isFinal='false' isDynamic='false' >
@@ -31415,7 +31415,7 @@
  Class:   DimensionSliderTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/DimensionSliderTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='DimensionSliderTool' fullname='weave.visualization.tools:DimensionSliderTool' sourcefile='weave/visualization/tools/DimensionSliderTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SliderTool' isFinal='false' isDynamic='false' >
@@ -31487,7 +31487,7 @@
  Class:   DataItemRenderer
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/DataItemRenderer.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:30 EDT
+ Time:   2011.09.05 04:03:21 EDT
  ]]></description>
 </packageRec>
 <classRec name='DataItemRenderer' fullname='weave.visualization.tools:DataItemRenderer' sourcefile='weave/visualization/tools/DataItemRenderer-generated.as' namespace='weave.visualization.tools' access='public' baseclass='mx.containers:HBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -31551,7 +31551,7 @@
  Class:   MapTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/MapTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:30 EDT
+ Time:   2011.09.05 04:03:20 EDT
  ]]></description>
 </packageRec>
 <classRec name='MapTool' fullname='weave.visualization.tools:MapTool' sourcefile='weave/visualization/tools/MapTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -32037,7 +32037,7 @@
  Class:   RadVizTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/RadVizTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:31 EDT
+ Time:   2011.09.05 04:03:21 EDT
  ]]></description>
 </packageRec>
 <classRec name='RadVizTool' fullname='weave.visualization.tools:RadVizTool' sourcefile='weave/visualization/tools/RadVizTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -32396,7 +32396,7 @@
  Class:   DataTableTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/DataTableTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:29 EDT
+ Time:   2011.09.05 04:03:20 EDT
  ]]></description>
 </packageRec>
 <classRec name='DataTableTool' fullname='weave.visualization.tools:DataTableTool' sourcefile='weave/visualization/tools/DataTableTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -32507,7 +32507,7 @@
 </method>
 <method name='enableContextMenuItems' fullname='weave.visualization.tools:DataTableTool/private:enableContextMenuItems' isStatic='true' isFinal='false' isOverride='false'  param_names='newValue' param_types='Boolean' param_defaults='undefined' result_type='void'>
 </method>
-<method name='exportCSV' fullname='weave.visualization.tools:DataTableTool/private:exportCSV' isStatic='false' isFinal='false' isOverride='false'  param_names='args' param_types='restParam' param_defaults='undefined' result_type='void'>
+<method name='exportCSV' fullname='weave.visualization.tools:DataTableTool/private:exportCSV' isStatic='false' isFinal='false' isOverride='false'  result_type='void'>
 </method>
 <method name='filterKeys' fullname='weave.visualization.tools:DataTableTool/private:filterKeys' isStatic='false' isFinal='false' isOverride='false'  param_names='item' param_types='Object' param_defaults='undefined' result_type='Boolean'>
 </method>
@@ -32565,6 +32565,8 @@
 <method name='moveSelectedToTop' fullname='weave.visualization.tools:DataTableTool/private:moveSelectedToTop' isStatic='false' isFinal='false' isOverride='false'  result_type='void'>
 </method>
 <method name='sortCallback' fullname='weave.visualization.tools:DataTableTool/private:sortCallback' isStatic='false' isFinal='false' isOverride='false'  param_names='forced' param_types='Boolean' param_defaults='false' result_type='void'>
+</method>
+<method name='staticExportCSV' fullname='weave.visualization.tools:DataTableTool/private:staticExportCSV' isStatic='true' isFinal='false' isOverride='false'  param_names='args' param_types='restParam' param_defaults='undefined' result_type='void'>
 </method>
 <method name='toggleContextMenuItems' fullname='weave.visualization.tools:DataTableTool/protected:toggleContextMenuItems' isStatic='true' isFinal='false' isOverride='false'  param_names='event' param_types='flash.events:Event' param_defaults='undefined' result_type='void'>
 </method>
@@ -32715,7 +32717,7 @@
  Class:   CompoundBarChartTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/CompoundBarChartTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:13 EDT
  ]]></description>
 </packageRec>
 <classRec name='CompoundBarChartTool' fullname='weave.visualization.tools:CompoundBarChartTool' sourcefile='weave/visualization/tools/CompoundBarChartTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -33003,7 +33005,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   CompoundRadVizTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/CompoundRadVizTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:07 EDT
  ]]></description>
 </packageRec>
 <classRec name='CompoundRadVizTool' fullname='weave.visualization.tools:CompoundRadVizTool' sourcefile='weave/visualization/tools/CompoundRadVizTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -33381,7 +33383,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   BarChartLegendTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/BarChartLegendTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='BarChartLegendTool' fullname='weave.visualization.tools:BarChartLegendTool' sourcefile='weave/visualization/tools/BarChartLegendTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -33507,7 +33509,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ParallelCoordinatesTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/ParallelCoordinatesTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:19 EDT
+ Time:   2011.09.05 04:03:03 EDT
  ]]></description>
 </packageRec>
 <classRec name='ParallelCoordinatesTool' fullname='weave.visualization.tools:ParallelCoordinatesTool' sourcefile='weave/visualization/tools/ParallelCoordinatesTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -33773,7 +33775,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ColorBinLegendTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/ColorBinLegendTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='ColorBinLegendTool' fullname='weave.visualization.tools:ColorBinLegendTool' sourcefile='weave/visualization/tools/ColorBinLegendTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -33932,7 +33934,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ImageGlyphTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/ImageGlyphTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='ImageGlyphTool' fullname='weave.visualization.tools:ImageGlyphTool' sourcefile='weave/visualization/tools/ImageGlyphTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' isFinal='false' isDynamic='false' >
@@ -33960,7 +33962,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ThermometerTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/ThermometerTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:34 EDT
+ Time:   2011.09.05 04:03:23 EDT
  ]]></description>
 </packageRec>
 <classRec name='ThermometerTool' fullname='weave.visualization.tools:ThermometerTool' sourcefile='weave/visualization/tools/ThermometerTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -34057,7 +34059,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   LineChartTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/LineChartTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='LineChartTool' fullname='weave.visualization.tools:LineChartTool' sourcefile='weave/visualization/tools/LineChartTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -34373,7 +34375,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ScatterPlotTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/ScatterPlotTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:15 EDT
  ]]></description>
 </packageRec>
 <classRec name='ScatterPlotTool' fullname='weave.visualization.tools:ScatterPlotTool' sourcefile='weave/visualization/tools/ScatterPlotTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -34744,7 +34746,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   SizeBinLegendTool
  Source:  /home/build/Weave/WeaveUI/src/weave/visualization/tools/SizeBinLegendTool.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:09 EDT
  ]]></description>
 </packageRec>
 <classRec name='SizeBinLegendTool' fullname='weave.visualization.tools:SizeBinLegendTool' sourcefile='weave/visualization/tools/SizeBinLegendTool-generated.as' namespace='weave.visualization.tools' access='public' baseclass='weave.visualization.tools:SimpleVisTool' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -35107,7 +35109,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   LoginPopup
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/LoginPopup.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:03 EDT
  ]]></description>
 </packageRec>
 <classRec name='LoginPopup' fullname='weave.ui.admin:LoginPopup' sourcefile='weave/ui/admin/LoginPopup-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:Panel' isFinal='false' isDynamic='false' >
@@ -35169,7 +35171,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   GeometryCollectionDialog
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/GeometryCollectionDialog.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:20 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='GeometryCollectionDialog' fullname='weave.ui.admin:GeometryCollectionDialog' sourcefile='weave/ui/admin/GeometryCollectionDialog-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -35291,7 +35293,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ServerCSVFileViewer
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/ServerCSVFileViewer.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='ServerCSVFileViewer' fullname='weave.ui.admin:ServerCSVFileViewer' sourcefile='weave/ui/admin/ServerCSVFileViewer-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:Panel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -35404,7 +35406,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   SQLTableSelectorDialog
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/SQLTableSelectorDialog.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:07 EDT
  ]]></description>
 </packageRec>
 <classRec name='SQLTableSelectorDialog' fullname='weave.ui.admin:SQLTableSelectorDialog' sourcefile='weave/ui/admin/SQLTableSelectorDialog-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -35576,7 +35578,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ColumnMetadataPopup
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/ColumnMetadataPopup.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='ColumnMetadataPopup' fullname='weave.ui.admin:ColumnMetadataPopup' sourcefile='weave/ui/admin/ColumnMetadataPopup-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:TitleWindow' isFinal='false' isDynamic='false' >
@@ -35616,7 +35618,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   WizardViewStack
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/WizardViewStack.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:32 EDT
+ Time:   2011.09.05 04:03:21 EDT
  ]]></description>
 </packageRec>
 <classRec name='WizardViewStack' fullname='weave.ui.admin:WizardViewStack' sourcefile='weave/ui/admin/WizardViewStack-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:ViewStack' isFinal='false' isDynamic='false' >
@@ -35658,7 +35660,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   WizardPanel
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/WizardPanel.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:20 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='WizardPanel' fullname='weave.ui.admin:WizardPanel' sourcefile='weave/ui/admin/WizardPanel-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:Panel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -35787,7 +35789,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   DublinCoreEntryComponent
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/DublinCoreEntryComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:34 EDT
+ Time:   2011.09.05 04:03:23 EDT
  ]]></description>
 </packageRec>
 <classRec name='DublinCoreEntryComponent' fullname='weave.ui.admin:DublinCoreEntryComponent' sourcefile='weave/ui/admin/DublinCoreEntryComponent-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:VBox' isFinal='false' isDynamic='false' >
@@ -35850,7 +35852,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   GeometryCollectionEditor_old
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/GeometryCollectionEditor_old.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='GeometryCollectionEditor_old' fullname='weave.ui.admin:GeometryCollectionEditor_old' sourcefile='weave/ui/admin/GeometryCollectionEditor_old-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -36039,7 +36041,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ServerSHPFileViewer
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/ServerSHPFileViewer.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:35 EDT
+ Time:   2011.09.05 04:03:24 EDT
  ]]></description>
 </packageRec>
 <classRec name='ServerSHPFileViewer' fullname='weave.ui.admin:ServerSHPFileViewer' sourcefile='weave/ui/admin/ServerSHPFileViewer-generated.as' namespace='weave.ui.admin' access='public' baseclass='mx.containers:Panel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -36152,7 +36154,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   NewUserWizardHelpFile
  Source:  /home/build/Weave/WeaveUI/src/weave/resources/helpfiles/NewUserWizardHelpFile.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:20 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='NewUserWizardHelpFile' fullname='weave.resources.helpfiles:NewUserWizardHelpFile' sourcefile='weave/resources/helpfiles/NewUserWizardHelpFile-generated.as' namespace='weave.resources.helpfiles' access='public' baseclass='mx.controls:TextArea' isFinal='false' isDynamic='false' >
@@ -36174,7 +36176,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   DBFDataSourceEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/DBFDataSourceEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:20 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='DBFDataSourceEditor' fullname='weave.ui.editors:DBFDataSourceEditor' sourcefile='weave/ui/editors/DBFDataSourceEditor-generated.as' namespace='weave.ui.editors' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient;weave.api.ui:ILinkableObjectEditor' isFinal='false' isDynamic='false' >
@@ -36279,7 +36281,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   WFSDataSourceEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/WFSDataSourceEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:09 EDT
  ]]></description>
 </packageRec>
 <classRec name='WFSDataSourceEditor' fullname='weave.ui.editors:WFSDataSourceEditor' sourcefile='weave/ui/editors/WFSDataSourceEditor-generated.as' namespace='weave.ui.editors' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient;weave.api.ui:ILinkableObjectEditor' isFinal='false' isDynamic='false' >
@@ -36364,7 +36366,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   WeaveDataSourceEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/WeaveDataSourceEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='WeaveDataSourceEditor' fullname='weave.ui.editors:WeaveDataSourceEditor' sourcefile='weave/ui/editors/WeaveDataSourceEditor-generated.as' namespace='weave.ui.editors' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient;weave.api.ui:ILinkableObjectEditor' isFinal='false' isDynamic='false' >
@@ -36449,7 +36451,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   CSVDataSourceEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/CSVDataSourceEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:21 EDT
+ Time:   2011.09.05 04:03:06 EDT
  ]]></description>
 </packageRec>
 <classRec name='CSVDataSourceEditor' fullname='weave.ui.editors:CSVDataSourceEditor' sourcefile='weave/ui/editors/CSVDataSourceEditor-generated.as' namespace='weave.ui.editors' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient;weave.api.ui:ILinkableObjectEditor' isFinal='false' isDynamic='false' >
@@ -36610,7 +36612,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   XLSDataSourceEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/XLSDataSourceEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:19 EDT
+ Time:   2011.09.05 04:03:04 EDT
  ]]></description>
 </packageRec>
 <classRec name='XLSDataSourceEditor' fullname='weave.ui.editors:XLSDataSourceEditor' sourcefile='weave/ui/editors/XLSDataSourceEditor-generated.as' namespace='weave.ui.editors' access='public' baseclass='mx.containers:VBox' interfaces='mx.binding:IBindingClient;weave.api.ui:ILinkableObjectEditor' isFinal='false' isDynamic='false' >
@@ -36758,7 +36760,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   DataGridEditor
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/DataGridEditor.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:23 EDT
+ Time:   2011.09.05 04:03:09 EDT
  ]]></description>
 </packageRec>
 <classRec name='DataGridEditor' fullname='weave.ui.editors:DataGridEditor' sourcefile='weave/ui/editors/DataGridEditor-generated.as' namespace='weave.ui.editors' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -36886,7 +36888,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   AddDataSourceComponent
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/AddDataSourceComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='AddDataSourceComponent' fullname='weave.ui.editors:AddDataSourceComponent' sourcefile='weave/ui/editors/AddDataSourceComponent-generated.as' namespace='weave.ui.editors' access='public' baseclass='weave.ui:DraggablePanel' isFinal='false' isDynamic='false' >
@@ -36995,7 +36997,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   EditDataSourceComponent
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/editors/EditDataSourceComponent.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:33 EDT
+ Time:   2011.09.05 04:03:22 EDT
  ]]></description>
 </packageRec>
 <classRec name='EditDataSourceComponent' fullname='weave.ui.editors:EditDataSourceComponent' sourcefile='weave/ui/editors/EditDataSourceComponent-generated.as' namespace='weave.ui.editors' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -37112,7 +37114,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ClientConfigurationManager
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/managers/ClientConfigurationManager.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:22 EDT
+ Time:   2011.09.05 04:03:07 EDT
  ]]></description>
 </packageRec>
 <classRec name='ClientConfigurationManager' fullname='weave.ui.admin.managers:ClientConfigurationManager' sourcefile='weave/ui/admin/managers/ClientConfigurationManager-generated.as' namespace='weave.ui.admin.managers' access='public' baseclass='mx.containers:HDividedBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -37225,7 +37227,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   AdminToolsManager
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/managers/AdminToolsManager.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:13 EDT
  ]]></description>
 </packageRec>
 <classRec name='AdminToolsManager' fullname='weave.ui.admin.managers:AdminToolsManager' sourcefile='weave/ui/admin/managers/AdminToolsManager-generated.as' namespace='weave.ui.admin.managers' access='public' baseclass='mx.containers:HDividedBox' isFinal='false' isDynamic='false' >
@@ -37263,7 +37265,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   DataTableManager
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/managers/DataTableManager.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:28 EDT
+ Time:   2011.09.05 04:03:17 EDT
  ]]></description>
 </packageRec>
 <classRec name='DataTableManager' fullname='weave.ui.admin.managers:DataTableManager' sourcefile='weave/ui/admin/managers/DataTableManager-generated.as' namespace='weave.ui.admin.managers' access='public' baseclass='mx.containers:HDividedBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -37562,7 +37564,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   SQLConnectionManager
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/managers/SQLConnectionManager.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='SQLConnectionManager' fullname='weave.ui.admin.managers:SQLConnectionManager' sourcefile='weave/ui/admin/managers/SQLConnectionManager-generated.as' namespace='weave.ui.admin.managers' access='public' baseclass='mx.containers:HDividedBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -37838,7 +37840,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   GeometryCollectionManager
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/managers/GeometryCollectionManager.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:25 EDT
+ Time:   2011.09.05 04:03:13 EDT
  ]]></description>
 </packageRec>
 <classRec name='GeometryCollectionManager' fullname='weave.ui.admin.managers:GeometryCollectionManager' sourcefile='weave/ui/admin/managers/GeometryCollectionManager-generated.as' namespace='weave.ui.admin.managers' access='public' baseclass='mx.containers:HDividedBox' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -37926,7 +37928,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ControlsSubsetBox
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/userControls/ControlsSubsetBox.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='ControlsSubsetBox' fullname='weave.ui.userControls:ControlsSubsetBox' sourcefile='weave/ui/userControls/ControlsSubsetBox-generated.as' namespace='weave.ui.userControls' access='public' baseclass='mx.containers:HBox' isFinal='false' isDynamic='false' >
@@ -37950,7 +37952,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   SessionedTextBox
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/annotation/SessionedTextBox.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:19 EDT
+ Time:   2011.09.05 04:03:04 EDT
  ]]></description>
 </packageRec>
 <classRec name='SessionedTextBox' fullname='weave.ui.annotation:SessionedTextBox' sourcefile='weave/ui/annotation/SessionedTextBox-generated.as' namespace='weave.ui.annotation' access='public' baseclass='weave.ui:DraggablePanel' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -38322,7 +38324,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ColorRampPresetItemRenderer
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/colormap/ColorRampPresetItemRenderer.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:27 EDT
+ Time:   2011.09.05 04:03:17 EDT
  ]]></description>
 </packageRec>
 <classRec name='ColorRampPresetItemRenderer' fullname='weave.ui.colormap:ColorRampPresetItemRenderer' sourcefile='weave/ui/colormap/ColorRampPresetItemRenderer-generated.as' namespace='weave.ui.colormap' access='public' baseclass='mx.containers:Canvas' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -38391,7 +38393,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   DBFImportWizard
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/wizards/DBFImportWizard.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:18 EDT
+ Time:   2011.09.05 04:03:03 EDT
  ]]></description>
 </packageRec>
 <classRec name='DBFImportWizard' fullname='weave.ui.admin.wizards:DBFImportWizard' sourcefile='weave/ui/admin/wizards/DBFImportWizard-generated.as' namespace='weave.ui.admin.wizards' access='public' baseclass='weave.ui.admin:WizardViewStack' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -38486,7 +38488,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   CSVImportWizard
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/wizards/CSVImportWizard.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:30 EDT
+ Time:   2011.09.05 04:03:20 EDT
  ]]></description>
 </packageRec>
 <classRec name='CSVImportWizard' fullname='weave.ui.admin.wizards:CSVImportWizard' sourcefile='weave/ui/admin/wizards/CSVImportWizard-generated.as' namespace='weave.ui.admin.wizards' access='public' baseclass='weave.ui.admin:WizardViewStack' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -38757,7 +38759,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   SQLImportWizard
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/wizards/SQLImportWizard.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:26 EDT
+ Time:   2011.09.05 04:03:16 EDT
  ]]></description>
 </packageRec>
 <classRec name='SQLImportWizard' fullname='weave.ui.admin.wizards:SQLImportWizard' sourcefile='weave/ui/admin/wizards/SQLImportWizard-generated.as' namespace='weave.ui.admin.wizards' access='public' baseclass='weave.ui.admin:WizardViewStack' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -38878,7 +38880,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   FirstTimeSetupWizard
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/wizards/FirstTimeSetupWizard.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:20 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='FirstTimeSetupWizard' fullname='weave.ui.admin.wizards:FirstTimeSetupWizard' sourcefile='weave/ui/admin/wizards/FirstTimeSetupWizard-generated.as' namespace='weave.ui.admin.wizards' access='public' baseclass='weave.ui.admin:WizardViewStack' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -39038,7 +39040,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   SHPImportWizard
  Source:  /home/build/Weave/WeaveAdmin/src/weave/ui/admin/wizards/SHPImportWizard.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:20 EDT
+ Time:   2011.09.05 04:03:05 EDT
  ]]></description>
 </packageRec>
 <classRec name='SHPImportWizard' fullname='weave.ui.admin.wizards:SHPImportWizard' sourcefile='weave/ui/admin/wizards/SHPImportWizard-generated.as' namespace='weave.ui.admin.wizards' access='public' baseclass='weave.ui.admin:WizardViewStack' interfaces='mx.binding:IBindingClient' isFinal='false' isDynamic='false' >
@@ -39279,7 +39281,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   ProbeBox
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/probing/ProbeBox.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:32 EDT
+ Time:   2011.09.05 04:03:21 EDT
  ]]></description>
 </packageRec>
 <classRec name='ProbeBox' fullname='weave.ui.probing:ProbeBox' sourcefile='weave/ui/probing/ProbeBox-generated.as' namespace='weave.ui.probing' access='public' baseclass='mx.containers:VBox' interfaces='mx.core:IToolTip' isFinal='false' isDynamic='false' >
@@ -39337,7 +39339,7 @@ In grouped mode, each bar representing a single record at a given attribute are 
  Class:   WeaveProbeTemplate
  Source:  /home/build/Weave/WeaveUI/src/weave/ui/probing/WeaveProbeTemplate.mxml
  Template:  flex2/compiler/mxml/gen/ClassDef.vm
- Time:   2011.09.04 10:44:34 EDT
+ Time:   2011.09.05 04:03:23 EDT
  ]]></description>
 </packageRec>
 <classRec name='WeaveProbeTemplate' fullname='weave.ui.probing:WeaveProbeTemplate' sourcefile='weave/ui/probing/WeaveProbeTemplate-generated.as' namespace='weave.ui.probing' access='public' baseclass='mx.containers:Canvas' interfaces='weave.api.ui:IProbeDisplay' isFinal='false' isDynamic='false' >
