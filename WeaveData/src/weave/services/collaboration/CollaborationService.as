@@ -91,15 +91,14 @@ package weave.services.collaboration
 		private var serverName:String;
 		private var port:int;
 		private var roomToJoin:String;
-		private var _room:Room;
+		private var room:Room;
 
 		private var baseEncoder:Base64Encoder = new Base64Encoder();
 		private var baseDecoder:Base64Decoder = new Base64Decoder();
-		private var connectedToRoom:Boolean   = false;
-		private var sessionStateSynchronized:Boolean  		  = false;
-		private var stateLog:SessionStateLog  = null;
+		private var connectedToRoom:Boolean = false;
+		private var stateLog:SessionStateLog = null;
 		
-		public const userList:ArrayCollection  = new ArrayCollection();
+		public const userList:ArrayCollection = new ArrayCollection();
 		public var username:String;
 		public var myRole:String;
 
@@ -111,17 +110,6 @@ package weave.services.collaboration
 			// all of these classes are internal
 			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
-		}
-		
-		//This is here just to warn us in the many places that room is called, if it is null
-		private function get room():Room
-		{
-			if( _room == null){
-				//throw new Error("Not Connected to Collaboration Server");
-				dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, "You are not currently connected to a Collaboration server. No message has been sent."));
-				disconnect();
-			}
-			return _room;
 		}
 		
 		// this will be called by SessionManager to clean everything up
@@ -136,8 +124,8 @@ package weave.services.collaboration
 		private function handleStateChange():void
 		{
 			// note: this code may need to be changed later if SessionStateLog implementation changes.
-			if (connectedToRoom && sessionStateSynchronized)
-			{ 
+			if (connectedToRoom && stateLog != null)
+			{
 				var log:Array 	 = stateLog.undoHistory;
 				var entry:Object = log[log.length - 1];
 				sendSessionStateDiff( entry.id, entry.forward );
@@ -161,7 +149,7 @@ package weave.services.collaboration
 			this.roomToJoin = roomToJoin;
 			this.username = username;
 			
-			postMessageToUser("connecting to " + serverName + " at " + serverIP + ":" + port.toString() + " ...");
+			dispatchLogEvent("Connecting to " + serverName + " at " + serverIP + ":" + port.toString() + " ...");
 			connection = new XMPPConnection();
 			
 			//Use this for servers where a registered name is not required,
@@ -194,16 +182,11 @@ package weave.services.collaboration
 				return;
 			}
 			
-			// stop logging
-			if (stateLog)
-			{
-				disposeObjects(stateLog);
-				stateLog = null;
-			}
+			stopLogging();
 			
 			connectedToRoom = false;
 			
-			postMessageToUser( "Disconnected from server" );
+			dispatchLogEvent( "Disconnected from server" );
 			
 			userList.removeAll();
 			
@@ -215,7 +198,7 @@ package weave.services.collaboration
 				connection.removeEventListener(DisconnectionEvent.DISCONNECT, onDisconnect);
 				connection.removeEventListener(MessageEvent.MESSAGE, onReceiveMessage);
 			}	
-			if( _room != null)
+			if( room != null)
 			{
 				room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
 				room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
@@ -265,7 +248,7 @@ package weave.services.collaboration
 		}
 		
 		//When a message is recieved pass it on to the user
-		private function postMessageToUser( message:String ) :void
+		private function dispatchLogEvent( message:String ) :void
 		{
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, message));
 		}
@@ -283,13 +266,13 @@ package weave.services.collaboration
 		//to connect to a room that is defined in the XMPPConnection (connection).
 		private function joinRoom(roomName:String):void
 		{
-			postMessageToUser( "joined room: " + roomToJoin );
-			_room = new Room(connection);
+			dispatchLogEvent( "Joined room: " + roomToJoin );
+			room = new Room(connection);
 			
 			//nickname will replace the random string generated for Anonnymous users
 			//and can be used for private messages and most user to user functions
 			room.nickname = username;
-			postMessageToUser( "set alias to: " + room.nickname );
+			dispatchLogEvent( "Set alias to: " + room.nickname );
 			room.roomJID = new UnescapedJID(roomName + "@conference" + '.' + serverName);
 			
 			room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
@@ -305,12 +288,19 @@ package weave.services.collaboration
 		
 		private function startLogging():void
 		{
-			if( stateLog == null )
+			if (stateLog == null)
 			{
 				stateLog = registerDisposableChild( this, new SessionStateLog( root ) );
 				getCallbackCollection( stateLog ).addImmediateCallback( this, handleStateChange );
 			}
-			sessionStateSynchronized = true;
+		}
+		private function stopLogging():void
+		{
+			if (stateLog)
+			{
+				disposeObjects(stateLog);
+				stateLog = null;
+			}
 		}
 		
 		//Call back for when you connect to a server. The implementation here
@@ -321,66 +311,64 @@ package weave.services.collaboration
 		{
 			var message:String = "";
 			
-			message += "connected as ";
+			message += "Connected as ";
 			if( connection.useAnonymousLogin == true )
 				message += "anonymous user: ";
 			message += connection.username;
-			postMessageToUser( message );
+			dispatchLogEvent( message );
 			
 			joinRoom(roomToJoin);
 		}
 		
 		//Handles receiving all messages, including text, diffs, and full session states
-		private function onReceiveMessage(e:MessageEvent):void
+		private function onReceiveMessage(event:MessageEvent):void
 		{
 			//if id is null, it implies that the message originated from the server, 
 			//and not from a user
-			if( e.data.id != null) 
+			if( event.data.id != null) 
 			{
 				var i:int;
 				
 				// handle a message from a user
-				var o:Object;
+				var o:Object = null;
 				try
 				{
-					o = decodeObject(e.data.body);
-				} catch( e:Error ) {
-					trace( "Bad incoming message, ignoring..." );
-					return;
+					o = decodeObject(event.data.body);
+				}
+				catch( e:Error )
+				{
+					WeaveAPI.ErrorManager.reportError(new Error("Unable to decode message: " + event.data.body));
 				}
 				//WeaveAPI.ErrorManager.reportError( new Error( ObjectUtil.toString( o )) );
 				
-				//var room:String = e.data.from.node;
-				var userAlias:String = e.data.from.resource;
+				//var room:String = event.data.from.node;
+				var userAlias:String = event.data.from.resource;
 				
 				//Full session state message
 				if (o is FullSessionState)
 				{
 					var fss:FullSessionState = o as FullSessionState;
-					setSessionState( root, fss.state, true);
+					setSessionState(root, fss.state, true);
 					startLogging();
 				}
 				
 				//A session state diff
 				else if (o is SessionStateMessage)
 				{
-					if( sessionStateSynchronized ) //don't do anything till the collaborative session state is loaded
+					if (stateLog != null) //don't do anything until the collaborative session state is loaded
 					{
 						var ssm:SessionStateMessage = o as SessionStateMessage;
-						if( userAlias == this.username )
+						if (userAlias == this.username)
 						{
 							// received echo back from local state change
 							// search history for diff with matching id
 							var foundID:Boolean = false;
-							if( stateLog )
+							for (i = 0; i < stateLog.undoHistory.length; i++)
 							{
-								for (i = 0; i < stateLog.undoHistory.length; i++)
+								if (stateLog.undoHistory[i].id == ssm.id)
 								{
-									if (stateLog.undoHistory[i].id == ssm.id)
-									{
-										foundID = true;
-										break;
-									}
+									foundID = true;
+									break;
 								}
 							}
 	 						// remove everything up until the diff with the matching id
@@ -411,10 +399,10 @@ package weave.services.collaboration
 				else if (o is TextMessage)
 				{
 					var tm:TextMessage = o as TextMessage;
-					postMessageToUser( tm.id + ": " + tm.message );
+					dispatchLogEvent( tm.id + ": " + tm.message );
 				}
 				
-				//an unknown message with data, but wasn't one of the three pre-defineds 
+				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
 					WeaveAPI.ErrorManager.reportError(new Error("Unable to determine message type: ", ObjectUtil.toString(o)));
@@ -425,28 +413,27 @@ package weave.services.collaboration
 			else
 			{
 				// messages from the server are always strings
-				postMessageToUser( "server: " + e.data.body );
+				dispatchLogEvent("server: " + event.data.body);
 			}
 		}
 		
 		private function onDisconnect(e:DisconnectionEvent):void
 		{
 			//== Reset variables ==//
-			connectedToRoom = 	false;
-			sessionStateSynchronized =			false;
-			connection = 		null;
-			_room =				null;
-			selfJID = 			null;
+			connectedToRoom = false;
+			stopLogging();
+			connection = null;
+			room = null;
+			selfJID = null;
 			
-			dispatchEvent( new CollaborationEvent(CollaborationEvent.DISCONNECT, null) );
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.DISCONNECT, null));
 		}
 		
 		private function onError(e:XIFFErrorEvent):void
 		{
 			//401 == Not Authorized to connect to server
-			//was a specific error I was running into
-			if( e.errorCode == 401 )
-				dispatchEvent( new CollaborationEvent( CollaborationEvent.LOG, "Not Authorized to connect to Server, please check IP and server name, and try again." ) );
+			if (e.errorCode == 401)
+				dispatchLogEvent("Not Authorized to connect to Server, please check IP and server name, and try again.");
 			
 			// disconnect on error
 			if (connectedToRoom)
@@ -468,42 +455,44 @@ package weave.services.collaboration
 		//it'll fire the timeout event
 		private function onTimeout(e:RoomEvent):void
 		{
-			postMessageToUser( "You've timed out from the server." );
-			Alert.show( "Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler );
+			dispatchLogEvent("You've timed out from the server.");
+			Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
 		}
 		
 		private function disconnectHandler( e:CloseEvent ):void
 		{
-			if( e.detail == Alert.YES )
-				connect( this.serverIP, this.serverName, this.port, this.roomToJoin, this.username );
-			else{
+			if (e.detail == Alert.YES)
+				connect(this.serverIP, this.serverName, this.port, this.roomToJoin, this.username);
+			else
 				disconnect();		
-			}
 		}
 		
 		//handled whenever any user joins the same room as this
 		private function onUserJoin(e:RoomEvent):void
 		{
-			postMessageToUser( e.nickname + " has joined the room." );
+			dispatchLogEvent(e.nickname + " has joined the room.");
 			updateUsersList();
 		
 			//This whole sequence of steps is just to determine alphabetially
 			//who's on the top of the list. It needs to be sorted, because order
 			//of names in array is not guarenteed
-			var userList:Array = room.toArray().sortOn( "displayName" );
+			var userList:Array = room.toArray().sortOn("displayName");
 	
-			for( var i:int = 0; i < userList.length; i++)
-				if(userList[i].displayName == e.nickname)
+			// remove the user that is currently joining from the list
+			for (var i:int = 0; i < userList.length; i++)
+			{
+				if (userList[i].displayName == e.nickname)
 				{
 					userList.splice(i,1);
 					break;
 				}
+			}
 
-			if( userList.length == 0) // if we are the only user here
+			if (userList.length == 0) // if we are the only user here
 			{
 				startLogging();
 			}
-			else if( username == userList[0].displayName ) // if we are at the top of the list
+			else if (username == userList[0].displayName) // if we are at the top of the list
 			{
 				// send full session state to the user who just joined.
 				var debugID:int = stateLog.undoHistory[ stateLog.undoHistory.length - 1];
@@ -514,18 +503,18 @@ package weave.services.collaboration
 		//Handled when any user leaves the room this is in
 		private function onUserLeave(e:RoomEvent):void
 		{
-			postMessageToUser( e.nickname + " has left the room." );
+			dispatchLogEvent(e.nickname + " has left the room.");
 			updateUsersList();
 		}
 		private function nickConflictError(e:RoomEvent):void
 		{
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.NICK_ERROR));
-			postMessageToUser( "The nickname already exists! Please choose another." );
+			dispatchLogEvent("The nickname already exists! Please choose another.");
 		}
 		private function handleLockedError(e:RoomEvent):void
 		{
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.LOCKED_ERROR));
-			postMessageToUser(StringUtil.substitute("Error {0}: {1}", e.errorCode, e.errorMessage));
+			dispatchLogEvent(StringUtil.substitute("Error {0}: {1}", e.errorCode, e.errorMessage));
 		}
 		
 		//Used to convert data to binary
@@ -556,7 +545,7 @@ package weave.services.collaboration
 //that will be sent over the server
 internal class FullSessionState
 {
-	public function FullSessionState( debugID:int = 0, state:Object = null)
+	public function FullSessionState(debugID:int = 0, state:Object = null)
 	{
 		this.debugID = debugID;
 		this.state = state;
