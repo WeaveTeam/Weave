@@ -18,11 +18,17 @@
 */
 package weave.tests;
 
+import java.sql.*;
+
+import weave.config.SQLConfig;
+import weave.config.SQLConfigXML;
+import weave.utils.SQLUtils;
+
 
 //import weave.beans.WeaveRecordList;
-import java.rmi.RemoteException;
-import weave.beans.RResult;
-import weave.servlets.RService;
+//import java.rmi.RemoteException;
+//import weave.beans.RResult;
+//import weave.servlets.RService;
 public class test {
 
 	/**
@@ -31,34 +37,37 @@ public class test {
 	 */
 
 
-	static RService ws = null;
-	public static void call(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception{
-		
-		RResult[] scriptResult = null;
-		try {
-			scriptResult =	ws.runScript(inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		finally{
-			System.out.println(scriptResult);
-		}
-	}
+//	static RService ws = null;
+//	public static void call(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception{
+//		
+//		RResult[] scriptResult = null;
+//		try {
+//			scriptResult =	ws.runScript(inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+//		} catch (RemoteException e) {
+//			e.printStackTrace();
+//		}
+//		finally{
+//			System.out.println(scriptResult);
+//		}
+//	}
 	
 	public static void main(String[] args) throws Exception {
+		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
+		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 6.0\\webapps\\weave-config\\sqlconfig.xml"));
+		
 		// TODO Auto-generated method stub
-		System.out.println("hi");		
-		ws = new RService();
+//		System.out.println("hi");		
+//		ws = new RService();
 	
 		
-		String[] inputNames = {};
-		Object[][] inputValues = {};			
-		String plotscript = "";
-		String script = "";		
-		String [] resultNames = {};	
-		
-		Object[] array1 = {0,10,20,30,40,50};
-		Object[] array2 = {10,20,30,52,34,87};
+//		String[] inputNames = {};
+//		Object[][] inputValues = {};			
+//		String plotscript = "";
+//		String script = "";		
+//		String [] resultNames = {};	
+//		
+//		Object[] array1 = {0,10,20,30,40,50};
+//		Object[] array2 = {10,20,30,52,34,87};
 		//String[] keys = {"a","b","c","d","e","f"};
 //		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
 		
@@ -90,13 +99,13 @@ public class test {
 //		resultNames =  new String []{"d"};			
 //		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
 		
-		inputNames =  new String []{"x","y"};
-		inputValues = new Object[][]{array1,array2};
-		//plotscript = "plot(x,y)";
-		//keys = new  String[]{};
-		script = "d<-x[x>20]";		
-		resultNames =  new String []{"x","d"};			
-		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
+//		inputNames =  new String []{"x","y"};
+//		inputValues = new Object[][]{array1,array2};
+//		//plotscript = "plot(x,y)";
+//		//keys = new  String[]{};
+//		script = "d<-x[x>20]";		
+//		resultNames =  new String []{"x","d"};			
+//		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
 		
 	}
 }

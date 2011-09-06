@@ -969,6 +969,30 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
+	public static void addForeignKey( Connection conn, String schemaName, String tableName, String keyName, String targetTable, String targetKey) throws IllegalArgumentException, SQLException
+	{
+		// TODO: Check for cross-DB portability
+		Statement stmt = null;
+		String query = String.format("ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s(%s)", 
+				quoteSchemaTable(conn, schemaName, tableName),
+				quoteSymbol(conn, keyName),
+				quoteSchemaTable(conn, schemaName, targetTable),
+				quoteSymbol(conn, targetKey));
+		try
+		{
+			stmt = conn.createStatement();
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			System.out.println(query);
+			throw e;
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}
 	
 	/**
 	 * @param conn An existing SQL Connection
