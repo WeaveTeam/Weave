@@ -259,12 +259,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_plotter.setNewRandomJitterColumn();
 				reseedJitterButton.selected = false; 
 			}
-			
-			private function handleAnchorReorderButtonClick(event:MouseEvent = null):void
-			{
-				//_plotter.currentAlgorithm.value = algorithmComboBox.selectedItem.toString();				
-				anchorReorderButton.selected = false; 
-			} 
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -402,13 +396,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
 								  initialize="linkBindableProperty(_plotter.iterations, iterationsTextInput, 'text')"/>
 				</mx:HBox>
-				<mx:HBox backgroundColor="0xFFFFFF" 
-						 cornerRadius="5" 
-						 borderStyle="solid" borderThickness="1" borderColor="0x222222">
-					<mx:LinkButton id="anchorReorderButton" click="handleAnchorReorderButtonClick(event)" 
-								   label="Click to Apply" rollOverColor="0x80dbff" selectionColor="0xaaff00" />
-				</mx:HBox>
-				
 			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>

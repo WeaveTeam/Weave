@@ -84,18 +84,20 @@ package weave.utils
 		 * @param recordKeys an array of IQualifiedKeys
 		 * @param column1 first IAttributeColumn
 		 * @param column2 second IAttributeColumn
-		 * @return The euclidean distance between the two column parameters
-		 * 
+		 * @param keyNumberMap key->column->value mapping to speed up computation
+		 * @return The euclidean distance between the two column parameters 
 		 */		
-		public static function getEuclideanDistance( recordKeys:Array, column1:IAttributeColumn, column2:IAttributeColumn):Number
-		{			
+		public static function getEuclideanDistance( recordKeys:Array, column1:IAttributeColumn, column2:IAttributeColumn, keyNumberMap:Dictionary):Number
+		{						
 			var sum:Number = 0;
 			var temp:Number = 0;
 			for each( var key:IQualifiedKey in recordKeys)
 			{
-				 temp = column1.getValueFromKey(key, Number) - column2.getValueFromKey(key, Number);
-				 if(temp <= Infinity)
-					 sum += temp * temp;				 
+				if(!keyNumberMap[key])
+					continue;
+				temp = keyNumberMap[key][column1] - keyNumberMap[key][column2];
+				if(temp <= Infinity)
+					sum += temp * temp;				 
 			}
 			return Math.sqrt(sum); 
 		}
@@ -114,7 +116,10 @@ package weave.utils
 			var recordKeyslength:uint = recordKeys.length ;
 			var dist1:Number = 0; var dist2:Number = 0;
 			for each( var key:IQualifiedKey in recordKeys)
-			{				
+			{		
+				//this key is not in the column's keys but it exists in the plotter's keySet
+				if(!keyNumberMap[key]) 
+					continue;
 				var value1:Number = keyNumberMap[key][column1];
 				var value2:Number = keyNumberMap[key][column2];
 				
@@ -151,7 +156,7 @@ package weave.utils
 				for( var j:int = 0; j < length; j++ )
 				{
 					// augmented similarity measure
-					tempRowArray.push(getCosineSimilarity(keys, array[i], array[j], keyNumberMap) * getEuclideanDistance( keys, array[i], array[j] ));
+					tempRowArray.push(getCosineSimilarity(keys, array[i], array[j], keyNumberMap) * getEuclideanDistance( keys, array[i], array[j], keyNumberMap ));
 				}
 				similarityMatrix.push(tempRowArray) ;
 				tempRowArray = null ;
