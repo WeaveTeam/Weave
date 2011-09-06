@@ -47,37 +47,6 @@
 			 filters="{[glow]}"
 			 />
 	
-	<mx:Style>
-		.scroll-style {
-			downArrowUpSkin: Embed(source="/weave/resources/images/scrollBarDownArrow.png");
-		    downArrowOverSkin: Embed(source="/weave/resources/images/scrollBarDownArrow.png");
-		    downArrowDownSkin: Embed(source="/weave/resources/images/scrollBarDownArrow.png");
-		    upArrowUpSkin: Embed(source="/weave/resources/images/scrollBarUpArrow.png");
-		    upArrowOverSkin: Embed(source="/weave/resources/images/scrollBarUpArrow.png");
-		    upArrowDownSkin: Embed(source="/weave/resources/images/scrollBarUpArrow.png");
-		    
-		    thumbDownSkin: 
-		        Embed(source="/weave/resources/images/scrollBarThumb.png",
-		        scaleGridLeft="7", scaleGridTop="5", 
-		        scaleGridRight="8", scaleGridBottom="7");
-		        
-		    thumbUpSkin: 
-		        Embed(source="/weave/resources/images/scrollBarThumb.png",
-		        scaleGridLeft="7", scaleGridTop="5", 
-		        scaleGridRight="8", scaleGridBottom="7");
-		        
-		    thumbOverSkin: 
-		        Embed(source="/weave/resources/images/scrollBarThumb.png",
-		        scaleGridLeft="7", scaleGridTop="5", 
-		        scaleGridRight="8", scaleGridBottom="7");
-		        
-		    trackSkin: 
-		        Embed(source="/weave/resources/images/scrollBarTrack.png",
-		        scaleGridLeft="7", scaleGridTop="4", 
-		        scaleGridRight="8", scaleGridBottom="6" );
-		}
-	</mx:Style>
-	
 	<mx:Script>
 		<![CDATA[
 			import flash.net.getClassByAlias;

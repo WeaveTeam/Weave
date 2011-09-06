@@ -117,30 +117,72 @@
 			import weave.utils.NumberUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			private function handleTitleColorChange():void {			
-				if(this.titleBar != null)
-					this.titleBar.setStyle("color",Weave.properties.panelTitleFontColor.value);
+			public static var showRollOverBorders:Boolean;
+			public static var activePanel:DraggablePanel = null;
+			
+			public static const CIRCULAR_MINIMIZE_EFFECT:String  = "CIRCULAR_MINIMIZE_EFFECT";
+			public static const LINEAR_MINIMIZE_EFFECT:String    = "LINEAR_MINIMIZE_EFFECT";
+			public static const BOOMERANG_MINIMIZE_EFFECT:String = "BOOMERANG_MINIMIZE_EFFECT";
+			public static const minimizeEffectMode:String = LINEAR_MINIMIZE_EFFECT;
+			// Define static constant for event type.
+			public static const RESIZE_CLICK:String = "resizeClick";
+			
+			/**
+			 * panelX, panelY, panelWidth, panelHeight
+			 * These are sessioned strings that can be either absolute coordinates or percentages.
+			 */
+			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
+			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
+			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%"));
+			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%"));
+			
+			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMaximizedChange, true);
+			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange, true);
+			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
+			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
+			
+			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
+			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const maximizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const pinnable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const pinnableToBack:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate, true);
+			public const closeable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const showCloseDialog:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false));
+			public const enableBorders:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const panelBorderColor:LinkableNumber 		= registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
+			public const panelBackgroundColor:LinkableNumber 	= registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
+			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
+			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
+			
+			protected const helpButton:Button = new Button();
+			protected const userControlButton:Button = new Button();
+			protected const minimizeButton:Button = new Button();
+			protected const maximizeButton:Button = new Button();
+			protected const closePanelButton:Button = new Button();
+			protected const pinButton:Button = new Button();
+			protected const pinToBackButton:Button = new Button();
+			// this is used to temporarily show the borders when in dashboard admin mode.
+			protected const forceEnableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate);
+			
+			private const _dragCanvas:Canvas = new Canvas();
+			
+			/**
+			 *  This method is called when a UIComponent is constructed,
+			 *  and again whenever the ResourceManager dispatches
+			 *  a <code>"change"</code> Event to indicate
+			 *  that the localized resources have changed in some way.
+			 */
+			override protected function resourcesChanged():void
+			{
+				super.resourcesChanged();
+				if (!_constructorCalled) // avoid calling constructor twice
+				{
+					_constructorCalled = true;
+					constructor();
+				}
 			}
-			private function handleTitleWeightChange():void	{
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontWeight", (Weave.properties.panelTitleFontBold.value) ? "bold" : "normal" ) ;	
-			}
-			private function handleTitleDecorationChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("textDecoration", (Weave.properties.panelTitleFontUnderline.value)? "underline" : "none");	
-			}
-			private function handleTitleStyleChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontStyle",(Weave.properties.panelTitleFontItalic.value) ? "italic" : "normal");
-			}			
-			private function handleTitleFamilyChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontFamily",Weave.properties.panelTitleFontFamily.value);
-			}			
-			private function handleTitleSizeChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
-			}
+			private var _constructorCalled:Boolean = false; // true when constructor has been called
 			
 			/**
 			 * A constructor cannot be defined in MXML.
@@ -171,6 +213,120 @@
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 
+			}
+			
+			/**
+			 * This function gets called when the preinitialize event is dispatched.
+			 * Subclasses can override this method and call super.preinitialize().
+			 */
+			protected function preinitialize():void
+			{
+				// nothing here, just a placeholder
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				// These calls to setStyle fix the display bug where there is a ~200 px bottom margin and ~20 px right margin.
+				var pad:int = 0;
+				setStyle("paddingLeft", pad);
+				setStyle("paddingRight", pad);
+				setStyle("paddingBottom", pad);
+				setStyle("paddingTop", pad);
+				
+				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
+				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
+				setupControlButton(minimizeButton, _minimizeIcon, MouseEvent.CLICK, handleMinimizeButtonClick, "Click here to minimize this component.");
+				setupControlButton(pinButton, pinIcon, MouseEvent.MOUSE_DOWN, togglePinned, "Click here to pin this window to the stage.") ;
+				setupControlButton(pinToBackButton, pinToBackIcon, MouseEvent.MOUSE_DOWN, togglePinnedToBack, "Click here to pin this window to the back of the stage");
+				setupControlButton(maximizeButton, _maximizeIcon, MouseEvent.CLICK, toggleMaximized, "Click here to maximize or restore this component.");
+				
+				helpButton.label = "?";
+				setupControlButton(helpButton, null, MouseEvent.CLICK, toggleHelpPanel, "Click here to show help on how to use this component.");
+				
+				setupControlButton(userControlButton, _userControlIcon, MouseEvent.CLICK, toggleUserControlPanel, "Click here to change settings for this component.");
+				
+				setupControlButton(closePanelButton, null, MouseEvent.CLICK, handleCloseButtonClick, "Click here to close this component.");
+				closePanelButton.label = "X";
+				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
+				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
+				
+				closePanelButton.addEventListener(MouseEvent.ROLL_OVER, function(e:Event):void {
+					// make the close button red with white text when rolled over
+					closePanelButton.setStyle("fillColors", [0xFF0000,0xFF0000] );
+				});
+				closePanelButton.addEventListener(MouseEvent.ROLL_OUT,  function(e:Event):void {
+					// make the close button gray with black text when rolled out (default)
+					closePanelButton.setStyle("fillColors", [_titleBarButtonBackgroundColor,_titleBarButtonBackgroundColor] );
+				});
+				
+				// try to find a ControlPanel
+				for (var i:int = 0; i < numChildren; i++)
+				{
+					if (getChildAt(i) is ControlPanel)
+					{
+						_controlPanel = registerDisposableChild(this, getChildAt(i) as ControlPanel);
+						removeChild(_controlPanel);
+						_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
+						break;
+					}
+				}
+				for (i = 0; i < numChildren; i++)
+				{
+					if (getChildAt(i) is HelpPanel)
+					{
+						_helpPanel = registerDisposableChild(this, getChildAt(i) as HelpPanel);
+						removeChild(_helpPanel);
+						_helpPanel.title = "Help for " + getQualifiedClassName(this).split("::")[1];
+						break;
+					}
+				}
+				
+				titleBar.doubleClickEnabled = true;
+				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
+				titleBar.addEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
+				
+				minWidth  = 120;
+				
+				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
+				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
+				
+				titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
+				
+				panelNeedsUpdate();
+			}
+			
+			private function handleCreationComplete():void
+			{
+				//_dragCanvas.percentWidth = 100;
+				//_dragCanvas.percentHeight = 100;
+				rawChildren.addChild(_dragCanvas);
+			}
+			
+			private function handleTitleColorChange():void {			
+				if(this.titleBar != null)
+					this.titleBar.setStyle("color",Weave.properties.panelTitleFontColor.value);
+			}
+			private function handleTitleWeightChange():void	{
+				if(this.titleBar != null )
+					this.titleBar.setStyle("fontWeight", (Weave.properties.panelTitleFontBold.value) ? "bold" : "normal" ) ;	
+			}
+			private function handleTitleDecorationChange():void {
+				if(this.titleBar != null )
+					this.titleBar.setStyle("textDecoration", (Weave.properties.panelTitleFontUnderline.value)? "underline" : "none");	
+			}
+			private function handleTitleStyleChange():void {
+				if(this.titleBar != null )
+					this.titleBar.setStyle("fontStyle",(Weave.properties.panelTitleFontItalic.value) ? "italic" : "normal");
+			}			
+			private function handleTitleFamilyChange():void {
+				if(this.titleBar != null )
+					this.titleBar.setStyle("fontFamily",Weave.properties.panelTitleFontFamily.value);
+			}			
+			private function handleTitleSizeChange():void {
+				if(this.titleBar != null )
+					this.titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
 			}
 			
 			[Inspectable]
@@ -212,36 +368,6 @@
 			{
 				panelHeight.value = "" + value + "%";
 			}
-	
-			/**
-			 *  This method is called when a UIComponent is constructed,
-			 *  and again whenever the ResourceManager dispatches
-			 *  a <code>"change"</code> Event to indicate
-			 *  that the localized resources have changed in some way.
-			 */
-			override protected function resourcesChanged():void
-			{
-				super.resourcesChanged();
-				if (!_constructorCalled)
-				{
-					_constructorCalled = true;
-					constructor();
-				}
-			}
-			
-			
-			private var _constructorCalled:Boolean = false; // true when constructor has been called
-			
-			/**
-			 * This function gets called when the preinitialize event is dispatched.
-			 * Subclasses can override this method and call super.preinitialize().
-			 */
-			protected function preinitialize():void
-			{
-				
-			}
-			
-			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
 	
 			private var _styleNeedsUpdate:Boolean = false;
 			private function handlePanelStyleListChange():void
@@ -296,38 +422,6 @@
 				parent.removeEventListener(ResizeEvent.RESIZE, handleParentResize);
 			}
 			
-			
-			private var _dragCanvas:Canvas = new Canvas();
-			public static var showRollOverBorders:Boolean;
-			
-			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
-			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const maximizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const pinnable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const pinnableToBack:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate, true);
-			public const closeable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const showCloseDialog:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false));
-			public const enableBorders:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const panelBorderColor:LinkableNumber 		= registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
-			public const panelBackgroundColor:LinkableNumber 	= registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
-	
-			// this is used to temporarily show the borders when in dashboard admin mode.
-			protected const forceEnableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate);
-			
-			/**
-			 * panelX, panelY, panelWidth, panelHeight
-			 * These are sessioned strings that can be either absolute coordinates or percentages.
-			 */
-			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
-			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
-			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%"));
-			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%"));
-
-			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMaximizedChange, true);
-			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange, true);
-			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
-			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 			
 			/**
 			 * This function copies the values for x,y,width,height from the corresponding sessioned properties.
@@ -656,16 +750,6 @@
 				// no need to do anything else for the other options, in those cases we dont want to close the window so do nothing
 			}
 			
-			override public function get showCloseButton():Boolean
-			{
-				return closeable.value;
-			}
-			
-			override public function set showCloseButton(value:Boolean):void
-			{
-				closeable.value = value;
-			}
-			
 			public function togglePinned():void
 			{
 				pinned.value = !pinned.value ;
@@ -862,12 +946,6 @@
 
 				return o;
 			}
-			
-			public static const CIRCULAR_MINIMIZE_EFFECT:String  = "CIRCULAR_MINIMIZE_EFFECT";
-			public static const LINEAR_MINIMIZE_EFFECT:String    = "LINEAR_MINIMIZE_EFFECT";
-			public static const BOOMERANG_MINIMIZE_EFFECT:String = "BOOMERANG_MINIMIZE_EFFECT";
-
-			public static const minimizeEffectMode:String = LINEAR_MINIMIZE_EFFECT;
 			
 			private var _minimizeEffect:Parallel = null;
 			
@@ -1084,7 +1162,6 @@
 			// Keep track of the active panel (one that the user has their mouse over) for use in exporting a panel image in the context menu.
 			// This is needed so that when the user right clicks on a panel, we know which panel they want to export an image of (cannot tell
 			// it from the context menu event).  
-			public static var activePanel:DraggablePanel = null;
 			private var _mouseRolledOver:Boolean = false;
 			private function handleMouseRollOver(event:MouseEvent):void
 			{
@@ -1328,100 +1405,6 @@
 						this.height = (_bottomSideBeforeTopResize - this.y);
 					}		
 				}
-			}
-	
-			// Define static constant for event type.
-			public static const RESIZE_CLICK:String = "resizeClick";
-	
-
-			protected const helpButton:Button = new Button();
-			protected const userControlButton:Button = new Button();
-			protected const minimizeButton:Button = new Button();
-			protected const maximizeButton:Button = new Button();
-			protected const closePanelButton:Button = new Button();
-			protected const pinButton:Button = new Button();
-			protected const pinToBackButton:Button = new Button();
-			
-			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
-
-			override protected function createChildren():void
-			{
-				super.createChildren();
-				
-				// These calls to setStyle fix the display bug where there is a ~200 px bottom margin and ~20 px right margin.
-				var pad:int = 0;
-				setStyle("paddingLeft", pad);
-				setStyle("paddingRight", pad);
-				setStyle("paddingBottom", pad);
-				setStyle("paddingTop", pad);
-
-				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
-				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
-				setupControlButton(minimizeButton, _minimizeIcon, MouseEvent.CLICK, handleMinimizeButtonClick, "Click here to minimize this component.");
-				setupControlButton(pinButton, pinIcon, MouseEvent.MOUSE_DOWN, togglePinned, "Click here to pin this window to the stage.") ;
-				setupControlButton(pinToBackButton, pinToBackIcon, MouseEvent.MOUSE_DOWN, togglePinnedToBack, "Click here to pin this window to the back of the stage");
-				setupControlButton(maximizeButton, _maximizeIcon, MouseEvent.CLICK, toggleMaximized, "Click here to maximize or restore this component.");
-
-				helpButton.label = "?";
-				setupControlButton(helpButton, null, MouseEvent.CLICK, toggleHelpPanel, "Click here to show help on how to use this component.");
-				
-				setupControlButton(userControlButton, _userControlIcon, MouseEvent.CLICK, toggleUserControlPanel, "Click here to change settings for this component.");
-				
-				setupControlButton(closePanelButton, null, MouseEvent.CLICK, handleCloseButtonClick, "Click here to close this component.");
-				closePanelButton.label = "X";
-				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
-				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
-
-				closePanelButton.addEventListener(MouseEvent.ROLL_OVER, function(e:Event):void {
-					// make the close button red with white text when rolled over
-					closePanelButton.setStyle("fillColors", [0xFF0000,0xFF0000] );
-				});
-				closePanelButton.addEventListener(MouseEvent.ROLL_OUT,  function(e:Event):void {
-					// make the close button gray with black text when rolled out (default)
-					closePanelButton.setStyle("fillColors", [_titleBarButtonBackgroundColor,_titleBarButtonBackgroundColor] );
-				});
-				
-				// try to find a ControlPanel
-				for (var i:int = 0; i < numChildren; i++)
-				{
-					if (getChildAt(i) is ControlPanel)
-					{
-						_controlPanel = registerDisposableChild(this, getChildAt(i) as ControlPanel);
-						removeChild(_controlPanel);
-						_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
-						break;
-					}
-				}
-				for (i = 0; i < numChildren; i++)
-				{
-					if (getChildAt(i) is HelpPanel)
-					{
-						_helpPanel = registerDisposableChild(this, getChildAt(i) as HelpPanel);
-						removeChild(_helpPanel);
-						_helpPanel.title = "Help for " + getQualifiedClassName(this).split("::")[1];
-						break;
-					}
-				}
-
-				titleBar.doubleClickEnabled = true;
-				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
-				titleBar.addEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
-				
-				minWidth  = 120;
-				
-				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
-				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
-				
-				titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
-				
-				panelNeedsUpdate();
-			}
-			
-			private function handleCreationComplete():void
-			{
-				//_dragCanvas.percentWidth = 100;
-				//_dragCanvas.percentHeight = 100;
-				rawChildren.addChild(_dragCanvas);
 			}
 			private var _helpPanel:HelpPanel = null;
 			private var _controlPanel:ControlPanel = null;

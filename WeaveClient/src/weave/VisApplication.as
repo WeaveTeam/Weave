@@ -1146,7 +1146,7 @@ package weave
 		/**
 		 * This function tiles all the DraggablePanels on stage
 		 * 
-		 * @TODO: create a ui for this so the user can specify how to divide the stage
+		 * @TODO create a ui for this so the user can specify how to divide the stage
 		 * 
 		 * @author kmanohar
 		 */		
@@ -1316,7 +1316,7 @@ package weave
 			if (Weave.properties.enableRightClick.value)
 			{
 				// Add item for the DataTableTool
-				//DataTableTool.createContextMenuItems(this);
+				DataTableTool.createContextMenuItems(this);
 				
 				// Add item for the DatasetLoader
 				//DatasetLoader.createContextMenuItems(this);
@@ -1328,7 +1328,6 @@ package weave
 				}
 				
 				SessionedTextBox.createContextMenuItems(this);
-				
 				PenTool.createContextMenuItems(this);
 					
 				//HelpPanel.createContextMenuItems(this);
@@ -1485,7 +1484,7 @@ package weave
 		}
 
 		/**
-		 * @TODO: This should be removed -- ideally VisApplication has no context menu items itself, only other classes do
+		 * @TODO This should be removed -- ideally VisApplication has no context menu items itself, only other classes do
 		 */
 		protected function handleContextMenuItemSelect(event:ContextMenuEvent):void
 		{
