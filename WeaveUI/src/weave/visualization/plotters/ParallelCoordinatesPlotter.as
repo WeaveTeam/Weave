@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -68,6 +69,13 @@ package weave.visualization.plotters
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
+			
+			displayFilterColumn.addImmediateCallback(this, updateFilterEquationColumns);
+			filterColumn.addImmediateCallback(this, updateFilterEquationColumns);
+			keyColumn.addImmediateCallback(this, updateFilterEquationColumns);
+			yData.addImmediateCallback(this, updateFilterEquationColumns);
+			filterValues.addImmediateCallback(this, updateFilterEquationColumns);
+			filterDataType.addImmediateCallback(this, updateFilterEquationColumns);
 		}
 
 		/*
@@ -99,7 +107,7 @@ package weave.visualization.plotters
 			// GET list of all keys in all columns
 			_combinedKeySet.delayCallbacks();			
 				
-			if(displayFilterColumn.value && validFilterData)
+			if(displayFilterColumn.value && keyColumn.internalColumn)
 			{
 				var keys:Array = [];
 				var previousKeys:Array = keyColumn.keys;
@@ -141,8 +149,66 @@ package weave.visualization.plotters
 			if (_columns.length == 1)
 				_columns.push(_columns[0]);
 		}
-						
-		public var validFilterData:Boolean = false;
+					
+		
+		
+		private function updateFilterEquationColumns():void
+		{
+			var str:String = filterValues.value;
+			
+			// check that values list string exists
+			if(!displayFilterColumn.value)
+			{
+				return;
+			}					
+			
+			// check for missing columns
+			if(!(filterColumn.internalColumn && yData.internalColumn && keyColumn.internalColumn))
+			{
+				if(keyColumn.internalColumn)
+					columns.removeAllObjects();
+				return;
+			}
+			
+			if(!str) 
+				return;
+			
+			// check that column keytypes are the same
+			var keytypes:Array = [ColumnUtils.getKeyType(filterColumn), ColumnUtils.getKeyType(keyColumn), ColumnUtils.getKeyType(yData)];
+			if(!((keytypes[0] == keytypes[1]) && (keytypes[0] == keytypes[2])))
+			{
+				return;
+			}
+			
+			var values:Array = str.split(",");
+			
+			columns.removeAllObjects();
+			columns.delayCallbacks();
+			var ClassReference:Class = getDefinitionByName(filterDataType.value) as Class;
+			var temp:*;
+			temp = new ClassReference();
+			
+			var keyCol:DynamicColumn;
+			var filterCol:DynamicColumn;
+			var dataCol:DynamicColumn;
+			
+			for each( var value:Object in values)
+			{
+				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
+				col.delayCallbacks();
+				col.variables.copyObject("key", keyColumn);					
+				col.variables.copyObject("filter", filterColumn);
+				col.variables.copyObject("data", yData); 					
+				
+				col.setMetadata(AttributeColumnMetadata.TITLE, value.toString());					
+				temp = EquationColumnLib.cast(value, ClassReference); 
+				col.equation.value = 'getValueFromFilterColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+filterDataType.value+',Number)';
+				col.resumeCallbacks();
+			}				
+			
+			columns.resumeCallbacks();
+			
+		}		
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const curveType:LinkableString  = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));

@@ -106,12 +106,7 @@
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
 				_plotter.filterColumn.addGroupedCallback(this, handleFilterColumnChange);
-				_plotter.displayFilterColumn.addGroupedCallback(this, updateFilterEquationColumns);
-				_plotter.filterColumn.addGroupedCallback(this, updateFilterEquationColumns);
-				_plotter.keyColumn.addGroupedCallback(this, updateFilterEquationColumns);
-				_plotter.yData.addGroupedCallback(this, updateFilterEquationColumns);
-				_plotter.filterValues.addGroupedCallback(this, updateFilterEquationColumns);
-				_plotter.filterDataType.addGroupedCallback(this, updateFilterEquationColumns);
+				_plotter.filterValues.addGroupedCallback(this, updateFilterText);				
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -183,67 +178,10 @@
 				equation.equation.value = 'key = getKeysFromValue(get("key"), getKey(), QKey)[0], getValueFromKey(get("colorColumn"), key, Number)';
 				 */
 			}
-						
-			private function updateFilterEquationColumns():void
+			
+			private function updateFilterText():void
 			{
-				var str:String = _plotter.filterValues.value;
-				
-				// check that values list string exists
-				if(!str || !_plotter.displayFilterColumn.value)
-				{
-					_plotter.validFilterData = false;
-					return;
-				}
-				
-				// check for null columns
-				if(!(_plotter.filterColumn.internalColumn && _plotter.yData.internalColumn && _plotter.keyColumn.internalColumn))
-				{
-					_plotter.validFilterData = false;
-					return;
-				}
-				// check that column keytypes are the same
-				var keytypes:Array = [ColumnUtils.getKeyType(_plotter.filterColumn), ColumnUtils.getKeyType(_plotter.keyColumn), ColumnUtils.getKeyType(_plotter.yData)];
-				if(!((keytypes[0] == keytypes[1]) && (keytypes[0] == keytypes[2])))
-				{
-					_plotter.validFilterData = false;
-					return;
-				}
-				
-				var values:Array = str.split(",");
-				
-				_plotter.columns.removeAllObjects();
-				_plotter.columns.delayCallbacks();
-				var ClassReference:Class = getDefinitionByName(_plotter.filterDataType.value) as Class;
-				var temp:*;
-				temp = new ClassReference();
-				
-				var keyCol:DynamicColumn;
-				var filterCol:DynamicColumn;
-				var dataCol:DynamicColumn;
-				
-				for each( var value:Object in values)
-				{
-					var col:EquationColumn = _plotter.columns.requestObject(_plotter.columns.generateUniqueName("line"), EquationColumn, false);
-					col.delayCallbacks();
-					col.variables.copyObject("key", _plotter.keyColumn);					
-					col.variables.copyObject("filter", _plotter.filterColumn);
-					col.variables.copyObject("data", _plotter.yData); 
-					
-					
-					/* filterCol = col.variables.requestObject("filter", DynamicColumn, true);
-					dataCol = col.variables.requestObject("data", DynamicColumn, true);
-					linkSessionState(_plotter.keyColumn, keyCol);
-					linkSessionState(_plotter.filterColumn, filterCol);
-					linkSessionState(_plotter.yData, dataCol); */
-					
-					col.setMetadata(AttributeColumnMetadata.TITLE, value.toString());					
-					temp = EquationColumnLib.cast(value, ClassReference); 
-					col.equation.value = 'getValueFromFilterColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+_plotter.filterDataType.value+',Number)';
-					col.resumeCallbacks();
-				}				
-				_plotter.validFilterData = true;
-				_plotter.columns.resumeCallbacks();
-				
+				filterValuesText.text = _plotter.filterValues.value;
 			}
 			
 			override protected function childrenCreated():void
@@ -564,14 +502,14 @@
 			<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
 				<mx:HBox>
 					<mx:Label text="Enter a list of filter column values"/>
-					<mx:TextInput id="filterValuesText" initialize="linkBindableProperty(_plotter.filterValues, filterValuesText, 'text')"
-								  toolTip="These values will appear on the x axis"/>
+					<mx:TextInput id="filterValuesText"  toolTip="These values will appear on the x axis"/>
 				</mx:HBox>
 				<mx:HBox>						
 					<mx:Label text="Filter datatypes:"/>
 					<mx:ComboBox id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"
 								 toolTip="dataType of the filter values"/>						
 				</mx:HBox>
+				<mx:Button label="Apply" click="_plotter.filterValues.value = filterValuesText.text"/>
 			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
