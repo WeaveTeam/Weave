@@ -39,6 +39,8 @@ package weave.visualization.plotters
 		{
 		}		
 		
+		private const convert:Number = (180/Math.PI);
+		
 		private function convertCoords():void
 		{
 			var xval:Number = x.value; 
@@ -49,7 +51,7 @@ package weave.visualization.plotters
 			var pi:Number = Math.PI;
 			polarRadians.value = Math.atan2(yval,xval);
 			if( polarRadians.value < 0 )
-				polarRadians.value += 2 * pi;			
+				polarRadians.value += 2 * pi;				
 		}
 	}
 }

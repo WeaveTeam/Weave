@@ -199,7 +199,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				screenBounds.projectPointTo(tempPoint, dataBounds);
 				
 				_probedAnchor.x.value = tempPoint.x;
-				_probedAnchor.y.value = tempPoint.y;				
+				_probedAnchor.y.value = tempPoint.y;	
+				
+				var theta:Number = _probedAnchor.polarRadians.value;
+				_probedAnchor.x.value = Math.cos(theta);
+				_probedAnchor.y.value = Math.sin(theta);			
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -303,14 +307,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								liveDragging="true"/>
 				</mx:HBox>
 			</mx:VBox>
-			<!--<mx:Spacer height="10"/>
+			<mx:Spacer height="10"/>
 			<userControls:ControlsSubsetBox>
 			<mx:Label text="Label angle" fontWeight="bold"/>
 			<mx:HSlider id="labelAngleSlider"
 			snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 			dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 			initialize="linkBindableProperty(_anchorPlotter.labelAngleRatio, labelAngleSlider, 'value')"/>
-			</userControls:ControlsSubsetBox>-->
+			</userControls:ControlsSubsetBox>
 			
 			
 		</mx:VBox>
