@@ -70,7 +70,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getEuclideanDistance()">getEuclideanDistance</a>(recordKeys:Array, column1:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, column2:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>):Number</div>
+<a class="signatureLink" href="#getEuclideanDistance()">getEuclideanDistance</a>(recordKeys:Array, column1:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, column2:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, keyNumberMap:Dictionary):Number</div>
 <div class="summaryTableDescription">[static] 
    </div>
 </td><td class="summaryTableOwnerCol">RadVizUtils</td>
@@ -240,7 +240,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getEuclideanDistance(recordKeys:Array, column1:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, column2:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>):Number</code><p> 
+<code>public static function getEuclideanDistance(recordKeys:Array, column1:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, column2:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, keyNumberMap:Dictionary):Number</code><p> 
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -261,13 +261,19 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">column2</span>:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a></code> &mdash; second IAttributeColumn
    </td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">keyNumberMap</span>:Dictionary</code> &mdash; key->column->value mapping to speed up computation
+   </td>
+</tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Number</code> &mdash; The euclidean distance between the two column parameters
-   
+<td width="20"></td><td><code>Number</code> &mdash; The euclidean distance between the two column parameters 
    </td>
 </tr>
 </table>
