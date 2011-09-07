@@ -486,30 +486,33 @@
 			<mx:CheckBox id="filterDataCheckBox" initialize="linkBindableProperty(_plotter.displayFilterColumn, filterDataCheckBox, 'selected')"
 						 label="Display filtered records"
 						 toolTip="Enable/disable filtering data by value under filter column"/>
-			<mx:VBox paddingLeft="20" borderStyle="solid">				
-				<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
-										   toolTip="Attribute used to filter data - its values will appear on the x axis"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-										   toolTip="Column containing data values shown on y axis. All columns must have the same keyType"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
-										   toolTip="Specify column to get keys from. All columns must have the same keyType"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
-										   toolTip="Attribute used for record label text. All columns must have the same keyType"/>
-			</mx:VBox>
-			<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the filter column keyType"
-					   click="updateLabelColumn()"/>
-			<mx:Button label="Customize filter values" id="customizeValuesBtn" toggle="true"/>
-			<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
-				<mx:HBox>
-					<mx:Label text="Enter a list of filter column values"/>
-					<mx:TextInput id="filterValuesText"  toolTip="These values will appear on the x axis"/>
-				</mx:HBox>
-				<mx:HBox>						
-					<mx:Label text="Filter datatypes:"/>
-					<mx:ComboBox id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"
-								 toolTip="dataType of the filter values"/>						
-				</mx:HBox>
-				<mx:Button label="Apply" click="_plotter.filterValues.value = filterValuesText.text"/>
+			<mx:VBox enabled="{filterDataCheckBox.selected}">
+				
+				<mx:VBox paddingLeft="20" borderStyle="solid">				
+					<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
+											   toolTip="Attribute used to filter data - its values will appear on the x axis"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+											   toolTip="Column containing data values shown on y axis. All columns must have the same keyType"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
+											   toolTip="Specify column to get keys from. All columns must have the same keyType"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
+											   toolTip="Attribute used for record label text. All columns must have the same keyType"/>
+				</mx:VBox>
+				<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the filter column keyType"
+						   click="updateLabelColumn()"/>
+				<mx:Button label="Customize filter values" id="customizeValuesBtn" toggle="true"/>
+				<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
+					<mx:HBox>
+						<mx:Label text="Enter a list of filter column values"/>
+						<mx:TextInput id="filterValuesText"  toolTip="These values will appear on the x axis"/>
+					</mx:HBox>
+					<mx:HBox>						
+						<mx:Label text="Filter datatypes:"/>
+						<mx:ComboBox id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"
+									 toolTip="dataType of the filter values"/>						
+					</mx:HBox>
+					<mx:Button label="Apply" click="_plotter.filterValues.value = filterValuesText.text"/>
+				</mx:VBox>
 			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
