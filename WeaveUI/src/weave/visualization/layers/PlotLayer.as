@@ -219,8 +219,9 @@ package weave.visualization.layers
 		private function spatialCallback():void
 		{
 			_spatialIndex.clear();
+			_spatialIndexDirty = true;
 		}
-
+		private var _spatialIndexDirty:Boolean = true;
 		/**
 		 *Sets the visibility of the layer 
 		 * 
@@ -241,16 +242,21 @@ package weave.visualization.layers
 			return _graphicsAreValid;
 		}
 
-		public function getSelectedKeys():Array
+		private function validateSpatialIndex():void
 		{
-			//validate spatial index if necessary
-			if (_spatialIndex.recordCount == 0)
+			if (_spatialIndexDirty)
 			{
 				//trace(this,"updating spatial index", CallbackCollection.getStackTrace());
 				_spatialIndex.createIndex(plotter, showMissingRecords);
 				//trace(this,"updated spatial index",spatialIndex.collectiveBounds);
+				_spatialIndexDirty = false;
 			}
-
+		}
+		public function getSelectedKeys():Array
+		{
+			//validate spatial index if necessary
+			validateSpatialIndex();
+			
 			var keys:Array;
 
 			// if a global filter is referenced and the keyType matches, use the keys from the global filter
@@ -296,8 +302,8 @@ package weave.visualization.layers
 		{
 			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && layerIsVisible.value;
 			//validate spatial index if necessary
-			if (shouldDraw && _spatialIndex.recordCount == 0)
-				_spatialIndex.createIndex(plotter, showMissingRecords);
+			if (shouldDraw)
+				validateSpatialIndex();
 
 			// draw background if this is not an overlay
 			if (!isOverlay.value && !PlotterUtils.bitmapDataIsEmpty(backgroundBitmap))
