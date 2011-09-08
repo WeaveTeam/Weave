@@ -227,8 +227,15 @@ public class SQLConfigUtils
 			
 			if (conn != null)
 			{
-				conn.releaseSavepoint(savePoint);
-				conn.setAutoCommit(true);
+				if (SQLUtils.isOracleServer(conn))
+				{
+					conn.setAutoCommit(true);
+				}
+				else
+				{
+					conn.releaseSavepoint(savePoint);
+					conn.setAutoCommit(true);					
+				}
 			}
 		}
 		catch (Exception e)

@@ -112,7 +112,7 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 				Y_MIN_BOUNDS, doubleType,
 				X_MAX_BOUNDS, doubleType,
 				Y_MAX_BOUNDS, doubleType,
-				TILE_ID, "BIGINT PRIMARY KEY",
+				TILE_ID, SQLUtils.getBigIntTypeString(conn) + " PRIMARY KEY",
 				TILE_DATA, SQLUtils.binarySQLType(dbms)
 		};
 		

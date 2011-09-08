@@ -1513,7 +1513,11 @@ public class AdminService extends GenericServlet
 					continue;
 				
 				query = generateColumnQuery(dbms, keyColumnName, secondaryKeyColumnName, sqlColumnNames.get(i), sqlSchema, sqlTable);
-				String testQuery = dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) ? query : (query + " LIMIT 1");
+				String testQuery = "";
+				if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) || dbms.equalsIgnoreCase(SQLUtils.ORACLESERVER))
+					testQuery = query;
+				else
+					testQuery = query + " LIMIT 1";
 				
 //				System.out.println("QUERY:\t" + testQuery);
 				stmt = conn.prepareStatement(testQuery);

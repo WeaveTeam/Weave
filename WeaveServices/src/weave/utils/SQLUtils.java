@@ -19,7 +19,12 @@
 
 package weave.utils;
 
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
@@ -50,12 +55,16 @@ import org.postgresql.PGConnection;
  * @author Andy Dufilie
  * @author Andrew Wilkinson
  * @author Kyle Monico
+ * @author Yen-Fu Luo
  */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
 	public static String POSTGRESQL = "PostGreSQL"; // NOTE: this should actually be PostgreSQL with a lower-case 'g'.  Thorough testing is required before changing this.
 	public static String SQLSERVER = "Microsoft SQL Server";
+	public static String ORACLESERVER = "Oracle";
+	
+	public static String ORACLE_SERIAL_TYPE = "ORACLE_SERIAL_TYPE"; // used internally in createTable(), not an actual valid type
 	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
@@ -69,6 +78,8 @@ public class SQLUtils
 			return "org.postgresql.Driver";
 		if (dbms.equalsIgnoreCase(SQLSERVER))
 			return "net.sourceforge.jtds.jdbc.Driver";
+		if (dbms.equalsIgnoreCase(ORACLESERVER))
+			return "oracle.jdbc.OracleDriver";
 		return "";
 	}
 
@@ -95,6 +106,11 @@ public class SQLUtils
 			dbms = "sqlserver"; // this will be put in the format string
 			format = "jdbc:jtds:%s://%s/;instance=%s;user=%s;password=%s";
 		}
+		else if (ORACLESERVER.equalsIgnoreCase(dbms))
+		{
+			format = "jdbc:%s:thin:%s/%s@//%s/%s";
+			//"jdbc:oracle:thin:<user>/<password>@//<host>:<port>/<instance>"
+		}
 		else // MySQL or PostGreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
@@ -118,8 +134,12 @@ public class SQLUtils
 			}
 		}
 		
-		String result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
-//		System.out.println(result);
+		String result = "";
+		if (dbms.equalsIgnoreCase(ORACLESERVER))
+			result = String.format(format, dbms.toLowerCase(), user, pass, host, database);
+		else
+			result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
+
 		return result;
 	}
 	
@@ -149,7 +169,10 @@ public class SQLUtils
 		try
 		{
 			// run test query to see if connection is valid
-			stmt = conn.prepareStatement("SELECT 0;");
+			if (SQLUtils.isOracleServer(conn))
+				stmt = conn.prepareStatement("SELECT 0 FROM DUAL");
+			else
+				stmt = conn.prepareStatement("SELECT 0;");
 			stmt.execute(); // this will throw an exception if the connection is invalid
 			result = true;
 		}
@@ -253,7 +276,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = "`";
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLESERVER))
 		{
 			openQuote = closeQuote = "\"";
 		}
@@ -295,7 +318,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = '`';
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLESERVER))
 		{
 			openQuote = closeQuote = '"';
 		}
@@ -388,7 +411,11 @@ public class SQLUtils
 	{
 		if (schema.length() == 0)
 			return quoteSymbol(conn, table);
-		return quoteSymbol(conn, schema) + "." + quoteSymbol(conn, table);
+		
+		if (SQLUtils.isOracleServer(conn))
+			return quoteSymbol(conn, schema).toUpperCase() + "." + quoteSymbol(conn, table);
+		else
+			return quoteSymbol(conn, schema) + "." + quoteSymbol(conn, table);
 	}
 
 	/**
@@ -735,8 +762,7 @@ public class SQLUtils
 	 * @return A List of schema names
 	 * @throws SQLException If the query fails.
 	 */
-	public static List<String> getSchemas(Connection conn)
-		throws SQLException
+	public static List<String> getSchemas(Connection conn) throws SQLException
 	{
 	    List<String> schemas = new Vector<String>();
 	    ResultSet rs = null;
@@ -792,6 +818,8 @@ public class SQLUtils
 			// MySQL uses "catalogs" instead of "schemas"
 			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
 				rs = md.getTables(schemaName, null, null, types);
+			else if (SQLUtils.isOracleServer(conn))
+				rs = md.getTables(null, schemaName.toUpperCase(), null, types);
 			else
 				rs = md.getTables(null, schemaName, null, types);
 			
@@ -812,6 +840,44 @@ public class SQLUtils
 			cleanup(rs);
 		}
 		return tables;
+	}
+	
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param schemaName A schema name accessible through the given connection
+	 * @return A List of sequence names in the given schema
+	 * @throws SQLException If the query fails.
+	 */
+	public static List<String> getSequences(Connection conn, String schemaName) throws SQLException
+		// For Oracle DB
+	{
+		List<String> sequences = new Vector<String>();
+		ResultSet rs = null;
+		try
+		{
+			DatabaseMetaData md = conn.getMetaData();
+			String[] types = new String[]{"SEQUENCE"};
+			
+			rs = md.getTables(null, schemaName.toUpperCase(), null, types);
+			
+			// use column index instead of name because sometimes the names are lower case, sometimes upper.
+			// column indices: 1=sequence_cat,2=sequence_schem,3=sequence_name,4=sequence_type,5=remarks
+			while (rs.next())
+				sequences.add(rs.getString(3)); // table_name
+			
+			Collections.sort(sequences, String.CASE_INSENSITIVE_ORDER);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+			// close everything in reverse order
+			cleanup(rs);
+		}
+		System.out.println(sequences);
+		return sequences;
 	}
 	
 	/**
@@ -899,22 +965,53 @@ public class SQLUtils
 		//if table exists return
 		if( tableExists(conn, schemaName, tableName) )
 			return;
+		
 		Statement stmt = null;
 		
 		String query = "CREATE TABLE " + 
 			quoteSchemaTable(conn, schemaName, tableName) + " ( ";
 		
+		int oraclePrimaryKeyColumn = -1;
 		for(int i = 0; i < columnNames.size(); i++)
 		{
 			if( i > 0 )
 				query += ", ";
-			query += quoteSymbol(conn, columnNames.get(i)) + " " + columnTypes.get(i);
+			String type = columnTypes.get(i);
+			if (ORACLE_SERIAL_TYPE.equals(type))
+			{
+				type = "integer not null";
+				oraclePrimaryKeyColumn = i;
+			}
+			query += quoteSymbol(conn, columnNames.get(i)) + " " + type;
 		}
-		query += ");";
+		
+		if (SQLUtils.isOracleServer(conn))
+			query += ")";
+		else
+			query += ");";
+		
 		try
 		{
 			stmt = conn.createStatement();
 			stmt.executeUpdate(query);
+			
+			if (oraclePrimaryKeyColumn >= 0)
+			{
+				// Create a sequence and trigger for each table?
+				//stmt.executeUpdate("create sequence " + schemaName + "_" + tableName + "_AUTOID start with 1 increment by 1");
+				// Identifier is too long
+				//stmt.executeUpdate("create trigger " + schemaName + "_" + tableName + "_IDTRIGGER before insert on " + tableName + " for each row begin select " + schemaName + "_" + tableName + "_AUTOID.nextval into :new.the_geom_id from dual; end;");
+				
+				if (sequenceExists(conn, schemaName, tableName + "_AUTOID"))
+				{
+					stmt.executeUpdate("drop sequence " + tableName + "_AUTOID");
+					stmt.executeUpdate("create sequence " + tableName + "_AUTOID start with 1 increment by 1");
+				}
+				else
+					stmt.executeUpdate("create sequence " + tableName + "_AUTOID start with 1 increment by 1");
+				
+				stmt.executeUpdate("create or replace trigger " + tableName + "_IDTRIGGER before insert on \"" + tableName + "\" for each row begin select " + tableName + "_AUTOID.nextval into :new.\"the_geom_id\" from dual; end;");
+			}
 		}
 		catch (SQLException e)
 		{
@@ -926,7 +1023,21 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-	
+	 
+	public static boolean isOracleServer(Connection conn)
+	{
+		boolean isOracle = false;
+		try
+		{
+			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(ORACLESERVER))
+				isOracle = true;
+			else
+				isOracle = false;
+		} catch (SQLException e) {e.printStackTrace();}
+
+		return isOracle;
+	}
+
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
@@ -1117,6 +1228,13 @@ public class SQLUtils
 		String query = "";
 		if (SQLSERVER.equalsIgnoreCase(dbms))
 			query = "IF OBJECT_ID('" + quotedTable + "','U') IS NOT NULL DROP TABLE " + quotedTable;
+		else if (ORACLESERVER.equalsIgnoreCase(dbms))
+		{
+			if (SQLUtils.tableExists(conn, schema, table))
+				query = "DROP TABLE " + quotedTable;
+			else
+				return;
+		}
 		else
 			query = "DROP TABLE IF EXISTS " + quotedTable;
 		
@@ -1185,7 +1303,7 @@ public class SQLUtils
 			return "`" + symbol + "`";
 		if (POSTGRESQL.equalsIgnoreCase(dbms))
 			return "\"" + symbol + "\"";
-		if (SQLSERVER.equalsIgnoreCase(dbms))
+		if (SQLSERVER.equalsIgnoreCase(dbms) || ORACLESERVER.equalsIgnoreCase(dbms))
 			return "'" + symbol + "'";
 		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 	}
@@ -1207,6 +1325,23 @@ public class SQLUtils
 		return false;
 	}
 	
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param schema The name of a schema to check in.
+	 * @param sequence The name of a sequence to check for.
+	 * @return true if the sequence exists in the specified schema.
+	 * @throws SQLException.
+	 */
+	public static boolean sequenceExists(Connection conn, String schema, String sequence)
+		throws SQLException
+	{
+		List<String> sequences = getSequences(conn, schema);
+		for (String existingSequence : sequences)
+			if (existingSequence.equalsIgnoreCase(sequence))
+				return true;
+		return false;
+	}
+	
 	public static void cleanup(ResultSet obj)
 	{
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
@@ -1224,7 +1359,7 @@ public class SQLUtils
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
 	}
 
-	public static String getVarcharTypeString(Connection conn, int length) 
+	public static String getVarcharTypeString(Connection conn, int length)
 	{
 		return String.format("VARCHAR(%s)", length);
 	}
@@ -1248,14 +1383,34 @@ public class SQLUtils
 		if (SQLSERVER.equalsIgnoreCase(dbms))
 			return "FLOAT"; // this is an 8 floating point type with 53 bits for the mantissa, the same as an 8 byte double.
 			                // but SQL Server's DOUBLE PRECISION type isn't standard
+		if (ORACLESERVER.equalsIgnoreCase(dbms))
+			return "FLOAT(24)";
+		
 		return "DOUBLE PRECISION";
 	}
-	public static String getBigIntTypeString(Connection conn) 
+	public static String getBigIntTypeString(Connection conn)
 	{
+		String dbms = "";
+		try
+		{
+			dbms = conn.getMetaData().getDatabaseProductName();
+		}
+		catch (Exception e)
+		{
+			// this should never happen
+			throw new RuntimeException(e);
+		}
+		
+		if (ORACLESERVER.equalsIgnoreCase(dbms))
+			return "NUMBER(19, 0)";
+		
 		return "BIGINT";
 	}
 	public static String getDateTimeTypeString(Connection conn)
 	{
+		if (isOracleServer(conn))
+			return "DATE";
+		
 		return "DATETIME";
 	}
 	
@@ -1275,6 +1430,27 @@ public class SQLUtils
 						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
 						formatted_CSV_path, quotedTable
 						));
+				stmt.close();
+			}
+			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLESERVER))
+			{
+				// Insert each row repeatedly
+				stmt = conn.createStatement();
+				
+				String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(formatted_CSV_path));
+				String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
+				String query = "";
+				for (int i = 1; i < rows.length; i++) //Skip header line
+				{
+					query = "insert into " + quotedTable + " values " + "(";
+					for (int j = 0; j < rows[i].length; j++)
+					{
+						query += SQLUtils.quoteString(conn, rows[i][j]) + ",";
+					}
+					query = query.substring(0, query.length()-1);
+					query += ")";
+					stmt.executeUpdate(query);
+				}
 				stmt.close();
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
@@ -1304,17 +1480,20 @@ public class SQLUtils
 		}
 	}
 	
-	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException 
+	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException
 	{
 		String dbms = conn.getMetaData().getDatabaseProductName();
 		if (SQLSERVER.equalsIgnoreCase(dbms))
 			return "BIGINT PRIMARY KEY IDENTITY";
 		
+		if (ORACLESERVER.equalsIgnoreCase(dbms))
+			return ORACLE_SERIAL_TYPE;
+		
 		// for mysql and postgresql, return the following.
 		return "SERIAL PRIMARY KEY";
 	}
 
-	public static String getCSVNullValue(Connection conn) 
+	public static String getCSVNullValue(Connection conn)
 	{
 		try
 		{
@@ -1322,7 +1501,7 @@ public class SQLUtils
 			
 			if (MYSQL.equalsIgnoreCase(dbms))
 				return "\\N";
-			else if (POSTGRESQL.equalsIgnoreCase(dbms) || SQLSERVER.equalsIgnoreCase(dbms))
+			else if (POSTGRESQL.equalsIgnoreCase(dbms) || SQLSERVER.equalsIgnoreCase(dbms) || ORACLESERVER.equalsIgnoreCase(dbms))
 				return ""; // empty string (no quotes)
 			else
 				throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
