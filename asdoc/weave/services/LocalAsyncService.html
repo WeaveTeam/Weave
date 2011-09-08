@@ -81,7 +81,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#receiveChunkedData()">receiveChunkedData</a>(commandID:String, chunkID:uint, chunkData:String, moreChunksFollow:Boolean):void</div>
+<a class="signatureLink" href="#receiveChunkedData()">receiveChunkedData</a>(commandID:String, chunkID:uint, chunkData:ByteArray, moreChunksFollow:Boolean):void</div>
 <div class="summaryTableDescription">
    This function gets called by the remote LocalAsyncService.</div>
 </td><td class="summaryTableOwnerCol">LocalAsyncService</td>
@@ -197,7 +197,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function receiveChunkedData(commandID:String, chunkID:uint, chunkData:String, moreChunksFollow:Boolean):void</code><p>
+<code>public function receiveChunkedData(commandID:String, chunkID:uint, chunkData:ByteArray, moreChunksFollow:Boolean):void</code><p>
    This function gets called by the remote LocalAsyncService.
    This function will receive a chunk of a serialized Array containing
    a name of a function of this class and a list of parameters.  When all
@@ -224,7 +224,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">chunkData</span>:String</code> &mdash; Part of a serialized list of parameters for the receiveCommand() function.
+<td width="20px"></td><td><code><span class="label">chunkData</span>:ByteArray</code> &mdash; Part of a serialized list of parameters for the receiveCommand() function.
    </td>
 </tr>
 <tr>

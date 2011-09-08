@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="ParallelCoordinatesPlotter,weave.visualization.plotters.ParallelCoordinatesPlotter,CURVE_AWAY,CURVE_DOUBLE,CURVE_NONE,CURVE_TOWARDS,EMPTY_CIRCLE,EMPTY_SQUARE,NO_SHAPE,SOLID_CIRCLE,SOLID_SQUARE,columns,curveType,lineStyle,normalize,shapeBorderColor,shapeBorderThickness,shapeSize,shapeToDraw,shapesAvailable,zoomToSubset,alphaColumn,addRecordGraphicsToTempShape,getBackgroundDataBounds,getDataBoundsFromRecordKey,getGeometriesFromRecordKey" name="keywords">
+<meta content="ParallelCoordinatesPlotter,weave.visualization.plotters.ParallelCoordinatesPlotter,CURVE_AWAY,CURVE_DOUBLE,CURVE_NONE,CURVE_TOWARDS,EMPTY_CIRCLE,EMPTY_SQUARE,NO_SHAPE,SOLID_CIRCLE,SOLID_SQUARE,columns,curveType,dataTypes,displayFilterColumn,filterColumn,filterDataType,filterValues,keyColumn,lineStyle,normalize,shapeBorderColor,shapeBorderThickness,shapeSize,shapeToDraw,shapesAvailable,yData,zoomToSubset,alphaColumn,addRecordGraphicsToTempShape,getBackgroundDataBounds,getDataBoundsFromRecordKey,getGeometriesFromRecordKey" name="keywords">
 <title>weave.visualization.plotters.ParallelCoordinatesPlotter</title>
 </head>
 <body>
@@ -67,6 +67,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#alphaColumn">alphaColumn</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
 <div class="summaryTableDescription">[read-only]</div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataTypes">dataTypes</a> : Array<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
 <tr class="hideInheritedProperty">
@@ -298,11 +302,36 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#displayFilterColumn">displayFilterColumn</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#EMPTY_CIRCLE">EMPTY_CIRCLE</a> : String = "Empty Circle"<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#EMPTY_SQUARE">EMPTY_SQUARE</a> : String = "Empty Square"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#filterColumn">filterColumn</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#filterDataType">filterDataType</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#filterValues">filterValues</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keyColumn">keyColumn</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
 <tr class="">
@@ -349,6 +378,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#SOLID_SQUARE">SOLID_SQUARE</a> : String = "Solid Square"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#yData">yData</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
 <tr class="">
@@ -411,6 +445,16 @@ showHideInherited();
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get alphaColumn():<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>
 <br>
+</div>
+<a name="dataTypes"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">dataTypes</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var dataTypes:Array</code>
+<p>This property can be used as the source for data binding.</p>
 </div>
 <a name="constructorDetail"></a>
 <div class="detailSectionHeader">Constructor detail</div>
@@ -585,6 +629,15 @@ showHideInherited();
 <div class="detailBody">
 <code>public const curveType:<a href="../../core/LinkableString.html">LinkableString</a></code>
 </div>
+<a name="displayFilterColumn"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">displayFilterColumn</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const displayFilterColumn:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
 <a name="EMPTY_CIRCLE"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -602,6 +655,42 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static const EMPTY_SQUARE:String = "Empty Square"</code>
+</div>
+<a name="filterColumn"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">filterColumn</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const filterColumn:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
+</div>
+<a name="filterDataType"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">filterDataType</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const filterDataType:<a href="../../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="filterValues"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">filterValues</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const filterValues:<a href="../../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="keyColumn"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">keyColumn</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const keyColumn:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
 </div>
 <a name="lineStyle"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -692,6 +781,15 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static const SOLID_SQUARE:String = "Solid Square"</code>
+</div>
+<a name="yData"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">yData</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const yData:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
 </div>
 <a name="zoomToSubset"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

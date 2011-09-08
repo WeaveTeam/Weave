@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="EquationColumnLib,weave.data.AttributeColumns.EquationColumnLib,QKey,currentRecordKey,applyColorRamp,cast,getBoolean,getKey,getNorm,getNumber,getReferencedColumn,getRunningTotal,getString,getValue,getValueFromKey,transformCoords" name="keywords">
+<meta content="EquationColumnLib,weave.data.AttributeColumns.EquationColumnLib,QKey,currentRecordKey,applyColorRamp,cast,getBoolean,getKey,getKeysFromValue,getNorm,getNumber,getReferencedColumn,getRunningTotal,getString,getValue,getValueFromFilterColumn,getValueFromKey,transformCoords" name="keywords">
 <title>weave.data.AttributeColumns.EquationColumnLib</title>
 </head>
 <body>
@@ -106,6 +106,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#getKeysFromValue()">getKeysFromValue</a>(column:<a href="DynamicColumn.html">DynamicColumn</a>, value:Object, dataType:* = null):Array</div>
+<div class="summaryTableDescription">[static]
+   This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
+   </div>
+</td><td class="summaryTableOwnerCol">EquationColumnLib</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#getNorm()">getNorm</a>(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a> = null):Number</div>
 <div class="summaryTableDescription">[static]
    This function uses currentRecordKey when retrieving a value from a column if no key is specified.</div>
@@ -149,6 +158,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#getValue()">getValue</a>(object:Object, dataType:* = null):*</div>
 <div class="summaryTableDescription">[static]
    This function uses currentRecordKey when retrieving a value from a column.</div>
+</td><td class="summaryTableOwnerCol">EquationColumnLib</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getValueFromFilterColumn()">getValueFromFilterColumn</a>(keyColumn:<a href="DynamicColumn.html">DynamicColumn</a>, filter:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, data:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, filterValue:Object, filterDataType:* = null, dataType:* = null):Object</div>
+<div class="summaryTableDescription">[static]
+   This function gets a value from a data column, using a filter column and a key column to filter the data
+   </div>
 </td><td class="summaryTableOwnerCol">EquationColumnLib</td>
 </tr>
 <tr class="">
@@ -320,6 +338,45 @@ showHideInherited();
    
                         
                      </td>
+</tr>
+</table>
+</div>
+<a name="getKeysFromValue()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getKeysFromValue</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getKeysFromValue(column:<a href="DynamicColumn.html">DynamicColumn</a>, value:Object, dataType:* = null):Array</code><p>
+   This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">column</span>:<a href="DynamicColumn.html">DynamicColumn</a></code> &mdash; An attribute column
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">value</span>:Object</code> &mdash; The value to look up
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">dataType</span>:*</code> (default = <code>null</code>)<code></code> &mdash; The class of the value parameter
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An array of record keys with the given value under the given column
+   </td>
 </tr>
 </table>
 </div>
@@ -500,6 +557,66 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>*</code> &mdash; The value of the object, optionally cast to the requested dataType.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getValueFromFilterColumn()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getValueFromFilterColumn</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getValueFromFilterColumn(keyColumn:<a href="DynamicColumn.html">DynamicColumn</a>, filter:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, data:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, filterValue:Object, filterDataType:* = null, dataType:* = null):Object</code><p>
+   This function gets a value from a data column, using a filter column and a key column to filter the data
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">keyColumn</span>:<a href="DynamicColumn.html">DynamicColumn</a></code> &mdash; An IAttributeColumn to get keys from
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">filter</span>:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code> &mdash; column to use to filter data (ex: year)
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">data</span>:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code> &mdash; An IAttributeColumn to get a value from
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">filterValue</span>:Object</code> &mdash; value in filtercolumn to use to filter data
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">filterDataType</span>:*</code> (default = <code>null</code>)<code></code> &mdash; Class object of the desired filter value type
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">dataType</span>:*</code> (default = <code>null</code>)<code></code> &mdash; Class object of the desired value type 
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Object</code> &mdash; the correct filtered value from the data column
    </td>
 </tr>
 </table>
