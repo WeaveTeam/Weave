@@ -130,6 +130,15 @@ package weave.visualization.plotters
 			if (binnedColumn == null)
 				return;
 			
+			// set up BitmapText
+			bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+			bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+			bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
+			bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
+			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
+			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+
 			// convert record keys to bin keys
 			// save a mapping of each bin key found to a value of true
 			var binIndexMap:Dictionary = new Dictionary();
@@ -143,6 +152,8 @@ package weave.visualization.plotters
 			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value, height - margin));
 			
 			// draw the bins
+			var g:Graphics = tempShape.graphics;
+			g.clear();
 			var binCount:int = binnedColumn.derivedBins.getObjects().length;
 			for (var binIndex:int = 0; binIndex < binCount; binIndex++)
 			{
@@ -172,27 +183,17 @@ package weave.visualization.plotters
 				destination.fillRect(tempRectangle, 0x02808080);
 				
 				// draw circle
-				var g:Graphics = tempShape.graphics;
-				g.clear();
 				lineStyle.beginLineStyle(null, g);
-				if (!isNaN(color))
+				if (color <= Infinity) // alternative is !isNaN()
 					g.beginFill(color, 1.0);
-				tempShape.graphics.drawCircle(margin + xMin + actualShapeSize / 2, y, actualShapeSize / 2);
-				destination.draw(tempShape);
+				g.drawCircle(margin + xMin + actualShapeSize / 2, y, actualShapeSize / 2);
 				
-				// set up BitmapText
-				bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-				bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
-				bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-				bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-				bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 				bitmapText.text = binnedColumn.deriveStringFromNumber(binIndex);
-				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 				bitmapText.x = xMin + actualShapeSize + margin * 2;
 				bitmapText.y = y;
 				bitmapText.draw(destination);
 			}
+			destination.draw(tempShape);
 		}
 		
 		// reusable temporary objects

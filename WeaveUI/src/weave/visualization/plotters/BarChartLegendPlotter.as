@@ -106,6 +106,18 @@ package weave.visualization.plotters
 		private var _legendBoxSize:Number = 0.4;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			// set up BitmapText
+			bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+			bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+			bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
+			bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
+			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
+			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+			
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+				
 			var margin:int = 4;
 			
 			// get height of record graphics
@@ -132,10 +144,8 @@ package weave.visualization.plotters
 				var yMax:Number = tempPoint.y;
 				
 				// draw circle
-				var g:Graphics = tempShape.graphics;
-				g.clear();
 				lineStyle.beginLineStyle(null, g);
-				if (!isNaN(color))
+				if (color <= Infinity) // alternative to !isNaN()
 					g.beginFill(color, 1.0);
 				tempShape.graphics.drawRect(
 						xMin,
@@ -143,21 +153,14 @@ package weave.visualization.plotters
 						actualShapeSize,
 						yMax - yMin
 					);
-				destination.draw(tempShape);
-				
-				// set up BitmapText
-				bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-				bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
-				bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-				bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-				bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+
 				bitmapText.text = ColumnUtils.getTitle(columnObjects[i]);
-				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 				bitmapText.x = xMin + actualShapeSize + margin;
 				bitmapText.y = (yMin + yMax) / 2;
 				bitmapText.draw(destination);
 			}
+			
+			destination.draw(tempShape);
 		}
 	}
 }
