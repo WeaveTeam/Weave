@@ -27,6 +27,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
@@ -56,7 +57,8 @@
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
-			public var _plotter:ParallelCoordinatesPlotter = null;
+			[Bindable]
+			private var _plotter:ParallelCoordinatesPlotter = null;
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -279,6 +281,27 @@
 				yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
+				
+				if (_plotter.displayFilterColumn.value)
+				{
+					xAxisLayer.axisPlotter.setSideAxisName(
+						ColumnUtils.getTitle(_plotter.filterColumn), 
+						0,
+						0, visualization.marginBottom.value - 3, 
+						BitmapText.VERTICAL_ALIGN_BOTTOM
+					);
+					yAxisLayer.axisPlotter.setSideAxisName(
+						ColumnUtils.getTitle(_plotter.yData), 
+						-90, 
+						-visualization.marginLeft.value, 0, 
+						BitmapText.VERTICAL_ALIGN_TOP
+					);
+				}
+				else
+				{
+					xAxisLayer.axisPlotter.setSideAxisName('', 0, 0, 0, '');
+					yAxisLayer.axisPlotter.setSideAxisName('', 0, 0, 0, '');
+				}
 
 				yAxisLayer.axisPlotter.updateLabels();			
 			}
@@ -294,14 +317,25 @@
 						return;
 					}
 					
-					var newTitle:String = "Line Chart of ";
-					for (var i:int = 0; i < columns.length; i++)
+					if (_plotter.displayFilterColumn.value)
 					{
-						if (i > 0)
-							newTitle += ', ';
-						newTitle += ColumnUtils.getTitle(columns[i]);
+						title = StringUtil.substitute(
+							"Line Chart of {0} by {1}",
+							ColumnUtils.getTitle(_plotter.yData),
+							ColumnUtils.getTitle(_plotter.filterColumn)
+						);
 					}
-					title = newTitle;
+					else
+					{
+						var newTitle:String = "Line Chart of ";
+						for (var i:int = 0; i < columns.length; i++)
+						{
+							if (i > 0)
+								newTitle += ', ';
+							newTitle += ColumnUtils.getTitle(columns[i]);
+						}
+						title = newTitle;
+					}
 				}
 			}
 			
@@ -502,10 +536,8 @@
 						   click="updateLabelColumn()"/>
 				<mx:Button label="Customize filter values" id="customizeValuesBtn" toggle="true"/>
 				<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
-					<mx:HBox>
-						<mx:Label text="Enter a list of filter column values"/>
-						<mx:TextInput id="filterValuesText"  toolTip="These values will appear on the x axis"/>
-					</mx:HBox>
+					<mx:Label text="Enter a list of filter column values:"/>
+					<mx:TextInput id="filterValuesText"  toolTip="These values will appear on the x axis"/>
 					<mx:HBox>						
 						<mx:Label text="Filter datatypes:"/>
 						<mx:ComboBox id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"
