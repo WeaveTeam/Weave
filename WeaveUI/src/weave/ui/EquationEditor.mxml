@@ -180,14 +180,14 @@ EquationEditor
 				EventUtils.addDelayedCallback(textEditor,Event.CHANGE,handleEqChange);
 				equationColumn.equation.addImmediateCallback(this,handleEquationChange);
 
-				
-				if (dynamicColumn.globalName == null)
-					dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
-				
-				this.targets = [equationColumn];
+				//POSSIBLE ERROR IN CONFLICT RESOLUTION
+//				if (dynamicColumn.globalName == null)
+//					dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
+//				
+//				this.targets = [equationColumn];
 
 				
-//				dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
+				dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
 
 			}
 			
