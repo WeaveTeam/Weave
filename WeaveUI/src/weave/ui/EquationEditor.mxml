@@ -179,7 +179,7 @@ EquationEditor
 				textEditor.text = equationColumn.equation.value;
 				EventUtils.addDelayedCallback(textEditor,Event.CHANGE,handleEqChange);
 				equationColumn.equation.addImmediateCallback(this,handleEquationChange);
-<<<<<<< HEAD
+
 
 				//POSSIBLE ERROR IN CONFLICT RESOLUTION
 //				if (dynamicColumn.globalName == null)
@@ -190,10 +190,7 @@ EquationEditor
 				
 				dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
 
-=======
-				
-				dynamicColumn.requestGlobalObject(Weave.root.generateUniqueName("EquationEditorColumn"), EquationColumn, false);
->>>>>>> 5e12e9b20e2d2b2c7bac84d8ae5ed9900e941902
+
 			}
 			
 			public const dynamicColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(EquationColumn), handleGlobalColumnChange);
