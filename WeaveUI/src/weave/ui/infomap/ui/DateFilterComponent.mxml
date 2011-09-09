@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DraggablePanel
+	xmlns="weave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	title="Date Filter"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	width="30%"
+	height="40%"
+	layout="absolute"
+	alpha="0.8">
+	<mx:VBox paddingLeft="5">
+		<mx:Label text="Choose an option from Combo Box" fontWeight="bold"/>
+		<mx:ComboBox change="handleComboBoxChange()" id="rangeComboBox"/> <!--The Combo Box is not linked to the filterObject-->
+		<mx:Label text="Or Select Range from calendar" fontWeight="bold"/>
+		<mx:HBox>
+			<mx:VBox>
+			<mx:Label fontWeight="normal" text="Start Date"/>				
+			<mx:DateChooser id="startRange" change="handleStartDateChange()" selectedDate="{_startDate}" showToday="false"/>
+			</mx:VBox>
+			<mx:VBox>
+			<mx:Label fontWeight="normal" text="End Date"/>
+			<mx:DateChooser id="endRange" change="handleEndDateChange()" selectedDate="{_endDate}" showToday="false"/>
+				
+			</mx:VBox>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Button label="Close" click="this.removePanel()"/>
+			<mx:Button label="Clear Dates" click="handleClearDates()"/>
+		</mx:HBox>
+		<mx:Script>
+			<![CDATA[
+				import mx.formatters.DateFormatter;
+				import mx.managers.PopUpManager;
+				
+				import weave.api.linkBindableProperty;
+				import weave.ui.infomap.core.DateRangeFilter;
+				import weave.ui.infomap.utils.DateUtils;
+				
+				override protected function childrenCreated():void
+				{
+					rangeComboBox.dataProvider = ['--Choose--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
+				}
+				
+				private static var _instance:DateFilterComponent = null;
+				private static var _filterObject:DateRangeFilter;
+				
+				[Bindable]
+				private static var _startDate:Date = null;
+				[Bindable]
+				private static var _endDate:Date = null;
+				
+				
+				/**
+				 * Call this function to Popup an instance of the DateFilterComponent
+				 * @param parentObj The object making the call. This is required by the PopupManager.createPopUp
+				 * @param dateFilterObject The DateRangeFilterObject whose dates will be modified by this component
+				 * **/
+				public static function openInstance(parentObj:DisplayObject,dateFilterObject:DateRangeFilter):void
+				{
+					
+					_filterObject = dateFilterObject;
+					
+					//take the dateFilterObject parameter and if their date values are set display the values on the DateChoosers
+					var sDateStr:String = _filterObject.startDate.value;
+					var eDateStr:String = _filterObject.endDate.value;
+					if(sDateStr != '' && sDateStr  != null)
+					{
+						_startDate = DateUtils.getDateFromString(sDateStr);
+					}
+					
+					if(eDateStr != '' && eDateStr != null)
+					{
+						_endDate = DateUtils.getDateFromString(eDateStr);
+					}
+					
+					
+					if(_instance)
+						PopUpManager.addPopUp(_instance,parentObj);
+					else
+						_instance = PopUpManager.createPopUp(parentObj,DateFilterComponent) as DateFilterComponent;
+					
+				}
+				
+				
+				private function handleComboBoxChange():void
+				{
+					
+					_filterObject.endDate.value = 'NOW';
+					if(rangeComboBox.selectedItem == 'Since Last 1 Day')
+					{
+						_filterObject.startDate.value = 'NOW-01DAY';
+					}else if(rangeComboBox.selectedItem == 'Since Last 3 Days')
+					{
+						_filterObject.startDate.value = 'NOW-03DAYS';
+					}else if(rangeComboBox.selectedItem == 'Since Last Week')
+					{
+						_filterObject.startDate.value = 'NOW-07DAYS';
+					}else if(rangeComboBox.selectedItem == 'Since Last Month')
+					{
+						_filterObject.startDate.value = 'NOW-01MONTH';
+					}else if(rangeComboBox.selectedItem == 'Since Last Year')
+					{
+						_filterObject.startDate.value = 'NOW-12MONTHS';
+					}
+					
+					//setting the calculated dates to the DateChoosers
+					_endDate = DateUtils.getDateFromString(_filterObject.endDate.value);
+					_startDate = DateUtils.getDateFromString(_filterObject.startDate.value);
+				}
+				
+				private function handleStartDateChange():void
+				{
+					_filterObject.startDate.value = startRange.selectedDate.toDateString();
+				}
+
+				private function handleEndDateChange():void
+				{
+					_filterObject.endDate.value = endRange.selectedDate.toDateString();
+				}
+				
+				private function handleClearDates():void
+				{
+					//clearning dates in filterObject
+					_filterObject.endDate.value = '';
+					_filterObject.startDate.value = '';
+					
+					//clearing dates on DateChoosers
+					_endDate = null;
+					_startDate = null;
+					startRange.selectedDate = null;
+					endRange.selectedDate = null;
+					startRange.invalidateDisplayList();
+					endRange.invalidateDisplayList();
+				}
+			]]>
+		</mx:Script>
+	</mx:VBox>
+</DraggablePanel>

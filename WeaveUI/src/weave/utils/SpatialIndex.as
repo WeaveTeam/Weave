@@ -139,7 +139,7 @@ package weave.utils
 				
 				// make a copy of the keys vector
 				VectorUtils.copy(plotter.keySet.keys, _keysArray);
-
+				trace("Checking **************");
 				// save dataBounds for each key
 				i = _keysArray.length;
 				while (--i > -1)

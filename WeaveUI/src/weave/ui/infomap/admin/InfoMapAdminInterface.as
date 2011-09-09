@@ -1,4 +1,4 @@
-package weave.ui.infomap
+package weave.ui.infomap.admin
 {
 		import flash.utils.ByteArray;
 		import flash.utils.Dictionary;
@@ -21,7 +21,7 @@ package weave.ui.infomap
 			public static function get instance():InfoMapAdminInterface
 			{
 				if (_thisInstance == null)
-					_thisInstance = new InfoMapAdminInterface("http://localhost:8080/InfoMapServices");
+					_thisInstance = new InfoMapAdminInterface("/InfoMapServices");
 				return _thisInstance;
 			}
 			

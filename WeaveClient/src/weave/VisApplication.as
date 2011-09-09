@@ -130,7 +130,7 @@ package weave
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
 	import weave.ui.infomap.InfoMapLoader;
-	import weave.ui.infomap.InfoMapPanel;
+	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.ui.settings.GlobalUISettings;
 	import weave.ui.settings.InteractivitySubMenu;
 	import weave.utils.BitmapUtils;

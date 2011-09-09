@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This component is used for handling node operations.
+It has a text area which diplays the keywords.
+It has 4 icons to:
+	Close/Delete the node
+	Edit the keyword
+	Search within the node.
+	Filter by Date
+	Info to provide a tooltip describing the node (like number of documents found)
+
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	  mouseOver="handleMouseOver()"		   
+	  mouseOut="handleMouseOut()"
+	  autoLayout="false" horizontalAlign="center">
+	<mx:HBox horizontalAlign="center">
+		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
+		<mx:Image id="editImg" source="@Embed(source='/weave/resources/images/editButton.png')"/>
+		<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/search_icon.gif')"/>
+		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/filter.png')"/>
+		<mx:Image id="infoImg" source="@Embed(source='/weave/resources/images/probe.png')"/>
+		
+	</mx:HBox>	
+	<mx:TextArea id="keywordTextArea" borderThickness="0"/>
+	<mx:Script>
+		<![CDATA[
+			
+		override protected function childrenCreated():void
+		{
+			keywordTextArea.editable = false;
+			keywordTextArea.selectable = false;
+			keywordTextArea.minWidth = 20;
+			keywordTextArea.verticalScrollPolicy = "off";
+			
+			infoImg.width = 12;
+			infoImg.height = 12;
+			infoImg.visible = false;
+			infoImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			closeImg.toolTip = "Remove this node";
+			closeImg.width = 12;
+			closeImg.height = 12;
+			closeImg.visible = false;
+			closeImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			editImg.toolTip = "Edit keywords";
+			editImg.width = 12;
+			editImg.height = 12;
+			editImg.visible = false;
+			editImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			searchImg.toolTip = "Search";
+			searchImg.width = 12;
+			searchImg.height = 12;
+			searchImg.visible = false;
+			searchImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			filterImg.toolTip = "Filter";
+			filterImg.width = 12;
+			filterImg.height = 12;
+			filterImg.visible = false;
+			filterImg.buttonMode = true; //you need this for click event to work on an image!
+		}
+		private function handleMouseOver():void
+		{
+			
+		}
+		
+		private function handleMouseOut():void
+		{
+			
+		}
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

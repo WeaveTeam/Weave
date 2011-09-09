@@ -10,6 +10,7 @@ package weave.ui.infomap
 	import weave.Weave;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.utils.ProbeTextUtils;
 
 	public class InfoMapLoader

@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		   mouseOver="handleMouseOver()"		   
+		   mouseOut="handleMouseOut()"
+		   implements="weave.api.core.ILinkableObject"
+		   cacheAsBitmap="false"
+		   clipContent="false"
+		   autoLayout="false">
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.events.MouseEvent;
+			import flash.geom.Point;
+			import flash.net.URLRequest;
+			import flash.net.navigateToURL;
+			import flash.utils.Dictionary;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.controls.Label;
+			import mx.controls.Text;
+			import mx.controls.TextArea;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.CursorManager;
+			import mx.managers.PopUpManager;
+			import mx.managers.PopUpManagerChildList;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.disposeObjects;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.StageUtils;
+			import weave.core.UIUtils;
+			import weave.ui.infomap.core.DateRangeFilter;
+			import weave.ui.infomap.core.FilterableInfoMapNode;
+			import weave.ui.infomap.core.InfoMapDocument;
+			import weave.ui.infomap.core.InfoMapNode;
+			import weave.ui.infomap.core.SelectableInfoMapDocument;
+			import weave.ui.infomap.ui.DateFilterComponent;
+			import weave.ui.infomap.ui.DocThumbnailComponent;
+			import weave.ui.infomap.ui.DocumentSummaryComponent;
+			import weave.ui.infomap.ui.InfoMapPanel;
+			import weave.ui.infomap.ui.NodeControlComponent;
+			import weave.ui.infomap.utils.DateUtils;
+			import weave.utils.BitmapUtils;
+			import weave.utils.CustomCursorManager;
+			
+			public const node:FilterableInfoMapNode = newLinkableChild(this,FilterableInfoMapNode);
+			
+			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject);
+			
+			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+			
+			private var loader:URLLoader = null;
+			
+			//we override the x,y value because we are binding the values to LinkableNumber 
+			//which could be NaN when component loads for the first time
+			override public function set x(value:Number):void
+			{
+				if(parent)
+					super.x = isNaN(value)?parent.width/2:value;
+				else
+					super.x=value
+			}
+			
+			override public function set y(value:Number):void
+			{
+				if(parent)
+					super.y = isNaN(value)?parent.height/2:value;
+				else
+					super.y=value
+						
+			}
+			
+			private var _parentPanel:InfoMapPanel;
+			override protected function childrenCreated():void
+			{
+				
+				this.addChild(nodeControl);
+
+				node.keywords.addGroupedCallback(this,createAndSendQuery,true);
+				node.operator.addGroupedCallback(this,createAndSendQuery,true);
+				node.numberOfDocs.addGroupedCallback(this,createAndSendQuery,true);
+				
+				
+				//for now defaulting to Radial Layout
+				layout.requestLocalObject(RadialLayout,false);
+				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
+				
+				
+				nodeControl.closeImg.addEventListener(MouseEvent.CLICK,remove);
+				nodeControl.editImg.addEventListener(MouseEvent.CLICK,edit);
+				nodeControl.searchImg.addEventListener(MouseEvent.CLICK,search);
+				nodeControl.filterImg.addEventListener(MouseEvent.CLICK,filter);
+				
+				//drag and drop of the node will be use the text area as the handler/anchor point
+				nodeControl.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
+				nodeControl.keywordTextArea.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
+				
+				
+				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
+				
+				//sessioning the x and y positions of this node
+				linkBindableProperty(xPos,this,"x");
+				linkBindableProperty(yPos,this,"y");
+				
+				
+				UIUtils.linkDisplayObjects(this,thumbnails,true);
+				
+				//sets a pointer to the node's parent which is an InfoMapPanel
+				var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableObjectOwner(this) as LinkableHashMap;
+				_parentPanel = WeaveAPI.SessionManager.getLinkableObjectOwner(hashmap) as InfoMapPanel;
+				
+				_parentPanel.globalSearchKeyword.addImmediateCallback(this,handleGlobalSearch);
+				
+			}
+			
+			public var nodeControl:NodeControlComponent = new NodeControlComponent();
+			
+			/**
+			 * @private
+			 * This functions creates a query based on the keywords,operator and filters applied and sends a request to the Solr server
+			 **/
+			private function createAndSendQuery():void
+			{
+				
+				thumbnails.removeAllObjects();
+				
+				nodeControl.keywordTextArea.text = node.keywords.value;
+				nodeControl.keywordTextArea.toolTip = node.keywords.value;
+				
+				if (this.parent == null)
+				{
+					StageUtils.callLater(this,createAndSendQuery);
+					return;
+				}
+				
+				this.invalidateDisplayList();
+				
+				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows="+node.numberOfDocs.value.toString()+"&indent=on&q=";	
+				var query:String = "";
+				query = (node.keywords.value as String);				
+				
+				//if query is emtpy do nothing
+				if(query=="")
+					return;
+				
+				
+				var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
+				
+				//after removing the empty strings we check to see if it is a single or empty word.
+				//if it is not a single word we add the operator between each keyword
+				//spliting the keywords at the spaces. 
+				if(temp.length != 0 || temp.length != 1)
+					query = temp.join(" "+node.operator.value+" ");
+				
+				//applying date filters if set
+				if(node.dateFilter.endDate.value && node.dateFilter.startDate.value )
+				{
+					if(node.dateFilter.startDate.value != '' && node.dateFilter.endDate.value != '')
+					{
+						
+						var sDate:Date = DateUtils.getDateFromString(node.dateFilter.startDate.value);
+						var eDate:Date = DateUtils.getDateFromString(node.dateFilter.endDate.value);
+						
+						
+						//Solr requires the date format to be ISO 8601 Standard Compliant
+						//It should be in the form: 1995-12-31T23:59:59Z 
+						var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
+						
+						//For start date we append 00:00:00 to set time to start of the day
+						sStr = sStr + 'T00:00:00Z';
+						
+						var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
+						
+						//For end date we append 23:59:59 to set time to end of day
+						eStr = eStr + 'T23:59:59Z';
+						
+						query += "&fq=date_published:["+sStr+" TO "+eStr + "]";
+					}
+				}
+				
+				//creating and sending the query to the Solr server
+				var url:String = solrURL + query;
+				loader = new URLLoader();
+				var request:URLRequest = new URLRequest(url);
+				loader.addEventListener(Event.COMPLETE, xmlLoadCompleteHandler);
+				loader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
+				loader.load(request);
+			}
+			
+			
+			private function handleRequestError(event:Event):void
+			{
+				Alert.show("There was an error in your request. Please make sure your keywords are separated by commas.","Error");
+			}
+				
+			
+			private function xmlLoadCompleteHandler(event:Event):void {
+				// checks to avoid null point error
+				if(loader){
+					// checks for data presence
+					if(loader.data){
+						var xml:XML = new XML(loader.data);
+						parseSolrResponse(xml);
+					}
+				}
+				
+			}
+			
+			
+			private function parseSolrResponse(result:XML):void
+			{
+				
+				var response:ArrayCollection = new ArrayCollection();
+				var docObject:SelectableInfoMapDocument;
+				for each(var doc:XML in result.result.doc)
+				{
+					
+					var link:String = doc.str.(@name=="link").text().toXMLString();
+					var linkLen:int = link.length;
+					var linkExtension:String = link.substring(linkLen-3,linkLen);
+					var imgExtension:String = ".jpg"
+						
+//					currently disabled pdf files for cleaner results and testing purposes 
+//					if(linkExtension == "pdf"){
+////						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+////						imgExtension = ".png";
+//					}
+//					if(link.substring(linkLen-3,linkLen-1) == "doc"){
+//						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+//						imgExtension = ".png";
+//					}
+
+					if(linkExtension != 'pdf')
+					{
+						//each document retrived is added to the docs map in the parent infomap panel
+						docObject = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);					
+						docObject.url.value = link;
+						docObject.title.value = doc.str.(@name=="title").text().toXMLString();
+						//TODO:right now limiting to 500 characters. Need to change this later to a better solution
+						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,500);
+						docObject.date.value = doc.date.text().toXMLString();
+						docObject.imageURL.value = "http://129.63.8.219:8080/infomap/thumbnails/"+  doc.str.(@name=="imgName").text().toXMLString() + imgExtension;					
+						response.addItem(link);
+					}
+				}
+				handleParsedResult(response);
+			}
+			
+
+			private	var docPreview:DocumentSummaryComponent = null;
+			
+			private var thumbnailSize:int = 50;
+			
+			/**
+			 * @private
+			 * This function takes an array collection of links and requests a thumbnail object to display the document object
+			 * for each of the corresponding links.
+			 * If the thumbnail object is already there then we use the replace its doc object with the latest doc object. 
+			 **/
+			private function handleParsedResult(response:ArrayCollection):void
+			{
+				
+				var obj:SelectableInfoMapDocument;
+				for(var i:int; i<response.length ;i++)
+				{
+					var link:String = response[i] as String;					
+					obj = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);
+					var thumbnail:DocThumbnailComponent = new DocThumbnailComponent();
+					
+					//if the thumbnail already exists use previous x,y values
+					if(thumbnails.getObject(link))
+					{
+						thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
+						
+						//we replace the doc object because, the summary, description might have changed. 
+						thumbnail.doc = obj as SelectableInfoMapDocument;
+						continue;
+					}
+					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
+					
+					thumbnail.doc = obj as SelectableInfoMapDocument;
+				
+				}
+				
+				//we now have all the required thumbnails, so we use the layout to plot them
+				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails();
+				
+			}
+			
+			private function handleMouseOver():void
+			{
+				nodeControl.closeImg.visible = true;
+				nodeControl.editImg.visible = true;
+				nodeControl.searchImg.visible = true;
+				nodeControl.filterImg.visible = true;
+			}
+			
+			
+			private function handleMouseOut():void
+			{
+				nodeControl.closeImg.visible = false;
+				nodeControl.editImg.visible = false;
+				nodeControl.searchImg.visible = false;
+				nodeControl.filterImg.visible = false;
+			}
+			
+			
+			protected function canvas1_mouseDownHandler(event:MouseEvent):void
+			{
+				
+				applyKeywords();
+				nodeControl.keywordTextArea.setStyle("fontWeight","bold");
+				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
+				this.startDrag();
+			}
+			
+			protected function canvas1_mouseUpHandler(event:MouseEvent):void
+			{
+				nodeControl.keywordTextArea.setStyle("fontWeight","normal");
+				CustomCursorManager.removeCurrentCursor();
+				this.stopDrag();
+			}
+			
+			
+			
+			private function handleKeywordChange(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					applyKeywords();
+				}
+			}
+			
+			
+			private function applyKeywords():void
+			{
+				// we take the focus back from the keyword text area and assign it back to the node handler
+				stage.focus = this;
+				nodeControl.keywordTextArea.editable = false;
+				nodeControl.keywordTextArea.selectable = false;
+				node.keywords.value = nodeControl.keywordTextArea.text;
+				toggleEdit = false;
+			}
+			
+			
+			
+			
+			private function filter(event:Event):void
+			{
+				DateFilterComponent.openInstance(this,node.dateFilter);
+			}
+			
+			
+			private var toggleEdit:Boolean = false;
+			private function edit(event:Event):void
+			{
+				if(toggleEdit)
+				{
+					toggleEdit = false;
+					stage.focus = this;
+					nodeControl.keywordTextArea.editable = false;
+					nodeControl.keywordTextArea.selectable = false;
+					return;
+				}
+				
+				toggleEdit = true;
+				nodeControl.keywordTextArea.editable = true;
+				nodeControl.keywordTextArea.selectable = true;
+				nodeControl.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,handleKeywordChange,true);
+				nodeControl.keywordTextArea.setSelection(nodeControl.keywordTextArea.text.length,nodeControl.keywordTextArea.text.length);
+				nodeControl.keywordTextArea.setFocus();
+			}
+			
+			
+			private function remove(event:Event):void //doesn't work if you decalre this as Mouse Event. 
+			{
+				thumbnails.removeAllObjects();
+				var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableObjectOwner(this) as ILinkableHashMap);
+				var nodeName:String  = parent.getName(this);
+				parent.removeObject(nodeName);
+			}
+			
+			private var searchText:TextArea = new TextArea();
+			
+			//this flag is used to toggle the search text area. 
+			private var toggleSearch:Boolean = false;
+			private function search(event:Event):void
+			{
+				if(toggleSearch)
+				{
+					this.removeChild(searchText);
+					toggleSearch = false;
+					return;
+				}
+				toggleSearch = true;
+				searchText.x = (event.currentTarget as Image).x + 20;
+				searchText.y = (event.currentTarget as Image).y - 10;
+				searchText.width = 100;
+				searchText.height = 20;
+				searchText.addEventListener(KeyboardEvent.KEY_UP,handleSearch);
+				searchText.text = node.searchFilter.value;
+				searchText.toolTip = 'Hit Enter or Esc to close this text box';
+				this.addChild(searchText);
+				searchText.setFocus();
+			}
+			
+			
+			private function handleSearch(event:KeyboardEvent):void
+			{
+					if(event.keyCode == Keyboard.ENTER  || event.keyCode == Keyboard.ESCAPE)
+					{
+						this.removeChild(searchText);
+						toggleSearch = false;
+						return;
+					}
+					node.searchFilter.value = searchText.text;
+			}
+			
+			private function handleGlobalSearch():void
+			{
+				node.searchFilter.value = _parentPanel.globalSearchKeyword.value;
+			}
+			private function removeEmptyStringElementsFromArray(arg:Array):Array
+			{
+				var result:Array = [];
+				for each(var item:String in arg)
+				{
+					if(item != "")
+						result.push(item);
+				}
+				
+				return result;
+			}
+			
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

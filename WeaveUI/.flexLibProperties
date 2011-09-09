@@ -293,7 +293,6 @@
     <classEntry path="weave.ui.editors.WeaveDataSourceEditor"/>
     <classEntry path="weave.ui.editors.XLSDataSourceEditor"/>
     <classEntry path="weave.ui.infomap.InfoMapLoader"/>
-    <classEntry path="weave.ui.infomap.InfoMapPanel"/>
     <classEntry path="weave.ui.infomap.SolrPreview"/>
     <classEntry path="weave.ui.probing.ProbeBox"/>
     <classEntry path="weave.ui.probing.WeaveProbeTemplate"/>
@@ -407,7 +406,18 @@
     <classEntry path="weave.visualization.tools.ThermometerTool"/>
     <classEntry path="weave.visualization.tools.TimeSliderTool"/>
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
-    <classEntry path="weave.ui.infomap.InfoMapAdminInterface"/>
+    <classEntry path="weave.ui.infomap.core.InfoMapDocument"/>
+    <classEntry path="weave.ui.infomap.core.IInfoMapDocument"/>
+    <classEntry path="weave.ui.infomap.core.SelectableInfoMapDocument"/>
+    <classEntry path="weave.ui.infomap.utils.DateUtils"/>
+    <classEntry path="weave.ui.infomap.ui.DateFilterComponent"/>
+    <classEntry path="weave.ui.infomap.core.IInfoMapNode"/>
+    <classEntry path="weave.ui.infomap.core.InfoMapNode"/>
+    <classEntry path="weave.ui.infomap.core.FilterableInfoMapNode"/>
+    <classEntry path="weave.ui.infomap.layout.IInfoMapNodeLayout"/>
+    <classEntry path="weave.ui.infomap.ui.NodeControlComponent"/>
+    <classEntry path="weave.ui.infomap.layout.RadialLayout"/>
+    <classEntry path="weave.ui.infomap.layout.CascadeLayout"/>
   </includeClasses>
 >>>>>>> Node hover for InfoMap UI is Updated and flickering is removed
   <includeResources/>
