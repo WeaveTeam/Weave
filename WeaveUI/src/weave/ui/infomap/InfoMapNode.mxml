@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		   mouseUp="canvas1_mouseUpHandler(event)" 
+		   mouseDown="canvas1_mouseDownHandler(event)"
+		   mouseOver="handleMouseOver()"
+		   mouseOut="handleMouseOut()"
+		   implements="weave.api.core.ILinkableObject"
+		   cacheAsBitmap="false"
+		   clipContent="false"
+		   autoLayout="false">
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.events.MouseEvent;
+			import flash.geom.Point;
+			import flash.net.URLRequest;
+			import flash.net.navigateToURL;
+			import flash.utils.Dictionary;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.controls.Label;
+			import mx.controls.Text;
+			import mx.controls.TextArea;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.CursorManager;
+			import mx.managers.PopUpManager;
+			import mx.managers.PopUpManagerChildList;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.StageUtils;
+			import weave.utils.BitmapUtils;
+			import weave.utils.CustomCursorManager;
+			
+			public const keywords:LinkableString = newLinkableChild(this,LinkableString,createAndSendQuery,true);
+			public const operator:LinkableString = newLinkableChild(this,LinkableString,createAndSendQuery,true);
+			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			private var loader:URLLoader = null;
+			
+			[@Embed(source='/weave/resources/images/cancel.png')]
+			private var _closeIcon:Class;
+			private	var closeImg:Image = new Image();
+
+			[@Embed(source='/weave/resources/images/pencil.png')]
+			private var _editImage:Class;
+			private var editImg:Image = new Image();
+			
+			[@Embed(source='/weave/resources/images/no-image.gif')]
+			private var _noImage:Class;
+			
+			private const radius:int = 100;
+			
+			//we override the x,y value because we are binding the values to LinkableNumber 
+			//which could be NaN when component loads for the first time
+			override public function set x(value:Number):void
+			{
+				if(parent)
+					super.x = isNaN(value)?parent.width/2:value;
+				else
+					super.x=value
+			}
+			
+			override public function set y(value:Number):void
+			{
+				if(parent)
+					super.y = isNaN(value)?parent.height/2:value;
+				else
+					super.y=value
+						
+			}
+			override protected function childrenCreated():void
+			{
+				graphics.lineStyle(0,0,0);
+				graphics.beginFill(0,0);
+				graphics.drawCircle(0,0,radius);
+				
+				linkBindableProperty(xPos,this,"x");
+				linkBindableProperty(yPos,this,"y");
+			}
+			
+			private function createAndSendQuery():void
+			{
+				
+				
+				this.removeAllChildren();
+				solrObjMap = new Dictionary();
+				if (this.parent == null)
+				{
+					StageUtils.callLater(this,createAndSendQuery);
+					return;
+				}
+				
+				
+				keywordTextArea.text = keywords.value;
+				keywordTextArea.toolTip = keywords.value;
+				keywordTextArea.editable = false;
+				keywordTextArea.setStyle("borderStyle","none");
+				keywordTextArea.selectable = false;
+				keywordTextArea.minWidth = radius * 2;
+				keywordTextArea.percentWidth = 100;
+				keywordTextArea.x = -radius;
+				keywordTextArea.setStyle("textAlign","center");
+				keywordTextArea.verticalScrollPolicy = "off";
+				this.addChild(keywordTextArea);
+				
+				
+				closeImg.toolTip = "Remove this node";
+				closeImg.source = _closeIcon;
+				closeImg.x = -40;
+				closeImg.y = -30;
+				closeImg.width = 10;
+				closeImg.height = 10;
+				closeImg.visible = false;
+				closeImg.buttonMode = true; //you need this for click event to work!
+				closeImg.addEventListener(MouseEvent.CLICK,remove);
+				this.addChild(closeImg);
+				
+				editImg.toolTip = "Edit keywords";
+				editImg.source = _editImage;
+				editImg.x = -30;
+				editImg.y = -30;
+				editImg.width = 10;
+				editImg.height = 10;
+				editImg.visible = false;
+				editImg.buttonMode = true; //you need this for click event to work!
+				editImg.addEventListener(MouseEvent.CLICK,edit);
+				this.addChild(editImg);
+				
+				
+				
+				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=50&indent=on&q=";	
+				var query:String = "";
+				query = (keywords.value as String);				
+				if(query=="")
+					return;
+				
+				var temp:Array = removeEmptyStringElementsFromArray(query.split(","));	
+				if(temp.length != 0 || temp.length != 1)
+					query = temp.join(" "+operator.value+" ");
+				
+				var url:String = solrURL + query;
+				loader = new URLLoader();
+				var request:URLRequest = new URLRequest(url);
+				loader.addEventListener(Event.COMPLETE, xmlLoadCompleteHandler);
+				loader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
+				loader.load(request);
+				
+				
+			}
+			
+			private function handleRequestError(event:Event):void
+			{
+				Alert.show("There was an error in your request. Please make sure your keywords are separated by commas.","Error");
+			}
+				
+			
+			private function xmlLoadCompleteHandler(event:Event):void {
+				// checks to avoid null point error
+				if(loader){
+					// checks for data presence
+					if(loader.data){
+						var xml:XML = new XML(loader.data);
+						parseResultsfromXML(xml);
+					}
+				}
+				
+			}
+			
+			[Bindable]
+			private var response:ArrayCollection = null;
+			
+			private function parseResultsfromXML(result:XML):void{
+				
+				response = new ArrayCollection();
+				for each(var doc:XML in result.result.doc)
+				{
+					
+					var docObject:Object = new Object();					
+					var link:String = doc.str.(@name=="link").text().toXMLString();
+					var linkLen:int = link.length;
+					var linkExtension:String = link.substring(linkLen-3,linkLen);
+					var imgExtension:String = ".jpg"
+					if(linkExtension == "pdf"){
+						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+						imgExtension = ".png";
+					}
+					if(link.substring(linkLen-3,linkLen-1) == "doc"){
+						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+						imgExtension = ".png";
+					}
+					
+					docObject.title = doc.str.(@name=="title").text().toXMLString();
+					docObject.link = link;
+					docObject.description = doc.str.(@name=="description").text().toXMLString();
+					docObject.datePub = doc.str.(@name=="date_published").text().toXMLString();
+					docObject.imgName = "http://129.63.8.219:8080/infomap/thumbnails/"+  doc.str.(@name=="imgName").text().toXMLString() + imgExtension;					
+					response.addItem(docObject);
+				}
+				drawNode();
+			}
+			
+			
+			
+			
+			
+			
+			public var solrObjMap:Dictionary = new Dictionary();
+			
+
+			private	var keywordTextArea:TextArea = new TextArea();
+			
+			
+			private	var docPreview:DocumentSummaryComponent = null;
+			
+			private var thumbnailSize:int = 50;
+			private function drawNode():void
+			{
+				var centerPoint:Point = new Point(0,0);
+				var location:Array = getNPointsOnCircle(centerPoint,radius,response.length);	
+				for(var i:int; i<response.length ;i++){
+					var obj:Object = response[i] as Object;					
+					var img:Image = new Image();
+					img.name = String(i);
+					WeaveAPI.URLRequestUtils.getContent(new URLRequest(obj.imgName),handleImage,handleNoImage,img);
+					img.setStyle("horizontalAlign","center");
+					img.width = thumbnailSize;
+					img.height = thumbnailSize;
+					img.alpha = 0.75;
+					img.mouseChildren = false;
+					img.doubleClickEnabled = true;
+					img.addEventListener(MouseEvent.DOUBLE_CLICK,openLink);
+					var imgPosition:Point = location[i] as Point;
+					img.addEventListener(MouseEvent.ROLL_OVER,showDocSummary);
+					img.addEventListener(MouseEvent.ROLL_OUT,removeDocSummary);
+					this.addChild(img);
+					img.y = imgPosition.y-(thumbnailSize/2);			
+					img.x = imgPosition.x-(thumbnailSize/2);
+					solrObjMap[img] = obj;
+				}	
+				
+				
+			}
+			
+			private function handleImage(event:ResultEvent,token:Object=null):void
+			{
+				(token as Image).source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,50,50));
+			}
+			
+			private function handleNoImage(event:FaultEvent,token:Object=null):void
+			{
+				(token as Image).source = _noImage;
+			}
+			
+			private function showDocSummary(event:MouseEvent):void
+			{
+				docPreview = new DocumentSummaryComponent();
+				var thumbnail:Image = (event.target as Image);
+				var doc:Object = solrObjMap[thumbnail];
+				docPreview.data = doc;
+				docPreview.move(event.stageX + 15,event.stageY + 15);
+				PopUpManager.addPopUp(docPreview,thumbnail);
+			}
+			
+			private function removeDocSummary(event:Event):void
+			{
+				PopUpManager.removePopUp(docPreview);
+			}
+			
+			private function handleMouseOver():void
+			{
+				closeImg.visible = true;
+				editImg.visible = true;
+			}
+			
+			
+			private function handleMouseOut():void
+			{
+				closeImg.visible = false;
+				editImg.visible = false;
+			}
+			
+			
+			protected function canvas1_mouseDownHandler(event:MouseEvent):void
+			{
+				
+				applyKeywords();
+				keywordTextArea.setStyle("fontWeight","bold");
+				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
+				this.startDrag();
+			}
+			
+			protected function canvas1_mouseUpHandler(event:MouseEvent):void
+			{
+				keywordTextArea.setStyle("fontWeight","normal");
+				CustomCursorManager.removeCurrentCursor();
+				this.stopDrag();
+			}
+			
+			private function openLink(event:MouseEvent):void
+			{
+				var img:Image = event.currentTarget as Image;
+				navigateToURL(new URLRequest((response[img.name] as Object).link)) ;
+			}
+			
+			private function getNPointsOnCircle( center:Point, radius:Number, n:Number = 10 ) : Array
+			{				
+				var alpha:Number = Math.PI * 2 / n;
+				var points:Array = new Array( n );				
+				var i:int = -1;
+				while( ++i < n )				{
+					var theta:Number = alpha * i;
+					var pointOnCircle:Point = new Point( Math.cos( theta ) * radius, Math.sin( theta ) * radius );
+					points[ i ] = center.add( pointOnCircle );
+				}				
+				return points;				
+			}
+			
+			private function handleKeywordChange(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					applyKeywords();
+				}
+			}
+			
+			
+			private function applyKeywords():void
+			{
+				stage.focus = this;
+				keywordTextArea.editable = false;
+				keywordTextArea.selectable = false;
+				keywords.value = keywordTextArea.text;
+			}
+			
+			private function edit(event:Event):void
+			{
+				keywordTextArea.editable = true;
+				keywordTextArea.selectable = true;
+				keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,handleKeywordChange,true);
+				keywordTextArea.setSelection(keywordTextArea.text.length,keywordTextArea.text.length);
+				keywordTextArea.setFocus();
+			}
+			
+			//don't decalre this as Mouse Event
+			private function remove(event:Event):void
+			{
+				var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableObjectOwner(this) as ILinkableHashMap);
+				var nodeName:String  = parent.getName(this);
+				parent.removeObject(nodeName);
+			}
+			
+			private function removeEmptyStringElementsFromArray(arg:Array):Array
+			{
+				var result:Array = [];
+				for each(var item:String in arg)
+				{
+					if(item != "")
+						result.push(item);
+				}
+				
+				return result;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	
+	
+</mx:Canvas>

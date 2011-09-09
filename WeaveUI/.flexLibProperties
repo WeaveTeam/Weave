@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5e12e9b20e2d2b2c7bac84d8ae5ed9900e941902
 <flexLibProperties includeAllClasses="true" version="3">
   <includeClasses>
     <classEntry path="MXClasses"/>
@@ -80,6 +83,7 @@
     <classEntry path="weave.ui.editors.WFSDataSourceEditor"/>
     <classEntry path="weave.ui.editors.WeaveDataSourceEditor"/>
     <classEntry path="weave.ui.editors.XLSDataSourceEditor"/>
+<<<<<<< HEAD
     <classEntry path="weave.ui.probing.ProbeBox"/>
     <classEntry path="weave.ui.probing.WeaveProbeTemplate"/>
     <classEntry path="weave.ui.settings.AppearancesSubMenu"/>
@@ -293,6 +297,10 @@
     <classEntry path="weave.ui.editors.WeaveDataSourceEditor"/>
     <classEntry path="weave.ui.editors.XLSDataSourceEditor"/>
     <classEntry path="weave.ui.infomap.InfoMapLoader"/>
+=======
+    <classEntry path="weave.ui.infomap.InfoMapLoader"/>
+    <classEntry path="weave.ui.infomap.InfoMapPanel"/>
+>>>>>>> 5e12e9b20e2d2b2c7bac84d8ae5ed9900e941902
     <classEntry path="weave.ui.infomap.SolrPreview"/>
     <classEntry path="weave.ui.probing.ProbeBox"/>
     <classEntry path="weave.ui.probing.WeaveProbeTemplate"/>
@@ -406,6 +414,7 @@
     <classEntry path="weave.visualization.tools.ThermometerTool"/>
     <classEntry path="weave.visualization.tools.TimeSliderTool"/>
     <classEntry path="weave.visualization.tools.WeaveWordleTool"/>
+<<<<<<< HEAD
     <classEntry path="weave.ui.infomap.core.InfoMapDocument"/>
     <classEntry path="weave.ui.infomap.core.IInfoMapDocument"/>
     <classEntry path="weave.ui.infomap.core.SelectableInfoMapDocument"/>
@@ -420,6 +429,10 @@
     <classEntry path="weave.ui.infomap.layout.CascadeLayout"/>
   </includeClasses>
 >>>>>>> Node hover for InfoMap UI is Updated and flickering is removed
+=======
+    <classEntry path="weave.ui.infomap.InfoMapAdminInterface"/>
+  </includeClasses>
+>>>>>>> 5e12e9b20e2d2b2c7bac84d8ae5ed9900e941902
   <includeResources/>
   <namespaceManifests/>
 </flexLibProperties>

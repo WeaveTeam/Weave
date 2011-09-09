@@ -131,7 +131,6 @@ package weave
 	import weave.ui.editors.EditDataSourceComponent;
 	import weave.ui.infomap.InfoMapLoader;
 	import weave.ui.infomap.ui.InfoMapPanel;
-	import weave.ui.settings.GlobalUISettings;
 	import weave.ui.settings.InteractivitySubMenu;
 	import weave.utils.BitmapUtils;
 	import weave.utils.CSSUtils;
@@ -1532,9 +1531,6 @@ package weave
 				}
 				
 				SessionedTextBox.createContextMenuItems(this);
-				
-				PenTool.createContextMenuItems(this);
-					
 
 				
 					
@@ -1543,6 +1539,20 @@ package weave
 					InfoMapLoader.createContextMenuItems(this);
 				}
 
+				
+				PenTool.createContextMenuItems(this);
+					
+
+<<<<<<< HEAD
+				
+					
+				if(Weave.properties.enableInfoMap.value)
+				{
+					InfoMapLoader.createContextMenuItems(this);
+				}
+
+=======
+>>>>>>> 5e12e9b20e2d2b2c7bac84d8ae5ed9900e941902
 				//HelpPanel.createContextMenuItems(this);
 				if (Weave.properties.dataInfoURL.value)
 					addLinkContextMenuItem("Show Information About This Dataset...", Weave.properties.dataInfoURL.value);
