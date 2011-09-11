@@ -117,7 +117,7 @@
 			import weave.utils.NumberUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			public static var showRollOverBorders:Boolean;
+			public static var showRollOverBorders:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
 			
 			public static const CIRCULAR_MINIMIZE_EFFECT:String  = "CIRCULAR_MINIMIZE_EFFECT";

@@ -325,7 +325,7 @@ package weave
 		private var _flashVars:Object;
 		private function getFlashVarConnectionName():String
 		{
-			return _flashVars['connectionName'] as String;
+			return _flashVars['adminSession'] as String;
 		}
 
 		/**
@@ -546,12 +546,11 @@ package weave
 			ExternalInterface.call("window.close()");
 		}
 
-		public static var showBorders:Boolean ;
 		private function toggleMenuBar():void
 		{
+			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
 			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
 			{
-				DraggablePanel.showRollOverBorders = true;
 				if (!_weaveMenu)
 				{
 					_weaveMenu = new WeaveMenuBar();
@@ -572,7 +571,6 @@ package weave
 			// otherwise there is no menu bar, (which normally includes the oiclogopane, so add one to replace it)
 			else
 			{
-				DraggablePanel.showRollOverBorders = false;
 				try
 				{
 		   			if (_weaveMenu && _applicationVBox == _weaveMenu.parent)
