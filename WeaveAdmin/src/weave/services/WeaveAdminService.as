@@ -19,6 +19,7 @@
 
 package weave.services
 {
+	import flash.display.Stage;
 	import flash.utils.ByteArray;
 	
 	import mx.controls.Alert;
@@ -28,6 +29,7 @@ package weave.services
 	
 	import weave.api.services.IAsyncService;
 	import weave.core.CallbackCollection;
+	import weave.core.StageUtils;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.GeometryCollectionInfo;
 	
@@ -308,18 +310,24 @@ package weave.services
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("importCSV", arguments);
 		    query.addAsyncResponder(alertResult);
+			var resultWrapper:Function = function(...args):void { AdminInterface.instance.getDataTableNames(); }
+			query.addAsyncResponder(resultWrapper);
 		    return query;
 		}
 		public function addConfigDataTableFromDatabase(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String, configDataTableName:String, configOverwrite:Boolean, geometryCollectionName:String, keyType:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("addConfigDataTableFromDatabase", arguments);
 		    query.addAsyncResponder(alertResult);
+			var resultWrapper:Function = function(...args):void { AdminInterface.instance.getDataTableNames(); }
+			query.addAsyncResponder(resultWrapper);
 		    return query;
 		}
 		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("convertShapefileToSQLStream", arguments);
 		    query.addAsyncResponder(alertResult);
+			var resultWrapper:Function = function(...args):void { AdminInterface.instance.getGeometryCollectionNames(); }
+			query.addAsyncResponder(resultWrapper);
 		    return query;
 		}
 		

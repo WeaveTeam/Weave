@@ -430,8 +430,6 @@ package weave.services
 
 
 
-
-		
 		public function getKeyTypes():void
 		{
 			keyTypes = [];
