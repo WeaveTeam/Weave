@@ -338,7 +338,7 @@ RTextEditor
 									var dataVec:Vector.<String> = new Vector.<String>();
 									VectorUtils.copy(keys, keyVec);
 									VectorUtils.copy(Robj[p].value, dataVec);
-									testStringColumn.updateRecords(keyVec, dataVec, true);
+									testStringColumn.setRecords(keyVec, dataVec);
 									if (keys.length > 0)
 										testStringColumn.weave_internal::metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
 									testStringColumn.weave_internal::metadata.@name = RresultArray[p].name;

@@ -22,7 +22,6 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.IStreamedColumn;
 	import weave.primitives.GeneralizedGeometry;
 	
 	/**
@@ -31,7 +30,7 @@ package weave.data.AttributeColumns
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryColumn extends AbstractAttributeColumn implements IStreamedColumn
+	public class GeometryColumn extends AbstractAttributeColumn
 	{
 		public function GeometryColumn(metadata:XML = null)
 		{
@@ -74,12 +73,6 @@ package weave.data.AttributeColumns
 			return _keyToGeometryArrayMapping[key] != undefined;
 		}
 
-		private var _keysLastUpdated:Array = new Array();		
-		public function get keysLastUpdated():Array
-		{
-			return _keysLastUpdated;
-		}
-
 		public function setGeometries(keys:Vector.<IQualifiedKey>, geometries:Vector.<GeneralizedGeometry>):void
 		{
 			if (_geometryVector.length > 0)
@@ -109,7 +102,6 @@ package weave.data.AttributeColumns
 				{
 					_keyToGeometryArrayMapping[key] = [geom];
 					_uniqueKeys[uniqueKeyIndex] = key; // remember unique keys
-					_keysLastUpdated[uniqueKeyIndex] = key;
 					uniqueKeyIndex++;
 				}
 				else
@@ -118,14 +110,9 @@ package weave.data.AttributeColumns
 			}
 			// trim vectors to new sizes
 			_geometryVector.length = geometries.length;
-			_keysLastUpdated.length = uniqueKeyIndex;
 			_uniqueKeys.length = uniqueKeyIndex;
 			
-			// run callbacks while keysLastUpdated is set
 			triggerCallbacks();
-
-			// clear keys last updated
-			_keysLastUpdated.length = 0;
 		}
 
 		/**

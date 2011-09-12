@@ -417,12 +417,12 @@ package weave.data.DataSources
 				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
 					newColumn = new NumberColumn(hierarchyNode);
-					(newColumn as NumberColumn).updateRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<Number>()));
+					(newColumn as NumberColumn).setRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<Number>()));
 				}
 				else
 				{
 					newColumn = new StringColumn(hierarchyNode);
-					(newColumn as StringColumn).updateRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<String>()), true);
+					(newColumn as StringColumn).setRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<String>()));
 				}
 				// save pointer to new column inside the matching proxy column
 				proxyColumn.internalColumn = newColumn;

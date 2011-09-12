@@ -23,6 +23,7 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.UntypedLinkableVariable;
+	import weave.utils.EquationColumnLib;
 	
 	/**
 	 * AlwaysDefinedColumn

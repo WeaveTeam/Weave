@@ -36,7 +36,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.EquationColumnLib;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ObjectPool;

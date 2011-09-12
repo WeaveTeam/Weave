@@ -251,13 +251,13 @@ package weave.data.DataSources
 				{
 					newColumn = new NumberColumn(hierarchyNode);
 					dataVector = VectorUtils.copyXMLListToVector(dataList, new Vector.<Number>());
-					(newColumn as NumberColumn).updateRecords(keysVector, dataVector);
+					(newColumn as NumberColumn).setRecords(keysVector, dataVector);
 				}
 				else
 				{
 					newColumn = new StringColumn(hierarchyNode);
 					dataVector = VectorUtils.copyXMLListToVector(dataList, new Vector.<String>());
-					(newColumn as StringColumn).updateRecords(keysVector, dataVector, true);
+					(newColumn as StringColumn).setRecords(keysVector, dataVector);
 				}
 				// save pointer to new column inside the matching proxy column
 				proxyColumn.internalColumn = newColumn;

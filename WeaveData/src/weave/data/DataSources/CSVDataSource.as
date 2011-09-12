@@ -237,14 +237,14 @@ package weave.data.DataSources
 				}
 
 				newColumn = new NumberColumn(leafNode);
-				(newColumn as NumberColumn).updateRecords(keysVector, numericVector);
+				(newColumn as NumberColumn).setRecords(keysVector, numericVector);
 			}
 			else
 			{
 				var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
 
 				newColumn = new StringColumn(leafNode);
-				(newColumn as StringColumn).updateRecords(keysVector, stringVector, true);
+				(newColumn as StringColumn).setRecords(keysVector, stringVector);
 			}
 			proxyColumn.internalColumn = newColumn;
 			_columnToReferenceMap[proxyColumn] = columnReference;

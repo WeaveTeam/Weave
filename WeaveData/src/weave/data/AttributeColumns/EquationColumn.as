@@ -40,6 +40,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.core.UntypedLinkableVariable;
 	import weave.data.QKeyManager;
+	import weave.utils.EquationColumnLib;
 	
 	/**
 	 * This is a column of data derived from an equation with variables.
@@ -50,7 +51,14 @@ package weave.data.AttributeColumns
 	{
 		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
-			compiler.includeLibraries(WeaveAPI, WeaveAPI.CSVParser, WeaveAPI.StatisticsCache, WeaveAPI.AttributeColumnCache, WeaveAPI.QKeyManager, EquationColumnLib);
+			compiler.includeLibraries(
+				WeaveAPI,
+				WeaveAPI.CSVParser,
+				WeaveAPI.StatisticsCache,
+				WeaveAPI.AttributeColumnCache,
+				WeaveAPI.QKeyManager,
+				EquationColumnLib
+			);
 			compiler.includeConstant("IQualifiedKey", IQualifiedKey);
 		} /** end static code block **/
 		

@@ -24,6 +24,7 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.data.KeySets.FilteredKeySet;
+	import weave.utils.EquationColumnLib;
 	
 	/**
 	 * FilteredColumn

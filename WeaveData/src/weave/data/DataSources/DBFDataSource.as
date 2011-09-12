@@ -229,12 +229,12 @@ package weave.data.DataSources
 				if (isNumericColumn)
 				{
 					newColumn = new NumberColumn(leafNode);
-					(newColumn as NumberColumn).updateRecords(keysVector, Vector.<Number>(dbfDataColumn));
+					(newColumn as NumberColumn).setRecords(keysVector, Vector.<Number>(dbfDataColumn));
 				}
 				else
 				{
 					newColumn = new StringColumn(leafNode);
-					(newColumn as StringColumn).updateRecords(keysVector, Vector.<String>(dbfDataColumn), true);
+					(newColumn as StringColumn).setRecords(keysVector, Vector.<String>(dbfDataColumn));
 				}
 			}
 

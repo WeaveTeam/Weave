@@ -447,13 +447,13 @@ package weave.data.DataSources
 				else if (ObjectUtil.stringCompare(result.dataType, DataTypes.NUMBER, true) == 0)
 				{
 					var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
-					newNumericColumn.updateRecords(keysVector, Vector.<Number>(result.data));
+					newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
 					proxyColumn.internalColumn = newNumericColumn;
 				}
 				else
 				{
 					var newStringColumn:StringColumn = new StringColumn(hierarchyNode);
-					newStringColumn.updateRecords(keysVector, Vector.<String>(result.data), true);
+					newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
 					proxyColumn.internalColumn = newStringColumn;
 				}
 				//trace("column downloaded: ",proxyColumn);

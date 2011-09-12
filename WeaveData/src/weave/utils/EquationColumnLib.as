@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.data.AttributeColumns
+package weave.utils
 {
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
@@ -32,6 +32,8 @@ package weave.data.AttributeColumns
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.StatisticsCache;
 	import weave.primitives.ColorRamp;
 	import weave.utils.ColumnUtils;

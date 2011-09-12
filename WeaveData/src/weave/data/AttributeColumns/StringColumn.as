@@ -29,7 +29,6 @@ package weave.data.AttributeColumns
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.IStreamedColumn;
 	import weave.core.weave_internal;
 	import weave.utils.VectorUtils;
 	
@@ -38,7 +37,7 @@ package weave.data.AttributeColumns
 	 * 
 	 * @author adufilie
 	 */
-	public class StringColumn extends AbstractAttributeColumn implements IStreamedColumn, IPrimitiveColumn
+	public class StringColumn extends AbstractAttributeColumn implements IPrimitiveColumn
 	{
 		public function StringColumn(metadata:XML = null)
 		{
@@ -73,10 +72,6 @@ package weave.data.AttributeColumns
 		 * Derived from the record data, this is a list of all existing values in the dimension, each appearing once, sorted alphabetically.
 		 */
 		private var _uniqueStrings:Vector.<String> = new Vector.<String>();
-//		public function get uniqueStrings():Vector.<String>
-//		{
-//			return _uniqueStrings;
-//		}
 
 		/**
 		 * This maps keys to index values in the _uniqueStrings vector.
@@ -84,45 +79,7 @@ package weave.data.AttributeColumns
 		 */
 		private var _keyToUniqueStringIndexMapping:Dictionary = new Dictionary();
 		
-		private var _keysLastUpdated:Array = new Array();
-		public function get keysLastUpdated():Array
-		{
-			return _keysLastUpdated;
-		}
-
-		/**
-		 * removeRecords
-		 * This function may be removed later.
-		 * Keep this function private until it is needed.
-		 */
-		private function removeRecords(keysToRemove:Array):void
-		{
-			var key:Object;
-			
-			// create temporary Dictionary mapping key to its boolean include status
-			var remainingKeys:Dictionary = new Dictionary();
-			for each (key in _uniqueKeys)
-				remainingKeys[key] = true;
-			for each (key in keysToRemove)
-				remainingKeys[key] = false;
-			
-			// save record keys and data in new vector
-			var recordKeys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-			var recordData:Vector.<String> = new Vector.<String>();
-			for (key in remainingKeys)
-			{
-				if (remainingKeys[key] == undefined || !(remainingKeys[key] as Boolean))
-					continue;
-				recordKeys.push(key as IQualifiedKey);
-				recordData.push(_uniqueStrings[_keyToUniqueStringIndexMapping[key] as int] as String);
-			}
-			
-			// replace existing column data with the new subset
-			// everything needs to be updated because uniqueString indices are now invalid
-			updateRecords(recordKeys, recordData, true);
-		}
-
-		public function updateRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>, clearExistingRecords:Boolean):void
+		public function setRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>, clearExistingRecords:Boolean = true):void
 		{
 			if (keys.length > stringData.length)
 			{
@@ -145,29 +102,24 @@ package weave.data.AttributeColumns
 			{
 				dataMap[keys[i]] = String(stringData[i]);
 			}
-			replaceRecordDataWithDataMap(dataMap);
+			setRecordMap(dataMap);
 		}
 		
 		/**
-		 * replaceRecordDataWithDataMap
 		 * This function replaces all the data in the column using the given dataMap (key -> data).
 		 * @param dataMap A Dictionary mapping keys to record data.
 		 */
-		private function replaceRecordDataWithDataMap(dataMap:Dictionary):void
+		private function setRecordMap(dataMap:Dictionary):void
 		{
 			var key:Object;
 			var index:int;
 
-			// save current key-to-data mapping as a list of keys that changed			
-			var keysThatChanged:Dictionary = _keyToUniqueStringIndexMapping;
 			_keyToUniqueStringIndexMapping = new Dictionary();
 			
 			// save a list of data values
 			index = 0;
 			for (key in dataMap)
 			{
-				// remember that this key changed
-				keysThatChanged[key] = true;
 				// save key
 				_uniqueKeys[index] = key;
 				// save data value
@@ -189,17 +141,7 @@ package weave.data.AttributeColumns
 			for (key in dataMap)
 				_keyToUniqueStringIndexMapping[key] = stringToIndexMap[dataMap[key] as String];
 
-			// update _keysLastUpdated
-			index = 0;
-			for (key in keysThatChanged)
-				_keysLastUpdated[index++] = key;
-			_keysLastUpdated.length = index; // trim to new size
-			
-			// run callbacks while keysLastUpdated is set
 			triggerCallbacks();
-			
-			// clear keys last updated
-			_keysLastUpdated.length = 0;
 		}
 		
 		// find the closest string value at a given normalized value

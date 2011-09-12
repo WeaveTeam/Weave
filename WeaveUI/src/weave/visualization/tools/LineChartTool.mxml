@@ -43,7 +43,6 @@
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
-			import weave.data.AttributeColumns.EquationColumnLib;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;

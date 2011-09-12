@@ -43,11 +43,11 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
-	import weave.data.AttributeColumns.EquationColumnLib;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
+	import weave.utils.EquationColumnLib;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	
 	/**	
