@@ -178,7 +178,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updateTitle():void
 			{
 				if (toolTitle.value == null)
-					title = "Ramachandran Plot of " + rpToolTitle;
+					title = "Ramachandran Plot " + rpToolTitle;
 			}
 			
 			private function updateAxisLabels():void
