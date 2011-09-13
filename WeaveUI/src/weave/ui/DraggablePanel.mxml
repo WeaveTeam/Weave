@@ -245,7 +245,7 @@
 				helpButton.label = "?";
 				setupControlButton(helpButton, null, MouseEvent.CLICK, toggleHelpPanel, "Click here to show help on how to use this component.");
 				
-				setupControlButton(userControlButton, _userControlIcon, MouseEvent.CLICK, toggleUserControlPanel, "Click here to change settings for this component.");
+				setupControlButton(userControlButton, _userControlIcon, MouseEvent.CLICK, toggleControlPanel, "Click here to change settings for this component.");
 				
 				setupControlButton(closePanelButton, null, MouseEvent.CLICK, handleCloseButtonClick, "Click here to close this component.");
 				closePanelButton.label = "X";
@@ -1421,7 +1421,7 @@
 					_helpPanel.sendWindowToForeground();
 				}
 			}
-			protected function toggleUserControlPanel():void
+			protected function toggleControlPanel():void
 			{
 				if (_controlPanel)
 				{

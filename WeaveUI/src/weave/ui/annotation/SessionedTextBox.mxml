@@ -40,7 +40,7 @@
 	
 	<ui:ControlPanel title="Annotation Editor"
 					sessionPanelCoordsAsPercentages="false"
-					x="50%" y="50%" percentWidth="NaN" percentHeight="NaN"
+					percentWidth="NaN" percentHeight="NaN"
 					added="if (event.target == controlPanel) textArea.editable = true;"
 					removed="if (event.target == controlPanel) textArea.editable = false;">
 		<mx:VBox id="toolbar" horizontalGap="7"
@@ -220,9 +220,9 @@
 			/**
 			 * This function is called when the user presses the tool button.
 			 */
-			override protected function toggleUserControlPanel():void
+			override protected function toggleControlPanel():void
 			{
-				super.toggleUserControlPanel();
+				super.toggleControlPanel();
 			}
 			
  			private function get textField():TextField
@@ -393,7 +393,7 @@
 				{
 					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Label");
 					var newTextArea:SessionedTextBox = linkableContainer.getLinkableChildren().requestObject(name, SessionedTextBox,false);
-					newTextArea.toggleUserControlPanel();
+					newTextArea.toggleControlPanel();
 				}
 			}
 			
@@ -476,7 +476,10 @@
 			{
 				var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);
 				if (textArea)
-					textArea.toggleUserControlPanel();
+				{
+					textArea.sendWindowToForeground();
+					textArea.toggleControlPanel();
+				}
 			}
 		]]>
 	</mx:Script>
