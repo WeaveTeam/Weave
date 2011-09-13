@@ -230,7 +230,18 @@
 				}
 				
 				_textModified = false;
-				var functionSave:Function = function():void { saveSessionState(); sessionNav.refresh(); };
+				var functionSave:Function = function():void 
+				{ 
+					try
+					{
+						saveSessionState(); 
+						sessionNav.refresh();
+					}
+					catch (e:Error)
+					{
+						alertError(e);
+					}
+				};
 				var functionDontSave:Function = function():void { loadSelectedSessionObjectInView(); sessionNav.refresh(); };
 				PopUpUtils.confirm(
 					this,
@@ -301,29 +312,13 @@
 			
 		    private function alertError(e:Error):void
 		    {
-		    	PopUpUtils.confirm(
-		    			this,
-		    			e.name,
-		    			e.message+"\n\n"+"Show stack trace?",
-		    			function():void { Alert.show(e.message+"\n\n"+e.getStackTrace(), e.name); }
-		    		);
+				WeaveAPI.ErrorManager.reportError(e);
 		    }
 		    
 		    private function handleApplyClick():void
 		    {
-				try {
-//					// don't save the object if it was disposed
-//					if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
-//					{
-//						_textModified = false;
-//						refresh();
-//						sessionStateDataGrid.columns = [];
-//						sessionStateTextArea.text = '';
-//						return;
-//					}						
-			    	saveSessionState();
-			    	refresh();
-				} catch (e:Error) { alertError(e); }
+				saveSessionState();
+				refresh();
 		    }
 
 			private function highlightSearchText():Boolean
@@ -660,79 +655,94 @@
 					return;
 				}
 				
-				if (_currentSelectedObject != null)
+				try
 				{
-					if (_editor == TEXT_EDITOR && _currentSessionStateXML != null)
+					if (_currentSelectedObject != null)
 					{
-						_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
-						
-						var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
-						setSessionState(_currentSelectedObject, decodedStateObject, true);
-					}
-					else if (_editor == DATA_GRID && _currentSessionStateDataProvider != null)
-					{
-						var newValue:Object;
-						var newSessionState:Object;
-						var i:int, j:int;
-
-						_currentSessionStateDataProvider = sessionStateDataGrid.dataProvider as ArrayCollection;
-						
-						// special case of just one object to set
-						if (_currentSelectedObject is ILinkableVariable && _currentSessionStateDataProvider.length == 1)
+						if (_editor == TEXT_EDITOR && _currentSessionStateXML != null)
 						{
-							newSessionState = _currentSessionStateDataProvider[0].Value;
-							if (newSessionState === ' ')
-								newSessionState = '';
-							setSessionState(_currentSelectedObject, newSessionState, true);
-							return;
+							var xmlList:XMLList;
+							// The following may fail if an element is malformed. (This has apparently been a bug forever?)
+							xmlList = XMLList(sessionStateTextArea.text);
+							_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
+							
+							var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
+							setSessionState(_currentSelectedObject, decodedStateObject, true);
 						}
-						
-						var oldSessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
-						// special case of DynamicState objects
-						if (_currentSelectedObject is ILinkableHashMap) 
+						else if (_editor == DATA_GRID && _currentSessionStateDataProvider != null)
 						{
-							newSessionState = (oldSessionState as Array).concat(); // make a copy and copy over the changes
-							for (j = 0; j < _currentSessionStateDataProvider.length; ++j)
+							var newValue:Object;
+							var newSessionState:Object;
+							var i:int, j:int;
+							
+							_currentSessionStateDataProvider = sessionStateDataGrid.dataProvider as ArrayCollection;
+							
+							// special case of just one object to set
+							if (_currentSelectedObject is ILinkableVariable && _currentSessionStateDataProvider.length == 1)
 							{
-								var lookupName:String = _currentSessionStateDataProvider[j].Name;
-								for (i = 0; i < newSessionState.length; ++i)
+								newSessionState = _currentSessionStateDataProvider[0].Value;
+								if (newSessionState === ' ')
+									newSessionState = '';
+								setSessionState(_currentSelectedObject, newSessionState, true);
+								return;
+							}
+							
+							var oldSessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
+							// special case of DynamicState objects
+							if (_currentSelectedObject is ILinkableHashMap) 
+							{
+								newSessionState = (oldSessionState as Array).concat(); // make a copy and copy over the changes
+								for (j = 0; j < _currentSessionStateDataProvider.length; ++j)
 								{
-									if ((newSessionState[i] as DynamicState).objectName == lookupName)
+									var lookupName:String = _currentSessionStateDataProvider[j].Name;
+									for (i = 0; i < newSessionState.length; ++i)
 									{
-										newValue = _currentSessionStateDataProvider[j].Value;
-										if (newValue === ' ')
-											newValue = '';
-										(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
-										break;
+										if ((newSessionState[i] as DynamicState).objectName == lookupName)
+										{
+											newValue = _currentSessionStateDataProvider[j].Value;
+											if (newValue === ' ')
+												newValue = '';
+											(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
+											break;
+										}
 									}
 								}
+								
+								setSessionState(_currentSelectedObject, newSessionState, false);
+								return;
 							}
-
-							setSessionState(_currentSelectedObject, newSessionState, false);
-							return;
+							
+							// general case of just an object mapping
+							newSessionState = new Object();
+							for (i = 0; i < _currentSessionStateDataProvider.length; ++i)
+							{
+								newValue = _currentSessionStateDataProvider[i].Value;
+								if (newValue === ' ')
+									newValue = '';
+								newSessionState[_currentSessionStateDataProvider[i].Name] = _currentSessionStateDataProvider[i].Value;
+							}
+							
+							setSessionState(_currentSelectedObject, newSessionState, false); // do not remove any missing things
 						}
-
-						// general case of just an object mapping
-						newSessionState = new Object();
-						for (i = 0; i < _currentSessionStateDataProvider.length; ++i)
-						{
-							newValue = _currentSessionStateDataProvider[i].Value;
-							if (newValue === ' ')
-								newValue = '';
-							newSessionState[_currentSessionStateDataProvider[i].Name] = _currentSessionStateDataProvider[i].Value;
-						}
-						
-						setSessionState(_currentSelectedObject, newSessionState, false); // do not remove any missing things
 					}
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(new Error("Unable to save session state.\n" + e.message, e.errorID));
 				}
 		    }
 
 			private function saveAndClosePanel():void
 		    {
-		    	try {
+				try
+				{
 					saveSessionState();
 					super.removePanel();
-				} catch (e:Error) { alertError(e); }
+				}
+				catch (e:Error)
+				{
+					alertError(e);
+				}
 		    }
 			
 			override public function removePanel():void

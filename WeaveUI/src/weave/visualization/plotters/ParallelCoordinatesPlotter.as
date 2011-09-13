@@ -22,13 +22,17 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
+	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
+	
+	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.ISimpleGeometry;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
@@ -37,10 +41,13 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
+	import weave.utils.EquationColumnLib;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	
 	/**	
@@ -58,9 +65,17 @@ package weave.visualization.plotters
 			setKeySource(_combinedKeySet);
 			
 			zoomToSubset.value = true;
+			filterDataType.value = 'String';
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
+			
+			displayFilterColumn.addImmediateCallback(this, updateFilterEquationColumns);
+			filterColumn.addImmediateCallback(this, updateFilterEquationColumns);
+			keyColumn.addImmediateCallback(this, updateFilterEquationColumns);
+			yData.addImmediateCallback(this, updateFilterEquationColumns);
+			filterValues.addImmediateCallback(this, updateFilterEquationColumns);
+			filterDataType.addImmediateCallback(this, updateFilterEquationColumns);
 		}
 
 		/*
@@ -72,29 +87,128 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
 		
+		public const displayFilterColumn:LinkableBoolean = registerSpatialProperty( new LinkableBoolean(false));
+		public const filterColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn());
+		public const yData:DynamicColumn = registerSpatialProperty( new DynamicColumn());
+		public const keyColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn());
+		
+		public const filterValues:LinkableString = newLinkableChild(this, LinkableString);
+		public const filterDataType:LinkableString = registerSpatialProperty( new LinkableString());
+		
+		[Bindable] public var dataTypes:Array = ['Number', 'String', 'int', 'Boolean'];
+		
 		private const _combinedKeySet:KeySet = newNonSpatialProperty(KeySet);
 		
 		private var _columns:Array = [];
 		private function handleColumnsChange():void
-		{
+		{			
 			_columns = columns.getObjects();
 
-			// get list of all keys in all columns
-			_combinedKeySet.delayCallbacks();
-			if (_columns.length > 0)
-				_combinedKeySet.replaceKeys((_columns[0] as IAttributeColumn).keys);
-			else
-				_combinedKeySet.clearKeys();
-			for (var i:int = 1; i < _columns.length; i++)
+			// GET list of all keys in all columns
+			_combinedKeySet.delayCallbacks();			
+				
+			if(displayFilterColumn.value && keyColumn.internalColumn)
 			{
-				_combinedKeySet.addKeys((_columns[i] as IAttributeColumn).keys);
+				var keys:Array = [];
+				var previousKeys:Array = keyColumn.keys;
+				var reverseLookup:Dictionary = new Dictionary(true);
+								
+				if(keyColumn && (previousKeys.length > 1))
+				{
+					for each(var k:IQualifiedKey in previousKeys)
+					{
+						var filterkey:IQualifiedKey = keyColumn.getValueFromKey(k, IQualifiedKey);
+						if(!reverseLookup[filterkey])
+							reverseLookup[filterkey] = [];
+						reverseLookup[filterkey].push(k);					
+						if(reverseLookup[filterkey].length == 1)
+							keys.push(filterkey); 
+					}
+					if(keys.length)
+					{						
+						_combinedKeySet.replaceKeys(keys);
+					}					
+				}
 			}
+			else
+			{
+				
+				if (_columns.length > 0)
+					_combinedKeySet.replaceKeys((_columns[0] as IAttributeColumn).keys);
+				else
+					_combinedKeySet.clearKeys();
+				for (var i:int = 1; i < _columns.length; i++)
+				{
+					_combinedKeySet.addKeys((_columns[i] as IAttributeColumn).keys);
+				}
+			}					
+			
 			_combinedKeySet.resumeCallbacks();
 			
 			// if there is only one column, push a copy of it so lines will be drawn
 			if (_columns.length == 1)
 				_columns.push(_columns[0]);
 		}
+					
+		
+		
+		private function updateFilterEquationColumns():void
+		{
+			var str:String = filterValues.value;
+			
+			// check that values list string exists
+			if(!displayFilterColumn.value)
+			{
+				return;
+			}					
+			
+			// check for missing columns
+			if(!(filterColumn.internalColumn && yData.internalColumn && keyColumn.internalColumn))
+			{
+				if(keyColumn.internalColumn)
+					columns.removeAllObjects();
+				return;
+			}
+			
+			if(!str) 
+				return;
+			
+			// check that column keytypes are the same
+			var keytypes:Array = [ColumnUtils.getKeyType(filterColumn), ColumnUtils.getKeyType(keyColumn), ColumnUtils.getKeyType(yData)];
+			if(!((keytypes[0] == keytypes[1]) && (keytypes[0] == keytypes[2])))
+			{
+				return;
+			}
+			
+			var values:Array = str.split(",");
+			
+			columns.removeAllObjects();
+			columns.delayCallbacks();
+			var ClassReference:Class = getDefinitionByName(filterDataType.value) as Class;
+			var temp:*;
+			temp = new ClassReference();
+			
+			var keyCol:DynamicColumn;
+			var filterCol:DynamicColumn;
+			var dataCol:DynamicColumn;
+			
+			for each( var value:Object in values)
+			{
+				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
+				col.delayCallbacks();
+				col.variables.copyObject("key", keyColumn);					
+				col.variables.copyObject("filter", filterColumn);
+				col.variables.copyObject("data", yData); 					
+				
+				col.setMetadata(AttributeColumnMetadata.TITLE, value.toString());					
+				temp = EquationColumnLib.cast(value, ClassReference); 
+				col.equation.value = 'getValueFromFilterColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+filterDataType.value+',Number)';
+				col.resumeCallbacks();
+			}				
+			
+			columns.resumeCallbacks();
+			
+		}		
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const curveType:LinkableString  = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));
@@ -286,7 +400,7 @@ package weave.visualization.plotters
 				// begin the line style for the parallel coordinates line
 				// we want to use the missing data line style since the line is the shape we are showing 
 				// (rather than just a border of another shape)
-				lineStyle.beginLineStyle(recordKey, graphics);
+				lineStyle.beginLineStyle(recordKey, graphics);				
 				
 				// if we aren't continuing a new line (it is a new line segment)	
 				if (!continueLine)

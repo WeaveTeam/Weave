@@ -26,45 +26,38 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.flash_proxy;
-			
-			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.WeaveProperties;
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableBoolean;
-			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.EquationColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
-			import weave.primitives.LinkableBounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColumnListComponent;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
-			import weave.utils.DebugUtils;
 			import weave.utils.ProbeTextUtils;
+			import weave.utils.VectorUtils;
 			import weave.visualization.layers.AxisLayer;
-			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.AxisPlotter;
-			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
-			public var _plotter:ParallelCoordinatesPlotter = null;
+			[Bindable]
+			private var _plotter:ParallelCoordinatesPlotter = null;
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -113,6 +106,8 @@
 				toolTitle.addImmediateCallback(this, updateTitle);
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
+				_plotter.filterColumn.addGroupedCallback(this, handleFilterColumnChange);
+				_plotter.filterValues.addGroupedCallback(this, updateFilterText);				
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -126,6 +121,68 @@
 				}
 				else
 					visualization.additionalProbeColumns = null;
+			}
+			
+			/**
+			 * This function populates _plotter.filterValues using _plotter.filterColumn's values
+			 */
+			private function handleFilterColumnChange():void
+			{
+				var filterValues:Array = [];
+				for each(var key:IQualifiedKey in _plotter.filterColumn.keys)
+				{
+					filterValues.push(_plotter.filterColumn.getValueFromKey(key));
+				}
+				filterValues.sort();
+				_plotter.filterValues.value = VectorUtils.removeDuplicatesFromSortedArray(filterValues);
+			}
+			
+			/**
+			 * This function generates a label equation using the current Label column and the plotter's filterColumn
+			 * and makes it the new Label column
+			 */
+			private function updateLabelColumn():void
+			{
+				if(!_plotter.displayFilterColumn.value) 
+					return;
+				if(!labelPlotter.text.internalColumn)
+					return;
+				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.filterColumn))
+					return;
+				if(labelPlotter.text.internalColumn is EquationColumn)
+					return;
+				
+				var labelColumn:DynamicColumn = new DynamicColumn();
+				labelColumn.copyLocalObject(labelPlotter.text);
+				
+				var labelEquation:EquationColumn = labelPlotter.text.requestLocalObject(EquationColumn, false) as EquationColumn;
+				labelEquation.delayCallbacks();
+				labelEquation.variables.copyObject("labelColumn",labelColumn);
+				labelEquation.variables.copyObject("keyColumn", _plotter.keyColumn);
+				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + "Equation");
+				labelEquation.equation.value = 'key = getKeysFromValue(get("keyColumn"), getKey(), QKey)[0], getValueFromKey(get("labelColumn"), key, String)';
+				labelEquation.resumeCallbacks();
+				/* 
+				if(!_plotter.lineStyle.color.internalDynamicColumn)
+					return;
+				
+				if(_plotter.lineStyle.color.internalDynamicColumn is EquationColumn)
+					return;
+				
+				var color:DynamicColumn = new DynamicColumn();
+				color.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+				
+				var equation:EquationColumn = colorColumn.requestLocalObject(EquationColumn, false) as EquationColumn;
+				equation.variables.copyObject("colorColumn", color);
+				equation.variables.copyObject("key", _plotter.keyColumn);
+				equation.columnTitle = ColumnUtils.getTitle(color)+'Equation';
+				equation.equation.value = 'key = getKeysFromValue(get("key"), getKey(), QKey)[0], getValueFromKey(get("colorColumn"), key, Number)';
+				 */
+			}
+			
+			private function updateFilterText():void
+			{
+				filterValuesText.text = _plotter.filterValues.value;
 			}
 			
 			override protected function childrenCreated():void
@@ -223,6 +280,27 @@
 				yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
+				
+				if (_plotter.displayFilterColumn.value)
+				{
+					xAxisLayer.axisPlotter.setSideAxisName(
+						ColumnUtils.getTitle(_plotter.filterColumn), 
+						0,
+						0, visualization.marginBottom.value - 3, 
+						BitmapText.VERTICAL_ALIGN_BOTTOM
+					);
+					yAxisLayer.axisPlotter.setSideAxisName(
+						ColumnUtils.getTitle(_plotter.yData), 
+						-90, 
+						-visualization.marginLeft.value, 0, 
+						BitmapText.VERTICAL_ALIGN_TOP
+					);
+				}
+				else
+				{
+					xAxisLayer.axisPlotter.setSideAxisName('', 0, 0, 0, '');
+					yAxisLayer.axisPlotter.setSideAxisName('', 0, 0, 0, '');
+				}
 
 				yAxisLayer.axisPlotter.updateLabels();			
 			}
@@ -238,14 +316,25 @@
 						return;
 					}
 					
-					var newTitle:String = "Line Chart of ";
-					for (var i:int = 0; i < columns.length; i++)
+					if (_plotter.displayFilterColumn.value)
 					{
-						if (i > 0)
-							newTitle += ', ';
-						newTitle += ColumnUtils.getTitle(columns[i]);
+						title = StringUtil.substitute(
+							"Line Chart of {0} by {1}",
+							ColumnUtils.getTitle(_plotter.yData),
+							ColumnUtils.getTitle(_plotter.filterColumn)
+						);
 					}
-					title = newTitle;
+					else
+					{
+						var newTitle:String = "Line Chart of ";
+						for (var i:int = 0; i < columns.length; i++)
+						{
+							if (i > 0)
+								newTitle += ', ';
+							newTitle += ColumnUtils.getTitle(columns[i]);
+						}
+						title = newTitle;
+					}
 				}
 			}
 			
@@ -286,7 +375,7 @@
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY,labelPlotter.sortColumn);
-				
+				labelPlotter.setBaseKeySource(_plotter.keySet);
 				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
 				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
 				Weave.properties.axisFontColor.addGroupedCallback(this, updateLabel);
@@ -425,6 +514,37 @@
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 initialize="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
 			<settings:GridLineSettings tool="{this}"/>
+		</mx:VBox>
+		<mx:VBox label="Advanced">
+			<mx:CheckBox id="filterDataCheckBox" initialize="linkBindableProperty(_plotter.displayFilterColumn, filterDataCheckBox, 'selected')"
+						 label="Display filtered records"
+						 toolTip="Enable/disable filtering data by value under filter column"/>
+			<mx:VBox enabled="{filterDataCheckBox.selected}">
+				
+				<mx:VBox paddingLeft="20" borderStyle="solid">				
+					<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
+											   toolTip="Attribute used to filter data - its values will appear on the x axis"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+											   toolTip="Column containing data values shown on y axis. All columns must have the same keyType"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
+											   toolTip="Specify column to get keys from. All columns must have the same keyType"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
+											   toolTip="Attribute used for record label text. All columns must have the same keyType"/>
+				</mx:VBox>
+				<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the filter column keyType"
+						   click="updateLabelColumn()"/>
+				<mx:Button label="Customize filter values" id="customizeValuesBtn" toggle="true"/>
+				<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
+					<mx:Label text="Enter a list of filter column values:"/>
+					<mx:TextInput id="filterValuesText"  toolTip="These values will appear on the x axis"/>
+					<mx:HBox>						
+						<mx:Label text="Filter datatypes:"/>
+						<mx:ComboBox id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"
+									 toolTip="dataType of the filter values"/>						
+					</mx:HBox>
+					<mx:Button label="Apply" click="_plotter.filterValues.value = filterValuesText.text"/>
+				</mx:VBox>
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

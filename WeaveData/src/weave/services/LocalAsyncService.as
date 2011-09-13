@@ -22,6 +22,7 @@ package weave.services
 	import flash.events.AsyncErrorEvent;
 	import flash.events.StatusEvent;
 	import flash.net.LocalConnection;
+	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
 	
 	import mx.rpc.AsyncResponder;
@@ -261,8 +262,11 @@ package weave.services
 				var chunkSize:uint = Math.min(tempByteArray.bytesAvailable, 39900); // size limit for send data is 40k
 				tempByteArray.readBytes(chunkData, 0, chunkSize);
 				moreChunksFollow = (tempByteArray.bytesAvailable > 0);
-				// Sending a String is more reliable than sending a ByteArray because sometimes the ByteArray becomes a generic Object and loses its content.
-				conn.send(remoteName, "receiveChunkedData", commandID, chunkID++, chunkData.toString(), moreChunksFollow);
+
+				// chunkData was chunkData.toString() before because byteArray is sometimes encoded as a generic object
+				// but I can't reproduce it and this fixes a bug with a unicode character (such as the greek lowercase mu, char code 181).
+				// the unicode char bug occurs during the toString() call which results in a string with a smaller size than the bytearray.
+				conn.send(remoteName, "receiveChunkedData", commandID, chunkID++, chunkData, moreChunksFollow);
 			}
 		}
 
@@ -281,14 +285,16 @@ package weave.services
 		 * @param chunkData Part of a serialized list of parameters for the receiveCommand() function.
 		 * @param moreChunksFollow If this is true, it means more chunks appear after this chunkID.  If false, this is the last chunkID.
 		 */
-		public function receiveChunkedData(commandID:String, chunkID:uint, chunkData:String, moreChunksFollow:Boolean):void
+		public function receiveChunkedData(commandID:String, chunkID:uint, chunkData:ByteArray, moreChunksFollow:Boolean):void
 		{
-			// convert String to ByteArray
-			var bytes:ByteArray = new ByteArray();
-			for (var i:int = 0; i < chunkData.length; i++)
-				bytes.writeByte(chunkData.charCodeAt(i));
-			bytes.position = 0;
-			_receiveChunkedData.apply(null, [commandID, chunkID, bytes, moreChunksFollow]);
+			trace('receiveChunkedData', chunkID, chunkData.length, moreChunksFollow);
+			chunkData.position = 0;
+//			// convert String to ByteArray
+//			var bytes:ByteArray = new ByteArray();
+//			for (var i:int = 0; i < chunkData.length; i++)
+//				bytes.writeByte(chunkData.charCodeAt(i));
+//			bytes.position = 0;
+			_receiveChunkedData.apply(null, [commandID, chunkID, chunkData, moreChunksFollow]);
 		}
 		private function _receiveChunkedData(commandID:String, chunkID:uint, chunkData:ByteArray, moreChunksFollow:Boolean):void
 		{

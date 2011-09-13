@@ -193,9 +193,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
 				
 				screenBounds.projectPointTo(tempPoint, dataBounds);
-				
 				_probedAnchor.x.value = tempPoint.x;
-				_probedAnchor.y.value = tempPoint.y;				
+				_probedAnchor.y.value = tempPoint.y;
+				
+				var theta:Number = _probedAnchor.polarRadians.value;
+				_probedAnchor.x.value = Math.cos(theta);
+				_probedAnchor.y.value = Math.sin(theta);
 			}
 			
 			public function get colorColumn():DynamicColumn

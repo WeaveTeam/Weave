@@ -27,8 +27,8 @@ package weave.visualization.plotters.styles
 	import weave.api.ui.ILineStyle;
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.EquationColumnLib;
 	import weave.utils.ColumnUtils;
+	import weave.utils.EquationColumnLib;
 
 	/**
 	 * This class defines sessioned parameters for a call to Graphics.lineStyle().

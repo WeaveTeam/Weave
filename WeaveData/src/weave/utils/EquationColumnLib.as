@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.data.AttributeColumns
+package weave.utils
 {
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
@@ -32,8 +32,11 @@ package weave.data.AttributeColumns
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.StatisticsCache;
 	import weave.primitives.ColorRamp;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * EquationColumnLib
@@ -126,6 +129,67 @@ package weave.data.AttributeColumns
 			currentRecordKey = previousKey;
 
 			return value;
+		}
+		
+		private static var key:IQualifiedKey;
+		private static var cubekeys:Array;
+		
+		/**
+		 * This function gets a value from a data column, using a filter column and a key column to filter the data
+		 * @param keyColumn An IAttributeColumn to get keys from
+		 * @param filter column to use to filter data (ex: year)
+		 * @param data An IAttributeColumn to get a value from
+		 * @param filterValue value in filtercolumn to use to filter data
+		 * @param filterDataType Class object of the desired filter value type
+		 * @param dataType Class object of the desired value type 
+		 * @return the correct filtered value from the data column
+		 * @author kmanohar
+		 */		
+		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:Object, filterDataType:* = null, dataType:* = null):Object
+		{
+			var val:Object;
+			
+			key = getKey();
+			cubekeys = getKeysFromValue(keyColumn, key, IQualifiedKey) ;
+			
+			for each(var cubekey:IQualifiedKey in cubekeys)
+			{
+				if(getValueFromKey(filter, cubekey, filterDataType) == filterValue)
+				{
+					val =  getValueFromKey(data, cubekey, dataType);
+					return val;
+				}
+			}			
+			return cast(NaN, dataType);
+		}
+		
+		private static var _reverseKeyLookupCache:Dictionary = new Dictionary(true);
+		
+		/**
+		 * This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
+		 * @param column An attribute column
+		 * @param value The value to look up
+		 * @param dataType The class of the value parameter
+		 * @return An array of record keys with the given value under the given column
+		 */		
+		public static function getKeysFromValue(column:DynamicColumn, value:Object, dataType:* = null):Array
+		{
+			var col:* = (column.internalColumn as ReferencedColumn).internalColumn;
+			if(_reverseKeyLookupCache[col])
+				if(_reverseKeyLookupCache[col][value])
+					return _reverseKeyLookupCache[col][value];
+			
+			var reverseLookup:Dictionary = new Dictionary(true);
+			
+			for each(var key:IQualifiedKey in column.keys)
+			{
+				var val:* = column.getValueFromKey(key, dataType);
+				if(!reverseLookup[val])
+					reverseLookup[val] = [];
+				reverseLookup[val].push(key);
+			}			
+			_reverseKeyLookupCache[col] = reverseLookup;
+			return reverseLookup[value];
 		}
 		
 		/**

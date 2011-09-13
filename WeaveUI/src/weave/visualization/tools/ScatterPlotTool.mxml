@@ -39,7 +39,6 @@
 			import weave.api.data.IColumnWrapper;
 			import weave.api.data.IKeyFilter;
 			import weave.api.data.IKeySet;
-			import weave.api.data.IPrimitiveColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -473,23 +472,11 @@
 			
 			public function labelFunctionX(value:Number):String
 			{
-				// try to find an internal IPrimitiveColumn
-				var column:IAttributeColumn = plotter.xColumn;
-				while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-					column = (column as IColumnWrapper).internalColumn;
-				if (column is IPrimitiveColumn)
-					return (column as IPrimitiveColumn).deriveStringFromNumber(value);
-				return null; // use default label
+				return ColumnUtils.deriveStringFromNumber(plotter.xColumn, value);
 			}
 			public function labelFunctionY(value:Number):String
 			{
-				// try to find an internal IPrimitiveColumn
-				var column:IAttributeColumn = plotter.yColumn;
-				while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-					column = (column as IColumnWrapper).internalColumn;
-				if (column is IPrimitiveColumn)
-					return (column as IPrimitiveColumn).deriveStringFromNumber(value);
-				return null; // use default label
+				return ColumnUtils.deriveStringFromNumber(plotter.yColumn, value);
 			}
 			
 			public function get colorColumn():DynamicColumn

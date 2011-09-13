@@ -622,8 +622,12 @@
 				{
 					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[j] as WeaveDataGridImageColumn;
 					var columnName:String = columns.getName(dgc.attrColumn);
+					if (columnName == null)
+						continue;
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
-
+					// we don't want to create a sessionedWidth because one will be created later if the column wasn't disposed
+					if (sessionedWidth == null)
+						continue; 
 					var temp:Number;
 					if (sessionedWidth.value)
 						temp =  NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);

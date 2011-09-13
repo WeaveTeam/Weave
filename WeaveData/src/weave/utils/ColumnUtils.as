@@ -24,6 +24,8 @@ package weave.utils
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnWrapper;
+	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.StandardLib;
 	
@@ -95,6 +97,22 @@ package weave.utils
 		public static function getDataType(column:IAttributeColumn):String
 		{
 			return column.getMetadata(AttributeColumnMetadata.DATA_TYPE);
+		}
+		
+		/**
+		 * This function will use an attribute column to convert a number to a string.
+		 * @param column A column that may have a way to convert numeric values to string values.
+		 * @param number A Number to convert to a String.
+		 * @return A String representation of the number, or null if no specific string representation exists.
+		 */
+		public static function deriveStringFromNumber(column:IAttributeColumn, number:Number):String
+		{
+			// try to find an internal IPrimitiveColumn
+			while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
+				column = (column as IColumnWrapper).internalColumn;
+			if (column is IPrimitiveColumn)
+				return (column as IPrimitiveColumn).deriveStringFromNumber(number);
+			return null; // no specific string representation
 		}
 		
 		/**

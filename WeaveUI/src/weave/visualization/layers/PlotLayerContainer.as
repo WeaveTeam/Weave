@@ -64,7 +64,7 @@ package weave.visualization.layers
 			
 			UIUtils.linkDisplayObjects(this, layers);
 			
-			layers.childListCallbacks.addImmediateCallback(this, handleLayersListChange);
+			layers.addImmediateCallback(this, handleLayerChange);
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));
@@ -80,33 +80,7 @@ package weave.visualization.layers
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
 		public const includeNonSelectableLayersInAutoZoom:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 
-		protected function handleLayersListChange():void
-		{
-			var oldLayer:IPlotLayer = layers.childListCallbacks.lastObjectRemoved as IPlotLayer;
-			if (oldLayer)
-			{
-				(oldLayer.spatialIndex as SpatialIndex).removeCallback(spatialCallback);
-				oldLayer.plotter.spatialCallbacks.removeCallback(spatialCallback);
-			}
-			var newLayer:IPlotLayer = layers.childListCallbacks.lastObjectAdded as IPlotLayer;
-			if (newLayer)
-			{
-				newLayer.name = layers.childListCallbacks.lastNameAdded; // for debugging
-				(newLayer.spatialIndex as SpatialIndex).addImmediateCallback(this, spatialCallback);
-				newLayer.plotter.spatialCallbacks.addImmediateCallback(this, spatialCallback);
-			}
-			if (!oldLayer && !newLayer)
-				return;
-			
-			if (oldLayer || newLayer)
-				spatialCallback();
-			
-			// make sure new layer has correct screenBounds
-			// and make sure dataBounds is updated to include new layer
-			updateZoom();
-		}
-		
-		private function spatialCallback():void
+		private function handleLayerChange():void
 		{
 			updateFullDataBounds();
 

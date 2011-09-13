@@ -158,9 +158,9 @@ package weave.visualization.plotters
 				_bitmapText.y = tempPoint.y;
 				
 				// draw almost-invisible rectangle behind text
-				_bitmapText.getUnrotatedBounds(_tempBounds);
+				/*_bitmapText.getUnrotatedBounds(_tempBounds);
 				_tempBounds.getRectangle(_tempRectangle);				
-				destination.fillRect(_tempRectangle, 0x02808080);
+				destination.fillRect(_tempRectangle, 0x02808080);*/
 				
 				// draw bitmap text
 				_bitmapText.draw(destination);								
@@ -184,59 +184,14 @@ package weave.visualization.plotters
 			if( !anchors ) return null;
 			
 			var anchor:AnchorPoint = anchors.getObject(recordKey.localName) as AnchorPoint;
-			var bounds:IBounds2D = getReusableBounds();
+			var bounds:IBounds2D = getReusableBounds();			
 			
-			if(_currentScreenBounds.isEmpty())
-			{
-				tempPoint.x = anchor.x.value;
-				tempPoint.y = anchor.y.value;
-								
-				bounds.includePoint(tempPoint);				
-				
-				return [bounds];
-			} 
-			else
-			{				
-				var x:Number = anchor.x.value;
-				var y:Number = anchor.y.value;
-				var radians:Number = anchor.polarRadians.value;
-				var radius:Number = anchor.radius.value;
-				
-				var cos:Number = Math.cos(radians);
-				var sin:Number = Math.sin(radians);
-				
-				tempPoint.x = radius * cos;
-				tempPoint.y = radius * sin;		
-				_currentDataBounds.projectPointTo(tempPoint, _currentScreenBounds);				
-				
-				_bitmapText.trim = false;
-				_bitmapText.text = " " + recordKey.localName + " ";
-				
-				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
-				
-				_bitmapText.angle = _currentScreenBounds.getYDirection() * (radians * 180 / Math.PI);
-				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
-				if (cos > -0.000001) // the label exactly at the bottom will have left align
-				{
-					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-					// first get values between -90 and 90, then multiply by the ratio
-					_bitmapText.angle = ((_bitmapText.angle + 90) % 360 - 90) * labelAngleRatio.value;
-				}
-				else
-				{
-					_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-					// first get values between -90 and 90, then multiply by the ratio
-					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
-				}
-				_bitmapText.x = tempPoint.x;
-				_bitmapText.y = tempPoint.y;
-				
-				_bitmapText.getUnrotatedBounds(_tempBounds);
-				_currentScreenBounds.projectCoordsTo(_tempBounds, _currentDataBounds);				
-				
-				bounds.copyFrom(_tempBounds);
-				return [bounds];
-			}
+			tempPoint.x = anchor.x.value;
+			tempPoint.y = anchor.y.value;
+			
+			bounds.includePoint(tempPoint);				
+			
+			return [bounds];			
 		}
 		
 		override public function getBackgroundDataBounds():IBounds2D

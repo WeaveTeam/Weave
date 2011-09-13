@@ -28,6 +28,8 @@ package weave.visualization.plotters
 	import mx.utils.ObjectUtil;
 	
 	import weave.WeaveProperties;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableBoolean;
@@ -37,6 +39,7 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ObjectPool;
+	import weave.utils.ProbeTextUtils;
 	
 	/**
 	 * TextGlyphPlotter
@@ -51,6 +54,11 @@ package weave.visualization.plotters
 			xScreenOffset.value = 0;
 			yScreenOffset.value = 0;
 			setKeySource(text);
+		}
+		
+		public function setBaseKeySource(source:IKeySet):void
+		{
+			setKeySource(source);
 		}
 		
 		private const bitmapText:BitmapText = new BitmapText();
@@ -104,7 +112,7 @@ package weave.visualization.plotters
 				tempPoint.x = dataX.getValueFromKey(recordKey, Number);
 				tempPoint.y = dataY.getValueFromKey(recordKey, Number);
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-				
+
 				// round to nearest pixel to get clearer text
 				bitmapText.x = Math.round(tempPoint.x + xScreenOffset.value);
 				bitmapText.y = Math.round(tempPoint.y + yScreenOffset.value);

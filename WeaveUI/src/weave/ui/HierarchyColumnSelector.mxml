@@ -188,7 +188,11 @@
 				
 				var path:XML = selectedPath.value;
 				var equationColumn:EquationColumn = dynamicColumn.requestLocalObject(EquationColumn, false);
-				equationColumn.equation.value = 'getValueFromKey(data, getKey(lookup))';
+				
+				//TODO: check the dataType and keyType of the lookup and determine which equation to use
+				// lookup is mapping fips -> cube... equation is:   getAvgValue(data, getKeysFromValue(lookup, getKey()))    // active key is a fips
+				
+				equationColumn.equation.value = 'getValueFromKey(data, getKey(lookup))'; // lookup is mapping cube -> fips
 				var dataCol:ReferencedColumn = equationColumn.requestVariable(DATA_VARIABLE, ReferencedColumn);
 				var dataRef:HierarchyColumnReference = dataCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
 				copyPathToRef(dataRef);

@@ -25,6 +25,7 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
+	import weave.utils.EquationColumnLib;
 	
 	/**
 	 * This is a column containing aggregated values.

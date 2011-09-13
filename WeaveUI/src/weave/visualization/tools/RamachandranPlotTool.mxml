@@ -310,7 +310,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						var dataVec:Vector.<String> = new Vector.<String>();
 						VectorUtils.copy(keys, keyVec);
 						VectorUtils.copy(Robj[p].value, dataVec);
-						testColumn.updateRecords(keyVec, dataVec, true);
+						testColumn.setRecords(keyVec, dataVec);
 						//testColumn.csvData.value = WeaveAPI.CSVParser.createCSVFromArrays(table);						
 					}					
 				}

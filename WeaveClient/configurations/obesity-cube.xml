@@ -6,6 +6,7 @@
     <axisFontItalic>false</axisFontItalic>
     <axisFontSize>11</axisFontSize>
     <axisFontUnderline>false</axisFontUnderline>
+    <backgroundColor>13421772</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
     <dashboardMode>false</dashboardMode>
     <dashedSelectionBox>5,5</dashedSelectionBox>
@@ -130,7 +131,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp source="OIC" name="5-Color" category="basic">
+      <colorRamp name="5-Color" category="basic" source="OIC">
         <node position="0" color="0xEFF3FF"/>
         <node position="0.25" color="0xBDD7E7"/>
         <node position="0.5" color="0x6BAED6"/>
@@ -180,8 +181,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   </KeyFilter>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
-  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
-  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
   <WeaveDataSource name="WeaveDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy name="Open Indicators Server">
@@ -262,56 +263,56 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="school_performance_level"/>
           <category name="st99_d00"/>
           <category name="States">
-            <attribute name="States" projectionSRS="EPSG:4326" keyType="US State FIPS Code" dataType="geometry"/>
-            <attribute name="AGE_18_21" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AGE_22_29" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AGE_30_39" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AGE_40_49" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AGE_50_64" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AGE_5_17" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AGE_65_UP" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AGE_UNDER5" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AMERI_ES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="ASIAN" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AVE_FAM_SZ" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AVE_HH_SZ" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AVG_SALE97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="AVG_SIZE97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="BLACK" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="CROP_ACR97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="FAMILIES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="FEMALES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="FHH_CHILD" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="HAWN_PI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="HISPANIC" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="HOUSEHOLDS" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="HSE_UNITS" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="HSEHLD_1_F" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="HSEHLD_1_M" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MALES" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MARHH_CHD" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MARHH_NO_C" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MED_AGE" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MED_AGE_F" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MED_AGE_M" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MHH_CHILD" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="MULT_RACE" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="NO_FARMS97" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="OTHER" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="OWNER_OCC" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="POP00_SQMI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="POP07_SQMI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="POP2000" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="POP2007" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="RENTER_OCC" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="SQMI" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="STATE_ABBR" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
-            <attribute name="STATE_FIPS" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
-            <attribute name="STATE_NAME" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
-            <attribute name="SUB_REGION" dataTable="States" keyType="US State FIPS Code" dataType="string" geometryCollection="States"/>
-            <attribute name="the_geom_id" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="VACANT" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
-            <attribute name="WHITE" dataTable="States" keyType="US State FIPS Code" dataType="number" geometryCollection="States"/>
+            <attribute projectionSRS="EPSG:4326" name="States" keyType="US State FIPS Code" dataType="geometry"/>
+            <attribute name="AGE_18_21" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AGE_22_29" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AGE_30_39" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AGE_40_49" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AGE_50_64" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AGE_5_17" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AGE_65_UP" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AGE_UNDER5" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AMERI_ES" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="ASIAN" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AVE_FAM_SZ" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AVE_HH_SZ" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AVG_SALE97" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="AVG_SIZE97" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="BLACK" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="CROP_ACR97" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="FAMILIES" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="FEMALES" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="FHH_CHILD" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="HAWN_PI" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="HISPANIC" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="HOUSEHOLDS" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="HSE_UNITS" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="HSEHLD_1_F" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="HSEHLD_1_M" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MALES" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MARHH_CHD" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MARHH_NO_C" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MED_AGE" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MED_AGE_F" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MED_AGE_M" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MHH_CHILD" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="MULT_RACE" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="NO_FARMS97" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="OTHER" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="OWNER_OCC" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="POP00_SQMI" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="POP07_SQMI" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="POP2000" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="POP2007" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="RENTER_OCC" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="SQMI" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="STATE_ABBR" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="string"/>
+            <attribute name="STATE_FIPS" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="string"/>
+            <attribute name="STATE_NAME" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="string"/>
+            <attribute name="SUB_REGION" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="string"/>
+            <attribute name="the_geom_id" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="VACANT" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
+            <attribute name="WHITE" geometryCollection="States" dataTable="States" keyType="US State FIPS Code" dataType="number"/>
           </category>
           <category name="StatesHealth"/>
           <category name="StatesHealth Years"/>
@@ -339,38 +340,38 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="ZillowNeighborhoods"/>
         </category>
         <category name="Geometry Collections">
-          <attribute name="asdf" dataType="Geometry"/>
-          <attribute name="Atlanta Sujperdistricts" dataType="Geometry"/>
-          <attribute name="Atlanta Superdistricts" dataType="Geometry"/>
-          <attribute name="bikeped_facilities" dataType="Geometry"/>
-          <attribute name="Boston 2005 Parcels" dataType="Geometry"/>
-          <attribute name="boston_foreclosure_deeds" dataType="Geometry"/>
-          <attribute name="Counties" dataType="Geometry"/>
-          <attribute name="County Subdivisions" dataType="Geometry"/>
-          <attribute name="fe_2007_44_elsd" dataType="Geometry"/>
-          <attribute name="fe_2007_44_unsd" dataType="Geometry"/>
-          <attribute name="MA Census Tract" dataType="Geometry"/>
-          <attribute name="Massachusetts Towns" dataType="Geometry"/>
-          <attribute name="nccs_ma_reprojected_test" dataType="Geometry"/>
-          <attribute name="nccs_shape_CT" dataType="Geometry"/>
-          <attribute name="Ohio County Subdivisions" dataType="Geometry"/>
-          <attribute name="Ohio Places" dataType="Geometry"/>
-          <attribute name="ri_schools08_projected" dataType="Geometry"/>
-          <attribute name="st99_d00" dataType="Geometry"/>
-          <attribute name="States" dataType="Geometry"/>
-          <attribute name="test" dataType="Geometry"/>
-          <attribute name="test1234444444" dataType="Geometry"/>
-          <attribute name="test1ff" dataType="Geometry"/>
-          <attribute name="US_States_WGS" dataType="Geometry"/>
-          <attribute name="World Borders" dataType="Geometry"/>
-          <attribute name="ZillowNeighborhoods" dataType="Geometry"/>
+          <attribute name="asdf" dataType="geometry"/>
+          <attribute name="Atlanta Sujperdistricts" dataType="geometry"/>
+          <attribute name="Atlanta Superdistricts" dataType="geometry"/>
+          <attribute name="bikeped_facilities" dataType="geometry"/>
+          <attribute name="Boston 2005 Parcels" dataType="geometry"/>
+          <attribute name="boston_foreclosure_deeds" dataType="geometry"/>
+          <attribute name="Counties" dataType="geometry"/>
+          <attribute name="County Subdivisions" dataType="geometry"/>
+          <attribute name="fe_2007_44_elsd" dataType="geometry"/>
+          <attribute name="fe_2007_44_unsd" dataType="geometry"/>
+          <attribute name="MA Census Tract" dataType="geometry"/>
+          <attribute name="Massachusetts Towns" dataType="geometry"/>
+          <attribute name="nccs_ma_reprojected_test" dataType="geometry"/>
+          <attribute name="nccs_shape_CT" dataType="geometry"/>
+          <attribute name="Ohio County Subdivisions" dataType="geometry"/>
+          <attribute name="Ohio Places" dataType="geometry"/>
+          <attribute name="ri_schools08_projected" dataType="geometry"/>
+          <attribute name="st99_d00" dataType="geometry"/>
+          <attribute name="States" dataType="geometry"/>
+          <attribute name="test" dataType="geometry"/>
+          <attribute name="test1234444444" dataType="geometry"/>
+          <attribute name="test1ff" dataType="geometry"/>
+          <attribute name="US_States_WGS" dataType="geometry"/>
+          <attribute name="World Borders" dataType="geometry"/>
+          <attribute name="ZillowNeighborhoods" dataType="geometry"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -379,7 +380,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="State" id="165079" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
+                  <attribute id="165079" name="State" dataTable="obesity-cube" dataType="US State Name" keyType="obesity-cube"/>
                 </category>
               </category>
             </hierarchy>
@@ -388,7 +389,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -397,7 +398,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="ID" id="165078" dataTable="obesity-cube" keyType="obesity-cube" dataType="obesity-cube"/>
+                  <attribute id="165078" name="ID" dataTable="obesity-cube" dataType="obesity-cube" keyType="obesity-cube"/>
                 </category>
               </category>
             </hierarchy>
@@ -413,7 +414,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="FIPS2" id="165080" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                  <attribute id="165080" name="FIPS2" dataTable="obesity-cube" dataType="US State FIPS Code" keyType="obesity-cube"/>
                 </category>
               </category>
             </hierarchy>
@@ -429,7 +430,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="Year" id="165081" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                  <attribute id="165081" name="Year" dataTable="obesity-cube" dataType="Year" keyType="obesity-cube"/>
                 </category>
               </category>
             </hierarchy>
@@ -445,7 +446,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchy>
               <category name="Data Tables">
                 <category name="obesity-cube">
-                  <attribute name="PercentObese" id="165082" dataTable="obesity-cube" keyType="obesity-cube"/>
+                  <attribute id="165082" name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube"/>
                 </category>
               </category>
             </hierarchy>
@@ -455,11 +456,12 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </ReferencedColumn>
   </LinkableHashMap>
   <EquationColumn name="EquationEditorColumn2">
-    <metadata><projectionSRS>{geom.getMetadata('projectionSRS')}</projectionSRS></metadata>
-    <columnTitle>obesity-cube-state-geom</columnTitle>
-    <dataType/>
     <equation>getValueFromKey(geom, getValue(fips, QKey))</equation>
     <keyColumn encoding="dynamic"/>
+    <metadata>
+      <projectionSRS>{geom.getMetadata('projectionSRS')}</projectionSRS>
+      <title>obesity-cube-state-geom</title>
+    </metadata>
     <variables encoding="dynamic">
       <ReferencedColumn name="fips">
         <dynamicColumnReference encoding="dynamic">
@@ -469,7 +471,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <hierarchy>
                 <category name="Data Tables">
                   <category name="obesity-cube">
-                    <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                    <attribute dataType="US State FIPS Code" name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube"/>
                   </category>
                 </category>
               </hierarchy>
@@ -484,7 +486,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <hierarchyPath encoding="xml">
               <hierarchy>
                 <category name="Geometry Collections">
-                  <attribute name="States" dataType="Geometry"/>
+                  <attribute name="States" dataType="geometry"/>
                 </category>
               </hierarchy>
             </hierarchyPath>
@@ -686,7 +688,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" id="165079" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
+                                <attribute id="165079" name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -728,9 +730,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <area>1717.72916626535</area>
-          <xCenter>-94.8246970987335</xCenter>
-          <yCenter>36.7927492075305</yCenter>
+          <area>1717.7291662654</area>
+          <xCenter>-94.824697098734</xCenter>
+          <yCenter>36.792749207531</yCenter>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -894,176 +896,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
   </ColorBinLegendTool>
-  <MapTool name="MapTool2">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <defaultMouseMode>InteractiveVisualization.PAN_MODE</defaultMouseMode>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>true</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections">
-                                <attribute name="States" dataType="Geometry"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointShapeSize>5</pointShapeSize>
-                <spatialCallbacks/>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-        </layers>
-        <marginBottom>0</marginBottom>
-        <marginLeft>0</marginLeft>
-        <marginRight>0</marginRight>
-        <marginTop>0</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-        <zoomBounds>
-          <area>3937.00790532369</area>
-          <xCenter>-94.9165528862056</xCenter>
-          <yCenter>36.3447377453354</yCenter>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBackground>false</enableBackground>
-    <enableBorders>true</enableBorders>
-    <enableOverview>false</enableOverview>
-    <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>44.926%</panelHeight>
-    <panelStyleList/>
-    <panelWidth>37.618%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>54.968%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <projectionSRS/>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-    <toolTitle/>
-  </MapTool>
   <DataTableTool name="DataTableTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -1108,7 +940,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </children>
     <closeable>true</closeable>
     <columns encoding="dynamic">
-      <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+      <DynamicColumn encoding="dynamic" name="DynamicColumn2">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1117,7 +949,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="ID" id="165078" dataTable="obesity-cube" keyType="obesity-cube" dataType="obesity-cube"/>
+                      <attribute id="165078" name="ID" dataTable="obesity-cube" dataType="obesity-cube" keyType="obesity-cube"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1126,7 +958,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn name="DynamicColumn3" encoding="dynamic">
+      <DynamicColumn encoding="dynamic" name="DynamicColumn3">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1135,7 +967,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="FIPS2" id="165080" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                      <attribute id="165080" name="FIPS2" dataTable="obesity-cube" dataType="US State FIPS Code" keyType="obesity-cube"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1144,7 +976,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn name="DynamicColumn" encoding="dynamic">
+      <DynamicColumn encoding="dynamic" name="DynamicColumn">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1153,7 +985,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="State" id="165079" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
+                      <attribute id="165079" name="State" dataTable="obesity-cube" dataType="US State Name" keyType="obesity-cube"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1162,7 +994,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn name="DynamicColumn4" encoding="dynamic">
+      <DynamicColumn encoding="dynamic" name="DynamicColumn4">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1171,7 +1003,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="Year" id="165081" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                      <attribute id="165081" name="Year" dataTable="obesity-cube" dataType="Year" keyType="obesity-cube"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1180,7 +1012,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </dynamicColumnReference>
         </ReferencedColumn>
       </DynamicColumn>
-      <DynamicColumn name="DynamicColumn5" encoding="dynamic">
+      <DynamicColumn encoding="dynamic" name="DynamicColumn5">
         <ReferencedColumn>
           <dynamicColumnReference encoding="dynamic">
             <HierarchyColumnReference>
@@ -1189,7 +1021,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <hierarchy>
                   <category name="Data Tables">
                     <category name="obesity-cube">
-                      <attribute name="PercentObese" id="165082" dataTable="obesity-cube" keyType="obesity-cube"/>
+                      <attribute id="165082" name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube"/>
                     </category>
                   </category>
                 </hierarchy>
@@ -1375,7 +1207,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                                       <hierarchy>
                                         <category name="Data Tables">
                                           <category name="obesity-cube">
-                                            <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                            <attribute keyType="obesity-cube" dataType="Year" name="Year" dataTable="obesity-cube"/>
                                           </category>
                                         </category>
                                       </hierarchy>
@@ -1708,7 +1540,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
+                                <attribute keyType="obesity-cube" dataType="US State Name" name="State" dataTable="obesity-cube"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1726,7 +1558,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                <attribute keyType="obesity-cube" dataType="Year" name="Year" dataTable="obesity-cube"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1805,7 +1637,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
+                                <attribute keyType="obesity-cube" dataType="US State Name" name="State" dataTable="obesity-cube"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1823,7 +1655,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                <attribute keyType="obesity-cube" dataType="Year" name="Year" dataTable="obesity-cube"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1926,7 +1758,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                <attribute keyType="obesity-cube" dataType="Year" name="Year" dataTable="obesity-cube"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1984,7 +1816,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables">
                               <category name="obesity-cube">
-                                <attribute name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State Name"/>
+                                <attribute keyType="obesity-cube" dataType="US State Name" name="State" dataTable="obesity-cube"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2052,8 +1884,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         </layers>
         <marginBottom>80</marginBottom>
         <marginLeft>80</marginLeft>
-        <marginRight>25</marginRight>
-        <marginTop>25</marginTop>
+        <marginRight>50</marginRight>
+        <marginTop>50</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
@@ -2090,4 +1922,1482 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
   </ScatterPlotTool>
+  <LineChartTool name="LineChartTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>0</xMax>
+                  <xMin>0</xMin>
+                  <yMax>35.4</yMax>
+                  <yMin>10.1</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>35.4</axisLineMaxValue>
+                <axisLineMinValue>10.1</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>14</xMax>
+                  <xMin>0</xMin>
+                  <yMax>10.1</yMax>
+                  <yMin>10.1</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>14</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <spatialCallbacks/>
+                <tickCountRequested>15</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ParallelCoordinatesPlotter>
+                <columns encoding="dynamic">
+                  <EquationColumn name="line">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"1995",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>1995</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line2">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"1996",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>1996</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line3">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"1997",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>1997</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line4">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"1998",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>1998</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line5">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"1999",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>1999</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line6">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2000",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2000</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line7">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2001",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2001</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line8">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2002",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2002</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line9">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2003",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2003</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line10">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2004",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2004</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line11">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2005",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2005</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line12">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2006",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2006</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line13">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2007",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2007</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line14">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2008",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2008</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                  <EquationColumn name="line15">
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2009",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2009</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="Year" dataTable="obesity-cube" keyType="obesity-cube" dataType="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" dataType="number"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                </columns>
+                <curveType>none</curveType>
+                <displayFilterColumn>true</displayFilterColumn>
+                <filterColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="obesity-cube">
+                                <attribute keyType="obesity-cube" dataType="Year" name="Year" dataTable="obesity-cube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </filterColumn>
+                <filterDataType>String</filterDataType>
+                <filterValues>1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009</filterValues>
+                <keyColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="obesity-cube">
+                                <attribute keyType="obesity-cube" dataType="US State FIPS Code" name="FIPS2" dataTable="obesity-cube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </keyColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <normalize>false</normalize>
+                <shapeBorderColor>0</shapeBorderColor>
+                <shapeBorderThickness>0</shapeBorderThickness>
+                <shapeSize>5</shapeSize>
+                <shapeToDraw>Solid Circle</shapeToDraw>
+                <spatialCallbacks/>
+                <yData encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables">
+                              <category name="obesity-cube">
+                                <attribute keyType="obesity-cube" dataType="number" name="PercentObese" dataTable="obesity-cube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </yData>
+                <zoomToSubset>true</zoomToSubset>
+              </ParallelCoordinatesPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="label">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>false</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <TextGlyphPlotter>
+                <angle>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </angle>
+                <bold>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </bold>
+                <color>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </color>
+                <dataX encoding="dynamic">
+                  <AlwaysDefinedColumn>
+                    <defaultValue>14</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </AlwaysDefinedColumn>
+                </dataX>
+                <dataY encoding="dynamic">
+                  <EquationColumn>
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2009",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2009</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code" name="FIPS2"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute dataTable="obesity-cube" keyType="obesity-cube" dataType="Year" name="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute dataTable="obesity-cube" keyType="obesity-cube" dataType="number" name="PercentObese"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                </dataY>
+                <font>
+                  <defaultValue>Sophia Nubian</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </font>
+                <hAlign>
+                  <defaultValue>left</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </hAlign>
+                <hideOverlappingText>true</hideOverlappingText>
+                <italic>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </italic>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <size>
+                  <defaultValue>11</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </size>
+                <sortColumn encoding="dynamic">
+                  <EquationColumn>
+                    <equation>getValueFromFilterColumn(get("key"), get("filter"), get("data"),"2009",String,Number)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>2009</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="key">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code" name="FIPS2"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="filter">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute dataTable="obesity-cube" keyType="obesity-cube" dataType="Year" name="Year"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="data">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute dataTable="obesity-cube" keyType="obesity-cube" dataType="number" name="PercentObese"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                </sortColumn>
+                <spatialCallbacks/>
+                <text encoding="dynamic">
+                  <EquationColumn>
+                    <equation>key = getKeysFromValue(get("keyColumn"), getKey(), QKey)[0], getValueFromKey(get("labelColumn"), key, String)</equation>
+                    <keyColumn encoding="dynamic"/>
+                    <metadata>
+                      <title>StateEquation</title>
+                    </metadata>
+                    <variables encoding="dynamic">
+                      <DynamicColumn encoding="dynamic" name="labelColumn">
+                        <DynamicColumn encoding="dynamic">
+                          <ReferencedColumn>
+                            <dynamicColumnReference encoding="dynamic">
+                              <HierarchyColumnReference>
+                                <dataSourceName>WeaveDataSource</dataSourceName>
+                                <hierarchyPath encoding="xml">
+                                  <hierarchy>
+                                    <category name="Data Tables">
+                                      <category name="obesity-cube">
+                                        <attribute id="165079" name="State" dataTable="obesity-cube" dataType="US State Name" keyType="obesity-cube"/>
+                                      </category>
+                                    </category>
+                                  </hierarchy>
+                                </hierarchyPath>
+                              </HierarchyColumnReference>
+                            </dynamicColumnReference>
+                          </ReferencedColumn>
+                        </DynamicColumn>
+                      </DynamicColumn>
+                      <DynamicColumn encoding="dynamic" name="keyColumn">
+                        <ReferencedColumn>
+                          <dynamicColumnReference encoding="dynamic">
+                            <HierarchyColumnReference>
+                              <dataSourceName>WeaveDataSource</dataSourceName>
+                              <hierarchyPath encoding="xml">
+                                <hierarchy>
+                                  <category name="Data Tables">
+                                    <category name="obesity-cube">
+                                      <attribute dataTable="obesity-cube" keyType="obesity-cube" dataType="US State FIPS Code" name="FIPS2"/>
+                                    </category>
+                                  </category>
+                                </hierarchy>
+                              </hierarchyPath>
+                            </HierarchyColumnReference>
+                          </dynamicColumnReference>
+                        </ReferencedColumn>
+                      </DynamicColumn>
+                    </variables>
+                  </EquationColumn>
+                </text>
+                <underline>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </underline>
+                <vAlign>
+                  <defaultValue>center</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </vAlign>
+                <xScreenOffset>5</xScreenOffset>
+                <yScreenOffset>0</yScreenOffset>
+              </TextGlyphPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>80</marginRight>
+        <marginTop>10</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>14</xMax>
+          <xMin>0</xMin>
+          <yMax>35.4</yMax>
+          <yMin>10.1</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>44.97%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>37.5%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>54.878%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </LineChartTool>
 </Weave>
