@@ -268,8 +268,7 @@
 				if (!defaultSelector.parent)
 					PopUpManager.addPopUp(defaultSelector, Application.application as Application);
 
-				defaultSelector.hierarchySelector.searchAttrTerms.text = '';
-				defaultSelector.hierarchySelector.searchCategoryTerms.text = '';
+				defaultSelector.hierarchySelector.clearSearch();
 				
 				defaultSelector.linkToObject(linkTo, title);
 				
