@@ -112,7 +112,6 @@ public class DatabaseConfig
 	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
 	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
 	private final String SQLTYPE_INT = "INT";
-	private final String SQLTYPE_AUTOINC_INT = "INT NOT NULL AUTO_INCREMENT";
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();

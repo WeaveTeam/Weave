@@ -20,11 +20,13 @@ import java.util.Vector;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.DebugTimer;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.DBFUtils;
 import org.w3c.dom.*;
@@ -139,96 +141,6 @@ public class SQLConfig
 	{
 		return connectionConfig.getDatabaseConfigInfo();
 	}
-
-	private void initGeometryCollectionSQLTable() throws SQLException, RemoteException
-	{
-		// list column names
-		List<String> columnNames = Arrays.asList(
-				GeometryCollectionInfo.NAME, GeometryCollectionInfo.CONNECTION, GeometryCollectionInfo.SCHEMA, GeometryCollectionInfo.TABLEPREFIX,
-				GeometryCollectionInfo.KEYTYPE, GeometryCollectionInfo.PROJECTION, GeometryCollectionInfo.IMPORTNOTES);
-
-		// list corresponding column types
-		List<String> columnTypes = new Vector<String>();
-		for (int i = 0; i < columnNames.size(); i++)
-		{
-			if (columnNames.get(i).equals(GeometryCollectionInfo.IMPORTNOTES))
-				columnTypes.add(SQLTYPE_LONG_VARCHAR);
-			else
-				columnTypes.add(SQLTYPE_VARCHAR);
-		}
-		Connection conn = getConnection();
-		// BACKWARDS COMPATIBILITY WITH OLD VERSION OF WEAVE
-		if (SQLUtils.tableExists(conn, dbInfo.schema, dbInfo.geometryConfigTable))
-		{
-			try
-			{
-				// add column to existing table
-				SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.PROJECTION, SQLTYPE_VARCHAR);
-			}
-			catch (SQLException e)
-			{
-				// we don't care if this fails -- assume the table has the
-				// column already.
-			}
-		}
-		else
-		{
-			// create new table
-			SQLUtils.createTable(conn, dbInfo.schema, dbInfo.geometryConfigTable, columnNames, columnTypes);
-		}
-		// add index on name
-		try
-		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.geometryConfigTable, new String[]{GeometryCollectionInfo.NAME});
-		}
-		catch (SQLException e)
-		{
-			// ignore sql errors
-		}
-	}
-	private void initAttributeColumnSQLTable() throws SQLException, RemoteException
-	{
-		// list column names
-		List<String> columnNames = new Vector<String>();
-		for (Metadata metadata : Metadata.values())
-			columnNames.add(metadata.toString());
-		columnNames.add(AttributeColumnInfo.CONNECTION);
-		// list corresponding column types
-		List<String> columnTypes = new Vector<String>();
-		for (int i = 0; i < columnNames.size(); i++)
-			columnTypes.add(SQLTYPE_VARCHAR);
-		// add column with special type for sqlQuery
-		columnNames.add(AttributeColumnInfo.SQLQUERY);
-		columnTypes.add(SQLTYPE_LONG_VARCHAR);
-		// create table
-		Connection conn = getConnection();
-		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
-		try
-		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.NAME.toString()});
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.DATATABLE.toString()});
-		}
-		catch (SQLException e)
-		{
-			// If the indices already exist, we don't care.
-		}
-		try
-		{
-			SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.CATEGORY_ID.toString(), SQLTYPE_INT);
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-
-		// TODO: create auto-incrementing primary key: "id" int4 NOT NULL
-		// DEFAULT nextval('weave_attributecolumn_id_seq'::regclass)
-	}
-
-	// This private ISQLConfig is for managing connections because
-	// the connection info shouldn't be stored in the database.
-
-
 	// these functions are just passed to the private connectionConfig
 	public Document getDocument() throws RemoteException
 	{
@@ -262,12 +174,24 @@ public class SQLConfig
 
 	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
 	{
-		List<String> names;
+		List<String> names = new LinkedList<String>();
+		ResultSet sqlRes;
 		try
 		{
 			if (connectionName == null)
 			{
-				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
+					String[] tables = {sqltable_public, sqltable_public};
+					String[] id_cols = {"id", "id"};
+					List<String> cols = Arrays.asList("value");
+					HashMap<String,String> whereClauses = new HashMap<String,String>();
+					whereClauses.put("t2.property", "dataType");
+					whereClauses.put("t2.value", "geometry");
+					whereClauses.put("t1.property", "name");
+					sqlRes = SQLUtils.joinedSelectQuery(getConnection(), dbInfo.schema, cols, tables, id_cols, whereClauses);
+					for (sqlRes.first(); !sqlRes.next(); )
+					{
+						names.add(sqlRes.getString(1));
+					}
 			}
 			else
 			{

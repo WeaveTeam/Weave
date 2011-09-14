@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.geotools.resources.Arguments;
 import org.postgresql.PGConnection;
 
 /**
@@ -555,20 +556,8 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			String whereQuery = "";
-			int i = 0;
-			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Entry<String, String> pair = paramsIter.next();
-				String key = pair.getKey();
-				if( i > 0 )
-					whereQuery += " AND ";
-				whereQuery += quoteSymbol(conn, key) + caseSensitiveCompareOperator(conn) + " ?"; // case-sensitive
-				i++;
-			}
-			if (whereQuery.length() > 0)
-				whereQuery = "WHERE " + whereQuery;
+			String whereQuery;
+			whereQuery = buildWhereClause(conn, whereParams);
 			
 			// build complete query
 			query = String.format(
@@ -580,8 +569,8 @@ public class SQLUtils
 			cstmt = conn.prepareCall(query);
 			
 			// set query parameters
-			i = 1;
-			paramsIter = whereParams.entrySet().iterator();
+			int i = 1;
+			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
 			while (paramsIter.hasNext())
 			{
 				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
@@ -636,20 +625,9 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			String whereQuery = "";
-			int i = 0;
-			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Entry<String, String> pair = paramsIter.next();
-				String key = pair.getKey();
-				if( i > 0 )
-					whereQuery += " AND ";
-				whereQuery += quoteSymbol(conn, key) + caseSensitiveCompareOperator(conn) + " ?"; // case-sensitive
-				i++;
-			}
-			if (whereQuery.length() > 0)
-				whereQuery = "WHERE " + whereQuery;
+			String whereQuery = buildWhereClause(conn, whereParams);
+			
+			
 			
 			// build complete query
 			query = String.format(
@@ -661,8 +639,8 @@ public class SQLUtils
 			cstmt = conn.prepareCall(query);
 			
 			// set query parameters
-			i = 1;
-			paramsIter = whereParams.entrySet().iterator();
+			int i = 1;
+			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
 			while (paramsIter.hasNext())
 			{
 				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
@@ -992,6 +970,69 @@ public class SQLUtils
 		{
 			SQLUtils.cleanup(stmt);
 		}
+	}
+	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted) throws IllegalArgumentException, SQLException
+	{ 
+		String whereQuery = "";
+		int i = 0;
+		Iterator<Entry<String, String>> paramsIter = whereClauses.entrySet().iterator();
+		while (paramsIter.hasNext())
+		{
+			Entry<String, String> pair = paramsIter.next();
+			String key = pair.getKey();
+			if( i > 0 )
+				whereQuery += " AND ";
+			whereQuery += quoteSymbol(conn, key) + caseSensitiveCompareOperator(conn) + " ?"; // case-sensitive
+			i++;
+		}
+		if (whereQuery.length() > 0)
+			whereQuery = "WHERE " + whereQuery;
+		return whereQuery;
+	}
+	public static ResultSet joinedSelectQuery( Connection conn, String schemaName, List<String> columnNames,  String[] tables,  String[] joinCols, Map<String, String> whereClauses) throws SQLException
+	{
+		CallableStatement stmt = null;
+		String quotedColNames = "";
+		ResultSet rs;
+		for (String colName : columnNames )
+		{
+			quotedColNames = quotedColNames.concat( "t1." + quoteSymbol(conn, colName) + ",");
+		}
+		quotedColNames = quotedColNames.substring(0, quotedColNames.length()-1);
+		
+		System.out.println(quotedColNames);
+		String whereQuery = buildWhereClause(conn, whereClauses);
+		String query = String.format("SELECT %s FROM %s AS t1 JOIN %s AS t2 ON t1.%s=t2.%s %s", quotedColNames,
+				quoteSchemaTable(conn, schemaName, tables[0]),
+				quoteSchemaTable(conn, schemaName, tables[1]),
+				quoteSymbol(conn, joinCols[0]), 
+				quoteSymbol(conn, joinCols[1]),
+				whereQuery);
+		try
+		{
+			stmt = conn.prepareCall(query);
+			int i = 1;
+			Iterator<Entry<String, String>> paramsIter = whereClauses.entrySet().iterator();
+			while (paramsIter.hasNext())
+			{
+				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
+				String value = pairs.getValue();
+				stmt.setString( i, value );
+				i++;
+			}
+			rs = stmt.executeQuery();
+		}
+		
+		catch (SQLException e)
+		{
+			System.out.println(query);
+			throw e;
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+		return rs;
 	}
 	
 	/**

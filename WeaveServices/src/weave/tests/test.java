@@ -54,7 +54,7 @@ public class test {
 	public static void main(String[] args) throws Exception {
 		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
 		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 6.0\\webapps\\weave-config\\sqlconfig.xml"));
-		
+		System.out.println(sqlcfg.getGeometryCollectionNames(null));
 		// TODO Auto-generated method stub
 //		System.out.println("hi");		
 //		ws = new RService();
