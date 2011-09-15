@@ -287,13 +287,7 @@ package weave.services
 		 */
 		public function receiveChunkedData(commandID:String, chunkID:uint, chunkData:ByteArray, moreChunksFollow:Boolean):void
 		{
-			trace('receiveChunkedData', chunkID, chunkData.length, moreChunksFollow);
-			chunkData.position = 0;
-//			// convert String to ByteArray
-//			var bytes:ByteArray = new ByteArray();
-//			for (var i:int = 0; i < chunkData.length; i++)
-//				bytes.writeByte(chunkData.charCodeAt(i));
-//			bytes.position = 0;
+			//trace('receiveChunkedData', commandID, chunkID, chunkData.length, moreChunksFollow);
 			_receiveChunkedData.apply(null, [commandID, chunkID, chunkData, moreChunksFollow]);
 		}
 		private function _receiveChunkedData(commandID:String, chunkID:uint, chunkData:ByteArray, moreChunksFollow:Boolean):void
