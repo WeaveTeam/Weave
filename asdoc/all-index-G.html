@@ -525,6 +525,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    Area is defined as the absolute value of width height.</td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html#getAssociatedKeys()">getAssociatedKeys</a>(column:<a href="weave/api/data/IAttributeColumn.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IAttributeColumn</a>, keyValue:<a href="weave/api/data/IQualifiedKey.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IQualifiedKey</a>) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html">EquationColumnLib</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
+   </td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/data/class-list.html');" href="weave/api/data/IDataSource.html#getAttributeColumn()">getAttributeColumn</a>(columnReference:<a href="weave/api/data/IColumnReference.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IColumnReference</a>) &mdash; Method in interface weave.api.data.<a onclick="javascript:loadClassListFrame('weave/api/data/class-list.html');" href="weave/api/data/IDataSource.html">IDataSource</a></td>
 </tr>
 <tr>
@@ -1781,14 +1789,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    </td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html#getKeysFromValue()">getKeysFromValue</a>(column:<a href="weave/data/AttributeColumns/DynamicColumn.html" onclick="javascript:loadClassListFrame('weave/data/AttributeColumns./class-list.html');">weave.data.AttributeColumns:DynamicColumn</a>, value, dataType) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html">EquationColumnLib</a></td>
-</tr>
-<tr>
-<td width="20"></td><td>
-   This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
-   </td>
-</tr>
-<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/SpatialIndex.html#getKeysGeometryOverlap()">getKeysGeometryOverlap</a>(bounds:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>, minImportance, filterBoundingBoxesByImportance) &mdash; Method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/SpatialIndex.html">SpatialIndex</a></td>
 </tr>
 <tr>
@@ -1978,6 +1978,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    </td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/NumberColumn.html#getMetadata()">getMetadata</a>(propertyName) &mdash; Method in class weave.data.AttributeColumns.<a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/NumberColumn.html">NumberColumn</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/ProxyColumn.html#getMetadata()">getMetadata</a>(propertyName) &mdash; Method in class weave.data.AttributeColumns.<a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/ProxyColumn.html">ProxyColumn</a></td>
 </tr>
 <tr>
@@ -2006,6 +2012,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/StreamedGeometryColumn.html#getMetadata()">getMetadata</a>(propertyName) &mdash; Method in class weave.data.AttributeColumns.<a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/StreamedGeometryColumn.html">StreamedGeometryColumn</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/StringColumn.html#getMetadata()">getMetadata</a>(propertyName) &mdash; Method in class weave.data.AttributeColumns.<a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/StringColumn.html">StringColumn</a></td>
 </tr>
 <tr>
 <td width="20"></td><td></td>
@@ -3313,7 +3325,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    This function uses currentRecordKey when retrieving a value from a column.</td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html#getValueFromFilterColumn()">getValueFromFilterColumn</a>(keyColumn:<a href="weave/data/AttributeColumns/DynamicColumn.html" onclick="javascript:loadClassListFrame('weave/data/AttributeColumns./class-list.html');">weave.data.AttributeColumns:DynamicColumn</a>, filter:<a href="weave/api/data/IAttributeColumn.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IAttributeColumn</a>, data:<a href="weave/api/data/IAttributeColumn.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IAttributeColumn</a>, filterValue, filterDataType, dataType) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html">EquationColumnLib</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html#getValueFromFilterColumn()">getValueFromFilterColumn</a>(keyColumn:<a href="weave/data/AttributeColumns/DynamicColumn.html" onclick="javascript:loadClassListFrame('weave/data/AttributeColumns./class-list.html');">weave.data.AttributeColumns:DynamicColumn</a>, filter:<a href="weave/api/data/IAttributeColumn.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IAttributeColumn</a>, data:<a href="weave/api/data/IAttributeColumn.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IAttributeColumn</a>, filterValue, dataType) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EquationColumnLib.html">EquationColumnLib</a></td>
 </tr>
 <tr>
 <td width="20"></td><td>
@@ -3938,6 +3950,18 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/WMSPlotter.html#gridSpacing">gridSpacing</a> &mdash; Constant property in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/WMSPlotter.html">WMSPlotter</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/ParallelCoordinatesPlotter.html#groupBy">groupBy</a> &mdash; Constant property in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/ParallelCoordinatesPlotter.html">ParallelCoordinatesPlotter</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/ParallelCoordinatesPlotter.html#groupByValues">groupByValues</a> &mdash; Constant property in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/ParallelCoordinatesPlotter.html">ParallelCoordinatesPlotter</a></td>
 </tr>
 <tr>
 <td width="20"></td><td></td>

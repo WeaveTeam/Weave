@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,lockScreenBounds,plotBitmap,showMissingRecords,backgroundFilters,graphicsAreValid,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getBackgroundBitmap,getDataBounds,getDynamicPlotter,getPlotBitmap,getScreenBounds,getSelectedKeys,handleSizeChange,invalidateGraphics,setDataBounds,setScreenBounds,updateDisplayList,validateGraphics" name="keywords">
+<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,lockScreenBounds,plotBitmap,showMissingRecords,backgroundFilters,graphicsAreValid,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getBackgroundBitmap,getDataBounds,getDynamicPlotter,getPlotBitmap,getScreenBounds,getSelectedKeys,handleSizeChange,invalidateGraphics,setDataBounds,setScreenBounds,updateDisplayList,validateGraphics,validateSpatialIndex" name="keywords">
 <title>weave.visualization.layers.PlotLayer</title>
 </head>
 <body>
@@ -198,6 +198,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#validateSpatialIndex()">validateSpatialIndex</a>():void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">PlotLayer</td>
+</tr>
 </table>
 </div>
 <a name="protectedMethodSummary"></a>
@@ -249,9 +256,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#layerIsVisible">layerIsVisible</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
 <div class="summaryTableDescription">
-   ets the visibility of the layer 
-   
-  </div>
+   Sets the visibility of the layer
+   </div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
 </table>
@@ -621,6 +627,15 @@ showHideInherited();
 </tr>
 </table>
 </div>
+<a name="validateSpatialIndex()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">validateSpatialIndex</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function validateSpatialIndex():void</code>
+</div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
 <a name="backgroundBitmap"></a>
@@ -651,9 +666,8 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const layerIsVisible:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code><p>
-   ets the visibility of the layer 
-   
-  </p></div>
+   Sets the visibility of the layer
+   </p></div>
 <a name="plotBitmap"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
