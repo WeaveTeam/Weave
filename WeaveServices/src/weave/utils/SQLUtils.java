@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -44,6 +45,8 @@ import java.util.Map.Entry;
 
 import org.geotools.resources.Arguments;
 import org.postgresql.PGConnection;
+
+import com.mysql.jdbc.ResultSetMetaData;
 
 /**
  * SQLUtils
@@ -971,7 +974,11 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted) throws IllegalArgumentException, SQLException
+	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
+	{
+		return buildWhereClause(conn, whereClauses, false, true);
+	}
+	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted, boolean preparedStatement) throws IllegalArgumentException, SQLException
 	{ 
 		String whereQuery = "";
 		int i = 0;
@@ -980,19 +987,24 @@ public class SQLUtils
 		{
 			Entry<String, String> pair = paramsIter.next();
 			String key = pair.getKey();
-			if( i > 0 )
-				whereQuery += " AND ";
-			whereQuery += quoteSymbol(conn, key) + caseSensitiveCompareOperator(conn) + " ?"; // case-sensitive
+			String value = pair.getValue();
+			if( i > 0 ) whereQuery += " AND ";
+			if (!preQuoted) key = quoteSymbol(conn, key);
+			if (preparedStatement) value = " ?";
+			else value = " \"" + value + "\""; // TODO: Clean up and secure this.
+			whereQuery += key + caseSensitiveCompareOperator(conn) + value; // case-sensitive
+			
 			i++;
 		}
 		if (whereQuery.length() > 0)
 			whereQuery = "WHERE " + whereQuery;
 		return whereQuery;
 	}
-	public static ResultSet joinedSelectQuery( Connection conn, String schemaName, List<String> columnNames,  String[] tables,  String[] joinCols, Map<String, String> whereClauses) throws SQLException
+	public static List<Map<String,String>> joinedSelectQuery( Connection conn, String schemaName, List<String> columnNames,  String[] tables,  String[] joinCols, Map<String, String> whereClauses) throws SQLException
 	{
 		CallableStatement stmt = null;
 		String quotedColNames = "";
+		List<Map<String, String>> rows = new LinkedList<Map<String,String>>();
 		ResultSet rs;
 		for (String colName : columnNames )
 		{
@@ -1000,8 +1012,7 @@ public class SQLUtils
 		}
 		quotedColNames = quotedColNames.substring(0, quotedColNames.length()-1);
 		
-		System.out.println(quotedColNames);
-		String whereQuery = buildWhereClause(conn, whereClauses);
+		String whereQuery = buildWhereClause(conn, whereClauses, true, false);
 		String query = String.format("SELECT %s FROM %s AS t1 JOIN %s AS t2 ON t1.%s=t2.%s %s", quotedColNames,
 				quoteSchemaTable(conn, schemaName, tables[0]),
 				quoteSchemaTable(conn, schemaName, tables[1]),
@@ -1011,16 +1022,33 @@ public class SQLUtils
 		try
 		{
 			stmt = conn.prepareCall(query);
-			int i = 1;
-			Iterator<Entry<String, String>> paramsIter = whereClauses.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
-				String value = pairs.getValue();
-				stmt.setString( i, value );
-				i++;
-			}
+			int i = 1;			
 			rs = stmt.executeQuery();
+			java.sql.ResultSetMetaData rsmeta = rs.getMetaData();
+			while (rs.next())
+			{
+				HashMap<String,String> row = new HashMap<String,String>();
+				for (i = 1; i <= rsmeta.getColumnCount(); i++)
+				{
+					String colName;
+					String colValue;
+					int colType;
+					
+					colName = rsmeta.getColumnName(i);
+					colType = rsmeta.getColumnType(i);
+					switch (colType)
+					{
+						case java.sql.Types.BLOB:
+						case java.sql.Types.BINARY:
+						case java.sql.Types.CHAR:
+						case java.sql.Types.VARCHAR:
+						default:
+							colValue = rs.getString(i); break;
+					}
+					row.put(colName, colValue);
+				}
+				rows.add(row);
+			}
 		}
 		
 		catch (SQLException e)
@@ -1032,7 +1060,7 @@ public class SQLUtils
 		{
 			SQLUtils.cleanup(stmt);
 		}
-		return rs;
+		return rows;
 	}
 	
 	/**

@@ -175,22 +175,25 @@ public class SQLConfig
 	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
 	{
 		List<String> names = new LinkedList<String>();
-		ResultSet sqlRes;
+		List<Map<String,String>> sqlRes;
 		try
 		{
+			Connection conn = getConnection();
 			if (connectionName == null)
 			{
+					
 					String[] tables = {sqltable_public, sqltable_public};
 					String[] id_cols = {"id", "id"};
 					List<String> cols = Arrays.asList("value");
 					HashMap<String,String> whereClauses = new HashMap<String,String>();
-					whereClauses.put("t2.property", "dataType");
-					whereClauses.put("t2.value", "geometry");
-					whereClauses.put("t1.property", "name");
+					whereClauses.put(SQLUtils.quoteSymbol(conn, "t2") + "." + SQLUtils.quoteSymbol(conn, "property"), "dataType");
+					whereClauses.put(SQLUtils.quoteSymbol(conn, "t2") + "." + SQLUtils.quoteSymbol(conn, "value"), "geometry");
+					whereClauses.put(SQLUtils.quoteSymbol(conn, "t1") + "." + SQLUtils.quoteSymbol(conn, "property"), "name");
 					sqlRes = SQLUtils.joinedSelectQuery(getConnection(), dbInfo.schema, cols, tables, id_cols, whereClauses);
-					for (sqlRes.first(); !sqlRes.next(); )
+					
+					for (Map<String,String> row : sqlRes)
 					{
-						names.add(sqlRes.getString(1));
+						names.add(row.get("value"));
 					}
 			}
 			else
