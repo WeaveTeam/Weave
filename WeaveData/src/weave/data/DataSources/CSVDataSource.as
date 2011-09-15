@@ -29,6 +29,7 @@ package weave.data.DataSources
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
@@ -40,6 +41,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
@@ -207,19 +209,28 @@ package weave.data.DataSources
 
 			// loop through values, determine column type
 			var nullValue:String;
-			var isNumericColumn:Boolean = true
-			//check if it is a numeric column.
-			for each (var columnValue:String in csvDataColumn)
+			var dataType:String = ColumnUtils.getDataType(proxyColumn);
+			var isNumericColumn:Boolean = dataType == null || ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0;
+			if (isNumericColumn)
 			{
-				// First trim out any commas since isNaN does not work if numbers have commas. if numeric, continue. 
-				if (!isNaN(getNumberFromString(columnValue)))
-					continue;
-				// if not numeric, compare to null values
-				if (!stringIsNullValue(columnValue))
+				//check if it is a numeric column.
+				for each (var columnValue:String in csvDataColumn)
 				{
-					// stop when it is determined that the column is not numeric
-					isNumericColumn = false;
-					break;
+					// if a string is 2 characters or more and begins with a '0', treat it as a string.
+					if (columnValue.length > 1 && columnValue.charAt(0) == '0' && columnValue.charAt(1) != '.')
+					{
+						isNumericColumn = false;
+						break;
+					}
+					if (!isNaN(getNumberFromString(columnValue)))
+						continue;
+					// if not numeric, compare to null values
+					if (!stringIsNullValue(columnValue))
+					{
+						// stop when it is determined that the column is not numeric
+						isNumericColumn = false;
+						break;
+					}
 				}
 			}
 
@@ -229,12 +240,7 @@ package weave.data.DataSources
 			{
 				var numericVector:Vector.<Number> = new Vector.<Number>();
 				for (i = 0; i < csvDataColumn.length; i++)
-				{
-					if (stringIsNullValue(csvDataColumn[i]))
-						numericVector[i] = NaN;
-					else
-						numericVector[i] = getNumberFromString(csvDataColumn[i]);
-				}
+					numericVector[i] = getNumberFromString(csvDataColumn[i]);
 
 				newColumn = new NumberColumn(leafNode);
 				(newColumn as NumberColumn).setRecords(keysVector, numericVector);
@@ -277,6 +283,7 @@ package weave.data.DataSources
 		{
 			if (stringIsNullValue(value))
 				return NaN;
+			// First trim out any commas since Number() does not work if numbers have commas. 
 			return Number(value.split(",").join(""));
 		}
 		

@@ -198,7 +198,7 @@ package weave.data
 
 			// if the cacheIsValid dictionary has no entry for this column,
 			// add a callback to the column that will invalidate the cache
-			if (cacheIsValid[column] == undefined)
+			if (cacheIsValid[column] === undefined)
 				column.addImmediateCallback(column, invalidateCache, [column], true);
 			
 			// if cache is invalid, validate it now.  if callbacks are running, cache is invalid.

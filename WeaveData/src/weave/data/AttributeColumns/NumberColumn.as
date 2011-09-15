@@ -26,9 +26,12 @@ package weave.data.AttributeColumns
 	
 	import mx.formatters.NumberFormatter;
 	
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.StandardLib;
+	import weave.utils.EquationColumnLib;
 	
 	/**
 	 * NumericColumn
@@ -40,6 +43,13 @@ package weave.data.AttributeColumns
 		public function NumberColumn(metadata:XML = null)
 		{
 			super(metadata);
+		}
+		
+		override public function getMetadata(propertyName:String):String
+		{
+			if (propertyName == AttributeColumnMetadata.DATA_TYPE)
+				return DataTypes.NUMBER;
+			return super.getMetadata(propertyName);
 		}
 		
 		/**
@@ -67,7 +77,7 @@ package weave.data.AttributeColumns
 			return _keyToNumericDataMapping[key] != undefined;
 		}
 
-		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>, clearExistingRecords:Boolean = true):void
+		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
 		{
 			var index:int;
 			var key:Object;
@@ -78,9 +88,8 @@ package weave.data.AttributeColumns
 				keys.length = numericData.length;
 			}
 			
-			// clear previous data mapping if requested
-			if (clearExistingRecords)
-				_keyToNumericDataMapping = new Dictionary();
+			// clear previous data mapping
+			_keyToNumericDataMapping = new Dictionary();
 			
 			// save a mapping from keys to data
 			for (index = keys.length - 1; index >= 0; index--)
@@ -146,7 +155,10 @@ package weave.data.AttributeColumns
 			if (dataType == String)
 				return deriveStringFromNumber(_keyToNumericDataMapping[key]);
 			// make sure to cast as a Number so missing values return as NaN instead of undefined
-			return Number(_keyToNumericDataMapping[key]);
+			var value:Number = Number(_keyToNumericDataMapping[key]);
+			if (dataType == null)
+				return value;
+			return EquationColumnLib.cast(value, dataType);
 		}
 
 		override public function toString():String

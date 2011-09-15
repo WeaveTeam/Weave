@@ -23,6 +23,7 @@ package weave.visualization.layers
 	
 	import mx.containers.Canvas;
 	
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -64,7 +65,7 @@ package weave.visualization.layers
 			
 			UIUtils.linkDisplayObjects(this, layers);
 			
-			layers.addImmediateCallback(this, handleLayerChange);
+			layers.addImmediateCallback(this, updateZoom);
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));
@@ -80,19 +81,58 @@ package weave.visualization.layers
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
 		public const includeNonSelectableLayersInAutoZoom:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 
-		private function handleLayerChange():void
-		{
-			updateFullDataBounds();
-
-			// since fullDataBounds (may have) changed, there are new constraints on the dataBounds
-			updateZoom();
-		}
+		/**
+		 * This is the collective data bounds of all the selectable plot layers.
+		 */
+		public const fullDataBounds:IBounds2D = new Bounds2D();
 		
+		/**
+		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
+		 */
 		protected function updateZoom():void
 		{
+			getCallbackCollection(this).delayCallbacks();
+			
 			var layer:IPlotLayer;
 			var plotLayer:PlotLayer;
 			var selectablePlotLayer:SelectablePlotLayer;
+			
+			//////////////////////
+			// update full data bounds
+			//////////////////////
+			
+			tempBounds.copyFrom(fullDataBounds);
+			fullDataBounds.reset();
+			var _layers:Array;
+			if (includeNonSelectableLayersInAutoZoom.value)
+				_layers = layers.getObjects(IPlotLayer);
+			else
+				_layers = layers.getObjects(SelectablePlotLayer); // only consider SelectablePlotLayers
+			for each (layer in _layers)
+			{
+				selectablePlotLayer = layer as SelectablePlotLayer;
+				if (selectablePlotLayer && !selectablePlotLayer.layerIsVisible.value)
+					continue;
+				plotLayer = layer as PlotLayer;
+				if (plotLayer && !plotLayer.layerIsVisible.value)
+					continue;
+				
+				//trace(layers.getName(layer), (layer.spatialIndex as SpatialIndex).collectiveBounds, selectablePlotLayer && selectablePlotLayer.plotLayer._spatialIndexDirty);
+				// BEGIN HACK
+				if (selectablePlotLayer)
+					selectablePlotLayer.plotLayer.validateSpatialIndex();
+				if (plotLayer)
+					plotLayer.validateSpatialIndex();
+				// END HACK
+				fullDataBounds.includeBounds((layer.spatialIndex as SpatialIndex).collectiveBounds);
+			}
+			if (!tempBounds.equals(fullDataBounds))
+				getCallbackCollection(this).triggerCallbacks();
+			
+
+			//////////////////////
+			// update zoomBounds
+			//////////////////////
 			
 			// calculate new screen bounds in temp variable
 			// default behaviour is to set screenBounds beginning from lower-left corner and ending at upper-right corner
@@ -156,39 +196,9 @@ package weave.visualization.layers
 				if (selectablePlotLayer && !selectablePlotLayer.lockScreenBounds)
 					selectablePlotLayer.setScreenBounds(tempScreenBounds);
 			}
+			
+			getCallbackCollection(this).resumeCallbacks();
 		}
-		
-		protected function updateFullDataBounds():void
-		{
-			tempBounds.copyFrom(fullDataBounds);
-			fullDataBounds.reset();
-			var _layers:Array;
-			if (includeNonSelectableLayersInAutoZoom.value)
-				_layers = layers.getObjects(IPlotLayer);
-			else
-				_layers = layers.getObjects(SelectablePlotLayer); // only consider SelectablePlotLayers
-			for each (var plotLayer:IPlotLayer in _layers)
-			{
-				var spl:SelectablePlotLayer = plotLayer as SelectablePlotLayer;
-				if (spl && !spl.layerIsVisible.value)
-					continue;
-				var pl:PlotLayer = plotLayer as PlotLayer;
-				if (pl && !pl.layerIsVisible.value)
-					continue;
-				
-				//trace(layers.getName(plotLayer), plotLayer.spatialIndex.collectiveBounds);
-				fullDataBounds.includeBounds((plotLayer.spatialIndex as SpatialIndex).collectiveBounds);
-				var bg:IBounds2D = plotLayer.plotter.getBackgroundDataBounds();
-				fullDataBounds.includeBounds(bg);
-			}
-			if (!tempBounds.equals(fullDataBounds))
-				getCallbackCollection(this).triggerCallbacks();
-		}
-		
-		/**
-		 * This is the collective data bounds of all the selectable plot layers.
-		 */
-		public const fullDataBounds:IBounds2D = new Bounds2D();
 		
 		public function getZoomLevel():Number
 		{
@@ -219,9 +229,9 @@ package weave.visualization.layers
 		
 		public function invalidateGraphics():void
 		{
-			for each (var plotLayer:IPlotLayer in layers.getObjects(IPlotLayer))
+			for each (var layer:IPlotLayer in layers.getObjects(IPlotLayer))
 			{
-				plotLayer.invalidateGraphics();
+				layer.invalidateGraphics();
 			}
 		}
 		

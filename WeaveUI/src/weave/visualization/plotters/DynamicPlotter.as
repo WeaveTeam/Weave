@@ -50,6 +50,7 @@ package weave.visualization.plotters
 		{
 			super(IPlotter);
 			addImmediateCallback(this, handleInternalObjectChange);
+			_spatialCallbacks.addImmediateCallback(this, handleSpatialCallbacks);
 		}
 
 		private var _internalPlotter:IPlotter = null; // The previous internal plotter
@@ -120,6 +121,14 @@ package weave.visualization.plotters
 		{
 			return _spatialCallbacks;
 		}
+		
+		/**
+		 * This function gets called when spatial callbacks trigger.
+		 */		
+		private function handleSpatialCallbacks():void
+		{
+			currentBackgroundDataBounds = null;
+		}
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
@@ -185,11 +194,16 @@ package weave.visualization.plotters
 		public function getBackgroundDataBounds():IBounds2D
 		{
 			if (internalObject is IPlotter)
-				return (internalObject as IPlotter).getBackgroundDataBounds();
+			{
+				if (currentBackgroundDataBounds == null)
+					currentBackgroundDataBounds = (internalObject as IPlotter).getBackgroundDataBounds();
+				return currentBackgroundDataBounds;
+			}
 			else
 				return undefinedBounds; // if no internal plotter, return an undefined data bounds
 		}
 		
+		private var currentBackgroundDataBounds:IBounds2D = null;
 		private const undefinedBounds:IBounds2D = new Bounds2D();
 		
 		private const tempRect:Rectangle = new Rectangle();

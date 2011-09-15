@@ -30,6 +30,7 @@
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
@@ -106,8 +107,8 @@
 				toolTitle.addImmediateCallback(this, updateTitle);
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
-				_plotter.filterColumn.addGroupedCallback(this, handleFilterColumnChange);
-				_plotter.filterValues.addGroupedCallback(this, updateFilterText);				
+				_plotter.xData.addGroupedCallback(this, handleFilterColumnChange);
+				_plotter.groupByValues.addGroupedCallback(this, updateFilterText);				
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -128,13 +129,13 @@
 			 */
 			private function handleFilterColumnChange():void
 			{
-				var filterValues:Array = [];
-				for each(var key:IQualifiedKey in _plotter.filterColumn.keys)
+				var values:Array = [];
+				for each (var key:IQualifiedKey in _plotter.xData.keys)
 				{
-					filterValues.push(_plotter.filterColumn.getValueFromKey(key));
+					values.push(_plotter.xData.getValueFromKey(key, String));
 				}
-				filterValues.sort();
-				_plotter.filterValues.value = VectorUtils.removeDuplicatesFromSortedArray(filterValues);
+				values.sort();
+				_plotter.groupByValues.value = WeaveAPI.CSVParser.createCSVFromArrays([VectorUtils.removeDuplicatesFromSortedArray(values)]);
 			}
 			
 			/**
@@ -143,11 +144,11 @@
 			 */
 			private function updateLabelColumn():void
 			{
-				if(!_plotter.displayFilterColumn.value) 
+				if(!_plotter.enableGroupBy.value) 
 					return;
 				if(!labelPlotter.text.internalColumn)
 					return;
-				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.filterColumn))
+				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.xData))
 					return;
 				if(labelPlotter.text.internalColumn is EquationColumn)
 					return;
@@ -158,9 +159,9 @@
 				var labelEquation:EquationColumn = labelPlotter.text.requestLocalObject(EquationColumn, false) as EquationColumn;
 				labelEquation.delayCallbacks();
 				labelEquation.variables.copyObject("labelColumn",labelColumn);
-				labelEquation.variables.copyObject("keyColumn", _plotter.keyColumn);
+				labelEquation.variables.copyObject("keyColumn", _plotter.groupBy);
 				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + "Equation");
-				labelEquation.equation.value = 'key = getKeysFromValue(get("keyColumn"), getKey(), QKey)[0], getValueFromKey(get("labelColumn"), key, String)';
+				labelEquation.equation.value = 'key = getAssociatedKeys(keyColumn, getKey())[0], getValueFromKey(labelColumn, key, String)';
 				labelEquation.resumeCallbacks();
 				/* 
 				if(!_plotter.lineStyle.color.internalDynamicColumn)
@@ -182,7 +183,7 @@
 			
 			private function updateFilterText():void
 			{
-				filterValuesText.text = _plotter.filterValues.value;
+				groupByValuesInput.text = _plotter.groupByValues.value;
 			}
 			
 			override protected function childrenCreated():void
@@ -281,10 +282,10 @@
 				yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
 				
-				if (_plotter.displayFilterColumn.value)
+				if (_plotter.enableGroupBy.value)
 				{
 					xAxisLayer.axisPlotter.setSideAxisName(
-						ColumnUtils.getTitle(_plotter.filterColumn), 
+						ColumnUtils.getTitle(_plotter.xData), 
 						0,
 						0, visualization.marginBottom.value - 3, 
 						BitmapText.VERTICAL_ALIGN_BOTTOM
@@ -316,12 +317,12 @@
 						return;
 					}
 					
-					if (_plotter.displayFilterColumn.value)
+					if (_plotter.enableGroupBy.value)
 					{
 						title = StringUtil.substitute(
 							"Line Chart of {0} by {1}",
 							ColumnUtils.getTitle(_plotter.yData),
-							ColumnUtils.getTitle(_plotter.filterColumn)
+							ColumnUtils.getTitle(_plotter.xData)
 						);
 					}
 					else
@@ -516,33 +517,28 @@
 			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
-			<mx:CheckBox id="filterDataCheckBox" initialize="linkBindableProperty(_plotter.displayFilterColumn, filterDataCheckBox, 'selected')"
-						 label="Display filtered records"
-						 toolTip="Enable/disable filtering data by value under filter column"/>
-			<mx:VBox enabled="{filterDataCheckBox.selected}">
+			<mx:CheckBox id="enableGroupByCheckBox" initialize="linkBindableProperty(_plotter.enableGroupBy, enableGroupByCheckBox, 'selected')"
+						 label="Group records by category values"
+						 toolTip="Enable/disable grouping data by category value"/>
+			<mx:VBox enabled="{enableGroupByCheckBox.selected}">
 				
 				<mx:VBox paddingLeft="20" borderStyle="solid">				
-					<ui:DynamicColumnComponent visTool="{this}" label="Filter Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.filterColumn"
-											   toolTip="Attribute used to filter data - its values will appear on the x axis"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Y Data Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-											   toolTip="Column containing data values shown on y axis. All columns must have the same keyType"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Key Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.keyColumn"
-											   toolTip="Specify column to get keys from. All columns must have the same keyType"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="X Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
+											   toolTip="Attribute to appear on the x axis. All columns must have the same keyType."/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Y Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+											   toolTip="Attribute to appear on the y axis. All columns must have the same keyType."/>
+					<ui:DynamicColumnComponent visTool="{this}" label="Group by" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
+											   toolTip="Specify column to get keys from. All columns must have the same keyType."/>
 					<ui:DynamicColumnComponent visTool="{this}" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
-											   toolTip="Attribute used for record label text. All columns must have the same keyType"/>
+											   toolTip="Attribute used for record label text. All columns must have the same keyType."/>
 				</mx:VBox>
-				<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the filter column keyType"
+				<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the group-by keyType"
 						   click="updateLabelColumn()"/>
-				<mx:Button label="Customize filter values" id="customizeValuesBtn" toggle="true"/>
+				<mx:Button label="Customize category values" id="customizeValuesBtn" toggle="true"/>
 				<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
-					<mx:Label text="Enter a list of filter column values:"/>
-					<mx:TextInput id="filterValuesText"  toolTip="These values will appear on the x axis"/>
-					<mx:HBox>						
-						<mx:Label text="Filter datatypes:"/>
-						<mx:ComboBox id="dataTypeComboBox"  dataProvider="{_plotter.dataTypes}" initialize="linkBindableProperty(_plotter.filterDataType, dataTypeComboBox, 'selectedItem')"
-									 toolTip="dataType of the filter values"/>						
-					</mx:HBox>
-					<mx:Button label="Apply" click="_plotter.filterValues.value = filterValuesText.text"/>
+					<mx:Label text="Enter a list of category values:"/>
+					<mx:TextInput id="groupByValuesInput"  toolTip="These values will appear on the x axis"/>
+					<mx:Button label="Apply" click="_plotter.groupByValues.value = groupByValuesInput.text"/>
 				</mx:VBox>
 			</mx:VBox>
 		</mx:VBox>
