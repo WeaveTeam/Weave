@@ -71,12 +71,6 @@ package weave.visualization.plotters
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
-			
-			enableGroupBy.addImmediateCallback(this, updateFilterEquationColumns);
-			xData.addImmediateCallback(this, updateFilterEquationColumns);
-			yData.addImmediateCallback(this, updateFilterEquationColumns);
-			groupBy.addImmediateCallback(this, updateFilterEquationColumns);
-			groupByValues.addImmediateCallback(this, updateFilterEquationColumns);
 		}
 
 		/*
@@ -88,17 +82,17 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
 		
-		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
-		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const groupByValues:LinkableString = newSpatialProperty(LinkableString);
+		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
+		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn, resetXValues);
+		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
 		private const _combinedKeySet:KeySet = newNonSpatialProperty(KeySet);
 		
 		private var _columns:Array = [];
 		private function handleColumnsChange():void
-		{			
+		{
 			_columns = columns.getObjects();
 
 			_combinedKeySet.delayCallbacks();
@@ -139,13 +133,21 @@ package weave.visualization.plotters
 			
 			_combinedKeySet.resumeCallbacks();
 		}
-					
 		
+		public function resetXValues():void
+		{
+			var values:Array = [];
+			for each (var key:IQualifiedKey in xData.keys)
+				values.push(xData.getValueFromKey(key, String));
+			values.sort();
+			values = VectorUtils.removeDuplicatesFromSortedArray(values);
+			xValues.value = WeaveAPI.CSVParser.createCSVFromArrays([values]);
+			
+			updateFilterEquationColumns();
+		}
 		
 		private function updateFilterEquationColumns():void
 		{
-			var str:String = groupByValues.value;
-			
 			// check that values list string exists
 			if (!enableGroupBy.value)
 			{
@@ -160,17 +162,17 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			if (!str) 
+			if (!xValues.value) 
 				return;
 			
 			// check that column keytypes are the same
-			var keytypes:Array = [ColumnUtils.getKeyType(xData), ColumnUtils.getKeyType(groupBy), ColumnUtils.getKeyType(yData)];
-			if (!((keytypes[0] == keytypes[1]) && (keytypes[0] == keytypes[2])))
+			var keyType:String = ColumnUtils.getKeyType(groupBy);
+			if (keyType != ColumnUtils.getKeyType(xData) || keyType != ColumnUtils.getKeyType(yData))
 			{
 				return;
 			}
 			
-			var values:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(str));
+			var values:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xValues.value));
 			
 			columns.removeAllObjects();
 			columns.delayCallbacks();
@@ -449,8 +451,9 @@ package weave.visualization.plotters
 		
 		// backwards compatibility
 		[Deprecated(replacement="enableGroupBy")] public function set displayFilterColumn(value:Object):void { setSessionState(enableGroupBy, value); }
-		[Deprecated(replacement="xData")] public function set filterColumn(value:Object):void { setSessionState(xData, value); }
 		[Deprecated(replacement="groupBy")] public function set keyColumn(value:Object):void { setSessionState(groupBy, value); }
-		[Deprecated(replacement="groupByValues")] public function set filterValues(value:Object):void { setSessionState(groupByValues, value); }
+		[Deprecated(replacement="xData")] public function set filterColumn(value:Object):void { setSessionState(xData, value); }
+		[Deprecated(replacement="xValues")] public function set filterValues(value:Object):void { setSessionState(xValues, value); }
+		[Deprecated(replacement="xValues")] public function set groupByValues(value:Object):void { setSessionState(xValues, value); }
 	}
 }

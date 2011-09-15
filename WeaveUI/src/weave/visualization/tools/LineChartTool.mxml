@@ -84,6 +84,8 @@
 				_plotter.normalize.lock();
 				
 				addLabelLayer();
+				
+				linkSessionState(labelPlotter.zoomToSubset, _plotter.zoomToSubset);
 
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxes);
 			
@@ -107,8 +109,7 @@
 				toolTitle.addImmediateCallback(this, updateTitle);
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
-				_plotter.xData.addGroupedCallback(this, handleFilterColumnChange);
-				_plotter.groupByValues.addGroupedCallback(this, updateFilterText);				
+				_plotter.xValues.addGroupedCallback(this, updateFilterText);
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -118,24 +119,10 @@
 				if (includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = _plotter.columns.getObjects(IAttributeColumn);
-					visualization.additionalProbeColumns.unshift(colorColumn);
+					visualization.additionalProbeColumns.unshift(labelPlotter.text, colorColumn);
 				}
 				else
 					visualization.additionalProbeColumns = null;
-			}
-			
-			/**
-			 * This function populates _plotter.filterValues using _plotter.filterColumn's values
-			 */
-			private function handleFilterColumnChange():void
-			{
-				var values:Array = [];
-				for each (var key:IQualifiedKey in _plotter.xData.keys)
-				{
-					values.push(_plotter.xData.getValueFromKey(key, String));
-				}
-				values.sort();
-				_plotter.groupByValues.value = WeaveAPI.CSVParser.createCSVFromArrays([VectorUtils.removeDuplicatesFromSortedArray(values)]);
 			}
 			
 			/**
@@ -183,7 +170,7 @@
 			
 			private function updateFilterText():void
 			{
-				groupByValuesInput.text = _plotter.groupByValues.value;
+				xValuesInput.text = _plotter.xValues.value;
 			}
 			
 			override protected function childrenCreated():void
@@ -518,11 +505,11 @@
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<mx:CheckBox id="enableGroupByCheckBox" initialize="linkBindableProperty(_plotter.enableGroupBy, enableGroupByCheckBox, 'selected')"
-						 label="Group records by category values"
+						 label="Group records by column values"
 						 toolTip="Enable/disable grouping data by category value"/>
 			<mx:VBox enabled="{enableGroupByCheckBox.selected}">
 				
-				<mx:VBox paddingLeft="20" borderStyle="solid">				
+				<mx:VBox paddingLeft="20" borderStyle="solid">
 					<ui:DynamicColumnComponent visTool="{this}" label="X Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
 											   toolTip="Attribute to appear on the x axis. All columns must have the same keyType."/>
 					<ui:DynamicColumnComponent visTool="{this}" label="Y Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
@@ -534,12 +521,12 @@
 				</mx:VBox>
 				<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the group-by keyType"
 						   click="updateLabelColumn()"/>
-				<mx:Button label="Customize category values" id="customizeValuesBtn" toggle="true"/>
-				<mx:VBox paddingLeft="20" visible="{customizeValuesBtn.selected}" borderStyle="solid">					
-					<mx:Label text="Enter a list of category values:"/>
-					<mx:TextInput id="groupByValuesInput"  toolTip="These values will appear on the x axis"/>
-					<mx:Button label="Apply" click="_plotter.groupByValues.value = groupByValuesInput.text"/>
-				</mx:VBox>
+				<mx:HBox width="100%">
+					<mx:Label text="Customize X values:"/>
+					<mx:TextInput id="xValuesInput" toolTip="These values will appear on the x axis" width="100%"/>
+					<mx:Button label="Apply" click="_plotter.xValues.value = xValuesInput.text;"/>
+					<mx:Button label="Reset" click="_plotter.resetXValues();"/>
+				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
