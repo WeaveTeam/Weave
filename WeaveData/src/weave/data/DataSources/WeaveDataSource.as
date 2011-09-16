@@ -303,11 +303,13 @@ package weave.data.DataSources
 				for (var i:int = 0; i < result.columnMetadata.length; i++)
 				{
 					var metadata:Object = result.columnMetadata[i];
+					// fill in title if missing
+					if ((metadata['title'] || '') == '')
+						metadata['title'] = metadata['name'];
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
 						if (metadata[property] != null && metadata[property] != '')
 							node['@'+property] = metadata[property];
-					node.@title = node.@name;
 					hierarchyNode.appendChild(node);
 				}
 			}
