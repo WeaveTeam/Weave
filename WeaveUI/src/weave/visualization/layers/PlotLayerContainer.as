@@ -85,29 +85,25 @@ package weave.visualization.layers
 		 * This is the collective data bounds of all the selectable plot layers.
 		 */
 		public const fullDataBounds:IBounds2D = new Bounds2D();
-		
+
 		/**
-		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
+		 * This function gets called by updateZoom and updates fullDataBounds.
 		 */
-		protected function updateZoom():void
+		protected function updateFullDataBounds():void
 		{
-			getCallbackCollection(this).delayCallbacks();
-			
 			var layer:IPlotLayer;
 			var plotLayer:PlotLayer;
 			var selectablePlotLayer:SelectablePlotLayer;
 			
-			//////////////////////
-			// update full data bounds
-			//////////////////////
-			
 			tempBounds.copyFrom(fullDataBounds);
 			fullDataBounds.reset();
+
 			var _layers:Array;
 			if (includeNonSelectableLayersInAutoZoom.value)
 				_layers = layers.getObjects(IPlotLayer);
 			else
 				_layers = layers.getObjects(SelectablePlotLayer); // only consider SelectablePlotLayers
+			
 			for each (layer in _layers)
 			{
 				selectablePlotLayer = layer as SelectablePlotLayer;
@@ -128,11 +124,20 @@ package weave.visualization.layers
 			}
 			if (!tempBounds.equals(fullDataBounds))
 				getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		/**
+		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
+		 */
+		protected function updateZoom():void
+		{
+			getCallbackCollection(this).delayCallbacks();
 			
-
-			//////////////////////
-			// update zoomBounds
-			//////////////////////
+			var layer:IPlotLayer;
+			var plotLayer:PlotLayer;
+			var selectablePlotLayer:SelectablePlotLayer;
+			
+			updateFullDataBounds();
 			
 			// calculate new screen bounds in temp variable
 			// default behaviour is to set screenBounds beginning from lower-left corner and ending at upper-right corner

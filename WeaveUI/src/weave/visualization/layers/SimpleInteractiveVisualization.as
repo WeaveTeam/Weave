@@ -216,14 +216,12 @@ package weave.visualization.layers
 			layers.setNameOrder(names);
 		}
 		
-		override protected function updateZoom():void
+		override protected function updateFullDataBounds():void
 		{
 			getCallbackCollection(this).delayCallbacks();
-			getCallbackCollection(zoomBounds).delayCallbacks();
 			
-			super.updateZoom();
+			super.updateFullDataBounds();
 			
-			// adjust dataBounds based on auto zoom settings
 			tempBounds.copyFrom(fullDataBounds);
 			if(_xAxisLayer && enableAutoZoomXToNiceNumbers.value)
 			{
@@ -251,8 +249,24 @@ package weave.visualization.layers
 						tempBounds.setYRange(0, 1);
 				}
 			}
-			fullDataBounds.copyFrom(tempBounds);
+			if (!fullDataBounds.equals(tempBounds))
+			{
+				fullDataBounds.copyFrom(tempBounds);
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			
+			getCallbackCollection(this).resumeCallbacks();
+		}
 
+		override protected function updateZoom():void
+		{
+			getCallbackCollection(this).delayCallbacks();
+			getCallbackCollection(zoomBounds).delayCallbacks();
+			
+			super.updateZoom();
+			
+			// adjust dataBounds based on auto zoom settings
+			
 			// when the data bounds change, we need to update the min,max values for axes
 			if (_xAxisLayer)
 			{
