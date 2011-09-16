@@ -55,7 +55,7 @@ package weave.visualization.plotters
 		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);
-		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		public function get dataX():DynamicColumn
 		{

@@ -224,7 +224,7 @@ package weave.visualization.layers
 			super.updateZoom();
 			
 			// adjust dataBounds based on auto zoom settings
-			zoomBounds.getDataBounds(tempBounds);
+			tempBounds.copyFrom(fullDataBounds);
 			if(_xAxisLayer && enableAutoZoomXToNiceNumbers.value)
 			{
 				var xMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), _xAxisLayer.axisPlotter.tickCountRequested.value);
@@ -251,7 +251,7 @@ package weave.visualization.layers
 						tempBounds.setYRange(0, 1);
 				}
 			}
-			zoomBounds.setDataBounds(tempBounds);
+			fullDataBounds.copyFrom(tempBounds);
 
 			// when the data bounds change, we need to update the min,max values for axes
 			if (_xAxisLayer)
