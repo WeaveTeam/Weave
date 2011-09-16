@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="ParallelCoordinatesPlotter,weave.visualization.plotters.ParallelCoordinatesPlotter,CURVE_AWAY,CURVE_DOUBLE,CURVE_NONE,CURVE_TOWARDS,EMPTY_CIRCLE,EMPTY_SQUARE,NO_SHAPE,SOLID_CIRCLE,SOLID_SQUARE,columns,curveType,enableGroupBy,groupBy,groupByValues,lineStyle,normalize,shapeBorderColor,shapeBorderThickness,shapeSize,shapeToDraw,shapesAvailable,xData,yData,zoomToSubset,alphaColumn,addRecordGraphicsToTempShape,getBackgroundDataBounds,getDataBoundsFromRecordKey,getGeometriesFromRecordKey" name="keywords">
+<meta content="ParallelCoordinatesPlotter,weave.visualization.plotters.ParallelCoordinatesPlotter,CURVE_AWAY,CURVE_DOUBLE,CURVE_NONE,CURVE_TOWARDS,EMPTY_CIRCLE,EMPTY_SQUARE,NO_SHAPE,SOLID_CIRCLE,SOLID_SQUARE,columns,curveType,enableGroupBy,groupBy,lineStyle,normalize,shapeBorderColor,shapeBorderThickness,shapeSize,shapeToDraw,shapesAvailable,xData,xValues,yData,zoomToSubset,alphaColumn,addRecordGraphicsToTempShape,getBackgroundDataBounds,getDataBoundsFromRecordKey,getGeometriesFromRecordKey,resetXValues" name="keywords">
 <title>weave.visualization.plotters.ParallelCoordinatesPlotter</title>
 </head>
 <body>
@@ -172,6 +172,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#resetXValues()">resetXValues</a>():void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
 </table>
 </div>
 <a name="protectedMethodSummary"></a>
@@ -316,11 +323,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#groupByValues">groupByValues</a> : <a href="../../core/LinkableString.html">LinkableString</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lineStyle">lineStyle</a> : <a href="styles/ExtendedSolidLineStyle.html">ExtendedSolidLineStyle</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
@@ -368,6 +370,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xData">xData</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xValues">xValues</a> : <a href="../../core/LinkableString.html">LinkableString</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ParallelCoordinatesPlotter</td>
 </tr>
@@ -554,6 +561,15 @@ showHideInherited();
 </tr>
 </table>
 </div>
+<a name="resetXValues()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">resetXValues</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function resetXValues():void</code>
+</div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
 <a name="columns"></a>
@@ -645,15 +661,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const groupBy:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
-</div>
-<a name="groupByValues"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">groupByValues</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const groupByValues:<a href="../../core/LinkableString.html">LinkableString</a></code>
 </div>
 <a name="lineStyle"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -753,6 +760,15 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const xData:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
+</div>
+<a name="xValues"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">xValues</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const xValues:<a href="../../core/LinkableString.html">LinkableString</a></code>
 </div>
 <a name="yData"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
