@@ -100,8 +100,8 @@ package weave.data.BinClassifiers
 		 * @param toStringColumn The primitive column to use that provides a number-to-string conversion function.
 		 * @return A generated label for this NumberClassifier.
 		 */
-		private var lessThanString:String = '< ';//'less than ';
-		private var moreThanString:String = '> ';//'more than ';
+		private static const lessThanString:String = '< ';//'less than ';
+		private static const moreThanString:String = '> ';//'more than ';
 		public function generateBinLabel(toStringColumn:IPrimitiveColumn = null):String
 		{
 			// make classifiers have readable labels

@@ -141,7 +141,7 @@ package weave.data.AttributeColumns
 					var key:IQualifiedKey = keys[i];
 					// assuming bin classifiers are NumberClassifiers
 					var value:Number = column.getValueFromKey(key, Number);
-					var binIndex:int = _derivedBins.getBinIndexFromDataValue(value);
+					var binIndex:Number = _derivedBins.getBinIndexFromDataValue(value);
 					if (isNaN(binIndex))
 						continue;
 					_keyToBinIndexMap[key] = binIndex;
