@@ -406,5 +406,21 @@ package weave.compiler
 			
 			return values;
 		}
+		
+		public static function mean(...args):Number
+		{
+			var sum:Number = 0;
+			for each (var value:Number in args)
+				sum += value;
+			return sum / args.length;
+		}
+		
+		public static function sum(...args):Number
+		{
+			var sum:Number = 0;
+			for each (var value:Number in args)
+				sum += value;
+			return sum;
+		}
 	}
 }
