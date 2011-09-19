@@ -51,6 +51,7 @@
 <!ATTLIST attributeColumn dataTable CDATA ""><!-- optional, specifies what dataTable this column belongs to -->
 <!ATTLIST attributeColumn keyType CDATA ""><!-- specifies the type of the keys in this dataTable ("is it a county code or a state code?") must match up with a geometryCollection keyType if you want to map the data to shapes -->
 <!ATTLIST attributeColumn connection CDATA ""><!-- the connection to use when accessing this column -->
+<!ATTLIST attributeColumn title CDATA ""><!-- the column's display name -->
 
 <!-- These entities are used as keyType values -->
 <!ENTITY iso_alpha3 "ISO ALPHA-3 Country Code">

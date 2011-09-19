@@ -40,9 +40,7 @@ public class DatabaseConfig
 {
 	private DatabaseConfigInfo dbInfo = null;
 
-	private Connection _lastConnection = null; // do not use this variable
-												// directly -- use
-												// getConnection() instead.
+	private Connection _lastConnection = null; // do not use this variable directly -- use getConnection() instead.
 
 	/**
 	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
@@ -172,16 +170,22 @@ public class DatabaseConfig
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		try
 		{
+			// add column to existing table
+			SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.TITLE.toString(), SQLTYPE_VARCHAR);
+		}
+		catch (SQLException e)
+		{
+			// assume the table has the column already.
+		}
+		try
+		{
 			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.NAME.toString()});
 			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.DATATABLE.toString()});
 		}
 		catch (SQLException e)
 		{
-			// ignore sql errors
+			// assume the table has the indexes already.
 		}
-
-		// TODO: create auto-incrementing primary key: "id" int4 NOT NULL
-		// DEFAULT nextval('weave_attributecolumn_id_seq'::regclass)
 	}
 
 	// This private ISQLConfig is for managing connections because

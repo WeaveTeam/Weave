@@ -277,7 +277,8 @@ public interface ISQLConfig
 			GEOMETRYCOLLECTION("geometryCollection"),
 			YEAR("year"),
 			MIN("min"),
-			MAX("max");
+			MAX("max"),
+			TITLE("title");
 
 			Metadata(String name)
 			{
