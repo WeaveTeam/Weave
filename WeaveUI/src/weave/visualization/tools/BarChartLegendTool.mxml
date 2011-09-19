@@ -53,7 +53,7 @@
 			
 			use namespace weave_internal;
 			
-			private var _barLegendPlotter:BarChartLegendPlotter;
+			[Bindable] private var _barLegendPlotter:BarChartLegendPlotter;
 			private var _barLegendLayerName:String;
 			private const _colorLegendLayerName:String = "color legend";
 			private var _colorLegendLayer:SelectablePlotLayer;
@@ -98,6 +98,10 @@
 				super.childrenCreated();
 				visualization.marginTop.addGroupedCallback(this, handleMarginChange);
 				linkBindableProperty(visualization.marginTop, marginLabel, "height");
+				linkBindableProperty(_barLegendPlotter.maxColumns, maxCols, 'value');
+				linkBindableProperty(_colorLegendPlotter.maxColumns, maxCols, 'value');
+				linkBindableProperty(_colorLegendPlotter.reverseOrder, chkReverseOrder, 'selected');
+				linkBindableProperty(_barLegendPlotter.reverseOrder, chkReverseOrder, 'selected');
 			}
 			private static const DEFAULT_MARGIN_TOP:int = 25;
 			private function handleMarginChange():void
@@ -195,7 +199,17 @@
 	
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Color Bin Legend">
-			<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTop.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
+			<mx:CheckBox id="marginLabelCheckBox" 
+						 label="Show legend attribute name" 
+						 change="visualization.marginTop.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0" 
+						 toolTip="Click to hide the title of the Legend."/>
+			<mx:HBox>
+				<mx:Label text="Number of columns"/>
+				<mx:NumericStepper id="maxCols" minimum="1"
+								   toolTip="This specifies the maximum number of columns to show in a row in the legend."/>
+			</mx:HBox>
+			<mx:CheckBox label="Reverse item order" id="chkReverseOrder"
+						 toolTip="Check this box to reverse the ordering of the items in this legend."/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

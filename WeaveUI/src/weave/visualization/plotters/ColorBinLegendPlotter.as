@@ -23,6 +23,7 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.net.getClassByAlias;
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
@@ -31,12 +32,15 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.ErrorManager;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
+	import weave.utils.LegendUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -69,12 +73,11 @@ package weave.visualization.plotters
 			);
 		}
 		
-		
 		/**
 		 * This plotter is specifically implemented for visualizing a ColorColumn.
 		 * This DynamicColumn only allows internal columns of type ColorColumn.
 		 */
-		public const dynamicColorColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(ColorColumn));
+		public const dynamicColorColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(ColorColumn), createHashMaps);
 		
 		/**
 		 * This accessor function provides convenient access to the internal ColorColumn.
@@ -85,9 +88,6 @@ package weave.visualization.plotters
 			return dynamicColorColumn.internalColumn as ColorColumn;
 		}
 		
-		// this is used to draw text on bitmaps
-		private const bitmapText:BitmapText = new BitmapText();
-		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
@@ -96,7 +96,54 @@ package weave.visualization.plotters
 		 * This is the line style used to draw the outline of the shape.
 		 */
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		
+		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createHashMaps);
+		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
 
+		private const _binsOrdering:Array = [];
+		private var _binToBounds:Dictionary = new Dictionary();
+		private var _binToString:Dictionary = new Dictionary();
+		public var numBins:int = 0;
+		private function createHashMaps():void
+		{
+			_binsOrdering.length = 0;
+			_binToString = new Dictionary();
+			_binToBounds = new Dictionary();
+			
+			var keys:Array = keySet.keys;
+			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			if (binnedColumn == null)
+			{
+				numBins = 0;
+				return;
+			}
+			
+			var bins:Array = binnedColumn.derivedBins.getObjects();
+			numBins = bins.length;
+			var maxCols:int = maxColumns.value;
+			if (maxCols <= 0)
+				maxCols = 1;
+			if (maxCols > numBins)
+				maxCols = numBins;
+			var blankBins:int = numBins % maxCols;
+			var fakeNumBins:int = (blankBins > 0) ? maxCols - blankBins : 0; // invisible bins which should be put in the lower right 
+			var maxNumBins:int = numBins + fakeNumBins;
+			for (var iBin:int = 0; iBin < numBins; ++iBin)
+			{
+				// get the adjusted position and transpose inside the row
+				var adjustedIBin:int = (reverseOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
+				var row:int = adjustedIBin / maxCols;
+				var col:int = adjustedIBin % maxCols;
+				var b:IBounds2D = new Bounds2D();
+				_binsOrdering.push(bins[iBin]);
+				
+				LegendUtils.getBoundsFromItemID(getBackgroundDataBounds(), adjustedIBin, b, maxNumBins, maxCols, true);
+				
+				_binToBounds[iBin] = b;
+				_binToString[iBin] = binnedColumn.deriveStringFromNumber(iBin);
+			}
+		}
+		
 		private var _drawBackground:Boolean = false; // this is used to check if we should draw the bins with no records.
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -130,15 +177,11 @@ package weave.visualization.plotters
 			if (binnedColumn == null)
 				return;
 			
-			// set up BitmapText
-			bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-			bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-			bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
-			bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
-			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
-
+			screenBounds.getRectangle(_clipRectangle);
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+			lineStyle.beginLineStyle(null, g);
+			
 			// convert record keys to bin keys
 			// save a mapping of each bin key found to a value of true
 			var binIndexMap:Dictionary = new Dictionary();
@@ -146,55 +189,49 @@ package weave.visualization.plotters
 				binIndexMap[ binnedColumn.getValueFromKey(recordKeys[i], Number) ] = 1;
 			
 			var margin:int = 4;
-			
-			// get height of record graphics
-			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();
+			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
 			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value, height - margin));
-			
-			// draw the bins
-			var g:Graphics = tempShape.graphics;
-			g.clear();
+			var iconGap:Number = actualShapeSize + margin * 2;
+			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
+			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalDynamicColumn);
+			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(internalColorColumn.internalDynamicColumn);
+			var internalColorRamp:ColorRamp = internalColorColumn.ramp;
 			var binCount:int = binnedColumn.derivedBins.getObjects().length;
-			for (var binIndex:int = 0; binIndex < binCount; binIndex++)
+			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
 				// if _drawBackground is set, we should draw the bins that have no records in them.
-				if ((_drawBackground?0:1) ^ int(binIndexMap[binIndex])) // xor
+				if ((_drawBackground?0:1) ^ int(binIndexMap[iBin])) // xor
 					continue;
 				
-				var internalMin:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalDynamicColumn);
-				var internalMax:Number = WeaveAPI.StatisticsCache.getMax(internalColorColumn.internalDynamicColumn);
-				var color:Number = internalColorColumn.ramp.getColorFromNorm(StandardLib.normalize(binIndex, internalMin, internalMax));
-				
-				var xMin:Number = screenBounds.getXNumericMin();
-				var xMax:Number = screenBounds.getXNumericMax();
-				
-				// get y coordinate to display graphics at.
-				tempPoint.y = binIndex;
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-				var y:Number = tempPoint.y;
-				
-				// draw almost-invisible rectangle (for probe filters)
-				tempBounds.copyFrom(dataBounds);
-				tempBounds.setCenteredYRange(binIndex, 1)
-
+				var binBounds:IBounds2D = _binToBounds[iBin];
+				tempBounds.copyFrom(binBounds);
 				dataBounds.projectCoordsTo(tempBounds, screenBounds);
+//				tempBounds.makeSizePositive();
 				
+				// draw almost invisible rectangle for probe filter
 				tempBounds.getRectangle(tempRectangle);
 				destination.fillRect(tempRectangle, 0x02808080);
 				
+				// draw the text
+				LegendUtils.renderLegendItemText(
+					destination, _binToString[iBin], tempBounds, iconGap, _clipRectangle
+				);
+
 				// draw circle
-				lineStyle.beginLineStyle(null, g);
+				var iColorIndex:int = reverseOrder.value ? iBin : (binCount - 1 - iBin);
+				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
+				var xMin:Number = tempBounds.getXNumericMin(); 
+				var yMin:Number = tempBounds.getYNumericMin();
+				var xMax:Number = tempBounds.getXNumericMax(); 
+				var yMax:Number = tempBounds.getYNumericMax();
 				if (color <= Infinity) // alternative is !isNaN()
 					g.beginFill(color, 1.0);
-				g.drawCircle(margin + xMin + actualShapeSize / 2, y, actualShapeSize / 2);
-				
-				bitmapText.text = binnedColumn.deriveStringFromNumber(binIndex);
-				bitmapText.x = xMin + actualShapeSize + margin * 2;
-				bitmapText.y = y;
-				bitmapText.draw(destination);
+				g.drawCircle(circleCenterOffset + xMin, (yMin + yMax) / 2, actualShapeSize / 2);
 			}
 			destination.draw(tempShape);
 		}
+		private const _clipRectangle:Rectangle = new Rectangle();
+		
 		
 		// reusable temporary objects
 		private const tempPoint:Point = new Point();
@@ -205,39 +242,21 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var bounds:IBounds2D = getReusableBounds();
-			
-			if (internalColorColumn.internalColumn)
+			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			if (binnedColumn)
 			{
-				var y:Number = internalColorColumn.internalColumn.getValueFromKey(recordKey, Number);
-				bounds.setBounds(XMIN, y, XMAX, y);
-				if (internalColorColumn.internalColumn is BinnedColumn)
-					bounds.setHeight(1); // include 0.5 beyond binIndex
-			}
-			else
-			{
-				bounds.reset();
+				var index:Number = binnedColumn.getValueFromKey(recordKey, Number);
+				var b:IBounds2D = _binToBounds[index];
+				if (b)
+					return [ b ];
 			}
 			
-			return [bounds];
+			return [ getReusableBounds() ];
 		}
 		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			var bounds:IBounds2D = getReusableBounds();
-			
-			if (internalColorColumn == null)
-			{
-				trace(this, 'WARNING: ColorBinLegendPlotter.internalColorColumn is null');
-				return bounds;
-			}
-			var min:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalColumn);
-			var max:Number = WeaveAPI.StatisticsCache.getMax(internalColorColumn.internalColumn);
-			bounds.setBounds(XMIN, min, XMAX, max);
-			if (internalColorColumn.internalColumn is BinnedColumn)
-				bounds.setHeight(bounds.getHeight() + 1); // include 0.5 beyond min and max
-			
-			return bounds;
+			return getReusableBounds(0, 0, 1, 1);
 		}
 	}
 }

@@ -133,6 +133,11 @@ package weave.visualization.plotters
 			var _horizontalMode:Boolean = horizontalMode.value;
 			var _heightColumns:Array = heightColumns.getObjects().reverse();
 			
+			_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+			_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
@@ -165,8 +170,8 @@ package weave.visualization.plotters
 				var spacing:Number = 0.5 * Math.min(1.0, Math.max(0.0, _barSpacing) );
 				var halfSpacing:Number = spacing/2;
 				var numHeightColumns:int = _heightColumns.length;
-				
-				var groupedBarWidth:Number = (xMax - xMin - halfSpacing*2)/(numHeightColumns);
+				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupMode) || numHeightColumns == 1);
+				var groupedBarWidth:Number = (xMax - xMin - spacing)/(numHeightColumns);
 				
 				// loop over height columns, incrementing y coordinates
 				for (var i:int = 0; i < _heightColumns.length; i++)
@@ -178,7 +183,7 @@ package weave.visualization.plotters
 					
 					if (heightMissing)
 						height = WeaveAPI.StatisticsCache.getMean(heightColumn);
-					if (isNaN(height))
+					if (!(height <= Infinity)) // alternative is isNaN
 						height = 0;
 					// avoid adding NaN to y coordinate (because result will be NaN).
 					if (height >= 0)
@@ -296,14 +301,11 @@ package weave.visualization.plotters
 					//------------------------------------
 					// BEGIN code to draw one bar value label
 					//------------------------------------
-					if (showValueLabels.value && ((_heightColumns.length >= 1 && _groupMode) || _heightColumns.length == 1))
+					if (shouldDrawBarLabel)
 					{
 						if (height != 0)
 						{
 							_bitmapText.text = heightColumn.getValueFromKey(recordKey, Number);;
-							_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-							_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-							_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 							if (!_horizontalMode)
 							{
 								_tempPoint.x = (barStart + barEnd) / 2;
@@ -337,8 +339,6 @@ package weave.visualization.plotters
 								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 							}
 							dataBounds.projectPointTo(_tempPoint, screenBounds);
-							_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-							_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 							_bitmapText.x = _tempPoint.x;
 							_bitmapText.y = _tempPoint.y;
 							_bitmapText.draw(destination);
