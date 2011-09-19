@@ -1337,10 +1337,27 @@ public class AdminService extends GenericServlet
 				}
 			}
 			
+			// now we need to remove commas from any numeric values because the SQL drivers don't like it
+			for (int iRow = 1; iRow < rows.length; iRow++)
+			{
+				String[] nextLine = rows[iRow];
+				// Format each line
+				for (i = 0; i < columnNames.length && i < nextLine.length; i++)
+				{
+					String value = nextLine[i];
+					if (types[i] == IntType || types[i] == DoubleType)
+					{
+						while (value.indexOf(",") >= 0)
+							value = value.replace(",", "");
+						nextLine[i] = value;
+					}
+				}
+			}
 			// save modified CSV
 			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
 			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			out.write(CSVParser.defaultParser.createCSVFromArrays(rows, quoteEmptyStrings));
+			String temp = CSVParser.defaultParser.createCSVFromArrays(rows, quoteEmptyStrings);
+			out.write(temp);
 			out.close();
 		}
 		catch (RemoteException e)
