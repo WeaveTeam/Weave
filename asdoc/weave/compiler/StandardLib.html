@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="StandardLib,weave.compiler.StandardLib,asBoolean,asNumber,asString,constrain,filterRange,formatNumber,getNiceNumber,getNiceNumbersInRange,interpolateColor,isDefined,isUndefined,lpad,normalize,numberInRange,numberToBase,replace,roundSignificant,rpad,scale,sign" name="keywords">
+<meta content="StandardLib,weave.compiler.StandardLib,asBoolean,asNumber,asString,constrain,filterRange,formatNumber,getNiceNumber,getNiceNumbersInRange,interpolateColor,isDefined,isUndefined,lpad,mean,normalize,numberInRange,numberToBase,replace,roundSignificant,rpad,scale,sign,sum" name="keywords">
 <title>weave.compiler.StandardLib</title>
 </head>
 <body>
@@ -152,6 +152,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#mean()">mean</a>(... args):Number</div>
+<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">StandardLib</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#normalize()">normalize</a>(value:Number, min:Number, max:Number):Number</div>
 <div class="summaryTableDescription">[static]
    </div>
@@ -210,6 +217,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#sign()">sign</a>(value:Number):Number</div>
 <div class="summaryTableDescription">[static]
    This function returns -1 if the given value is negative, and 1 otherwise.</div>
+</td><td class="summaryTableOwnerCol">StandardLib</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#sum()">sum</a>(... args):Number</div>
+<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">StandardLib</td>
 </tr>
 </table>
@@ -580,6 +594,27 @@ showHideInherited();
 </tr>
 </table>
 </div>
+<a name="mean()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">mean</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function mean(... args):Number</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code>... <span class="label">args</span></code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Number</code></td>
+</tr>
+</table>
+</div>
 <a name="normalize()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -879,6 +914,27 @@ showHideInherited();
 <tr>
 <td width="20"></td><td><code>Number</code> &mdash; -1 if value < 0, 1 otherwise
    </td>
+</tr>
+</table>
+</div>
+<a name="sum()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">sum</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function sum(... args):Number</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code>... <span class="label">args</span></code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Number</code></td>
 </tr>
 </table>
 </div>

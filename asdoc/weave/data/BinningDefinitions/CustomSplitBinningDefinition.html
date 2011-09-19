@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="CustomSplitBinningDefinition,weave.data.BinningDefinitions.CustomSplitBinningDefinition,binRange,dataMax,dataMin,getBinClassifiersForColumn" name="keywords">
+<meta content="CustomSplitBinningDefinition,weave.data.BinningDefinitions.CustomSplitBinningDefinition,splitValues,getBinClassifiersForColumn" name="keywords">
 <title>weave.data.BinningDefinitions.CustomSplitBinningDefinition</title>
 </head>
 <body>
@@ -81,22 +81,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#binRange">binRange</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#splitValues">splitValues</a> : <a href="../../core/LinkableString.html">LinkableString</a>
 <div class="summaryTableDescription">
-   binRange
-   range explicitly mentioned by the user.</div>
-</td><td class="summaryTableOwnerCol">CustomSplitBinningDefinition</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataMax">dataMax</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CustomSplitBinningDefinition</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataMin">dataMin</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription">
-   dataMin,dataMax
-   minimum and maximum values of the range.</div>
+   A list of numeric values separated by commas that mark the beginning and end of bin ranges.</div>
 </td><td class="summaryTableOwnerCol">CustomSplitBinningDefinition</td>
 </tr>
 </table>
@@ -143,36 +130,15 @@ showHideInherited();
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
-<a name="binRange"></a>
+<a name="splitValues"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">binRange</td><td class="detailHeaderType">constant</td>
+<td class="detailHeaderName">splitValues</td><td class="detailHeaderType">constant</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public const binRange:<a href="../../core/LinkableString.html">LinkableString</a></code><p>
-   binRange
-   range explicitly mentioned by the user.
-   </p></div>
-<a name="dataMax"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">dataMax</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const dataMax:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
-</div>
-<a name="dataMin"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">dataMin</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const dataMin:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
-   dataMin,dataMax
-   minimum and maximum values of the range.
+<code>public const splitValues:<a href="../../core/LinkableString.html">LinkableString</a></code><p>
+   A list of numeric values separated by commas that mark the beginning and end of bin ranges.
    </p></div>
 <br>
 <br>
