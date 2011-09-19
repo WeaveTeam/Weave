@@ -28,6 +28,12 @@
 		<node color="0xfbbc06" position="0.8733031674208145"/>
 		<node color="0xfefefe" position="0.9457013574660633"/>
 	</colorRamp>
+		<colorRamp name="MCH - Brown" source="OIC" category="visualization" singlehue="true">
+		<node color="0x611501" position="0"/>
+		<node color="0xb26b01" position="0.2"/>
+		<node color="0xf0902e" position="0.3"/>
+		<node color="0xfbbc06" position="1"/>
+	</colorRamp>
 	<colorRamp name="Jet" source="OIC" category="visualization" dataFormat="qualitative">
 		<node color="0x000086" position="0"/>
 		<node color="0x0000ff" position="0.1518324607329843"/>
