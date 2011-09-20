@@ -225,10 +225,12 @@ package weave.visualization.layers
 			
 			kbEvents = kbEvents.sort();
 			
-			if(keyboardInteractionLookup)
-				_temporaryMouseMode = keyboardInteractionLookup[kbEvents.toString()];
-			else 
-				_temporaryMouseMode = null;
+			if(!keyboardInteractionLookup)
+				updateKeyboardEventLookup();
+			
+			_temporaryMouseMode = keyboardInteractionLookup[kbEvents.toString()];
+			if(_temporaryMouseMode == null)
+				updateKeyboardEventLookup();
 			
 			if(!enableZoomAndPan.value)
 				if(_temporaryMouseMode == InteractionController.ZOOM 
@@ -416,9 +418,10 @@ package weave.visualization.layers
 				}
 				case MouseEvent.MOUSE_MOVE:
 				{
-					insertEvent(eventsArray, InteractionController.MOVE);
-					if(event.buttonDown)
+					if(event.buttonDown)					
 						insertEvent(eventsArray, InteractionController.DRAG);
+					else
+						insertEvent(eventsArray, InteractionController.MOVE);
 					
 					break;
 				}				
@@ -536,7 +539,7 @@ package weave.visualization.layers
 					break;
 				}
 			}
-			
+			//trace(mode, str);
 			if(enableZoomAndPan.value && !event.buttonDown && mode == InteractionController.ZOOM && event.type != MouseEvent.MOUSE_MOVE)
 			{				
 				// zoom to selected data bounds if area > 0

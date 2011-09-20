@@ -59,12 +59,12 @@ package weave.visualization.layers
 			super();
 			
 			probe.value = MOVE;
-			select.value = [DRAG, MOVE].toString();
-			selectAdd.value = [CTRL, DRAG, MOVE].toString();
-			selectRemove.value = [CTRL, SHIFT, DRAG, MOVE].toString();
+			select.value = [DRAG].toString();
+			selectAdd.value = [CTRL, DRAG].toString();
+			selectRemove.value = [CTRL, SHIFT, DRAG].toString();
 			
-			pan.value = [ALT, DRAG, MOVE].toString();
-			zoom.value = [SHIFT, DRAG, MOVE].toString();
+			pan.value = [ALT, DRAG].toString();
+			zoom.value = [SHIFT, DRAG].toString();
 			zoomIn.value = DCLICK;
 			zoomOut.value = [SHIFT, DCLICK].toString();
 			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].toString();
