@@ -65,7 +65,7 @@ package weave.visualization.plotters
 			
 			xColumn.addImmediateCallback(this,updateKeys);
 			yColumn.addImmediateCallback(this,updateKeys);
-			
+			binColors.reversed = true;
 			
 			setKeySource(_keySet);
 		}

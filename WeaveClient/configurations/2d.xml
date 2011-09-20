@@ -22,7 +22,7 @@
             <dataSourceName>obesity.csv</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1995" min="0" year="1995" keyType="US State FIPS Code"/>
+                <attribute title="Percent Obese" year="1995" max="40" csvColumn="Percent Obese 1995" keyType="US State FIPS Code" min="0"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
@@ -43,7 +43,7 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="visualization" dataFormat="qualitative" source="OIC" name="Jet">
+      <colorRamp category="visualization" name="Jet" dataFormat="qualitative" source="OIC">
         <node color="0x000086" position="0"/>
         <node color="0x0000ff" position="0.1518324607329843"/>
         <node color="0x00ffff" position="0.3717277486910995"/>
@@ -184,7 +184,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <attributeHierarchy encoding="xml">
       <hierarchy>
         <category keyType="US State FIPS Code" name="DBF Data">
-          <attribute dataType="Geometry" name="the_geom" keyType="US State FIPS Code"/>
+          <attribute name="the_geom" dataType="Geometry" keyType="US State FIPS Code"/>
           <attribute keyType="US State FIPS Code" name="AREA"/>
           <attribute keyType="US State FIPS Code" name="PERIMETER"/>
           <attribute keyType="US State FIPS Code" name="ST99_D00_"/>
@@ -210,7 +210,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>obesity.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="US State FIPS Code">
-              <attribute keyType="US State FIPS Code" title="Percent Obese 1995" csvColumn="Percent Obese 1995" name="Percent Obese 1995"/>
+              <attribute title="Percent Obese 1995" name="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="US State FIPS Code"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -222,7 +222,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>obesity.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="US State FIPS Code">
-              <attribute keyType="US State FIPS Code" title="Percent Obese 2007" csvColumn="Percent Obese 2007" name="Percent Obese 2007"/>
+              <attribute title="Percent Obese 2007" name="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -236,8 +236,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>DBFDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <category name="DBF Data" keyType="US State FIPS Code">
-                <attribute name="NAME" keyType="US State FIPS Code"/>
+              <category keyType="US State FIPS Code" name="DBF Data">
+                <attribute keyType="US State FIPS Code" name="NAME"/>
               </category>
             </hierarchy>
           </hierarchyPath>
@@ -248,21 +248,21 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   <CSVDataSource name="obesity.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute name="US State FIPS Code" title="US State FIPS Code" csvColumn="US State FIPS Code" keyType="US State FIPS Code"/>
-        <attribute name="State" title="State" csvColumn="State" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1995" min="0" year="1995" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1996" min="0" year="1996" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1997" min="0" year="1997" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1998" min="0" year="1998" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1999" min="0" year="1999" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2000" min="0" year="2000" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2001" min="0" year="2001" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2002" min="0" year="2002" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2003" min="0" year="2003" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2004" min="0" year="2004" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2005" min="0" year="2005" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2006" min="0" year="2006" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" min="0" year="2007" keyType="US State FIPS Code"/>
+        <attribute keyType="US State FIPS Code" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="US State FIPS Code" csvColumn="State" title="State"/>
+        <attribute title="Percent Obese" year="1995" max="40" csvColumn="Percent Obese 1995" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="1996" max="40" csvColumn="Percent Obese 1996" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="1997" max="40" csvColumn="Percent Obese 1997" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="1998" max="40" csvColumn="Percent Obese 1998" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="1999" max="40" csvColumn="Percent Obese 1999" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2000" max="40" csvColumn="Percent Obese 2000" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2001" max="40" csvColumn="Percent Obese 2001" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2002" max="40" csvColumn="Percent Obese 2002" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2003" max="40" csvColumn="Percent Obese 2003" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2004" max="40" csvColumn="Percent Obese 2004" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2005" max="40" csvColumn="Percent Obese 2005" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2006" max="40" csvColumn="Percent Obese 2006" keyType="US State FIPS Code" min="0"/>
+        <attribute title="Percent Obese" year="2007" max="40" csvColumn="Percent Obese 2007" keyType="US State FIPS Code" min="0"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString/>
@@ -348,6 +348,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
                 </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>false</reverseOrder>
                 <shapeSize>20</shapeSize>
                 <spatialCallbacks/>
               </ColorBinLegendPlotter>
@@ -375,8 +377,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <zoomBounds>
           <xMax>1</xMax>
           <xMin>0</xMin>
-          <yMax>9.5</yMax>
-          <yMin>-0.5</yMin>
+          <yMax>1</yMax>
+          <yMin>0</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -439,11 +441,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLineDataBounds>
                   <xMax>0</xMax>
                   <xMin>0</xMin>
-                  <yMax>40</yMax>
-                  <yMin>0</yMin>
+                  <yMax>32.6</yMax>
+                  <yMin>10.1</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>40</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
+                <axisLineMaxValue>32.6</axisLineMaxValue>
+                <axisLineMinValue>10.1</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -482,8 +484,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLineDataBounds>
                   <xMax>12</xMax>
                   <xMin>0</xMin>
-                  <yMax>0</yMax>
-                  <yMin>0</yMin>
+                  <yMax>10.1</yMax>
+                  <yMin>10.1</yMin>
                 </axisLineDataBounds>
                 <axisLineMaxValue>12</axisLineMaxValue>
                 <axisLineMinValue>0</axisLineMinValue>
@@ -528,7 +530,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1995" min="0" year="1995" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1995" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1995"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -540,7 +542,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1996" min="0" year="1996" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1996" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1996"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -552,7 +554,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1997" min="0" year="1997" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1997" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1997"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -564,7 +566,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1998" min="0" year="1998" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1998" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1998"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -576,7 +578,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1999" min="0" year="1999" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1999" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1999"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -588,7 +590,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2000" min="0" year="2000" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2000" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2000"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -600,7 +602,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2001" min="0" year="2001" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2001" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2001"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -612,7 +614,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2002" min="0" year="2002" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2002" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2002"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -624,7 +626,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2003" min="0" year="2003" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2003" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2003"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -636,7 +638,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2004" min="0" year="2004" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2004" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2004"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -648,7 +650,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2005" min="0" year="2005" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2005" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2005"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -660,7 +662,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2006" min="0" year="2006" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2006" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2006"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -672,7 +674,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" min="0" year="2007" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2007" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2007"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -680,6 +682,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                   </ReferencedColumn>
                 </columns>
                 <curveType>none</curveType>
+                <enableGroupBy>false</enableGroupBy>
+                <groupBy encoding="dynamic"/>
                 <keySet>
                   <keyFilter encoding="dynamic">
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
@@ -731,6 +735,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <shapeSize>0</shapeSize>
                 <shapeToDraw>No Shape</shapeToDraw>
                 <spatialCallbacks/>
+                <xData encoding="dynamic"/>
+                <xValues/>
+                <yData encoding="dynamic"/>
                 <zoomToSubset>true</zoomToSubset>
               </ParallelCoordinatesPlotter>
             </plotter>
@@ -776,7 +783,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" min="0" year="2007" keyType="US State FIPS Code"/>
+                            <attribute title="Percent Obese" year="2007" max="40" csvColumn="Percent Obese 2007" keyType="US State FIPS Code" min="0"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -812,7 +819,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" min="0" year="2007" keyType="US State FIPS Code"/>
+                            <attribute title="Percent Obese" year="2007" max="40" csvColumn="Percent Obese 2007" keyType="US State FIPS Code" min="0"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -846,6 +853,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </vAlign>
                 <xScreenOffset>5</xScreenOffset>
                 <yScreenOffset>0</yScreenOffset>
+                <zoomToSubset>true</zoomToSubset>
               </TextGlyphPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -871,8 +879,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <zoomBounds>
           <xMax>12</xMax>
           <xMin>0</xMin>
-          <yMax>40</yMax>
-          <yMin>0</yMin>
+          <yMax>32.6</yMax>
+          <yMin>10.1</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -1020,7 +1028,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp category="aesthetic" dataFormat="qualitative" source="OIC" name="Doppler Radar">
+                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -1050,7 +1058,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1995" min="0" year="1995" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1995" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1995"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1062,7 +1070,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1996" min="0" year="1996" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1996" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1996"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1074,7 +1082,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1997" min="0" year="1997" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1997" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1997"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1086,7 +1094,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1998" min="0" year="1998" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1998" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1998"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1098,7 +1106,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1999" min="0" year="1999" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="1999" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 1999"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1110,7 +1118,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2000" min="0" year="2000" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2000" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2000"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1122,7 +1130,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2001" min="0" year="2001" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2001" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2001"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1134,7 +1142,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2002" min="0" year="2002" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2002" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2002"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1146,7 +1154,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2003" min="0" year="2003" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2003" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2003"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1158,7 +1166,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2004" min="0" year="2004" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2004" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2004"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1170,7 +1178,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2005" min="0" year="2005" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2005" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2005"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1182,7 +1190,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2006" min="0" year="2006" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2006" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2006"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1194,7 +1202,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" min="0" year="2007" keyType="US State FIPS Code"/>
+                            <attribute keyType="US State FIPS Code" year="2007" min="0" max="40" title="Percent Obese" csvColumn="Percent Obese 2007"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1257,7 +1265,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         <dataSourceName>obesity.csv</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" min="0" year="2007" keyType="US State FIPS Code"/>
+                            <attribute title="Percent Obese" year="2007" max="40" csvColumn="Percent Obese 2007" keyType="US State FIPS Code" min="0"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1361,7 +1369,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <dataSourceName>obesity.csv</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy keyType="US State FIPS Code">
-                <attribute name="State" title="State" csvColumn="State" keyType="US State FIPS Code"/>
+                <attribute title="State" name="State" csvColumn="State" keyType="US State FIPS Code"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
@@ -1423,13 +1431,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>0</xMax>
-                  <xMin>0</xMin>
-                  <yMax>1</yMax>
-                  <yMin>0</yMin>
+                  <xMax>-0.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>9.5</yMax>
+                  <yMin>-0.5</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>1</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
+                <axisLineMaxValue>9.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -1439,7 +1447,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
                   <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>1</precision>
+                  <precision>0</precision>
                   <rounding>none</rounding>
                   <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
                   <thousandsSeparatorTo>,</thousandsSeparatorTo>
@@ -1452,8 +1460,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <showAxisName>true</showAxisName>
                 <spatialCallbacks/>
                 <tickCountRequested>10</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
+                <tickMaxValue>9</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
               </SimpleAxisPlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
@@ -1466,13 +1474,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>1</xMax>
-                  <xMin>0</xMin>
-                  <yMax>0</yMax>
-                  <yMin>0</yMin>
+                  <xMax>9.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>-0.5</yMax>
+                  <yMin>-0.5</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>1</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
+                <axisLineMaxValue>9.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
                 <forceTickCount>true</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -1482,7 +1490,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
                   <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>1</precision>
+                  <precision>0</precision>
                   <rounding>none</rounding>
                   <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
                   <thousandsSeparatorTo>,</thousandsSeparatorTo>
@@ -1495,8 +1503,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <showAxisName>true</showAxisName>
                 <spatialCallbacks/>
                 <tickCountRequested>10</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
+                <tickMaxValue>9</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
               </SimpleAxisPlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
@@ -1508,20 +1516,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <plotter encoding="dynamic">
               <Histogram2DPlotter>
                 <binColors encoding="xml">
-                  <colorRamp category="aesthetic" dataFormat="qualitative" source="OIC" name="Doppler Radar">
-                    <node color="0x04E9E7" position="0"/>
-                    <node color="0x009DF4" position="0.08"/>
-                    <node color="0x0201F4" position="0.16"/>
-                    <node color="0x01FC01" position="0.24"/>
-                    <node color="0x00C400" position="0.32"/>
-                    <node color="0x008C00" position="0.4"/>
-                    <node color="0x0FDF801" position="0.48"/>
-                    <node color="0xF99200" position="0.56"/>
-                    <node color="0xFD0000" position="0.64"/>
-                    <node color="0xBC0000" position="0.72"/>
-                    <node color="0xBC0000" position="0.8"/>
-                    <node color="0xF800FD" position="0.88"/>
-                    <node color="0x9854C6" position="1.0"/>
+                  <colorRamp category="visualization" singlehue="true" reverse="true" name="Linear Gray" source="OIC" colorblindSafe="true">
+                    <node color="0x000000" position="0"/>
+                    <node color="0xffffff" position="1"/>
                   </colorRamp>
                 </binColors>
                 <fillStyle>
@@ -1582,8 +1579,48 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                   </weight>
                 </lineStyle>
                 <spatialCallbacks/>
-                <xColumn encoding="dynamic"/>
-                <yColumn encoding="dynamic"/>
+                <xBinnedColumn>
+                  <binningDefinition encoding="dynamic">
+                    <SimpleBinningDefinition>
+                      <numberOfBins>10</numberOfBins>
+                    </SimpleBinningDefinition>
+                  </binningDefinition>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>obesity.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute title="Percent Obese" year="1995" max="40" csvColumn="Percent Obese 1995" keyType="US State FIPS Code" min="0"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                </xBinnedColumn>
+                <yBinnedColumn>
+                  <binningDefinition encoding="dynamic">
+                    <SimpleBinningDefinition>
+                      <numberOfBins>10</numberOfBins>
+                    </SimpleBinningDefinition>
+                  </binningDefinition>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>obesity.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute title="Percent Obese" year="1995" max="40" csvColumn="Percent Obese 1995" keyType="US State FIPS Code" min="0"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                </yBinnedColumn>
               </Histogram2DPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
@@ -1660,10 +1697,10 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <xMax>1</xMax>
-          <xMin>0</xMin>
-          <yMax>1</yMax>
-          <yMin>0</yMin>
+          <xMax>9.5</xMax>
+          <xMin>-0.5</xMin>
+          <yMax>9.5</yMax>
+          <yMin>-0.5</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -1682,7 +1719,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <panelStyleList/>
     <panelWidth>50%</panelWidth>
     <panelX>13.594%</panelX>
-    <panelY>9.4527%</panelY>
+    <panelY>9.4253%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
