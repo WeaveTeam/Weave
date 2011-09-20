@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.DebugTimer;
+import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
 import org.w3c.dom.*;
 
@@ -131,8 +132,7 @@ public class DatabaseConfig
 			}
 			catch (SQLException e)
 			{
-				// we don't care if this fails -- assume the table has the
-				// column already.
+				// we don't care if this fails -- assume the table has the column already.
 			}
 		}
 		else
@@ -168,15 +168,26 @@ public class DatabaseConfig
 		// create table
 		Connection conn = getConnection();
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
-		try
+		// add (possibly) missing columns
+		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString()})
 		{
-			// add column to existing table
-			SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.TITLE.toString(), SQLTYPE_VARCHAR);
+			try
+			{
+				// add column to existing table
+				SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, columnName, SQLTYPE_VARCHAR);
+			}
+			catch (SQLException e)
+			{
+				// if the column is missing, throw the error
+				List<String> existingColumnNames = SQLUtils.getColumns(conn, dbInfo.schema, dbInfo.dataConfigTable);
+				if (ListUtils.findIgnoreCase(columnName, existingColumnNames) < 0)
+				{
+					System.out.println(String.format("Column %s not found in [%s]", columnName, existingColumnNames));
+					throw e;
+				}
+			}
 		}
-		catch (SQLException e)
-		{
-			// assume the table has the column already.
-		}
+		
 		try
 		{
 			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.NAME.toString()});
