@@ -1,6 +1,6 @@
 <Weave encoding="dynamic">
-  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
-  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
   <BinnedColumn name="defaultColorBinColumn">
     <binningDefinition encoding="dynamic">
       <SimpleBinningDefinition>
@@ -176,6 +176,16 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <toolInteraction>
+      <pan>alt,drag</pan>
+      <probe/>
+      <select>drag</select>
+      <selectAdd>ctrl,drag</selectAdd>
+      <selectRemove>ctrl,shift,drag</selectRemove>
+      <zoomIn>dclick</zoomIn>
+      <zoomOut>shift,dclick</zoomOut>
+      <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
+    </toolInteraction>
     <version>1.0 Beta Nightly Build</version>
     <windowSnapGridSize>4</windowSnapGridSize>
   </WeaveProperties>
@@ -374,14 +384,14 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <keyType/>
     <url>MA_municipal_indicators.csv</url>
   </CSVDataSource>
-  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
     <ReferencedColumn name="ReferencedColumn8">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col1" csvColumn="col1" keyType="RadVizTest"/>
+              <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -393,7 +403,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col2" csvColumn="col2" keyType="RadVizTest"/>
+              <attribute keyType="RadVizTest" csvColumn="col2" title="col2"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -405,7 +415,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col3" csvColumn="col3" keyType="RadVizTest"/>
+              <attribute keyType="RadVizTest" csvColumn="col3" title="col3"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -417,14 +427,14 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="col4" csvColumn="col4" keyType="RadVizTest"/>
+              <attribute keyType="RadVizTest" csvColumn="col4" title="col4"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
   <CSVDataSource name="WorldAgricultureIndicators.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
@@ -1236,160 +1246,328 @@ E,1,1,,</csvDataString>
     <keyType>RadVizTest</keyType>
     <url/>
   </CSVDataSource>
-  <CSVDataSource name="BremerUnordered">
-    <attributeHierarchy encoding="xml">
-      <hierarchy>
-        <attribute keyType="BremerUnordered" csvColumn="Record" title="Record"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 01" title="Dim 01"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 02" title="Dim 02"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 03" title="Dim 03"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 04" title="Dim 04"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 05" title="Dim 05"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 06" title="Dim 06"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 07" title="Dim 07"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 08" title="Dim 08"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 09" title="Dim 09"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 10" title="Dim 10"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 11" title="Dim 11"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 12" title="Dim 12"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 13" title="Dim 13"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 14" title="Dim 14"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 15" title="Dim 15"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 16" title="Dim 16"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 17" title="Dim 17"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 18" title="Dim 18"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 19" title="Dim 19"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 20" title="Dim 20"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 21" title="Dim 21"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 22" title="Dim 22"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 23" title="Dim 23"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 24" title="Dim 24"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 25" title="Dim 25"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 26" title="Dim 26"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 27" title="Dim 27"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 28" title="Dim 28"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 29" title="Dim 29"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 30" title="Dim 30"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 31" title="Dim 31"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 32" title="Dim 32"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 33" title="Dim 33"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 34" title="Dim 34"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 35" title="Dim 35"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 36" title="Dim 36"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 37" title="Dim 37"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 38" title="Dim 38"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 39" title="Dim 39"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 40" title="Dim 40"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 41" title="Dim 41"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 42" title="Dim 42"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 43" title="Dim 43"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 44" title="Dim 44"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 45" title="Dim 45"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 46" title="Dim 46"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 47" title="Dim 47"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 48" title="Dim 48"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 49" title="Dim 49"/>
-        <attribute keyType="BremerUnordered" csvColumn="Dim 50" title="Dim 50"/>
-        <attribute keyType="BremerUnordered" csvColumn="Classes" title="Classes"/>
-      </hierarchy>
-    </attributeHierarchy>
-    <csvDataString>Record,Dim 01,Dim 02,Dim 03,Dim 04,Dim 05,Dim 06,Dim 07,Dim 08,Dim 09,Dim 10,Dim 11,Dim 12,Dim 13,Dim 14,Dim 15,Dim 16,Dim 17,Dim 18,Dim 19,Dim 20,Dim 21,Dim 22,Dim 23,Dim 24,Dim 25,Dim 26,Dim 27,Dim 28,Dim 29,Dim 30,Dim 31,Dim 32,Dim 33,Dim 34,Dim 35,Dim 36,Dim 37,Dim 38,Dim 39,Dim 40,Dim 41,Dim 42,Dim 43,Dim 44,Dim 45,Dim 46,Dim 47,Dim 48,Dim 49,Dim 50,Classes
-Rec 002,253,211,41,1202,177,331,50,14,16,676,14,304,4,405,90,10,7,959,12,685,101,10,21,13,192,84,62,26,-37,58,102,210,27,156,146,150,10,230,55,126,9,23,171,66,169,-3,108,119,94,39,Class A
-Rec 003,243,178,71,989,92,592,52,22,19,724,7,628,6,42,81,16,11,931,20,1274,43,4,21,16,179,99,72,76,-31,81,95,123,39,213,126,176,18,193,69,160,21,16,224,75,200,-1,136,189,115,72,Class A
-Rec 004,228,103,41,1120,63,317,53,73,28,579,12,760,10,741,109,23,5,845,12,1308,42,7,18,19,192,95,52,17,-47,83,119,123,31,350,68,182,6,80,71,172,54,29,132,59,228,45,113,152,133,319,Class A
-Rec 005,185,182,29,1232,104,387,18,292,25,608,10,596,10,923,65,15,6,1107,11,1393,87,11,18,16,215,80,55,26,-50,60,105,125,23,235,170,161,9,143,67,184,13,28,107,62,206,-32,105,95,117,41,Class A
-Rec 006,242,185,47,1248,59,291,62,16,27,549,9,900,8,839,83,24,10,992,30,1275,91,9,16,16,136,83,80,47,-37,90,79,131,28,145,111,159,25,110,69,153,43,21,150,59,201,210,183,215,118,65,Class A
-Rec 007,238,249,49,1132,397,312,85,50,37,619,11,825,8,902,141,17,7,1187,19,1075,49,24,22,12,187,105,84,110,-30,81,98,176,41,155,147,168,23,199,61,164,31,22,183,88,219,13,133,208,117,75,Class A
-Rec 008,173,200,50,1030,197,370,24,51,21,676,10,536,6,147,57,42,6,969,23,1284,41,41,12,32,263,101,58,-1,-28,75,106,124,25,137,190,197,26,109,72,157,17,24,124,65,222,-10,128,124,128,16,Class A
-Rec 009,138,191,53,814,174,278,20,212,37,651,11,471,8,1493,64,98,8,1172,12,1341,67,34,20,16,233,89,56,4,-46,77,122,145,36,246,225,196,11,109,65,158,12,33,121,84,244,-41,140,96,128,79,Class A
-Rec 010,144,162,68,751,209,164,15,210,39,749,14,520,7,1040,57,117,8,1080,20,1215,53,36,15,16,206,108,81,-13,-39,98,102,101,61,275,194,180,20,98,78,136,22,27,95,64,236,-16,141,91,134,127,Class A
-Rec 011,279,128,18,703,196,281,18,58,51,751,8,165,10,703,81,8,6,1010,8,1222,47,15,27,20,252,85,31,-33,-56,74,120,95,24,141,161,155,9,65,69,186,13,25,163,67,248,-62,117,97,148,12,Class A
-Rec 012,52,118,87,1034,151,197,19,19,6,243,3,396,2,413,53,-10,12,588,19,849,-1,37,4,19,173,122,61,-41,-70,119,156,45,28,1,97,215,10,189,69,184,6,-4,74,105,354,-78,216,275,211,10,Class A
-Rec 013,52,104,88,1321,148,199,16,88,14,927,13,192,3,377,33,30,9,928,28,1414,-17,6,12,18,200,84,55,-56,-18,122,107,92,72,181,200,176,11,116,71,124,8,-1,59,66,321,-74,139,290,173,17,Class A
-Rec 014,129,96,167,819,71,172,16,249,21,510,17,172,7,407,20,155,20,512,132,673,-18,58,13,27,196,114,35,-71,-63,95,129,28,84,-8,154,223,-35,140,94,84,20,-8,47,32,415,-33,206,187,209,15,Class A
-Rec 015,113,116,75,716,138,291,24,16,18,927,7,213,-2,420,57,10,5,469,20,348,5,23,12,11,154,132,60,-11,-86,102,105,17,10,-1,129,194,-10,446,70,159,1,-10,173,64,341,-111,161,320,187,21,Class A
-Rec 016,143,76,42,745,66,68,11,82,6,606,-8,169,5,875,68,32,1,579,18,353,1,18,25,15,170,103,41,-161,-101,158,97,35,20,74,84,151,-23,381,100,56,-13,-63,84,35,308,-155,158,172,210,33,Class A
-Rec 017,57,94,61,956,31,320,5,87,14,871,9,536,0,1166,46,29,10,1237,17,1080,-9,30,9,16,299,152,44,-44,-4,124,130,37,36,54,169,185,7,152,75,154,-1,13,61,61,336,-107,182,147,222,7,Class A
-Rec 018,123,188,67,872,401,129,14,28,20,729,2,296,1,600,59,2,1,529,17,497,3,21,10,10,211,101,135,-12,-104,92,100,48,10,49,149,218,-5,280,94,53,-5,-7,189,27,338,-112,171,556,214,3,Class A
-Rec 019,37,90,50,984,199,314,9,29,16,1066,3,459,-11,879,66,20,9,812,12,878,13,11,5,25,298,113,100,-16,-93,112,71,53,28,31,129,129,-36,532,42,127,6,0,66,55,295,-91,117,127,134,23,Class A
-Rec 020,98,132,65,1307,4,157,3,87,22,568,0,128,-10,882,58,5,-1,649,15,676,5,26,26,11,261,111,127,-61,-98,73,70,15,18,74,173,128,-19,242,53,85,-1,-41,38,68,262,-102,112,148,152,20,Class A
-Rec 021,132,195,62,571,697,55,47,14,31,466,4,12,9,43,57,-8,12,70,17,362,37,14,23,17,131,73,76,43,-70,83,79,344,100,446,307,164,5,338,65,64,5,70,198,83,260,125,114,893,138,8,Class A
-Rec 022,63,142,101,1257,588,169,9,95,25,836,6,206,7,409,65,249,3,707,6,959,7,25,5,6,200,108,68,-16,-63,78,104,106,79,286,230,156,6,178,77,175,37,22,281,78,303,-3,174,322,145,18,Class A
-Rec 023,112,165,96,2082,77,307,20,10,23,746,14,701,0,1149,53,21,18,1032,10,1073,29,17,3,16,215,67,40,35,-65,50,86,57,27,37,121,145,-9,426,59,396,5,8,260,90,270,-89,129,165,135,15,Class A
-Rec 024,196,198,72,838,157,321,94,29,23,472,6,686,3,124,70,101,13,880,13,851,63,14,23,20,142,113,75,114,-48,123,156,180,60,105,132,209,14,151,95,167,34,23,144,87,264,7,225,475,209,39,Class A
-Rec 025,151,170,79,1132,116,322,49,10,23,581,7,923,1,614,37,-9,13,984,10,1003,63,33,18,14,171,115,79,26,-43,97,114,78,35,119,122,202,33,154,86,185,2,16,194,69,256,-28,188,207,180,30,Class A
-Rec 026,112,118,101,570,72,263,23,63,23,511,11,363,5,855,-4,-30,6,1190,21,858,62,47,13,18,74,119,140,5,-63,131,133,63,17,117,107,272,37,186,61,159,7,41,47,149,317,-41,147,132,174,26,Class A
-Rec 027,170,200,58,1434,36,235,39,91,34,604,8,409,5,788,55,8,5,1159,5,1137,52,32,16,19,185,104,85,-21,-65,109,139,51,23,92,170,222,12,177,92,166,7,13,115,104,277,-61,153,171,162,27,Class A
-Rec 028,73,99,88,1479,126,296,8,39,23,908,12,899,5,654,66,35,16,1108,19,1025,23,20,17,14,178,73,99,-25,-85,39,60,65,49,79,163,136,1,246,51,178,10,0,75,60,294,-50,112,162,153,16,Class A
-Rec 029,125,113,76,1182,95,270,23,32,29,699,13,233,4,223,55,9,8,740,30,1224,9,28,25,9,222,85,72,-16,-49,49,102,72,67,139,117,178,12,80,61,183,28,10,80,113,277,-35,153,205,153,6,Class A
-Rec 030,51,109,70,1451,84,498,7,85,21,1035,9,360,8,980,42,26,10,912,13,1192,11,38,15,11,227,108,56,-38,-83,74,110,39,13,121,153,203,12,168,65,234,7,5,47,83,298,-67,139,137,169,-3,Class A
-Rec 031,104,90,84,957,96,278,26,25,26,964,7,597,-8,1940,33,-11,6,1443,19,1104,14,32,16,17,315,100,56,-1,-73,55,105,60,38,39,166,144,-10,275,56,215,-9,-4,51,109,237,-102,117,137,190,16,Class A
-Rec 032,91,72,42,1008,42,349,17,33,47,732,5,1000,-1,435,23,-1,-14,808,0,683,9,20,14,28,120,111,110,19,-26,53,94,46,20,82,138,215,-3,236,71,140,10,8,63,109,299,-106,148,177,160,26,Class A
-Rec 033,105,105,149,435,58,169,29,56,-15,830,-11,174,-3,1190,17,-22,-16,945,8,470,5,20,23,2,101,73,36,-1,-209,106,79,15,51,71,148,210,-21,120,59,90,-2,-7,26,121,234,-102,143,135,112,10,Class A
-Rec 034,106,76,52,953,80,77,24,111,26,760,3,285,13,568,51,-45,-7,989,-3,1002,12,7,25,74,97,113,56,-20,-1,87,87,38,54,129,90,165,2,70,73,92,-4,24,60,32,271,-42,138,219,178,53,Class A
-Rec 035,65,94,112,569,214,415,23,79,42,1093,-10,201,-1,104,24,-34,-13,861,-4,1005,-5,75,32,57,152,91,72,-24,-13,92,44,9,37,33,94,202,-1,96,75,139,5,-3,40,66,250,-137,112,130,163,-2,Class A
-Rec 036,153,257,91,831,91,173,31,99,42,515,6,686,5,732,53,0,-1,981,18,1040,98,66,17,19,259,138,54,0,-70,65,151,86,34,106,203,216,30,137,89,278,9,30,137,28,201,-60,168,134,155,13,Class A
-Rec 037,110,66,48,1030,83,65,15,35,11,634,15,126,7,874,35,-15,4,378,7,468,17,22,10,8,186,103,67,-49,-43,84,98,48,43,30,75,194,-8,245,72,109,-12,1,226,31,225,-49,187,764,177,28,Class A
-Rec 038,173,352,67,963,230,146,35,7,21,736,2,726,3,843,138,1,3,1348,16,1012,91,1,14,15,233,82,82,120,-29,46,108,209,35,149,159,184,15,219,64,86,-5,16,140,21,195,11,152,331,125,18,Class A
-Rec 039,191,205,104,927,94,224,66,12,35,534,6,582,4,583,86,6,5,626,11,836,61,8,11,19,219,124,53,-9,-66,142,160,92,36,107,133,216,19,306,129,152,14,-10,139,70,325,-73,203,326,238,13,Class A
-Rec 040,135,108,79,996,160,387,10,84,19,830,6,534,-3,234,25,54,-2,1102,7,966,19,33,12,28,196,106,30,-1,-72,88,122,61,49,134,175,221,-13,146,78,193,11,21,97,64,265,-67,140,222,160,19,Class A
-Rec 041,203,273,64,713,444,183,26,-3,32,467,9,481,12,286,125,13,7,387,26,605,86,47,10,22,111,143,47,-30,-77,86,180,71,65,304,108,230,16,112,118,160,14,31,195,52,289,-56,194,267,170,9,Class A
-Rec 042,49,52,82,1169,42,500,15,41,24,525,6,1683,22,911,51,-28,4,1182,8,925,16,26,21,21,115,88,3,32,14,48,96,27,31,7,106,214,10,232,54,187,-5,11,50,67,220,-88,88,176,190,-5,Class A
-Rec 043,86,84,18,982,41,100,10,39,42,1106,14,133,-10,106,20,-27,-3,682,3,1352,27,23,31,40,147,100,34,13,-41,57,101,58,-3,34,148,183,-8,100,69,162,36,20,39,74,271,-71,128,48,175,16,Class A
-Rec 044,102,115,82,799,54,198,17,63,32,842,3,116,4,436,36,11,46,747,-4,1281,-3,36,13,22,137,95,249,-25,-113,76,103,31,-8,67,177,185,-14,50,75,114,-2,-5,31,42,291,-71,133,131,181,18,Class A
-Rec 045,215,221,73,1669,214,300,35,32,31,573,11,124,4,189,128,33,7,407,19,687,187,24,17,18,189,113,69,-13,-30,113,127,100,46,99,110,161,14,257,57,216,6,54,407,47,229,-28,180,567,151,39,Class A
-Rec 046,158,210,94,957,108,168,48,44,25,718,0,722,3,938,67,-1,12,1151,16,1115,-11,43,20,16,149,133,36,21,-60,145,126,48,56,110,127,203,34,144,91,97,12,8,94,73,320,-42,200,387,259,40,Class A
-Rec 047,41,113,60,883,140,418,30,10,23,576,2,554,4,971,55,4,1,699,25,626,24,46,4,26,148,126,70,-27,-61,172,179,33,49,84,124,254,20,289,153,149,5,6,67,39,399,-97,184,184,257,12,Class A
-Rec 048,187,197,80,1243,102,320,23,50,32,696,56,1060,7,458,125,108,9,874,67,810,46,20,14,39,204,106,53,-19,-25,142,123,27,70,148,127,174,13,205,110,191,18,14,128,39,303,-27,170,144,225,45,Class A
-Rec 049,134,148,73,1463,137,385,35,4,38,791,6,1142,5,797,64,25,8,872,27,1330,55,29,11,14,208,116,71,48,-39,105,110,77,63,160,135,171,25,177,82,122,6,15,122,72,269,-46,137,187,189,31,Class A
-Rec 050,134,133,35,1065,518,345,22,19,44,540,10,826,6,855,87,46,0,651,20,698,35,56,17,30,151,109,40,-46,-79,116,183,45,40,33,111,271,10,233,123,243,14,15,127,41,292,-75,142,146,184,6,Class A
-Rec 051,177,277,101,848,242,353,33,17,41,631,7,577,4,309,125,-3,5,848,15,1082,31,34,19,20,185,119,66,29,-46,96,109,69,43,157,197,205,23,367,80,210,18,30,197,138,287,-56,202,209,194,24,Class A
-Rec 052,116,137,87,1087,140,159,21,155,36,819,13,773,5,1284,68,81,8,1069,6,1614,33,14,11,28,171,119,4,-38,-77,80,146,62,52,177,142,240,21,74,78,222,15,37,113,38,273,-75,169,107,179,34,Class A
-Rec 053,172,162,70,1150,151,258,24,18,47,751,12,332,8,527,43,26,8,786,18,1094,24,33,20,19,200,98,34,-30,-74,162,134,126,23,89,197,200,2,142,76,250,11,13,157,63,301,-75,169,208,207,8,Class A
-Rec 054,320,156,126,541,283,83,46,19,17,140,4,73,3,46,96,-41,19,99,61,159,26,59,10,11,80,132,185,59,-57,213,201,151,108,332,159,251,17,186,149,36,56,28,155,8,359,185,226,630,208,12,Class B
-Rec 055,42,110,107,621,157,97,27,118,27,183,85,47,4,251,74,10,9,337,22,282,12,110,6,21,125,178,58,-25,-104,196,197,16,41,-32,82,324,20,198,122,92,36,27,107,11,428,231,261,175,261,28,Class B
-Rec 056,202,156,85,478,13,23,35,83,55,250,115,42,16,78,98,82,12,276,61,147,-3,98,32,10,103,149,137,-4,-103,159,226,68,90,3,205,275,29,138,135,76,98,28,75,28,357,45,187,-8,230,61,Class B
-Rec 057,179,113,194,287,35,50,25,78,58,225,74,19,5,107,57,334,16,169,158,22,6,118,25,23,91,158,112,-19,-69,302,160,18,393,15,158,307,46,108,146,30,40,20,63,0,485,112,235,199,353,37,Class B
-Rec 058,86,187,113,542,180,148,38,90,27,222,97,140,0,60,101,21,13,566,21,205,23,79,17,53,144,174,64,6,-51,148,169,40,54,96,94,303,31,142,160,81,44,18,117,23,384,176,263,202,305,44,Class B
-Rec 059,222,169,109,365,45,64,45,183,31,265,43,16,7,64,142,27,15,309,127,159,4,56,21,24,146,130,102,50,-63,127,179,155,213,122,117,197,6,159,108,42,99,34,135,23,341,205,257,363,179,40,Class B
-Rec 060,136,145,167,388,147,91,51,151,39,167,81,35,6,150,98,70,7,486,77,131,29,118,16,58,138,181,71,-34,-76,223,183,9,87,11,121,248,14,145,142,81,63,30,97,10,407,335,247,179,327,46,Class B
-Rec 061,85,84,187,324,104,54,33,27,36,93,116,4,2,64,97,18,17,177,45,45,10,98,18,21,125,166,117,-44,-83,277,186,4,88,-33,107,309,38,161,158,43,44,27,85,5,487,110,281,175,372,20,Class B
-Rec 062,203,135,167,869,37,36,51,159,56,228,64,42,26,122,168,163,17,429,295,115,78,51,58,16,66,112,89,1,-72,119,164,58,257,267,205,266,40,167,130,165,231,10,150,23,307,240,173,223,200,56,Class B
-Rec 063,505,100,227,421,38,53,28,67,47,267,101,2,12,139,59,43,20,222,187,139,-4,123,32,28,85,134,107,-7,-60,281,185,15,303,6,239,280,49,130,161,51,84,10,61,8,527,-19,274,237,329,36,Class B
-Rec 064,281,329,63,545,1682,158,115,5,22,452,6,10,11,38,345,4,9,607,64,538,189,26,13,11,64,109,146,41,-55,69,141,222,60,954,101,195,12,465,89,119,194,37,352,23,236,204,182,951,119,112,Class C
-Rec 065,197,323,73,336,54,138,238,47,20,275,8,-3,5,44,593,8,19,108,28,97,209,19,10,15,102,110,95,25,-58,122,126,415,44,1154,82,194,-7,506,81,63,15,102,386,15,180,322,134,1610,139,39,Class C
-Rec 066,259,412,72,841,1613,163,274,121,25,563,7,-5,8,36,572,2,18,569,11,170,291,18,9,18,115,111,43,75,-19,46,116,581,22,1792,85,175,24,462,76,35,17,47,659,13,186,180,131,2125,112,170,Class C
-Rec 067,340,339,67,396,1164,114,236,50,26,395,6,-1,7,42,277,3,12,211,13,222,166,43,12,13,109,136,133,88,-45,77,171,395,31,180,96,213,33,600,110,86,9,49,465,21,219,-32,165,1534,111,24,Class C
-Rec 068,312,347,34,629,1719,164,232,14,37,508,7,-11,5,52,99,-13,10,455,8,651,174,25,25,15,132,80,31,93,-44,60,125,356,126,1788,152,124,18,630,90,42,2,49,1060,21,322,-50,146,818,153,33,Class C
-Rec 069,329,436,49,644,584,91,133,32,17,515,8,0,6,45,302,-4,11,261,9,1245,279,12,29,26,110,101,66,54,-53,81,117,353,8,563,139,224,18,723,87,58,-2,30,596,51,279,-24,174,2096,159,12,Class C
-Rec 070,285,341,110,882,775,109,182,36,43,278,8,61,11,44,488,11,8,167,10,210,139,3,12,70,126,84,186,30,-40,56,106,267,78,1394,140,154,11,238,78,69,59,75,194,26,161,278,219,906,85,15,Class C
-Rec 071,292,376,40,619,1037,138,99,53,39,404,5,-4,15,31,308,8,8,54,1,894,171,-8,29,60,75,126,150,156,-33,65,115,403,58,492,198,143,3,549,61,38,4,83,399,7,152,120,174,1019,114,41,Class C
-Rec 072,306,314,51,422,250,46,86,20,26,187,2,-4,6,42,251,-23,33,71,4,716,38,-19,43,5,56,86,310,186,-51,166,42,296,38,412,141,171,30,315,85,37,10,23,120,5,238,158,191,1717,175,30,Class C
-Rec 073,434,221,48,352,62,108,29,19,182,263,4,-11,65,31,90,21,13,75,25,132,7,31,135,16,71,86,323,221,-58,128,88,71,818,268,1564,160,281,150,76,43,19,184,96,6,283,-35,167,196,157,170,Class D
-Rec 074,653,225,93,468,65,106,109,95,167,273,31,-4,62,36,132,26,42,128,77,238,50,30,108,29,78,79,266,215,-30,155,97,162,830,291,898,128,144,128,68,47,72,107,97,8,230,96,151,342,121,182,Class D
-Rec 075,373,219,83,340,20,73,25,29,223,226,10,-12,128,31,44,15,25,46,38,159,9,27,323,15,92,97,388,163,-34,91,73,81,551,328,1781,141,458,68,80,56,33,158,72,6,238,12,110,125,122,68,Class D
-Rec 076,582,246,77,482,161,102,58,56,183,288,4,-2,70,37,173,16,17,114,86,412,38,29,100,6,76,89,304,233,-39,104,84,171,699,251,1038,139,268,173,52,61,62,176,130,22,190,29,139,337,86,312,Class D
-Rec 077,395,251,51,572,720,72,94,33,82,428,5,10,25,68,259,10,18,191,38,614,40,11,42,22,114,84,143,85,-39,67,99,406,269,1005,373,150,58,310,69,102,23,93,253,55,213,83,128,526,95,59,Class D
-Rec 078,626,124,78,592,39,147,55,50,53,312,14,-5,52,28,129,22,25,296,97,454,41,35,118,13,133,75,218,291,-55,101,133,174,357,255,461,170,87,67,73,117,165,90,119,42,257,-7,159,214,109,38,Class D
-Rec 079,366,263,43,773,771,98,52,43,56,608,5,68,14,152,299,13,7,434,12,694,57,22,45,16,129,84,96,86,-24,50,89,256,101,634,236,135,38,360,60,141,27,74,379,92,191,62,81,441,72,52,Class D
-Rec 080,537,303,56,366,53,25,20,25,77,381,19,0,24,35,142,19,16,155,52,454,0,2,80,18,87,100,231,204,-61,87,72,60,513,206,461,153,112,268,94,38,26,148,106,2,296,-47,133,239,159,108,Class D
-Rec 081,327,221,86,518,219,80,74,42,66,193,6,-2,30,34,149,-15,22,176,50,504,22,26,88,13,63,95,331,491,-43,104,92,222,124,632,492,194,156,179,80,46,24,112,97,10,251,257,126,975,117,30,Class D
-Rec 082,409,192,88,529,179,108,27,54,210,301,6,-5,66,36,121,6,16,35,32,257,49,33,144,42,90,85,270,133,-40,112,76,140,647,360,963,173,407,163,58,80,66,217,123,32,177,-18,154,316,114,89,Class D
-Rec 083,445,147,58,661,503,69,56,64,152,329,108,138,51,197,267,99,26,323,136,561,48,19,110,31,112,80,219,136,-44,88,105,162,380,419,740,115,225,154,70,93,114,103,167,28,251,285,144,297,112,88,Class D
-Rec 084,579,274,58,567,14,97,57,28,82,226,4,-8,54,29,90,3,6,49,13,71,97,14,117,9,130,98,340,520,-31,84,70,243,325,354,582,140,25,229,57,63,141,137,329,9,203,341,163,227,95,80,Class D
-Rec 085,431,222,57,513,367,103,109,62,60,287,23,2,25,51,191,30,44,320,156,498,60,24,70,14,95,73,225,322,-35,101,100,330,300,230,358,144,109,157,63,61,89,56,160,23,173,381,167,645,104,62,Class D
-Rec 086,260,204,91,515,187,37,98,405,31,261,243,-8,19,35,166,401,131,334,291,80,38,42,76,245,84,107,137,95,186,110,113,165,233,400,214,155,25,202,74,81,326,48,128,8,272,834,164,126,147,598,Class E
-Rec 087,198,215,76,562,308,46,94,553,29,301,333,-8,9,36,136,564,155,335,541,139,45,35,35,261,87,92,95,86,524,127,113,191,179,408,188,156,16,184,78,52,329,39,138,12,303,924,175,157,133,543,Class E
-Rec 088,309,221,60,526,182,34,91,443,27,343,436,-5,13,33,119,512,92,352,277,173,41,32,41,175,89,85,118,95,225,135,101,179,183,363,241,159,16,184,80,47,365,39,108,10,297,1499,162,123,130,601,Class E
-Rec 089,249,209,92,515,147,43,100,432,33,277,378,-8,16,40,151,576,118,329,341,92,41,44,36,153,74,106,136,107,237,142,142,148,205,280,251,176,28,154,91,66,331,37,125,12,269,923,220,144,133,353,Class E
-Rec 090,237,178,75,702,215,60,65,462,24,306,343,21,14,148,199,478,78,369,473,540,38,40,22,264,111,114,86,51,256,121,113,118,230,490,186,150,20,168,69,61,278,32,113,12,280,833,179,120,150,354,Class E
-Rec 091,294,173,99,549,288,38,85,401,25,256,303,-7,10,38,181,689,115,313,450,116,24,32,24,192,66,79,162,76,214,98,95,176,275,359,240,138,7,200,81,76,396,39,123,13,233,1358,153,166,139,351,Class E
-Rec 092,285,163,106,600,304,51,70,435,28,271,269,2,11,75,180,342,102,287,586,304,17,30,26,185,80,88,126,94,210,139,107,167,348,408,263,137,13,195,88,64,314,41,128,12,296,1081,107,149,145,293,Class E
-Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,35,34,59,121,78,102,171,64,91,152,104,181,348,229,196,149,23,187,53,69,293,45,107,9,329,1120,126,121,147,445,Class E</csvDataString>
-    <keyColName>Record</keyColName>
-    <keyType>BremerUnordered</keyType>
-    <url/>
-  </CSVDataSource>
+  <RadVizTool name="RadVizTool2">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <RadVizPlotter>
+                <anchors encoding="dynamic">
+                  <AnchorPoint name="col1">
+                    <polarRadians>0</polarRadians>
+                    <radius>1</radius>
+                    <x>1</x>
+                    <y>0</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col2">
+                    <polarRadians>1.5707963267948966</polarRadians>
+                    <radius>1</radius>
+                    <x>6.123233995736766e-17</x>
+                    <y>1</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col3">
+                    <polarRadians>3.141592653589793</polarRadians>
+                    <radius>1</radius>
+                    <x>-1</x>
+                    <y>1.2246467991473532e-16</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col4">
+                    <polarRadians>4.71238898038469</polarRadians>
+                    <radius>1</radius>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
+                  </AnchorPoint>
+                </anchors>
+                <colorMap encoding="xml">
+                  <colorRamp category="aesthetic" name="Doppler Radar" source="OIC" dataFormat="qualitative">
+                    <node position="0" color="0x04E9E7"/>
+                    <node position="0.08" color="0x009DF4"/>
+                    <node position="0.16" color="0x0201F4"/>
+                    <node position="0.24" color="0x01FC01"/>
+                    <node position="0.32" color="0x00C400"/>
+                    <node position="0.4" color="0x008C00"/>
+                    <node position="0.48" color="0x0FDF801"/>
+                    <node position="0.56" color="0xF99200"/>
+                    <node position="0.64" color="0xFD0000"/>
+                    <node position="0.72" color="0xBC0000"/>
+                    <node position="0.8" color="0xBC0000"/>
+                    <node position="0.88" color="0xF800FD"/>
+                    <node position="1.0" color="0x9854C6"/>
+                  </colorRamp>
+                </colorMap>
+                <columns encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute keyType="RadVizTest" csvColumn="col2" title="col2"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute keyType="RadVizTest" csvColumn="col3" title="col3"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn4">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>RadVizTest</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute keyType="RadVizTest" csvColumn="col4" title="col4"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </columns>
+                <currentAlgorithm>Greedy layout</currentAlgorithm>
+                <enableJitter>false</enableJitter>
+                <fillStyle>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                </fillStyle>
+                <iterations>50</iterations>
+                <jitterLevel>-19</jitterLevel>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <localNormalization>true</localNormalization>
+                <radiusColumn encoding="dynamic"/>
+                <radiusConstant>5</radiusConstant>
+                <spatialCallbacks/>
+              </RadVizPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="anchorLayer">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <AnchorPlotter>
+                <anchors encoding="dynamic">
+                  <AnchorPoint name="col1">
+                    <polarRadians>0</polarRadians>
+                    <radius>1</radius>
+                    <x>1</x>
+                    <y>0</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col2">
+                    <polarRadians>1.5707963267948966</polarRadians>
+                    <radius>1</radius>
+                    <x>6.123233995736766e-17</x>
+                    <y>1</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col3">
+                    <polarRadians>3.141592653589793</polarRadians>
+                    <radius>1</radius>
+                    <x>-1</x>
+                    <y>1.2246467991473532e-16</y>
+                  </AnchorPoint>
+                  <AnchorPoint name="col4">
+                    <polarRadians>4.71238898038469</polarRadians>
+                    <radius>1</radius>
+                    <x>-1.8369701987210297e-16</x>
+                    <y>-1</y>
+                  </AnchorPoint>
+                </anchors>
+                <colorMap encoding="xml">
+                  <colorRamp category="aesthetic" name="Doppler Radar" source="OIC" dataFormat="qualitative">
+                    <node position="0" color="0x04E9E7"/>
+                    <node position="0.08" color="0x009DF4"/>
+                    <node position="0.16" color="0x0201F4"/>
+                    <node position="0.24" color="0x01FC01"/>
+                    <node position="0.32" color="0x00C400"/>
+                    <node position="0.4" color="0x008C00"/>
+                    <node position="0.48" color="0x0FDF801"/>
+                    <node position="0.56" color="0xF99200"/>
+                    <node position="0.64" color="0xFD0000"/>
+                    <node position="0.72" color="0xBC0000"/>
+                    <node position="0.8" color="0xBC0000"/>
+                    <node position="0.88" color="0xF800FD"/>
+                    <node position="1.0" color="0x9854C6"/>
+                  </colorRamp>
+                </colorMap>
+                <enableWedgeColoring>false</enableWedgeColoring>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <labelAngleRatio>0</labelAngleRatio>
+                <spatialCallbacks/>
+              </AnchorPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>true</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>20</marginBottom>
+        <marginLeft>20</marginLeft>
+        <marginRight>20</marginRight>
+        <marginTop>20</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <mouseModeDefault>select</mouseModeDefault>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <area>7.0978350515464</area>
+          <xCenter>0</xCenter>
+          <yCenter>0</yCenter>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>50.111%</panelHeight>
+    <panelStyleList/>
+    <panelWidth>50.122%</panelWidth>
+    <panelX>49.797%</panelX>
+    <panelY>0.88692%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </RadVizTool>
   <CompoundRadVizTool name="CompoundRadVizTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -1403,14 +1581,13 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
         <axisFontItalic>false</axisFontItalic>
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
         <enableFixedAspectRatio>true</enableFixedAspectRatio>
         <enableProbe>true</enableProbe>
         <enableSelection>true</enableSelection>
-        <enableZoomAndPan>false</enableZoomAndPan>
+        <enableZoomAndPan>true</enableZoomAndPan>
         <gridLineAlpha>NaN</gridLineAlpha>
         <gridLineColor>NaN</gridLineColor>
         <gridLineThickness>NaN</gridLineThickness>
@@ -1423,31 +1600,27 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
             <plotter encoding="dynamic">
               <CompoundRadVizPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="ReferencedColumn">
+                  <AnchorPoint name="col1">
                     <polarRadians>0</polarRadians>
                     <radius>1</radius>
-                    <title>col1</title>
                     <x>1</x>
                     <y>0</y>
                   </AnchorPoint>
-                  <AnchorPoint name="ReferencedColumn2">
+                  <AnchorPoint name="col2">
                     <polarRadians>1.5707963267948966</polarRadians>
                     <radius>1</radius>
-                    <title>col2</title>
                     <x>6.123233995736766e-17</x>
                     <y>1</y>
                   </AnchorPoint>
-                  <AnchorPoint name="ReferencedColumn3">
+                  <AnchorPoint name="col3">
                     <polarRadians>3.141592653589793</polarRadians>
                     <radius>1</radius>
-                    <title>col3</title>
                     <x>-1</x>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
-                  <AnchorPoint name="ReferencedColumn4">
+                  <AnchorPoint name="col4">
                     <polarRadians>4.71238898038469</polarRadians>
                     <radius>1</radius>
-                    <title>col4</title>
                     <x>-1.8369701987210297e-16</x>
                     <y>-1</y>
                   </AnchorPoint>
@@ -1468,7 +1641,7 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col1" csvColumn="col1" keyType="RadVizTest"/>
+                            <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1480,7 +1653,7 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col2" csvColumn="col2" keyType="RadVizTest"/>
+                            <attribute keyType="RadVizTest" csvColumn="col2" title="col2"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1492,7 +1665,7 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col3" csvColumn="col3" keyType="RadVizTest"/>
+                            <attribute keyType="RadVizTest" csvColumn="col3" title="col3"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1504,7 +1677,7 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute title="col4" csvColumn="col4" keyType="RadVizTest"/>
+                            <attribute keyType="RadVizTest" csvColumn="col4" title="col4"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1599,31 +1772,27 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
             <plotter encoding="dynamic">
               <AnchorPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="ReferencedColumn">
+                  <AnchorPoint name="col1">
                     <polarRadians>0</polarRadians>
                     <radius>1</radius>
-                    <title>col1</title>
                     <x>1</x>
                     <y>0</y>
                   </AnchorPoint>
-                  <AnchorPoint name="ReferencedColumn2">
+                  <AnchorPoint name="col2">
                     <polarRadians>1.5707963267948966</polarRadians>
                     <radius>1</radius>
-                    <title>col2</title>
                     <x>6.123233995736766e-17</x>
                     <y>1</y>
                   </AnchorPoint>
-                  <AnchorPoint name="ReferencedColumn3">
+                  <AnchorPoint name="col3">
                     <polarRadians>3.141592653589793</polarRadians>
                     <radius>1</radius>
-                    <title>col3</title>
                     <x>-1</x>
                     <y>1.2246467991473532e-16</y>
                   </AnchorPoint>
-                  <AnchorPoint name="ReferencedColumn4">
+                  <AnchorPoint name="col4">
                     <polarRadians>4.71238898038469</polarRadians>
                     <radius>1</radius>
-                    <title>col4</title>
                     <x>-1.8369701987210297e-16</x>
                     <y>-1</y>
                   </AnchorPoint>
@@ -1666,6 +1835,7 @@ Rec 093,356,187,88,492,138,54,73,336,21,228,159,-5,19,33,125,394,119,269,319,50,
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
+        <mouseModeDefault>select</mouseModeDefault>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
           <area>7.0479381443299</area>

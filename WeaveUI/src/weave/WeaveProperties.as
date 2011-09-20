@@ -32,6 +32,7 @@ package weave
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
+	import weave.visualization.layers.InteractionController;
 
 	use namespace weave_internal;
 	
@@ -275,6 +276,8 @@ package weave
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
+		public const toolInteractions:InteractionController = new InteractionController();
+		
 		// temporary?
 		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService");// url of Weave R service using Rserve
 		public const jriServiceURL:LinkableString = new LinkableString("/WeaveServices/JRIService");// url of Weave R service using JRI
