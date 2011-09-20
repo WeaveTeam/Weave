@@ -244,6 +244,11 @@
 					return -1;
 				if (b == "name")
 					return 1;
+				// special case to make 'min' appear before 'max'
+				if (a == 'min' && b == 'max')
+					return -1;
+				if (a == 'max' && b == 'min')
+					return 1;
 				return ObjectUtil.stringCompare(a as String, b as String, true);
 			}
 

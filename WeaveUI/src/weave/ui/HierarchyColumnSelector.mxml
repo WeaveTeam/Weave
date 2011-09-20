@@ -274,7 +274,6 @@
 			private function loadFilteredAttributes():void
 			{
 				dimensionTreeView.attributeFilter.value = searchAttrTerms.text;
-				
 			}
 			
 			private var _timer:Timer = new Timer(400,1);
@@ -286,6 +285,14 @@
 				_timer.start();
 			}
 			
+			public function clearSearch():void
+			{
+				searchAttrTerms.text = '';
+				searchCategoryTerms.text = '';
+				
+				dimensionTreeView.attributeFilter.value = '';
+				dimensionTreeView.categoryFilter.value = '';
+			}
 			
 			private function handleAttributeDrag(event:MouseEvent):void
 			{

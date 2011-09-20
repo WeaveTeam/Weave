@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -43,11 +44,13 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
+	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.EquationColumnLib;
+	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	
 	/**	
@@ -65,17 +68,9 @@ package weave.visualization.plotters
 			setKeySource(_combinedKeySet);
 			
 			zoomToSubset.value = true;
-			filterDataType.value = 'String';
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
-			
-			displayFilterColumn.addImmediateCallback(this, updateFilterEquationColumns);
-			filterColumn.addImmediateCallback(this, updateFilterEquationColumns);
-			keyColumn.addImmediateCallback(this, updateFilterEquationColumns);
-			yData.addImmediateCallback(this, updateFilterEquationColumns);
-			filterValues.addImmediateCallback(this, updateFilterEquationColumns);
-			filterDataType.addImmediateCallback(this, updateFilterEquationColumns);
 		}
 
 		/*
@@ -87,122 +82,119 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
 		
-		public const displayFilterColumn:LinkableBoolean = registerSpatialProperty( new LinkableBoolean(false));
-		public const filterColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn());
-		public const yData:DynamicColumn = registerSpatialProperty( new DynamicColumn());
-		public const keyColumn:DynamicColumn = registerSpatialProperty( new DynamicColumn());
-		
-		public const filterValues:LinkableString = newLinkableChild(this, LinkableString);
-		public const filterDataType:LinkableString = registerSpatialProperty( new LinkableString());
-		
-		[Bindable] public var dataTypes:Array = ['Number', 'String', 'int', 'Boolean'];
+		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
+		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn, resetXValues);
+		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
 		private const _combinedKeySet:KeySet = newNonSpatialProperty(KeySet);
 		
 		private var _columns:Array = [];
 		private function handleColumnsChange():void
-		{			
+		{
 			_columns = columns.getObjects();
 
-			// GET list of all keys in all columns
-			_combinedKeySet.delayCallbacks();			
-				
-			if(displayFilterColumn.value && keyColumn.internalColumn)
+			_combinedKeySet.delayCallbacks();
+			
+			if (enableGroupBy.value)
 			{
-				var keys:Array = [];
-				var previousKeys:Array = keyColumn.keys;
-				var reverseLookup:Dictionary = new Dictionary(true);
-								
-				if(keyColumn && (previousKeys.length > 1))
+				var reverseKeys:Array = []; // a list of the keys returned as values from keyColumn
+				var lookup:Dictionary = new Dictionary(); // keeps track of what keys were already seen
+				for each (var key:IQualifiedKey in groupBy.keys)
 				{
-					for each(var k:IQualifiedKey in previousKeys)
+					var filterKey:IQualifiedKey = groupBy.getValueFromKey(key, IQualifiedKey) as IQualifiedKey;
+					if (filterKey && !lookup[filterKey])
 					{
-						var filterkey:IQualifiedKey = keyColumn.getValueFromKey(k, IQualifiedKey);
-						if(!reverseLookup[filterkey])
-							reverseLookup[filterkey] = [];
-						reverseLookup[filterkey].push(k);					
-						if(reverseLookup[filterkey].length == 1)
-							keys.push(filterkey); 
+						lookup[filterKey] = true;
+						reverseKeys.push(filterKey);
 					}
-					if(keys.length)
-					{						
-						_combinedKeySet.replaceKeys(keys);
-					}					
 				}
+				_combinedKeySet.replaceKeys(reverseKeys);
 			}
 			else
 			{
-				
+				// get list of all keys in all columns
 				if (_columns.length > 0)
+				{
 					_combinedKeySet.replaceKeys((_columns[0] as IAttributeColumn).keys);
+					for (var i:int = 1; i < _columns.length; i++)
+					{
+						_combinedKeySet.addKeys((_columns[i] as IAttributeColumn).keys);
+					}
+				}
 				else
 					_combinedKeySet.clearKeys();
-				for (var i:int = 1; i < _columns.length; i++)
-				{
-					_combinedKeySet.addKeys((_columns[i] as IAttributeColumn).keys);
-				}
 			}					
-			
-			_combinedKeySet.resumeCallbacks();
 			
 			// if there is only one column, push a copy of it so lines will be drawn
 			if (_columns.length == 1)
 				_columns.push(_columns[0]);
+			
+			_combinedKeySet.resumeCallbacks();
 		}
-					
 		
+		public function resetXValues():void
+		{
+			var values:Array = [];
+			for each (var key:IQualifiedKey in xData.keys)
+				values.push(xData.getValueFromKey(key, String));
+			values.sort();
+			values = VectorUtils.removeDuplicatesFromSortedArray(values);
+			xValues.value = WeaveAPI.CSVParser.createCSVFromArrays([values]);
+			
+			updateFilterEquationColumns();
+		}
 		
 		private function updateFilterEquationColumns():void
 		{
-			var str:String = filterValues.value;
-			
 			// check that values list string exists
-			if(!displayFilterColumn.value)
+			if (!enableGroupBy.value)
 			{
 				return;
 			}					
 			
 			// check for missing columns
-			if(!(filterColumn.internalColumn && yData.internalColumn && keyColumn.internalColumn))
+			if (!(xData.internalColumn && yData.internalColumn && groupBy.internalColumn))
 			{
-				if(keyColumn.internalColumn)
+				if (groupBy.internalColumn)
 					columns.removeAllObjects();
 				return;
 			}
 			
-			if(!str) 
+			if (!xValues.value) 
 				return;
 			
 			// check that column keytypes are the same
-			var keytypes:Array = [ColumnUtils.getKeyType(filterColumn), ColumnUtils.getKeyType(keyColumn), ColumnUtils.getKeyType(yData)];
-			if(!((keytypes[0] == keytypes[1]) && (keytypes[0] == keytypes[2])))
+			var keyType:String = ColumnUtils.getKeyType(groupBy);
+			if (keyType != ColumnUtils.getKeyType(xData) || keyType != ColumnUtils.getKeyType(yData))
 			{
 				return;
 			}
 			
-			var values:Array = str.split(",");
+			var values:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xValues.value));
 			
 			columns.removeAllObjects();
 			columns.delayCallbacks();
-			var ClassReference:Class = getDefinitionByName(filterDataType.value) as Class;
-			var temp:*;
-			temp = new ClassReference();
-			
+
 			var keyCol:DynamicColumn;
 			var filterCol:DynamicColumn;
 			var dataCol:DynamicColumn;
 			
-			for each( var value:Object in values)
+			for (var i:int = 0; i < values.length; i++)
 			{
+				var value:String = values[i];
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
-				col.variables.copyObject("key", keyColumn);					
-				col.variables.copyObject("filter", filterColumn);
-				col.variables.copyObject("data", yData); 					
+				col.variables.copyObject("keyCol", groupBy);
+				col.variables.copyObject("filterCol", xData);
+				col.variables.copyObject("dataCol", yData);
 				
-				col.setMetadata(AttributeColumnMetadata.TITLE, value.toString());					
-				temp = EquationColumnLib.cast(value, ClassReference); 
-				col.equation.value = 'getValueFromFilterColumn(get("key"), get("filter"), get("data"),'+ObjectUtil.toString(temp)+','+filterDataType.value+',Number)';
+				col.setMetadata(AttributeColumnMetadata.TITLE, value);
+				col.setMetadata(AttributeColumnMetadata.MIN, '{ getMin(dataCol) }');
+				col.setMetadata(AttributeColumnMetadata.MAX, '{ getMax(dataCol) }');
+				
+				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, "'+value+'", Number)';
 				col.resumeCallbacks();
 			}				
 			
@@ -211,7 +203,7 @@ package weave.visualization.plotters
 		}		
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const curveType:LinkableString  = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));
+		public const curveType:LinkableString = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));
 		public const shapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
 		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 
@@ -430,25 +422,11 @@ package weave.visualization.plotters
 			}
 		}
 		
-		private function drawTriangleShape(graphics:Graphics, x:Number, y:Number, size:int):void
-		{
-			var halfSize:Number = size/2;
-			
-			// top point, half height above the center point (x,y)
-			graphics.moveTo(x, y-halfSize);
-			// bottom left
-			graphics.lineTo(x-halfSize, y+halfSize);
-			// bottom right
-			graphics.lineTo(x+halfSize, y+halfSize);
-			// back up to the top
-			graphics.lineTo(x, y-halfSize);
-		}
-		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			// normalized data coordinates
 			var bounds:IBounds2D = getReusableBounds();
-			if(!zoomToSubset.value)
+			if (!zoomToSubset.value)
 			{
 				bounds.setBounds(0, 0, Math.max(1, columns.getNames().length - 1), 1);
 				
@@ -463,10 +441,19 @@ package weave.visualization.plotters
 						bounds.includeCoords(0, WeaveAPI.StatisticsCache.getMax(column));
 					}
 				}
-			}			
+			}
 			return bounds;
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object
+		
+		
+		
+		// backwards compatibility
+		[Deprecated(replacement="enableGroupBy")] public function set displayFilterColumn(value:Object):void { setSessionState(enableGroupBy, value); }
+		[Deprecated(replacement="groupBy")] public function set keyColumn(value:Object):void { setSessionState(groupBy, value); }
+		[Deprecated(replacement="xData")] public function set filterColumn(value:Object):void { setSessionState(xData, value); }
+		[Deprecated(replacement="xValues")] public function set filterValues(value:Object):void { setSessionState(xValues, value); }
+		[Deprecated(replacement="xValues")] public function set groupByValues(value:Object):void { setSessionState(xValues, value); }
 	}
 }

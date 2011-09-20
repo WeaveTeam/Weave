@@ -82,10 +82,6 @@ package weave.visualization.layers
 			linkSessionState(Weave.properties.axisFontItalic, axisFontItalic);
 			linkSessionState(Weave.properties.axisFontBold, axisFontBold);
 			linkSessionState(Weave.properties.axisFontColor, axisFontColor);
-			
-			// when the data bounds change, we need to update the axes
-			getCallbackCollection(zoomBounds).addImmediateCallback(this, handleDataBoundsChange);
-			enableAutoZoomToExtent.addImmediateCallback(this, handleDataBoundsChange);
 		}
 
 		public static const PROBE_LINE_LAYER_NAME:String = "probeLine";
@@ -104,8 +100,8 @@ package weave.visualization.layers
 		public function getYAxisLayer():AxisLayer { return _yAxisLayer; }
 		public function getDefaultPlotter():IPlotter { return _plotLayer ? _plotLayer.getDynamicPlotter().internalObject as IPlotter : null; }
 		
-		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleAxisModeChange);
-		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleAxisModeChange);
+		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
+		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		
 		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
 		public const axisFontBold:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
@@ -176,7 +172,7 @@ package weave.visualization.layers
 				linkToAxisProperties(_xAxisLayer);
 				
 				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
-				handleAxisModeChange();
+				updateZoom();
 			}
 		}
 		public function set yAxisEnabled(value:Boolean):void
@@ -190,7 +186,7 @@ package weave.visualization.layers
 				linkToAxisProperties(_yAxisLayer);
 				
 				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
-				handleAxisModeChange();
+				updateZoom();
 			}
 		}
 		
@@ -220,38 +216,26 @@ package weave.visualization.layers
 			layers.setNameOrder(names);
 		}
 		
-		private function handleAxisModeChange():void
-		{
-			updateFullDataBounds();
-			handleDataBoundsChange();
-			updateZoom();
-		}
-		
 		override protected function updateFullDataBounds():void
 		{
+			getCallbackCollection(this).delayCallbacks();
+			
 			super.updateFullDataBounds();
 			
-			var niceMinMax:Array;
+			tempBounds.copyFrom(fullDataBounds);
 			if(_xAxisLayer && enableAutoZoomXToNiceNumbers.value)
 			{
-				niceMinMax = StandardLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), _xAxisLayer.axisPlotter.tickCountRequested.value);
-				
-				fullDataBounds.setXRange(niceMinMax.shift(), niceMinMax.pop()); // first & last ticks
+				var xMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), _xAxisLayer.axisPlotter.tickCountRequested.value);
+				tempBounds.setXRange(xMinMax.shift(), xMinMax.pop()); // first & last ticks
 			}
 			if(_yAxisLayer && enableAutoZoomYToNiceNumbers.value)
 			{
-				niceMinMax = StandardLib.getNiceNumbersInRange(fullDataBounds.getYMin(), fullDataBounds.getYMax(), _yAxisLayer.axisPlotter.tickCountRequested.value);
-				
-				fullDataBounds.setYRange(niceMinMax.shift(), niceMinMax.pop()); // first & last ticks
+				var yMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getYMin(), fullDataBounds.getYMax(), _yAxisLayer.axisPlotter.tickCountRequested.value);
+				tempBounds.setYRange(yMinMax.shift(), yMinMax.pop()); // first & last ticks
 			}
-		}
-		
-		private function handleDataBoundsChange():void
-		{
 			if ((_xAxisLayer || _yAxisLayer) && enableAutoZoomToExtent.value)
 			{
 				// if axes are enabled and dataBounds is undefined, set dataBounds to default size
-				zoomBounds.getDataBounds(tempBounds);
 				// if bounds is empty, make it not empty
 				if (tempBounds.isEmpty())
 				{
@@ -263,36 +247,57 @@ package weave.visualization.layers
 						tempBounds.setHeight(1);
 					if (tempBounds.getHeight() == 0)
 						tempBounds.setYRange(0, 1);
-					
-					zoomBounds.setDataBounds(tempBounds);
-					// this function will be called again after updating data bounds, so we can just return now
-					return;
 				}
 			}
-			// update min,max values for axes
+			if (!fullDataBounds.equals(tempBounds))
+			{
+				fullDataBounds.copyFrom(tempBounds);
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			
+			getCallbackCollection(this).resumeCallbacks();
+		}
+
+		override protected function updateZoom():void
+		{
+			getCallbackCollection(this).delayCallbacks();
+			getCallbackCollection(zoomBounds).delayCallbacks();
+			
+			super.updateZoom();
+			
+			// adjust dataBounds based on auto zoom settings
+			
+			// when the data bounds change, we need to update the min,max values for axes
 			if (_xAxisLayer)
 			{
+				getCallbackCollection(_xAxisLayer).delayCallbacks(); // avoid recursive updateZoom() call until done setting session state
 				zoomBounds.getDataBounds(tempBounds);
 				tempBounds.yMax = tempBounds.yMin;
 				_xAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				_xAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.xMin;
 				_xAxisLayer.axisPlotter.axisLineMaxValue.value = tempBounds.xMax;
+				getCallbackCollection(_xAxisLayer).resumeCallbacks();
 			}
 			if (_yAxisLayer)
 			{
+				getCallbackCollection(_yAxisLayer).delayCallbacks(); // avoid recursive updateZoom() call until done setting session state
 				zoomBounds.getDataBounds(tempBounds);
 				tempBounds.xMax = tempBounds.xMin;
 				_yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				_yAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.yMin;
 				_yAxisLayer.axisPlotter.axisLineMaxValue.value = tempBounds.yMax;
+				getCallbackCollection(_yAxisLayer).resumeCallbacks();
 			}
+
+			getCallbackCollection(zoomBounds).resumeCallbacks();
+			getCallbackCollection(this).resumeCallbacks();
 		}
 		
 		override protected function handleRollOut(event:MouseEvent):void
 		{
 			super.handleRollOut(event);
 			
-			if(_axisToolTip)
+			if (_axisToolTip)
 				ToolTipManager.destroyToolTip(_axisToolTip);
 			_axisToolTip = null;
 		}

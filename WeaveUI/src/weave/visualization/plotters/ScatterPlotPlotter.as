@@ -49,7 +49,7 @@ package weave.visualization.plotters
 			//circlePlotter.fillStyle.lock();
 			setKeySource(_keySet);
 			getCallbackCollection(this).addImmediateCallback(this, updateKeys);						
-			registerSpatialProperties(xColumn, yColumn);
+			registerSpatialProperties(xColumn, yColumn, zoomToSubset);
 			registerNonSpatialProperties(colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy);
 		}
 		
@@ -109,6 +109,7 @@ package weave.visualization.plotters
 		public function get alphaColumn():AlwaysDefinedColumn { return (circlePlotter.fillStyle.internalObject as SolidFillStyle).alpha; }
 		public function get colorColumn():AlwaysDefinedColumn { return (circlePlotter.fillStyle.internalObject as SolidFillStyle).color; }
 		public function get radiusColumn():DynamicColumn { return circlePlotter.screenRadius; }
+		public function get zoomToSubset():LinkableBoolean { return circlePlotter.zoomToSubset; }
 		
 		private function getAllKeys(outputKeySet:KeySet, inputKeySets:Array):void
 		{

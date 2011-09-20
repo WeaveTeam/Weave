@@ -34,7 +34,6 @@ package weave.visualization.layers
 	import weave.primitives.Bounds2D;
 	import weave.utils.DebugUtils;
 	import weave.utils.PlotterUtils;
-	import weave.utils.SpatialIndex;
 	import weave.visualization.plotters.AxisPlotter;
 	import weave.visualization.plotters.DynamicPlotter;
 	import weave.api.ui.IPlotter;

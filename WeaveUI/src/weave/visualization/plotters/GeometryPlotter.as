@@ -147,7 +147,7 @@ package weave.visualization.plotters
 			if (streamedColumn)
 				return streamedColumn.collectiveBounds;
 			else
-				return getReusableBounds();
+				return getReusableBounds(); // undefined
 		}
 
 		/**

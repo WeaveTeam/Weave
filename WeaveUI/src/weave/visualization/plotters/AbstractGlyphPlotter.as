@@ -23,7 +23,9 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
@@ -53,6 +55,7 @@ package weave.visualization.plotters
 		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);
+		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		public function get dataX():DynamicColumn
 		{
@@ -86,12 +89,17 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			// use filtered data so data bounds will not include points that have been filtered out.
-			return getReusableBounds(
-				WeaveAPI.StatisticsCache.getMin(filteredDataX),
-				WeaveAPI.StatisticsCache.getMin(filteredDataY),
-				WeaveAPI.StatisticsCache.getMax(filteredDataX),
-				WeaveAPI.StatisticsCache.getMax(filteredDataY)
-			);
+			var bounds:IBounds2D = getReusableBounds();
+			if (!zoomToSubset.value)
+			{
+				bounds.setBounds(
+					WeaveAPI.StatisticsCache.getMin(filteredDataX),
+					WeaveAPI.StatisticsCache.getMin(filteredDataY),
+					WeaveAPI.StatisticsCache.getMax(filteredDataX),
+					WeaveAPI.StatisticsCache.getMax(filteredDataY)
+				);
+			}
+			return bounds;
 		}
 	}
 }

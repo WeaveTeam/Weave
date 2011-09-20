@@ -48,6 +48,13 @@ package weave.data.AttributeColumns
 		{
 			return _metadata;
 		}
+		
+		override public function getMetadata(propertyName:String):String
+		{
+			if (propertyName == AttributeColumnMetadata.DATA_TYPE)
+				return DataTypes.STRING;
+			return super.getMetadata(propertyName);
+		}
 
 		/**
 		 * This is a list of unique keys this column defines values for.
@@ -79,7 +86,7 @@ package weave.data.AttributeColumns
 		 */
 		private var _keyToUniqueStringIndexMapping:Dictionary = new Dictionary();
 		
-		public function setRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>, clearExistingRecords:Boolean = true):void
+		public function setRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>):void
 		{
 			if (keys.length > stringData.length)
 			{
@@ -89,14 +96,6 @@ package weave.data.AttributeColumns
 
 			// create Dictionary mapping keys to data
 			var dataMap:Dictionary = new Dictionary();
-			// if existing records should be kept, copy them to dataMap
-			if (!clearExistingRecords)
-			{
-				for (var key:Object in _keyToUniqueStringIndexMapping)
-				{
-					dataMap[key] = _uniqueStrings[_keyToUniqueStringIndexMapping[key]] as String;
-				}
-			}
 			// copy new records to dataMap, overwriting any existing records
 			for (var i:int = 0; i < keys.length; i++)
 			{

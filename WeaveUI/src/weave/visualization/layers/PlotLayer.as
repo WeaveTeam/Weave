@@ -118,6 +118,8 @@ package weave.visualization.layers
 		private var usingExternalSpatialIndex:Boolean;
 		private var _dynamicPlotter:DynamicPlotter = null;
 		private var _spatialIndex:SpatialIndex = null;
+		private var _spatialIndexDirty:Boolean = true;
+		public var lockScreenBounds:Boolean = false;
 		
 		/**
 		 * The IPlotter object used to draw shapes on this PlotLayer.
@@ -165,7 +167,6 @@ package weave.visualization.layers
 
 		private const _dataBounds:IBounds2D = new Bounds2D(); // this is set by the public setDataBounds() interface
 		private const _screenBounds:IBounds2D = new Bounds2D(); // this is set by the public setScreenBounds() interface
-		public var lockScreenBounds:Boolean = false;
 
 		/**
 		 * When this is true, the plot won't be drawn if there is no selection and the background will never be drawn.
@@ -175,7 +176,12 @@ package weave.visualization.layers
 		
 		// This is the key set of the plotter with a filter applied to it.
 		private const _filteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
-		
+
+		/**
+		 * Sets the visibility of the layer
+		 */
+		public const layerIsVisible:LinkableBoolean = newLinkableChild(this, LinkableBoolean, toggleLayer);
+
 		/**
 		 * This will be used to filter the graphics that are drawn, but not the records that were used to calculate the graphics.
 		 */
@@ -218,15 +224,10 @@ package weave.visualization.layers
 		
 		private function spatialCallback():void
 		{
-			_spatialIndex.clear();
 			_spatialIndexDirty = true;
+			_spatialIndex.clear();
 		}
-		private var _spatialIndexDirty:Boolean = true;
-		/**
-		 *Sets the visibility of the layer 
-		 * 
-		*/
-		public const layerIsVisible:LinkableBoolean = newLinkableChild(this, LinkableBoolean, toggleLayer);
+
 		private function toggleLayer():void
 		{
 			this.visible = layerIsVisible.value;
@@ -242,14 +243,14 @@ package weave.visualization.layers
 			return _graphicsAreValid;
 		}
 
-		private function validateSpatialIndex():void
+		public function validateSpatialIndex():void
 		{
 			if (_spatialIndexDirty)
 			{
 				//trace(this,"updating spatial index", CallbackCollection.getStackTrace());
+				_spatialIndexDirty = false;
 				_spatialIndex.createIndex(plotter, showMissingRecords);
 				//trace(this,"updated spatial index",spatialIndex.collectiveBounds);
-				_spatialIndexDirty = false;
 			}
 		}
 		public function getSelectedKeys():Array

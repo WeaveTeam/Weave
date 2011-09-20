@@ -145,18 +145,18 @@ package weave.utils
 		 * @return the correct filtered value from the data column
 		 * @author kmanohar
 		 */		
-		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:Object, filterDataType:* = null, dataType:* = null):Object
+		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:String, dataType:* = null):Object
 		{
 			var val:Object;
 			
 			key = getKey();
-			cubekeys = getKeysFromValue(keyColumn, key, IQualifiedKey) ;
+			cubekeys = getAssociatedKeys(keyColumn, key);
 			
-			for each(var cubekey:IQualifiedKey in cubekeys)
+			for each (var cubekey:IQualifiedKey in cubekeys)
 			{
-				if(getValueFromKey(filter, cubekey, filterDataType) == filterValue)
+				if (filter.getValueFromKey(cubekey, String) == filterValue)
 				{
-					val =  getValueFromKey(data, cubekey, dataType);
+					val = getValueFromKey(data, cubekey, dataType);
 					return val;
 				}
 			}			
@@ -168,28 +168,40 @@ package weave.utils
 		/**
 		 * This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
 		 * @param column An attribute column
-		 * @param value The value to look up
-		 * @param dataType The class of the value parameter
+		 * @param keyValue The value to look up
 		 * @return An array of record keys with the given value under the given column
-		 */		
-		public static function getKeysFromValue(column:DynamicColumn, value:Object, dataType:* = null):Array
+		 */
+		public static function getAssociatedKeys(column:IAttributeColumn, keyValue:IQualifiedKey):Array
 		{
-			var col:* = (column.internalColumn as ReferencedColumn).internalColumn;
-			if(_reverseKeyLookupCache[col])
-				if(_reverseKeyLookupCache[col][value])
-					return _reverseKeyLookupCache[col][value];
-			
-			var reverseLookup:Dictionary = new Dictionary(true);
-			
-			for each(var key:IQualifiedKey in column.keys)
+			var lookup:Dictionary = _reverseKeyLookupCache[column] as Dictionary;
+			if (lookup == null || column.callbacksWereTriggered) // if cache is invalid, validate it now
 			{
-				var val:* = column.getValueFromKey(key, dataType);
-				if(!reverseLookup[val])
-					reverseLookup[val] = [];
-				reverseLookup[val].push(key);
-			}			
-			_reverseKeyLookupCache[col] = reverseLookup;
-			return reverseLookup[value];
+				// make sure when the column changes, the cache gets invalidated.
+				if (_reverseKeyLookupCache[column] === undefined)
+					column.addImmediateCallback(null, clearReverseLookupCache, [column]);
+				
+				_reverseKeyLookupCache[column] = lookup = new Dictionary();
+				for each (var recordKey:IQualifiedKey in column.keys)
+				{
+					var value:Object = column.getValueFromKey(recordKey, IQualifiedKey) as IQualifiedKey;
+					if (value == null)
+						continue;
+					var keys:Array = lookup[value] as Array;
+					if (keys == null)
+						lookup[value] = keys = [];
+					keys.push(recordKey);
+				}
+			}
+			return lookup[keyValue] as Array;
+		}
+		
+		/**
+		 * This function invalidates the cached reverse key lookup for a column.
+		 * @param column The column that changed
+		 */		
+		private static function clearReverseLookupCache(column:IAttributeColumn):void
+		{
+			_reverseKeyLookupCache[column] = null; // set to null but not undefined because we don't want to re-add this callback
 		}
 		
 		/**
