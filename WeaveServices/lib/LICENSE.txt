@@ -38,3 +38,5 @@ Other
 	GeoAPI - http://www.opengeospatial.org/ogc/legal
 		geoapi-2.3-M1.jar
 		geoapi-pending-2.3-M1.jar
+		
+	ojdbc14_g.jar - http://www.oracle.com/technetwork/licenses/distribution-license-152002.html
