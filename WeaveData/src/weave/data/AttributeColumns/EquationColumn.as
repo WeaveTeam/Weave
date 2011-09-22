@@ -242,7 +242,7 @@ package weave.data.AttributeColumns
 				else
 				{
 					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true, false);
 					_equationIsConstant = false;
 				}
 			}

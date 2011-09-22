@@ -220,7 +220,7 @@
 			/**
 			 * This function is called when the user presses the tool button.
 			 */
-			override protected function toggleControlPanel():void
+			override public function toggleControlPanel():void
 			{
 				super.toggleControlPanel();
 			}
