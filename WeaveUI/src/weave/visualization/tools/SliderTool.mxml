@@ -46,10 +46,8 @@
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.StageUtils;
-			import weave.core.weave_internal;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.HierarchyUtils;
-            use namespace weave_internal;
 
 	//constructor
 	
@@ -209,7 +207,7 @@
 	{
 		//loop through the columns, getting the possible time values for each
 		//step one - just get first one
-		var descendants:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(Weave.root, HierarchyColumnReference);
+		var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root, HierarchyColumnReference);
 		var len:int = descendants.length;
 		var newLabels:Array = [];
 		var lookingForLabels:Boolean = true;

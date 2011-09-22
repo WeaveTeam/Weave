@@ -164,7 +164,7 @@
 					if (columns.length <= 1)
 					{
 						// get all ReferencedColumn objects
-						var refCols:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(_plotter.colorColumn, ReferencedColumn);
+						var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(_plotter.colorColumn, ReferencedColumn);
 						for each (var col:IAttributeColumn in refCols)
 							columns.unshift(col);
 					}

@@ -49,8 +49,6 @@
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
-			import weave.core.weave_internal;
-			use namespace weave_internal;
 			
 			private const padding:int = 5;
 			private var _targetObjects:Array = null;
@@ -157,7 +155,7 @@
 			
 			private function saveRelatedSessionStates(object:ILinkableObject):void
 			{
-				var dynamicObjects:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(object, ILinkableDynamicObject);
+				var dynamicObjects:Array = WeaveAPI.SessionManager.getLinkableDescendants(object, ILinkableDynamicObject);
 				for each (var dynamicObject:ILinkableDynamicObject in dynamicObjects)
 				{
 					if (dynamicObject.internalObject && dynamicObject.globalName != null)

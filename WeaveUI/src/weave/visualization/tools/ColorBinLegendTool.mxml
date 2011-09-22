@@ -35,7 +35,6 @@
 			import weave.api.unlinkSessionState;
 			import weave.core.ErrorManager;
 			import weave.core.SessionManager;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -45,8 +44,6 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
-
-			use namespace weave_internal;
 
 			private var _plotter:ColorBinLegendPlotter = null;
 			public function get plotter():ColorBinLegendPlotter
@@ -164,7 +161,7 @@
 				if (!parent)
 					return callLater(updateMarginLabel);
 				
-				visualization.additionalProbeColumns = (WeaveAPI.SessionManager as SessionManager).getDescendants(_plotter.dynamicColorColumn, ReferencedColumn);
+				visualization.additionalProbeColumns = WeaveAPI.SessionManager.getLinkableDescendants(_plotter.dynamicColorColumn, ReferencedColumn);
 				
 				marginLabelText = ColumnUtils.getTitle(_plotter.dynamicColorColumn);
 				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);

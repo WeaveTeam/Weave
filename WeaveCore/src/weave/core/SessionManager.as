@@ -233,7 +233,7 @@ package weave.core
 		 * @param child An ILinkableObject that was registered as a child of another ILinkableObject.
 		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
 		 */
-		public function getLinkableObjectOwner(child:ILinkableObject):ILinkableObject
+		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
 			return childToOwnerMap[child] as ILinkableObject;
 		}
@@ -426,7 +426,7 @@ package weave.core
 		 * @param filter An optional Class definition which will be used to filter the results.
 		 * @return An Array containing a list of descendant objects.
 		 */
-		weave_internal function getDescendants(root:ILinkableObject, filter:Class = null):Array
+		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
 		{
 			if (root == null)
 			{
@@ -484,6 +484,9 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * @private
+		 */
 		weave_internal function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
 		{
 			if (linkableObject == null)
@@ -746,7 +749,7 @@ package weave.core
 		{
 			// set some variables to aid in debugging
 			var obj:* = disposedObject;
-			var ownerPath:Array = []; while (obj = getLinkableObjectOwner(obj)) { ownerPath.unshift(obj); }
+			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
 			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject] || []) { parents.push[obj]; }
 			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject] || []) { children.push[obj]; }
 			var sessionState:Object = getSessionState(disposedObject);

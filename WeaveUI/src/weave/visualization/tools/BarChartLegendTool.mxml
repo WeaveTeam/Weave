@@ -38,7 +38,6 @@
 			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.SessionManager;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
@@ -50,8 +49,6 @@
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.BarChartLegendPlotter;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
-			
-			use namespace weave_internal;
 			
 			[Bindable] private var _barLegendPlotter:BarChartLegendPlotter;
 			private var _barLegendLayerName:String;
@@ -161,7 +158,7 @@
 				if (_barLegendPlotter.columns.getObjects().length <= 1 || barChart == null)
 				{
 					marginLabelText = ColumnUtils.getTitle(_colorLegendPlotter.dynamicColorColumn);
-					visualization.additionalProbeColumns = (WeaveAPI.SessionManager as SessionManager).getDescendants(_colorLegendPlotter.dynamicColorColumn, ReferencedColumn);
+					visualization.additionalProbeColumns = WeaveAPI.SessionManager.getLinkableDescendants(_colorLegendPlotter.dynamicColorColumn, ReferencedColumn);
 				}
 				else
 				{

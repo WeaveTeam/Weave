@@ -43,6 +43,6 @@ package weave.api
 	 */
 	public function getLinkableObjectOwner(child:ILinkableObject):ILinkableObject
 	{
-		return WeaveAPI.SessionManager.getLinkableObjectOwner(child);
+		return WeaveAPI.SessionManager.getLinkableOwner(child);
 	}
 }

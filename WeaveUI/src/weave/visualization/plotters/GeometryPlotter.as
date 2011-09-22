@@ -42,7 +42,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
@@ -258,7 +257,7 @@ package weave.visualization.plotters
 			var minImportance:Number = getDataAreaPerPixel(dataBounds, screenBounds) * pixellation.value;
 			
 			// find nested StreamedGeometryColumn objects
-			var descendants:Array = (WeaveAPI.SessionManager as SessionManager).weave_internal::getDescendants(geometryColumn, StreamedGeometryColumn);
+			var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(geometryColumn, StreamedGeometryColumn);
 			// request the required detail
 			for each (var streamedColumn:StreamedGeometryColumn in descendants)
 			{
