@@ -360,24 +360,26 @@ package weave.core
 			// use ignore list to prevent infinite recursion
 			ignoreList[sessionedObject] = true;
 			
-			// special cases:
+			// special cases (explicit session state)
 			if (sessionedObject is ILinkableVariable)
 				return (sessionedObject as ILinkableVariable).getSessionState();
 			if (sessionedObject is ILinkableCompositeObject)
 				return (sessionedObject as ILinkableCompositeObject).getSessionState();
 
+			// implicit session state
 			// first pass: get property names
 			var propertyNames:Array = getLinkablePropertyNames(sessionedObject);
 			var resultNames:Array = [];
 			var resultProperties:Array = [];
+			var property:ILinkableObject = null;
 			var i:int;
 			//trace("getting session state for "+getQualifiedClassName(sessionedObject),"propertyNames="+propertyNames);
 			for (i = 0; i < propertyNames.length; i++)
 			{
 				var name:String = propertyNames[i];
-				var property:ILinkableObject = null;
 				try
 				{
+					property = null; // must set this to null first because accessing the property may fail
 					property = sessionedObject[name] as ILinkableObject;
 				}
 				catch (e:Error)
@@ -400,11 +402,19 @@ package weave.core
 					//trace("skipped property",name,property,ignoreList[property]);
 				}
 			}
+			// special case if there are no child objects
+			if (resultNames.length == 0)
+				return null;
 			// second pass: get values from property names
 			var result:Object = new Object();
 			for (i = 0; i < resultNames.length; i++)
 			{
-				result[resultNames[i]] = internalGetSessionState(resultProperties[i], ignoreList);
+				var value:Object = internalGetSessionState(resultProperties[i], ignoreList);
+				property = resultProperties[i] as ILinkableObject;
+				// do not include objects that have a null implicit session state (no child objects)
+				if (value == null && !(property is ILinkableVariable) && !(property is ILinkableCompositeObject))
+					continue;
+				result[resultNames[i]] = value;
 				//trace("getState",getQualifiedClassName(sessionedObject),resultNames[i],result[resultNames[i]]);
 			}
 			return result;
