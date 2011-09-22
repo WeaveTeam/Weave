@@ -39,7 +39,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * @see ISessionManager.getSessionState
+	 * @see ISessionManager
 	 */
 	public function getSessionState(linkableObject:ILinkableObject):Object
 	{

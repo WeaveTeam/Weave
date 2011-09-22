@@ -271,7 +271,14 @@ package weave.core
 			return state;
 		}
 
+		/**
+		 * This is used by evaluateExpression.
+		 */
 		private const compiler:Compiler = new Compiler();
+		
+		/**
+		 * @see IExternalSessionStateInterface
+		 */		
 		public function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null):*
 		{
 			var sessionedObject:ILinkableObject = getObject(objectPath);

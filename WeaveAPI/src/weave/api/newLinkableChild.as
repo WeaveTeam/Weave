@@ -37,7 +37,7 @@
 package weave.api
 {
 	/**
-	 * @see ISessionManager.newLinkableChild
+	 * @see ISessionManager
 	 */
 	public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 	{

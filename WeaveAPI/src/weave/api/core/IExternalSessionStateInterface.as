@@ -129,9 +129,9 @@ package weave.api.core
 		 * <br><br>
 		 * Examples: 
 		 * <br>
-		 * <code> getObjectById('weave').evaluateExpression(['MyScatterPlot'], 'toggleControlPanel()')</code>
+		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'toggleControlPanel()')</code>
 		 * <br> 
-		 * <code> getObjectById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y', {new_x : 400, new_y : 300})</code>
+		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y', {new_x : 400, new_y : 300})</code>
 		 * <br> <br>
 		 * 
 		 * Note that any code written for this function depends on the implementation of the Actionscript
@@ -141,7 +141,7 @@ package weave.api.core
 		 * @param methodName The expression to evaluate on the object specified by objectPath.
 		 * @param variables A hash map of variable names to values.
 		 * @return The value of the evaluated expression.
-		 */		
+		 */
 		function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null):*;
 	}
 }

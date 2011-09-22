@@ -28,7 +28,7 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableObjectOwner;
+	import weave.api.getLinkableOwner;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 
@@ -123,7 +123,7 @@ package weave.core
 				// unlink from global object and copy session state into a local object
 				copyLocalObject(internalObject);
 			}
-			else if (getLinkableObjectOwner(this) != globalHashMap) // don't allow globalName on global objects
+			else if (getLinkableOwner(this) != globalHashMap) // don't allow globalName on global objects
 			{
 				// if there is no global object of this name, create it now
 				if (globalHashMap.getObject(newGlobalName) == null)
@@ -188,7 +188,7 @@ package weave.core
 					if (_internalObject != null)
 						WeaveAPI.SessionManager.setSessionState(_internalObject, dynamicState.sessionState, removeMissingDynamicObjects);
 				}
-				else if (getLinkableObjectOwner(this) != globalHashMap) // don't allow globalName on global objects
+				else if (getLinkableOwner(this) != globalHashMap) // don't allow globalName on global objects
 				{
 					initInternalObject(objectName, null); // link to global object
 				}
@@ -400,7 +400,7 @@ package weave.core
 		
 		/**
 		 * This function will be called when the _localHashMap runs its child list callbacks.
-		 * This callback is needed in case _localHashMap is manipulated directly via getLinkableObjectOwner().
+		 * This callback is needed in case _localHashMap is manipulated directly via getLinkableOwner().
 		 */		
 		private function childListCallback():void
 		{

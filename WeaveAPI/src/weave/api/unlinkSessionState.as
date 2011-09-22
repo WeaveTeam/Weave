@@ -39,7 +39,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * @see ISessionManager.unlinkSessionState
+	 * @see ISessionManager
 	 */
 	public function unlinkSessionState(first:ILinkableObject, second:ILinkableObject):void
 	{

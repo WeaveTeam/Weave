@@ -37,7 +37,7 @@
 package weave.api
 {
 	/**
-	 * @see ISessionManager.newDisposableChild
+	 * @see ISessionManager
 	 */
 	public function newDisposableChild(disposableParent:Object, disposableChildType:Class):*
 	{

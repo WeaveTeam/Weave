@@ -39,21 +39,10 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * This function will return the most distant ancestor of a linkable object.
-	 * Note that the object will likely have no ancestors until its initialization has completed.
-	 * @param linkableObject The object.
-	 * @return The most distant ancestor of the object, or the object itself if it has no owner.
-	 * 
-	 * @author adufilie
+	 * @see ISessionManager
 	 */
-	public function getLinkableObjectRoot(linkableObject:ILinkableObject):ILinkableObject
+	public function getLinkableDescendants(object:ILinkableObject, filter:Class = null):Array
 	{
-		var root:ILinkableObject;
-		while (linkableObject)
-		{
-			root = linkableObject;
-			linkableObject = getLinkableObjectOwner(linkableObject);
-		}
-		return root;
+		return WeaveAPI.SessionManager.getLinkableDescendants(object);
 	}
 }

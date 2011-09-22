@@ -36,12 +36,13 @@
 
 package weave.api
 {
+	import weave.api.core.ILinkableObject;
+	
 	/**
 	 * @see ISessionManager
 	 */
-	public function disposeObjects(object:Object, ...moreObjects):void
+	public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 	{
-		(moreObjects as Array).unshift(object);
-		(WeaveAPI.SessionManager.disposeObjects as Function).apply(null, moreObjects);
+		return WeaveAPI.SessionManager.getLinkableOwner(child);
 	}
 }

@@ -39,7 +39,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * @see ISessionManager.setSessionState
+	 * @see ISessionManager
 	 */
 	public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 	{
