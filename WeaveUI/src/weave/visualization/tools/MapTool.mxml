@@ -215,6 +215,7 @@
 				_userWindowSettings.initialize();
 				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
 				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
+				_userWindowSettings.backgroundColorEnabled = false;
 				
 				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
 				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");

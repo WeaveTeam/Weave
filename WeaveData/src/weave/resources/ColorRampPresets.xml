@@ -16,6 +16,11 @@
 		<node color="0x68ffff" position="0.66796875"/>
 		<node color="0xffffff" position="1"/>
 	</colorRamp>
+	<colorRamp name="Cyan Blue Grey" source="DHE" category="visualization">
+		<node color="0x1fbeca" position="0"/>
+		<node color="0x0066a4" position="0.5"/>
+		<node color="0x818285" position="1"/>
+	</colorRamp>
 	<colorRamp name="Blue To Yellow" source="OIC" category="visualization">
 		<node color="0x0000ff" position="0"/>
 		<node color="0xffff00" position="1"/>

@@ -141,6 +141,8 @@
 			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
 			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 			
+			public const panelTitle:LinkableString = registerLinkableChild(this,new LinkableString(''));
+
 			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
 			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
@@ -154,6 +156,8 @@
 			public const panelBackgroundColor:LinkableNumber 	= registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
+			
+			
 			
 			protected const helpButton:Button = new Button();
 			protected const userControlButton:Button = new Button();
@@ -212,7 +216,9 @@
 				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
-
+				
+				linkBindableProperty(panelTitle,this,"title");
+				
 			}
 			
 			/**
