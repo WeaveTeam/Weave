@@ -803,7 +803,7 @@
 					compiler.debug = false;
 					var obj:ICompiledObject = compiler.compileToObject(console.text);
 					//decompiled = compiler.decompileObject(obj);
-					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
 					compiler.debug = true;
 					result = func.apply(sessionNav.getSelectedSessionedObject());
 					try

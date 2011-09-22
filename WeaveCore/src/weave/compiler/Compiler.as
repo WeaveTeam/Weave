@@ -79,12 +79,12 @@ package weave.compiler
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
 		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
-		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function
+		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false):Function
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = compileTokens(tokens);
-			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors);
+			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope);
 		}
 		
 		/**
@@ -897,7 +897,7 @@ package weave.compiler
 				if (!(param is CompiledConstant))
 					return compiledFunctionCall; // this compiled funciton call cannot be evaluated to a constant
 			// if there are no CompiledFunctionCall objects in the compiled parameters, evaluate the compiled function call to a constant.
-			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false); // no symbol table required for evaluating a constant
+			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false, false); // no symbol table required for evaluating a constant
 			return new CompiledConstant(decompileObject(compiledFunctionCall), callWrapper());
 		}
 
@@ -1087,7 +1087,7 @@ package weave.compiler
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -1177,7 +1177,10 @@ package weave.compiler
 							// special case for assignment operators
 							if (ASSIGN_OP_LOOKUP[call.evaluatedMethod] && compiledParams.length == 2)
 							{
-								result = (call.evaluatedMethod as Function).call(null, defaultSymbolTable, call.evaluatedParams[0], call.evaluatedParams[1]);
+								if (useThisScope && this && this.hasOwnProperty(call.evaluatedParams[0]) && !defaultSymbolTable.hasOwnProperty(call.evaluatedParams[0]))
+									result = (call.evaluatedMethod as Function).call(null, this, call.evaluatedParams[0], call.evaluatedParams[1]);
+								else
+									result = (call.evaluatedMethod as Function).call(null, defaultSymbolTable, call.evaluatedParams[0], call.evaluatedParams[1]);
 							}
 							else
 							{
@@ -1191,7 +1194,10 @@ package weave.compiler
 							if (symbolTable is Function)
 								result = symbolTable(call.evaluatedMethod);
 							else if (symbolTable.hasOwnProperty(call.evaluatedMethod))
-								result = symbolTable(call.evaluatedMethod);
+								result = symbolTable[call.evaluatedMethod];
+							else if (useThisScope && this && this.hasOwnProperty(call.evaluatedMethod))
+								result = this[call.evaluatedMethod];
+								
 							if (result == undefined)
 							{
 								if (constants.hasOwnProperty(call.evaluatedMethod))

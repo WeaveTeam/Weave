@@ -1418,7 +1418,7 @@
 			public function get controlPanel():ControlPanel { return _controlPanel; }
 			public function get helpPanel():HelpPanel { return _helpPanel; }
 			
-			protected function toggleHelpPanel():void
+			public function toggleHelpPanel():void
 			{
 				if(_helpPanel)
 				{
@@ -1427,7 +1427,7 @@
 					_helpPanel.sendWindowToForeground();
 				}
 			}
-			protected function toggleControlPanel():void
+			public function toggleControlPanel():void
 			{
 				if (_controlPanel)
 				{

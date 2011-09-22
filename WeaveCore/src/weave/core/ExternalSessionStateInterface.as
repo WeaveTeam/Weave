@@ -27,6 +27,8 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
 
 	use namespace weave_internal;
 	
@@ -148,6 +150,7 @@ package weave.core
 			WeaveAPI.SessionManager.setSessionState(object, newState, removeMissingObjects);
 			return true;
 		}
+		
 		/**
 		 * This function will get the qualified class name of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
@@ -157,6 +160,7 @@ package weave.core
 		{
 			return getQualifiedClassName(getObject(objectPath));
 		}
+		
 		/**
 		 * This function gets a list of names of children of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
@@ -173,6 +177,7 @@ package weave.core
 				return [(object as ILinkableDynamicObject).globalName];
 			return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 		}
+		
 		/**
 		 * This function will reorder children of an object implementing ILinkableHashMap.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
@@ -264,6 +269,38 @@ package weave.core
 			var state:Object = WeaveXMLDecoder.decode(sessionStateXML as XML);
 			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
+		}
+
+		private const compiler:Compiler = new Compiler();
+		public function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null):*
+		{
+			var sessionedObject:ILinkableObject = getObject(objectPath);
+			var compiledMethod:Function = null;
+			
+			// first try to compile it
+			try
+			{
+				compiledMethod = compiler.compileToFunction(methodName, variables, false, true);
+			}
+			catch (e:Error)
+			{
+				WeaveAPI.ErrorManager.reportError(new Error("Unable to compile method.\n" + e.message, e.errorID));
+			}
+			
+			var result:* = undefined;
+			if (compiledMethod != null)
+			{
+				try
+				{
+					result = compiledMethod.apply(sessionedObject, null);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(new Error("Error when calling compiled method.\n" + e.message, e.errorID));
+				}
+			}
+			
+			return result; 
 		}
 	}
 }
