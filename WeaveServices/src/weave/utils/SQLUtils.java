@@ -1000,6 +1000,70 @@ public class SQLUtils
 			whereQuery = "WHERE " + whereQuery;
 		return whereQuery;
 	}
+/* Service methods for maintaining my sanity and saving me keystrokes. -pkovac */
+        private static String stringJoin(String separator, List<String> items)
+        {
+            // TODO Improve the sure-to-be horrid performance of this.
+            String result = "";
+            int i = 0;
+            for (String item : items)
+            {
+                if (i > 0) result += separator;
+                result += item;
+            }
+            return result;
+        }
+        private static String buildPredicate(Connection conn, Entry<String, String> pair) throws SQLException
+        {
+            return buildPredicate(conn, pair.getKey(), pair.getValue());
+        }
+        private static String buildPredicate(Connection conn, String field, String value) throws SQLException
+        {
+            String pred;
+            pred = "(" + field + caseSensitiveCompareOperator(conn) + value + ")";
+            return pred;
+        }
+        private static String buildDisjunctiveNormalForm(Connection conn, List<List<Entry<String,String>>> arguments) throws SQLException
+        {
+            List<String> conjunctions = new LinkedList<String>();
+            for (List<Entry<String,String>> conjMap : arguments)
+            {
+                List<String> conjList = new LinkedList<String>();
+                for (Entry<String,String> predEntry : conjMap)
+                {
+                    String pred = buildPredicate(conn, predEntry);
+                    conjList.add(pred);
+                }
+                conjunctions.add("(" + stringJoin(" AND ", conjList) + ")");
+            }
+            return stringJoin(" OR ", conjunctions);
+        }
+        public static List<String> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
+        {
+            // Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for, this will only be two entries long, but this covers the general case.
+            List<String> results = new LinkedList<String>();
+            List<String> values = new LinkedList<String>();
+            List<List<Entry<String,String>>> flattenedMap = new LinkedList<List<Entry<String,String>>>();
+            // Flatten the list of maps to a list of entries; this ensures that value ordering is preserved when we go to make the query. Replace the entry element values with the placeholder character.
+            for (Map<String,String> columnData : columns)
+            {
+                List<Entry<String,String>> pairs = new LinkedList<Entry<String,String>>();
+                for (Entry<String,String> keyValPair : columnData.entrySet())
+                {
+                    values.add(keyValPair.getValue());
+                    keyValPair.setValue(" ?");
+                    pairs.add(keyValPair);
+                }
+                flattenedMap.add(pairs);
+            }
+            // Construct the query with placeholders.
+            String query = String.format("SELECT %s FROM (%s, count(*) c FROM %s WHERE %s group by %s) result WHERE c = %d",
+                quoteSymbol(conn, column), quoteSymbol(conn, column), quoteSchemaTable(conn, schemaName, table),
+                buildDisjunctiveNormalForm(conn, flattenedMap),
+                columns.size());
+            System.out.println(query);
+            return results;
+        }
 	public static List<Map<String,String>> joinedSelectQuery( Connection conn, String schemaName, List<String> columnNames,  String[] tables,  String[] joinCols, Map<String, String> whereClauses) throws SQLException
 	{
 		CallableStatement stmt = null;
