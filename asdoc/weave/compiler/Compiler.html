@@ -76,7 +76,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#compileObjectToFunction()">compileObjectToFunction</a>(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function</div>
+<a class="signatureLink" href="#compileObjectToFunction()">compileObjectToFunction</a>(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean):Function</div>
 <div class="summaryTableDescription">
    This function is for internal use only.</div>
 </td><td class="summaryTableOwnerCol">Compiler</td>
@@ -84,7 +84,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#compileToFunction()">compileToFunction</a>(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function</div>
+<a class="signatureLink" href="#compileToFunction()">compileToFunction</a>(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false):Function</div>
 <div class="summaryTableDescription">
    This function compiles an expression into a Function that evaluates using variables from a symbolTable.</div>
 </td><td class="summaryTableOwnerCol">Compiler</td>
@@ -191,7 +191,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function compileObjectToFunction(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function</code><p>
+<code>public function compileObjectToFunction(compiledObject:<a href="ICompiledObject.html">ICompiledObject</a>, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean):Function</code><p>
    This function is for internal use only.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -213,6 +213,12 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">ignoreRuntimeErrors</span>:Boolean</code> &mdash; If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
    </td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">useThisScope</span>:Boolean</code></td>
+</tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
@@ -230,7 +236,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean):Function</code><p>
+<code>public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false):Function</code><p>
    This function compiles an expression into a Function that evaluates using variables from a symbolTable.
    Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
    The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
@@ -253,6 +259,12 @@ showHideInherited();
 <tr>
 <td width="20px"></td><td><code><span class="label">ignoreRuntimeErrors</span>:Boolean</code> &mdash; If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
    </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">useThisScope</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
 </tr>
 </table>
 <p></p>

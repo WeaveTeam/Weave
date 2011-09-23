@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="IExternalSessionStateInterface,weave.api.core.IExternalSessionStateInterface,convertSessionStateObjectToXML,convertSessionStateXMLToObject,getChildNames,getObjectType,getSessionState,removeObject,requestObject,setChildNameOrder,setSessionState" name="keywords">
+<meta content="IExternalSessionStateInterface,weave.api.core.IExternalSessionStateInterface,convertSessionStateObjectToXML,convertSessionStateXMLToObject,evaluateExpression,getChildNames,getObjectType,getSessionState,removeObject,requestObject,setChildNameOrder,setSessionState" name="keywords">
 <title>weave.api.core.IExternalSessionStateInterface</title>
 </head>
 <body>
@@ -74,6 +74,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <a class="signatureLink" href="#convertSessionStateXMLToObject()">convertSessionStateXMLToObject</a>(sessionStateXML:Object):Object</div>
 <div class="summaryTableDescription">
    This function converts a session state from XML format to Object format.</div>
+</td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(objectPath:Array, methodName:String, variables:Object = null):*</div>
+<div class="summaryTableDescription">
+   This function will evaluate an expression on the object specified by the objectPath.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
 </tr>
 <tr class="">
@@ -195,6 +203,57 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>Object</code> &mdash; The deserialized session state object.
+   </td>
+</tr>
+</table>
+</div>
+<a name="evaluateExpression()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">evaluateExpression</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null):*</code><p>
+   This function will evaluate an expression on the object specified by the objectPath.
+   
+   <br><br>
+   Examples: 
+   <br>
+   <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'toggleControlPanel()')</code>
+   <br> 
+   <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y', {new_x : 400, new_y : 300})</code>
+   <br> <br>
+   
+   Note that any code written for this function depends on the implementation of the Actionscript
+   code inside Weave. This code is subject to change. 
+    
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code> &mdash; A sequence of child names used to refer to an object appearing in the session state.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">methodName</span>:String</code> &mdash; The expression to evaluate on the object specified by objectPath.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">variables</span>:Object</code> (default = <code>null</code>)<code></code> &mdash; A hash map of variable names to values.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The value of the evaluated expression.
    </td>
 </tr>
 </table>

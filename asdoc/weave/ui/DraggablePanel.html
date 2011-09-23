@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="DraggablePanel,weave.ui.DraggablePanel,BOOMERANG_MINIMIZE_EFFECT,CIRCULAR_MINIMIZE_EFFECT,LINEAR_MINIMIZE_EFFECT,RESIZE_CLICK,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,effectInProgress,enableBorders,forceEnableBorders,helpButton,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimizeEffectMode,minimized,minimizedComponentVersion,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showCloseDialog,showRollOverBorders,userControlButton,controlPanel,helpPanel,percentHeight,percentWidth,percentX,percentY,sessionPanelCoordsAsPercentages,x,y,commitProperties,constructor,createChildren,dispose,getStyle,getTotalIconAreaWidth,handleMinimizeButtonClick,layoutChrome,minimizePanel,minimizeToTaskbar,move,onTweenEnd,onTweenUpdate,preinitialize,removePanel,resourcesChanged,restoreFromTaskbar,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleHelpPanel,toggleMaximized,togglePinned,togglePinnedToBack,trace,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
+<meta content="DraggablePanel,weave.ui.DraggablePanel,BOOMERANG_MINIMIZE_EFFECT,CIRCULAR_MINIMIZE_EFFECT,LINEAR_MINIMIZE_EFFECT,RESIZE_CLICK,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,effectInProgress,enableBorders,forceEnableBorders,helpButton,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimizeEffectMode,minimized,minimizedComponentVersion,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelTitle,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showCloseDialog,showRollOverBorders,userControlButton,controlPanel,helpPanel,percentHeight,percentWidth,percentX,percentY,sessionPanelCoordsAsPercentages,x,y,commitProperties,constructor,createChildren,dispose,getStyle,getTotalIconAreaWidth,handleMinimizeButtonClick,layoutChrome,minimizePanel,minimizeToTaskbar,move,onTweenEnd,onTweenUpdate,preinitialize,removePanel,resourcesChanged,restoreFromTaskbar,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleHelpPanel,toggleMaximized,togglePinned,togglePinnedToBack,trace,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
 <title>weave.ui.DraggablePanel</title>
 </head>
 <body>
@@ -217,6 +217,20 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#toggleControlPanel()">toggleControlPanel</a>():void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#toggleHelpPanel()">toggleHelpPanel</a>():void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#toggleMaximized()">toggleMaximized</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
@@ -323,20 +337,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#toggleControlPanel()">toggleControlPanel</a>():void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">DraggablePanel</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#toggleHelpPanel()">toggleHelpPanel</a>():void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">DraggablePanel</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#trace()">trace</a>(... args):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
@@ -437,6 +437,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#panelStyleList">panelStyleList</a> : <a href="../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#panelTitle">panelTitle</a> : <a href="../core/LinkableString.html">LinkableString</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
 </tr>
@@ -949,7 +954,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected function toggleControlPanel():void</code>
+<code>public function toggleControlPanel():void</code>
 </div>
 <a name="toggleHelpPanel()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -958,7 +963,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected function toggleHelpPanel():void</code>
+<code>public function toggleHelpPanel():void</code>
 </div>
 <a name="toggleMaximized()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -1229,6 +1234,15 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const panelStyleList:<a href="../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="panelTitle"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">panelTitle</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const panelTitle:<a href="../core/LinkableString.html">LinkableString</a></code>
 </div>
 <a name="panelWidth"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
