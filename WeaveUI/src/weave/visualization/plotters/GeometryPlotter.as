@@ -19,13 +19,19 @@
 
 package weave.visualization.plotters
 {
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.LineScaleMode;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
+	import mx.controls.Image;
+	import mx.graphics.ImageSnapshot;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
@@ -35,6 +41,7 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
+	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
@@ -42,6 +49,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
@@ -55,6 +63,7 @@ package weave.visualization.plotters
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
+	import weave.visualization.tools.MapTool;
 	
 	/**
 	 * GeometryPlotter
@@ -74,13 +83,22 @@ package weave.visualization.plotters
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
 
 			setKeySource(geometryColumn);
+			
+			registerNonSpatialProperty(imagePointColumn);
 		}
 
 		/**
 		 * This is the reprojected geometry column to draw.
 		 */
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
-		
+		/**
+		 *  This is meant to contain URL links to an image to use in place of points on the map.
+		 */
+		public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "http://www.google.com/intl/en_com/images/srpr/logo3w.png" );
+		/**
+		 * This is the image cache.
+		 */
+		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
@@ -203,11 +221,18 @@ package weave.visualization.plotters
 		
 		// this is the offset used to draw a circle onto a cached BitmapData
 		private var pointOffset:Number;
+		private var _urlToImageMap:Object = new Object();
 		
 		// this function returns the BitmapData associated with the given key
 		private function drawCircle(destination:BitmapData, color:Number, x:Number, y:Number):void
 		{
+			//if( 
+			var _imageURL:String = imagePointColumn.defaultValue.value as String;
+			if( _urlToImageMap[_imageURL] == undefined )
+				WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+			var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
 			var bitmapData:BitmapData = colorToBitmapMap[color] as BitmapData;
+			var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
 			if (!bitmapData)
 			{
 				// create bitmap
@@ -247,7 +272,29 @@ package weave.visualization.plotters
 			// copy bitmap graphics
 			tempPoint.x = Math.round(x - pointOffset);
 			tempPoint.y = Math.round(y - pointOffset);
-			destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
+			if( image != null )
+				destination.copyPixels(image, circleBitmapDataRectangle, tempPoint, null, null, true);
+			else
+				destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
+		}
+		
+		/**
+		 * This function will save a downloaded image into the image cache.
+		 */
+		private function handleImageDownload(event:ResultEvent, token:Object = null):void
+		{
+			var bitmap:Bitmap = event.result as Bitmap;
+			_urlToImageMap[token] = bitmap.bitmapData;
+			//getCallbackCollection((this).triggerCallbacks();
+		}
+		/**
+		 * This function is called when there is an error downloading an image.
+		 */
+		private function handleFault(event:FaultEvent, token:Object=null):void
+		{
+			trace("Error downloading image:", ObjectUtil.toString(event.message), token);
+			_urlToImageMap[token] = null;
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public const pixellation:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1));

@@ -120,6 +120,21 @@
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
 			
+			//Need to add callback function
+			public const enableImages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updatePlottedPoints );
+			
+			private function updatePlottedPoints():void
+			{
+				if( !enableImages.value ){
+					imageLink.enabled = false;
+					imageLink.editable = false;
+				}
+				else{
+					imageLink.enabled = true;
+					imageLink.editable = true;
+				}
+			}
+			
 			// the keys in this Dictionary are LinkableStrings that have been linked to projectionSRS.
 			private var _linkedProjectionVariablesLookup:Dictionary = new Dictionary(true);
 			/**
@@ -675,6 +690,12 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
 						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+			<mx:HBox verticalAlign="bottom">
+				<mx:CheckBox id="imagePointsCheckBox" label="Use images in place of circles"
+							 initialize="linkBindableProperty(enableImages,imagePointsCheckBox,'selected')"/>
+				<mx:Label text="Image URL:" />
+				<mx:TextInput id="imageLink" enabled="false" editable="false"/>
+			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
