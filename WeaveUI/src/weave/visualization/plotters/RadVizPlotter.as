@@ -149,7 +149,7 @@ package weave.visualization.plotters
 					for each( var column:IAttributeColumn in _columns)
 					{
 						if(i == 0)
-							columnTitleMap[column] = ColumnUtils.getTitle(column);
+							columnTitleMap[column] = columns.getName(column);
 						columnNormArray.push(ColumnUtils.getNorm(column, key));
 						columnNumberMap[column] = column.getValueFromKey(key, Number);
 						columnNumberArray.push(columnNumberMap[column]);
@@ -210,13 +210,16 @@ package weave.visualization.plotters
 			_columns = columns.getObjects(IAttributeColumn);
 			var theta:Number = (2*Math.PI)/_columns.length;
 			var anchor:AnchorPoint;
+			anchors.delayCallbacks();
 			anchors.removeAllObjects();
 			for( var i:int = 0; i < _columns.length; i++ )
 			{
-				anchor = anchors.copyObject(ColumnUtils.getTitle(_columns[i]),new AnchorPoint()) as AnchorPoint ;								
+				anchor = anchors.requestObject(columns.getName(_columns[i]), AnchorPoint, false) as AnchorPoint ;								
 				anchor.x.value = Math.cos(theta*i);
-				anchor.y.value = Math.sin(theta*i);				
+				anchor.y.value = Math.sin(theta*i);	
+				anchor.title.value = ColumnUtils.getTitle(_columns[i]);
 			}
+			anchors.resumeCallbacks();
 		}			
 				
 		/**
@@ -242,7 +245,7 @@ package weave.visualization.plotters
 			var i:int = 0;
 			for each( var column:IAttributeColumn in _columns)  {				
 				value = (keyMapExists) ? array[i] : ColumnUtils.getNorm(column,recordKey);
-				name = (keyMapExists) ? columnTitleMap[column] : ColumnUtils.getTitle(column);	
+				name = (keyMapExists) ? columnTitleMap[column] : columns.getName(column);	
 				sum += (keyMapExists) ? array2[column] : column.getValueFromKey(recordKey, Number);
 				anchor = anchors.getObject(name) as AnchorPoint;
 				numeratorX += value * anchor.x.value;
@@ -420,6 +423,7 @@ package weave.visualization.plotters
 			//timer1.start();
 			if(!keyNumberMap) return;
 			if(keyNumberMap[recordKeys[0]] == null) return;
+			if(_columns.length != anchors.getObjects().length) return;
 			recordKeys.sort(sortKeys, Array.DESCENDING);			
 			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
 			/*timer1.debug("endplot");

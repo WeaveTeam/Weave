@@ -132,7 +132,7 @@ package weave.visualization.plotters
 				graphics.endFill();
 				
 				_bitmapText.trim = false;
-				_bitmapText.text = " " + key.localName + " ";
+				_bitmapText.text = " " + anchor.title.value + " ";
 				
 				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 				
