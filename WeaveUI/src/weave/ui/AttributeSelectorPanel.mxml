@@ -35,6 +35,7 @@
 				id="dimensionTypeLinks"
 				width="100%"
 				useHandCursor="true"
+				dataProvider="{selectableAttributeNames}"
 				itemClick="linkToObject(selectableAttributes[event.index]);"/>
 		</mx:HBox>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
@@ -282,7 +283,7 @@
 
 				// set targets for ControlPanel to support session saving
 				if (selectableAttributes.indexOf(columnOrHashMap) < 0)
-					targets = selectableAttributes = columnOrHashMap ? [columnOrHashMap] : [];
+					targets = selectableAttributes = [];
 			}
 			
 			private static var defaultSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
@@ -293,7 +294,7 @@
 				
 				openDefaultSelector();
 				defaultSelector.targets = defaultSelector.selectableAttributes = tool.getSelectableAttributes();
-				defaultSelector.dimensionTypeLinks.dataProvider = defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
+				defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
 				defaultSelector.linkToObject(attributeToLinkTo);
 			}
 			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null):void
