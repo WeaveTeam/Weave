@@ -79,7 +79,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(objectPath:Array, methodName:String, variables:Object = null):*</div>
+<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(objectPath:Array, expression:String, variables:Object = null):*</div>
 <div class="summaryTableDescription">
    This function will evaluate an expression on the object specified by the objectPath.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
@@ -214,7 +214,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null):*</code><p>
+<code>public function evaluateExpression(objectPath:Array, expression:String, variables:Object = null):*</code><p>
    This function will evaluate an expression on the object specified by the objectPath.
    
    <br><br>
@@ -238,7 +238,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">methodName</span>:String</code> &mdash; The expression to evaluate on the object specified by objectPath.
+<td width="20px"></td><td><code><span class="label">expression</span>:String</code> &mdash; The expression to evaluate on the object specified by objectPath.
    </td>
 </tr>
 <tr>
