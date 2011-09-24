@@ -65,7 +65,7 @@ package weave.core
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
 		 * @return A pointer to the object referred to by objectPath.
 		 */
-		weave_internal function getObject(objectPath:Array):ILinkableObject
+		public function getObject(objectPath:Array):ILinkableObject
 		{
 			var object:ILinkableObject = _rootObject;
 			for (var i:int = 0; i < objectPath.length; i++)
@@ -279,19 +279,19 @@ package weave.core
 		/**
 		 * @see IExternalSessionStateInterface
 		 */		
-		public function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null):*
+		public function evaluateExpression(objectPath:Array, expression:String, variables:Object = null):*
 		{
-			var sessionedObject:ILinkableObject = getObject(objectPath);
+			var thisObject:ILinkableObject = getObject(objectPath);
 			var compiledMethod:Function = null;
 			
 			// first try to compile it
 			try
 			{
-				compiledMethod = compiler.compileToFunction(methodName, variables, false, true);
+				compiledMethod = compiler.compileToFunction(expression, variables, false, true);
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Unable to compile method.\n" + e.message, e.errorID));
+				WeaveAPI.ErrorManager.reportError(new Error("Unable to compile expression.\n" + e.message, e.errorID));
 			}
 			
 			var result:* = undefined;
@@ -299,7 +299,7 @@ package weave.core
 			{
 				try
 				{
-					result = compiledMethod.apply(sessionedObject, null);
+					result = compiledMethod.apply(thisObject, arguments);
 				}
 				catch (e:Error)
 				{

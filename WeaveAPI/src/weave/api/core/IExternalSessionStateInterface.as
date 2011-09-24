@@ -138,10 +138,10 @@ package weave.api.core
 		 * code inside Weave. This code is subject to change. 
 		 *  
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @param methodName The expression to evaluate on the object specified by objectPath.
+		 * @param expression The expression to evaluate on the object specified by objectPath.
 		 * @param variables A hash map of variable names to values.
 		 * @return The value of the evaluated expression.
 		 */
-		function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null):*;
+		function evaluateExpression(objectPath:Array, expression:String, variables:Object = null):*;
 	}
 }
