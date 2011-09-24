@@ -156,32 +156,25 @@ Displays catoegories in a tree view and the attributes in a list.
 			
 			private function getTree(node:XML):Object
 			{
-				var result:Object = {label: getLabelForNode(node), object: node,children: []};
-				
-				var names:Array = [];
-				var childObject:XML;
-				var tempObject:Object;
-				if(node is XML)
+				var result:Object = {label: getLabelForNode(node), object: node, children: []};
+				if (node != null)
 				{
-					
-					
-					var catObjects:XMLList = node.children();
-					
-					for(var i:int = 0; i<catObjects.length(); i++)
+					var children:XMLList = node.children();
+					for (var i:int = 0; i < children.length(); i++)
 					{
-						childObject = catObjects[i];
-						if(childObject != null && childObject.localName().toString()!="attribute")	
+						var child:XML = children[i];
+						if (child != null && child.localName().toString() != "attribute")
 						{
 							// get subtree
-							tempObject = getTree(childObject);
-							if(tempObject != null)
+							var subtree:Object = getTree(child);
+							if (subtree != null)
 							{
-								result.children.push(tempObject);
+								result.children.push(subtree);
 							}
 						}
 					}
 				}
-				if(result.children.length == 0)
+				if (result.children.length == 0)
 				{
 					if (categoryFilter.value == null)
 						categoryFilter.value = '';
