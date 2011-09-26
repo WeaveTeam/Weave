@@ -125,10 +125,19 @@ package weave.compiler
 					}
 					// save mappings to all constants and methods in the library
 					var classInfo:XML = describeType(library);
-					for each (var constantName:String in classInfo.child("constant").attribute("name"))
-						constants[constantName] = library[constantName];
-					for each (var methodName:String in classInfo.child("method").attribute("name"))
-						constants[methodName] = library[methodName];
+					for each (var tag:XML in classInfo.children())
+					{
+						var localName:String = tag.localName();
+						if (localName != 'method' && localName != 'constant')
+							continue;
+						
+						var uri:String = tag.attribute("uri");
+						if (uri != '')
+							continue;
+						
+						var name:String = tag.attribute("name");
+						constants[name] = library[name];
+					}
 				}
 			}
 		}

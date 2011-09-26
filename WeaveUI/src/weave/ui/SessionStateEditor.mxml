@@ -137,6 +137,8 @@
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
+				
+				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager);
 			}			
 			
 			override protected function childrenCreated():void
@@ -781,11 +783,7 @@
 			/////////////////////////////////////////////////////////////
 			// console
 			
-			private static const compiler:Compiler = new Compiler();
-			
-			{ /** begin static code block **/
-				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil);
-			} /** end static code block **/
+			private const compiler:Compiler = new Compiler();
 			
 			private function runCommand():void
 			{

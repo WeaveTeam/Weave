@@ -267,7 +267,7 @@ package weave.core
 		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
 		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
 		 */
-		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean):void
+		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 		{
 			if (linkableObject == null)
 			{
