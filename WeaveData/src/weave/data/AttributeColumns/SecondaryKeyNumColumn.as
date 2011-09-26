@@ -23,15 +23,18 @@ package weave.data.AttributeColumns
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.NumberFormatter;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
+	import weave.utils.EquationColumnLib;
 	
 	/**
 	 * SecondaryKeyColumn
@@ -121,9 +124,11 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (_keyToNumericDataMapping[key] == null)
+			if (_keyToNumericDataMappingAB[key] !== undefined)
+				return true;
+			if (_keyToNumericDataMapping[key] === undefined)
 				return false;
-			return _keyToNumericDataMapping[key][secondaryKeyFilter.value] != undefined;
+			return _keyToNumericDataMapping[key][secondaryKeyFilter.value] !== undefined;
 		}
 
 		public function updateRecords(keysA:Vector.<IQualifiedKey>, keysB:Vector.<String>, data:Array):void
@@ -132,20 +137,21 @@ package weave.data.AttributeColumns
 				throw new Error("Replacing existing records is not supported");
 			
 			var index:int, qkeyA:IQualifiedKey, keyB:String, qkeyAB:IQualifiedKey;
-			var _keyA:*;
-			var dataObject:Object = null;
+			var _key:*;
+			var dataObject:* = null;
 
-			if (keysA.length > data.length)
+			if (keysA.length != data.length || keysB.length != data.length)
 			{
-				trace("WARNING: keys vector length > data vector length. keys truncated.",keysA.length,data.length);
-				keysA.length = data.length; // numericData.length;
+				WeaveAPI.ErrorManager.reportError(new Error("Array lengths differ"));
+				return;
 			}
 			
 			// clear previous data mapping
 			_keyToNumericDataMapping = new Dictionary();
 			
 			//if it's string data - create list of unique strings
-			if (data[0] is String)
+			var dataType:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
+			if (data[0] is String || (dataType != '' && dataType != DataTypes.NUMBER))
 			{
 				for (var i:int = 0; i < data.length; i++)
 				{
@@ -166,11 +172,12 @@ package weave.data.AttributeColumns
 			}
 			
 			// save a mapping from keys to data
-			//for (index = keysA.length - 1; index >= 0; index--)
 			for (index = 0; index < keysA.length; index++)
 			{
 				qkeyA = keysA[index] as IQualifiedKey;
 				keyB = keysB[index] as String;
+				dataObject = data[index];
+				
 				qkeyAB = WeaveAPI.QKeyManager.getQKey(qkeyA.keyType + TYPE_SUFFIX, qkeyA.localName + ',' + keyB);
 				//if we don't already have keyB - add it to _uniqueKeysB
 				//  @todo - optimize this - searching every time is not the optimal method
@@ -178,7 +185,6 @@ package weave.data.AttributeColumns
 					_uniqueSecondaryKeys.push(keyB);
 				if (! _keyToNumericDataMapping[qkeyA])
 					_keyToNumericDataMapping[qkeyA] = new Dictionary();
-				dataObject = data[index];
 				if (dataObject is String)
 				{
 					var iString:int = _uniqueStrings.indexOf(dataObject as String);
@@ -193,11 +199,11 @@ package weave.data.AttributeColumns
 				}
 				else
 				{
-					_keyToNumericDataMapping[qkeyA][keyB] = data[index];//Number(data[index]);
-					_keyToNumericDataMappingAB[qkeyAB] = data[index];//Number(data[index]);
+					_keyToNumericDataMapping[qkeyA][keyB] = dataObject;//Number(dataObject);
+					_keyToNumericDataMappingAB[qkeyAB] = dataObject;//Number(dataObject);
 					
-					_minNumber = isNaN(_minNumber) ? data[index] : Math.min(_minNumber, data[index]);
-					_maxNumber = isNaN(_maxNumber) ? data[index] : Math.max(_maxNumber, data[index]);
+					_minNumber = isNaN(_minNumber) ? dataObject : Math.min(_minNumber, dataObject);
+					_maxNumber = isNaN(_maxNumber) ? dataObject : Math.max(_maxNumber, dataObject);
 				}
 			}
 			
@@ -205,13 +211,13 @@ package weave.data.AttributeColumns
 			
 			// save list of unique keys
 			index = 0;
-			for (_keyA in _keyToNumericDataMapping)
-				_uniqueKeysA[index++] = _keyA;
+			for (_key in _keyToNumericDataMapping)
+				_uniqueKeysA[index++] = _key;
 			_uniqueKeysA.length = index; // trim to new size
 			
 			index = 0;
-			for (_keyA in _keyToNumericDataMappingAB)
-				_uniqueKeysAB[index++] = _keyA;
+			for (_key in _keyToNumericDataMappingAB)
+				_uniqueKeysAB[index++] = _key;
 			_uniqueKeysAB.length = index; // trim to new size
 			
 			triggerCallbacks();
@@ -251,21 +257,27 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(qkey:IQualifiedKey, dataType:Class = null):*
 		{
-			var value:Object = undefined;
+			var value:Number = NaN;
+			if (_keyToNumericDataMappingAB[qkey] !== undefined)
+				value = _keyToNumericDataMappingAB[qkey];
+			else if (_keyToNumericDataMapping[qkey] !== undefined)
+				value = _keyToNumericDataMapping[qkey][secondaryKeyFilter.value];
 			
-			if (_keyToNumericDataMappingAB[qkey] || _keyToNumericDataMapping[qkey])
-				value = _keyToNumericDataMappingAB[qkey] || _keyToNumericDataMapping[qkey][secondaryKeyFilter.value];
+			if (isNaN(value))
+				return EquationColumnLib.cast(undefined, dataType);
 			
-			if (dataType == String)
+			if (dataType == IQualifiedKey)
 			{
-				if (value is String)
-					return value;
-				else if (value != null)
-					return deriveStringFromNumber(Number(value));
-				return null;
+				var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
+				if (type == '')
+					type = DataTypes.STRING;
+				return WeaveAPI.QKeyManager.getQKey(type, deriveStringFromNumber(value));
 			}
 			
-			return StandardLib.asNumber(value);
+			if (dataType == String)
+				return deriveStringFromNumber(value);
+			
+			return value;
 		}
 
 		override public function toString():String
