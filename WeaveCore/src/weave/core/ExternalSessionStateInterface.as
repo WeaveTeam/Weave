@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -272,22 +273,31 @@ package weave.core
 		}
 
 		/**
-		 * This is used by evaluateExpression.
-		 */
-		private const compiler:Compiler = new Compiler();
-		
-		/**
 		 * @see IExternalSessionStateInterface
-		 */		
-		public function evaluateExpression(objectPath:Array, expression:String, variables:Object = null):*
+		 */   
+		public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*
 		{
-			var thisObject:ILinkableObject = getObject(objectPath);
+			var compiler:Compiler = new Compiler();
+			var thisObject:ILinkableObject = (scopeObjectPath) ? getObject(scopeObjectPath) : null;
 			var compiledMethod:Function = null;
 			
 			// first try to compile it
 			try
 			{
 				compiledMethod = compiler.compileToFunction(expression, variables, false, true);
+				for each (var qName:String in staticLibraries)
+				{
+					var classDef:Class = null;
+					var wasIncluded:Boolean = false;
+					
+					classDef = Class(getDefinitionByName(qName));
+					if (classDef)
+						compiler.includeLibraries(classDef);
+					else
+						throw new Error("Unknown class: " + qName);
+				}
+
+				compiledMethod = compiler.compileToFunction(expression, variables, false, thisObject != null);
 			}
 			catch (e:Error)
 			{

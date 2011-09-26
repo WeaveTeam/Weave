@@ -124,24 +124,29 @@ package weave.api.core
 		function convertSessionStateXMLToObject(sessionStateXML:Object):Object;
 		
 		/**
-		 * This function will evaluate an expression on the object specified by the objectPath.
+		 * This function will evaluate an expression using the compiler. An object path may be passed as the first parameter
+		 * to act as the <code>this</code> pointer for the expression, or libraries may be included by passing an array of fully 
+		 * qualified names.
 		 * 
 		 * <br><br>
 		 * Examples: 
 		 * <br>
 		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'toggleControlPanel()')</code>
 		 * <br> 
-		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y', {new_x : 400, new_y : 300})</code>
+		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y)', {new_x : 400, new_y : 300})</code>
+		 * <br>
+		 * <code> document.getElementById('weave').evaluateExpression(null, 'openDefaultEditor()', null, ['weave.ui::SessionStateEditor'])</code>
 		 * <br> <br>
 		 * 
 		 * Note that any code written for this function depends on the implementation of the Actionscript
 		 * code inside Weave. This code is subject to change. 
 		 *  
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @param expression The expression to evaluate on the object specified by objectPath.
+		 * @param scopeObjectPath A sequence of child names used to refer to an object appearing in the session state.
+		 * @param expression The expression to evaluate.
 		 * @param variables A hash map of variable names to values.
+		 * @param staticLibraries An array of fully qualified class names which contain static methods to include the expression.
 		 * @return The value of the evaluated expression.
 		 */
-		function evaluateExpression(objectPath:Array, expression:String, variables:Object = null):*;
+		function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*;
 	}
 }
