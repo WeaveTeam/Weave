@@ -182,7 +182,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#setSessionState()">setSessionState</a>(linkableObject:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, newState:Object, removeMissingDynamicObjects:Boolean):void</div>
+<a class="signatureLink" href="#setSessionState()">setSessionState</a>(linkableObject:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, newState:Object, removeMissingDynamicObjects:Boolean = true):void</div>
 <div class="summaryTableDescription">
    </div>
 </td><td class="summaryTableOwnerCol">SessionManager</td>
@@ -800,7 +800,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function setSessionState(linkableObject:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, newState:Object, removeMissingDynamicObjects:Boolean):void</code><p>
+<code>public function setSessionState(linkableObject:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>, newState:Object, removeMissingDynamicObjects:Boolean = true):void</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -818,7 +818,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">removeMissingDynamicObjects</span>:Boolean</code> &mdash; If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
+<td width="20px"></td><td><code><span class="label">removeMissingDynamicObjects</span>:Boolean</code> (default = <code>true</code>)<code></code> &mdash; If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
    </td>
 </tr>
 </table>
