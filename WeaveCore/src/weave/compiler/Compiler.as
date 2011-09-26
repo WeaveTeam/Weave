@@ -75,7 +75,7 @@ package weave.compiler
 		 * Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
 		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
-		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
+		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
 		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
@@ -83,7 +83,7 @@ package weave.compiler
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
-			var compiledObject:ICompiledObject = compileTokens(tokens);
+			var compiledObject:ICompiledObject = compileTokens(tokens, true);
 			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope);
 		}
 		
@@ -95,7 +95,7 @@ package weave.compiler
 		 */
 		public function compileToObject(expression:String):ICompiledObject
 		{
-			return compileTokens(getTokens(expression));
+			return compileTokens(getTokens(expression), true);
 		}
 		
 		// TODO: add option to make resulting function throw an error instead of returning undefined
@@ -434,7 +434,7 @@ package weave.compiler
 		 * @param allowEmptyExpression If tokens is an empty Array, setting this to true will return an empty compiled object instead of throwing an error. 
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		private function compileTokens(tokens:Array, allowEmptyExpression:Boolean = false):ICompiledObject
+		private function compileTokens(tokens:Array, allowEmptyExpression:Boolean):ICompiledObject
 		{
 			var i:int;
 			var token:String;
@@ -507,14 +507,21 @@ package weave.compiler
 				compileInfixOperators(tokens, orderedOperators[i]);
 			
 			// next step: compile conditional branches
-			while (true)
+			conditionals: while (true)
 			{
 				// true branch includes everything between the last '?' and the next ':'
 				var left:int = tokens.lastIndexOf('?');
 				var right:int = tokens.indexOf(':', left);
-				var comma:int = tokens.indexOf(',', left);
-				if (comma >= 0 && comma < right)
-					throw new Error("Expecting colon before comma");
+				
+				var terminators:Array = [',', ';'];
+				for each (var terminator:String in terminators)
+				{
+					var terminatorIndex:int = tokens.indexOf(terminator, left);
+					if (terminatorIndex >= 0 && terminatorIndex < right)
+						throw new Error("Expecting colon before '" + terminator + "'");
+					if (terminatorIndex == right + 1)
+						break conditionals; // missing expression
+				}
 				
 				// stop if operator missing or any section has no tokens
 				if (right < 0 || left < 1 || left + 1 == right || right + 1 == tokens.length)
@@ -533,9 +540,9 @@ package weave.compiler
 					trace("compiling conditional branch:", tokens.slice(left - 1, right + 2).join(' '));
 				
 				// condition includes only the token to the left of the '?'
-				var condition:ICompiledObject = compileTokens(tokens.slice(left - 1, left));
-				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right));
-				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, end));
+				var condition:ICompiledObject = compileTokens(tokens.slice(left - 1, left), false);
+				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right), false);
+				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, end), false);
 				
 				// optimization: eliminate unnecessary branch
 				var result:ICompiledObject;
@@ -586,9 +593,12 @@ package weave.compiler
 				throw new Error("Invalid left-hand-side of '" + tokens[i] + "'");
 			}
 
-			// next step: handle multiple comma-separated expressions
+			// next step: handle multiple comma- or semicolon-separated expressions
 			if (tokens.indexOf(',') >= 0)
 				return compileOperator(',', compileArray(tokens, ','));
+
+			if (tokens.indexOf(';') >= 0)
+				return compileOperator(';', compileArray(tokens, ';'));
 
 			// last step: verify there is only one token left
 			if (tokens.length == 1)
@@ -715,10 +725,10 @@ package weave.compiler
 						throw new Error("Missing '}' in string literal inline code: " + input);
 					
 					// now bracketIndex points to '{' and escapeIndex points to matching '}'
-					//replace code between brackets with an int so the resulting string can be passed to StringUtil.substitute() with compiledObject as the next parameter
+					//replace code between brackets with an int like {0} so the resulting string can be passed to StringUtil.substitute() with compiledObject as the next parameter
 					output += input.substring(searchIndex, bracketIndex) + '{' + compiledObjects.length + '}';
 					searchIndex = escapeIndex + 1;
-					compiledObjects.push(compileTokens(tokens));
+					compiledObjects.push(compileTokens(tokens, false));
 				}
 			}
 			return null; // unreachable
@@ -822,8 +832,8 @@ package weave.compiler
 				{
 					var op:String = leftBracket == '(' ? ',' : ';';
 					
-					if (op == ',' && compiledParams.length == 0)
-						throw new Error("Missing expression inside '" + leftBracket + rightBracket + "'");
+					if (leftBracket == '(' && compiledParams.length == 0)
+						throw new Error("Missing expression inside parentheses");
 					
 					if (compiledParams.length == 1) // single command
 						tokens.splice(open, 2, compiledParams[0]);
@@ -1116,19 +1126,33 @@ package weave.compiler
 			for each (var assigOp:Function in assignmentOperators)
 				ASSIGN_OP_LOOKUP[assigOp] = true;
 
+			const builtInSymbolTable:Object = {};
+			const localSymbolTable:Object = {};
+			// set up Array of symbol tables in the correct scope order: local, params, function, this, global
+			const allSymbolTables:Array = [
+				localSymbolTable,
+				(symbolTable is Function ? null : symbolTable),
+				builtInSymbolTable,
+				null/*this*/,
+				constants
+			];
+			const THIS_SYMBOL_TABLE_INDEX:int = 3;
+			
 			const stack:Array = []; // used as a queue of function calls
 			var call:CompiledFunctionCall;
 			var subCall:CompiledFunctionCall;
 			var compiledParams:Array;
 			var result:*;
-			var defaultSymbolTable:Object = {};
+			var symbolName:String;
+			var i:int;
 
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function(...args):*
 			{
-				defaultSymbolTable['self'] = wrapperFunction;
-				defaultSymbolTable['this'] = this;
-				defaultSymbolTable['arguments'] = args;
+				builtInSymbolTable['this'] = this;
+				builtInSymbolTable['arguments'] = args;
+				if (useThisScope)
+					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
 				// initialize top-level function and push it onto the stack
 				call = compiledObject as CompiledFunctionCall;
 				call.evalIndex = METHOD_INDEX;
@@ -1172,38 +1196,40 @@ package weave.compiler
 					// no parameters need to be evaluated, so make the function call now
 					try
 					{
-						if (compiledParams)
+						if (compiledParams) // function call
 						{
-							// special case for assignment operators
-							if (ASSIGN_OP_LOOKUP[call.evaluatedMethod] && compiledParams.length == 2)
+							// special case for local assignment
+							if (ASSIGN_OP_LOOKUP[call.evaluatedMethod] && compiledParams.length == 2) // two params means local assignment
 							{
-								if (useThisScope && this && this.hasOwnProperty(call.evaluatedParams[0]) && !defaultSymbolTable.hasOwnProperty(call.evaluatedParams[0]))
-									result = (call.evaluatedMethod as Function).call(null, this, call.evaluatedParams[0], call.evaluatedParams[1]);
-								else
-									result = (call.evaluatedMethod as Function).call(null, defaultSymbolTable, call.evaluatedParams[0], call.evaluatedParams[1]);
+								symbolName = call.evaluatedParams[0];
+								// assignment operator expects parameters like (host, ...chain, value)
+								// if there is no matching local variable and 'this' has a matching one, assign the property of 'this'
+								if (useThisScope && this && this.hasOwnProperty(symbolName) && !localSymbolTable.hasOwnProperty(symbolName))
+									result = (call.evaluatedMethod as Function).call(this, this, symbolName, call.evaluatedParams[1]);
+								else // otherwise, assign local variable
+									result = (call.evaluatedMethod as Function).call(this, localSymbolTable, symbolName, call.evaluatedParams[1]);
 							}
 							else
 							{
 								// function call
-								result = call.evaluatedMethod.apply(null, call.evaluatedParams);
+								result = call.evaluatedMethod.apply(this, call.evaluatedParams);
 							}
 						}
-						else
+						else // no compiled params means it's a variable lookup
 						{
-							// variable lookup -- call.compiledMethod is a constant and call.evaluatedMethod is the method name
+							// call.compiledMethod is a constant and call.evaluatedMethod is the method name
+							symbolName = call.evaluatedMethod as String;
 							if (symbolTable is Function)
-								result = symbolTable(call.evaluatedMethod);
-							else if (symbolTable.hasOwnProperty(call.evaluatedMethod))
-								result = symbolTable[call.evaluatedMethod];
-							else if (useThisScope && this && this.hasOwnProperty(call.evaluatedMethod))
-								result = this[call.evaluatedMethod];
-								
-							if (result == undefined)
 							{
-								if (constants.hasOwnProperty(call.evaluatedMethod))
-									result = constants[call.evaluatedMethod];
-								else
-									result = defaultSymbolTable[call.evaluatedMethod];
+								result = symbolTable(symbolName);
+							}
+							else
+							{
+								// find the variable
+								for (i = 0; i < allSymbolTables.length - 1; i++) // don't bother checking the last one
+									if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
+										break;
+								result = allSymbolTables[i][symbolName];
 							}
 						}
 					}
@@ -1242,6 +1268,7 @@ package weave.compiler
 				}
 				return null; // unreachable
 			};
+			builtInSymbolTable['self'] = wrapperFunction;
 			
 			return wrapperFunction;
 		}
@@ -1291,17 +1318,17 @@ package weave.compiler
 				
 				var tokens:Array = compiler.getTokens(eq);
 				trace("    tokens:", tokens.join(' '));
-				var decompiled:String = compiler.decompileObject(compiler.compileTokens(tokens));
+				var decompiled:String = compiler.decompileObject(compiler.compileTokens(tokens, true));
 				trace("decompiled:", decompiled);
 				
 				var tokens2:Array = compiler.getTokens(decompiled);
 				trace("   tokens2:", tokens2.join(' '));
-				var recompiled:String = compiler.decompileObject(compiler.compileTokens(tokens2));
+				var recompiled:String = compiler.decompileObject(compiler.compileTokens(tokens2, true));
 				trace("recompiled:", recompiled);
 
 				compiler.enableOptimizations = true;
 				var tokens3:Array = compiler.getTokens(recompiled);
-				var optimized:String = compiler.decompileObject(compiler.compileTokens(tokens3));
+				var optimized:String = compiler.decompileObject(compiler.compileTokens(tokens3, true));
 				trace(" optimized:", optimized);
 				compiler.enableOptimizations = false;
 				

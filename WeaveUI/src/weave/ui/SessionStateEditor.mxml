@@ -787,15 +787,15 @@
 				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil);
 			} /** end static code block **/
 			
-			private const symbolTable:Object = {
-				'JS':ExternalInterface.call,
-				'application':Application.application,
-				'print': ObjectUtil.toString as Function,
-				'clear': function():void { log.text = ''; }
-			};
-			
 			private function runCommand():void
 			{
+				var symbolTable:Object = {
+					'JS': ExternalInterface.call,
+					'application': Application.application,
+					'print': ObjectUtil.toString as Function,
+					'clear': function():void { log.text = ''; }
+				};
+				
 				var result:*;
 				var decompiled:String;
 				try
