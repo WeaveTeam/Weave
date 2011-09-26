@@ -27,8 +27,8 @@ package weave.utils
 	import mx.core.UIComponent;
 	import mx.graphics.codec.JPEGEncoder;
 	import mx.graphics.codec.PNGEncoder;
-
-
+	import mx.utils.Base64Encoder;
+	
 	/**
 	 * BitmapUtils
 	 * Functions for working with bitmaps.
@@ -134,6 +134,17 @@ package weave.utils
 			return screenshot;
 		}
 		
+		public static function getBase64Image(component:UIComponent):String
+		{
+			var data:BitmapData = getBitmapDataFromComponent(component);
+			var byteArray:ByteArray = new ByteArray();
+			byteArray.writeObject(data.getPixels(data.rect));
+			
+			var encoder:Base64Encoder = new Base64Encoder();
+			encoder.encodeBytes(byteArray);
+			
+			return encoder.drain();
+		}
 		
 		// note: use ImageSnapshot.captureImage().data instead of these functions
 		
