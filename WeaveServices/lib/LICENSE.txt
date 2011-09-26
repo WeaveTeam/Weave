@@ -39,4 +39,4 @@ Other
 		geoapi-2.3-M1.jar
 		geoapi-pending-2.3-M1.jar
 		
-	ojdbc5.jar and ojdbc6.jar - http://www.oracle.com/technetwork/licenses/distribution-license-152002.html
+	ojdbc5.jar - http://www.oracle.com/technetwork/licenses/distribution-license-152002.html
