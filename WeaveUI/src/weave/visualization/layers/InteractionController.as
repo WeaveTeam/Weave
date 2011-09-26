@@ -25,6 +25,7 @@ package weave.visualization.layers
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableValueList;
 
@@ -67,24 +68,52 @@ package weave.visualization.layers
 			zoom.value = [SHIFT, DRAG].toString();
 			zoomIn.value = DCLICK;
 			zoomOut.value = [SHIFT, DCLICK].toString();
-			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].toString();
+			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].toString();					
 		}
 		
-		public const probe:LinkableValueList 				= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const select:LinkableValueList 				= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const selectRemove:LinkableValueList 		= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const selectAdd:LinkableValueList 			= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const pan:LinkableValueList 					= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const zoom:LinkableValueList 				= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const zoomIn:LinkableValueList 				= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const zoomOut:LinkableValueList 				= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
-		public const zoomToExtent:LinkableValueList 		= newLinkableChild(this, LinkableValueList,cacheEventActions, true);
+		public const probe:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const select:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const selectRemove:LinkableValueList 		= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const selectAdd:LinkableValueList 			= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const pan:LinkableValueList 					= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const zoom:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const zoomIn:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const zoomOut:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const zoomToExtent:LinkableValueList 		= newLinkableChild(this, LinkableValueList,invalidateEventCache);
 		
 		private var _eventActionCache:Dictionary = new Dictionary(true);
+		private var keyboardEventCache:Dictionary;
+		private var _validateCache:Boolean = false;
 		
-		public function determineAction(events:String):String
+		private function invalidateEventCache():void
 		{
-			return _eventActionCache[events];
+			_validateCache = true;
+		}
+		
+		public function determineAction(optionalString:String = null):String
+		{
+			if(_validateCache)
+			{
+				cacheEventActions();
+				cacheKeyboardEvents();				
+			}
+			if(optionalString)
+			{
+				return _eventActionCache[optionalString];
+			}
+			_events = _events.sort();		
+			return _eventActionCache[String(_events)];
+		}
+		
+		public function determineMouseMode():String
+		{
+			if(!keyboardEventCache)
+				cacheKeyboardEvents();
+			_keyboardEvents = _keyboardEvents.sort();
+			var mode:String = keyboardEventCache[_keyboardEvents.toString()];
+			if(!mode)
+				cacheKeyboardEvents();
+			return mode;
 		}
 		
 		private function cacheEventActions():void
@@ -100,6 +129,67 @@ package weave.visualization.layers
 			_eventActionCache[zoomIn.sortedValue] = ZOOM_IN;
 			_eventActionCache[zoomOut.sortedValue] = ZOOM_OUT;
 			_eventActionCache[zoomToExtent.sortedValue] = ZOOM_TO_EXTENT;
+			_validateCache = false;
+		}		
+		  
+		private function cacheKeyboardEvents():void
+		{
+			keyboardEventCache = new Dictionary(true);			
+			for each( var s:LinkableValueList in [pan, probe, select, selectAdd, selectRemove, zoom])
+			{
+				var e:Array = s.sortedValue.split(",");
+				removeElements(e, [CLICK, DRAG, DCLICK, MOVE]);
+				keyboardEventCache[String(e)] = determineAction(s.sortedValue);
+			}
+			_validateCache = false;
 		}
+		
+		private var _events:Array = [];
+		private var _keyboardEvents:Array = [];
+		
+		public function clearEvents():void
+		{
+			_events = [];
+		}
+		
+		public function insertEvent(event:String):void
+		{
+			insert(_events, event);
+		}
+		
+		public function clearKeyboardEvents():void
+		{
+			_keyboardEvents = [];
+		}
+		
+		public function insertKeyboardEvent(event:String):void
+		{
+			insert(_keyboardEvents, event);
+		}
+		
+		public function removeKeyboardEvents(event:String, ...moreEvents):void
+		{
+			moreEvents.unshift(event);
+			removeElements( _keyboardEvents, moreEvents);
+		}
+				
+		private function insert(array:Array, event:String):void
+		{
+			if(!array) 
+				return;
+			
+			array.push(event);
+			array = array.filter(function(e:String,i:int,a:Array):Boolean {return a.indexOf(e) == i;});			
+		}
+		
+		private function removeElements(array:Array, events:Array):void
+		{			
+			for each(var str:String in events)
+			{
+				var i:int = array.indexOf(str);
+				if(i != -1)
+					array.splice(i, 1);
+			}
+		}			
 	}
 }

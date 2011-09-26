@@ -97,9 +97,9 @@ package weave.visualization.layers
 //			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
 			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, null, true);
-			getCallbackCollection(Weave.properties.toolInteractions).addImmediateCallback(this, updateKeyboardEventLookup,null, true);
-			
+						
 			mouseModeDefault.value = InteractionController.SELECT;
+			interactions = Weave.properties.toolInteractions;
 		}
 		
 		public function dispose():void
@@ -151,35 +151,6 @@ package weave.visualization.layers
 		protected const mouseDragStageCoords:IBounds2D = new Bounds2D();
 				
 		public static const NO_CURSOR:String    = "InteractiveVisualization.NO_CURSOR";
-
-		private var eventsArray:Array = [];
-		
-		private function insertEvent(array:Array, event:String):void
-		{
-			if(!array) 
-				return;
-			
-			array.push(event);
-			array = array.filter(function(e:String,i:int,a:Array):Boolean {return a.indexOf(e) == i;});			
-		}
-		
-		private function removeEvents(array:Array,event:String, ...moreEvents):void
-		{
-			moreEvents.unshift(event);
-			for each(var str:String in moreEvents)
-			{
-				var i:int = array.indexOf(str);
-				if(i != -1)
-					array.splice(i, 1);
-			}
-		}
-		
-		private function isModeSelection(mode:String):Boolean
-		{
-			return mode == InteractionController.SELECT_ADD
-				|| mode == InteractionController.SELECT
-				|| mode == InteractionController.SELECT_REMOVE;
-		}
 		
 		public const mouseModeDefault:LinkableString = newLinkableChild(this, LinkableString, handleMouseModeChange);
 		
@@ -192,45 +163,33 @@ package weave.visualization.layers
 			updateMouseCursor();  
 		}
 		
-		private var keyboardInteractionLookup:Dictionary;
-		  
-		private function updateKeyboardEventLookup():void
-		{
-			var actions:InteractionController = Weave.properties.toolInteractions;
-			keyboardInteractionLookup = new Dictionary(true);
-			for each( var s:LinkableValueList in [actions.pan, actions.probe, actions.select, actions.selectAdd, actions.selectRemove, actions.zoom])
-			{
-				var events:Array = s.sortedValue.split(",");
-				removeEvents(events, InteractionController.CLICK, InteractionController.DRAG, InteractionController.DCLICK, InteractionController.MOVE);
-				keyboardInteractionLookup[String(events)] = actions.determineAction(s.sortedValue);
-			}
-		}
 		
 		private var _temporaryMouseMode:String = null;
+		private var interactions:InteractionController;
+				
+		private function isModeSelection(mode:String):Boolean
+		{
+			return mode == InteractionController.SELECT_ADD
+				|| mode == InteractionController.SELECT
+				|| mode == InteractionController.SELECT_REMOVE;
+		}
 		
-		private var kbEvents:Array;
+		
 		protected function updateTemporaryMouseMode():void
 		{
 			var shift:Boolean = StageUtils.shiftKey;
 			var alt:Boolean   = StageUtils.altKey;
 			var ctrl:Boolean  = StageUtils.ctrlKey;
 			
-			kbEvents= [];
+			interactions.clearKeyboardEvents();
 			if(alt)
-				insertEvent(kbEvents, InteractionController.ALT);
+				interactions.insertKeyboardEvent(InteractionController.ALT);
 			if(ctrl)
-				insertEvent(kbEvents, InteractionController.CTRL);
+				interactions.insertKeyboardEvent(InteractionController.CTRL);
 			if(shift)
-				insertEvent(kbEvents, InteractionController.SHIFT);
+				interactions.insertKeyboardEvent(InteractionController.SHIFT);
 			
-			kbEvents = kbEvents.sort();
-			
-			if(!keyboardInteractionLookup)
-				updateKeyboardEventLookup();
-			
-			_temporaryMouseMode = keyboardInteractionLookup[kbEvents.toString()];
-			if(_temporaryMouseMode == null)
-				updateKeyboardEventLookup();
+			_temporaryMouseMode = interactions.determineMouseMode();
 			
 			if(!enableZoomAndPan.value)
 				if(_temporaryMouseMode == InteractionController.ZOOM 
@@ -244,7 +203,7 @@ package weave.visualization.layers
 					|| _temporaryMouseMode == InteractionController.SELECT_ADD
 					|| _temporaryMouseMode == InteractionController.SELECT_REMOVE)
 					_temporaryMouseMode = null;
-			
+						
 			updateMouseCursor();
 		}
 		
@@ -316,6 +275,7 @@ package weave.visualization.layers
 		// this function can be defined with override by extending classes and call super.handleMouseClick(event);
 		protected function handleMouseClick(event:MouseEvent):void
 		{
+			clearSelection();
 			handleMouseEvent(event);
 		}
 		
@@ -405,7 +365,7 @@ package weave.visualization.layers
 			{
 				case MouseEvent.CLICK:
 				{
-					insertEvent(eventsArray,InteractionController.CLICK);
+					interactions.insertEvent(InteractionController.CLICK);
 					break;
 				}
 				case MouseEvent.DOUBLE_CLICK:
@@ -413,25 +373,25 @@ package weave.visualization.layers
 					if (!mouseIsRolledOver)
 						return;
 
-					insertEvent(eventsArray, InteractionController.DCLICK);
+					interactions.insertEvent(InteractionController.DCLICK);
 					break;
 				}
 				case MouseEvent.MOUSE_MOVE:
 				{
 					if(event.buttonDown)					
-						insertEvent(eventsArray, InteractionController.DRAG);
+						interactions.insertEvent(InteractionController.DRAG);
 					else
-						insertEvent(eventsArray, InteractionController.MOVE);
+						interactions.insertEvent(InteractionController.MOVE);
 					
 					break;
 				}				
 			}
 			if(event.ctrlKey)
-				insertEvent(eventsArray, InteractionController.CTRL);
+				interactions.insertEvent(InteractionController.CTRL);
 			if(event.altKey)
-				insertEvent(eventsArray, InteractionController.ALT);
+				interactions.insertEvent(InteractionController.ALT);
 			if(event.shiftKey)
-				insertEvent(eventsArray, InteractionController.SHIFT);
+				interactions.insertEvent(InteractionController.SHIFT);
 						
 			function updateMouseDragStageCoordinates():void
 			{
@@ -447,12 +407,10 @@ package weave.visualization.layers
 					mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 				}
 			}
-			eventsArray = eventsArray.sort();
 			// only update mouse mode when mouse drag isn't active
 			updateTemporaryMouseMode();
-			
-			var toolInteractions:InteractionController = Weave.properties.toolInteractions;
-			switch(str = toolInteractions.determineAction(String(eventsArray)))
+						
+			switch(interactions.determineAction())
 			{
 				case InteractionController.SELECT_ADD:
 				{
@@ -549,7 +507,7 @@ package weave.visualization.layers
 			}
 			
 			updateSelectionRectangleGraphics();
-			eventsArray = [];
+			interactions.clearEvents();
 			//updateMouseCursor();			
 		}
 		
@@ -677,12 +635,8 @@ package weave.visualization.layers
 					// handle selection
 					if (mode == InteractionController.SELECT && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
 					{
-						_layers = layers.getObjects(SelectablePlotLayer);
-						for (i = 0; i < _layers.length; i++)
-						{
-							// clear selection when drag area is empty
-							setSelectionKeys(_layers[i], []);
-						}
+						// clear selection when drag area is empty
+						clearSelection();
 					}
 					else
 					{
@@ -691,6 +645,16 @@ package weave.visualization.layers
 				}
 			}
 		}
+		
+		private function clearSelection():void
+		{
+			var _layers:Array = layers.getObjects(SelectablePlotLayer);
+			for (var i:int = 0; i < _layers.length; i++)
+			{
+				setSelectionKeys(_layers[i], []);
+			}
+		}
+		
 		/**
 		 * This function projects drag start,stop screen coordinates into data coordinates and stores the result in queryBounds.
 		 * @param layer If layer is null, InteractiveVisualization's screen/data bounds will be used.  Otherwise, uses IPlotLayer's bounds.
