@@ -104,7 +104,7 @@ package weave.compiler
 		/**
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
 		 * @param classesOrObjects An Array of Class definitions or objects containing functions to be supported by the compiler.
-		 */		
+		 */
 		public function includeLibraries(...classesOrObjects):void
 		{
 			for (var i:int = 0; i < classesOrObjects.length; i++)
@@ -113,16 +113,26 @@ package weave.compiler
 				// only add this library to the list if it is not already added.
 				if (library != null && libraries.indexOf(library) < 0)
 				{
-					libraries.push(library);
-					
-					if (library is Class)
+					var className:String = null;
+					if (library is String)
+					{
+						className = library as String;
+						library = getDefinitionByName(className);
+					}
+					else if (library is Class)
+					{
+						className = getQualifiedClassName(library as Class);
+					}
+					if (className)
 					{
 						// save the class name as a symbol
-						var className:String = getQualifiedClassName(library);
 						className = className.split('.').pop();
 						className = className.split(':').pop();
 						constants[className] = library;
 					}
+					if (library is Function) // special case for global function like flash.utils.getDefinitionByName
+						continue;
+					
 					// save mappings to all constants and methods in the library
 					var classInfo:XML = describeType(library);
 					for each (var tag:XML in classInfo.children())
@@ -138,6 +148,8 @@ package weave.compiler
 						var name:String = tag.attribute("name");
 						constants[name] = library[name];
 					}
+					
+					libraries.push(library);
 				}
 			}
 		}

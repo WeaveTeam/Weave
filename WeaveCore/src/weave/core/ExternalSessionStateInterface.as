@@ -277,43 +277,17 @@ package weave.core
 		 */   
 		public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*
 		{
-			var compiler:Compiler = new Compiler();
-			var thisObject:ILinkableObject = (scopeObjectPath) ? getObject(scopeObjectPath) : null;
-			var compiledMethod:Function = null;
-			
-			// first try to compile it
 			try
 			{
-				for each (var qName:String in staticLibraries)
-				{
-					var classDef:Class = null;
-					var wasIncluded:Boolean = false;
-					
-					classDef = Class(getDefinitionByName(qName));
-					if (classDef)
-						compiler.includeLibraries(classDef);
-					else
-						throw new Error("Unknown class: " + qName);
-				}
-
-				compiledMethod = compiler.compileToFunction(expression, variables, false, thisObject != null);
+				var compiler:Compiler = new Compiler();
+				compiler.includeLibraries.apply(null, staticLibraries);
+				var thisObject:ILinkableObject = (scopeObjectPath) ? getObject(scopeObjectPath) : null;
+				var compiledMethod:Function = compiler.compileToFunction(expression, variables, false, thisObject != null);
+				var result:* = compiledMethod.apply(thisObject, arguments);
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Unable to compile expression.\n" + e.message, e.errorID));
-			}
-			
-			var result:* = undefined;
-			if (compiledMethod != null)
-			{
-				try
-				{
-					result = compiledMethod.apply(thisObject, arguments);
-				}
-				catch (e:Error)
-				{
-					WeaveAPI.ErrorManager.reportError(new Error("Error evaluating expression.\n" + e.message, e.errorID));
-				}
+				WeaveAPI.ErrorManager.reportError(e);
 			}
 			
 			return result; 
