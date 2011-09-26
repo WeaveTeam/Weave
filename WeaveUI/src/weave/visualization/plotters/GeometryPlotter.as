@@ -46,6 +46,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
@@ -94,7 +95,21 @@ package weave.visualization.plotters
 		/**
 		 *  This is meant to contain URL links to an image to use in place of points on the map.
 		 */
-		public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "http://www.google.com/intl/en_com/images/srpr/logo3w.png" );
+		public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "http://www.helpexamples.com/flash/images/image2.jpg" );
+		
+		//public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "C:\Documents and Settings\Admin\My Documents\My Pictures\penpointer.png" );
+
+		[Embed(source="/weave/resources/images/missing.png")]
+		private static var _missingImageClass:Class;
+		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
+		
+		public const useImages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updatePoints);
+		
+		private function updatePoints():void
+		{
+			trace( "Changed, now " + useImages.value );
+		}
+		
 		/**
 		 * This is the image cache.
 		 */
@@ -226,14 +241,18 @@ package weave.visualization.plotters
 		// this function returns the BitmapData associated with the given key
 		private function drawCircle(destination:BitmapData, color:Number, x:Number, y:Number):void
 		{
-			//if( 
-			var _imageURL:String = imagePointColumn.defaultValue.value as String;
-			if( _urlToImageMap[_imageURL] == undefined )
-				WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
-			var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
-			var bitmapData:BitmapData = colorToBitmapMap[color] as BitmapData;
-			var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
-			if (!bitmapData)
+			if( useImages.value == true )
+			{
+				var _imageURL:String = imagePointColumn.defaultValue.value as String;
+				if( _urlToImageMap[_imageURL] == undefined ){
+					_urlToImageMap[_imageURL] = _missingImage;
+					WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+				}
+				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
+			}
+			else
+				var bitmapData:BitmapData = colorToBitmapMap[color] as BitmapData;
+			if (!bitmapData && useImages.value == false)
 			{
 				// create bitmap
 				try
@@ -246,7 +265,7 @@ package weave.visualization.plotters
 				}
 				colorToBitmapMap[color] = bitmapData;
 			}
-			if (colorToBitmapValidFlagMap[color] == undefined)
+			if (colorToBitmapValidFlagMap[color] == undefined && useImages.value == false)
 			{
 				// draw graphics on cached bitmap
 				var g:Graphics = tempShape.graphics;
@@ -272,7 +291,7 @@ package weave.visualization.plotters
 			// copy bitmap graphics
 			tempPoint.x = Math.round(x - pointOffset);
 			tempPoint.y = Math.round(y - pointOffset);
-			if( image != null )
+			if( useImages.value == true )
 				destination.copyPixels(image, circleBitmapDataRectangle, tempPoint, null, null, true);
 			else
 				destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);

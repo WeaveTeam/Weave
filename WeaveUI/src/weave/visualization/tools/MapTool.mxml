@@ -125,13 +125,31 @@
 			
 			private function updatePlottedPoints():void
 			{
-				if( !enableImages.value ){
+				if( !enableImages.value )
+				{
+					var plotLayers:Array = visualization.layers.getObjects(SelectablePlotLayer);
+					for (var i:int = 0; i < plotLayers.length; i++)
+					{
+						var spl:SelectablePlotLayer = (plotLayers[i] as SelectablePlotLayer);
+						var geoCols:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(spl.plotter, GeometryPlotter);
+						for each (var col:GeometryPlotter in geoCols)
+							col.useImages.value = false;
+					}
 					imageLink.enabled = false;
 					imageLink.editable = false;
 				}
-				else{
+				else
+				{
 					imageLink.enabled = true;
-					imageLink.editable = true;
+					imageLink.editable = true;	
+					var plotLayers2:Array = visualization.layers.getObjects(SelectablePlotLayer);
+					for (var j:int = 0; j < plotLayers2.length; j++)
+					{
+						var spl2:SelectablePlotLayer = (plotLayers2[j] as SelectablePlotLayer);
+						var geoCols2:Array = (WeaveAPI.SessionManager as SessionManager).getDescendants(spl.plotter, GeometryPlotter);
+						for each (var col2:GeometryPlotter in geoCols2)
+							col2.useImages.value = true;
+					}
 				}
 			}
 			
