@@ -134,6 +134,12 @@ package weave.utils
 			return screenshot;
 		}
 		
+		/**
+		 * This function accepts a component, gets its corresponding bitmap, and encodes the image as
+		 * a base 64 string.
+		 * @param component The component for which to get the string encoding.
+		 * @return A base 64 encoding of the image.
+		 */		
 		public static function getBase64Image(component:UIComponent):String
 		{
 			var data:BitmapData = getBitmapDataFromComponent(component);
