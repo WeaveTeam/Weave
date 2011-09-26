@@ -253,12 +253,28 @@ public class SQLConfigXML implements ISQLConfig
 
 	synchronized public void setDatabaseConfigInfo(DatabaseConfigInfo newInfo) throws IOException, ParserConfigurationException, SAXException
 	{
-		String tag = String.format(
-				"\n\t<databaseConfig connection=\"%s\" schema=\"%s\" geometryConfigTable=\"%s\" dataConfigTable=\"%s\"/>\n",
-				XMLUtils.escapeSpecialCharacters(newInfo.connection), XMLUtils.escapeSpecialCharacters(newInfo.schema),
-				XMLUtils.escapeSpecialCharacters(newInfo.geometryConfigTable),
-				XMLUtils.escapeSpecialCharacters(newInfo.dataConfigTable));
-		XMLUtils.prependXMLChildFromString(doc, tag);
+		if (getDatabaseConfigInfo() != null)
+		{
+			try
+			{
+				Node node = (Node) xpath.evaluate(
+						String.format("/sqlConfig/%s", "databaseConfig"), doc, XPathConstants.NODE);
+				if (node == null)
+					return;
+				node.getParentNode().removeChild(node);
+			}
+			catch (XPathExpressionException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
+			String tag = String.format(
+					"\n\t<databaseConfig connection=\"%s\" schema=\"%s\" geometryConfigTable=\"%s\" dataConfigTable=\"%s\"/>\n",
+					XMLUtils.escapeSpecialCharacters(newInfo.connection), XMLUtils.escapeSpecialCharacters(newInfo.schema),
+					XMLUtils.escapeSpecialCharacters(newInfo.geometryConfigTable),
+					XMLUtils.escapeSpecialCharacters(newInfo.dataConfigTable));
+			XMLUtils.prependXMLChildFromString(doc, tag);
 	}
 
 	/**
