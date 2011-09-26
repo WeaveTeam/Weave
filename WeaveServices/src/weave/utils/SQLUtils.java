@@ -108,8 +108,8 @@ public class SQLUtils
 		}
 		else if (ORACLE.equalsIgnoreCase(dbms))
 		{
-			format = "jdbc:%s:thin:%s/%s@//%s/%s";
-			//"jdbc:oracle:thin:<user>/<password>@//<host>:<port>/<instance>"
+			format = "jdbc:%s:thin:%s/%s@%s:%s";
+			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
 		else // MySQL or PostGreSQL
 		{
