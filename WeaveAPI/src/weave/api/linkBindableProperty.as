@@ -39,7 +39,7 @@ package weave.api
 	import weave.api.core.ILinkableVariable;
 	
 	/**
-	 * @see ISessionManager
+	 * @see weave.api.core.ISessionManager
 	 */
 	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String):void
 	{

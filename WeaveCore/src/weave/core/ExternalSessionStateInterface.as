@@ -273,7 +273,7 @@ package weave.core
 		}
 
 		/**
-		 * @see IExternalSessionStateInterface
+		 * @see weave.api.core.IExternalSessionStateInterface
 		 */   
 		public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*
 		{
@@ -284,7 +284,6 @@ package weave.core
 			// first try to compile it
 			try
 			{
-				compiledMethod = compiler.compileToFunction(expression, variables, false, true);
 				for each (var qName:String in staticLibraries)
 				{
 					var classDef:Class = null;
@@ -313,7 +312,7 @@ package weave.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(new Error("Error when calling compiled method.\n" + e.message, e.errorID));
+					WeaveAPI.ErrorManager.reportError(new Error("Error evaluating expression.\n" + e.message, e.errorID));
 				}
 			}
 			

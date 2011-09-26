@@ -40,7 +40,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * @see ISessionManager
+	 * @see weave.api.core.ISessionManager
 	 */
 	public function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection
 	{

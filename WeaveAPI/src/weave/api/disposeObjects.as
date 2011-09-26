@@ -37,7 +37,7 @@
 package weave.api
 {
 	/**
-	 * @see ISessionManager
+	 * @see weave.api.core.ISessionManager
 	 */
 	public function disposeObjects(object:Object, ...moreObjects):void
 	{

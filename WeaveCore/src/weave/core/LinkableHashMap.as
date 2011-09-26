@@ -297,7 +297,7 @@ package weave.core
 				_nameIsLocked[name] = true;
 		}
 		/**
-		 * @see ILinkableHashMap.removeObject
+		 * @see weave.api.core.ILinkableHashMap.removeObject
 		 * @param name The identifying name of an object previously saved with setObject().
 		 */
 		public function removeObject(name:String):void

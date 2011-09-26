@@ -71,7 +71,7 @@ package weave.services.wms
 		
 		/**
 		 * This function will cancel all pending requests.
-		 * @see IWMSService.cancelPendingRequests
+		 * @see weave.api.core.IWMSService.cancelPendingRequests
 		 */
 		public function cancelPendingRequests():void
 		{
@@ -123,7 +123,7 @@ package weave.services.wms
 		
 		/**
 		 * Return the number of pending requests.
-		 * @see IWMSService.getNumPendingRequests
+		 * @see weave.api.core.IWMSService.getNumPendingRequests
 		 */
 		public function getNumPendingRequests():int
 		{
@@ -132,7 +132,7 @@ package weave.services.wms
 		
 		/**
 		 * Return the srs code.
-		 * @see IWMSService.getProjectionSRS
+		 * @see weave.api.core.IWMSService.getProjectionSRS
 		 */
 		public function getProjectionSRS():String
 		{
@@ -141,7 +141,7 @@ package weave.services.wms
 		
 		/**
 		 * Request the images.
-		 * @see IWMSService.requestImages
+		 * @see weave.api.core.IWMSService.requestImages
 		 */		 
 		/* abstract */ public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array 
 		{
@@ -150,7 +150,7 @@ package weave.services.wms
 		
 		/**
 		 * Return the allowed bounds.
-		 * @see IWMSService.getAllowedBounds
+		 * @see weave.api.core.IWMSService.getAllowedBounds
 		 */ 
 		/* abstract */ public function getAllowedBounds():IBounds2D
 		{

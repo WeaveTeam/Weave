@@ -843,7 +843,7 @@
 						log.selectionEndIndex = log.text.indexOf('\r', log.selectionEndIndex);
 						log.validateNow();
 					}
-					console.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join(', ');
+					console.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join('; ');
 					console.setSelection(0, int.MAX_VALUE);
 				}
 			}
