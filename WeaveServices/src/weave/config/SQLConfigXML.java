@@ -255,13 +255,12 @@ public class SQLConfigXML implements ISQLConfig
 	{
 		if (getDatabaseConfigInfo() != null)
 		{
+			// remove existing tag
 			try
 			{
-				Node node = (Node) xpath.evaluate(
-						String.format("/sqlConfig/%s", "databaseConfig"), doc, XPathConstants.NODE);
-				if (node == null)
-					return;
-				node.getParentNode().removeChild(node);
+				Node node = (Node) xpath.evaluate("/sqlConfig/databaseConfig", doc, XPathConstants.NODE);
+				if (node != null)
+					node.getParentNode().removeChild(node);
 			}
 			catch (XPathExpressionException e)
 			{
@@ -269,12 +268,12 @@ public class SQLConfigXML implements ISQLConfig
 			}
 		}
 		
-			String tag = String.format(
-					"\n\t<databaseConfig connection=\"%s\" schema=\"%s\" geometryConfigTable=\"%s\" dataConfigTable=\"%s\"/>\n",
-					XMLUtils.escapeSpecialCharacters(newInfo.connection), XMLUtils.escapeSpecialCharacters(newInfo.schema),
-					XMLUtils.escapeSpecialCharacters(newInfo.geometryConfigTable),
-					XMLUtils.escapeSpecialCharacters(newInfo.dataConfigTable));
-			XMLUtils.prependXMLChildFromString(doc, tag);
+		String tag = String.format(
+				"\n\t<databaseConfig connection=\"%s\" schema=\"%s\" geometryConfigTable=\"%s\" dataConfigTable=\"%s\"/>\n",
+				XMLUtils.escapeSpecialCharacters(newInfo.connection), XMLUtils.escapeSpecialCharacters(newInfo.schema),
+				XMLUtils.escapeSpecialCharacters(newInfo.geometryConfigTable),
+				XMLUtils.escapeSpecialCharacters(newInfo.dataConfigTable));
+		XMLUtils.prependXMLChildFromString(doc, tag);
 	}
 
 	/**
@@ -346,9 +345,8 @@ public class SQLConfigXML implements ISQLConfig
 	{
 		try
 		{
-			Node node = (Node) xpath.evaluate(
-					String.format("/sqlConfig/%s[@name=\"%s\"]", entryType, XMLUtils.escapeSpecialCharacters(entryName)), doc,
-					XPathConstants.NODE);
+			String pathStr = String.format("/sqlConfig/%s[@name=\"%s\"]", entryType, XMLUtils.escapeSpecialCharacters(entryName));
+			Node node = (Node) xpath.evaluate(pathStr, doc, XPathConstants.NODE);
 			if (node == null)
 				return;
 			node.getParentNode().removeChild(node);
