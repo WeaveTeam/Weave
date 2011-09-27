@@ -79,7 +79,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(objectPath:Array, expression:String, variables:Object = null):*</div>
+<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*</div>
 <div class="summaryTableDescription">
    </div>
 </td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
@@ -231,11 +231,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function evaluateExpression(objectPath:Array, expression:String, variables:Object = null):*</code><p>
+<code>public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code></td>
+<td width="20px"></td><td><code><span class="label">scopeObjectPath</span>:Array</code></td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
@@ -249,6 +249,12 @@ showHideInherited();
 <tr>
 <td width="20px"></td><td><code><span class="label">variables</span>:Object</code> (default = <code>null</code>)<code></code></td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">staticLibraries</span>:Array</code> (default = <code>null</code>)<code></code></td>
+</tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
@@ -260,7 +266,9 @@ showHideInherited();
 <p>
 <span class="label">See also</span>
 </p>
-<div class="seeAlso">IExternalSessionStateInterface</div>
+<div class="seeAlso">
+<a href="../api/core/IExternalSessionStateInterface.html" target="">weave.api.core.IExternalSessionStateInterface</a>
+</div>
 </div>
 <a name="getChildNames()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

@@ -79,9 +79,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(objectPath:Array, expression:String, variables:Object = null):*</div>
+<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*</div>
 <div class="summaryTableDescription">
-   This function will evaluate an expression on the object specified by the objectPath.</div>
+   This function will evaluate an expression using the compiler.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
 </tr>
 <tr class="">
@@ -214,15 +214,19 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function evaluateExpression(objectPath:Array, expression:String, variables:Object = null):*</code><p>
-   This function will evaluate an expression on the object specified by the objectPath.
+<code>public function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*</code><p>
+   This function will evaluate an expression using the compiler. An object path may be passed as the first parameter
+   to act as the <code>this</code> pointer for the expression, or libraries may be included by passing an array of fully 
+   qualified names.
    
    <br><br>
    Examples: 
    <br>
    <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'toggleControlPanel()')</code>
    <br> 
-   <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y', {new_x : 400, new_y : 300})</code>
+   <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y)', {new_x : 400, new_y : 300})</code>
+   <br>
+   <code> document.getElementById('weave').evaluateExpression(null, 'openDefaultEditor()', null, ['weave.ui::SessionStateEditor'])</code>
    <br> <br>
    
    Note that any code written for this function depends on the implementation of the Actionscript
@@ -238,7 +242,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">expression</span>:String</code> &mdash; The expression to evaluate on the object specified by objectPath.
+<td width="20px"></td><td><code><span class="label">methodName</span>:String</code> &mdash; The expression to evaluate.
    </td>
 </tr>
 <tr>
@@ -246,6 +250,13 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">variables</span>:Object</code> (default = <code>null</code>)<code></code> &mdash; A hash map of variable names to values.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">libraries</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; An array of fully qualified class names which contain static methods to include the expression.
    </td>
 </tr>
 </table>

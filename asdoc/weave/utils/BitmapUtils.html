@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="BitmapUtils,weave.utils.BitmapUtils,drawCenteredIcon,getBitmapDataFromComponent,resizeBitmapData" name="keywords">
+<meta content="BitmapUtils,weave.utils.BitmapUtils,drawCenteredIcon,getBase64Image,getBitmapDataFromComponent,resizeBitmapData" name="keywords">
 <title>weave.utils.BitmapUtils</title>
 </head>
 <body>
@@ -59,6 +59,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#drawCenteredIcon()">drawCenteredIcon</a>(graphics:Graphics, x:Number, y:Number, source:BitmapData, fillColor:Number, fillAlpha:Number = 1.0, scale:Number = 1.0):void</div>
 <div class="summaryTableDescription">[static]
    This function will draw an image centered on an x,y coordinate.</div>
+</td><td class="summaryTableOwnerCol">BitmapUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getBase64Image()">getBase64Image</a>(component:UIComponent):String</div>
+<div class="summaryTableDescription">[static]
+   This function accepts a component, gets its corresponding bitmap, and encodes the image as
+   a base 64 string.</div>
 </td><td class="summaryTableOwnerCol">BitmapUtils</td>
 </tr>
 <tr class="">
@@ -141,6 +150,32 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">scale</span>:Number</code> (default = <code>1.0</code>)<code></code> &mdash; A scale value used to resize the source image.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getBase64Image()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getBase64Image</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getBase64Image(component:UIComponent):String</code><p>
+   This function accepts a component, gets its corresponding bitmap, and encodes the image as
+   a base 64 string.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">component</span>:UIComponent</code> &mdash; The component for which to get the string encoding.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>String</code> &mdash; A base 64 encoding of the image.
    </td>
 </tr>
 </table>
