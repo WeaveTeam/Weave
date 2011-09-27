@@ -27,7 +27,7 @@ package weave.visualization.layers
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.core.LinkableValueList;
+	import weave.core.LinkableString;
 
 	/**
 	 * This class handles mouse/keyboard interactions performed within DisplayObjects
@@ -71,25 +71,53 @@ package weave.visualization.layers
 			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].toString();					
 		}
 		
-		public const probe:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const select:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const selectRemove:LinkableValueList 		= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const selectAdd:LinkableValueList 			= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const pan:LinkableValueList 					= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const zoom:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const zoomIn:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const zoomOut:LinkableValueList 				= newLinkableChild(this, LinkableValueList,invalidateEventCache);
-		public const zoomToExtent:LinkableValueList 		= newLinkableChild(this, LinkableValueList,invalidateEventCache);
+		public const probe:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const select:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const selectRemove:LinkableString 		= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const selectAdd:LinkableString 			= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const pan:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const zoom:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const zoomIn:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const zoomOut:LinkableString 			= newLinkableChild(this, LinkableString,invalidateEvents);
+		public const zoomToExtent:LinkableString 		= newLinkableChild(this, LinkableString,invalidateEvents);
+		
+		private var _sortedValues:Dictionary = new Dictionary(true);
+		
+		private function cacheSortedValues():void
+		{
+			_sortedValues = new Dictionary(true);
+			var array:Array = [];
+			for each( var s:LinkableString in [probe, select, selectRemove, selectAdd, pan, zoom, zoomIn, zoomOut, zoomToExtent])
+			{
+				var str:String = s.value;
+				if(!str)
+				{
+					_sortedValues[s] = str;
+					continue;
+				}
+				array = str.split(",");
+				array = array.sort();
+				_sortedValues[s] = array.toString();
+			}
+		}
+		
 		
 		private var _eventActionCache:Dictionary = new Dictionary(true);
 		private var keyboardEventCache:Dictionary;
 		private var _validateCache:Boolean = false;
 		
-		private function invalidateEventCache():void
+		private function invalidateEvents():void
 		{
 			_validateCache = true;
+			cacheSortedValues();
 		}
 		
+		/**
+		 * Determine current mouse action from values in internal list of mouse events
+		 * @param optionalString optional parameter to use instead of internal list
+		 * @return returns a string representing current mouse action to execute
+		 * 
+		 */		
 		public function determineAction(optionalString:String = null):String
 		{
 			if(_validateCache)
@@ -105,6 +133,10 @@ package weave.visualization.layers
 			return _eventActionCache[String(_events)];
 		}
 		
+		/**
+		 * Determine current mouse cursor mode from values in internal list of keyboard events
+		 * @return returns a string representing which mouse cursor to use
+		 */		
 		public function determineMouseMode():String
 		{
 			if(!keyboardEventCache)
@@ -120,26 +152,26 @@ package weave.visualization.layers
 		{
 			_eventActionCache = new Dictionary(true);
 			
-			_eventActionCache[probe.sortedValue] = PROBE;
-			_eventActionCache[select.sortedValue] = SELECT;
-			_eventActionCache[selectRemove.sortedValue] = SELECT_REMOVE;
-			_eventActionCache[selectAdd.sortedValue] = SELECT_ADD;
-			_eventActionCache[pan.sortedValue] = PAN;
-			_eventActionCache[zoom.sortedValue] = ZOOM;
-			_eventActionCache[zoomIn.sortedValue] = ZOOM_IN;
-			_eventActionCache[zoomOut.sortedValue] = ZOOM_OUT;
-			_eventActionCache[zoomToExtent.sortedValue] = ZOOM_TO_EXTENT;
+			_eventActionCache[_sortedValues[probe]] = PROBE;
+			_eventActionCache[_sortedValues[select]] = SELECT;
+			_eventActionCache[_sortedValues[selectRemove]] = SELECT_REMOVE;
+			_eventActionCache[_sortedValues[selectAdd]] = SELECT_ADD;
+			_eventActionCache[_sortedValues[pan]] = PAN;
+			_eventActionCache[_sortedValues[zoom]] = ZOOM;
+			_eventActionCache[_sortedValues[zoomIn]] = ZOOM_IN;
+			_eventActionCache[_sortedValues[zoomOut]] = ZOOM_OUT;
+			_eventActionCache[_sortedValues[zoomToExtent]] = ZOOM_TO_EXTENT;
 			_validateCache = false;
 		}		
 		  
 		private function cacheKeyboardEvents():void
 		{
 			keyboardEventCache = new Dictionary(true);			
-			for each( var s:LinkableValueList in [pan, probe, select, selectAdd, selectRemove, zoom])
+			for each( var s:LinkableString in [pan, probe, select, selectAdd, selectRemove, zoom])
 			{
-				var e:Array = s.sortedValue.split(",");
+				var e:Array = _sortedValues[s].split(",");
 				removeElements(e, [CLICK, DRAG, DCLICK, MOVE]);
-				keyboardEventCache[String(e)] = determineAction(s.sortedValue);
+				keyboardEventCache[String(e)] = determineAction(_sortedValues[s]);
 			}
 			_validateCache = false;
 		}
@@ -147,32 +179,52 @@ package weave.visualization.layers
 		private var _events:Array = [];
 		private var _keyboardEvents:Array = [];
 		
+		/**
+		 * Clears internal list of mouse events
+		 */		
 		public function clearEvents():void
 		{
 			_events = [];
 		}
 		
+		/**
+		 * Inserts a mouse event to list of events 
+		 * @param event string representing mouse event
+		 */		
 		public function insertEvent(event:String):void
 		{
 			insert(_events, event);
 		}
 		
+		/**
+		 * Clears internal list of keyboard events
+		 */		
 		public function clearKeyboardEvents():void
 		{
 			_keyboardEvents = [];
 		}
 		
+		/**
+		 * Inserts a keyboard event to internal list of keyboard events
+		 * @param event string representing keyboard event or modifier key(s) pressed
+		 */		
 		public function insertKeyboardEvent(event:String):void
 		{
 			insert(_keyboardEvents, event);
 		}
 		
+		/**
+		 * Removes elements specified from internal list of keyboard events 
+		 * @param event first event to remove
+		 * @param moreEvents optional additional events to remove
+		 */		
 		public function removeKeyboardEvents(event:String, ...moreEvents):void
 		{
 			moreEvents.unshift(event);
 			removeElements( _keyboardEvents, moreEvents);
 		}
 				
+		
 		private function insert(array:Array, event:String):void
 		{
 			if(!array) 
