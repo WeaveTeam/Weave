@@ -1345,6 +1345,8 @@ public class SQLUtils
 
 	public static String getVarcharTypeString(Connection conn, int length)
 	{
+		if (isOracleServer(conn))
+			return String.format("VARCHAR2(%s)", length);
 		return String.format("VARCHAR(%s)", length);
 	}
 	public static String getIntTypeString(Connection conn) 
@@ -1367,8 +1369,6 @@ public class SQLUtils
 		if (SQLSERVER.equalsIgnoreCase(dbms))
 			return "FLOAT"; // this is an 8 floating point type with 53 bits for the mantissa, the same as an 8 byte double.
 			                // but SQL Server's DOUBLE PRECISION type isn't standard
-		if (ORACLE.equalsIgnoreCase(dbms))
-			return "FLOAT(24)";
 		
 		return "DOUBLE PRECISION";
 	}
