@@ -149,7 +149,7 @@ Displays catoegories in a tree view and the attributes in a list.
 					categoriesView.dataProvider = getTree(attributeHierarchy.value); 
 					handleSelectedPathChange();
 				}
-				attributesView.verticalScrollPosition = vsp;
+				attributesView.verticalScrollPosition = Math.min(vsp, attributesView.maxVerticalScrollPosition);
 				attributesView.horizontalScrollPosition = hsp;
 			}
 			
@@ -347,6 +347,7 @@ Displays catoegories in a tree view and the attributes in a list.
 				if(attributesView != null && attributesView.dataProvider != null)
 				{
 					(attributesView.dataProvider as ICollectionView).refresh();
+					attributesView.verticalScrollPosition = Math.min(attributesView.verticalScrollPosition, attributesView.maxVerticalScrollPosition);
 					
 					handleHierarchyChange();
 				}

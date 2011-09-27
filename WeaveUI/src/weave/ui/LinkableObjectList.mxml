@@ -284,7 +284,7 @@ LinkableObjectList
 					var title:String = ColumnUtils.getTitle(col);
 					var keyType:String = ColumnUtils.getKeyType(col);
 					var dataType:String = ColumnUtils.getDataType(col);
-					if ((dataType || '') == '')
+					if (!dataType)
 						return StringUtil.substitute("{0} (Key Type: {1})", title, keyType);
 					return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
 				}

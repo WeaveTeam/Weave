@@ -113,7 +113,8 @@ package weave.data.DataSources
 						else
 						{
 							delete node['@' + oldName];
-							node['@' + nameMapping[oldName]] = value;
+							newName = nameMapping[oldName];
+							node['@' + newName] = value;
 						}
 					}
 				}

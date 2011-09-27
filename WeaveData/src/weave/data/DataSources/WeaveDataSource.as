@@ -111,6 +111,9 @@ package weave.data.DataSources
 		
 		protected function _convertOldHierarchyFormat(root:XML):void
 		{
+			if (!root)
+				return;
+			
 			convertOldHierarchyFormat(root, "category", {
 				dataTableName: "name"
 			});
@@ -119,6 +122,11 @@ package weave.data.DataSources
 				dataTableName: "dataTable",
 				dataType: _convertOldDataType
 			});
+			for each (var node:XML in root.descendants())
+			{
+				if (!node.@title)
+					node.@title = node.@name;
+			}
 		}
 		
 		protected function _convertOldDataType(value:String):String
@@ -304,7 +312,7 @@ package weave.data.DataSources
 				{
 					var metadata:Object = result.columnMetadata[i];
 					// fill in title if missing
-					if ((metadata['title'] || '') == '')
+					if (!metadata['title'])
 						metadata['title'] = metadata['name'];
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
@@ -421,6 +429,8 @@ package weave.data.DataSources
 				if (String(hierarchyNode.@title) == '')
 				{
 					hierarchyNode.@title = result.attributeColumnName;
+					
+					// year hack -- this could be replaced by a global "default title formatting function" like "title (year)"
 					var year:String = hierarchyNode.@year;
 					if (year != '')
 						hierarchyNode.@title += ' (' + year + ')';

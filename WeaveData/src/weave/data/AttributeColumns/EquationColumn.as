@@ -176,7 +176,7 @@ package weave.data.AttributeColumns
 			{
 				_defaultDataType = String;
 			}
-			else if ((_dataType || '') != '') // treat values as IQualifiedKeys
+			else if (_dataType) // treat values as IQualifiedKeys
 			{
 				_defaultDataType = IQualifiedKey;
 			}

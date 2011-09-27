@@ -145,11 +145,11 @@ package weave.visualization.layers
 		 */		
 		public function determineMouseMode():String
 		{
-			if(!keyboardEventCache)
+			if (!keyboardEventCache)
 				cacheKeyboardEvents();
 			_keyboardEvents = _keyboardEvents.sort();
 			var mode:String = keyboardEventCache[_keyboardEvents.toString()];
-			if(!mode)
+			if (!mode)
 				cacheKeyboardEvents();
 			return mode;
 		}
