@@ -391,7 +391,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>RadVizTest</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
+              <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -1230,13 +1230,13 @@ noMissing2,9,8,6</csvDataString>
     <attributeHierarchy encoding="xml">
       <hierarchy>
         <attribute keyType="RadVizTest" csvColumn="Name" title="Name"/>
-        <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
+        <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
         <attribute keyType="RadVizTest" csvColumn="col2" title="col2"/>
         <attribute keyType="RadVizTest" csvColumn="col3" title="col3"/>
         <attribute keyType="RadVizTest" csvColumn="col4" title="col4"/>
       </hierarchy>
     </attributeHierarchy>
-    <csvDataString>Name,col1,col2,col3,col4
+    <csvDataString>Name,col1,col2,col3,col4
 A,1,1,0,0
 B,0,1,1,0
 C,0,0,1,1
@@ -1278,7 +1278,7 @@ E,1,1,,</csvDataString>
             <plotter encoding="dynamic">
               <RadVizPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="col1">
+                  <AnchorPoint name="col1">
                     <polarRadians>0</polarRadians>
                     <radius>1</radius>
                     <x>1</x>
@@ -1328,7 +1328,7 @@ E,1,1,,</csvDataString>
                           <dataSourceName>RadVizTest</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
-                              <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
+                              <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -1465,7 +1465,7 @@ E,1,1,,</csvDataString>
             <plotter encoding="dynamic">
               <AnchorPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="col1">
+                  <AnchorPoint name="col1">
                     <polarRadians>0</polarRadians>
                     <radius>1</radius>
                     <x>1</x>
@@ -1600,7 +1600,7 @@ E,1,1,,</csvDataString>
             <plotter encoding="dynamic">
               <CompoundRadVizPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="col1">
+                  <AnchorPoint name="col1">
                     <polarRadians>0</polarRadians>
                     <radius>1</radius>
                     <x>1</x>
@@ -1641,7 +1641,7 @@ E,1,1,,</csvDataString>
                         <dataSourceName>RadVizTest</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
+                            <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -1772,7 +1772,7 @@ E,1,1,,</csvDataString>
             <plotter encoding="dynamic">
               <AnchorPlotter>
                 <anchors encoding="dynamic">
-                  <AnchorPoint name="col1">
+                  <AnchorPoint name="col1">
                     <polarRadians>0</polarRadians>
                     <radius>1</radius>
                     <x>1</x>
