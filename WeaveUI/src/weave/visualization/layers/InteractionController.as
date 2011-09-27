@@ -82,6 +82,7 @@ package weave.visualization.layers
 		public const zoomToExtent:LinkableString 		= newLinkableChild(this, LinkableString,invalidateEvents);
 		
 		private var _sortedValues:Dictionary = new Dictionary(true);
+		private const whitespace:RegExp = new RegExp("\s") ;
 		
 		private function cacheSortedValues():void
 		{
@@ -95,6 +96,11 @@ package weave.visualization.layers
 					_sortedValues[s] = str;
 					continue;
 				}
+				// remove spaces from string
+				array = str.split(" ");
+				str = array.join("");
+				
+				// use commas as delimeters between event strings
 				array = str.split(",");
 				array = array.sort();
 				_sortedValues[s] = array.toString();
