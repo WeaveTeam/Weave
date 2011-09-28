@@ -98,8 +98,6 @@ package weave.core
 			{
 				if (value is String)
 					value = XML(value);
-				else if (value is XML)
-					value = (value as XML).copy(); // make a copy to prevent multiple LinkableXML objects from having the same internal XML object.
 			}
 			catch (e:Error) { } // do nothing if cast fails
 			

@@ -108,9 +108,14 @@ package weave.core
 			if (_locked)
 				return;
 
-			// if the value is not the appropriate type, cast it now
+			// cast value now in case it is not the appropriate type
 			if (_sessionStateType != null)
 				value = value as _sessionStateType;
+			
+			// If the value is non-primitive, save a copy because we don't want
+			// two LinkableVariables to share the same object as their session state.
+			if (typeof(value) == 'object')
+				value = ObjectUtil.copy(value);
 			
 			// stop if verifier says it's not an accepted value
 			if (_verifier != null && !_verifier(value))
