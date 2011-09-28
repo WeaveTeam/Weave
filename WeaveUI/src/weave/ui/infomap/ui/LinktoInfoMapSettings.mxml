@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+-->
+<DraggablePanel
+	xmlns="weave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	title="Edit Settings"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	width="30%"
+	height="30%"
+	layout="absolute"
+	alpha="0.8">
+	<mx:VBox paddingLeft="5" paddingTop="5">
+		<mx:HBox>
+			<mx:Label text="Edit Query: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+			<mx:TextInput id="mapName" text="{_mapName}" keyDown="handleEnterKey(event)"/>
+			<mx:Button label="Apply" click="apply()"/>
+		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:Button label="Remove this Node" click="handleRemoveNodeClick()"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.linkBindableProperty;
+			import weave.api.unlinkBindableProperty;
+			import weave.core.LinkableDynamicObject;
+			import weave.ui.infomap.core.DateRangeFilter;
+			import weave.ui.infomap.core.InfoMapNode;
+			import weave.ui.infomap.layout.CascadeLayout;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.ui.infomap.layout.RadialLayout;
+			import weave.ui.infomap.utils.DateUtils;
+			
+			private static var _parentNode:LinkToInfoMapComponent= null;
+			
+			[Bindable]
+			private var _leftAlignWidth:Number = 100;
+			[Bindable]
+			private static var _mapName:String = '';
+			
+			
+			private static var _instance:LinktoInfoMapSettings = null;
+			
+			public static function openInstance(parentNode:LinkToInfoMapComponent):void
+			{
+				_parentNode = parentNode;
+				_mapName = _parentNode.mapName.value;
+
+				if(_instance)
+				{
+					PopUpManager.addPopUp(_instance,parentNode);
+				}
+				else
+					_instance = PopUpManager.createPopUp(parentNode,LinktoInfoMapSettings) as LinktoInfoMapSettings;
+				
+			}
+			
+			
+			private function handleEnterKey(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					apply();
+				}
+			}
+			
+			private function apply():void
+			{
+				if(_parentNode == null)
+					return;
+				_parentNode.mapName.value = mapName.text;
+			}
+			
+			private function handleRemoveNodeClick():void
+			{
+				Alert.show("Are you sure you want to remove this node?",
+					"Remove Node?",
+					Alert.YES | Alert.NO,
+					null,
+					function(e:CloseEvent):void {
+						// if the user chose yes to removing the menu bar
+						if(e.detail == Alert.YES)
+						{
+							_parentNode.parent.removeChild(_parentNode);
+//							var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableOwner(_parentNode) as ILinkableHashMap);
+//							var nodeName:String  = parent.getName(_parentNode);
+//							parent.removeObject(nodeName);
+							removePanel();
+						}
+						else if(e.detail == Alert.NO)
+						{
+							return;
+						}
+					});
+			}
+			
+			
+		]]>
+	</mx:Script>
+</DraggablePanel>

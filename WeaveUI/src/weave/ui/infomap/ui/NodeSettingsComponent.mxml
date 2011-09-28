@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This component is used for handling node operations.
+It has a text area which diplays the keywords.
+It has 4 icons to:
+Close/Delete the node
+Edit the keyword
+Search within the node.
+Filter by Date
+Info to provide a tooltip describing the node (like number of documents found)
+
+-->
+<ControlPanel
+	xmlns="weave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	title="Node Settings"
+	layout="absolute"
+	alpha="0.8"
+	height="55%"
+	removedFromStage="rangeComboBox.selectedItem = '--Quick Select--';" xmlns:ui="weave.ui.infomap.ui.*"
+	addedToStage="if(sourcesGrid){sourcesGrid.refreshSourcesList();}if(feedTitle)feedTitle.text='';if(feedURL)feedURL.text='';"
+	>
+	<!--Non visual tags like Validator, Style,  etc should be added as the immediate children of the root mxml tag-->
+	<mx:Resize id="showListEffect" duration="500" target="{sourceBox}" heightTo="300"/>
+	<mx:Resize id="hideListEffect" duration="500" target="{sourceBox}" heightTo="0"/>
+	<mx:VBox paddingLeft="5" paddingTop="5" label="Basic">
+		<mx:HBox>
+			<mx:Label text="Edit Query: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+			<mx:TextInput id="keyword" keyDown="handleEnterKey(event)"/>
+			<mx:Button label="Apply" click="applyKeyword()"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Search in Node: " fontWeight="bold"  width="{_leftAlignWidth}"/>					
+			<mx:TextInput id="searchTextInput" keyUp="handleEnterKeyOnSearch(event)"/>
+		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:Label fontWeight="bold" text="Change Layout: "  width="{_leftAlignWidth}"/>			
+			<CustomComboBox id="layoutComboBox" change="handleLayoutChange()"/>
+		</mx:HBox>
+		<mx:Label fontWeight="bold" text="Sources to Query*"/>
+		<mx:List id="selectedSourcesList" selectable="true" allowMultipleSelection="true" width="50%"/>
+		<mx:Text fontSize="9" text="*if list is empty all available sources are queried."/>
+		<mx:Button label="Delete Selected Sources" click="removeSourceFromSelecedList()"/>
+	</mx:VBox>
+
+	<mx:VBox label="Add Date Filter">
+		<mx:Label text="Set a Date Range" fontWeight="bold"  />
+		<mx:HBox>
+			<mx:VBox>
+				<mx:Label fontWeight="normal" text="Start Date"/>				
+				<mx:DateChooser id="startRange" change="handleStartDateChange()" showToday="false"/>
+			</mx:VBox>
+			<mx:VBox>
+				<mx:Label fontWeight="normal" text="End Date"/>
+				<mx:DateChooser id="endRange" change="handleEndDateChange()" showToday="false"/>
+			</mx:VBox>
+		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:ComboBox change="handleDateFilterComboBoxChange()" id="rangeComboBox"/> <!--The Combo Box is not linked to the filterObject-->
+			<mx:Button label="Remove Date Filter" click="handleClearDates()"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:VBox label="Add Source Filter">
+		<!--<mx:Te width="100%" text="By default, the query searches in all the available data sources. You can choose which sources you want the query to search.
+				 Add a new source or make a selection from currently available sources."/>-->
+		<mx:Label text="Add a new Source: " />
+		<mx:HBox>
+			<mx:Label text="Title"/>
+			<mx:TextInput width="100" id="feedTitle" borderStyle="solid" cornerRadius="5" />
+			<mx:Label text="URL"/>
+			<mx:TextInput width="300" id="feedURL" borderStyle="solid" cornerRadius="5" />
+			<mx:Button label="Add" click="addRssFeed()" />
+		</mx:HBox>	
+		<mx:Label id="errorMsg" color="red" fontWeight="bold" text="Both fields are required." visible="false"/>
+		<!--<mx:Button id="sourcesListButton" label="Show Available Sources" click="handleSourceListClick()"/>-->
+		<mx:VBox id="sourceBox" height="100%" width="100%">
+			<ui:SourcesListComponent id="sourcesGrid" width="100%"/>
+			<mx:Button label="Add" click="addSelectedSources()"/>
+		</mx:VBox>
+	</mx:VBox>
+		 <mx:Script>
+			 <![CDATA[
+				 import mx.binding.utils.BindingUtils;
+				 import mx.collections.ArrayCollection;
+				 import mx.collections.Sort;
+				 import mx.collections.SortField;
+				 import mx.controls.Alert;
+				 import mx.events.CloseEvent;
+				 import mx.managers.PopUpManager;
+				 import mx.utils.StringUtil;
+				 
+				 import weave.api.WeaveAPI;
+				 import weave.api.core.ILinkableHashMap;
+				 import weave.api.linkBindableProperty;
+				 import weave.api.unlinkBindableProperty;
+				 import weave.core.LinkableDynamicObject;
+				 import weave.core.LinkableString;
+				 import weave.data.CSVParser;
+				 import weave.ui.infomap.admin.InfoMapAdminInterface;
+				 import weave.ui.infomap.core.DateRangeFilter;
+				 import weave.ui.infomap.core.InfoMapNode;
+				 import weave.ui.infomap.layout.CascadeLayout;
+				 import weave.ui.infomap.layout.GridLayout;
+				 import weave.ui.infomap.layout.IInfoMapNodeLayout;
+				 import weave.ui.infomap.layout.NodeHandler;
+				 import weave.ui.infomap.layout.RadialLayout;
+				 import weave.ui.infomap.utils.DateUtils;
+				 
+				 [Inspectable]
+				 public var nodeHandler:NodeHandler= null;
+				 
+				 [Bindable]
+				 private var _leftAlignWidth:Number = 100;
+				 
+				 
+				 private var startDateStr:LinkableString = new LinkableString('');
+				 private var endDateStr:LinkableString = new LinkableString('');
+				 
+				 
+				 override protected function childrenCreated():void
+				 {
+					 
+					 rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
+					 //setting the dataprovide here fixes the combo box bug where it still showed the first item one by default
+					 //even if it was not the selected item
+					 layoutComboBox.dataProvider =  ['Radial','Cascade','Grid'] ;
+					 
+					 keyword.text = nodeHandler.node.keywords.value;
+					 
+					 
+					 linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text");
+					 nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,null,true);
+					 nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,null,true);
+					 
+					startDateStr.addGroupedCallback(this,handleDateChange);
+					endDateStr.addGroupedCallback(this,handleDateChange);
+					
+					nodeHandler.node.sources.addGroupedCallback(this,handleSources,true);
+					
+					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,null,true);
+					
+					 this.targets = [nodeHandler.node.keywords,nodeHandler.layout,nodeHandler.node.sources,nodeHandler.node.dateFilter.startDate,nodeHandler.node.dateFilter.endDate]
+				 }
+				 
+				 private function handleLayoutObjectChange():void
+				 {
+					 if(nodeHandler.layout.internalObject)
+					 	layoutComboBox.selectedLabel = (nodeHandler.layout.internalObject as IInfoMapNodeLayout).name;
+				 }
+				 
+				 // we only want to make a query if both dates are set. 
+				 private function handleDateChange():void
+				 {
+					 if(startDateStr.value == '' || endDateStr.value == '')
+						 return;
+					 nodeHandler.node.dateFilter.startDate.value = startDateStr.value;
+					 nodeHandler.node.dateFilter.endDate.value = endDateStr.value;
+					 
+				 }
+				 
+				 private function handleStartDateFilterChange():void
+				 {
+					 if(nodeHandler.node.dateFilter.startDate.value != null)
+					 {
+						 startDateStr.value = nodeHandler.node.dateFilter.startDate.value;
+					 	startRange.selectedDate = DateUtils.getDateFromString(nodeHandler.node.dateFilter.startDate.value);
+					 }
+					 if(nodeHandler.node.dateFilter.startDate.value.search('NOW') == -1)
+					 	rangeComboBox.selectedItem = "--Quick Select--";
+				 }
+				 
+				 private function handleEndDateFilterChange():void
+				 {
+					 if(nodeHandler.node.dateFilter.endDate.value != null)
+					 {
+						endDateStr.value = nodeHandler.node.dateFilter.endDate.value;
+					 	endRange.selectedDate = DateUtils.getDateFromString(nodeHandler.node.dateFilter.endDate.value);
+					 }
+					 if(nodeHandler.node.dateFilter.startDate.value.search('NOW') == -1)
+						 rangeComboBox.selectedItem = "--Quick Select--";
+				 }
+				 
+				 private function applyKeyword():void
+				 {
+					 if(nodeHandler && nodeHandler.node && keyword)
+						 nodeHandler.node.keywords.value = keyword.text;
+				 }
+				 
+				 private function handleLayoutChange():void
+				 {
+					 var currentLayout:LinkableDynamicObject = nodeHandler.layout;
+					 if(layoutComboBox.selectedItem as String == 'Radial')
+					 {
+						 if(currentLayout.internalObject is RadialLayout)
+							 return;
+						 currentLayout.removeObject();
+						 currentLayout.requestLocalObject(RadialLayout,false);
+					 }else if(layoutComboBox.selectedItem as String == 'Cascade')
+					 {
+						 if(currentLayout.internalObject is CascadeLayout)
+							 return;
+						 currentLayout.removeObject();
+						 currentLayout.requestLocalObject(CascadeLayout,false);
+					 }else if(layoutComboBox.selectedItem as String == 'Grid')
+					 {
+						 if(currentLayout.internalObject is GridLayout)
+							 return;
+						 currentLayout.removeObject();
+						 currentLayout.requestLocalObject(GridLayout,false);
+					 }
+					 
+				 }
+				 
+				 
+				 
+				 private function handleEnterKey(event:KeyboardEvent):void
+				 {
+					 if(event.keyCode == Keyboard.ENTER)
+					 {
+						 event.preventDefault();
+						 editQuery();
+					 }
+				 }
+				 
+				 private function editQuery():void
+				 {
+					 nodeHandler.node.keywords.value = keyword.text;
+				 }
+				 
+				 private function handleEnterKeyOnSearch(event:KeyboardEvent):void
+				 {
+					 if(event.keyCode == Keyboard.ENTER)
+					 {
+						 event.preventDefault();
+						 return;
+					 }
+					 
+					 nodeHandler.searchFilter.value = searchTextInput.text;
+				 }
+				 
+				 private function handleDateFilterComboBoxChange():void
+				 {
+					 //we set this to empty string so that a query is after the end date is set and before the start date is set
+					 startDateStr.value = '';
+					 
+					 endDateStr.value = 'NOW';
+					 if(rangeComboBox.selectedItem == 'Since Last 1 Day')
+					 {
+						 startDateStr.value = 'NOW-01DAY';
+					 }else if(rangeComboBox.selectedItem == 'Since Last 3 Days')
+					 {
+						 startDateStr.value = 'NOW-03DAYS';
+					 }else if(rangeComboBox.selectedItem == 'Since Last Week')
+					 {
+						 startDateStr.value = 'NOW-07DAYS';
+					 }else if(rangeComboBox.selectedItem == 'Since Last Month')
+					 {
+						 startDateStr.value = 'NOW-01MONTH';
+					 }else if(rangeComboBox.selectedItem == 'Since Last Year')
+					 {
+						 startDateStr.value = 'NOW-12MONTHS';
+					 }else if(rangeComboBox.selectedItem == '--Choose--')
+					 {
+//						handleClearDates();
+//						return;
+					 }
+					 
+				 }
+				 
+				 private function handleStartDateChange():void
+				 {
+					 startDateStr.value = startRange.selectedDate.toDateString();
+					 
+					 rangeComboBox.selectedItem = "--Quick Select--";
+				 }
+				 
+				 private function handleEndDateChange():void
+				 {
+					 endDateStr.value = endRange.selectedDate.toDateString();
+					 
+					 rangeComboBox.selectedItem = "--Quick Select--";
+				 }
+				 
+				 
+				 private function handleClearDates():void
+				 {
+					 //clearning dates in filterObject
+					 nodeHandler.node.dateFilter.endDate.value = '';
+					 nodeHandler.node.dateFilter.startDate.value = '';
+					 
+					 
+					 startRange.selectedDate = null;
+					 endRange.selectedDate = null;
+					 startRange.invalidateDisplayList();
+					 endRange.invalidateDisplayList();
+					 
+					 rangeComboBox.selectedItem = "--Quick Select--";
+				 }
+				 
+				 private function addRssFeed():void
+				 {
+					 var url:String = feedURL.text;
+					 url = StringUtil.trim(url);
+					 if(url == "")
+					 {
+						 errorMsg.visible = true;
+						 return;	
+					 }
+					 
+					 var title:String = feedTitle.text;
+					 title = StringUtil.trim(title);
+					 if(title == "")
+					 {
+						 errorMsg.visible = true;	
+						 return;
+					 }	
+					 
+					 InfoMapAdminInterface.instance.addRssFeed(feedTitle.text,feedURL.text);
+					 
+					 errorMsg.visible = false;
+					 
+					 addSourceString(feedTitle.text);
+					 
+				 }
+				 
+				 
+				/*  private function handleSourceListClick():void
+				 {
+					if(sourcesListButton.label == 'Show Available Sources')
+					{
+						sourcesListButton.label = 'Hide Available Sources';
+						hideListEffect.stop();
+						showListEffect.play();
+					}
+					else 
+					{
+						sourcesListButton.label = 'Show Available Sources';
+						showListEffect.stop();
+						hideListEffect.play();
+					}
+				 }*/ 
+				 
+				private function  addSelectedSources():void
+				{
+					var selectedSources:Dictionary = sourcesGrid.selectedSources;
+					
+					
+					for (var key:String in selectedSources)
+					{
+						addSourceString(key);
+					}
+				}
+				 
+				private function addSourceString(source:String):void
+				{
+					
+					var sources:Array = new Array();
+					
+					if(!nodeHandler.node.sources.value == '')
+						sources = nodeHandler.node.sources.value.split(',');
+					
+					for each(var src:String in sources)
+					{
+						if(src.toLowerCase() == source.toLowerCase())
+							return;
+					}
+					
+					sources.push(source);
+					
+					//sorting so that sources always appear in the same order
+					//this is necessary so that the callbacks on sources are not called simply because the same sources are out of order.
+					sources.sort();
+					
+					nodeHandler.node.sources.value = sources.toString();
+				}
+				private function handleSources():void
+				{
+					if(nodeHandler.node.sources.value == '')
+					{
+						selectedSourcesList.dataProvider = [];
+						return;	
+					}
+					
+					var sourceNames:Array = nodeHandler.node.sources.value.split(',');
+					
+					if(selectedSourcesList.dataProvider)
+						(selectedSourcesList.dataProvider as ArrayCollection).removeAll();
+					
+					selectedSourcesList.dataProvider = sourceNames;
+				}
+				 
+				
+				private function removeSourceFromSelecedList():void
+				{
+					var sourcesToRemove:Array = selectedSourcesList.selectedItems;
+					
+					var currentSources:Array = nodeHandler.node.sources.value.split(',');
+					
+					var temp:Array = [];
+					
+					for each(var source:String in currentSources)
+					{
+						if(sourcesToRemove.indexOf(source) == -1)
+						{
+							temp.push(source);
+						}
+					}
+					
+					nodeHandler.node.sources.value = temp.toString();
+				}
+				 
+			 ]]>
+		 </mx:Script>
+</ControlPanel>

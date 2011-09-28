@@ -133,6 +133,7 @@ package weave
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
+	import weave.ui.infomap.InfoMapLoader;
 	import weave.ui.settings.GlobalUISettings;
 	import weave.ui.settings.InteractivitySubMenu;
 	import weave.utils.BitmapUtils;
@@ -689,6 +690,11 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
 				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
 				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
+
+				createToolMenuItem(Weave.properties.enableInfoMap, "Open Info Map", function():void {
+					InfoMapLoader.openPanel();
+				});
+
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
@@ -1341,8 +1347,20 @@ package weave
 				}
 				
 				SessionedTextBox.createContextMenuItems(this);
+		
+				if(Weave.properties.enableInfoMap.value)
+				{
+					InfoMapLoader.createContextMenuItems(this);
+				}
+
 				PenTool.createContextMenuItems(this);
 					
+
+				if(Weave.properties.enableInfoMap.value)
+				{
+					InfoMapLoader.createContextMenuItems(this);
+				}
+
 				//HelpPanel.createContextMenuItems(this);
 				if (Weave.properties.dataInfoURL.value)
 					addLinkContextMenuItem("Show Information About This Dataset...", Weave.properties.dataInfoURL.value);

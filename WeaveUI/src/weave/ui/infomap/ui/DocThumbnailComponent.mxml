@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This is a Flex Image component modified to adjust to act as a thumbnail for infomap
+so that it can be moved, selected, handle filters.
+-->
+<mx:Image xmlns:mx="http://www.adobe.com/2006/mxml"
+				implements="weave.api.core.ILinkableObject"
+				doubleClickEnabled="true"
+				doubleClick="handleDoubleClick(event)"
+				mouseDown="handleMouseDown()"
+				mouseUp="handleMouseUp(event)"
+				mouseOver="handleMouseOver(event)"
+				mouseOut="handleMouseOut()"
+				>
+		
+	<mx:Script>
+		<![CDATA[
+			import mx.events.DragEvent;
+			import mx.events.MoveEvent;
+			import mx.managers.IFocusManagerComponent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.services.IURLRequestToken;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableDisplayObject;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.SessionManager;
+			import weave.services.URLRequestUtils;
+			import weave.ui.infomap.core.DateRangeFilter;
+			import weave.ui.infomap.core.FilterableInfoMapNode;
+			import weave.ui.infomap.core.IInfoMapNode;
+			import weave.ui.infomap.core.SelectableInfoMapDocument;
+			import weave.ui.infomap.layout.IInfoMapNodeLayout;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.ui.infomap.utils.DateUtils;
+			import weave.utils.BitmapUtils;
+			import weave.utils.CustomCursorManager;
+			
+			/**
+			 * @public
+			 * This variable sets the width of this image.
+			 * */
+			public const imageWidth:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			/**
+			 * @public
+			 * This variable sets the height of this image.
+			 * */
+			public const imageHeight:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			/**
+			 * @public
+			 * This variable sets the alpha/transparency of this image.
+			 * */
+			public const imageAlpha:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			/**
+			 * @public
+			 * This variable sets default border color of this image when it is not selected. Not currently Used.
+			 * */
+			public const defaultBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00000000));
+			/**
+			 * @public
+			 * This variable sets the color of the border of this image when the document is selected.
+			 * */
+			public const highlightedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
+			/**
+			 * @public
+			 * This variable sets the thickness of the border of this image.
+			 * */
+			public const borderThickness:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			/**
+			 * @public
+			 * This variable sets the x position of this image.
+			 * */
+			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			/**
+			 * @public
+			 * This variable sets the y position of this image.
+			 * */
+			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			/**
+			 * @public
+			 * This variable is set when the thumbnail is moved.
+			 * This helps an IInfoMapNodeLayout to decide if it 
+			 * needs to re-compute the position of this image.
+			 * */
+			public const hasBeenMoved:LinkableBoolean = new LinkableBoolean(false);
+			
+			/**
+			 * @private
+			 * The document object whose imageURL is used as the source for this image.
+			 * */
+			private var _doc:SelectableInfoMapDocument;
+			public function set doc(value:SelectableInfoMapDocument):void
+			{
+				_doc = value;
+				_doc.selected.addImmediateCallback(this,highlight);
+				handleImage();
+			}
+			
+			
+			override protected function childrenCreated():void
+			{
+				linkBindableProperty(imageWidth,this,"width");
+				linkBindableProperty(imageHeight,this,"height");	
+				linkBindableProperty(imageAlpha,this,"alpha");
+				
+				linkBindableProperty(xPos,this,"x");
+				linkBindableProperty(yPos,this,"y");
+				
+//				this.addEventListener(MouseEvent.ROLL_OVER,showDocSummary);
+//				this.addEventListener(MouseEvent.ROLL_OUT,removeDocSummary);
+				
+				
+				highlightedBorderColor.addGroupedCallback(this,highlight);
+				
+				var filterableNode:FilterableInfoMapNode = (this.parent as NodeHandler).node as FilterableInfoMapNode;
+				//adding callback for a search query made in the node handler this belongs to
+				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,null,true);
+				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
+				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
+				
+//				_dateFilterObject = filterableNode.dateFilter;
+//				
+//				//adding callbacks for date filters made in the node handler this belongs to
+//				_dateFilterObject.startDate.addGroupedCallback(this,handleDateFilter);
+//				_dateFilterObject.endDate.addGroupedCallback(this,handleDateFilter);
+			}
+			
+			
+			private function handleDefaultBorderColorChange():void
+			{
+					defaultBorderColor.value = (this.parent as NodeHandler).defaultThumbnailBorderColor.value;
+			}
+			
+			private function handleSelectedBorderColorChange():void
+			{
+				highlightedBorderColor.value = (this.parent as NodeHandler).selectedThumbnailBorderColor.value;
+			}
+			
+			//this function is called when a local search is made in the node handler this belongs to.
+			//if a match for the search query is not found in the doc object, it makes the image invisible
+			private function handleLocalSearchFilter():void
+			{
+				if(_doc == null)
+					return;
+				
+				var searchKey:String = (this.parent as NodeHandler).searchFilter.value;
+				if(searchKey == "" || searchKey == null)
+				{
+					this.visible = true;
+					return;
+				}
+				
+				if(_doc.title.value.search(searchKey) == -1)
+					if(_doc.summary.value.search(searchKey) == -1)
+					{
+						this.visible = false;
+						return;
+					}
+				
+				this.visible = true;
+				
+			}
+			
+			private var _dateFilterObject:DateRangeFilter;
+			private function handleDateFilter():void
+			{
+				
+				if(_dateFilterObject.startDate == null || _dateFilterObject.endDate == null)
+				{
+					this.visible = true;
+					return;
+				}
+				
+				
+				//if date is empty we do nothing. May change later
+				if(_doc.date.value == "")
+				{
+					this.visible = true;
+					return;	
+				}
+				
+				var s:String = _dateFilterObject.startDate.value;
+				var e:String = _dateFilterObject.endDate.value;
+				var d:String =_doc.date.value;
+				
+				//if either the start date or the end date is not set, do nothing. Sets the image back to visible
+				if(s == '' || s == null || e =='' || e == null)
+				{
+					this.visible = true;					
+					return;
+				}
+				
+				//if date of doc object is within the range set visibility to true else to false
+				this.visible = DateUtils.isDateStringWithinRange(d,s,e);
+				
+				
+			}
+			
+			private var token:IURLRequestToken;
+			
+			private function handleImage():void
+			{
+				//temporary fix. Fault event is not called when thumnail is not found.
+				this.source = _noImage;
+				token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_doc.imageURL.value),handleImageRequest,handleImageFaultRequest);
+				this.width = imageWidth.value;
+				this.height = imageHeight.value;
+				
+					
+			}
+			
+			public function dispose():void
+			{
+				//if this image is disposed, then we cancel the image content request
+				if(token)
+					token.cancelRequest();
+			}
+			
+			//There is no option to add borders to a Flex Image Component. As a workaround, we override the updateDisplayList,
+			//so if the doc object is selected we draw a rectangle around the image to act as border.
+			//Solution from :http://www.flexer.info/2008/06/10/how-to-make-an-image-with-border/
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+				if(_doc == null)
+					return;
+				
+				// clear graphics
+				// we want only one rectangle
+				graphics.clear();
+				// set line style with with 0 and alpha 0
+				if(_doc.selected.value)
+					graphics.lineStyle(2,highlightedBorderColor.value,
+					1,false);
+				else if(_mouseOver || _mouseDown) 
+					graphics.lineStyle(2,defaultBorderColor.value,
+						1,false);
+				else
+					graphics.lineStyle(0,0,
+						0,false);
+				// draw rectangle
+				graphics.drawRect(-0.5,
+					-0.5,
+					this.width+0.5,
+					this.height+0.5);
+					graphics.endFill();	
+			}
+			
+			private function handleImageRequest(event:ResultEvent,token:Object=null):void
+			{
+				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
+					return;
+				this.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,imageWidth.value,imageHeight.value));
+			}
+			
+			[@Embed(source='/weave/resources/images/no-image.gif')]
+			private var _noImage:Class;
+			private function handleImageFaultRequest(event:FaultEvent,token:Object=null):void
+			{
+				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
+					return;
+				this.source = _noImage;
+			}
+			
+			private var _mouseOver:Boolean = false;
+			private function handleMouseOver(event:MouseEvent):void
+			{
+				_mouseOver = true;
+				if(!event.buttonDown)
+				{
+					this.invalidateDisplayList();
+					showDocSummary(event);
+				}
+			}
+			
+			
+			
+			private function handleDoubleClick(event:Event):void
+			{
+				if(_doc.url.value == "")
+					return;
+				
+				navigateToURL(new URLRequest(_doc.url.value));
+			}
+			
+			private var dragged:Boolean = false;
+			private var _mouseDown:Boolean = false;
+			private function handleMouseDown():void
+			{
+				this.startDrag();
+				removeDocSummary();
+				_mouseDown = true;
+				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+			}
+			
+			private function handleMouseMove(event:MouseEvent):void
+			{
+				dragged = true;	
+				hasBeenMoved.value = true;
+				stage.addEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
+			}
+			
+			private function handleStageMouseUp(event:MouseEvent):void
+			{
+				if(_mouseDown)
+				{
+					stage.removeEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
+					handleMouseUp();
+				}
+			}
+			
+			private function handleMouseUp(event:MouseEvent=null):void
+			{
+				//if the mouse is not down on this do nothing
+				if(!_mouseDown)
+					return;
+				
+				_mouseDown = false;
+				this.stopDrag();
+				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				
+				this.invalidateDisplayList();
+				//if it is drag move then we do nothing, else the mouseUp is a selection
+				if(dragged)
+				{
+					dragged = false;
+					return;
+				}
+
+				//toggling selection
+				if(_doc.selected.value)
+					_doc.selected.value = false;
+				else
+				{
+					_doc.selected.value = true;
+				}
+				
+				removeDocSummary();
+				
+			}
+			
+			private function handleMouseOut():void
+			{
+				_mouseOver = false;
+				
+				//fix for buggy drag-drop
+				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				
+				this.invalidateDisplayList();
+				
+				removeDocSummary();
+			}
+
+			private	var docPreview:DocumentSummaryComponent;
+			private function showDocSummary(event:MouseEvent):void
+			{
+				DocumentSummaryComponent.show(event.stageX,event.stageY,_doc,this);
+				
+			}
+			
+			private function removeDocSummary(event:Event=null):void
+			{
+				DocumentSummaryComponent.hide();
+			}
+			
+			private function highlight():void
+			{
+				if(_doc == null)
+					return;
+				
+				//this will force a call to the updateDisplayList which will draw a border around this image
+				this.invalidateDisplayList();
+			}
+		]]>
+	</mx:Script>
+	
+	<!--<mx:Image id="img"/>-->
+</mx:Image>
