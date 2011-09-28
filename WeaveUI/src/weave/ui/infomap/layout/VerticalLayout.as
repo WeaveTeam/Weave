@@ -3,16 +3,16 @@ package weave.ui.infomap.layout
 	import flash.display.Graphics;
 	
 	import weave.ui.infomap.ui.DocThumbnailComponent;
-
-	public class CascadeLayout implements IInfoMapNodeLayout
+	
+	public class VerticalLayout implements IInfoMapNodeLayout
 	{
-		public function CascadeLayout()
+		public function VerticalLayout ()
 		{
 		}
 		
 		public function get name():String
 		{
-			return 'Cascade';
+			return 'Vertical';
 		}
 		
 		private var _parentNodeHandler:NodeHandler;
@@ -67,7 +67,6 @@ package weave.ui.infomap.layout
 					thumbnail.y = startY;			
 					thumbnail.x = startX;
 					
-					startX = startX - 5;
 					startY = startY + 5;
 				}
 			}	

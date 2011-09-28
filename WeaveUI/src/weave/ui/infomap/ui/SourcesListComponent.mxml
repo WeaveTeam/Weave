@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns="weave.ui.*"
+		 xmlns:mx="http://www.adobe.com/2006/mxml"
+		 >
+	<mx:Label text="Select from current sources"/>
+	<mx:DataGrid itemClick="handleItemClick(event)" selectable="true" id="sourcesList" width="100%">
+		<mx:columns>
+			<mx:DataGridColumn width="50" dataField="0" sortDescending="false" headerText="Select">
+			<mx:itemRenderer>
+				<mx:Component>
+					<mx:CheckBox paddingLeft="5" selected="{data[0]}" change="outerDocument.handleCheckBoxChange(event,data)"/>
+				</mx:Component>
+			</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn dataField="1" sortDescending="true" headerText="Title"/>
+			<mx:DataGridColumn dataField="2" headerText="URL"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:Script>
+		<![CDATA[
+			import weave.ui.infomap.admin.InfoMapAdminInterface;
+			
+			public var selectedSources:Dictionary = new Dictionary();
+			override protected function childrenCreated():void
+			{
+				refreshSourcesList();
+			}
+			
+			public function refreshSourcesList():void
+			{
+				var sources:Array = new Array();
+				
+				//setting a value for the checkbox datagrid column.
+				//not sure if this is the right method
+				for each(var feedsRow:Array in InfoMapAdminInterface.instance.rssFeeds)
+				{
+					sources.push([false].concat(feedsRow));
+				}
+				
+				sourcesList.dataProvider = sources;
+			}
+			
+			private function handleItemClick(event:Event):void
+			{
+				//disable selection on item click. 
+				//Selection will only be allowed by ticking checkbox.
+				event.preventDefault();	
+			}
+			
+			//defined as public so that outerDocument can access this function
+			public function handleCheckBoxChange(event:Event,dataRow:Object):void
+			{
+				if((event.target).selected)
+				{
+					selectedSources[dataRow[1]] = true;
+					dataRow[0] = true; //we do this because the checkbox in the itemrenderer should know if it has to be selected or not* 
+				}
+				else
+				{
+					dataRow[0] = false //we do this because the checkbox in the itemrenderer should know if it has to be selected or not*						
+					delete selectedSources[dataRow[1]];
+				}
+				
+				//* Read the Recycling Renderers section in this page: http://www.adobe.com/devnet/flex/articles/itemrenderers_pt1.html
+				
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

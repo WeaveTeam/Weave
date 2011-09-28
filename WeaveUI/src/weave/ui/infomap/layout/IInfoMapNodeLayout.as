@@ -8,6 +8,13 @@ package weave.ui.infomap.layout
 
 	public interface IInfoMapNodeLayout extends ILinkableObject
 	{
+		
+		
+		/**
+		 * This is name of the layout
+		 **/
+		function get name():String;
+		
 		/**
 		 * This is a pointer to the NodeHandler using this layout
 		 */

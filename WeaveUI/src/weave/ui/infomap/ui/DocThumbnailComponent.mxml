@@ -8,6 +8,8 @@ so that it can be moved, selected, handle filters.
 				doubleClick="handleDoubleClick(event)"
 				mouseDown="handleMouseDown()"
 				mouseUp="handleMouseUp(event)"
+				mouseOver="handleMouseOver(event)"
+				mouseOut="handleMouseOut()"
 				>
 		
 	<mx:Script>
@@ -62,7 +64,7 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets default border color of this image when it is not selected. Not currently Used.
 			 * */
-			public const defaultBorderColor:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const defaultBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00000000));
 			/**
 			 * @public
 			 * This variable sets the color of the border of this image when the document is selected.
@@ -114,21 +116,34 @@ so that it can be moved, selected, handle filters.
 				linkBindableProperty(xPos,this,"x");
 				linkBindableProperty(yPos,this,"y");
 				
-				this.addEventListener(MouseEvent.ROLL_OVER,showDocSummary);
-				this.addEventListener(MouseEvent.ROLL_OUT,removeDocSummary);
+//				this.addEventListener(MouseEvent.ROLL_OVER,showDocSummary);
+//				this.addEventListener(MouseEvent.ROLL_OUT,removeDocSummary);
 				
 				
 				highlightedBorderColor.addGroupedCallback(this,highlight);
 				
 				var filterableNode:FilterableInfoMapNode = (this.parent as NodeHandler).node as FilterableInfoMapNode;
 				//adding callback for a search query made in the node handler this belongs to
-				filterableNode.searchFilter.addImmediateCallback(this,handleLocalSearchFilter);
+				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,null,true);
+				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
+				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
 				
-				_dateFilterObject = filterableNode.dateFilter;
-				
-				//adding callbacks for date filters made in the node handler this belongs to
-				_dateFilterObject.startDate.addGroupedCallback(this,handleDateFilter);
-				_dateFilterObject.endDate.addGroupedCallback(this,handleDateFilter);
+//				_dateFilterObject = filterableNode.dateFilter;
+//				
+//				//adding callbacks for date filters made in the node handler this belongs to
+//				_dateFilterObject.startDate.addGroupedCallback(this,handleDateFilter);
+//				_dateFilterObject.endDate.addGroupedCallback(this,handleDateFilter);
+			}
+			
+			
+			private function handleDefaultBorderColorChange():void
+			{
+					defaultBorderColor.value = (this.parent as NodeHandler).defaultThumbnailBorderColor.value;
+			}
+			
+			private function handleSelectedBorderColorChange():void
+			{
+				highlightedBorderColor.value = (this.parent as NodeHandler).selectedThumbnailBorderColor.value;
 			}
 			
 			//this function is called when a local search is made in the node handler this belongs to.
@@ -138,8 +153,7 @@ so that it can be moved, selected, handle filters.
 				if(_doc == null)
 					return;
 				
-				var filterableNode:FilterableInfoMapNode = (this.parent as NodeHandler).node as FilterableInfoMapNode;
-				var searchKey:String = filterableNode.searchFilter.value;
+				var searchKey:String = (this.parent as NodeHandler).searchFilter.value;
 				if(searchKey == "" || searchKey == null)
 				{
 					this.visible = true;
@@ -226,8 +240,11 @@ so that it can be moved, selected, handle filters.
 				graphics.clear();
 				// set line style with with 0 and alpha 0
 				if(_doc.selected.value)
-					graphics.lineStyle(1,highlightedBorderColor.value,
+					graphics.lineStyle(2,highlightedBorderColor.value,
 					1,false);
+				else if(_mouseOver || _mouseDown) 
+					graphics.lineStyle(2,defaultBorderColor.value,
+						1,false);
 				else
 					graphics.lineStyle(0,0,
 						0,false);
@@ -255,36 +272,18 @@ so that it can be moved, selected, handle filters.
 				this.source = _noImage;
 			}
 			
-			
-			//setting focus to detect if control key is pressed
-			private var _oldFocus:IFocusManagerComponent;
-			private function handleMouseOver():void
+			private var _mouseOver:Boolean = false;
+			private function handleMouseOver(event:MouseEvent):void
 			{
-				_oldFocus = focusManager.getFocus()
-				this.setFocus();
+				_mouseOver = true;
+				if(!event.buttonDown)
+				{
+					this.invalidateDisplayList();
+					showDocSummary(event);
+				}
 			}
 			
-			private function handleMouseOut():void
-			{
-				if(_oldFocus)
-					_oldFocus.setFocus();
-			}
 			
-//			private var _ctrlPressed:Boolean = false;
-//			private function handleKeyPress(event:KeyboardEvent):void
-//			{
-//				if(event.keyCode == Keyboard.CONTROL)
-//				{
-//					CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
-//					_ctrlPressed = true;						
-//				}
-//			}
-//			
-//			private function handleKeyRelease(event:KeyboardEvent):void
-//			{
-//				_ctrlPressed = false;
-//				CustomCursorManager.removeCurrentCursor();
-//			}
 			
 			private function handleDoubleClick(event:Event):void
 			{
@@ -295,24 +294,42 @@ so that it can be moved, selected, handle filters.
 			}
 			
 			private var dragged:Boolean = false;
+			private var _mouseDown:Boolean = false;
 			private function handleMouseDown():void
 			{
+				this.startDrag();
+				removeDocSummary();
+				_mouseDown = true;
 				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void
 			{
-				this.startDrag();
 				dragged = true;	
 				hasBeenMoved.value = true;
+				stage.addEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
 			}
 			
-				
-			private function handleMouseUp(event:MouseEvent):void
+			private function handleStageMouseUp(event:MouseEvent):void
 			{
+				if(_mouseDown)
+				{
+					stage.removeEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
+					handleMouseUp();
+				}
+			}
+			
+			private function handleMouseUp(event:MouseEvent=null):void
+			{
+				//if the mouse is not down on this do nothing
+				if(!_mouseDown)
+					return;
+				
+				_mouseDown = false;
 				this.stopDrag();
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				
+				this.invalidateDisplayList();
 				//if it is drag move then we do nothing, else the mouseUp is a selection
 				if(dragged)
 				{
@@ -328,31 +345,26 @@ so that it can be moved, selected, handle filters.
 					_doc.selected.value = true;
 				}
 				
-				
-				//TODO: if this thumbnail has been dragged then we need to decide if it should move independently of the node handler 
-				//or if it should still be linked. For now, we leave it linked to the node handler
-				if(dragged && this.parent as IInfoMapNodeLayout)
-				{
-//					var parentNode:InfoMapNode = this.parent as InfoMapNode;
-//					var parentPanelMap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableObjectOwner(parentNode) as LinkableHashMap;
-//					var parentPanel:InfoMapPanel = WeaveAPI.SessionManager.getLinkableObjectOwner(parentPanelMap) as InfoMapPanel;
-//					var checkLocal:Point = parentPanel.globalToLocal(new Point(event.stageX,event.stageY))
-//					var checkContent:Point = parentPanel.globalToContent(new Point(event.stageX,event.stageY))
-//					
-//					var name:String = parentNode.docs.getName(this);
-//					var copiedObject:DocThumbnailComponent = parentPanelMap.copyObject(name,this) as DocThumbnailComponent;
-//					parentNode.docs.removeObject(name);
-//					copiedObject.move(checkContent.x,checkContent.y);
-				}
 				removeDocSummary();
 				
 			}
 			
+			private function handleMouseOut():void
+			{
+				_mouseOver = false;
+				
+				//fix for buggy drag-drop
+				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				
+				this.invalidateDisplayList();
+				
+				removeDocSummary();
+			}
+
 			private	var docPreview:DocumentSummaryComponent;
 			private function showDocSummary(event:MouseEvent):void
 			{
 				DocumentSummaryComponent.show(event.stageX,event.stageY,_doc,this);
-				_oldFocus = focusManager.getFocus()
 				
 			}
 			

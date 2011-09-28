@@ -40,6 +40,15 @@ package weave.ui.infomap
 			Weave.root.setNameOrder(["InfoMapPanel"]);
 		}
 		
+		public static function openPanelWithName(mapName:String):void
+		{
+			var panel:InfoMapPanel = Weave.root.requestObject(mapName,InfoMapPanel,false);
+			panel.title = mapName;
+			//show infomap panel
+			panel.restorePanel();
+			Weave.root.setNameOrder([mapName]);
+		}
+		
 		/**
 		 * Creates a menu item
 		 **/

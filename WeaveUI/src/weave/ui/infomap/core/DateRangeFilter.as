@@ -2,6 +2,7 @@ package weave.ui.infomap.core
 {
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
 
 	public class DateRangeFilter implements ILinkableObject
@@ -15,8 +16,8 @@ package weave.ui.infomap.core
 		{
 		}
 		
-		public const startDate:LinkableString = newLinkableChild(this,LinkableString);
-		public const endDate:LinkableString = newLinkableChild(this,LinkableString);
+		public const startDate:LinkableString = registerLinkableChild(this,new LinkableString(''));
+		public const endDate:LinkableString = registerLinkableChild(this,new LinkableString(''));
 		
 	}
 }

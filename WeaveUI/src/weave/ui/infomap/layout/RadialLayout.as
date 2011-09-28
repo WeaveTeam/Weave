@@ -8,12 +8,16 @@ package weave.ui.infomap.layout
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.ui.infomap.ui.DocThumbnailComponent;
-	import weave.ui.infomap.ui.NodeControlComponent;
 
 	public class RadialLayout implements IInfoMapNodeLayout
 	{
 		public function RadialLayout()
 		{
+		}
+		
+		public function get name():String
+		{
+			return 'Radial';
 		}
 		
 		public const radius:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100),plotThumbnails,true);
@@ -29,14 +33,16 @@ package weave.ui.infomap.layout
 		public function drawBaseLayout(graphics:Graphics):void
 		{
 			
+			if(_parentNodeHandler == null ||_parentNodeHandler.nodeBase.keywordTextArea ==null)
+				return;
 			graphics.lineStyle(0,0,0);
 			graphics.beginFill(0,0);
 			graphics.drawCircle(0,0,radius.value);
 			
-			_parentNodeHandler.nodeControl.keywordTextArea.text = _parentNodeHandler.node.keywords.value;
-			_parentNodeHandler.nodeControl.keywordTextArea.toolTip = _parentNodeHandler.node.keywords.value;
-			_parentNodeHandler.nodeControl.x = - (radius.value/2) - 20; //TODO: the value 20 should be replaced by an offset
-			_parentNodeHandler.nodeControl.keywordTextArea.setStyle("textAlign","center");
+			_parentNodeHandler.nodeBase.keywordTextArea.text = _parentNodeHandler.node.keywords.value;
+			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.node.keywords.value;
+			_parentNodeHandler.nodeBase.x = - (radius.value/2) - 20; //TODO: the value 20 should be replaced by an offset
+			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","center");
 			
 			baseLayoutDrawn = true;
 		}
@@ -57,8 +63,8 @@ package weave.ui.infomap.layout
 			
 			//this image is used to a show a tooltip of information about the node. 
 			//For now it shows the number of documents found.
-			_parentNodeHandler.nodeControl.infoImg.visible = true;
-			_parentNodeHandler.nodeControl.infoImg.toolTip = thumbs.length.toString() + " documents found";
+			_parentNodeHandler.nodeBase.infoImg.visible = true;
+			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbs.length.toString() + " documents found";
 			
 			
 			for(var i:int; i<thumbs.length ;i++)

@@ -27,15 +27,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	title="InfoMap Prototype"
 	clipContent="true"
 	autoLayout="true"
-	
+	paddingLeft="5"
+	paddingTop="5"
 	>
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.collections.Sort;
 			import mx.collections.SortField;
 			import mx.controls.Alert;
+			import mx.controls.Image;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.events.CloseEvent;
 			import mx.events.CollectionEvent;
@@ -61,11 +64,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.jquery.JQueryCaller;
 			import weave.ui.CustomContextMenuManager;
+			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.admin.InfoMapAdminInterface;
 			import weave.ui.infomap.core.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.ui.infomap.utils.DateUtils;
+			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.PopUpUtils;
 			import weave.utils.ProbeTextUtils;
@@ -93,7 +98,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var globalSearchKeyword:LinkableString = new LinkableString('');
 			
 			[Bindable]
-			private var dateFilter:DateRangeFilter = new DateRangeFilter();
+			public var globalDateFilter:DateRangeFilter = new DateRangeFilter();
+			
+			
 			
 			override protected function constructor():void
 			{
@@ -105,30 +112,30 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				UIUtils.linkDisplayObjects(map,nodes,false);
 				sortByTitle();
-				dateFilter.endDate.addImmediateCallback(this,handleEndDateChange);
-				dateFilter.startDate.addImmediateCallback(this,handleStartDateChange);
+//				globalDateFilter.endDate.addImmediateCallback(this,handleEndDateChange);
+//				globalDateFilter.startDate.addImmediateCallback(this,handleStartDateChange);
 				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text");
 			}
 			
 			private function handlePanelResize():void
 			{
 				map.validateNow();
-				searchBox.x = map.width-searchBox.width;
+//				searchBox.x = (map.width-searchBox.width);
 			}
 			
-			private function handleEndDateChange():void
-			{
-				var e:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
-				
-				endDateText.text = DateUtils.getDateInStringFormat(e);
-			}
-			
-			private function handleStartDateChange():void
-			{
-				var s:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
-				
-				startDateText.text = DateUtils.getDateInStringFormat(s);
-			}
+//			private function handleEndDateChange():void
+//			{
+//				var e:Date = DateUtils.getDateFromString(globalDateFilter.endDate.value);
+//				
+////				endDateText.text = DateUtils.getDateInStringFormat(e);
+//			}
+//			
+//			private function handleStartDateChange():void
+//			{
+//				var s:Date = DateUtils.getDateFromString(globalDateFilter.startDate.value);
+//				
+////				startDateText.text = DateUtils.getDateInStringFormat(s);
+//			}
 			
 			
 			private function handleKeyUp(event:KeyboardEvent):void
@@ -138,7 +145,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleAddNodeButtonClick():void
 			{
-				addInfoMapNode(keywordsInput.text,operatorButton.selectedValue as String);
+				if(nodeComboBox.selectedItem == 'Add a Query Node')
+					addInfoMapNode(keywordsInput.text);
+				else if (nodeComboBox.selectedItem == 'Add a Map Node')
+					addInfoMapLink(keywordsInput.text);
+			}
+			
+			private function addInfoMapLink(mapName:String):void
+			{
+				var className:String = getQualifiedClassName(LinkToInfoMapComponent).split("::")[1];
+				var linkNodeName:String = nodes.generateUniqueName(className);
+				var linkNode:LinkToInfoMapComponent = new LinkToInfoMapComponent();
+				linkNode = nodes.requestObject(linkNodeName,LinkToInfoMapComponent,false);
+				linkNode.mapNameTextArea.text = mapName;
+//				linkNode.width = 100;
+//				linkNode.height = 50;
+				
 			}
 			
 			private function handleNodesChildListChange():void
@@ -150,21 +172,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
 				var nodeName:String = nodes.generateUniqueName(className);
-				var nodeLayout:NodeHandler= new NodeHandler();
-				nodeLayout = nodes.requestObject(nodeName,NodeHandler,false);
-				nodeLayout.node.keywords.value = query;
+				var nodeHandler:NodeHandler= new NodeHandler();
+				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				linkBindableProperty(nodeHandler.defaultBorderColor,defaultNodeColor,"selectedColor");
+				linkBindableProperty(nodeHandler.selectedBorderColor,selectedNodeColor,"selectedColor");
+				linkBindableProperty(nodeHandler.defaultThumbnailBorderColor,defaultThumbnailBorder,"selectedColor");
+				linkBindableProperty(nodeHandler.selectedThumbnailBorderColor,selectedThumbnailBorder,"selectedColor");
+				
+				nodeHandler.node.keywords.value = query;
 				if(op ==null)
 				{
 					//TODO: should take value from RadioButton. Value was null when last tried.
-					nodeLayout.node.operator.value = "AND";	
+					nodeHandler.node.operator.value = "OR";	
 				}
 				else{
 					
-					nodeLayout.node.operator.value = op;
-					operatorButton.selectedValue = op;
+					nodeHandler.node.operator.value = op;
+//					operatorButton.selectedValue = op;
 				}
-				nodeLayout.node.dateFilter.startDate.value = startDateText.text;
-				nodeLayout.node.dateFilter.endDate.value = endDateText.text;
+//				nodeLayout.node.dateFilter.startDate.value = startDateText.text;
+//				nodeLayout.node.dateFilter.endDate.value = endDateText.text;
 			}
 			
 			private var loader:URLLoader = null;
@@ -234,28 +261,109 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleDateFilter():void
 			{
-				DateFilterComponent.openInstance(this,dateFilter);
+				DateFilterComponent.openInstance(this,globalDateFilter);
 			}
 			
-			private function clearDateFilter():void
+			private function handleSelectAll():void
 			{
-				startDateText.text = '';
-				endDateText.text = '';
+				var handlers:Array = nodes.getObjects();
+				
+				for (var i:int = 0;i<handlers.length;i++)
+				{
+					if(handlers[i] is NodeHandler)
+						(handlers[i] as NodeHandler).node.selected.value = selectAllCheckBox.selected;
+					
+				}
 			
+				//force callback so in case if the search text is already enetred nodes are informed.
+				//globalSearchKeyword.triggerCallbacks();
+				
 			}
 			
+//			private function clearDateFilter():void
+//			{
+//				startDateText.text = '';
+//				endDateText.text = '';
+//			
+//			}
+			
+			private function handleNodeComboBoxChange():void
+			{
+				if(nodeComboBox.selectedItem == 'Add a Query Node')
+					keywordsInput.toolTip = 'Enter keywords to query';
+				else
+					keywordsInput.toolTip = 'Enter a name to link to an Infomap';
+			}
+			
+			
+			
+			private var _fileLoader:FileReference = null;
+			/**
+			 * browseForfiles: opens up a file browser window to upload CSV files 
+			 **/
+			private function browse():void
+			{
+				if(_fileLoader == null)
+				{
+					_fileLoader = new FileReference();
+					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
+					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+				}
+				
+				_fileLoader.browse();
+			}
+			
+			
+			private function handleDatasetSelected(event:Event):void
+			{
+				_fileLoader.load();
+			}
+			
+			private var _mapImage:BitmapData
+			private var imgLoader:Loader = new Loader();
+			private function handleDatasetLoaded(event:Event):void
+			{
+				imageURL.text = _fileLoader.name;
+				
+//				map.setStyle("backgroundImage",_fileLoader.data);
+				
+				
+				imgLoader.contentLoaderInfo.addEventListener(Event.COMPLETE,handleLoaderComplete);
+				imgLoader.loadBytes(_fileLoader.data);
+				
+				
+			}
+			
+			private function handleLoaderComplete(event:Event):void
+			{
+				var imgBitMap:Bitmap = Bitmap(imgLoader.content);
+				
+				BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
+			}
+			
+			private function saveImage(event:Event):void
+			{
+				
+				_fileLoader.save(_fileLoader.data,_fileLoader.name);
+			}
+			
+			private function clearImage():void
+			{
+				map.graphics.clear();
+			}
 		]]>
 	</mx:Script>
 	<!--the resize code is required so that the content is clipped by the canvas-->
-	<mx:Canvas id="map" clipContent="true" width="100%" height="100%" autoLayout="false" 
+	<mx:Canvas backgroundImage="" id="map" clipContent="true" width="100%" height="100%" autoLayout="false" 
 			   verticalScrollPolicy="off" horizontalScrollPolicy="off" 
 			   resize="map.scrollRect=new Rectangle(0,0,map.width,map.height);handlePanelResize();"><!--For clipping the content at the edges-->
-				<mx:VBox>
+				<mx:HBox paddingLeft="5" paddingTop="5">
 					<mx:HBox>
-						<mx:Label text="Enter Query :"/>
+						<mx:ComboBox id="nodeComboBox" dataProvider="{['Add a Query Node','Add a Map Node']}" fontWeight="bold" change="handleNodeComboBoxChange()"/>
 						<mx:TextInput keyUp="handleKeyUp(event)" id="keywordsInput" enabled="true" cornerRadius="5" borderStyle="solid" toolTip="Separate your keywords by space to apply the operator correctly"/>
+						<mx:Button label="Add" id="addNodeButton" click="handleAddNodeButtonClick()"/>
 					</mx:HBox>
-					<mx:HBox>
+					<!--<mx:HBox>
 						<mx:Label text="Operator: "/>
 						<mx:RadioButtonGroup id="operatorButton" enabled="true"/>
 						<mx:RadioButton groupName="operatorButton" value="OR" label="OR"/>
@@ -268,20 +376,56 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<mx:TextInput  cornerRadius="5" borderStyle="solid" editable="false" id="endDateText" width="75"/>
 						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Select" click="handleDateFilter()"/>
 						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Clear" click="clearDateFilter()"/>
-					</mx:HBox>
-					<mx:Button label="Add" id="addNodeButton" click="handleAddNodeButtonClick()"/>
-					
-				</mx:VBox>
-				<mx:VBox id="searchBox">
-					<mx:HBox>
-						<mx:Label text="Search :"/>
-						<mx:TextInput id="globalSearchTextInput" borderStyle="solid" cornerRadius="5" width="200" /> 
-					</mx:HBox>
-				</mx:VBox>
+					</mx:HBox>-->
+					<mx:Spacer width="150"/>
+					<mx:VBox>
+						<mx:HBox>
+							<mx:Label fontWeight="bold" text="Search in Selected Nodes:"/>
+							<mx:TextInput id="globalSearchTextInput" borderStyle="solid" cornerRadius="5" width="200" />
+							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter in Selected Nodes" click="handleDateFilter()"/>
+							<mx:Spacer width="50"/>
+						</mx:HBox>
+						<mx:CheckBox id="selectAllCheckBox" change="handleSelectAll()" label="Select All Nodes" selected="false"/>
+					</mx:VBox>
+				</mx:HBox>
 				
 		
 		</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">
+		<mx:VBox label="Basic Settings">
+			<mx:HBox>
+				<mx:Label text="Set Background Image: "/>
+				<mx:TextInput editable="false" id="imageURL"/>
+				<mx:Button label="Browse" click="browse()"/>
+				<mx:Button label="Clear" click="clearImage()"/>
+				<mx:Button label="Save" click="saveImage(event)"/>
+			</mx:HBox>
+			<mx:Spacer height="50"/>
+			<mx:HBox>
+				<mx:VBox>
+					<mx:HBox>
+						<mx:ColorPicker id="defaultNodeColor" />
+						<mx:Label width="150" text="Default Node Color"/>				
+					</mx:HBox>
+					
+					<mx:HBox>
+						<mx:ColorPicker id="selectedNodeColor"/>
+						<mx:Label width="150" text="Selected Node Color"/>				
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VBox>
+					<mx:HBox>
+						<mx:ColorPicker id="defaultThumbnailBorder"/>
+						<mx:Label width="200" text="Default Thumbnail Border Color"/>				
+					</mx:HBox>
+					
+					<mx:HBox>
+						<mx:ColorPicker id="selectedThumbnailBorder"/>
+						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
+					</mx:HBox>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
 		<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
 		<mx:Label text="Enter RSS Feed: " />
 		<mx:HBox>
@@ -305,6 +449,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:HBox>
 			<mx:TextArea backgroundColor="0xCCCCCC" borderThickness="0" editable="false" width="500" height="100%" fontWeight="bold" text="The indexing is scheduled to run every hour. You can hit the Index Now button if you want to index your feeds you added recently. Please allow 10 -15 minutes for the results to show up."/>
 		</mx:VBox>
-		
+		<ui:UserWindowSettings targetTool="{this}"/>
 	</ui:ControlPanel>
 </ui:DraggablePanel>

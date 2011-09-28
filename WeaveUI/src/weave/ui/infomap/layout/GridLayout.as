@@ -2,17 +2,18 @@ package weave.ui.infomap.layout
 {
 	import flash.display.Graphics;
 	
+	import weave.compiler.MathLib;
 	import weave.ui.infomap.ui.DocThumbnailComponent;
-
-	public class CascadeLayout implements IInfoMapNodeLayout
+	
+	public class GridLayout implements IInfoMapNodeLayout
 	{
-		public function CascadeLayout()
+		public function GridLayout()
 		{
 		}
 		
 		public function get name():String
 		{
-			return 'Cascade';
+			return 'Grid';
 		}
 		
 		private var _parentNodeHandler:NodeHandler;
@@ -53,24 +54,35 @@ package weave.ui.infomap.layout
 			var startX:Number = _parentNodeHandler.nodeBase.x;
 			var startY:Number = _parentNodeHandler.nodeBase.y;
 			
-			for(var i:int; i<thumbs.length ;i++)
+			var gridSize:Number = Math.round(Math.sqrt(thumbs.length));
+			
+			var count:int = 0;
+			
+			for(var row:int=0; row<gridSize; row++)
 			{
-				var thumbnail:DocThumbnailComponent = thumbs[i];
-				
-				//if the thumbnail already exists use previous x,y values
-				if(!thumbnail.hasBeenMoved.value)
+				for(var col:int=0; col<gridSize; col++)
 				{
+					if(count>=thumbs.length)
+						return;
+					var thumbnail:DocThumbnailComponent = thumbs[count];
+					count++;
 					
-					thumbnail.imageWidth.value = thumbnailSize;
-					thumbnail.imageHeight.value = thumbnailSize;
-					thumbnail.imageAlpha.value = 0.75;
-					thumbnail.y = startY;			
-					thumbnail.x = startX;
-					
-					startX = startX - 5;
-					startY = startY + 5;
+					//if the thumbnail already exists use previous x,y values
+					if(!thumbnail.hasBeenMoved.value)
+					{
+						thumbnail.imageWidth.value = thumbnailSize;
+						thumbnail.imageHeight.value = thumbnailSize;
+						thumbnail.imageAlpha.value = 0.75;
+						
+						thumbnail.y = startY;			
+						thumbnail.x = startX;
+						
+						startY = startY + thumbnailSize;
+					}
 				}
-			}	
+				startX = startX + thumbnailSize;
+			}
+			
 		}
 		
 	}

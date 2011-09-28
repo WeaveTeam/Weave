@@ -1,7 +1,10 @@
 package weave.ui.infomap.core
 {
+	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ICallbackInterface;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -39,6 +42,12 @@ package weave.ui.infomap.core
 		 * This conatins all the thumbnails belonging to this node.
 		 * */ 
 		public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+		
+		/**
+		 * @public 
+		 * This indicates whether the node is selected or not.
+		 * */ 
+		public const selected:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
 		
 	}
 }

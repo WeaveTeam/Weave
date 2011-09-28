@@ -8,18 +8,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import flex.messaging.cluster.RemoveNodeListener;
 
 import infomap.servlets.GenericServlet;
-import infomap.utils.ListUtils;
 import infomap.utils.SQLResult;
 import infomap.utils.SQLUtils;
 
@@ -30,29 +26,22 @@ import infomap.utils.SQLUtils;
 public class AdminService extends GenericServlet{
 	private static final long serialVersionUID = 1L;
        
-    private static String username;
-    private static String password;
-    private static String host;
-    private static String port;
-    private static String database;
-    private static Connection conn = null;
+    private static String username = "root";
+    private static String password = "oic3Ind2";
+    private static String host = "129.63.8.219";
+    private static String port = "3306";
+    private static String database = "solr_sources";
+    private Connection conn = null;
 	
 	public AdminService() {
         
-        getConnection();
+//        getConnection();
     }
     
     private void getConnection()
     {
     	try{
     		Class.forName("com.mysql.jdbc.Driver").newInstance();
-    		
-    		//TODO:change these default settings to reading from a config file
-    		username = "root";
-    		password = "oic3Ind2";
-    		host = "129.63.8.219";
-    		database = "solr_sources";
-    		port="3306";
     		
     		String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
     		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
@@ -75,16 +64,13 @@ public class AdminService extends GenericServlet{
     
     synchronized public Object[][] getRssFeeds()
     {
-    	if(conn == null)
-		{
-    		getConnection();
-		}
-    	
     	String query = "SELECT title,url FROM rss_feeds";
     	SQLResult result = null;
 		try
 		{
-			result = SQLUtils.getRowSetFromQuery(conn, query);
+			String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+			Connection connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+			result = SQLUtils.getRowSetFromQuery(connection, query);
 		}
 		catch (Exception e)
 		{
@@ -98,10 +84,10 @@ public class AdminService extends GenericServlet{
 	{
 		try{
 			
-			if(conn == null)
-			{
-				getConnection();
-			}
+			
+			String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+			
 
 			String query = "SELECT * FROM rss_feeds WHERE url = '"+ url + "'";
 			
@@ -110,6 +96,15 @@ public class AdminService extends GenericServlet{
 			if (checkResult.rows.length != 0)
 			{
 				return "RSS Feed already exists";
+			}
+			
+			String titleQuery = "SELECT * FROM rss_feeds WHERE title = '"+ title + "'";
+			
+			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn, titleQuery);
+			
+			if (checkTitleQueryResult.rows.length != 0)
+			{
+				return "There is already a feed with the same title. Please give a different title.";
 			}
 			
 			Map<String, Object> valueMap = new HashMap<String, Object>();
@@ -134,10 +129,9 @@ public class AdminService extends GenericServlet{
 	{
     	try{
 			
-			if(conn == null)
-			{
-				getConnection();
-			}
+    		String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+			
 			
 			
 			String query = "DELETE FROM rss_feeds WHERE url = '"+ url + "'";
@@ -153,14 +147,13 @@ public class AdminService extends GenericServlet{
 		
 	}
 
-    public void addAtomFeed(String url, String title)
+    public String addAtomFeed(String url, String title) throws RemoteException
 	{
 		try{
 			
-			if(conn == null)
-			{
-				getConnection();
-			}
+			
+			String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
 			
 			Statement stat = conn.createStatement();
 			
@@ -170,20 +163,30 @@ public class AdminService extends GenericServlet{
 			
 			//if url already exists then return
 			if(!checkIfExists.next())
-				return;
+				return "Atom Feed alreadt exists";
+
 			
-			String insertAtomFeed = "INSERT INTO atom_feeds (url,title) VALUE ('"+ url+"','"+title+"')";
+			String titleQuery = "SELECT * FROM atom_feeds WHERE title = '"+ title + "'";
 			
-			int result = stat.executeUpdate(insertAtomFeed);
+			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn, titleQuery);
 			
-			System.out.println("adding atom feed : " + result);
+			if (checkTitleQueryResult.rows.length != 0)
+				return "There is already a feed with the same title. Please give a different title.";
 			
-			stat.close();
-			conn.close();
+			
+			Map<String, Object> valueMap = new HashMap<String, Object>();
+			
+			valueMap.put("title", title);
+			valueMap.put("url", url);
+			
+			SQLUtils.insertRow(conn, database, "atom_feeds", valueMap);
+			
+			return "Atom Feed added successfully";
 			
 		}catch (Exception e)
 		{
 			e.printStackTrace();
+			throw new RemoteException(e.getMessage());
 		}
 		
 		
@@ -192,10 +195,9 @@ public class AdminService extends GenericServlet{
 	{
 		try{
 			
-			if(conn == null)
-			{
-				getConnection();
-			}
+			String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+			
 			
 			String deleteFileSource = "DELETE FROM atom_feeds WHERE titile ='"+title+"')";
 			
@@ -218,10 +220,9 @@ public class AdminService extends GenericServlet{
 	{
     	try{
 			
-			if(conn == null)
-			{
-				getConnection();
-			}
+    		String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+			
 		
 		String insertFileSource = "INSERT INTO file_sources (url,title) VALUE ('"+ url+"','"+title+"')";
 		
@@ -250,10 +251,9 @@ public class AdminService extends GenericServlet{
 		{
 	    	try{
 				
-				if(conn == null)
-				{
-					getConnection();
-				}
+	    		String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+	    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+				
 			
 			String insertFileSource = "INSERT INTO file_paths (url,title) VALUE ('"+ path+"')";
 			
@@ -288,10 +288,8 @@ public class AdminService extends GenericServlet{
 	{
 		try{
 			
-			if(conn == null)
-			{
-				getConnection();
-			}
+			String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
+    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
 			
 			String deleteFileSource = "DELETE FROM file_sources WHERE titile ='"+title+"')";
 			

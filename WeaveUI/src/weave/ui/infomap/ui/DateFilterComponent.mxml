@@ -79,6 +79,8 @@
 					else
 						_instance = PopUpManager.createPopUp(parentObj,DateFilterComponent) as DateFilterComponent;
 					
+					_endDate = null;
+					_startDate = null;
 				}
 				
 				
@@ -125,6 +127,12 @@
 					_filterObject.startDate.value = '';
 					
 					//clearing dates on DateChoosers
+					clearSelectedDatesFromChoosers();
+				}
+				
+				private function clearSelectedDatesFromChoosers():void
+				{
+					
 					_endDate = null;
 					_startDate = null;
 					startRange.selectedDate = null;
@@ -132,6 +140,7 @@
 					startRange.invalidateDisplayList();
 					endRange.invalidateDisplayList();
 				}
+				
 			]]>
 		</mx:Script>
 	</mx:VBox>

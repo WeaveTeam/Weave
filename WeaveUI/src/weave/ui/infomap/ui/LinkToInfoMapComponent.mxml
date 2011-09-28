@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
+			  implements="weave.api.core.ILinkableObject"
+			  borderThickness="0"
+			  horizontalAlign="center"
+			  horizontalScrollPolicy="off"
+			  verticalScrollPolicy="off"
+			  >
+	<mx:HBox horizontalAlign="right">
+		<mx:Image id="infoImg" source="@Embed(source='/weave/resources/images/probe.png')"/>
+		<mx:Image buttonMode="true" id="settingsImg" click="openSettingsPanel()" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
+	</mx:HBox>
+	<!--when TextImput is used, the text cursor is always displayed along with the hand cursor-->
+	<mx:TextArea color="blue" textDecoration="underline" id="mapNameTextArea" editable="false" selectable="false" textAlign="center" mouseOver="handleMouseOver()"
+				  mouseOut="handleMouseOut()" mouseDown="handleMouseDown()"  mouseUp="handleMouseUp()"
+				  />
+	<mx:Glow id="borderGlow" 
+			 alphaFrom="0.0" alphaTo="0.1"   
+			 blurXFrom="10.0" blurYFrom="10.0" 
+			 blurXTo="10.0" blurYTo="10.0"
+			 color="black"
+			 duration="0" target="{this}"/>	
+	<mx:Script>
+		<![CDATA[
+			import mx.managers.CursorManager;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.ui.infomap.InfoMapLoader;
+			import weave.utils.CustomCursorManager;
+			
+			//we override the x,y value because we are binding the values to LinkableNumber 
+			//which could be NaN when component loads for the first time
+			override public function set x(value:Number):void
+			{
+				if(parent)
+					super.x = isNaN(value)?parent.width/2:value;
+				else
+					super.x=value
+			}
+			
+			override public function set y(value:Number):void
+			{
+				if(parent)
+					super.y = isNaN(value)?parent.height/2:value;
+				else
+					super.y=value
+				
+			}
+			
+			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			public const mapName:LinkableString = newLinkableChild(this,LinkableString,changeToolTip);
+			
+			override protected function childrenCreated():void
+			{
+				borderGlow.play();	
+				//sessioning the x and y positions of this node
+				linkBindableProperty(xPos,this,"x");
+				linkBindableProperty(yPos,this,"y");
+				linkBindableProperty(mapName,mapNameTextArea,"text");
+				infoImg.toolTip= "Link to Infomap : " + mapName.value;
+			}
+			
+			private function changeToolTip():void
+			{
+				if(infoImg == null || mapName.value == null)
+					return;
+				infoImg.toolTip= "Link to Infomap : " + mapName.value;
+			}
+			
+			private function handleMouseOver():void
+			{
+				CustomCursorManager.removeAllCursors();
+				CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+			}
+			
+			
+			private function handleMouseOut():void
+			{
+				CustomCursorManager.removeCurrentCursor();
+			}
+			private var _wasDragged:Boolean = false;
+			private function handleMouseDown():void
+			{
+				mapNameTextArea.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				this.startDrag();
+			}
+			
+			private function handleMouseMove(event:Event):void
+			{
+				_wasDragged = true;
+				
+			}
+			
+			private function handleMouseUp():void
+			{
+				this.stopDrag();
+				if(!_wasDragged)
+				{
+					openMap();
+				}
+				_wasDragged = false;
+				mapNameTextArea.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				
+			}
+			
+			
+			
+			private function openMap():void
+			{
+				InfoMapLoader.openPanelWithName(mapName.value);
+			}
+			
+			private function openSettingsPanel():void
+			{
+				LinktoInfoMapSettings.openInstance(this);
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

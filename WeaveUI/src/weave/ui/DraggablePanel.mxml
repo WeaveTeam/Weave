@@ -170,7 +170,8 @@
 				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
-
+				
+				linkBindableProperty(panelTitle,this,"title");
 			}
 			
 			[Inspectable]
@@ -328,6 +329,8 @@
 			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange, true);
 			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
 			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
+			
+			public const panelTitle:LinkableString = registerLinkableChild(this,new LinkableString(''));
 			
 			/**
 			 * This function copies the values for x,y,width,height from the corresponding sessioned properties.

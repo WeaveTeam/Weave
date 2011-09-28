@@ -121,5 +121,15 @@ package weave.ui.infomap.admin
 					getRssFeeds();
 				}
 			}
+			
+			public function deleteRssFeedWithTitle(title:String):void
+			{
+				generateQueryAndAddToQueue("deleteRssFeedWithTitle",[title]).addAsyncResponder(handler);
+				function handler(event:ResultEvent, token:Object=null):void
+				{
+					Alert.show(event.result.toString());
+					getRssFeeds();
+				}
+			}
 		}
 }

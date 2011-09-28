@@ -20,7 +20,7 @@ public class SolrSchedulerShutdown implements ServletContextListener{
 	public void contextInitialized(ServletContextEvent arg0) {
 		// TODO Auto-generated method stub
 		
-		System.out.println("aasdfasdfasdfasdfasdfasdf");
+		System.out.println("Scheduler Initialized!");
 	}
 
 }
