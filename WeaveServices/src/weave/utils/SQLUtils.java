@@ -1173,6 +1173,11 @@ public class SQLUtils
 				columnNames += quoteSymbol(conn, entry.getKey());
 				questionMarks += "?";
 				values[i] = entry.getValue();
+				
+				// constrain oracle double values to float range
+				if (isOracleServer(conn) && values[i] instanceof Double)
+					values[i] = ((Double) values[i]).floatValue();
+				
 				i++;
 			}
 			

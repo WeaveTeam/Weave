@@ -142,7 +142,7 @@ package weave.visualization.layers
 		/**
 		 * Determine current mouse cursor mode from values in internal list of keyboard events
 		 * @return returns a string representing which mouse cursor to use
-		 */		
+		 */
 		public function determineMouseMode():String
 		{
 			if (!keyboardEventCache)
