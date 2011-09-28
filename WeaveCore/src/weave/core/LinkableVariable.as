@@ -53,9 +53,15 @@ package weave.core
 		 */
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
-			// if there is no restriction on the type, use ObjectUtil.compare()
-			if (_sessionStateType == null)
-				return ObjectUtil.compare(_sessionState, otherSessionState) == 0;
+			if (_sessionStateType == null) // if no type restriction...
+			{
+				var type:String = typeof(otherSessionState);
+				if (type != typeof(_sessionState))
+					return false; // types differ, so not equal
+				if (type == 'object')
+					return false; // do not attempt an object compare.. assume not equal
+				return ObjectUtil.compare(_sessionState, otherSessionState) == 0; // compare primitive value
+			}
 			return _sessionState == otherSessionState;
 		}
 		
