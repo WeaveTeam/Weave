@@ -81,7 +81,7 @@
 				
 				colorColumn.addGroupedCallback(this, updateTitle);
 				toolTitle.addGroupedCallback(this, updateTitle);
-				visualization.mouseModeDefault.addGroupedCallback(this, handleMouseModeChange);
+				visualization.defaultMouseMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
 				colorColumn.addGroupedCallback(this,updateProbeColumns, true);				
@@ -230,40 +230,40 @@
 				if(event)
 				{
 					if(event.target == panModeButton)
-						visualization.mouseModeDefault.value = InteractionController.PAN;
+						visualization.defaultMouseMode.value = InteractiveVisualization.PAN_MODE;
 						
 					else if(event.target == selectModeButton)
-						visualization.mouseModeDefault.value = InteractionController.SELECT;
+						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_REPLACE;
 					else if(event.target == selectModeSubtractButton)
-						visualization.mouseModeDefault.value = InteractionController.SELECT_REMOVE;
+						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_SUBTRACT;
 					else if(event.target == selectModeAddButton)
-						visualization.mouseModeDefault.value = InteractionController.SELECT_ADD;
+						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_ADD;
 						
 					else if(event.target == zoomModeButton)
-						visualization.mouseModeDefault.value = InteractionController.ZOOM;
+						visualization.defaultMouseMode.value = InteractiveVisualization.ZOOM_MODE;
 				}
 				
-				if(visualization.mouseModeDefault.value == InteractionController.PAN)
+				if(visualization.defaultMouseMode.value == InteractiveVisualization.PAN_MODE)
 				{
 					panModeButton.selected = true;
 					selectModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected  = false;
 				}
-				else if(visualization.mouseModeDefault.value == InteractionController.SELECT)
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_REPLACE)
 				{
 					selectModeButton.selected = true;
 					panModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected = false;
 				}
-				else if(visualization.mouseModeDefault.value == InteractionController.SELECT_REMOVE)
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_SUBTRACT)
 				{
 					selectModeSubtractButton.selected = true;
 					panModeButton.selected = zoomModeButton.selected = selectModeButton.selected = selectModeAddButton.selected = false;
 				}
-				else if(visualization.mouseModeDefault.value == InteractionController.SELECT_ADD)
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_ADD)
 				{
 					selectModeAddButton.selected = true;
 					panModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeButton.selected = false;
 				}
-				else if(visualization.mouseModeDefault.value == InteractionController.ZOOM)
+				else if(visualization.defaultMouseMode.value == InteractiveVisualization.ZOOM_MODE)
 				{
 					zoomModeButton.selected = true;
 					panModeButton.selected = selectModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected = false;

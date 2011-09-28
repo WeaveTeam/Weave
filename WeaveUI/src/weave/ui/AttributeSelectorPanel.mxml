@@ -293,7 +293,10 @@
 					return;
 				
 				openDefaultSelector();
-				defaultSelector.targets = defaultSelector.selectableAttributes = tool.getSelectableAttributes();
+				
+				defaultSelector.selectableAttributes = tool.getSelectableAttributes();
+				if (defaultSelector.selectableAttributes.indexOf(attributeToLinkTo) >= 0)
+					defaultSelector.targets = defaultSelector.selectableAttributes;
 				defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
 				defaultSelector.linkToObject(attributeToLinkTo);
 			}
@@ -308,6 +311,7 @@
 				defaultSelector.hierarchySelector.clearSearch();
 				
 				defaultSelector.linkToObject(linkTo, title);
+				defaultSelector.targets = linkTo ? [linkTo] : [];
 				
 				defaultSelector.restorePanel();
 			}

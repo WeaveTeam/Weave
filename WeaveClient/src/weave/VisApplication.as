@@ -88,15 +88,16 @@ package weave
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.ErrorManager;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.KeyColumn;
+	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.AttributeHierarchy;
@@ -904,6 +905,18 @@ package weave
 			var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
 				subset.includeMissingKeys.value = true;
+			
+			// fill in missing title metadata in WeaveDataSource hierarchies
+			var wdsArray:Array = Weave.root.getObjects(WeaveDataSource);
+			for each (var wds:WeaveDataSource in wdsArray)
+			{
+				var root:XML = getSessionState(wds.attributeHierarchy) as XML;
+				if (!root)
+					continue;
+				for each (var tag:XML in root.descendants('attribute'))
+					if (!tag.@title && tag.@name)
+						tag.@title = tag.@name;
+			}
 		}
 		
 		private function handleWeaveListChange():void

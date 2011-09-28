@@ -128,7 +128,7 @@ package weave.api.core
 		 * @param filter An optional Class definition which will be used to filter the results.
 		 * @return An Array containing a list of descendant objects.
 		 */
-		function getLinkableDescendants(child:ILinkableObject, flter:Class = null):Array;
+		function getLinkableDescendants(root:ILinkableObject, flter:Class = null):Array;
 		
 		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
