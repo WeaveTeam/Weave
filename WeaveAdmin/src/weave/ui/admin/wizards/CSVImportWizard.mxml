@@ -54,6 +54,7 @@
 		</mx:HBox>
 		<mx:CheckBox id="generateKeyColumn" selected="true"
 					 label="Generate a new primary key column"
+					 change="if (generateKeyColumn.selected) geometrySelector.keyType = dataTableNameInput.text;"
 					 toolTip="Checking this box will generate a new unique key for each row."/>
 		<ui:Indent>
 			<mx:VBox visible="{!generateKeyColumn.selected}">
@@ -63,7 +64,7 @@
 				</mx:HBox>
 				<mx:Label text="What do these keys correspond to?"/>
 				<ui:Indent>
-					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{tableSelector.activeTable}"/>
+					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{dataTableNameInput.text}"/>
 				</ui:Indent>
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
 				<ui:Indent>

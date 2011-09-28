@@ -67,7 +67,7 @@
 			{
 				if(keyTypeRadio.selected)
 					return keyTypeCombo.text;
-				else return'';
+				else return '';
 			}
 			
 			[Bindable] public var keyType:String = "";
@@ -82,7 +82,7 @@
 	</mx:HBox>
 	<mx:HBox>
 		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_LABEL}" textAlign="left" width="{_indent}" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_TOOLTIP}"/> 
-		<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{keyType}" enabled="{keyTypeRadio.selected}" dataProvider="{AdminInterface.instance.keyTypes}" change="keyType = keyTypeCombo.text" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_DROPDOWNBOX_TOOLTIP}"/>
+		<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{keyType}" enabled="{keyTypeRadio.selected}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_DROPDOWNBOX_TOOLTIP}" valueCommit="keyType = keyTypeCombo.text"/>
 		<mx:Button label="Refresh" enabled="{keyTypeRadio.selected}" click="AdminInterface.instance.getKeyTypes()" toolTip="{StringDefinition.DEFAULT_KEY_TYPES_REFRESH_BUTTON_TOOLTIP}"/>
 		<!--mx:Button label="?" click="showHelpForKeyType()"/-->
 	</mx:HBox>
