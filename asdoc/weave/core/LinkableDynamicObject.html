@@ -1,0 +1,561 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
+<link rel="stylesheet" href="../../print.css" type="text/css" media="print">
+<meta content="LinkableDynamicObject,weave.core.LinkableDynamicObject,globalHashMap,globalName,internalObject,copyLocalObject,dispose,getObject,getSessionState,lock,removeObject,requestGlobalObject,requestLocalObject,setSessionState" name="keywords">
+<title>weave.core.LinkableDynamicObject</title>
+</head>
+<body>
+<script type="text/javascript" language="javascript" src="../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../cookies.js"></script><script type="text/javascript" language="javascript">
+<!--
+				asdocTitle = 'LinkableDynamicObject - Weave AS3 documentation';
+				var baseRef = '../../';
+				window.onload = configPage;
+			--></script>
+<table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
+<tr>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/core/LinkableDynamicObject.html&amp;weave/core/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
+</tr>
+<tr class="titleTableRow2">
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;LinkableDynamicObject</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a></td>
+</tr>
+<tr class="titleTableRow3">
+<td colspan="2">&nbsp;</td>
+</tr>
+</table>
+<script type="text/javascript" language="javascript">
+<!--
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class LinkableDynamicObject"); titleBar_setSubNav(false,true,false,false,false,false,true,false,false,false,false,false,false,false);}
+--></script>
+<div class="MainContent">
+<table cellspacing="0" cellpadding="0" class="classHeaderTable">
+<tr>
+<td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.core</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class LinkableDynamicObject</td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">LinkableDynamicObject <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../images/inherit-arrow.gif"> <a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Implements</td><td><a href="../api/core/ILinkableDynamicObject.html">ILinkableDynamicObject</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Subclasses</td><td><a href="../data/BinningDefinitions/DynamicBinningDefinition.html">DynamicBinningDefinition</a>, <a href="../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>, <a href="../visualization/plotters/styles/DynamicFillStyle.html">DynamicFillStyle</a>, <a href="../data/KeySets/DynamicKeyFilter.html">DynamicKeyFilter</a>, <a href="../data/KeySets/DynamicKeySet.html">DynamicKeySet</a>, <a href="../visualization/plotters/styles/DynamicLineStyle.html">DynamicLineStyle</a>, <a href="../visualization/plotters/DynamicPlotter.html">DynamicPlotter</a></td>
+</tr>
+</table>
+<p></p>
+  This object links to an internal ILinkableObject.
+  The internal object can be either a local one or a global one identified by a global name.
+  
+  <p></p>
+<br>
+<hr>
+</div>
+<a name="propertySummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Properties</div>
+<div class="showHideLinks">
+<div class="hideInheritedProperty" id="hideInheritedProperty">
+<a onclick="javascript:setInheritedVisible(false,'Property');" href="#propertySummary" class="showHideLink"><img src="../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Public Properties</a>
+</div>
+<div class="showInheritedProperty" id="showInheritedProperty">
+<a onclick="javascript:setInheritedVisible(true,'Property');" href="#propertySummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Properties</a>
+</div>
+</div>
+<table id="summaryTableProperty" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="CallbackCollection.html#callbacksAreDelayed">callbacksAreDelayed</a> : Boolean<div class="summaryTableDescription">
+   While this is true, it means the delay count is greater than zero and the effects of
+   triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="CallbackCollection.html#callbacksWereTriggered">callbacksWereTriggered</a> : Boolean<div class="summaryTableDescription">
+   This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#globalHashMap">globalHashMap</a> : <a href="../api/core/ILinkableHashMap.html">ILinkableHashMap</a>
+<div class="summaryTableDescription">[static][read-only]
+   This is the mapping from global names to objects.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#globalName">globalName</a> : String<div class="summaryTableDescription">
+   This is the name of the linked global object.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#internalObject">internalObject</a> : <a href="../api/core/ILinkableObject.html">ILinkableObject</a>
+<div class="summaryTableDescription">[read-only]
+   This is the local or global internal object.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="CallbackCollection.html#wasDisposed">wasDisposed</a> : Boolean<div class="summaryTableDescription">
+   This flag becomes true after dispose() is called.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+</table>
+</div>
+<a name="protectedPropertySummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Protected Properties</div>
+<div class="showHideLinks">
+<div class="hideInheritedProtectedProperty" id="hideInheritedProtectedProperty">
+<a onclick="javascript:setInheritedVisible(false,'ProtectedProperty');" href="#protectedPropertySummary" class="showHideLink"><img src="../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Protected Properties</a>
+</div>
+<div class="showInheritedProtectedProperty" id="showInheritedProtectedProperty">
+<a onclick="javascript:setInheritedVisible(true,'ProtectedProperty');" href="#protectedPropertySummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Properties</a>
+</div>
+</div>
+<table id="summaryTableProtectedProperty" class="summaryTable hideInheritedProtectedProperty" cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProtectedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="CallbackCollection.html#allowDelayCallbacks">allowDelayCallbacks</a> : Boolean = true<div class="summaryTableDescription">
+   If this is set to true, delayCallbacks() behaves as described.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+</table>
+</div>
+<a name="methodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Methods</div>
+<div class="showHideLinks">
+<div class="hideInheritedMethod" id="hideInheritedMethod">
+<a onclick="javascript:setInheritedVisible(false,'Method');" href="#methodSummary" class="showHideLink"><img src="../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Public Methods</a>
+</div>
+<div class="showInheritedMethod" id="showInheritedMethod">
+<a onclick="javascript:setInheritedVisible(true,'Method');" href="#methodSummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Methods</a>
+</div>
+</div>
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#LinkableDynamicObject()">LinkableDynamicObject</a>(typeRestriction:Class = null)</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="CallbackCollection.html#addGroupedCallback()">addGroupedCallback</a>(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void</div>
+<div class="summaryTableDescription">
+   This function will add a callback that will be delayed except during a scheduled time each frame.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void</div>
+<div class="summaryTableDescription">
+   This function will add a callback using the given function and parameters.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#copyLocalObject()">copyLocalObject</a>(objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</div>
+<div class="summaryTableDescription">
+   This function will copy the session state of an ILinkableObject to the local internalObject.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="CallbackCollection.html#delayCallbacks()">delayCallbacks</a>():void</div>
+<div class="summaryTableDescription">
+   This will increase the delay count by 1.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#dispose()">dispose</a>():void</div>
+<div class="summaryTableDescription">
+   This function gets called by SessionManager.dispose().</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getObject()">getObject</a>():Object</div>
+<div class="summaryTableDescription">
+   This function gets the internal object, whether local or global.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getSessionState()">getSessionState</a>():Array</div>
+<div class="summaryTableDescription">
+   This gets the session state of this object.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#lock()">lock</a>():void</div>
+<div class="summaryTableDescription">
+   This function will call lockObject() on the ILinkableHashMap that contains the internal object.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="CallbackCollection.html#removeCallback()">removeCallback</a>(callback:Function):void</div>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#removeObject()">removeObject</a>():void</div>
+<div class="summaryTableDescription">
+   If the internal object is local, this will remove the object (unless it is locked).</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#requestGlobalObject()">requestGlobalObject</a>(name:String, objectType:Class, lockObject:Boolean):*</div>
+<div class="summaryTableDescription">
+   This function creates a global object using the given Class definition if it doesn't already exist.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#requestLocalObject()">requestLocalObject</a>(objectType:Class, lockObject:Boolean):*</div>
+<div class="summaryTableDescription">
+   This function creates a local object using the given Class definition if it doesn't already exist.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="CallbackCollection.html#resumeCallbacks()">resumeCallbacks</a>(undoAllDelays:Boolean = false):void</div>
+<div class="summaryTableDescription">
+   This will decrease the delay count if it is greater than zero.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#setSessionState()">setSessionState</a>(newState:Array, removeMissingDynamicObjects:Boolean):void</div>
+<div class="summaryTableDescription">
+   This sets the session state of this object.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="CallbackCollection.html#triggerCallbacks()">triggerCallbacks</a>():void</div>
+<div class="summaryTableDescription">
+   This will trigger every callback function to be called with their saved arguments.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+</table>
+</div>
+<a name="protectedMethodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Protected Methods</div>
+<div class="showHideLinks">
+<div class="hideInheritedProtectedMethod" id="hideInheritedProtectedMethod">
+<a onclick="javascript:setInheritedVisible(false,'ProtectedMethod');" href="#protectedMethodSummary" class="showHideLink"><img src="../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Protected Methods</a>
+</div>
+<div class="showInheritedProtectedMethod" id="showInheritedProtectedMethod">
+<a onclick="javascript:setInheritedVisible(true,'ProtectedMethod');" href="#protectedMethodSummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Methods</a>
+</div>
+</div>
+<table id="summaryTableProtectedMethod" class="summaryTable hideInheritedProtectedMethod" cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="CallbackCollection.html#_runCallbacksImmediately()">_runCallbacksImmediately</a>(... preCallbackParams):void</div>
+<div class="summaryTableDescription">
+   This function runs callbacks immediately, ignoring any delays.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+</table>
+</div>
+<script type="text/javascript" language="javascript">
+<!--
+showHideInherited();
+--></script>
+<div class="MainContent">
+<a name="propertyDetail"></a>
+<div class="detailSectionHeader">Property detail</div>
+<a name="globalHashMap"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">globalHashMap</td><td class="detailHeaderType">property</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>globalHashMap:<a href="../api/core/ILinkableHashMap.html">ILinkableHashMap</a></code>&nbsp;&nbsp;[read-only]<p>
+   This is the mapping from global names to objects.
+   </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get globalHashMap():<a href="../api/core/ILinkableHashMap.html">ILinkableHashMap</a></code>
+<br>
+</div>
+<a name="globalName"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">globalName</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>globalName:String</code>&nbsp;&nbsp;[read-write]<p>
+   This is the name of the linked global object.
+   </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get globalName():String</code>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set globalName(value:String):void</code>
+<br>
+</div>
+<a name="internalObject"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">internalObject</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>internalObject:<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code>&nbsp;&nbsp;[read-only]<p>
+   This is the local or global internal object.
+   </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get internalObject():<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code>
+<br>
+</div>
+<a name="constructorDetail"></a>
+<div class="detailSectionHeader">Constructor detail</div>
+<a name="LinkableDynamicObject()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">LinkableDynamicObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">constructor</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function LinkableDynamicObject(typeRestriction:Class = null)</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">typeRestriction</span>:Class</code> (default = <code>null</code>)<code></code></td>
+</tr>
+</table>
+</div>
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="copyLocalObject()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">copyLocalObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function copyLocalObject(objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</code><p>
+   This function will copy the session state of an ILinkableObject to the local internalObject.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">objectToCopy</span>:<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code> &mdash; An object to copy the session state from.
+   </td>
+</tr>
+</table>
+</div>
+<a name="dispose()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">dispose</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public override function dispose():void</code><p>
+   This function gets called by SessionManager.dispose().
+   </p></div>
+<a name="getObject()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getObject():Object</code><p>
+   This function gets the internal object, whether local or global.
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Object</code> &mdash; The internal, dynamically created object.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getSessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getSessionState():Array</code><p>
+   This gets the session state of this object.
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An Array of DynamicState objects which compose the session state for this object.
+   </td>
+</tr>
+</table>
+</div>
+<a name="lock()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">lock</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function lock():void</code><p>
+   This function will call lockObject() on the ILinkableHashMap that contains the internal object.
+   This object will also be locked so that no new objects can be requested.
+   </p></div>
+<a name="removeObject()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">removeObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function removeObject():void</code><p>
+   If the internal object is local, this will remove the object (unless it is locked).
+   If the internal object is global, this will remove the link to it.
+   </p></div>
+<a name="requestGlobalObject()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">requestGlobalObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*</code><p>
+   This function creates a global object using the given Class definition if it doesn't already exist.
+   If the object gets disposed of later, this object will still be linked to the global name.
+   If the existing object under the specified name is locked, this function does nothing.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">name</span>:String</code> &mdash; The name of the global object to link to.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">objectType</span>:Class</code> &mdash; The Class used to initialize the object.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">lockObject</span>:Boolean</code> &mdash; If this is true, this object will be locked so the internal object cannot be removed or replaced.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The global object of the specified name and type, or null if the object could not be created.
+   </td>
+</tr>
+</table>
+</div>
+<a name="requestLocalObject()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">requestLocalObject</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function requestLocalObject(objectType:Class, lockObject:Boolean):*</code><p>
+   This function creates a local object using the given Class definition if it doesn't already exist.
+   If the existing object is locked, this function does nothing.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">objectType</span>:Class</code> &mdash; The Class used to initialize the object.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">lockObject</span>:Boolean</code> &mdash; If this is true, this object will be locked so the internal object cannot be removed or replaced.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The local object of the specified type, or null if the object could not be created.
+   </td>
+</tr>
+</table>
+</div>
+<a name="setSessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">setSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void</code><p>
+   This sets the session state of this object.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">newState</span>:Array</code> &mdash; An Array of DynamicState objects containing the new values and types for child objects.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">removeMissingDynamicObjects</span>:Boolean</code> &mdash; If true, this will remove any child objects that do not appear in the session state.
+    </td>
+</tr>
+</table>
+</div>
+<br>
+<br>
+<hr>
+<br>
+<p></p>
+<center class="copyright"> 
+</center>
+</div>
+</body>
+</html>
+<!-- -->
