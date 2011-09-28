@@ -38,7 +38,7 @@
 			import weave.utils.ByteArrayUtils;
 			
 			
-			[Bindable] private var _indent:int = 145;
+			[Bindable] private var _indent:Number = NaN;
 			
 			private function creationComplete():void
 			{

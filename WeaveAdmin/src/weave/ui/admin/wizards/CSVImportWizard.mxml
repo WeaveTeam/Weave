@@ -29,49 +29,53 @@
 			creationComplete="handleCreationComplete()"
 			>
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
-	<mx:VBox id="csvUploadPage">
+	<mx:VBox id="csvUploadPage" label="Import a CSV file to SQL">
 		<mx:HBox>
 			<mx:Label text="CSV file" width="{indent}" />
-			<mx:TextInput id="csvFileNameInput" text="Select a CSV file." focusIn="csvFileNameInput.setSelection(0, int.MAX_VALUE)" change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/><!-- editable because user may want to type the name of a file already on the server -->
+			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
+			<mx:TextInput id="csvFileNameInput" text="Select a CSV file." focusIn="csvFileNameInput.setSelection(0, int.MAX_VALUE)" change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
 			<mx:Button label="Upload File" click="browseAndUpload();"/>
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
-			<mx:Text text = "{fileStatus.text}" id="fileStatus"/>
+			<mx:Text text="{fileStatus.text}" id="fileStatus"/>
 		</mx:HBox>
-		<admin:SQLTableSelectorDialog id="tableSelector" enabled="false" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" initialize="tableSelector.tableOverwriteCheck.toolTip = StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP"/>
-		<mx:HBox id="box1" enabled="false">
-			<mx:HBox enabled="{!generateKeyColumn.selected}">
-				<mx:TextArea text="Name of key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true" />
-				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
-			</mx:HBox>
-			<mx:CheckBox id="generateKeyColumn" selected="true"
-						 label="Generate primary key column"
-						 toolTip="Checking this box will generate a key column where each row is treated as a unique key."/>
-		</mx:HBox>
-		<mx:VBox enabled="{!generateKeyColumn.selected}">
-			<mx:CheckBox  id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false" enabled="false"/>
-			<mx:VBox id="box1b" enabled="false">
-				<mx:HBox enabled="{secondaryKeyColumnCheckBox.selected}">
-					<mx:TextArea text="Name of secondary key column in CSV file" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true"/>
-					<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" text=""  selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
-				</mx:HBox>
-			</mx:VBox>
+		<mx:VBox visible="{csvFileNameInput.text.length > 0}">
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" initialize="tableSelector.tableOverwriteCheck.toolTip = StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP"/>
 		</mx:VBox>
 	</mx:VBox>
-	<mx:VBox id="optionalSettingsPage">
-		<mx:HBox id="nullReplacement" enabled="false" toolTip="Specify flag values to treat as missing data, separated by commas">
-			<mx:Label enabled="true" text="Null flag values" width="{indent}"/>
-			<mx:TextInput enabled="true" id="nullFlagInput" editable="true"/>
-		</mx:HBox>
-		<mx:HBox id="box2" enabled="false">
-			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}" width="{indent}"/>
+	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
+		<mx:HBox>
+			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}"/>
 			<mx:TextInput id="dataTableNameInput" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</mx:HBox>
-		<mx:HBox enabled="{!generateKeyColumn.selected}">
-			<admin:GeometryCollectionDialog id="geometrySelector" enabled="false" keyType="{tableSelector.activeTable}"/>
-		</mx:HBox>		
+		<mx:HBox toolTip="Specify flag values to treat as missing data, separated by commas">
+			<mx:Label text="Null flag values"/>
+			<mx:TextInput id="nullFlagInput" editable="true"/>
+		</mx:HBox>
+		<mx:CheckBox id="generateKeyColumn" selected="true"
+					 label="Generate a new primary key column"
+					 toolTip="Checking this box will generate a new unique key for each row."/>
+		<ui:Indent>
+			<mx:VBox visible="{!generateKeyColumn.selected}">
+				<mx:HBox>
+					<mx:Label text="Key column"/>
+					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
+				</mx:HBox>
+				<mx:Label text="What do these keys correspond to?"/>
+				<ui:Indent>
+					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{tableSelector.activeTable}"/>
+				</ui:Indent>
+				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
+				<ui:Indent>
+					<mx:HBox visible="{secondaryKeyColumnCheckBox.selected}">
+						<mx:Label text="Secondary key column"/>
+						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" text="" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
+					</mx:HBox>
+				</ui:Indent>
+			</mx:VBox>
+		</ui:Indent>
 	</mx:VBox>
-	<mx:VBox id="dublinCorePage" width="100%" >
+	<mx:VBox id="dublinCorePage" width="100%" label="Specify Dublin Core metadata">
 		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the metadata tab of the data table view."/>
 		<mx:LinkButton label="Click for Dublin Core Reference" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
 		<mx:Form>
@@ -244,12 +248,7 @@
 			private function enableAllWidgets(enable:Boolean = true):void
 			{
 				tableSelector.enabled = enable;
-				box1.enabled = enable;
-				box1b.enabled = enable;
-				secondaryKeyColumnCheckBox.enabled = enable;
-				box2.enabled = enable;
-				nullReplacement.enabled = enable;
-				geometrySelector.enabled = enable;
+				optionalSettingsPage.enabled = enable;
 				backEnabled = enable;
 				nextEnabled = enable;
 				finishEnabled = enable;
