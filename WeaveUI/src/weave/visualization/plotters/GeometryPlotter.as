@@ -48,13 +48,14 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.core.SessionManager;
+	import weave.core.LinkableString;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.data.AttributeColumns.StringColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.PlotterUtils;
@@ -97,13 +98,20 @@ package weave.visualization.plotters
 		 */
 		public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "http://www.helpexamples.com/flash/images/image2.jpg" );
 		
-		//public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "C:\Documents and Settings\Admin\My Documents\My Pictures\penpointer.png" );
-
+		//Add in column for the URL String.
+		
 		[Embed(source="/weave/resources/images/missing.png")]
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 		
 		public const useImages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updatePoints);
+		
+		public const urlString:LinkableString = registerLinkableChild(this, new LinkableString(""), updateURL);
+		
+		private function updateURL():void
+		{
+			
+		}
 		
 		private function updatePoints():void
 		{

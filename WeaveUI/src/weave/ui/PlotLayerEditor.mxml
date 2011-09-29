@@ -299,6 +299,11 @@
 													minimum="0.2" maximum="60"
 													width="50"/>
 							</mx:VBox>
+							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
+									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+								<mx:CheckBox id="useImagesBox"	 label="Enable Images"/>
+								<mx:TextInput id="imageURL" focusOut="imageURL_focusOutHandler(event)"/>
+							</mx:VBox>
 						</mx:HBox>
 					</mx:VBox>
 				</mx:ViewStack>
@@ -476,6 +481,7 @@
 								linkBindableProperty(geomPlotter.line.color.defaultValue, lineColor, "selectedColor");
 								linkBindableProperty(geomPlotter.line.alpha.defaultValue, lineAlpha, "value");
 								linkBindableProperty(geomPlotter.line.weight.defaultValue, lineWeight, "value");
+								linkBindableProperty(geomPlotter.useImages, useImagesBox, "selected");
 							}
 							else if(plotter is WMSPlotter)
 							{
@@ -698,6 +704,14 @@
 							
 							unlinkGeometryProperties();
 						}
+						
+						protected function imageURL_focusOutHandler(event:FocusEvent):void
+						{
+							var plotter:IPlotter = getPlotter(data as IPlotLayer);
+							if (plotter is GeometryPlotter)
+								(plotter as GeometryPlotter).urlString.value = imageURL.text;
+						}
+						
 					]]>
 				</mx:Script>
 			</mx:VBox>
