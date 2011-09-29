@@ -21,6 +21,7 @@ package weave.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
@@ -1403,7 +1404,7 @@ public class SQLUtils
 		return "DATETIME";
 	}
 	
-	public static void copyCsvToDatabase(Connection conn, String formatted_CSV_path, String sqlSchema, String sqlTable) throws Exception
+	public static void copyCsvToDatabase(Connection conn, String formatted_CSV_path, String sqlSchema, String sqlTable) throws SQLException, IOException
 	{
 		String dbms = conn.getMetaData().getDatabaseProductName();
 		Statement stmt = null;
@@ -1466,10 +1467,6 @@ public class SQLUtils
 						quotedTable, formatted_CSV_path
 						));
 			}
-		}
-		catch (Exception e)
-		{
-			throw e;
 		}
 		finally 
 		{
