@@ -26,15 +26,15 @@
 		 xmlns:ui="weave.ui.*">
 	<mx:HBox>
 		<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_SQL_SCHEMA_LABEL}" textAlign="left"/>
-		<ui:CustomComboBox id="schemaInput" toolTip="{StringDefinition.DEFAULT_SQL_SCHEMA_DROPDOWNBOX_TOOLTIP}" text="{activeSchema}" dataProvider="{schemas}" change="activeSchema = schemaInput.text;"/>
+		<ui:CustomComboBox id="schemaInput" toolTip="{StringDefinition.DEFAULT_SQL_SCHEMA_DROPDOWNBOX_TOOLTIP}" text="{activeSchema}" prompt="Select a schema..." dataProvider="{schemas}" change="activeSchema = schemaInput.text;"/>
 		<mx:Button label="Refresh" click="getSchemas()" toolTip="{StringDefinition.DEFAULT_SCHEMAS_REFRESH_BUTTON_TOOLTIP}"/>
 	</mx:HBox>
 	<mx:HBox id="tableControls">
 		<mx:Label width="{indent}" id="tableLabel" text="{StringDefinition.DEFAULT_SQL_TABLE_LABEL}" textAlign="left"/>
-		<ui:CustomComboBox id="_tableCombo" editable="true" text="{activeTable}" dataProvider="{tables}" change="activeTable = _tableCombo.text;" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DROPDOWNBOX_TOOLTIP}"/>
-		<mx:TextInput id="_tableInput" editable="true" text="{activeTable}" change="activeTable = _tableInput.text;"/>
-		<mx:Button id="tablesRefreshButton" label="Refresh" click="getTables()" toolTip="{StringDefinition.DEFAULT_TABLES_REFRESH_BUTTON_TOOLTIP}"/>
-		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}"/>
+		<ui:CustomComboBox id="_tableCombo" editable="true" text="{activeTable}" dataProvider="{tables}" prompt="Select a SQL table..." change="activeTable = _tableCombo.text;" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DROPDOWNBOX_TOOLTIP}"/>
+		<ui:TextInputWithPrompt id="_tableInput" editable="true" text="{activeTable}" prompt="Enter a SQL table name" change="activeTable = _tableInput.text;"/>
+		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}" width="{tableOverwriteCheckVisible ? NaN : 0}"/>
+		<mx:Button id="tablesRefreshButton" label="Refresh" click="getTables()" toolTip="{StringDefinition.DEFAULT_TABLES_REFRESH_BUTTON_TOOLTIP}" visible="{_showTableCombo}" width="{_showTableCombo ? NaN : 0}"/>
 	</mx:HBox>
 	<mx:Metadata>
 		[Exclude(name="_tableCombo", kind="property")]
@@ -72,6 +72,7 @@
 					tableControls.removeChild(_tableCombo);
 			}
 			
+			[Bindable]
 			private var _showTableCombo:Boolean = true;
 			[Inspectable] public function set showTableCombo(value:Boolean):void
 			{
@@ -91,9 +92,6 @@
 				function handleGetSchemas(event:ResultEvent, token:Object = null):void
 				{
 					schemas = event.result as Array;
-					// set active schema to first result
-					if (schemas.length > 0)
-						activeSchema = schemas[0];
 				}
 			}
 			
@@ -129,9 +127,6 @@
 				function handleGetTables(event:ResultEvent, token:Object = null):void
 				{
 					tables = event.result as Array;
-					// set active table to first result
-					if (tables.length > 0)
-						activeTable = tables[0];
 				}
 			}
 			
