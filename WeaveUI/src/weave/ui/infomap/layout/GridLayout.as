@@ -53,12 +53,17 @@ package weave.ui.infomap.layout
 			var startX:Number = _parentNodeHandler.nodeBase.x;
 			var startY:Number = _parentNodeHandler.nodeBase.y;
 			
+			//offet to  be below node base
+			startY = startY + _parentNodeHandler.nodeBase.height;
+			
 			var gridSize:Number = Math.round(Math.sqrt(thumbs.length));
 			
 			var count:int = 0;
 			
+			var nextY:int = startY;
 			for(var row:int=0; row<gridSize; row++)
 			{
+				var nextX:int = startX;
 				for(var col:int=0; col<gridSize; col++)
 				{
 					if(count>=thumbs.length)
@@ -73,13 +78,13 @@ package weave.ui.infomap.layout
 						thumbnail.imageHeight.value = thumbnailSize;
 						thumbnail.imageAlpha.value = 0.75;
 						
-						thumbnail.y = startY;			
-						thumbnail.x = startX;
+						thumbnail.y = nextY;			
+						thumbnail.x = nextX;
 						
-						startY = startY + thumbnailSize;
+						nextX = nextX + thumbnailSize;
 					}
 				}
-				startX = startX + thumbnailSize;
+				nextY = nextY+ thumbnailSize;
 			}
 			
 		}

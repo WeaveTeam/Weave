@@ -53,6 +53,9 @@ package weave.ui.infomap.layout
 			var startX:Number = _parentNodeHandler.nodeBase.x;
 			var startY:Number = _parentNodeHandler.nodeBase.y;
 			
+			//offet to  be below node base
+			startY = startY + _parentNodeHandler.nodeBase.height;
+			
 			for(var i:int; i<thumbs.length ;i++)
 			{
 				var thumbnail:DocThumbnailComponent = thumbs[i];

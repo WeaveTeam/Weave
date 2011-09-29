@@ -102,9 +102,11 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.ui.infomap.core.InfoMapNode;
 				 import weave.ui.infomap.layout.CascadeLayout;
 				 import weave.ui.infomap.layout.GridLayout;
+				 import weave.ui.infomap.layout.HorizontalLayout;
 				 import weave.ui.infomap.layout.IInfoMapNodeLayout;
 				 import weave.ui.infomap.layout.NodeHandler;
 				 import weave.ui.infomap.layout.RadialLayout;
+				 import weave.ui.infomap.layout.VerticalLayout;
 				 import weave.ui.infomap.utils.DateUtils;
 				 
 				 [Inspectable]
@@ -124,7 +126,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
 					 //setting the dataprovide here fixes the combo box bug where it still showed the first item one by default
 					 //even if it was not the selected item
-					 layoutComboBox.dataProvider =  ['Radial','Cascade','Grid'] ;
+					 layoutComboBox.dataProvider =  ['Radial','Cascade','Grid','Horizontal','Vertical'] ;
 					 
 					 keyword.text = nodeHandler.node.keywords.value;
 					 
@@ -208,6 +210,18 @@ Info to provide a tooltip describing the node (like number of documents found)
 							 return;
 						 currentLayout.removeObject();
 						 currentLayout.requestLocalObject(GridLayout,false);
+					 }else if(layoutComboBox.selectedItem as String == 'Horizontal')
+					 {
+						 if(currentLayout.internalObject is HorizontalLayout)
+							 return;
+						 currentLayout.removeObject();
+						 currentLayout.requestLocalObject(HorizontalLayout,false);
+					 }else if(layoutComboBox.selectedItem as String == 'Vertical')
+					 {
+						 if(currentLayout.internalObject is VerticalLayout)
+							 return;
+						 currentLayout.removeObject();
+						 currentLayout.requestLocalObject(VerticalLayout,false);
 					 }
 					 
 				 }
