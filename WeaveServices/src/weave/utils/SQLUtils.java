@@ -42,6 +42,7 @@ import java.util.Vector;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Collection;
 
 import org.geotools.resources.Arguments;
 import org.postgresql.PGConnection;
@@ -1001,17 +1002,17 @@ public class SQLUtils
 		return whereQuery;
 	}
 /* Service methods for maintaining my sanity and saving me keystrokes. -pkovac */
-        private static String stringJoin(String separator, List<String> items)
+        private static String stringJoin(String separator, Collection<String> items)
         {
-            // TODO Improve the sure-to-be horrid performance of this.
-            String result = "";
+            StringBuilder result = new StringBuilder((separator.length()+1)*items.size());
             int i = 0;
             for (String item : items)
             {
-                if (i > 0) result += separator;
-                result += item;
+                if (i > 0) result.append(separator);
+                result.append(item);
+                i++;
             }
-            return result;
+            return result.toString();
         }
         private static String buildPredicate(Connection conn, Entry<String, String> pair) throws SQLException
         {
@@ -1041,6 +1042,7 @@ public class SQLUtils
         public static List<String> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
         {
             // Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for, this will only be two entries long, but this covers the general case.
+            PreparedStatement stmt = null;
             List<String> results = new LinkedList<String>();
             List<String> values = new LinkedList<String>();
             List<List<Entry<String,String>>> flattenedMap = new LinkedList<List<Entry<String,String>>>();
@@ -1061,12 +1063,47 @@ public class SQLUtils
                 quoteSymbol(conn, column), quoteSymbol(conn, column), quoteSchemaTable(conn, schemaName, table),
                 buildDisjunctiveNormalForm(conn, flattenedMap),
                 columns.size());
+            stmt = conn.prepareStatement(query);
+//            stmt.executeQuery();
+            int i=0;
             System.out.println(query);
             return results;
         }
+        public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data) throws SQLException
+        {
+            PreparedStatement stmt = null;
+            List<String> columns = new LinkedList<String>();
+            List<Object> values = new LinkedList<Object>();
+            StringBuilder placeholder = new StringBuilder(data.size()*2);
+            for (Entry<String,Object> entry : data.entrySet())
+            {
+                columns.add(quoteSymbol(conn, entry.getKey()));
+                values.add(entry.getValue());
+            }
+            List<String> l_qmarks = new LinkedList<String>();
+            for (int i = 0; i < values.size(); i++)
+            {
+                l_qmarks.add("?");
+            }
+            String column_string = stringJoin(",", columns);
+            String qmark_string = stringJoin(",", l_qmarks);
+            String query = String.format("INSERT INTO %s(%s) VALUES (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string, qmark_string);
+            stmt = conn.prepareStatement(query);
+            int i = 1;
+            for (Object item : values)
+            {
+                stmt.setObject(i++, item);
+            }
+            stmt.executeUpdate();
+            query = "select last_insert_id()";
+            stmt = conn.prepareStatement(query);
+            ResultSet rs = stmt.executeQuery();
+            rs.first();
+            return rs.getInt(1);
+        }
 	public static List<Map<String,String>> joinedSelectQuery( Connection conn, String schemaName, List<String> columnNames,  String[] tables,  String[] joinCols, Map<String, String> whereClauses) throws SQLException
 	{
-		CallableStatement stmt = null;
+		PreparedStatement stmt = null;
 		String quotedColNames = "";
 		List<Map<String, String>> rows = new LinkedList<Map<String,String>>();
 		ResultSet rs;

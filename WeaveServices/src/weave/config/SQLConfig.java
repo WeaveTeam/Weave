@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -171,7 +172,61 @@ public class SQLConfig
 	{
 		return connectionConfig.getConnectionNames();
 	}
+/* Private methods which handle the barebones of the extended attribute value system. */
+        private List<Integer> getFromKeyVals(Map<String,String> constraints) throws RemoteException
+        {
+            List<Integer> ids = new LinkedList<Integer>();
+            try
+            {
+                Connection conn = getConnection();
+                List<String> raw_ids;
+                List<Map<String,String>> crossRowArgs = new LinkedList<Map<String,String>>();
+                for (Entry<String,String> keyValPair : constraints.entrySet())
+                {
+                    Map<String,String> colvalpair = new HashMap<String,String>();
+                    colvalpair.put("property", keyValPair.getKey());
+                    colvalpair.put("value", keyValPair.getValue());
+                    crossRowArgs.add(colvalpair);
+                } 
 
+                raw_ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, sqltable_public, "id", crossRowArgs);
+                for (String str_id : raw_ids)
+                {
+                    Integer id = Integer.parseInt(str_id);
+                    ids.add(id);
+                }
+            }
+            catch (SQLException e)
+            {
+                throw new RemoteException("Unable to get IDs from property table.", e);
+            }
+            return ids;
+        }
+        private Map<String,String> getProperties(Integer id, List<String> properties)
+        {
+            return null;         
+        }
+        private String getProperty(Integer id, String property)
+        {
+            return null;
+        }
+        public Integer addEntry(String description, Map<String,String> properties) throws RemoteException
+        {
+            Integer id = null; 
+            try {
+                Connection conn = getConnection();
+                Map<String,Object> dummyProp = new HashMap<String,Object>();
+                dummyProp.put("description", description);
+                id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, sqltable_desc, dummyProp);
+                // If we made it this far, we have a new unique ID in the description table.
+            }
+            catch (Exception e)
+            {
+                throw new RemoteException("Unable to insert description item.",e);
+            }
+            return id;
+        }
+/* ** END** Private methods which handle the barebones of the extended attribute value system. */
 	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
 	{
 		List<String> names = new LinkedList<String>();
