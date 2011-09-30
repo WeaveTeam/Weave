@@ -106,12 +106,7 @@ package weave.visualization.plotters
 		
 		public const useImages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updatePoints);
 		
-		public const urlString:LinkableString = registerLinkableChild(this, new LinkableString(""), updateURL);
-		
-		private function updateURL():void
-		{
-			
-		}
+		public const urlString:LinkableString = registerLinkableChild(this, new LinkableString(""));
 		
 		private function updatePoints():void
 		{
@@ -251,7 +246,10 @@ package weave.visualization.plotters
 		{
 			if( useImages.value == true )
 			{
-				var _imageURL:String = imagePointColumn.defaultValue.value as String;
+				if( urlString.value != "")
+					var _imageURL:String = urlString.value;
+				else
+					var _imageURL:String = imagePointColumn.defaultValue.value as String;
 				if( _urlToImageMap[_imageURL] == undefined ){
 					_urlToImageMap[_imageURL] = _missingImage;
 					WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
