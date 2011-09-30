@@ -639,11 +639,9 @@
 						temp = _minSuggestedColumnSize;
 					
 					// always force the width to be the new value
-					dgc.setWidth(Math.floor(Math.min(temp, dataGrid.width - 1))); 
-					dgc.width = Math.floor(Math.min(temp, dataGrid.width - 1));
-					
-					// now we force it into doing the proper resizing (if any)
-					dgc.width = dgc.width; 
+					var newWidth:int = (j < _currentDataGridColumns.length - 1) ? 
+						Math.floor(Math.min(temp, dataGrid.width - 1)) : NaN;
+					dgc.width = newWidth;
 				}
 			}
 			private var _guiWidthChanged:Boolean = false; 
