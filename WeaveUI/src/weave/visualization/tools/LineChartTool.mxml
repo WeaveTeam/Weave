@@ -110,6 +110,8 @@
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
 				_plotter.xValues.addGroupedCallback(this, updateFilterText);
+				
+				linkSessionState(visualization.marginRight, labelPlotter.maxWidth);
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
