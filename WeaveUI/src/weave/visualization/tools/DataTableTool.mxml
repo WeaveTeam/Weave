@@ -641,7 +641,11 @@
 					// always force the width to be the new value
 					var newWidth:int = (j < _currentDataGridColumns.length - 1) ? 
 						Math.floor(Math.min(temp, dataGrid.width - 1)) : NaN;
+					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
+					
+					// now we force it into doing the proper resizing (if any)
+					dgc.width = dgc.width;
 				}
 			}
 			private var _guiWidthChanged:Boolean = false; 
