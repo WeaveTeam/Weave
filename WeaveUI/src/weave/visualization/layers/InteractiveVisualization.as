@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-This file is a part of Weave.
+    This file is a part of Weave.
 
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
 
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.layers
@@ -28,6 +28,7 @@ package weave.visualization.layers
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
+	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
 	import mx.core.Application;
@@ -35,6 +36,7 @@ package weave.visualization.layers
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotLayer;
@@ -49,7 +51,7 @@ package weave.visualization.layers
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
-	
+
 	/**
 	 * This is a container for a list of PlotLayers
 	 * 
@@ -76,9 +78,9 @@ package weave.visualization.layers
 			addChild(selectionRectangleCanvas);
 			
 			shadowAmount.value = 0;
-			
+
 			addContextMenuEventListener();
-			
+
 			addEventListener(MouseEvent.DOUBLE_CLICK, handleDoubleClick);
 			addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 			addEventListener(MouseEvent.ROLL_OUT, handleRollOut);
@@ -90,12 +92,29 @@ package weave.visualization.layers
 			StageUtils.addEventCallback(KeyboardEvent.KEY_UP, this, handleKeyboardEvent);
 			StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, this, _handlePointClick);
 			
-			//			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
-			//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
+//			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
+//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
 			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, null, true);
+						
+			mouseModeCache = new Dictionary(true);
+			mouseModeCache[SELECT_MODE_REPLACE] = InteractionController.SELECT;
+			mouseModeCache[SELECT_MODE_ADD] = InteractionController.SELECT_ADD;
+			mouseModeCache[SELECT_MODE_SUBTRACT] = InteractionController.SELECT_REMOVE;
+			mouseModeCache[PAN_MODE] = InteractionController.PAN;
+			mouseModeCache[ZOOM_MODE] = InteractionController.ZOOM;
+			mouseModeCache[InteractionController.SELECT] = InteractionController.SELECT;
+			mouseModeCache[InteractionController.SELECT_ADD] = InteractionController.SELECT_ADD;
+			mouseModeCache[InteractionController.SELECT_REMOVE] = InteractionController.SELECT_REMOVE;
+			mouseModeCache[InteractionController.PROBE] = InteractionController.PROBE;
+			mouseModeCache[InteractionController.PAN] = InteractionController.PAN;
+			mouseModeCache[InteractionController.ZOOM] = InteractionController.ZOOM;
+			mouseModeCache[InteractionController.ZOOM_IN] = InteractionController.ZOOM_IN];
+			mouseModeCache[InteractionController.ZOOM_OUT] = InteractionController.ZOOM_OUT];
+			mouseModeCache[InteractionController.ZOOM_TO_EXTENT] = InteractionController.ZOOM_TO_EXTENT];			
 			
-			defaultMouseMode.value = SELECT_MODE_REPLACE;
+			defaultMouseMode.value = InteractionController.SELECT;
+			interactions = Weave.properties.toolInteractions;
 		}
 		
 		public function dispose():void
@@ -145,27 +164,18 @@ package weave.visualization.layers
 		protected var selectionRectangleCanvas:Canvas = new Canvas();
 		
 		protected const mouseDragStageCoords:IBounds2D = new Bounds2D();
-		
+				
 		public static const SELECT_MODE_SUBTRACT:String  = "InteractiveVisualization.SELECT_MODE_SUBTRACT";
 		public static const SELECT_MODE_REPLACE:String  	= "InteractiveVisualization.SELECT_MODE_REPLACE";
 		public static const SELECT_MODE_ADD:String  = "InteractiveVisualization.SELECT_MODE_ADD";
 		public static const PAN_MODE:String 	= "InteractiveVisualization.PAN_MODE";
 		public static const ZOOM_MODE:String 	= "InteractiveVisualization.ZOOM_MODE";
 		public static const NO_CURSOR:String    = "InteractiveVisualization.NO_CURSOR";
-		
-		private function isModeSelection(mode:String):Boolean
-		{
-			return mode == SELECT_MODE_ADD
-				|| mode == SELECT_MODE_REPLACE
-				|| mode == SELECT_MODE_SUBTRACT;
-		}
+
 		
 		public const defaultMouseMode:LinkableString = newLinkableChild(this, LinkableString, handleMouseModeChange);
 		
-		
-		
-		
-		
+
 		protected function handleMouseModeChange():void
 		{
 			// stop whatever current mouse drag action is active
@@ -174,38 +184,50 @@ package weave.visualization.layers
 			updateMouseCursor();  
 		}
 		
+		
 		private var _temporaryMouseMode:String = null;
+		private var interactions:InteractionController;
+				
+		private function isModeSelection(mode:String):Boolean
+		{
+			return mode == InteractionController.SELECT_ADD
+				|| mode == InteractionController.SELECT
+				|| mode == InteractionController.SELECT_REMOVE;
+		}
+		
+		
 		protected function updateTemporaryMouseMode():void
 		{
 			var shift:Boolean = StageUtils.shiftKey;
 			var alt:Boolean   = StageUtils.altKey;
 			var ctrl:Boolean  = StageUtils.ctrlKey;
 			
+			interactions.clearKeyboardEvents();
+			if(alt)
+				interactions.insertKeyboardEvent(InteractionController.ALT);
+			if(ctrl)
+				interactions.insertKeyboardEvent(InteractionController.CTRL);
+			if(shift)
+				interactions.insertKeyboardEvent(InteractionController.SHIFT);
 			
-			
-			// control only for select add
-			if (ctrl && !shift && !alt )
-				_temporaryMouseMode = SELECT_MODE_ADD;
-				// control and shift only for select subtract
-			else if (ctrl && shift && !alt)
-				_temporaryMouseMode = SELECT_MODE_SUBTRACT;
-				// control and alt only for select replace
-			else if (ctrl && alt && !shift)
-				_temporaryMouseMode = SELECT_MODE_REPLACE;
-			else
+			if(!(alt || shift || ctrl))
 				_temporaryMouseMode = null;
+			else
+				_temporaryMouseMode = interactions.determineMouseMode();
 			
-			// if panning and zooming is enabled, check for its key commands
-			if (enableZoomAndPan.value)
-			{
-				// shift only for zoom
-				if (shift && !alt && !ctrl)
-					_temporaryMouseMode = ZOOM_MODE;
-					// alt only for pan
-				else if (alt && !shift &&!ctrl)
-					_temporaryMouseMode = PAN_MODE;
-			}
+			if(!enableZoomAndPan.value)
+				if(_temporaryMouseMode == InteractionController.ZOOM 
+					|| _temporaryMouseMode == InteractionController.ZOOM_IN 
+					|| _temporaryMouseMode == InteractionController.ZOOM_OUT 
+					|| _temporaryMouseMode == InteractionController.ZOOM_TO_EXTENT)
+					_temporaryMouseMode = null;
 			
+			if(!enableSelection.value)
+				if(_temporaryMouseMode == InteractionController.SELECT
+					|| _temporaryMouseMode == InteractionController.SELECT_ADD
+					|| _temporaryMouseMode == InteractionController.SELECT_REMOVE)
+					_temporaryMouseMode = null;
+						
 			updateMouseCursor();
 		}
 		
@@ -217,32 +239,36 @@ package weave.visualization.layers
 		
 		private var _selectModeCursorOffsetX:int = -2;
 		private var _selectModeCursorOffsetY:int = -2;
+		
+		private var mouseModeCache:Dictionary; // backwards compatibility with old "InteractiveVisualization.SELECT..." strings
+		
 		private function updateMouseCursor():void
 		{
-			var mode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
+			
+			var mode:String = _temporaryMouseMode ? _temporaryMouseMode : mouseModeCache[defaultMouseMode.value];			
 			
 			if(mouseIsRolledOver)
 			{
-				if(mode == PAN_MODE)
+				if(mode == InteractionController.PAN)
 				{
 					if(_mouseDown)
 						CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
 					else
 						CustomCursorManager.showCursor(CustomCursorManager.HAND_CURSOR);
 				}
-				else if(mode == SELECT_MODE_ADD)
+				else if(mode == InteractionController.SELECT_ADD)
 				{
 					CustomCursorManager.showCursor(CustomCursorManager.SELECT_ADD_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
 				}
-				else if(mode == SELECT_MODE_REPLACE)
+				else if(mode == InteractionController.SELECT)
 				{
 					CustomCursorManager.showCursor(CustomCursorManager.SELECT_REPLACE_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
 				}	
-				else if(mode == SELECT_MODE_SUBTRACT)
+				else if(mode == InteractionController.SELECT_REMOVE)
 				{
 					CustomCursorManager.showCursor(CustomCursorManager.SELECT_SUBTRACT_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
 				}
-				else if(mode == ZOOM_MODE)
+				else if(mode == InteractionController.ZOOM)
 				{
 					CustomCursorManager.showCursor(CustomCursorManager.ZOOM_CURSOR);
 				}
@@ -253,7 +279,9 @@ package weave.visualization.layers
 		{
 			// if the escape key was hit, stop whatever mouse drag operation is in progress
 			if (StageUtils.keyboardEvent && StageUtils.keyboardEvent.keyCode == Keyboard.ESCAPE)
-				mouseDragActive = false;
+			{
+				mouseDragActive = false;			
+			}
 			
 			// if currently dragging, don't change mouse mode
 			if (!mouseDragActive)
@@ -274,57 +302,19 @@ package weave.visualization.layers
 		// this function can be defined with override by extending classes and call super.handleMouseClick(event);
 		protected function handleMouseClick(event:MouseEvent):void
 		{
+			clearSelection();
+			handleMouseEvent(event);
 		}
 		
 		
 		protected function handleDoubleClick(event:MouseEvent):void
-		{
-			var mode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
-			
-			if (!mouseIsRolledOver)
-				return;
-			
-			if (enableZoomAndPan.value && mode != SELECT_MODE_ADD && mode != SELECT_MODE_SUBTRACT)
-			{
-				if (event.ctrlKey && event.shiftKey)
-				{
-					// zoom to full extent
-					zoomBounds.setDataBounds(fullDataBounds, true);
-				}
-				else
-				{
-					// zoom in or out 2x
-					
-					var zoomOut:Boolean = (event.ctrlKey || event.shiftKey);
-					
-					projectDragBoundsToDataQueryBounds(null, false);
-					zoomBounds.getDataBounds(_tempBounds);
-					_tempBounds.setCenter(queryBounds.getXCenter(), queryBounds.getYCenter());
-					
-					var multiplier:Number = zoomOut ? 2 : 0.5;
-					_tempBounds.centeredResize(_tempBounds.getWidth() * multiplier, _tempBounds.getHeight() * multiplier);
-					
-					zoomBounds.setDataBounds(_tempBounds);
-				}
-			}
-			else
-			{
-				// clear selection or select all
-				
-				// set up mouse drag rectangle to select or deselect visible area
-				zoomBounds.getScreenBounds(_screenBounds);
-				_screenBounds.getMinPoint(tempPoint);
-				mouseDragStageCoords.setMinPoint(localToGlobal(tempPoint));
-				_screenBounds.getMaxPoint(tempPoint);
-				mouseDragStageCoords.setMaxPoint(localToGlobal(tempPoint));
-				
-				immediateHandleSelection();
-			}
+		{								
+			handleMouseEvent(event);			
 		}
 		
 		private var _mouseDown:Boolean = false;
 		protected function handleMouseDown(event:MouseEvent):void
-		{
+		{			
 			_mouseDown = true;
 			
 			updateMouseCursor();
@@ -344,12 +334,14 @@ package weave.visualization.layers
 			
 			updateMouseCursor();
 			
+			mouseDragActive = false;
+			
 			// when the mouse is released, handle mouse move so the selection rectangle will cause the selection to update.
 			handleMouseEvent(StageUtils.mouseEvent);
 		}
 		protected function handleMouseMove():void
-		{
-			handleMouseEvent(StageUtils.mouseEvent);
+		{						
+			handleMouseEvent(StageUtils.mouseEvent);		
 		}
 		protected function handleRollOut(event:MouseEvent):void
 		{
@@ -362,7 +354,7 @@ package weave.visualization.layers
 				clearProbe();
 			}
 			handleMouseEvent(event);
-			
+
 			updateMouseCursor();
 		}
 		protected function handleRollOver(event:MouseEvent):void
@@ -386,23 +378,50 @@ package weave.visualization.layers
 				if(event.delta > 0)
 					ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,2,false);
 				else if(event.delta < 0)
-					ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,0.5,false);
+						ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,0.5,false);
 				zoomBounds.setDataBounds(_tempBounds);
 			}
-		}
-		
+		}		
 		
 		protected function handleMouseEvent(event:MouseEvent):void
 		{
-			var mode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
-			
-			
-			var dragReleased:Boolean = false;
+			var mode:String = _temporaryMouseMode ? _temporaryMouseMode : mouseModeCache[defaultMouseMode.value];
+			var str:String;						
 			var i:int;
-			var _layers:Array;
-			var layer:SelectablePlotLayer;
-			
-			if (mouseDragActive)
+
+			switch(event.type)
+			{
+				case MouseEvent.CLICK:
+				{
+					interactions.insertEvent(InteractionController.CLICK);
+					break;
+				}
+				case MouseEvent.DOUBLE_CLICK:
+				{
+					if (!mouseIsRolledOver)
+						return;
+
+					interactions.insertEvent(InteractionController.DCLICK);
+					break;
+				}
+				case MouseEvent.MOUSE_MOVE:
+				{
+					if(event.buttonDown)					
+						interactions.insertEvent(InteractionController.DRAG);
+					else
+						interactions.insertEvent(InteractionController.MOVE);
+
+					break;
+				}				
+			}
+			if(event.ctrlKey)
+				interactions.insertEvent(InteractionController.CTRL);
+			if(event.altKey)
+				interactions.insertEvent(InteractionController.ALT);
+			if(event.shiftKey)
+				interactions.insertEvent(InteractionController.SHIFT);
+
+			function updateMouseDragStageCoordinates():void
 			{
 				// update end coordinates of selection rectangle
 				if (event.type == MouseEvent.MOUSE_UP)
@@ -415,90 +434,157 @@ package weave.visualization.layers
 					// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
 					mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 				}
-				
-				if (!event.buttonDown)
-					dragReleased = true;
-				
-				if ( isModeSelection(mode) )
-				{
-					// only if selection is enabled
-					if (enableSelection.value)
-					{
-						// handle selection
-						if (mode == SELECT_MODE_REPLACE && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
-						{
-							_layers = layers.getObjects(SelectablePlotLayer);
-							for (i = 0; i < _layers.length; i++)
-							{
-								// clear selection when drag area is empty
-								setSelectionKeys(_layers[i], []);
-							}
-						}
-						else
-						{
-							delayedHandleSelection();
-						}
-					}
-				}
-				else if (mode == PAN_MODE)
-				{
-					// pan the dragged distance
-					projectDragBoundsToDataQueryBounds(null, false);
-					zoomBounds.getDataBounds(tempDataBounds);
-					tempDataBounds.setCenter(tempDataBounds.getXCenter() - queryBounds.getWidth(), tempDataBounds.getYCenter() - queryBounds.getHeight());
-					zoomBounds.setDataBounds(tempDataBounds);
-					// set begin point for next pan
-					mouseDragStageCoords.getMaxPoint(tempPoint);
-					mouseDragStageCoords.setMinPoint(tempPoint);
-				}
-				else if (mode == ZOOM_MODE)
-				{
-					if (dragReleased)
-					{
-						// zoom to selected data bounds if area > 0
-						projectDragBoundsToDataQueryBounds(null, true); // data bounds in same direction when zooming
-						if (queryBounds.getArea() > 0)
-							zoomBounds.setDataBounds(queryBounds);
-					}
-				}
 			}
-			else // mouseDragActive == false
-			{
-				// only update mouse mode when mouse drag isn't active
+			// only update mouse mode when mouse drag isn't active
+			if(!event.buttonDown)
 				updateTemporaryMouseMode();
-				
-				if (mouseIsRolledOver && !event.buttonDown)
-				{
-					// probe when mouse is rolled over and selection is inactive
-					handleProbe();
-				}
+
+			str = interactions.determineAction();
+			if(mouseDragActive)
+			{
+				if(!(event.altKey || event.shiftKey || event.ctrlKey))
+					str = mouseModeCache[defaultMouseMode.value];
 			}
 			
-			// stop drag when the mouse button is released
-			if (dragReleased)
-				mouseDragActive = false;
-			
+			switch(str)
+			{
+				case InteractionController.SELECT_ADD:
+				{
+					if(mouseIsRolledOver)
+						handleSelection(event, mode);
+					break;
+				}
+				case InteractionController.SELECT:
+				{
+					if(mouseIsRolledOver)
+						handleSelection(event,mode);
+					break;
+				}
+				case InteractionController.SELECT_REMOVE:
+				{
+					if(mouseIsRolledOver)
+						handleSelection(event, mode);					
+					break;
+				}
+				case InteractionController.PAN:
+				{
+					if(enableZoomAndPan.value && mouseDragActive && mouseIsRolledOver)
+					{
+						updateMouseDragStageCoordinates();
+						// pan the dragged distance
+						projectDragBoundsToDataQueryBounds(null, false);
+						zoomBounds.getDataBounds(tempDataBounds);
+						tempDataBounds.setCenter(tempDataBounds.getXCenter() - queryBounds.getWidth(), tempDataBounds.getYCenter() - queryBounds.getHeight());
+						zoomBounds.setDataBounds(tempDataBounds);
+						// set begin point for next pan
+						mouseDragStageCoords.getMaxPoint(tempPoint);
+						mouseDragStageCoords.setMinPoint(tempPoint);
+					}
+					break;
+				}
+				case InteractionController.ZOOM:
+				{
+					if(enableZoomAndPan.value && mouseDragActive)
+					{
+						updateMouseDragStageCoordinates();
+					}
+					break;
+				}
+				case InteractionController.PROBE:
+				{
+
+					if (mouseIsRolledOver && !event.buttonDown)
+					{
+						// probe when mouse is rolled over and selection is inactive
+						handleProbe();
+					}
+
+					break;
+				}
+				case InteractionController.ZOOM_TO_EXTENT:
+				{
+					if (enableZoomAndPan.value && mode != InteractionController.SELECT_ADD && mode != InteractionController.SELECT_REMOVE)
+						zoomBounds.setDataBounds(fullDataBounds, true); // zoom to full extent					
+					else
+					{
+						selectAllVisibleRecords();
+					}		
+					break;
+				}
+				case InteractionController.ZOOM_OUT:						
+				{
+					zoom(2, mode);	
+					break;
+				}
+				case InteractionController.ZOOM_IN:
+				{
+					zoom(0.5, mode);			
+					break;
+				}
+			}
+			//trace(mode, str);
+			if(enableZoomAndPan.value && !event.buttonDown && mode == InteractionController.ZOOM && event.type != MouseEvent.MOUSE_MOVE)
+			{				
+				// zoom to selected data bounds if area > 0
+				projectDragBoundsToDataQueryBounds(null, true); // data bounds in same direction when zooming
+				if (queryBounds.getArea() > 0)
+					zoomBounds.setDataBounds(queryBounds);
+			}
+
 			updateSelectionRectangleGraphics();
-			//updateMouseCursor();
+			interactions.clearEvents();
+			//updateMouseCursor();		
+		}
+		
+		//TODO - use this
+		private function selectAllVisibleRecords():void
+		{
+			// clear selection or select all
+			
+			// set up mouse drag rectangle to select or deselect visible area
+			zoomBounds.getScreenBounds(_screenBounds);
+			_screenBounds.getMinPoint(tempPoint);
+			mouseDragStageCoords.setMinPoint(localToGlobal(tempPoint));
+			_screenBounds.getMaxPoint(tempPoint);
+			mouseDragStageCoords.setMaxPoint(localToGlobal(tempPoint));
+			
+			immediateHandleSelection();
+		}
+		
+		private function zoom(multiplier:Number, mode:String):void
+		{
+			if( enableZoomAndPan.value && mode != InteractionController.SELECT_ADD && mode != InteractionController.SELECT_REMOVE && mouseIsRolledOver)
+			{				
+				projectDragBoundsToDataQueryBounds(null, false);
+				zoomBounds.getDataBounds(_tempBounds);
+				_tempBounds.setCenter(queryBounds.getXCenter(), queryBounds.getYCenter());
+				
+				_tempBounds.centeredResize(_tempBounds.getWidth() * multiplier, _tempBounds.getHeight() * multiplier);
+				
+				zoomBounds.setDataBounds(_tempBounds);				
+			}
+			else 
+				selectAllVisibleRecords();
 		}
 		
 		private var _selectionRectangleGraphicsCleared:Boolean = true;
 		protected function updateSelectionRectangleGraphics():void 
 		{
-			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
-			
+			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : mouseModeCache[defaultMouseMode.value];
+			 
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value) return;
 			var g:Graphics = selectionRectangleCanvas.graphics;
 			if (!_selectionRectangleGraphicsCleared)
 				g.clear(); 
 			
-			if (!mouseDragActive || mouseMode == PAN_MODE)
+			if (!mouseDragActive || mouseMode == InteractionController.PAN)
 			{
 				_selectionRectangleGraphicsCleared = true;
 				return;
 			}
-			_selectionRectangleGraphicsCleared = false; 
 			
+			_selectionRectangleGraphicsCleared = false; 
+
 			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
 			var localMinPoint:Point = selectionRectangleCanvas.globalToLocal(tempPoint); // local screen coords
 			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
@@ -506,10 +592,10 @@ package weave.visualization.layers
 			
 			tempScreenBounds.setMinPoint(localMinPoint);
 			tempScreenBounds.setMaxPoint(localMaxPoint);
-			
+		
 			// use a blue rectangle for zoom mode, green for selection
 			_dashedLine.graphics = g; 
-			if(mouseMode == ZOOM_MODE)
+			if(mouseMode == InteractionController.ZOOM)
 			{
 				_dashedLine.lineStyle(2, 0x00faff, .75);
 			}
@@ -541,13 +627,60 @@ package weave.visualization.layers
 			var yStart:Number = tempScreenBounds.getYMin();
 			var width:Number = tempScreenBounds.getXCoverage();
 			var height:Number = tempScreenBounds.getYCoverage();
-			
+
 			_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
 		}
+		
 		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
 		private function validateDashedLine():void
 		{
 			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
+		}
+		
+		private function handleSelection(event:MouseEvent,mode:String):void
+		{
+			var _layers:Array;
+			var i:int;
+			var layer:SelectablePlotLayer;
+			
+			// update end coordinates of selection rectangle
+			if (event.type == MouseEvent.MOUSE_UP)
+			{
+				// on a mouse up event, we want accuracy, so use the mouse up event coordinates
+				mouseDragStageCoords.setMaxCoords(event.stageX, event.stageY);
+			}
+			else
+			{
+				// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
+				mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
+			}
+			
+			if ( isModeSelection(mode) )
+			{
+				// only if selection is enabled
+				if (enableSelection.value)
+				{
+					// handle selection
+					if (mode == InteractionController.SELECT && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
+					{
+						// clear selection when drag area is empty
+						clearSelection();
+					}
+					else
+					{
+						delayedHandleSelection();
+					}
+				}
+			}
+		}
+		
+		private function clearSelection():void
+		{
+			var _layers:Array = layers.getObjects(SelectablePlotLayer);
+			for (var i:int = 0; i < _layers.length; i++)
+			{
+				setSelectionKeys(_layers[i], []);
+			}
 		}
 		
 		/**
@@ -634,7 +767,7 @@ package weave.visualization.layers
 				// skip this layer if it does not contain lastProbedQKey
 				if (_lastProbedQKey && !layer.plotter.keySet.containsKey(_lastProbedQKey))
 					continue;
-				
+
 				// when using the selection layer, clear the probe
 				setProbeKeys(layer, []);
 				projectDragBoundsToDataQueryBounds(layer, false);
@@ -718,7 +851,7 @@ package weave.visualization.layers
 					tempDataBounds.constrainBounds(queryBounds, false);
 					var keys:Array = (layer.spatialIndex as SpatialIndex).getClosestOverlappingKeys( queryBounds, xPrecision, yPrecision );
 					//trace(layers.getName(layer),keys);
-					
+						
 					// stop when we find keys
 					if (keys.length > 0)
 					{
@@ -750,16 +883,16 @@ package weave.visualization.layers
 		{
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
-			
-			var mouseMode:String = _temporaryMouseMode ? _temporaryMouseMode : defaultMouseMode.value;
-			
+
+			var mouseMode:String = _temporaryMouseMode || mouseModeCache[defaultMouseMode.value];
+
 			// set the probe filter to a new set of keys
 			var keySet:KeySet = layer.selectionFilter.internalObject as KeySet;
 			if (keySet != null)
 			{
-				if (useMouseMode && mouseMode == SELECT_MODE_ADD)
+				if (useMouseMode && mouseMode == InteractionController.SELECT_ADD)
 					keySet.addKeys(keys);
-				else if (useMouseMode && mouseMode == SELECT_MODE_SUBTRACT)
+				else if (useMouseMode && mouseMode == InteractionController.SELECT_REMOVE)
 					keySet.removeKeys(keys);
 				else
 					keySet.replaceKeys(keys);
@@ -772,7 +905,7 @@ package weave.visualization.layers
 			//trace("setProbeKeys()",keys);
 			// set the probe filter to a new set of keys
 			var keySet:KeySet = layer.probeFilter.internalObject as KeySet;
-			
+		
 			if (keySet != null)
 			{
 				keySet.replaceKeys(keys);
