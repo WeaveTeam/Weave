@@ -109,9 +109,9 @@ package weave.visualization.layers
 			mouseModeCache[InteractionController.PROBE] = InteractionController.PROBE;
 			mouseModeCache[InteractionController.PAN] = InteractionController.PAN;
 			mouseModeCache[InteractionController.ZOOM] = InteractionController.ZOOM;
-			mouseModeCache[InteractionController.ZOOM_IN] = InteractionController.ZOOM_IN];
-			mouseModeCache[InteractionController.ZOOM_OUT] = InteractionController.ZOOM_OUT];
-			mouseModeCache[InteractionController.ZOOM_TO_EXTENT] = InteractionController.ZOOM_TO_EXTENT];			
+			mouseModeCache[InteractionController.ZOOM_IN] = InteractionController.ZOOM_IN;
+			mouseModeCache[InteractionController.ZOOM_OUT] = InteractionController.ZOOM_OUT;
+			mouseModeCache[InteractionController.ZOOM_TO_EXTENT] = InteractionController.ZOOM_TO_EXTENT;			
 			
 			defaultMouseMode.value = InteractionController.SELECT;
 			interactions = Weave.properties.toolInteractions;
