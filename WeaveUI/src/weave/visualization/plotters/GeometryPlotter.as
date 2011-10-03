@@ -94,7 +94,7 @@ package weave.visualization.plotters
 		 */
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
 		/**
-		 *  This is meant to contain URL links to an image to use in place of points on the map.
+		 *  This is the default URL path for images, when using images in place of points.
 		 */
 		public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "http://www.helpexamples.com/flash/images/image2.jpg" );
 		
@@ -104,14 +104,15 @@ package weave.visualization.plotters
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 		
-		public const useImages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updatePoints);
+		/**
+		 * Boolean to indicate whether the user desires to use images or not. 
+		 */
+		public const useImages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
+		/**
+		 * This variable contains whatever the user entered image URL is, should they enter one.
+		 */
 		public const urlString:LinkableString = registerLinkableChild(this, new LinkableString(""));
-		
-		private function updatePoints():void
-		{
-			trace( "Changed, now " + useImages.value );
-		}
 		
 		/**
 		 * This is the image cache.
@@ -239,17 +240,18 @@ package weave.visualization.plotters
 		
 		// this is the offset used to draw a circle onto a cached BitmapData
 		private var pointOffset:Number;
-		private var _urlToImageMap:Object = new Object();
 		
 		// this function returns the BitmapData associated with the given key
 		private function drawCircle(destination:BitmapData, color:Number, x:Number, y:Number):void
 		{
+			var _imageURL:String = new String();
+			
 			if( useImages.value == true )
 			{
 				if( urlString.value != "")
-					var _imageURL:String = urlString.value;
+					_imageURL = urlString.value;
 				else
-					var _imageURL:String = imagePointColumn.defaultValue.value as String;
+					_imageURL = imagePointColumn.defaultValue.value as String;
 				if( _urlToImageMap[_imageURL] == undefined ){
 					_urlToImageMap[_imageURL] = _missingImage;
 					WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
