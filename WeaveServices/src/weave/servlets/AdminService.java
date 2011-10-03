@@ -1425,7 +1425,7 @@ public class AdminService extends GenericServlet
 	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
-		tableName = tableName.toLowerCase();
+		//tableName = tableName.toLowerCase();
 
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		List<String> columnNames = getColumnsList(connectionName, schemaName, tableName);
@@ -1436,7 +1436,7 @@ public class AdminService extends GenericServlet
 	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
-		sqlTable = sqlTable.toLowerCase();
+		//sqlTable = sqlTable.toLowerCase();
 
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
