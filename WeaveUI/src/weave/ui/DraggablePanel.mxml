@@ -243,17 +243,15 @@
 				
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
-				setupControlButton(minimizeButton, _minimizeIcon, MouseEvent.CLICK, handleMinimizeButtonClick, "Click here to minimize this component.");
-				setupControlButton(pinButton, pinIcon, MouseEvent.MOUSE_DOWN, togglePinned, "Click here to pin this window to the stage.") ;
-				setupControlButton(pinToBackButton, pinToBackIcon, MouseEvent.MOUSE_DOWN, togglePinnedToBack, "Click here to pin this window to the back of the stage");
-				setupControlButton(maximizeButton, _maximizeIcon, MouseEvent.CLICK, toggleMaximized, "Click here to maximize or restore this component.");
+				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
+				setupControlButton(helpButton, null, toggleHelpPanel, "Click here to show help on how to use this component.");
+				setupControlButton(pinToBackButton, pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
+				setupControlButton(pinButton, pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
+				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
+				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
+				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
 				
 				helpButton.label = "?";
-				setupControlButton(helpButton, null, MouseEvent.CLICK, toggleHelpPanel, "Click here to show help on how to use this component.");
-				
-				setupControlButton(userControlButton, _userControlIcon, MouseEvent.CLICK, toggleControlPanel, "Click here to change settings for this component.");
-				
-				setupControlButton(closePanelButton, null, MouseEvent.CLICK, handleCloseButtonClick, "Click here to close this component.");
 				closePanelButton.label = "X";
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
 				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
@@ -770,11 +768,10 @@
 			
 			private function handlePinnedChange():void
 			{
-				if(!pinnable.value)
+				if (!pinnable.value)
 					pinned.value = false;
-				if(pinned.value) {
+				if (pinned.value)
 					pinButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
-				}
 				else
 					pinButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );	
 				movePinnedPanelsToForeground();
@@ -782,12 +779,13 @@
 			
 			private function handlePinnedToBackChange():void
 			{
-				if(!pinnableToBack.value)
+				if (!pinnableToBack.value)
 					pinnedToBack.value = false;
-				if(pinnedToBack.value) {
+				if (pinnedToBack.value)
 					pinToBackButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
-				} else
+				else
 					pinToBackButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
+				movePinnedPanelsToForeground();
 			}
 			
 			public function toggleMaximized():void
@@ -820,7 +818,7 @@
 			}
 			private function handleCloseButtonClick():void
 			{
-				if(Weave.properties.showVisToolCloseDialog.value)
+				if (Weave.properties.showVisToolCloseDialog.value)
 					Alert.show("Are you sure you want to close this window?", "Closing this window...", 1|2, this, handleCloseAlertResult);
 				else
 					removePanel();
@@ -831,6 +829,8 @@
 				var panels:Array = [this, _controlPanel, _helpPanel];
 				for each (var panel:DraggablePanel in panels)
 				{
+					if (!panel)
+						continue;
 					try
 					{
 						// un-maximize
@@ -838,7 +838,10 @@
 						if (panel && panel.parent)
 							panel.parent.removeChild(panel);
 					}
-					catch (e:Error) { }
+					catch (e:Error)
+					{
+						WeaveAPI.ErrorManager.reportError(e);
+					}
 				}
 			}
 
@@ -860,7 +863,7 @@
 			
 			private function handleMouseDown(event:MouseEvent):void
 			{
-				if(!_resizeable)
+				if (!_resizeable)
 					return;
 				
 				if (!parent)
@@ -872,6 +875,7 @@
 				_bottomResize = false;
 				
 				
+				// bring panel to front
 				if (parent.getChildIndex(this) < parent.numChildren-1)
 					sendWindowToForeground();
 				
@@ -1233,9 +1237,13 @@
 					return;
 				if (draggable.value)
 				{
-					// go through each child index starting at this one and shift all subsequent children down one in order				
+					// go through each child index starting at this one and shift all subsequent children down one in order
 					for (var i:int = parent.getChildIndex(this); i < parent.numChildren-1; i++)
 					{
+						var allChildren:Array = [];
+						for (var j:int = 0; j < parent.numChildren; j++)
+							allChildren.push(parent.getChildAt(j));
+						
 						parent.setChildIndex(parent.getChildAt(i+1), i);
 					}
 					
@@ -1444,7 +1452,7 @@
 			
 			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
-			private function setupControlButton(button:Button, icon:Class, eventType:String, clickHandler:Function, tooltip:String = null):void
+			private function setupControlButton(button:Button, icon:Class, clickHandler:Function, tooltip:String = null):void
 			{
 				button.setStyle("icon", icon);
 				button.toolTip = tooltip;
@@ -1462,7 +1470,12 @@
 				button.setStyle("fillAlphas", [1,1] );
 				button.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
 				
-				button.addEventListener(eventType, function(e:MouseEvent):*{ clickHandler(); e.stopImmediatePropagation(); } );
+				var buttonListener:Function = function(e:MouseEvent):*
+				{
+					clickHandler();
+					e.stopImmediatePropagation();
+				};
+				button.addEventListener(MouseEvent.CLICK, buttonListener);
 				button.width = buttonSize;
 				button.height = buttonSize;
 				button.buttonMode = true;
