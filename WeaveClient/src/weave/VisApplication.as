@@ -1081,7 +1081,7 @@ package weave
 			var label:Function = function():String
 			{
 				var menuLabel:String = "untitled ";
-				if(panel.title.replace(" ", "").length > 0) 
+				if(panel.title && panel.title.replace(" ", "").length > 0) 
 					menuLabel = panel.title;
 				else
 					menuLabel += " window";
@@ -1336,6 +1336,11 @@ package weave
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				
+//				if(Weave.properties.enableMarker.value)
+//				{
+//					CustomContextMenuManager.createAndAddMenuItemToDestination("Add Marker",destination,handleAddRemove,"2.1 textBoxMenuItem");
+//				}
+				
 				SessionedTextBox.createContextMenuItems(this);
 				PenTool.createContextMenuItems(this);
 					
@@ -1347,6 +1352,8 @@ package weave
 				// one tool at a time)
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
+				
+				
 				
 				
 				// Add context menu items for handling search queries
