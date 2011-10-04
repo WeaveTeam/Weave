@@ -23,9 +23,9 @@ package weave.visualization.plotters
 	import weave.utils.BitmapText;
 	import weave.utils.BitmapUtils;
 
-	public class ImageCoordinatesPlotter extends AbstractPlotter
+	public class SingleImagePlotter extends AbstractPlotter
 	{
-		public function ImageCoordinatesPlotter()
+		public function SingleImagePlotter()
 		{
 		}
 		

@@ -62,7 +62,7 @@
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
-			import weave.visualization.plotters.ImageCoordinatesPlotter;
+			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 
 			// disable default plot layer
@@ -469,7 +469,7 @@
 			{
 				var plotLayer:PlotLayer = visualization.layers.requestObject(name,PlotLayer,false);
 				
-				var marker:ImageCoordinatesPlotter = plotLayer.getDynamicPlotter().requestLocalObject(ImageCoordinatesPlotter,false);
+				var marker:SingleImagePlotter = plotLayer.getDynamicPlotter().requestLocalObject(SingleImagePlotter,false);
 				
 				marker.imageURL.value = url;
 				
