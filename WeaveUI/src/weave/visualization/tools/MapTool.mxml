@@ -82,7 +82,7 @@
 				
 				colorColumn.addGroupedCallback(this, updateTitle);
 				toolTitle.addGroupedCallback(this, updateTitle);
-				visualization.defaultMouseMode.addGroupedCallback(this, handleMouseModeChange);
+				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
 				colorColumn.addGroupedCallback(this,updateProbeColumns, true);				
@@ -227,48 +227,42 @@
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void
-			{				
-				if(event)
+			{
+				var defaultMode:String;
+				if (event)
 				{
-					if(event.target == panModeButton)
-						visualization.defaultMouseMode.value = InteractiveVisualization.PAN_MODE;
-						
-					else if(event.target == selectModeButton)
-						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_REPLACE;
-					else if(event.target == selectModeSubtractButton)
-						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_SUBTRACT;
-					else if(event.target == selectModeAddButton)
-						visualization.defaultMouseMode.value = InteractiveVisualization.SELECT_MODE_ADD;
-						
-					else if(event.target == zoomModeButton)
-						visualization.defaultMouseMode.value = InteractiveVisualization.ZOOM_MODE;
+					switch (event.target)
+					{
+						case panModeButton:
+							defaultMode = InteractionController.PAN;
+							break;
+						default:
+						case selectModeButton:
+							defaultMode = InteractionController.SELECT;
+							break;
+						case selectModeSubtractButton:
+							defaultMode = InteractionController.SELECT_REMOVE;
+							break;
+						case selectModeAddButton:
+							defaultMode = InteractionController.SELECT_ADD;
+							break;
+						case zoomModeButton:
+							defaultMode = InteractionController.ZOOM;
+							break;
+					}
+					Weave.properties.toolInteractions.defaultDragMode.value = defaultMode;
 				}
+				defaultMode = Weave.properties.toolInteractions.defaultDragMode.value;
 				
-				if(visualization.defaultMouseMode.value == InteractiveVisualization.PAN_MODE)
-				{
-					panModeButton.selected = true;
-					selectModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected  = false;
-				}
-				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_REPLACE)
-				{
-					selectModeButton.selected = true;
-					panModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected = false;
-				}
-				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_SUBTRACT)
-				{
-					selectModeSubtractButton.selected = true;
-					panModeButton.selected = zoomModeButton.selected = selectModeButton.selected = selectModeAddButton.selected = false;
-				}
-				else if(visualization.defaultMouseMode.value == InteractiveVisualization.SELECT_MODE_ADD)
-				{
-					selectModeAddButton.selected = true;
-					panModeButton.selected = zoomModeButton.selected = selectModeSubtractButton.selected = selectModeButton.selected = false;
-				}
-				else if(visualization.defaultMouseMode.value == InteractiveVisualization.ZOOM_MODE)
-				{
-					zoomModeButton.selected = true;
-					panModeButton.selected = selectModeButton.selected = selectModeSubtractButton.selected = selectModeAddButton.selected = false;
-				}
+				var buttonMap:Object = {};
+				buttonMap[InteractionController.PAN] = panModeButton;
+				buttonMap[InteractionController.SELECT] = selectModeButton;
+				buttonMap[InteractionController.SELECT_REMOVE] = selectModeSubtractButton;
+				buttonMap[InteractionController.SELECT_ADD] = selectModeAddButton;
+				buttonMap[InteractionController.ZOOM] = zoomModeButton;
+				var selectedButton:Button = buttonMap[defaultMode];
+				for each (var button:Button in buttonMap)
+					button.selected = (button == selectedButton);
 			}
 			
 			

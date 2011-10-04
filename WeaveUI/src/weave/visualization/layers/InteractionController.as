@@ -24,22 +24,28 @@ package weave.visualization.layers
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
+	import weave.core.StageUtils;
 
 	/**
-	 * This class handles mouse/keyboard interactions performed within DisplayObjects
+	 * This class handles mouse/keyboard interactions performed within InteractiveVisualizations
 	 * 
 	 * @author kmanohar
+	 * @author adufilie
 	 */
 	public class InteractionController implements ILinkableObject
 	{
-		public static const DRAG:String = "drag";
-		public static const DCLICK:String = "dclick";
-		public static const CLICK:String = "click";
 		public static const MOVE:String = "move";
+		public static const DRAG:String = "drag";
+		public static const CLICK:String = "click";
+		public static const DCLICK:String = "dclick";
+		public static const WHEEL:String = "wheel";
+		
 		public static const CTRL:String = "ctrl";
 		public static const ALT:String = "alt";
 		public static const SHIFT:String = "shift";
@@ -60,83 +66,137 @@ package weave.visualization.layers
 			super();
 			
 			probe.value = MOVE;
-			select.value = [DRAG].toString();
-			selectAdd.value = [CTRL, DRAG].toString();
-			selectRemove.value = [CTRL, SHIFT, DRAG].toString();
+			select.value = [DRAG].join(DELIM);
+			selectAdd.value = [CTRL, DRAG].join(DELIM);
+			selectRemove.value = [CTRL, SHIFT, DRAG].join(DELIM);
 			
-			pan.value = [ALT, DRAG].toString();
-			zoom.value = [SHIFT, DRAG].toString();
+			pan.value = [ALT, DRAG].join(DELIM);
+			zoom.value = WeaveAPI.CSVParser.createCSVFromArrays([[SHIFT, DRAG], [WHEEL]]);
 			zoomIn.value = DCLICK;
-			zoomOut.value = [SHIFT, DCLICK].toString();
-			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].toString();					
+			zoomOut.value = [SHIFT, DCLICK].join(DELIM);
+			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].join(DELIM);
 		}
 		
-		public const probe:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const select:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const selectRemove:LinkableString 		= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const selectAdd:LinkableString 			= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const pan:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const zoom:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const zoomIn:LinkableString 				= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const zoomOut:LinkableString 			= newLinkableChild(this, LinkableString,invalidateEvents);
-		public const zoomToExtent:LinkableString 		= newLinkableChild(this, LinkableString,invalidateEvents);
-		
-		private var _sortedValues:Dictionary = new Dictionary(true);
-		private const whitespace:RegExp = new RegExp("\s") ;
-		
-		private function cacheSortedValues():void
+		/**
+		 * This is the default mode to use when dragging and no modifier keys are pressed.
+		 */
+		public const defaultDragMode:LinkableString = registerLinkableChild(this, new LinkableString(null, verifyDefaultMode), validate);
+		private function verifyDefaultMode(value:String):Boolean
 		{
-			_sortedValues = new Dictionary(true);
-			var array:Array = [];
-			for each( var s:LinkableString in [probe, select, selectRemove, selectAdd, pan, zoom, zoomIn, zoomOut, zoomToExtent])
+			return !value || [PROBE, SELECT, PAN, ZOOM].indexOf(value) >= 0;
+		}
+		
+		public const probe:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
+		public const select:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
+		public const selectRemove:LinkableString 		= newLinkableChild(this, LinkableString, invalidate);
+		public const selectAdd:LinkableString 			= newLinkableChild(this, LinkableString, invalidate);
+		public const pan:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
+		public const zoom:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
+		public const zoomIn:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
+		public const zoomOut:LinkableString 			= newLinkableChild(this, LinkableString, invalidate);
+		public const zoomToExtent:LinkableString 		= newLinkableChild(this, LinkableString, invalidate);
+		
+		//private const whitespace:RegExp = new RegExp("\s") ;
+		private const DELIM:String = ',';
+		private var _mouseActionLookup:Object;
+		private var _mouseModeLookup:Object;
+		
+		private function invalidate():void
+		{
+			_mouseActionLookup = null;
+			_mouseModeLookup = null;
+		}
+		private function validate():void
+		{
+			_mouseActionLookup = {};
+			_mouseModeLookup = {};
+			var pairs:Array = [
+				[PROBE, probe],
+				[SELECT, select],
+				[SELECT_REMOVE, selectRemove],
+				[SELECT_ADD, selectAdd],
+				[PAN, pan],
+				[ZOOM, zoom],
+				[ZOOM_IN, zoomIn],
+				[ZOOM_OUT, zoomOut],
+				[ZOOM_TO_EXTENT, zoomToExtent]
+			];
+			for (var i:int = 0; i < pairs.length; i++)
 			{
-				var str:String = s.value;
-				if(!str)
+				var mouseMode:String = pairs[i][0];
+				var linkableString:LinkableString = pairs[i][1];
+				var rows:Array = WeaveAPI.CSVParser.parseCSV(linkableString.value);
+				for each (var row:Array in rows)
 				{
-					_sortedValues[s] = str;
-					continue;
+					// sort row
+					row.sort();
+					// save lookup from (modifier keys + mouse event) to mouseMode
+					var actionStr:String = row.join(DELIM);
+					if (!_mouseActionLookup.hasOwnProperty(actionStr))
+						_mouseActionLookup[actionStr] = mouseMode;
+					// save lookup from (modifier keys) to mouseMode
+					removeItems(row, [CLICK, DRAG, DCLICK, MOVE, WHEEL]);
+					var modeStr:String = row.join(DELIM);
+					if ([PAN, SELECT, SELECT_ADD, SELECT_REMOVE, ZOOM, PROBE].indexOf(mouseMode) >= 0)
+						if (!_mouseModeLookup.hasOwnProperty(modeStr))
+							_mouseModeLookup[modeStr] = mouseMode;
 				}
-				// remove spaces from string
-				array = str.split(" ");
-				str = array.join("");
-				
-				// use commas as delimeters between event strings
-				array = str.split(",");
-				array = array.sort();
-				_sortedValues[s] = array.toString();
 			}
 		}
 		
-		
-		private var _eventActionCache:Dictionary = new Dictionary(true);
-		private var keyboardEventCache:Dictionary;
-		private var _validateCache:Boolean = false;
-		
-		private function invalidateEvents():void
+		/**
+		 * This function removes matching items from an array.
+		 * @param array The Array to remove items from.
+		 * @param items A list of items to remove from the Array.
+		 */
+		private function removeItems(array:Array, items:Array):void
 		{
-			_validateCache = true;
-			cacheSortedValues();
+			for each (var str:String in items)
+			{
+				var i:int = array.indexOf(str);
+				if(i != -1)
+					array.splice(i, 1);
+			}
+		}			
+		
+		/**
+		 * @return An Array containing String items corresponding to the active modifier keys (alt,ctrl,shift) 
+		 */
+		private function getModifierSequence():Array
+		{
+			var array:Array = [];
+			if (StageUtils.altKey)
+				array.push(ALT);
+			if (StageUtils.ctrlKey)
+				array.push(CTRL);
+			if (StageUtils.shiftKey)
+				array.push(SHIFT);
+			return array;
 		}
 		
 		/**
 		 * Determine current mouse action from values in internal list of mouse events
-		 * @param optionalString optional parameter to use instead of internal list
-		 * @return returns a string representing current mouse action to execute
-		 * 
-		 */		
-		public function determineAction(optionalString:String = null):String
+		 * @param mouseEventType A mouse event type such as move, drag, click, or dclick
+		 * @return returns a string representing current mouse action to execute such as pan, zoom, or select
+		 */
+		public function determineMouseAction(mouseEventType:String):String
 		{
-			if(_validateCache)
-			{
-				cacheEventActions();
-				cacheKeyboardEvents();				
-			}
-			if(optionalString)
-			{
-				return _eventActionCache[optionalString];
-			}
-			_events = _events.sort();		
-			return _eventActionCache[String(_events)];
+			if (!_mouseActionLookup)
+				validate();
+			
+			var array:Array = getModifierSequence();
+			
+			// if no modifier keys are pressed, default mode is specified, and this is a drag event... use default drag mode
+			if (array.length == 0 && defaultDragMode.value && mouseEventType == DRAG)
+				return defaultDragMode.value;
+			
+			array.push(mouseEventType);
+			
+			var str:String = array.sort().join(DELIM);
+			var action:String = _mouseActionLookup[str];
+			
+			//trace(defaultDragMode.value,'determineMouseAction',mouseEventType,'['+str+'] =>',action);
+			return action;
 		}
 		
 		/**
@@ -145,109 +205,20 @@ package weave.visualization.layers
 		 */
 		public function determineMouseMode():String
 		{
-			if (!keyboardEventCache)
-				cacheKeyboardEvents();
-			_keyboardEvents = _keyboardEvents.sort();
-			var mode:String = keyboardEventCache[_keyboardEvents.toString()];
-			if (!mode)
-				cacheKeyboardEvents();
+			if (!_mouseModeLookup)
+				validate();
+			
+			var array:Array = getModifierSequence();
+			
+			// if no modifier keys are pressed and default mode is specified, use default mode
+			if (array.length == 0 && defaultDragMode.value)
+				return defaultDragMode.value;
+			
+			var str:String = array.sort().join(DELIM);
+			var mode:String = _mouseModeLookup[str];
+			
+			//trace(defaultDragMode.value,'determineMouseMode','['+str+'] =>',mode);
 			return mode;
 		}
-		
-		private function cacheEventActions():void
-		{
-			_eventActionCache = new Dictionary(true);
-			
-			_eventActionCache[_sortedValues[probe]] = PROBE;
-			_eventActionCache[_sortedValues[select]] = SELECT;
-			_eventActionCache[_sortedValues[selectRemove]] = SELECT_REMOVE;
-			_eventActionCache[_sortedValues[selectAdd]] = SELECT_ADD;
-			_eventActionCache[_sortedValues[pan]] = PAN;
-			_eventActionCache[_sortedValues[zoom]] = ZOOM;
-			_eventActionCache[_sortedValues[zoomIn]] = ZOOM_IN;
-			_eventActionCache[_sortedValues[zoomOut]] = ZOOM_OUT;
-			_eventActionCache[_sortedValues[zoomToExtent]] = ZOOM_TO_EXTENT;
-			_validateCache = false;
-		}		
-		  
-		private function cacheKeyboardEvents():void
-		{
-			keyboardEventCache = new Dictionary(true);			
-			for each( var s:LinkableString in [pan, probe, select, selectAdd, selectRemove, zoom])
-			{
-				var e:Array = _sortedValues[s].split(",");
-				removeElements(e, [CLICK, DRAG, DCLICK, MOVE]);
-				keyboardEventCache[String(e)] = determineAction(_sortedValues[s]);
-			}
-			_validateCache = false;
-		}
-		
-		private var _events:Array = [];
-		private var _keyboardEvents:Array = [];
-		
-		/**
-		 * Clears internal list of mouse events
-		 */		
-		public function clearEvents():void
-		{
-			_events = [];
-		}
-		
-		/**
-		 * Inserts a mouse event to list of events 
-		 * @param event string representing mouse event
-		 */		
-		public function insertEvent(event:String):void
-		{
-			insert(_events, event);
-		}
-		
-		/**
-		 * Clears internal list of keyboard events
-		 */		
-		public function clearKeyboardEvents():void
-		{
-			_keyboardEvents = [];
-		}
-		
-		/**
-		 * Inserts a keyboard event to internal list of keyboard events
-		 * @param event string representing keyboard event or modifier key(s) pressed
-		 */		
-		public function insertKeyboardEvent(event:String):void
-		{
-			insert(_keyboardEvents, event);
-		}
-		
-		/**
-		 * Removes elements specified from internal list of keyboard events 
-		 * @param event first event to remove
-		 * @param moreEvents optional additional events to remove
-		 */		
-		public function removeKeyboardEvents(event:String, ...moreEvents):void
-		{
-			moreEvents.unshift(event);
-			removeElements( _keyboardEvents, moreEvents);
-		}
-				
-		
-		private function insert(array:Array, event:String):void
-		{
-			if(!array) 
-				return;
-			
-			array.push(event);
-			array = array.filter(function(e:String,i:int,a:Array):Boolean {return a.indexOf(e) == i;});			
-		}
-		
-		private function removeElements(array:Array, events:Array):void
-		{			
-			for each(var str:String in events)
-			{
-				var i:int = array.indexOf(str);
-				if(i != -1)
-					array.splice(i, 1);
-			}
-		}			
 	}
 }

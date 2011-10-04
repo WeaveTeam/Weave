@@ -277,20 +277,20 @@ package weave.core
 		 */   
 		public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*
 		{
+			var result:* = undefined;
 			try
 			{
 				var compiler:Compiler = new Compiler();
 				compiler.includeLibraries.apply(null, staticLibraries);
 				var thisObject:ILinkableObject = (scopeObjectPath) ? getObject(scopeObjectPath) : null;
 				var compiledMethod:Function = compiler.compileToFunction(expression, variables, false, thisObject != null);
-				var result:* = compiledMethod.apply(thisObject, arguments);
+				result = compiledMethod.apply(thisObject, arguments);
 			}
 			catch (e:Error)
 			{
 				WeaveAPI.ErrorManager.reportError(e);
 			}
-			
-			return result; 
+			return result;
 		}
 	}
 }
