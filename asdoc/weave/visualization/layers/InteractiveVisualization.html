@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="InteractiveVisualization,weave.visualization.layers.InteractiveVisualization,NO_CURSOR,PAN_MODE,SELECT_MODE_ADD,SELECT_MODE_REPLACE,SELECT_MODE_SUBTRACT,ZOOM_MODE,activeKeyType,additionalProbeColumns,defaultMouseMode,enableProbe,enableSelection,enableZoomAndPan,mouseDragActive,mouseDragStageCoords,mouseIsRolledOver,queryBounds,selectionRectangleCanvas,shadowAmount,tempDataBounds,tempScreenBounds,lastProbedKey,lastSelectedKeys,clearProbe,delayedHandleSelection,dispose,handleDoubleClick,handleKeyboardEvent,handleMouseClick,handleMouseDown,handleMouseEvent,handleMouseModeChange,handleMouseMove,handleMouseUp,handleMouseWheel,handleProbe,handleRollOut,handleRollOver,hideMouseCursors,immediateHandleSelection,projectDragBoundsToDataQueryBounds,setProbeKeys,setSelectionKeys,updateSelectionRectangleGraphics,updateTemporaryMouseMode" name="keywords">
+<meta content="InteractiveVisualization,weave.visualization.layers.InteractiveVisualization,activeKeyType,additionalProbeColumns,enableProbe,enableSelection,enableZoomAndPan,mouseDragActive,mouseDragStageCoords,mouseIsRolledOver,queryBounds,selectionRectangleCanvas,shadowAmount,tempDataBounds,tempScreenBounds,lastProbedKey,lastSelectedKeys,clearProbe,delayedHandleSelection,dispose,handleDoubleClick,handleKeyboardEvent,handleMouseClick,handleMouseDown,handleMouseEvent,handleMouseMove,handleMouseUp,handleMouseWheel,handleProbe,handleRollOut,handleRollOver,immediateHandleSelection,projectDragBoundsToDataQueryBounds,setProbeKeys,setSelectionKeys,updateMouseMode,updateSelectionRectangleGraphics" name="keywords">
 <title>weave.visualization.layers.InteractiveVisualization</title>
 </head>
 <body>
@@ -140,13 +140,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayerContainer.html">PlotLayerContainer</a></td>
 </tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#hideMouseCursors()">hideMouseCursors</a>():void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
@@ -224,13 +217,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#handleMouseEvent()">handleMouseEvent</a>(event:MouseEvent):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#handleMouseModeChange()">handleMouseModeChange</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
@@ -324,14 +310,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#updateSelectionRectangleGraphics()">updateSelectionRectangleGraphics</a>():void</div>
+<a class="signatureLink" href="#updateMouseMode()">updateMouseMode</a>(mouseEventType:String = null):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#updateTemporaryMouseMode()">updateTemporaryMouseMode</a>():void</div>
+<a class="signatureLink" href="#updateSelectionRectangleGraphics()">updateSelectionRectangleGraphics</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
@@ -359,11 +345,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <table id="summaryTableConstant" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#defaultMouseMode">defaultMouseMode</a> : <a href="../../core/LinkableString.html">LinkableString</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
 <tr class="hideInheritedConstant">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayerContainer.html#enableAutoZoomToExtent">enableAutoZoomToExtent</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
@@ -442,26 +423,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="PlotLayerContainer.html">PlotLayerContainer</a></td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#NO_CURSOR">NO_CURSOR</a> : String = "InteractiveVisualization.NO_CURSOR"<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#PAN_MODE">PAN_MODE</a> : String = "InteractiveVisualization.PAN_MODE"<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#SELECT_MODE_ADD">SELECT_MODE_ADD</a> : String = "InteractiveVisualization.SELECT_MODE_ADD"<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#SELECT_MODE_REPLACE">SELECT_MODE_REPLACE</a> : String = "InteractiveVisualization.SELECT_MODE_REPLACE"<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#SELECT_MODE_SUBTRACT">SELECT_MODE_SUBTRACT</a> : String = "InteractiveVisualization.SELECT_MODE_SUBTRACT"<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#shadowAmount">shadowAmount</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
@@ -470,10 +431,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayerContainer.html#zoomBounds">zoomBounds</a> : <a href="../../primitives/ZoomBounds.html">ZoomBounds</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayerContainer.html">PlotLayerContainer</a></td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#ZOOM_MODE">ZOOM_MODE</a> : String = "InteractiveVisualization.ZOOM_MODE"<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
 </table>
 </div>
@@ -697,15 +654,6 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="handleMouseModeChange()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">handleMouseModeChange</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected function handleMouseModeChange():void</code>
-</div>
 <a name="handleMouseMove()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -779,15 +727,6 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">event</span>:MouseEvent</code></td>
 </tr>
 </table>
-</div>
-<a name="hideMouseCursors()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">hideMouseCursors</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function hideMouseCursors():void</code>
 </div>
 <a name="immediateHandleSelection()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -868,6 +807,20 @@ showHideInherited();
 </tr>
 </table>
 </div>
+<a name="updateMouseMode()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">updateMouseMode</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected function updateMouseMode(mouseEventType:String = null):void</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">mouseEventType</span>:String</code> (default = <code>null</code>)<code></code></td>
+</tr>
+</table>
+</div>
 <a name="updateSelectionRectangleGraphics()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -877,30 +830,12 @@ showHideInherited();
 <div class="detailBody">
 <code>protected function updateSelectionRectangleGraphics():void</code>
 </div>
-<a name="updateTemporaryMouseMode()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">updateTemporaryMouseMode</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected function updateTemporaryMouseMode():void</code>
-</div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
-<a name="defaultMouseMode"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">defaultMouseMode</td><td class="detailHeaderType">constant</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const defaultMouseMode:<a href="../../core/LinkableString.html">LinkableString</a></code>
-</div>
 <a name="enableProbe"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">enableProbe</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">enableProbe</td><td class="detailHeaderType">constant</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -933,24 +868,6 @@ showHideInherited();
 <div class="detailBody">
 <code>protected const mouseDragStageCoords:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code>
 </div>
-<a name="NO_CURSOR"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">NO_CURSOR</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const NO_CURSOR:String = "InteractiveVisualization.NO_CURSOR"</code>
-</div>
-<a name="PAN_MODE"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">PAN_MODE</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const PAN_MODE:String = "InteractiveVisualization.PAN_MODE"</code>
-</div>
 <a name="queryBounds"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -959,33 +876,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected const queryBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code>
-</div>
-<a name="SELECT_MODE_ADD"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">SELECT_MODE_ADD</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const SELECT_MODE_ADD:String = "InteractiveVisualization.SELECT_MODE_ADD"</code>
-</div>
-<a name="SELECT_MODE_REPLACE"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">SELECT_MODE_REPLACE</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const SELECT_MODE_REPLACE:String = "InteractiveVisualization.SELECT_MODE_REPLACE"</code>
-</div>
-<a name="SELECT_MODE_SUBTRACT"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">SELECT_MODE_SUBTRACT</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const SELECT_MODE_SUBTRACT:String = "InteractiveVisualization.SELECT_MODE_SUBTRACT"</code>
 </div>
 <a name="shadowAmount"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -1013,15 +903,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected const tempScreenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code>
-</div>
-<a name="ZOOM_MODE"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">ZOOM_MODE</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const ZOOM_MODE:String = "InteractiveVisualization.ZOOM_MODE"</code>
 </div>
 <br>
 <br>

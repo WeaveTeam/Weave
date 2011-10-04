@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="InteractionController,weave.visualization.layers.InteractionController,ALT,CLICK,CTRL,DCLICK,DRAG,MOVE,PAN,PROBE,SELECT,SELECT_ADD,SELECT_REMOVE,SHIFT,ZOOM,ZOOM_IN,ZOOM_OUT,ZOOM_TO_EXTENT,pan,probe,select,selectAdd,selectRemove,zoom,zoomIn,zoomOut,zoomToExtent,clearEvents,clearKeyboardEvents,determineAction,determineMouseMode,insertEvent,insertKeyboardEvent,removeKeyboardEvents" name="keywords">
+<meta content="InteractionController,weave.visualization.layers.InteractionController,ALT,CLICK,CTRL,DCLICK,DRAG,MOVE,PAN,PROBE,SELECT,SELECT_ADD,SELECT_REMOVE,SHIFT,WHEEL,ZOOM,ZOOM_IN,ZOOM_OUT,ZOOM_TO_EXTENT,defaultDragMode,pan,probe,select,selectAdd,selectRemove,zoom,zoomIn,zoomOut,zoomToExtent,determineMouseAction,determineMouseMode" name="keywords">
 <title>weave.visualization.layers.InteractionController</title>
 </head>
 <body>
@@ -42,7 +42,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  This class handles mouse/keyboard interactions performed within DisplayObjects
+  This class handles mouse/keyboard interactions performed within InteractiveVisualizations
   
   <p></p>
 <br>
@@ -65,25 +65,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#clearEvents()">clearEvents</a>():void</div>
-<div class="summaryTableDescription">
-   Clears internal list of mouse events
-   </div>
-</td><td class="summaryTableOwnerCol">InteractionController</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#clearKeyboardEvents()">clearKeyboardEvents</a>():void</div>
-<div class="summaryTableDescription">
-   Clears internal list of keyboard events
-   </div>
-</td><td class="summaryTableOwnerCol">InteractionController</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#determineAction()">determineAction</a>(optionalString:String = null):String</div>
+<a class="signatureLink" href="#determineMouseAction()">determineMouseAction</a>(mouseEventType:String):String</div>
 <div class="summaryTableDescription">
    Determine current mouse action from values in internal list of mouse events
    </div>
@@ -95,33 +77,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#determineMouseMode()">determineMouseMode</a>():String</div>
 <div class="summaryTableDescription">
    Determine current mouse cursor mode from values in internal list of keyboard events
-   </div>
-</td><td class="summaryTableOwnerCol">InteractionController</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#insertEvent()">insertEvent</a>(event:String):void</div>
-<div class="summaryTableDescription">
-   Inserts a mouse event to list of events 
-   </div>
-</td><td class="summaryTableOwnerCol">InteractionController</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#insertKeyboardEvent()">insertKeyboardEvent</a>(event:String):void</div>
-<div class="summaryTableDescription">
-   Inserts a keyboard event to internal list of keyboard events
-   </div>
-</td><td class="summaryTableOwnerCol">InteractionController</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#removeKeyboardEvents()">removeKeyboardEvents</a>(event:String, ... moreEvents):void</div>
-<div class="summaryTableDescription">
-   Removes elements specified from internal list of keyboard events 
    </div>
 </td><td class="summaryTableOwnerCol">InteractionController</td>
 </tr>
@@ -148,6 +103,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#DCLICK">DCLICK</a> : String = "dclick"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">InteractionController</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#defaultDragMode">defaultDragMode</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription">
+   This is the default mode to use when dragging and no modifier keys are pressed.</div>
 </td><td class="summaryTableOwnerCol">InteractionController</td>
 </tr>
 <tr class="">
@@ -208,6 +169,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">InteractionController</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#WHEEL">WHEEL</a> : String = "wheel"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">InteractionController</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#zoom">zoom</a> : <a href="../../core/LinkableString.html">LinkableString</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractionController</td>
@@ -263,39 +228,19 @@ showHideInherited();
 </div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="clearEvents()"></a>
+<a name="determineMouseAction()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">clearEvents</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">determineMouseAction</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function clearEvents():void</code><p>
-   Clears internal list of mouse events
-   </p></div>
-<a name="clearKeyboardEvents()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">clearKeyboardEvents</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function clearKeyboardEvents():void</code><p>
-   Clears internal list of keyboard events
-   </p></div>
-<a name="determineAction()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">determineAction</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function determineAction(optionalString:String = null):String</code><p>
+<code>public function determineMouseAction(mouseEventType:String):String</code><p>
    Determine current mouse action from values in internal list of mouse events
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">optionalString</span>:String</code> (default = <code>null</code>)<code></code> &mdash; optional parameter to use instead of internal list
+<td width="20px"></td><td><code><span class="label">mouseEventType</span>:String</code> &mdash; A mouse event type such as move, drag, click, or dclick
    </td>
 </tr>
 </table>
@@ -303,8 +248,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>String</code> &mdash; returns a string representing current mouse action to execute
-   
+<td width="20"></td><td><code>String</code> &mdash; returns a string representing current mouse action to execute such as pan, zoom, or select
    </td>
 </tr>
 </table>
@@ -323,64 +267,6 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>String</code> &mdash; returns a string representing which mouse cursor to use
-   </td>
-</tr>
-</table>
-</div>
-<a name="insertEvent()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">insertEvent</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function insertEvent(event:String):void</code><p>
-   Inserts a mouse event to list of events 
-   </p><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">event</span>:String</code> &mdash; string representing mouse event
-   </td>
-</tr>
-</table>
-</div>
-<a name="insertKeyboardEvent()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">insertKeyboardEvent</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function insertKeyboardEvent(event:String):void</code><p>
-   Inserts a keyboard event to internal list of keyboard events
-   </p><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">event</span>:String</code> &mdash; string representing keyboard event or modifier key(s) pressed
-   </td>
-</tr>
-</table>
-</div>
-<a name="removeKeyboardEvents()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">removeKeyboardEvents</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function removeKeyboardEvents(event:String, ... moreEvents):void</code><p>
-   Removes elements specified from internal list of keyboard events 
-   </p><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">event</span>:String</code> &mdash; first event to remove
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code>... <span class="label">moreEvents</span></code> &mdash; optional additional events to remove
    </td>
 </tr>
 </table>
@@ -423,6 +309,16 @@ showHideInherited();
 <div class="detailBody">
 <code>public static const DCLICK:String = "dclick"</code>
 </div>
+<a name="defaultDragMode"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">defaultDragMode</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const defaultDragMode:<a href="../../core/LinkableString.html">LinkableString</a></code><p>
+   This is the default mode to use when dragging and no modifier keys are pressed.
+   </p></div>
 <a name="DRAG"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -539,6 +435,15 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static const SHIFT:String = "shift"</code>
+</div>
+<a name="WHEEL"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">WHEEL</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const WHEEL:String = "wheel"</code>
 </div>
 <a name="zoom"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
