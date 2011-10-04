@@ -35,6 +35,7 @@
 				id="dimensionTypeLinks"
 				width="100%"
 				useHandCursor="true"
+				dataProvider="{selectableAttributeNames}"
 				itemClick="linkToObject(selectableAttributes[event.index]);"/>
 		</mx:HBox>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
@@ -45,7 +46,8 @@
 			<HierarchyColumnSelector id="hierarchySelector" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Add selected attribute" click="addColumn()"/>
+				<mx:Button label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
+				<mx:Button label="Add selected" click="addSelected()"/>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
 		</mx:VDividedBox>
@@ -98,6 +100,7 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.primitives.AttributeHierarchy;
+			import weave.utils.HierarchyUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
 			override protected function constructor():void
@@ -128,7 +131,41 @@
 				disposeObjects(hierarchySelector);
 			}
 			
-			private function addColumn():void
+			private function addAll():void
+			{
+				if (columnList.hashMap == null)
+				{
+					linkToObject(null);
+					return;
+				}
+				
+				var path:XML = hierarchySelector.dimensionTreeView.selectedPath.value;
+				var depth:int = HierarchyUtils.getPathDepth(path);
+				var leaf:XML = HierarchyUtils.getLeafNodeFromPath(path);
+				if (!leaf)
+					return;
+				if (String(leaf.localName()) == 'attribute')
+					depth--;
+				if (depth < 0)
+					return;
+				var root:XML = hierarchySelector.dimensionTreeView.attributeHierarchy.value as XML;
+				var category:XML = HierarchyUtils.getNodeFromPath(root, path, depth);
+				if (!category)
+					return;
+				var children:XMLList = category.children();
+				for (var i:int = 0; i < children.length(); i++)
+				{
+					var attr:XML = children[i];
+					if (String(attr.localName()) == 'attribute')
+					{
+						var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
+						var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+						hierarchySelector.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
+					}
+				}
+			}
+			
+			private function addSelected():void
 			{
 				if (columnList.hashMap == null)
 				{
@@ -184,13 +221,13 @@
 				if (index >= 0)
 				{
 					objectTitle = selectableAttributeNames[index];
-					title = "Attribute Selector for " + objectTitle;
+					title = "Attribute selector for " + objectTitle;
 					dimensionTypeLinks.selectedIndex = index;
 					showOrHideParamSelector(true);
 				}
 				else
 				{
-					title = "Attribute Selector";
+					title = "Attribute selector";
 					if (objectTitle)
 						title += ' for ' + objectTitle;
 					showOrHideParamSelector(false);
@@ -236,7 +273,7 @@
 					if (child.parent)
 						child.parent.removeChild(child);
 					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
-					columnList.label = objectTitle ? objectTitle : 'Selected Attributes';
+					columnList.label = objectTitle ? objectTitle : 'Selected attributes';
 					verticalDividedBox.addChild(columnList);
 				}
 				else if (verticalDividedBox == columnList.parent)
@@ -246,7 +283,7 @@
 
 				// set targets for ControlPanel to support session saving
 				if (selectableAttributes.indexOf(columnOrHashMap) < 0)
-					targets = selectableAttributes = columnOrHashMap ? [columnOrHashMap] : [];
+					targets = selectableAttributes = [];
 			}
 			
 			private static var defaultSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
@@ -256,8 +293,11 @@
 					return;
 				
 				openDefaultSelector();
-				defaultSelector.targets = defaultSelector.selectableAttributes = tool.getSelectableAttributes();
-				defaultSelector.dimensionTypeLinks.dataProvider = defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
+				
+				defaultSelector.selectableAttributes = tool.getSelectableAttributes();
+				if (defaultSelector.selectableAttributes.indexOf(attributeToLinkTo) >= 0)
+					defaultSelector.targets = defaultSelector.selectableAttributes;
+				defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
 				defaultSelector.linkToObject(attributeToLinkTo);
 			}
 			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null):void
@@ -271,6 +311,7 @@
 				defaultSelector.hierarchySelector.clearSearch();
 				
 				defaultSelector.linkToObject(linkTo, title);
+				defaultSelector.targets = linkTo ? [linkTo] : [];
 				
 				defaultSelector.restorePanel();
 			}

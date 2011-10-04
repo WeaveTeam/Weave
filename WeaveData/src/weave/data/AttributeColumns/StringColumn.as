@@ -90,8 +90,8 @@ package weave.data.AttributeColumns
 		{
 			if (keys.length > stringData.length)
 			{
-				trace("WARNING: keys vector length > data vector length. keys truncated.",keys,stringData);
-				keys.length = stringData.length;
+				WeaveAPI.ErrorManager.reportError(new Error("Array lengths differ"));
+				return;
 			}
 
 			// create Dictionary mapping keys to data

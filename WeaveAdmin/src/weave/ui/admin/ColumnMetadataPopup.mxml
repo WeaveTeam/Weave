@@ -27,13 +27,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		  label="ColumnMetadataPopup"
 	      showCloseButton="true" close="closeColumnMetadataPopup(event)">
 	<mx:DataGrid id="popUpDataGrid" width="100%" height="100%" horizontalScrollPolicy="auto"/>
-<!--
-	<mx:Label text= "The queries for these attribute columns failed.  Would you like to remove them?"/>
+	<!-- <mx:Label text= "The queries for these attribute columns failed.  Would you like to remove them?"/>
 	<mx:HBox>
-			<mx:Button id="YesButton"  label="Yes" click="YesButton_clickHandler(event)"/>
-			<mx:Button id="NoButton" label="No" click="NoButton_clickHandler(event)"/>
-	</mx:HBox>
--->
+			<mx:Button id="YesButton"  label="Remove these columns" click="YesButton_clickHandler(event)"/>
+			<mx:Button id="NoButton" label="Cancel" click="NoButton_clickHandler(event)"/>
+	</mx:HBox>-->
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;

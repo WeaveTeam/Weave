@@ -179,7 +179,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <loadForCompatibility>true</loadForCompatibility>
           <percentHeight>100</percentHeight>
           <percentWidth>100</percentWidth>
-          <source>weave.swf?file=obesity-cube.xml&editable=false</source>
+          <source>weave.swf?file=obesity-cube.xml&amp;editable=false</source>
         </properties>
         <qualifiedClassName>mx.controls.SWFLoader</qualifiedClassName>
       </LinkableDisplayObject>
@@ -215,7 +215,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <loadForCompatibility>true</loadForCompatibility>
           <percentHeight>100</percentHeight>
           <percentWidth>100</percentWidth>
-          <source>weave.swf?file=obesity.xml&editable=false</source>
+          <source>weave.swf?file=obesity.xml&amp;editable=false</source>
         </properties>
         <qualifiedClassName>mx.controls.SWFLoader</qualifiedClassName>
       </LinkableDisplayObject>

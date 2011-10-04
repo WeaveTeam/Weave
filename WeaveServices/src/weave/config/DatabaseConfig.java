@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.DebugTimer;
+import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
 import org.w3c.dom.*;
 
@@ -40,9 +41,7 @@ public class DatabaseConfig
 {
 	private DatabaseConfigInfo dbInfo = null;
 
-	private Connection _lastConnection = null; // do not use this variable
-												// directly -- use
-												// getConnection() instead.
+	private Connection _lastConnection = null; // do not use this variable directly -- use getConnection() instead.
 
 	/**
 	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
@@ -144,8 +143,7 @@ public class DatabaseConfig
 			}
 			catch (SQLException e)
 			{
-				// we don't care if this fails -- assume the table has the
-				// column already.
+				// we don't care if this fails -- assume the table has the column already.
 			}
 		}
 		else
@@ -193,6 +191,26 @@ public class DatabaseConfig
 		// create table
 		Connection conn = getConnection();
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
+		// add (possibly) missing columns
+		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString()})
+		{
+			try
+			{
+				// add column to existing table
+				SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, columnName, SQLTYPE_VARCHAR);
+			}
+			catch (SQLException e)
+			{
+				// if the column is missing, throw the error
+				List<String> existingColumnNames = SQLUtils.getColumns(conn, dbInfo.schema, dbInfo.dataConfigTable);
+				if (ListUtils.findIgnoreCase(columnName, existingColumnNames) < 0)
+				{
+					System.out.println(String.format("Column %s not found in [%s]", columnName, existingColumnNames));
+					throw e;
+				}
+			}
+		}
+		
 		try
 		{
 			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.NAME.toString()});
@@ -202,17 +220,11 @@ public class DatabaseConfig
 		{
 			// If the indices already exist, we don't care.
 		}
-		try
-		{
-			SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, AttributeColumnInfo.Metadata.CATEGORY_ID.toString(), SQLTYPE_INT);
-		}
 		catch (SQLException e)
 		{
 			e.printStackTrace();
+			// assume the table has the indexes already.
 		}
-
-		// TODO: create auto-incrementing primary key: "id" int4 NOT NULL
-		// DEFAULT nextval('weave_attributecolumn_id_seq'::regclass)
 	}
 
 	// This private ISQLConfig is for managing connections because

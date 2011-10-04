@@ -1153,31 +1153,26 @@ public class AdminService extends GenericServlet
 			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 
 		Connection conn = null;
+		Statement stmt = null;
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException(e.getMessage(), e);
-		}
 
-		sqlTable = sqlTable.toLowerCase(); // fix for MySQL running under Linux
-
-		String[] columnNames = null;
-		String[] originalColumnNames = null;
-		int fieldLengths[] = null;
-		
-		// Load the CSV file and reformat it
-		String formatted_CSV_path = tempPath + "temp.csv";
-		int[] types = null;
-		int i = 0;
-		int j = 0;
-		int num = 1;
-		String outputNullValue = SQLUtils.getCSVNullValue(conn);
-		boolean ignoreKeyColumnQueries = false;
-		try
-		{
+			sqlTable = sqlTable.toLowerCase(); // fix for MySQL running under Linux
+	
+			String[] columnNames = null;
+			String[] originalColumnNames = null;
+			int fieldLengths[] = null;
+			
+			// Load the CSV file and reformat it
+			String formatted_CSV_path = tempPath + "temp.csv";
+			int[] types = null;
+			int i = 0;
+			int j = 0;
+			int num = 1;
+			String outputNullValue = SQLUtils.getCSVNullValue(conn);
+			boolean ignoreKeyColumnQueries = false;
+			
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
 			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
 
@@ -1199,7 +1194,7 @@ public class AdminService extends GenericServlet
 				}
 
 				
-				csvKeyColumn = "Row ID";
+				csvKeyColumn = "row_id";
 				for (i = 0; i < rows.length; ++i)
 				{
 					String[] row = rows[i];
@@ -1209,7 +1204,7 @@ public class AdminService extends GenericServlet
 					if (i == 0)
 						newRow[newRow.length - 1] = csvKeyColumn;
 					else
-						newRow[newRow.length - 1] = "Key " + i;
+						newRow[newRow.length - 1] = "row" + i;
 					rows[i] = newRow;
 				}
 			}
@@ -1337,28 +1332,30 @@ public class AdminService extends GenericServlet
 				}
 			}
 			
+			// now we need to remove commas from any numeric values because the SQL drivers don't like it
+			for (int iRow = 1; iRow < rows.length; iRow++)
+			{
+				String[] nextLine = rows[iRow];
+				// Format each line
+				for (i = 0; i < columnNames.length && i < nextLine.length; i++)
+				{
+					String value = nextLine[i];
+					if (types[i] == IntType || types[i] == DoubleType)
+					{
+						while (value.indexOf(",") >= 0)
+							value = value.replace(",", "");
+						nextLine[i] = value;
+					}
+				}
+			}
 			// save modified CSV
 			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
 			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			out.write(CSVParser.defaultParser.createCSVFromArrays(rows, quoteEmptyStrings));
+			String temp = CSVParser.defaultParser.createCSVFromArrays(rows, quoteEmptyStrings);
+			out.write(temp);
 			out.close();
-		}
-		catch (RemoteException e)
-		{
-			e.printStackTrace();
-			throw e;
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage(), e);
-		}
 
-		// Import the CSV file into SQL.
-		Statement stmt = null;
-		String returnMsg = "";
-		try
-		{
+			// Import the CSV file into SQL.
 			// Drop the table if it exists.
 			if (sqlOverwrite)
 			{
@@ -1367,14 +1364,14 @@ public class AdminService extends GenericServlet
 			else
 			{
 				if (ListUtils.findIgnoreCase(sqlTable, getTablesList(connectionName, sqlSchema)) >= 0)
-					throw new RemoteException("CSV not imported. SQL table already exists.");
+					throw new RemoteException("CSV not imported.\nSQL table already exists.");
 			}
 
 			if (!configOverwrite)
 			{
 				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
 					throw new RemoteException(String.format(
-							"CSV not imported. DataTable \"%s\" already exists in the configuration.",
+							"CSV not imported.\nDataTable \"%s\" already exists in the configuration.",
 							configDataTableName));
 			}
 
@@ -1395,36 +1392,27 @@ public class AdminService extends GenericServlet
 			// import the data
 			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
 			
-			returnMsg += addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
+			return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
 					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, Arrays.asList(originalColumnNames), Arrays
 							.asList(columnNames), sqlSchema, sqlTable, ignoreKeyColumnQueries);
 		}
+		catch (RemoteException e) // required since RemoteException extends IOException
+		{
+			throw e;
+		}
 		catch (SQLException e)
 		{
-			e.printStackTrace();
-			returnMsg += "Unable to import CSV.\n";
-			String errorMsg = e.getMessage();
-			if (errorMsg.length() > 512)
-				errorMsg = errorMsg.substring(0, 512);
-			returnMsg += errorMsg;
+			throw new RemoteException("Import failed.", e);
 		}
 		catch (FileNotFoundException e)
 		{
 			e.printStackTrace();
-			returnMsg += "Unable to import CSV.\nFile not found: ";
-			String errorMsg = e.getMessage();
-			if (errorMsg.length() > 512)
-				errorMsg = errorMsg.substring(0, 512);
-			returnMsg += errorMsg;
+			throw new RemoteException("File not found: " + csvFile);
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
-			returnMsg += "Unable to import CSV.";
-			String errorMsg = e.getMessage();
-			if (errorMsg.length() > 512)
-				errorMsg = errorMsg.substring(0, 512);
-			returnMsg += errorMsg;
+			throw new RemoteException("Cannot read file: " + csvFile);
 		}
 		finally
 		{
@@ -1432,14 +1420,12 @@ public class AdminService extends GenericServlet
 			SQLUtils.cleanup(stmt);
 			SQLUtils.cleanup(conn);
 		}
-
-		return returnMsg;
 	}
 
 	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
-		tableName = tableName.toLowerCase();
+		//tableName = tableName.toLowerCase();
 
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		List<String> columnNames = getColumnsList(connectionName, schemaName, tableName);
@@ -1450,7 +1436,7 @@ public class AdminService extends GenericServlet
 	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
-		sqlTable = sqlTable.toLowerCase();
+		//sqlTable = sqlTable.toLowerCase();
 
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
@@ -1490,8 +1476,6 @@ public class AdminService extends GenericServlet
 				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 		}
 
-		boolean dataTableCreated = false;
-
 		// connect to database, generate and test each query before modifying
 		// config file
 		List<String> queries = new Vector<String>();
@@ -1511,9 +1495,18 @@ public class AdminService extends GenericServlet
 //				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
 				if (ignoreKeyColumnQueries && originalKeyColumName.equals(columnName))
 					continue;
+				columnName = SQLUtils.quoteSymbol(dbms, columnName);
 				
-				query = generateColumnQuery(dbms, keyColumnName, secondaryKeyColumnName, sqlColumnNames.get(i), sqlSchema, sqlTable);
-				String testQuery = dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) ? query : (query + " LIMIT 1");
+				// hack
+				if (secondaryKeyColumnName != null && secondaryKeyColumnName.length() > 0)
+					columnName += "," + secondaryKeyColumnName;
+				
+				// generate column query
+				query = String.format("SELECT %s,%s FROM %s", keyColumnName, columnName, SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable));
+
+				String testQuery = query;
+				if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+					testQuery += " LIMIT 1";
 				
 //				System.out.println("QUERY:\t" + testQuery);
 				stmt = conn.prepareStatement(testQuery);
@@ -1529,7 +1522,7 @@ public class AdminService extends GenericServlet
 		}
 		catch (SQLException e)
 		{
-			throw new RemoteException("DataTable was not added to the configuration. Unable to execute generated query:\n\n" + query, e);
+			throw new RemoteException("Unable to execute generated query:\n\n" + query, e);
 		}
 		finally
 		{
@@ -1563,39 +1556,16 @@ public class AdminService extends GenericServlet
 			}
 
 			backupAndSaveConfig(config);
-
-			dataTableCreated = true;
 		}
-		catch (Exception e)
+		catch (RemoteException e)
 		{
-			e.printStackTrace();
-			dataTableCreated = false;
+			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
 		}
-
-		if (dataTableCreated)
-		{
-			if (sqlColumnNames.size() == 0)
-				throw new RemoteException("DataTable was not added because no columns were found.");
-			return String.format("DataTable \"%s\" was added to the configuration with %s columns.\n", configDataTableName,
-					sqlColumnNames.size());
-		}
-		throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName));
-	}
-
-	private String generateColumnQuery(String dbms, String keyColumn, String secondaryKeyColumn, String dataColumn, String schema, String table)
-	{
-		// return String.format(
-		// "SELECT DISTINCT w.`ISO ALPHA-3 code`, u.`%s` " +
-		// "FROM world.`world_name_table` as w, %s as u WHERE u.%s=w.`Country or area name` OR u.%s=w.`Country name`",
-		// dataColumn,
-		// SQLUtils.quoteSchemaTable(dbms, schema, table),
-		// keyColumn, keyColumn);
-		if (secondaryKeyColumn == null)
-			secondaryKeyColumn = "";
-		if (secondaryKeyColumn.length() > 0)
-			secondaryKeyColumn = "," + secondaryKeyColumn;
-
-		return String.format("SELECT %s,%s%s FROM %s", keyColumn, SQLUtils.quoteSymbol(dbms, dataColumn), secondaryKeyColumn, SQLUtils.quoteSchemaTable(dbms, schema, table));
+		
+		if (sqlColumnNames.size() == 0)
+			throw new RemoteException("No columns were found.");
+		
+		return String.format("DataTable \"%s\" was added to the configuration with %s columns.\n", configDataTableName, sqlColumnNames.size());
 	}
 
 	/**

@@ -50,7 +50,7 @@ package weave.services.beans
 		 */
 		public static function get dbmsList():Array
 		{
-			return ['MySQL', 'PostGreSQL', 'Microsoft SQL Server'];
+			return ['MySQL', 'PostGreSQL', 'Microsoft SQL Server', 'Oracle'];
 		}
 		
 		/**
@@ -67,6 +67,6 @@ package weave.services.beans
 			return 0;
 		}
 		
-		private static const defaultPortList:Array = [3306, 5432, 1433]; // corresponding to the database products in dbmsList
+		private static const defaultPortList:Array = [3306, 5432, 1433, 1521]; // corresponding to the database products in dbmsList
 	}
 }

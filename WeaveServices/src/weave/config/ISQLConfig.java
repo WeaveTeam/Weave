@@ -278,7 +278,8 @@ public interface ISQLConfig
 			YEAR("year"),
 			CATEGORY_ID("category_id"),
 			MIN("min"),
-			MAX("max");
+			MAX("max"),
+			TITLE("title");
 
 			Metadata(String name)
 			{

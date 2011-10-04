@@ -35,10 +35,9 @@
 			<mx:TextInput id="importDBFFileNameInputToStore" enabled="true"/>
 			<mx:Button label="Upload ..." click="browseAndUploadDBFFiles();"/>
 		</mx:HBox>
-		<admin:SQLTableSelectorDialog name="tableSelector" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+		<admin:SQLTableSelectorDialog id="tableSelector" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 		<ui:Center>
 			<mx:VBox>
-				<mx:Button id="importDBFButton" label="Store DBF Data in Database" click="AdminInterface.instance.storeDBFDataToDatabase(importDBFFileNameInputToStore.text,importDBFSchemaComboToStore.text, importDBFTableInputToStore.text, importDBFDataToSQLOverwriteCheck.selected, importDBFButton)" />
 				<mx:Label text="Note: This does not create a Weave configuration entry yet, it only uploads the data to a SQL table."/>
 			</mx:VBox>
 		</ui:Center>
@@ -51,6 +50,7 @@
 			import mx.events.FlexEvent;
 			
 			import weave.services.AdminInterface;
+			import weave.services.DelayedAsyncInvocation;
 			
 			private var dbfFileReference:FileReference = new FileReference();
 			
@@ -89,6 +89,32 @@
 				dbfFileReference.addEventListener(Event.COMPLETE, dbfFileCompleteHandler);
 			}
 
+			override public function finish():void
+			{
+				var alertTitle:String = "Missing parameter";
+				if (importDBFFileNameInputToStore == '')
+					Alert.show("You must upload a shape file and a corresponding DBF file.", alertTitle);
+				else if (tableSelector.activeSchema == '')
+					Alert.show("You must specify sql schema to store the table.", alertTitle);
+				else if (tableSelector.activeTable == '')
+					Alert.show("You must specify the name of the destination SQL table.", alertTitle);
+				else
+				{
+					finishEnabled = false;
+					var query:DelayedAsyncInvocation = AdminInterface.instance.storeDBFDataToDatabase(
+						importDBFFileNameInputToStore.text,
+						tableSelector.activeSchema,
+						tableSelector.activeTable,
+						tableSelector.tableOverwriteCheck.selected,
+						''
+					);
+					query.addAsyncResponder(enableImportDBFButton, enableImportDBFButton);
+					function enableImportDBFButton(..._):void
+					{
+						finishEnabled = true;
+					}
+				}
+			}
 		]]>
 	</mx:Script>
 </admin:WizardViewStack>

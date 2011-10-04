@@ -23,7 +23,7 @@
               <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
               <hierarchyPath encoding="xml">
                 <hierarchy keyType="Country Code">
-                  <attribute keyType="Country Code" name="Urban population (% of total)" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
+                  <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
                 </hierarchy>
               </hierarchyPath>
             </HierarchyColumnReference>
@@ -45,7 +45,7 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="Red Scale" category="visualization" singlehue="true" source="OIC">
+      <colorRamp category="visualization" singlehue="true" name="Red Scale" source="OIC">
         <node color="0x000000" position="0"/>
         <node color="0xff0000" position="0.5"/>
         <node color="0xffcccc" position="1"/>
@@ -83,11 +83,13 @@
     <enableAddPieChart>true</enableAddPieChart>
     <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
     <enableAddRadViz>true</enableAddRadViz>
+    <enableAddRamachandranPlot>false</enableAddRamachandranPlot>
     <enableAddRScriptEditor>true</enableAddRScriptEditor>
     <enableAddScatterplot>true</enableAddScatterplot>
     <enableAddThermometerTool>true</enableAddThermometerTool>
     <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
     <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+    <enableBitmapFilters>true</enableBitmapFilters>
     <enableCascadeAllWindows>true</enableCascadeAllWindows>
     <enableClearCurrentSelection>true</enableClearCurrentSelection>
     <enableCloseAllWindows>true</enableCloseAllWindows>
@@ -100,7 +102,7 @@
     <enableExportDataTable>true</enableExportDataTable>
     <enableExportToolImage>true</enableExportToolImage>
     <enableFullscreen>true</enableFullscreen>
-    <enableGeometryProbing>true</enableGeometryProbing>
+    <enableGeometryProbing>false</enableGeometryProbing>
     <enableGoFullscreen>true</enableGoFullscreen>
     <enableManageSavedSelections>true</enableManageSavedSelections>
     <enableManageSavedSubsets>true</enableManageSavedSubsets>
@@ -134,6 +136,8 @@
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
+    <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
+    <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Sample Weave Configuration</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
     <panelTitleFontColor>16777215</panelTitleFontColor>
@@ -141,6 +145,7 @@
     <panelTitleFontItalic>false</panelTitleFontItalic>
     <panelTitleFontSize>10</panelTitleFontSize>
     <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
     <probeInnerGlowAlpha>0.9</probeInnerGlowAlpha>
     <probeInnerGlowBlur>5</probeInnerGlowBlur>
     <probeInnerGlowColor>16777215</probeInnerGlowColor>
@@ -171,6 +176,17 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <toolInteractions>
+      <pan>alt,drag</pan>
+      <probe>move</probe>
+      <select>drag</select>
+      <selectAdd>ctrl,drag</selectAdd>
+      <selectRemove>ctrl,shift,drag</selectRemove>
+      <zoom>shift,drag</zoom>
+      <zoomIn>dclick</zoomIn>
+      <zoomOut>shift,dclick</zoomOut>
+      <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
+    </toolInteractions>
     <version>1.0 Beta Nightly Build</version>
     <windowSnapGridSize>4</windowSnapGridSize>
   </WeaveProperties>
@@ -181,7 +197,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Country Name" keyType="Country Code" name="Country Name" title="Country Name"/>
+              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -193,7 +209,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population, female (% of total)" keyType="Country Code" name="Population, female (% of total)" title="Population, female (% of total)"/>
+              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -205,7 +221,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Rural population (% of total population)" keyType="Country Code" name="Rural population (% of total population)" title="Rural population (% of total population)"/>
+              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -217,7 +233,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 65 and above (% of total)" keyType="Country Code" name="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
+              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -229,7 +245,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 15-64 (% of total)" keyType="Country Code" name="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
+              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -241,7 +257,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Urban population (% of total)" keyType="Country Code" name="Urban population (% of total)" title="Urban population (% of total)"/>
+              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -253,7 +269,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 0-14 (% of total)" keyType="Country Code" name="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
+              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -264,30 +280,30 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   <CSVDataSource name="WorldAgricultureIndicators.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="Year" csvColumn="Year" keyType="Country Name"/>
-        <attribute title="YearCode" csvColumn="YearCode" keyType="Country Name"/>
-        <attribute title="Country Name" csvColumn="Country Name" keyType="Country Name"/>
-        <attribute title="Country Code" csvColumn="Country Code" keyType="Country Name"/>
-        <attribute title="Agricultural machinery, tractors" csvColumn="Agricultural machinery, tractors" keyType="Country Name"/>
-        <attribute title="Agricultural machinery, tractors per 100 sq. km of arable land" csvColumn="Agricultural machinery, tractors per 100 sq. km of arable land" keyType="Country Name"/>
-        <attribute title="Agriculture value added per worker (constant 2000 US$)" csvColumn="Agriculture value added per worker (constant 2000 US$)" keyType="Country Name"/>
-        <attribute title="Cereal yield (kg per hectare)" csvColumn="Cereal yield (kg per hectare)" keyType="Country Name"/>
-        <attribute title="Crop production index (1999-2001 = 100)" csvColumn="Crop production index (1999-2001 = 100)" keyType="Country Name"/>
-        <attribute title="Economically active population in agriculture&#x9;(number)" csvColumn="Economically active population in agriculture&#x9;(number)" keyType="Country Name"/>
-        <attribute title="Fertilizer consumption (metric tons)" csvColumn="Fertilizer consumption (metric tons)" keyType="Country Name"/>
-        <attribute title="Food production index (1999-2001 = 100)" csvColumn="Food production index (1999-2001 = 100)" keyType="Country Name"/>
-        <attribute title="Land under cereal production (hectares)" csvColumn="Land under cereal production (hectares)" keyType="Country Name"/>
-        <attribute title="Livestock production index (1999-2001 = 100)" csvColumn="Livestock production index (1999-2001 = 100)" keyType="Country Name"/>
-        <attribute title="Agricultural land (% of land area)" csvColumn="Agricultural land (% of land area)" keyType="Country Name"/>
-        <attribute title="Agricultural land (sq. km)" csvColumn="Agricultural land (sq. km)" keyType="Country Name"/>
-        <attribute title="Arable land (% of land area)" csvColumn="Arable land (% of land area)" keyType="Country Name"/>
-        <attribute title="Arable land (hectares per person)" csvColumn="Arable land (hectares per person)" keyType="Country Name"/>
-        <attribute title="Arable land (hectares)" csvColumn="Arable land (hectares)" keyType="Country Name"/>
-        <attribute title="Forest area (% of land area)" csvColumn="Forest area (% of land area)" keyType="Country Name"/>
-        <attribute title="Forest area (sq. km)" csvColumn="Forest area (sq. km)" keyType="Country Name"/>
-        <attribute title="Land area (sq. km)" csvColumn="Land area (sq. km)" keyType="Country Name"/>
-        <attribute title="Permanent cropland (% of land area)" csvColumn="Permanent cropland (% of land area)" keyType="Country Name"/>
-        <attribute title="Surface area (sq. km)" csvColumn="Surface area (sq. km)" keyType="Country Name"/>
+        <attribute csvColumn="Year" keyType="Country Name" title="Year"/>
+        <attribute csvColumn="YearCode" keyType="Country Name" title="YearCode"/>
+        <attribute csvColumn="Country Name" keyType="Country Name" title="Country Name"/>
+        <attribute csvColumn="Country Code" keyType="Country Name" title="Country Code"/>
+        <attribute csvColumn="Agricultural machinery, tractors" keyType="Country Name" title="Agricultural machinery, tractors"/>
+        <attribute csvColumn="Agricultural machinery, tractors per 100 sq. km of arable land" keyType="Country Name" title="Agricultural machinery, tractors per 100 sq. km of arable land"/>
+        <attribute csvColumn="Agriculture value added per worker (constant 2000 US$)" keyType="Country Name" title="Agriculture value added per worker (constant 2000 US$)"/>
+        <attribute csvColumn="Cereal yield (kg per hectare)" keyType="Country Name" title="Cereal yield (kg per hectare)"/>
+        <attribute csvColumn="Crop production index (1999-2001 = 100)" keyType="Country Name" title="Crop production index (1999-2001 = 100)"/>
+        <attribute csvColumn="Economically active population in agriculture&#x9;(number)" keyType="Country Name" title="Economically active population in agriculture&#x9;(number)"/>
+        <attribute csvColumn="Fertilizer consumption (metric tons)" keyType="Country Name" title="Fertilizer consumption (metric tons)"/>
+        <attribute csvColumn="Food production index (1999-2001 = 100)" keyType="Country Name" title="Food production index (1999-2001 = 100)"/>
+        <attribute csvColumn="Land under cereal production (hectares)" keyType="Country Name" title="Land under cereal production (hectares)"/>
+        <attribute csvColumn="Livestock production index (1999-2001 = 100)" keyType="Country Name" title="Livestock production index (1999-2001 = 100)"/>
+        <attribute csvColumn="Agricultural land (% of land area)" keyType="Country Name" title="Agricultural land (% of land area)"/>
+        <attribute csvColumn="Agricultural land (sq. km)" keyType="Country Name" title="Agricultural land (sq. km)"/>
+        <attribute csvColumn="Arable land (% of land area)" keyType="Country Name" title="Arable land (% of land area)"/>
+        <attribute csvColumn="Arable land (hectares per person)" keyType="Country Name" title="Arable land (hectares per person)"/>
+        <attribute csvColumn="Arable land (hectares)" keyType="Country Name" title="Arable land (hectares)"/>
+        <attribute csvColumn="Forest area (% of land area)" keyType="Country Name" title="Forest area (% of land area)"/>
+        <attribute csvColumn="Forest area (sq. km)" keyType="Country Name" title="Forest area (sq. km)"/>
+        <attribute csvColumn="Land area (sq. km)" keyType="Country Name" title="Land area (sq. km)"/>
+        <attribute csvColumn="Permanent cropland (% of land area)" keyType="Country Name" title="Permanent cropland (% of land area)"/>
+        <attribute csvColumn="Surface area (sq. km)" keyType="Country Name" title="Surface area (sq. km)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>Year,YearCode,Country Name,Country Code,"Agricultural machinery, tractors","Agricultural machinery, tractors per 100 sq. km of arable land",Agriculture value added per worker (constant 2000 US$),Cereal yield (kg per hectare),Crop production index (1999-2001 = 100),Economically active population in agriculture	(number),Fertilizer consumption (metric tons),Food production index (1999-2001 = 100),Land under cereal production (hectares),Livestock production index (1999-2001 = 100),Agricultural land (% of land area),Agricultural land (sq. km),Arable land (% of land area),Arable land (hectares per person),Arable land (hectares),Forest area (% of land area),Forest area (sq. km),Land area (sq. km),Permanent cropland (% of land area),Surface area (sq. km)
@@ -535,21 +551,21 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   <CSVDataSource name="WorldPopulationIndicators.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="Year" csvColumn="Year" keyType="Country Code"/>
-        <attribute title="YearCode" csvColumn="YearCode" keyType="Country Code"/>
-        <attribute title="Country Name" csvColumn="Country Name" keyType="Country Code"/>
-        <attribute title="Country Code" csvColumn="Country Code" keyType="Country Code"/>
-        <attribute title="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)" keyType="Country Code"/>
-        <attribute title="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)" keyType="Country Code"/>
-        <attribute title="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)" keyType="Country Code"/>
-        <attribute title="Population density (people per sq. km)" csvColumn="Population density (people per sq. km)" keyType="Country Code"/>
-        <attribute title="Population growth (annual %)" csvColumn="Population growth (annual %)" keyType="Country Code"/>
-        <attribute title="Population in the largest city (% of urban population)" csvColumn="Population in the largest city (% of urban population)" keyType="Country Code"/>
-        <attribute title="Population, female (% of total)" csvColumn="Population, female (% of total)" keyType="Country Code"/>
-        <attribute title="Rural population (% of total population)" csvColumn="Rural population (% of total population)" keyType="Country Code"/>
-        <attribute title="Urban population (% of total)" csvColumn="Urban population (% of total)" keyType="Country Code"/>
-        <attribute title="Urban population growth (annual %)" csvColumn="Urban population growth (annual %)" keyType="Country Code"/>
-        <attribute title="Rural population growth (annual %)" csvColumn="Rural population growth (annual %)" keyType="Country Code"/>
+        <attribute csvColumn="Year" keyType="Country Code" title="Year"/>
+        <attribute csvColumn="YearCode" keyType="Country Code" title="YearCode"/>
+        <attribute csvColumn="Country Name" keyType="Country Code" title="Country Name"/>
+        <attribute csvColumn="Country Code" keyType="Country Code" title="Country Code"/>
+        <attribute csvColumn="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+        <attribute csvColumn="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+        <attribute csvColumn="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+        <attribute csvColumn="Population density (people per sq. km)" keyType="Country Code" title="Population density (people per sq. km)"/>
+        <attribute csvColumn="Population growth (annual %)" keyType="Country Code" title="Population growth (annual %)"/>
+        <attribute csvColumn="Population in the largest city (% of urban population)" keyType="Country Code" title="Population in the largest city (% of urban population)"/>
+        <attribute csvColumn="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+        <attribute csvColumn="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+        <attribute csvColumn="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+        <attribute csvColumn="Urban population growth (annual %)" keyType="Country Code" title="Urban population growth (annual %)"/>
+        <attribute csvColumn="Rural population growth (annual %)" keyType="Country Code" title="Rural population growth (annual %)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>Year,YearCode,Country Name,Country Code,Population ages 0-14 (% of total),Population ages 15-64 (% of total),Population ages 65 and above (% of total),Population density (people per sq. km),Population growth (annual %),Population in the largest city (% of urban population),"Population, female (% of total)",Rural population (% of total population),Urban population (% of total),Urban population growth (annual %),Rural population growth (annual %)
@@ -797,21 +813,21 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   <CSVDataSource name="WorldPopulationIndicators2.csv">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="Year" csvColumn="Year" keyType="Country Code"/>
-        <attribute title="YearCode" csvColumn="YearCode" keyType="Country Code"/>
-        <attribute title="Country Name" csvColumn="Country Name" keyType="Country Code"/>
-        <attribute title="Country Code" csvColumn="Country Code" keyType="Country Code"/>
-        <attribute title="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)" keyType="Country Code"/>
-        <attribute title="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)" keyType="Country Code"/>
-        <attribute title="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)" keyType="Country Code"/>
-        <attribute title="Population density (people per sq. km)" csvColumn="Population density (people per sq. km)" keyType="Country Code"/>
-        <attribute title="Population growth (annual %)" csvColumn="Population growth (annual %)" keyType="Country Code"/>
-        <attribute title="Population in the largest city (% of urban population)" csvColumn="Population in the largest city (% of urban population)" keyType="Country Code"/>
-        <attribute title="Population, female (% of total)" csvColumn="Population, female (% of total)" keyType="Country Code"/>
-        <attribute title="Rural population (% of total population)" csvColumn="Rural population (% of total population)" keyType="Country Code"/>
-        <attribute title="Urban population (% of total)" csvColumn="Urban population (% of total)" keyType="Country Code"/>
-        <attribute title="Urban population growth (annual %)" csvColumn="Urban population growth (annual %)" keyType="Country Code"/>
-        <attribute title="Rural population growth (annual %)" csvColumn="Rural population growth (annual %)" keyType="Country Code"/>
+        <attribute csvColumn="Year" keyType="Country Code" title="Year"/>
+        <attribute csvColumn="YearCode" keyType="Country Code" title="YearCode"/>
+        <attribute csvColumn="Country Name" keyType="Country Code" title="Country Name"/>
+        <attribute csvColumn="Country Code" keyType="Country Code" title="Country Code"/>
+        <attribute csvColumn="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+        <attribute csvColumn="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+        <attribute csvColumn="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+        <attribute csvColumn="Population density (people per sq. km)" keyType="Country Code" title="Population density (people per sq. km)"/>
+        <attribute csvColumn="Population growth (annual %)" keyType="Country Code" title="Population growth (annual %)"/>
+        <attribute csvColumn="Population in the largest city (% of urban population)" keyType="Country Code" title="Population in the largest city (% of urban population)"/>
+        <attribute csvColumn="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+        <attribute csvColumn="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+        <attribute csvColumn="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+        <attribute csvColumn="Urban population growth (annual %)" keyType="Country Code" title="Urban population growth (annual %)"/>
+        <attribute csvColumn="Rural population growth (annual %)" keyType="Country Code" title="Rural population growth (annual %)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>Year,YearCode,Country Name,Country Code,Population ages 0-14 (% of total),Population ages 15-64 (% of total),Population ages 65 and above (% of total),Population density (people per sq. km),Population growth (annual %),Population in the largest city (% of urban population),"Population, female (% of total)",Rural population (% of total population),Urban population (% of total),Urban population growth (annual %),Rural population growth (annual %)
@@ -1042,814 +1058,16 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="world_borders"/>
         </category>
         <category name="Geometry Collections">
-          <attribute dataType="Geometry" name="new_world_borders"/>
-          <attribute dataType="Geometry" name="nhpn"/>
-          <attribute dataType="Geometry" name="states"/>
-          <attribute dataType="Geometry" name="world_borders"/>
+          <attribute dataType="geometry" name="new_world_borders"/>
+          <attribute dataType="geometry" name="nhpn"/>
+          <attribute dataType="geometry" name="states"/>
+          <attribute dataType="geometry" name="world_borders"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <ScatterPlotTool name="ScatterPlotTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>1</axesAlpha>
-        <axesColor>11579568</axesColor>
-        <axesThickness>10</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <dataBounds>
-          <xMax>250</xMax>
-          <xMin>0</xMin>
-          <yMax>55</yMax>
-          <yMin>25</yMin>
-        </dataBounds>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>true</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>true</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>1</gridLineAlpha>
-        <gridLineColor>14540253</gridLineColor>
-        <gridLineThickness>1</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <AxisLayer name="yAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>0</xMax>
-                  <xMin>0</xMin>
-                  <yMax>55</yMax>
-                  <yMin>25</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>55</axisLineMaxValue>
-                <axisLineMinValue>25</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>bottom</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>10</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <AxisLayer name="xAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>250</xMax>
-                  <xMin>0</xMin>
-                  <yMax>25</yMax>
-                  <yMin>25</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>250</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>top</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>10</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <enableBitmapFilters>true</enableBitmapFilters>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ScatterPlotPlotter>
-                <alphaColumn>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alphaColumn>
-                <colorColumn>
-                  <defaultValue>NaN</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <GlobalObjectReference name="defaultColorColumn"/>
-                  </internalDynamicColumn>
-                </colorColumn>
-                <defaultScreenRadius>5</defaultScreenRadius>
-                <enabledSizeBy>true</enabledSizeBy>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <maxScreenRadius>10</maxScreenRadius>
-                <minScreenRadius>5</minScreenRadius>
-                <radiusColumn encoding="dynamic"/>
-                <spatialCallbacks/>
-                <xColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </xColumn>
-                <yColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </yColumn>
-              </ScatterPlotPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="regressionLine">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <enableBitmapFilters>true</enableBitmapFilters>
-            <layerIsSelectable>false</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <RegressionLinePlotter>
-                <drawLine>false</drawLine>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <spatialCallbacks/>
-                <xColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </xColumn>
-                <yColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy keyType="Country Code">
-                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </yColumn>
-              </RegressionLinePlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <PlotLayer name="probeLine">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ProbeLinePlotter>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <lineStyle encoding="dynamic">
-                  <SolidLineStyle>
-                    <alpha>
-                      <defaultValue>0.5</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </alpha>
-                    <caps>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </caps>
-                    <color>
-                      <defaultValue>0</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </color>
-                    <enabled>
-                      <defaultValue>true</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </enabled>
-                    <joints>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </joints>
-                    <miterLimit>
-                      <defaultValue>3</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </miterLimit>
-                    <pixelHinting>
-                      <defaultValue>false</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </pixelHinting>
-                    <scaleMode>
-                      <defaultValue>normal</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </scaleMode>
-                    <weight>
-                      <defaultValue>1</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </weight>
-                  </SolidLineStyle>
-                </lineStyle>
-                <spatialCallbacks/>
-              </ProbeLinePlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </PlotLayer>
-        </layers>
-        <marginBottom>80</marginBottom>
-        <marginLeft>80</marginLeft>
-        <marginRight>10</marginRight>
-        <marginTop>10</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.679%</panelHeight>
-    <panelStyleList/>
-    <panelWidth>49.843%</panelWidth>
-    <panelX>50.157%</panelX>
-    <panelY>50.107%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-    <toolTitle/>
-  </ScatterPlotTool>
-  <LineChartTool name="LineChartTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>1</axesAlpha>
-        <axesColor>11579568</axesColor>
-        <axesThickness>10</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <dataBounds>
-          <xMax>6</xMax>
-          <xMin>0</xMin>
-          <yMax>212</yMax>
-          <yMin>0</yMin>
-        </dataBounds>
-        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>1</gridLineAlpha>
-        <gridLineColor>14540253</gridLineColor>
-        <gridLineThickness>1</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <AxisLayer name="yAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>0</xMax>
-                  <xMin>0</xMin>
-                  <yMax>212</yMax>
-                  <yMin>0</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>212</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>bottom</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>5</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <AxisLayer name="xAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>6</xMax>
-                  <xMin>0</xMin>
-                  <yMax>0</yMax>
-                  <yMin>0</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>6</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>true</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>top</labelVerticalAlign>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
-                <tickCountRequested>7</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <enableBitmapFilters>true</enableBitmapFilters>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ParallelCoordinatesPlotter>
-                <columns encoding="dynamic">
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Country Name" name="Country Name" title="Country Name"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population, female (% of total)" name="Population, female (% of total)" title="Population, female (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" title="Rural population (% of total population)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn4">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn5">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn6">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Urban population (% of total)" name="Urban population (% of total)" title="Urban population (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn7">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                </columns>
-                <curveType>none</curveType>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <normalize>false</normalize>
-                <shapeBorderColor>0</shapeBorderColor>
-                <shapeBorderThickness>0</shapeBorderThickness>
-                <shapeSize>5</shapeSize>
-                <shapeToDraw>Solid Circle</shapeToDraw>
-                <spatialCallbacks/>
-                <zoomToSubset>true</zoomToSubset>
-              </ParallelCoordinatesPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="label">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <enableBitmapFilters>true</enableBitmapFilters>
-            <layerIsSelectable>false</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <TextGlyphPlotter>
-                <angle>
-                  <defaultValue>0</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </angle>
-                <bold>
-                  <defaultValue>false</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </bold>
-                <color>
-                  <defaultValue>0</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </color>
-                <dataX encoding="dynamic">
-                  <AlwaysDefinedColumn>
-                    <defaultValue>6</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </AlwaysDefinedColumn>
-                </dataX>
-                <dataY encoding="dynamic">
-                  <DynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                </dataY>
-                <font>
-                  <defaultValue>Sophia Nubian</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </font>
-                <hAlign>
-                  <defaultValue>left</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </hAlign>
-                <hideOverlappingText>true</hideOverlappingText>
-                <italic>
-                  <defaultValue>false</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </italic>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <size>
-                  <defaultValue>10</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </size>
-                <sortColumn encoding="dynamic">
-                  <DynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                </sortColumn>
-                <spatialCallbacks/>
-                <text encoding="dynamic"/>
-                <underline>
-                  <defaultValue>false</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </underline>
-                <vAlign>
-                  <defaultValue>center</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </vAlign>
-                <xScreenOffset>5</xScreenOffset>
-                <yScreenOffset>0</yScreenOffset>
-              </TextGlyphPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-        </layers>
-        <marginBottom>80</marginBottom>
-        <marginLeft>80</marginLeft>
-        <marginRight>80</marginRight>
-        <marginTop>10</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>50.107%</panelHeight>
-    <panelStyleList/>
-    <panelWidth>49.843%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>0%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-    <toolTitle/>
-  </LineChartTool>
   <CompoundBarChartTool name="CompoundBarChartTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -1863,17 +1081,12 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <axisFontItalic>false</axisFontItalic>
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
-        <dataBounds>
-          <xMax>481.0998025412096</xMax>
-          <xMin>-83.01738495879164</xMin>
-          <yMax>1077.4400942298435</yMax>
-          <yMin>-150.2983660858436</yMin>
-        </dataBounds>
         <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
         <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
         <enableSelection>true</enableSelection>
         <enableZoomAndPan>true</enableZoomAndPan>
         <gridLineAlpha>1</gridLineAlpha>
@@ -1889,13 +1102,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>-83.01738495879164</xMax>
-                  <xMin>-83.01738495879164</xMin>
-                  <yMax>1077.4400942298435</yMax>
-                  <yMin>-150.2983660858436</yMin>
+                  <xMax>-0.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>81.71817878</yMax>
+                  <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>1077.4400942298435</axisLineMaxValue>
-                <axisLineMinValue>-150.2983660858436</axisLineMinValue>
+                <axisLineMaxValue>81.71817878</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -1916,7 +1129,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>bottom</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
                 <tickCountRequested>5</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
@@ -1932,13 +1144,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>481.0998025412096</xMax>
-                  <xMin>-83.01738495879164</xMin>
-                  <yMax>-150.2983660858436</yMax>
-                  <yMin>-150.2983660858436</yMin>
+                  <xMax>212.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>0</yMax>
+                  <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>481.0998025412096</axisLineMaxValue>
-                <axisLineMinValue>-83.01738495879164</axisLineMinValue>
+                <axisLineMaxValue>212.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -1959,7 +1171,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <labelVerticalAlign>top</labelVerticalAlign>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
-                <spatialCallbacks/>
                 <tickCountRequested>11</tickCountRequested>
                 <tickMaxValue>212</tickMaxValue>
                 <tickMinValue>0</tickMinValue>
@@ -1969,14 +1180,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           </AxisLayer>
           <SelectablePlotLayer name="plot">
             <backgroundIsVisible>true</backgroundIsVisible>
-            <enableBitmapFilters>true</enableBitmapFilters>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp name="Doppler Radar" dataFormat="qualitative" category="aesthetic" source="OIC">
+                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -2000,98 +1210,14 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </colorColumn>
                 <groupMode>false</groupMode>
                 <heightColumns encoding="dynamic">
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
+                  <DynamicColumn name="DynamicColumn4" encoding="dynamic">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
                           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population, female (% of total)" name="Population, female (% of total)" title="Population, female (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" title="Rural population (% of total population)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn4">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn5">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Urban population (% of total)" name="Urban population (% of total)" title="Urban population (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn6">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn7">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy keyType="Country Code">
-                              <attribute keyType="Country Code" csvColumn="Country Name" name="Country Name" title="Country Name"/>
+                              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -2147,6 +1273,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 </lineStyle>
                 <negativeError encoding="dynamic"/>
                 <positiveError encoding="dynamic"/>
+                <showValueLabels>false</showValueLabels>
                 <sortColumn encoding="dynamic">
                   <ReferencedColumn>
                     <dynamicColumnReference encoding="dynamic">
@@ -2161,7 +1288,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
-                <spatialCallbacks/>
                 <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
             </plotter>
@@ -2224,7 +1350,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </weight>
                   </SolidLineStyle>
                 </lineStyle>
-                <spatialCallbacks/>
               </ProbeLinePlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
@@ -2232,19 +1357,24 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         </layers>
         <marginBottom>80</marginBottom>
         <marginLeft>80</marginLeft>
-        <marginRight>10</marginRight>
-        <marginTop>10</marginTop>
+        <marginRight>30</marginRight>
+        <marginTop>30</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>212.5</xMax>
+          <xMin>-0.5</xMin>
+          <yMax>81.71817878</yMax>
+          <yMin>0</yMin>
+        </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
     <closeable>true</closeable>
     <draggable>true</draggable>
     <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
+    <enableTitle>false</enableTitle>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
     <labelColumn encoding="dynamic"/>
     <maximizable>true</maximizable>
@@ -2253,11 +1383,12 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.679%</panelHeight>
+    <panelHeight>49.832%</panelHeight>
     <panelStyleList/>
+    <panelTitle>Bar Chart of Population ages 15-64 (% of total)</panelTitle>
     <panelWidth>50.157%</panelWidth>
     <panelX>49.843%</panelX>
-    <panelY>0%</panelY>
+    <panelY>49.832%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
@@ -2268,88 +1399,209 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
     <toolTitle/>
   </CompoundBarChartTool>
-  <MapTool name="MapTool">
+  <ScatterPlotTool name="ScatterPlotTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
         <axisFontBold>true</axisFontBold>
         <axisFontColor>0</axisFontColor>
         <axisFontFamily>Sophia Nubian</axisFontFamily>
         <axisFontItalic>false</axisFontItalic>
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
-        <dataBounds>
-          <xMax>-8960532.686917279</xMax>
-          <xMin>-8963542.940474235</xMin>
-          <yMax>4637562.071571947</yMax>
-          <yMin>4635504.429900103</yMin>
-        </dataBounds>
         <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>true</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>true</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
         <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
         <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot5">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>0</xMax>
+                  <xMin>0</xMin>
+                  <yMax>55</yMax>
+                  <yMin>25</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>55</axisLineMaxValue>
+                <axisLineMinValue>25</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>10</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>250</xMax>
+                  <xMin>0</xMin>
+                  <yMax>25</yMax>
+                  <yMin>25</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>250</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>10</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
             <backgroundIsVisible>true</backgroundIsVisible>
-            <enableBitmapFilters>true</enableBitmapFilters>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
                   <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections">
-                                <attribute dataType="Geometry" name="states"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
+                    <GlobalObjectReference name="defaultColorColumn"/>
                   </internalDynamicColumn>
-                  <projectionSRS>EPSG:3857</projectionSRS>
-                </geometryColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
                 <keySet>
                   <keyFilter encoding="dynamic">
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
-                <line>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute csvColumn="Population in the largest city (% of urban population)" keyType="Country Code" title="Population in the largest city (% of urban population)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </radiusColumn>
+                <xColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy keyType="Country Code">
+                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </xColumn>
+                <yColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy keyType="Country Code">
+                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </yColumn>
+                <zoomToSubset>false</zoomToSubset>
+              </ScatterPlotPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <PlotLayer name="regressionLine">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <RegressionLinePlotter>
+                <drawLine>false</drawLine>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <lineStyle>
                   <alpha>
-                    <defaultValue>1</defaultValue>
+                    <defaultValue>0.5</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </alpha>
                   <caps>
@@ -2357,7 +1609,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <internalDynamicColumn encoding="dynamic"/>
                   </caps>
                   <color>
-                    <defaultValue>16777215</defaultValue>
+                    <defaultValue>0</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </color>
                   <enabled>
@@ -2377,18 +1629,277 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <internalDynamicColumn encoding="dynamic"/>
                   </pixelHinting>
                   <scaleMode>
-                    <defaultValue>none</defaultValue>
+                    <defaultValue>normal</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </scaleMode>
                   <weight>
                     <defaultValue>1</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointShapeSize>5</pointShapeSize>
-                <spatialCallbacks/>
-              </GeometryPlotter>
+                </lineStyle>
+                <xColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy keyType="Country Code">
+                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </xColumn>
+                <yColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy keyType="Country Code">
+                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </yColumn>
+              </RegressionLinePlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+          <PlotLayer name="probeLine">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ProbeLinePlotter>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+              </ProbeLinePlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+          <SelectablePlotLayer name="undefinedX">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute csvColumn="Population in the largest city (% of urban population)" keyType="Country Code" title="Population in the largest city (% of urban population)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </radiusColumn>
+                <xColumn encoding="dynamic"/>
+                <yColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy keyType="Country Code">
+                            <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </yColumn>
+                <zoomToSubset>false</zoomToSubset>
+              </ScatterPlotPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="undefinedY">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute csvColumn="Population in the largest city (% of urban population)" keyType="Country Code" title="Population in the largest city (% of urban population)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </radiusColumn>
+                <xColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy keyType="Country Code">
+                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </xColumn>
+                <yColumn encoding="dynamic"/>
+                <zoomToSubset>false</zoomToSubset>
+              </ScatterPlotPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="undefinedXY">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ScatterPlotPlotter>
+                <alphaColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alphaColumn>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <defaultScreenRadius>5</defaultScreenRadius>
+                <enabledSizeBy>true</enabledSizeBy>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxScreenRadius>10</maxScreenRadius>
+                <minScreenRadius>5</minScreenRadius>
+                <radiusColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute csvColumn="Population in the largest city (% of urban population)" keyType="Country Code" title="Population in the largest city (% of urban population)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </radiusColumn>
+                <xColumn encoding="dynamic"/>
+                <yColumn encoding="dynamic"/>
+                <zoomToSubset>false</zoomToSubset>
+              </ScatterPlotPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
               <GlobalObjectReference name="defaultProbeKeySet"/>
@@ -2402,6 +1913,861 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <useTextBitmapFilters>false</useTextBitmapFilters>
           </SelectablePlotLayer>
         </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>50</marginRight>
+        <marginTop>50</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>250</xMax>
+          <xMin>0</xMin>
+          <yMax>55</yMax>
+          <yMin>25</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>49.832%</panelHeight>
+    <panelStyleList/>
+    <panelTitle>Scatter Plot of Country Name -vs- Population, female (% of total)</panelTitle>
+    <panelWidth>49.843%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>0%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </ScatterPlotTool>
+  <CompoundBarChartTool name="CompoundBarChartTool2">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>-0.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>463.57086407199995</yMax>
+                  <yMin>0</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>463.57086407199995</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>212.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>0</yMax>
+                  <yMin>0</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>212.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>11</tickCountRequested>
+                <tickMaxValue>212</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CompoundBarChartPlotter>
+                <barSpacing>0</barSpacing>
+                <chartColors encoding="xml">
+                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
+                    <node color="0x04E9E7" position="0"/>
+                    <node color="0x009DF4" position="0.08"/>
+                    <node color="0x0201F4" position="0.16"/>
+                    <node color="0x01FC01" position="0.24"/>
+                    <node color="0x00C400" position="0.32"/>
+                    <node color="0x008C00" position="0.4"/>
+                    <node color="0x0FDF801" position="0.48"/>
+                    <node color="0xF99200" position="0.56"/>
+                    <node color="0xFD0000" position="0.64"/>
+                    <node color="0xBC0000" position="0.72"/>
+                    <node color="0xBC0000" position="0.8"/>
+                    <node color="0xF800FD" position="0.88"/>
+                    <node color="0x9854C6" position="1.0"/>
+                  </colorRamp>
+                </chartColors>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <groupMode>false</groupMode>
+                <heightColumns encoding="dynamic">
+                  <DynamicColumn name="DynamicColumn" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn3" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn4" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn5" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn6" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn7" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </heightColumns>
+                <horizontalMode>false</horizontalMode>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+                <negativeError encoding="dynamic"/>
+                <positiveError encoding="dynamic"/>
+                <showValueLabels>false</showValueLabels>
+                <sortColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy keyType="Country Code">
+                            <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </sortColumn>
+                <zoomToSubset>true</zoomToSubset>
+              </CompoundBarChartPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <PlotLayer name="probeLine">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ProbeLinePlotter>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+              </ProbeLinePlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>30</marginRight>
+        <marginTop>30</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>212.5</xMax>
+          <xMin>-0.5</xMin>
+          <yMax>463.57086407199995</yMax>
+          <yMin>0</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <labelColumn encoding="dynamic"/>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>49.832%</panelHeight>
+    <panelStyleList/>
+    <panelTitle>Bar Chart of Population, female (% of total), Rural population (% of total population), Population ages 65 and above (% of total), Population ages 15-64 (% of total), Urban population (% of total), Population ages 0-14 (% of total), Country Name</panelTitle>
+    <panelWidth>49.843%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>49.832%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showAllLabels>false</showAllLabels>
+    <showCloseDialog>false</showCloseDialog>
+    <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
+    <toolTitle/>
+  </CompoundBarChartTool>
+  <LineChartTool name="LineChartTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>0</xMax>
+                  <xMin>0</xMin>
+                  <yMax>100</yMax>
+                  <yMin>9.8</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>100</axisLineMaxValue>
+                <axisLineMinValue>9.8</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>1</xMax>
+                  <xMin>0</xMin>
+                  <yMax>9.8</yMax>
+                  <yMin>9.8</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>1</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>2</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ParallelCoordinatesPlotter>
+                <columns encoding="dynamic">
+                  <ReferencedColumn name="ReferencedColumn">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute csvColumn="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <DynamicColumn name="DynamicColumn6" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </columns>
+                <curveType>none</curveType>
+                <enableGroupBy>false</enableGroupBy>
+                <groupBy encoding="dynamic"/>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <normalize>false</normalize>
+                <shapeBorderColor>0</shapeBorderColor>
+                <shapeBorderThickness>0</shapeBorderThickness>
+                <shapeSize>5</shapeSize>
+                <shapeToDraw>Solid Circle</shapeToDraw>
+                <xData encoding="dynamic"/>
+                <xValues/>
+                <yData encoding="dynamic"/>
+                <zoomToSubset>false</zoomToSubset>
+              </ParallelCoordinatesPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="label">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>false</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <TextGlyphPlotter>
+                <angle>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </angle>
+                <bold>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </bold>
+                <color>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </color>
+                <dataX encoding="dynamic">
+                  <AlwaysDefinedColumn>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </AlwaysDefinedColumn>
+                </dataX>
+                <dataY encoding="dynamic">
+                  <DynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </dataY>
+                <font>
+                  <defaultValue>Sophia Nubian</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </font>
+                <hAlign>
+                  <defaultValue>left</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </hAlign>
+                <hideOverlappingText>true</hideOverlappingText>
+                <italic>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </italic>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <maxWidth>80</maxWidth>
+                <size>
+                  <defaultValue>11</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </size>
+                <sortColumn encoding="dynamic">
+                  <DynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </sortColumn>
+                <text encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <attribute csvColumn="Country Name" keyType="Country Code" title="Country Name"/>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </text>
+                <underline>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </underline>
+                <vAlign>
+                  <defaultValue>center</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </vAlign>
+                <xScreenOffset>5</xScreenOffset>
+                <yScreenOffset>0</yScreenOffset>
+                <zoomToSubset>false</zoomToSubset>
+              </TextGlyphPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>80</marginRight>
+        <marginTop>10</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>1</xMax>
+          <xMin>0</xMin>
+          <yMax>100</yMax>
+          <yMin>9.8</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>49.832%</panelHeight>
+    <panelStyleList/>
+    <panelTitle>Line Chart of Population ages 0-14 (% of total), Urban population (% of total)</panelTitle>
+    <panelWidth>50.157%</panelWidth>
+    <panelX>49.843%</panelX>
+    <panelY>0%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </LineChartTool>
+  <DataTableTool name="DataTableTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic"/>
         <marginBottom>0</marginBottom>
         <marginLeft>0</marginLeft>
         <marginRight>0</marginRight>
@@ -2410,34 +2776,706 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>NaN</xMax>
+          <xMin>NaN</xMin>
+          <yMax>NaN</yMax>
+          <yMin>NaN</yMin>
+        </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
     <closeable>true</closeable>
+    <columns encoding="dynamic">
+      <DynamicColumn name="DynamicColumn" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy keyType="Country Code">
+                  <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy keyType="Country Code">
+                  <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn3" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy keyType="Country Code">
+                  <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn4" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy keyType="Country Code">
+                  <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn5" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy keyType="Country Code">
+                  <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn6" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy keyType="Country Code">
+                  <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn7" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy keyType="Country Code">
+                  <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+    </columns>
+    <columnWidths encoding="dynamic">
+      <LinkableString name="DynamicColumn"/>
+      <LinkableString name="DynamicColumn2"/>
+      <LinkableString name="DynamicColumn3"/>
+      <LinkableString name="DynamicColumn4"/>
+      <LinkableString name="DynamicColumn5"/>
+      <LinkableString name="DynamicColumn6"/>
+      <LinkableString name="DynamicColumn7"/>
+    </columnWidths>
     <draggable>true</draggable>
-    <enableBackground>false</enableBackground>
     <enableBorders>true</enableBorders>
-    <enableControlPanel>true</enableControlPanel>
-    <enableHelpPanel>true</enableHelpPanel>
-    <enableOverview>false</enableOverview>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <enableTitle>false</enableTitle>
+    <filterByKeyType/>
+    <lockedColumns>0</lockedColumns>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
-    <panelBackgroundColor>0</panelBackgroundColor>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.947%</panelHeight>
+    <panelHeight>33.588%</panelHeight>
     <panelStyleList/>
-    <panelWidth>49.843%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>49.947%</panelY>
+    <panelTitle>Data Table</panelTitle>
+    <panelWidth>45.72%</panelWidth>
+    <panelX>14.823%</panelX>
+    <panelY>10.905%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
     <pinnedToBack>false</pinnedToBack>
-    <projectionSRS>EPSG:3857</projectionSRS>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <showControls>false</showControls>
+    <sortFieldIndex>NaN</sortFieldIndex>
+    <sortInDescendingOrder/>
+    <toolTitle/>
+  </DataTableTool>
+  <BarChartLegendTool name="BarChartLegendTool2">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <BarChartLegendPlotter>
+                <chartColors encoding="xml">
+                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
+                    <node color="0x04E9E7" position="0"/>
+                    <node color="0x009DF4" position="0.08"/>
+                    <node color="0x0201F4" position="0.16"/>
+                    <node color="0x01FC01" position="0.24"/>
+                    <node color="0x00C400" position="0.32"/>
+                    <node color="0x008C00" position="0.4"/>
+                    <node color="0x0FDF801" position="0.48"/>
+                    <node color="0xF99200" position="0.56"/>
+                    <node color="0xFD0000" position="0.64"/>
+                    <node color="0xBC0000" position="0.72"/>
+                    <node color="0xBC0000" position="0.8"/>
+                    <node color="0xF800FD" position="0.88"/>
+                    <node color="0x9854C6" position="1.0"/>
+                  </colorRamp>
+                </chartColors>
+                <columns encoding="dynamic">
+                  <DynamicColumn name="DynamicColumn" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn3" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn4" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn5" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn6" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn7" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </columns>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>false</reverseOrder>
+                <shapeSize>12</shapeSize>
+              </BarChartLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="color legend">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>false</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ColorBinLegendPlotter>
+                <dynamicColorColumn encoding="dynamic">
+                  <GlobalObjectReference name="defaultColorColumn"/>
+                </dynamicColorColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>false</reverseOrder>
+                <shapeSize>20</shapeSize>
+              </ColorBinLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>true</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>5</marginBottom>
+        <marginLeft>5</marginLeft>
+        <marginRight>5</marginRight>
+        <marginTop>25</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>1</xMax>
+          <xMin>0</xMin>
+          <yMax>1</yMax>
+          <yMin>0</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <dynamicBarChartTool encoding="dynamic">
+      <GlobalObjectReference name="CompoundBarChartTool2"/>
+    </dynamicBarChartTool>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>35.915%</panelHeight>
+    <panelStyleList/>
+    <panelTitle>Bar Chart Legend</panelTitle>
+    <panelWidth>21.944%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>63.749%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>true</pinned>
+    <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
     <toolTitle/>
-  </MapTool>
+  </BarChartLegendTool>
+  <BarChartLegendTool name="BarChartLegendTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>NaN</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>false</layerIsVisible>
+            <plotter encoding="dynamic">
+              <BarChartLegendPlotter>
+                <chartColors encoding="xml">
+                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
+                    <node color="0x04E9E7" position="0"/>
+                    <node color="0x009DF4" position="0.08"/>
+                    <node color="0x0201F4" position="0.16"/>
+                    <node color="0x01FC01" position="0.24"/>
+                    <node color="0x00C400" position="0.32"/>
+                    <node color="0x008C00" position="0.4"/>
+                    <node color="0x0FDF801" position="0.48"/>
+                    <node color="0xF99200" position="0.56"/>
+                    <node color="0xFD0000" position="0.64"/>
+                    <node color="0xBC0000" position="0.72"/>
+                    <node color="0xBC0000" position="0.8"/>
+                    <node color="0xF800FD" position="0.88"/>
+                    <node color="0x9854C6" position="1.0"/>
+                  </colorRamp>
+                </chartColors>
+                <columns encoding="dynamic">
+                  <DynamicColumn name="DynamicColumn4" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy keyType="Country Code">
+                              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                </columns>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>true</reverseOrder>
+                <shapeSize>12</shapeSize>
+              </BarChartLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="color legend">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ColorBinLegendPlotter>
+                <dynamicColorColumn encoding="dynamic">
+                  <GlobalObjectReference name="defaultColorColumn"/>
+                </dynamicColorColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>true</reverseOrder>
+                <shapeSize>20</shapeSize>
+              </ColorBinLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>true</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>5</marginBottom>
+        <marginLeft>5</marginLeft>
+        <marginRight>5</marginRight>
+        <marginTop>25</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>1</xMax>
+          <xMin>0</xMin>
+          <yMax>1</yMax>
+          <yMin>0</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <dynamicBarChartTool encoding="dynamic">
+      <GlobalObjectReference name="CompoundBarChartTool"/>
+    </dynamicBarChartTool>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>35.466%</panelHeight>
+    <panelStyleList/>
+    <panelTitle>Bar Chart Legend</panelTitle>
+    <panelWidth>18.182%</panelWidth>
+    <panelX>49.843%</panelX>
+    <panelY>64.198%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>true</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <toolTitle/>
+  </BarChartLegendTool>
 </Weave>

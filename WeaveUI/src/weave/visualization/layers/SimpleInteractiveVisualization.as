@@ -222,6 +222,8 @@ package weave.visualization.layers
 			
 			super.updateFullDataBounds();
 			
+			// adjust fullDataBounds based on auto zoom settings
+			
 			tempBounds.copyFrom(fullDataBounds);
 			if(_xAxisLayer && enableAutoZoomXToNiceNumbers.value)
 			{
@@ -264,8 +266,6 @@ package weave.visualization.layers
 			getCallbackCollection(zoomBounds).delayCallbacks();
 			
 			super.updateZoom();
-			
-			// adjust dataBounds based on auto zoom settings
 			
 			// when the data bounds change, we need to update the min,max values for axes
 			if (_xAxisLayer)
@@ -395,8 +395,6 @@ package weave.visualization.layers
 							ttPoint = localToGlobal( new Point(queryBounds.getXCoverage()/2, queryBounds.getYMax()) ); 
 											
 							createXTooltip = true;
-							
-							//hideMouseCursors();
 						}
 					}
 	
@@ -409,11 +407,9 @@ package weave.visualization.layers
 						
 						if(queryBounds.contains(StageUtils.mouseEvent.localX,StageUtils.mouseEvent.localY))
 						{
-							ttPoint = localToGlobal( new Point(queryBounds.getXMax(), queryBounds.getYCoverage()/2) ); 
+							ttPoint = localToGlobal(new Point(queryBounds.getXMax(), queryBounds.getYCoverage() / 2));
 	
 							createYTooltip = true;
-							
-							//hideMouseCursors();
 						}						
 					}
 					
@@ -482,13 +478,14 @@ package weave.visualization.layers
 		 * @param labelFunction optional function to convert number values to string 
 		 * @param labelFunctionX optional function to convert xAxis number values to string
 		 */	
-		public function enableProbeLine(xAxisToPlot:Boolean,yAxisToPlot:Boolean,labelFunction:Function=null,labelFunctionX:Function=null):void
+		public function enableProbeLine(xAxisToPlot:Boolean, yAxisToPlot:Boolean, labelFunction:Function = null, labelFunctionX:Function = null):void
 		{
-			if( !_probeLineLayer ) {
+			if (!_probeLineLayer)
+			{
 				_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
 				_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
 			}
-			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xAxisToPlot,yAxisToPlot,labelFunction, labelFunctionX], false);
+			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xAxisToPlot, yAxisToPlot, labelFunction, labelFunctionX], false);
 		}
 		
 		/**
@@ -512,7 +509,7 @@ package weave.visualization.layers
 			// TODO: why is this called when the drag select reaches another window?
 			
 			destroyProbeLineTooltips();
-			if(!Weave.properties.enableProbeLines.value)
+			if (!Weave.properties.enableProbeLines.value)
 				return;
 			var keySet:IKeySet = _plotLayer.probeFilter.internalObject as IKeySet;
 			if (keySet == null)
@@ -522,12 +519,17 @@ package weave.visualization.layers
 			}
 			var recordKeys:Array = keySet.keys;
 			
-			if( (recordKeys.length == 0) || !this.mouseIsRolledOver)
+			if (recordKeys.length == 0 || !this.mouseIsRolledOver)
 			{
 				_probePlotter.clearCoordinates();
 				return;
 			}
-			var x_yAxis:Number, y_yAxis:Number, xPlot:Number, yPlot:Number, x_xAxis:Number, y_xAxis:Number;
+			var xPlot:Number;
+			var yPlot:Number;
+			var x_yAxis:Number;
+			var y_yAxis:Number;
+			var x_xAxis:Number;
+			var y_xAxis:Number;
 			var bounds:IBounds2D = (_plotLayer.spatialIndex as SpatialIndex).getBoundsFromKey(recordKeys[0])[0];
 			
 			// if there is a visualization with one set of data and the user drag selects over to it, the 
@@ -546,8 +548,8 @@ package weave.visualization.layers
 				xPlot = bounds.getXCenter();
 				yPlot = bounds.getYMax();
 				
-				 showProbeTooltips(y_yAxis,bounds,labelFunctionY);
-				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis, yAxisToPlot, xAxisToPlot );
+				 showProbeTooltips(y_yAxis, bounds, labelFunctionY);
+				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yAxisToPlot, xAxisToPlot);
 				
 			}
 			else if(yAxisToPlot && xAxisToPlot) //scatterplot
@@ -558,7 +560,7 @@ package weave.visualization.layers
 				var xAxisMax:Number = _xAxisLayer.axisPlotter.axisLineMaxValue.value;
 				var yAxisMax:Number = _yAxisLayer.axisPlotter.axisLineMaxValue.value;
 				
-				if(yExists || xExists)
+				if (yExists || xExists)
 				{
 					x_yAxis = xAxisMin;
 					y_yAxis = bounds.getYMax();
@@ -569,8 +571,10 @@ package weave.visualization.layers
 					x_xAxis = bounds.getXCenter();
 					y_xAxis = yAxisMin;
 
-					if(yExists) showProbeTooltips(y_yAxis,bounds,labelFunctionY);
-					if(xExists) showProbeTooltips(x_xAxis,bounds,labelFunctionX, true);
+					if (yExists)
+						showProbeTooltips(y_yAxis, bounds, labelFunctionY);
+					if (xExists)
+						showProbeTooltips(x_xAxis, bounds, labelFunctionX, true);
 					_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yExists, xExists);
 				}
 			}
@@ -584,7 +588,7 @@ package weave.visualization.layers
 				
 				showProbeTooltips(xPlot, bounds, labelFunctionY,false, true);
 				
-				_probePlotter.setCoordinates(x_yAxis,y_yAxis,xPlot,yPlot,x_xAxis,y_xAxis, false, true);				
+				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, false, true);
 			}
 		}
 		
@@ -596,19 +600,20 @@ package weave.visualization.layers
 		 * @param xAxis flag to specify whether this is an xAxis tooltip
 		 * @param useXMax flag to specify whether the toolTip should appear at the xMax of the record's bounds (as opposed to the xCenter, which positions the toolTip at the middle)
 		 */
-		public function showProbeTooltips(displayValue:Number,bounds:IBounds2D,labelFunction:Function,xAxis:Boolean=false, useXMax:Boolean=false):void
+		public function showProbeTooltips(displayValue:Number, bounds:IBounds2D, labelFunction:Function, xAxis:Boolean = false, useXMax:Boolean = false):void
 		{
 			var yPoint:Point = new Point();
 			var text1:String = "";
-			if(labelFunction != null)
-				text1=labelFunction(displayValue);
-			else text1=displayValue.toString();
+			if (labelFunction != null)
+				text1 = labelFunction(displayValue);
+			else text1 = displayValue.toString();
 			
-			if(xAxis || useXMax)
+			if (xAxis || useXMax)
 			{
 				yPoint.x = (xAxis) ? bounds.getXCenter() : bounds.getXMax();
 				yPoint.y = _yAxisLayer.axisPlotter.axisLineMinValue.value;					
-			} else
+			}
+			else
 			{
 				yPoint.x = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				yPoint.y = bounds.getYMax() ;
@@ -618,20 +623,23 @@ package weave.visualization.layers
 			tempDataBounds.projectPointTo(yPoint, tempScreenBounds);
 			yPoint = localToGlobal(yPoint);
 			
-			if(xAxis || useXMax)
+			if (xAxis || useXMax)
 			{
 				xAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
-				xAxisTooltip.move(xAxisTooltip.x-(xAxisTooltip.width/2),xAxisTooltip.y);
+				xAxisTooltip.move(xAxisTooltip.x - (xAxisTooltip.width / 2), xAxisTooltip.y);
 				xAxisTooltipPtr = xAxisTooltip;
-			} else
+			}
+			else
 			{
 				yAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
-				yAxisTooltip.move(yAxisTooltip.x-yAxisTooltip.width, yAxisTooltip.y-(yAxisTooltip.height/2));
+				yAxisTooltip.move(yAxisTooltip.x - yAxisTooltip.width, yAxisTooltip.y - (yAxisTooltip.height / 2));
 				yAxisTooltipPtr = yAxisTooltip
 			}
 			constrainToolTipsToStage(xAxisTooltip, yAxisTooltip);
-			if(!yAxisTooltip) yAxisTooltipPtr = null;
-			if(!xAxisTooltip) xAxisTooltipPtr = null;
+			if (!yAxisTooltip)
+				yAxisTooltipPtr = null;
+			if (!xAxisTooltip)
+				xAxisTooltipPtr = null;
 			setProbeToolTipAppearance();
 			
 		}
@@ -642,7 +650,7 @@ package weave.visualization.layers
 		private function setProbeToolTipAppearance():void
 		{
 			for each (var tooltip:IToolTip in [xAxisTooltip, yAxisTooltip])
-				if( tooltip != null )
+				if ( tooltip != null )
 				{
 					(tooltip as ToolTip).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 					if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
@@ -655,20 +663,20 @@ package weave.visualization.layers
 		 * @param toolTip An object that implements IToolTip
 		 * @param moreToolTips more objects that implement IToolTip
 		 */		
-		public function constrainToolTipsToStage(tooltip:IToolTip,...moreToolTips):void
+		public function constrainToolTipsToStage(tooltip:IToolTip, ...moreToolTips):void
 		{
 			var xMin:Number = 0;
 			
 			moreToolTips.unshift(tooltip);
-			for each(tooltip in moreToolTips)
+			for each (tooltip in moreToolTips)
 			{
-				if(tooltip != null)
+				if (tooltip != null)
 				{
-					if(tooltip.x < xMin)
+					if (tooltip.x < xMin)
 						tooltip.move(tooltip.x+Math.abs(xMin-tooltip.x), tooltip.y);
 					var xMax:Number = stage.stageWidth - (tooltip.width/2);
 					var xMaxTooltip:Number = tooltip.x+(tooltip.width/2);
-					if(xMaxTooltip > xMax)
+					if (xMaxTooltip > xMax)
 					{
 						tooltip.move(xMax-(tooltip.width/2),tooltip.y);
 					}
@@ -683,13 +691,13 @@ package weave.visualization.layers
 		 */		
 		public function destroyProbeLineTooltips():void
 		{
-			if(yAxisTooltip!=null)
+			if (yAxisTooltip != null)
 			{
 				ToolTipManager.destroyToolTip(yAxisTooltip);
 				yAxisTooltip = null;	
 				yAxisTooltipPtr = null;	
 			}
-			if(xAxisTooltip != null)
+			if (xAxisTooltip != null)
 			{
 				ToolTipManager.destroyToolTip(xAxisTooltip);
 				xAxisTooltip = null;

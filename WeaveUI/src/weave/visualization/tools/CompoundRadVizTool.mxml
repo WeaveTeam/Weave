@@ -105,7 +105,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_anchorLayer.useTextBitmapFilters.value = true;
 				
-				getCallbackCollection(plotLayer.probeFilter).addGroupedCallback(this,drawProbeLines);
+				getCallbackCollection(plotLayer.probeFilter).addImmediateCallback(this,drawProbeLines);
 				
 				visualization.marginTop.value =	visualization.marginBottom.value = 20;
 				visualization.marginLeft.value = visualization.marginRight.value = 20;				

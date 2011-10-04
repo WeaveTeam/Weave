@@ -34,7 +34,7 @@ public class CSVImport
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		File file = new File("../../ROOT/obesity.csv");
+		File file = new File("FULLPATHTOFILE");
 		System.out.println(file.getAbsolutePath());
 		
 		String _configPath = "\\tomcat\\webapps\\weave-config";
@@ -47,6 +47,6 @@ public class CSVImport
 
 		AdminService as = new AdminService(configManager);
 		//as.init2(); // un-comment this to run the test
-		as.importCSV("root", "<PASSWORD>", file.getPath(), "State", "", "<DATABASE>", "obesity", true, "dataTable", true, "", "", (new String[] {""}));
+		as.importCSV("<USER>", "<PASSWORD>", file.getPath(), "KEY", "", "weave", "tablename", true, "dataTable", true, "", "", (new String[] {""}));
 	}
 }

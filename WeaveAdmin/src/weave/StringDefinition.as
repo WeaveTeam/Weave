@@ -60,7 +60,7 @@ package weave
 		public static const DEFAULT_KEY_TYPES_REFRESH_BUTTON_TOOLTIP:String = "This button updates the list of key types - use it if you think the list of key types " +
 																			  "may have changed since you first opened the admin console.";
 																		   
-		public static const DEFAULT_GEOMETRY_COLLECTION_DROPDOWNBOX_TOOLTIP:String = "Select the shape collection whose shapes correspond to the rows in the table " +
+		public static const DEFAULT_GEOMETRY_COLLECTION_DROPDOWNBOX_TOOLTIP:String = "Select the geometry collection whose shapes correspond to the rows in the table " +
 																					 "you are using.";
 		
 		public static const DEFAULT_KEY_TYPE_DROPDOWNBOX_TOOLTIP:String = "Choose a list of key that corresponds to the column that you chose in the key column.";

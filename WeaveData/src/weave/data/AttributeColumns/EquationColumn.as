@@ -70,7 +70,7 @@ package weave.data.AttributeColumns
 		
 		private function init():void
 		{
-			setMetadata(AttributeColumnMetadata.TITLE, "Equation Column");
+			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			equation.value = 'undefined';
 			variables.childListCallbacks.addImmediateCallback(this, handleVariablesListChange);
 			getCallbackCollection(this).addImmediateCallback(this, resetMetadataFunctions);
@@ -176,7 +176,7 @@ package weave.data.AttributeColumns
 			{
 				_defaultDataType = String;
 			}
-			else if ((_dataType || '') != '') // treat values as IQualifiedKeys
+			else if (_dataType) // treat values as IQualifiedKeys
 			{
 				_defaultDataType = IQualifiedKey;
 			}
@@ -242,7 +242,7 @@ package weave.data.AttributeColumns
 				else
 				{
 					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true, false);
 					_equationIsConstant = false;
 				}
 			}

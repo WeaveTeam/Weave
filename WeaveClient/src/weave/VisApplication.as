@@ -81,6 +81,7 @@ package weave
 	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.services.IURLRequestUtils;
@@ -88,15 +89,17 @@ package weave
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.ErrorManager;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.KeyColumn;
+	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.AttributeHierarchy;
@@ -146,6 +149,7 @@ package weave
 	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
+	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
@@ -675,6 +679,7 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddDimensionSliderTool, "Add Dimension Slider Tool", createGlobalObject, [DimensionSliderTool]);
 				createToolMenuItem(Weave.properties.enableAddGaugeTool, "Add Gauge Tool", createGlobalObject, [GaugeTool]);
 				createToolMenuItem(Weave.properties.enableAddHistogram, "Add Histogram", createGlobalObject, [HistogramTool]);
+				createToolMenuItem(Weave.properties.enableAdd2DHistogram, "Add 2D Histogram", createGlobalObject, [Histogram2DTool]);
 				createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add JRI Script Editor", createGlobalObject, [JRITextEditor]);
 				createToolMenuItem(Weave.properties.enableAddLineChart, "Add Line Chart", createGlobalObject, [LineChartTool]);
 				createToolMenuItem(Weave.properties.enableAddMap, "Add Map", createGlobalObject, [MapTool]);
@@ -849,6 +854,12 @@ package weave
 				tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
 			}
 			
+			// add missing attribute titles
+			for each (var hierarchy:XML in _configFileXML.descendants('hierarchy'))
+				for each (tag in hierarchy.descendants("attribute"))
+					if (!String(tag.@title) && tag.@name)
+						tag.@title = tag.@name;
+
 			Weave.setSessionStateXML(_configFileXML, true);
 			fixCommonSessionStateProblems();
 
@@ -1070,7 +1081,7 @@ package weave
 			var label:Function = function():String
 			{
 				var menuLabel:String = "untitled ";
-				if(panel.title.replace(" ", "").length > 0) 
+				if(panel.title && panel.title.replace(" ", "").length > 0) 
 					menuLabel = panel.title;
 				else
 					menuLabel += " window";
@@ -1325,6 +1336,11 @@ package weave
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				
+//				if(Weave.properties.enableMarker.value)
+//				{
+//					CustomContextMenuManager.createAndAddMenuItemToDestination("Add Marker",destination,handleAddRemove,"2.1 textBoxMenuItem");
+//				}
+				
 				SessionedTextBox.createContextMenuItems(this);
 				PenTool.createContextMenuItems(this);
 					
@@ -1336,6 +1352,8 @@ package weave
 				// one tool at a time)
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
+				
+				
 				
 				
 				// Add context menu items for handling search queries

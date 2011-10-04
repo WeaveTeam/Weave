@@ -19,6 +19,7 @@
 
 package weave.data.BinningDefinitions
 {
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
@@ -30,6 +31,7 @@ package weave.data.BinningDefinitions
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * Divides a data range into a number of bins based on range entered by user.
@@ -45,17 +47,9 @@ package weave.data.BinningDefinitions
 		}
 		
 		/**
-		 * dataMin,dataMax
-		 * minimum and maximum values of the range.
+		 * A list of numeric values separated by commas that mark the beginning and end of bin ranges.
 		 */
-		public const dataMin:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const dataMax:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		
-		/**
-		 * binRange
-		 * range explicitly mentioned by the user.
-		 */
-		public const binRange:LinkableString = newLinkableChild(this, LinkableString);
+		public const splitValues:LinkableString = newLinkableChild(this, LinkableString);
 		
 		/**
 		 * getBinClassifiersForColumn - implements IBinningDefinition Interface
@@ -76,21 +70,25 @@ package weave.data.BinningDefinitions
 				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).internalColumn;
 			
 			var i:int;
-			var splitBins:Array = binRange.value.split(',');
-			splitBins.push(dataMin.value, dataMax.value);
+			var values:Array = splitValues.value.split(',');
 			// remove bad values
-			for (i = splitBins.length - 1; i >= 0; i--)
-				if (!isFinite(StandardLib.asNumber(splitBins[i])))
-					splitBins.splice(i, 1);
-			// sort numerically
-			splitBins.sort(Array.NUMERIC);
-			
-			for (i = 0; i < splitBins.length - 1; i++)
+			for (i = values.length - 1; i >= 0; i--)
 			{
-				tempNumberClassifier.min.value = splitBins[i];
-				tempNumberClassifier.max.value = splitBins[i + 1];
+				var number:Number = StandardLib.asNumber(values[i]);
+				if (!isFinite(number))
+					values.splice(i, 1);
+				else
+					values[i] = number;
+			}
+			// sort numerically
+			values.sort(Array.NUMERIC);
+			
+			for (i = 0; i < values.length - 1; i++)
+			{
+				tempNumberClassifier.min.value = values[i];
+				tempNumberClassifier.max.value = values[i + 1];
 				tempNumberClassifier.minInclusive.value = true;
-				tempNumberClassifier.maxInclusive.value = (i == splitBins.length - 1);
+				tempNumberClassifier.maxInclusive.value = (i == values.length - 2);
 				
 				name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
 				output.copyObject(name, tempNumberClassifier);
@@ -102,6 +100,11 @@ package weave.data.BinningDefinitions
 		
 		// reusable temporary object
 		private static const tempNumberClassifier:NumberClassifier = new NumberClassifier();
+
+		// backwards compatibility
+		[Deprecated(replacement="splitValues")] public function set binRange(value:String):void { splitValues.value = value; }
+		[Deprecated(replacement="splitValues")] public function set dataMin(value:String):void { splitValues.value = value + ',' + splitValues.value; }
+		[Deprecated(replacement="splitValues")] public function set dataMax(value:String):void { splitValues.value += ',' + value; }
 	}
 }
 

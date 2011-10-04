@@ -106,7 +106,7 @@
 			import weave.api.core.ILinkableVariable;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
-			import weave.api.getLinkableObjectOwner;
+			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.setSessionState;
@@ -137,6 +137,8 @@
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
+				
+				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager);
 			}			
 			
 			override protected function childrenCreated():void
@@ -400,7 +402,7 @@
 			{
 				if(event.keyCode == 46)
 				{
-					var parent:ILinkableObject = getLinkableObjectOwner(sessionNav.selectedItem.object);
+					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -414,7 +416,7 @@
 			{
 				if(event.detail == Alert.YES)
 				{
-					var parent:ILinkableObject = getLinkableObjectOwner(sessionNav.selectedItem.object);
+					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -781,21 +783,17 @@
 			/////////////////////////////////////////////////////////////
 			// console
 			
-			private static const compiler:Compiler = new Compiler();
-			
-			{ /** begin static code block **/
-				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil);
-			} /** end static code block **/
-			
-			private const symbolTable:Object = {
-				'JS':ExternalInterface.call,
-				'application':Application.application,
-				'print': ObjectUtil.toString as Function,
-				'clear': function():void { log.text = ''; }
-			};
+			private const compiler:Compiler = new Compiler();
 			
 			private function runCommand():void
 			{
+				var symbolTable:Object = {
+					'JS': ExternalInterface.call,
+					'application': Application.application,
+					'print': ObjectUtil.toString as Function,
+					'clear': function():void { log.text = ''; }
+				};
+				
 				var result:*;
 				var decompiled:String;
 				try
@@ -803,7 +801,7 @@
 					compiler.debug = false;
 					var obj:ICompiledObject = compiler.compileToObject(console.text);
 					//decompiled = compiler.decompileObject(obj);
-					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
 					compiler.debug = true;
 					result = func.apply(sessionNav.getSelectedSessionedObject());
 					try
@@ -845,7 +843,7 @@
 						log.selectionEndIndex = log.text.indexOf('\r', log.selectionEndIndex);
 						log.validateNow();
 					}
-					console.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join(', ');
+					console.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join('; ');
 					console.setSelection(0, int.MAX_VALUE);
 				}
 			}

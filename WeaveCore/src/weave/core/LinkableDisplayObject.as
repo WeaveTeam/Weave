@@ -38,6 +38,7 @@ package weave.core
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.compiler.Compiler;
 
 	/**
 	 * This is an generic wrapper for a dynamically created DisplayObject.
@@ -196,6 +197,7 @@ package weave.core
 			removeEventListeners();
 			addEventListeners();
 		}
+		
 		/**
 		 * This function removes the event listeners from the internal DisplayObject.
 		 */		
@@ -206,6 +208,7 @@ package weave.core
 					_displayObject.removeEventListener(name, _eventListenerMap[name]);
 			_eventListenerMap = null;
 		}
+		
 		/**
 		 * This function adds the event listeners to the internal DisplayObject.
 		 */		
@@ -217,11 +220,23 @@ package weave.core
 			_eventListenerMap = {};
 			for (var name:String in eventListeners.value)
 			{
-				var listener:Function = generateEventListener(eventListeners.value[name]);
-				_eventListenerMap[name] = listener;
-				_displayObject.addEventListener(name, listener, false, 0, true);
+				try
+				{
+					var script:String = eventListeners.value[name];
+					var listener:Function = generateEventListener(script);
+					_displayObject.addEventListener(name, listener, false, 0, true);
+					_eventListenerMap[name] = listener;
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e);
+				}
 			}
 		}
+		
+		private const symbolTable:Object = {owner: this};
+		private const compiler:Compiler = new Compiler();
+		
 		/**
 		 * This function generates an event listener that executes JavaScript code. 
 		 * @param script The JavaScript code.
@@ -229,6 +244,21 @@ package weave.core
 		 */
 		private function generateEventListener(script:String):Function
 		{
+			var compiledFunction:Function = compiler.compileToFunction("event = arguments[0]; " + script, symbolTable, false, true);
+			return function(event:Event):void
+			{
+				symbolTable.event = event;
+				try
+				{
+					compiledFunction.apply(_displayObject, [event]);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e);
+				}
+			}
+
+			/*
 			// create script to initialize the 'weave' variable
 			var initScript:String = 'var weave = document.getElementById("' + ExternalInterface.objectID + '");';
 			
@@ -246,6 +276,7 @@ package weave.core
 				
 				ExternalInterface.call(script, eventObj);
 			};
+			*/
 		}
 	}
 }

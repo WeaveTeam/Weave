@@ -28,6 +28,7 @@ package weave.utils
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
+	import flash.text.TextLineMetrics;
 	
 	import mx.utils.StringUtil;
 	
@@ -340,7 +341,8 @@ package weave.utils
 				colorTransform:ColorTransform=null,
 				blendMode:String=null,
 				clipRect:Rectangle=null,
-				smoothing:Boolean=false
+				smoothing:Boolean=false,
+				wordWrap:Boolean=false 
 			):void
 		{
 			// if text is empty, do nothing
@@ -416,5 +418,24 @@ package weave.utils
 					break;
 			}
 		}
+		
+		/**
+		 * This function will get the TextLineMetrics of the text at a specified line.
+		 * @param lineIndex The index of the line.
+		 * @return The TextLineMetrics of the specified line in the text. 
+		 */			
+		public function getLineMetrics(lineIndex:uint):TextLineMetrics
+		{
+			return _textField.getLineMetrics(lineIndex);
+		}
+		
+//		public function set wordWrap(val:Boolean):void
+//		{
+//			_textField.wordWrap = val;
+//		}
+//		public function get wordWrap():Boolean
+//		{
+//			return _textField.wordWrap;
+//		}
 	}
 }

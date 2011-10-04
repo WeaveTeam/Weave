@@ -194,7 +194,7 @@ package weave.services
 				weaveFileNames = event.result as Array || [];
 			}
 		}
-		public function removeWeaveFile(fileName:String):void
+		public function removeWeaveFile(fileName:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.removeWeaveFile(
 					activeConnectionName,
@@ -206,8 +206,9 @@ package weave.services
 			{
 				getWeaveFileNames();
 			}
+			return query;
 		}
-		public function initWeaveFileAndOpenWeave(fileName:String = ""):void
+		public function initWeaveFileAndOpenWeave(fileName:String = ""):DelayedAsyncInvocation
 		{
 			if ( fileName == "" )
 			{
@@ -219,17 +220,19 @@ package weave.services
 					<ProbeToolTipEditor name="ProbeToolTipEditor"/>
 				</weave>;
 			// save new file if it doesn't exist (no overwrite)
-			saveWeaveFile(
+			var query:DelayedAsyncInvocation = saveWeaveFile(
 					sessionStateXML.toXMLString(),
 					fileName,
 					false
-				).addAsyncResponder(handleSaveWeaveFile);
+				);
+			query.addAsyncResponder(handleSaveWeaveFile);
 			// when file is initialized, load Weave to edit the session state.
 			function handleSaveWeaveFile(e:ResultEvent, token:Object = null):void
 			{
 				getWeaveFileNames();
 				openWeavePreview(fileName);
 			}
+			return query;
 		}
 
 
@@ -282,6 +285,9 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				sqlConfigExists = Boolean(event.result);
+				getDataTableNames();
+				getGeometryCollectionNames();
+				getKeyTypes();
 			}
 			return query;
 		}
@@ -319,7 +325,7 @@ package weave.services
 				activeConnectionName, activePassword, dataTableName
 			);
 		}
-		public function saveDataTableInfo(metadata:Array):void
+		public function saveDataTableInfo(metadata:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.saveDataTableInfo(
 				activeConnectionName,
@@ -330,9 +336,11 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				getDataTableNames();
+				getKeyTypes();
 			}
+			return query;
 		}
-		public function removeDataTableInfo(tableName:String):void
+		public function removeDataTableInfo(tableName:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.removeDataTableInfo(
 				activeConnectionName,
@@ -343,7 +351,9 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				getDataTableNames();
+				getKeyTypes();
 			}
+			return query;
 		}
 
 
@@ -361,23 +371,27 @@ package weave.services
 			return service.uploadFile(fileRef.name, fileRef.data);
 		}
 
-		public function getUploadedCSVFiles():void
+		public function getUploadedCSVFiles():DelayedAsyncInvocation
 		{
 			uploadedCSVFiles = [];
-			service.getUploadedCSVFiles().addAsyncResponder(handleUploadedCSVFiles);
+			var query:DelayedAsyncInvocation = service.getUploadedCSVFiles();
+			query.addAsyncResponder(handleUploadedCSVFiles);
 			function handleUploadedCSVFiles(event:ResultEvent, token:Object = null):void
 			{
 				uploadedCSVFiles = event.result as Array || [];
 			}
+			return query;
 		}
-		public function getUploadedShapeFiles():void
+		public function getUploadedShapeFiles():DelayedAsyncInvocation
 		{
 			uploadedShapeFiles = [];
-			service.getUploadedShapeFiles().addAsyncResponder(handleUploadedShapeFiles);
+			var query:DelayedAsyncInvocation = service.getUploadedShapeFiles();
+			query.addAsyncResponder(handleUploadedShapeFiles);
 			function handleUploadedShapeFiles(event:ResultEvent, token:Object = null):void
 			{
 				uploadedShapeFiles = event.result as Array || [];
 			}
+			return query;
 		}
 
 
@@ -403,16 +417,18 @@ package weave.services
 				activeConnectionName, activePassword, geometryCollectionName
 			);
 		}
-		public function saveGeometryCollectionInfo(info:GeometryCollectionInfo):void
+		public function saveGeometryCollectionInfo(info:GeometryCollectionInfo):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.saveGeometryCollectionInfo(activeConnectionName, activePassword, info);
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				getGeometryCollectionNames();
+				getKeyTypes();
 			}
+			return query;
 		}
-		public function removeGeometryCollectionInfo(geometryCollectionName:String):void
+		public function removeGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.removeGeometryCollectionInfo(
 				activeConnectionName,
@@ -423,7 +439,9 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				getGeometryCollectionNames();
+				getKeyTypes();
 			}
+			return query;
 		}
 
 
@@ -453,54 +471,41 @@ package weave.services
 
 		// functions for importing data
 		
-		public function storeDBFDataToDatabase(
-			importDBFFileNameInputToStore:String, 
-			importDBFSchemaComboToStore:String,
-			importDBFTableInputToStore:String,
-			importDBFDataToSQLOverwriteCheck:Boolean,
-			importDBFButton:Button,
-			nullValues:String):void
+		public function storeDBFDataToDatabase(fileName:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, nullValues:String):DelayedAsyncInvocation
 		{
-					var alertTitle:String = "Missing parameter";
-					if (importDBFFileNameInputToStore == '')
-						Alert.show("You must upload a shape file and a corresponding DBF file.", alertTitle);
-					else if (importDBFSchemaComboToStore == '')
-						Alert.show("You must specify sql schema to store the table.", alertTitle);
-					else if (importDBFTableInputToStore == '')
-						Alert.show("You must specify the name of the destination SQL table.", alertTitle);
-					else
-					{
-						importDBFButton.enabled = false;
-						var query:DelayedAsyncInvocation = service.storeDBFDataToDatabase(
-							activeConnectionName,
-							activePassword,
-							importDBFFileNameInputToStore,
-							importDBFSchemaComboToStore,
-							importDBFTableInputToStore,
-							importDBFDataToSQLOverwriteCheck,
-							nullValues
-						);
-						query.addAsyncResponder(enableImportDBFButton, enableImportDBFButton);
-						function enableImportDBFButton(..._):void
-						{
-							importDBFButton.enabled = true;
-						}
-					}
+			var query:DelayedAsyncInvocation = service.storeDBFDataToDatabase(
+				activeConnectionName,
+				activePassword,
+				fileName,
+				sqlSchema,
+				sqlTable,
+				sqlOverwrite,
+				nullValues
+			);
+			query.addAsyncResponder(handler);
+			function handler(..._):void
+			{
+				getDataTableNames();
+				getKeyTypes();
+			}
+			return query;
 		}
-		public function listDBFFileColumns(dbfFileName:String):void
+		public function listDBFFileColumns(dbfFileName:String):DelayedAsyncInvocation
 		{
-			service.listDBFFileColumns(dbfFileName).addAsyncResponder(handleListDBFFileColumns);
-		}
-		private function handleListDBFFileColumns(event:ResultEvent, token:Object = null):void
-		{
-			dbfKeyColumns = event.result as Array || [];
+			var query:DelayedAsyncInvocation = service.listDBFFileColumns(dbfFileName);
+			query.addAsyncResponder(handleListDBFFileColumns);
+			function handleListDBFFileColumns(event:ResultEvent, token:Object = null):void
+			{
+				dbfKeyColumns = event.result as Array || [];
+			}
+			return query;
 		}
 		
 		public function convertShapefileToSQLStream(fileName:String, keyColumns:Array, sqlSchema:String, sqlTable:String, 
 													tableOverwriteCheck:Boolean, geometryCollection:String, configOverwriteCheck:Boolean, 
-													keyType:String, srsCode:String, nullValues:String):void
+													keyType:String, srsCode:String, nullValues:String):DelayedAsyncInvocation
 		{
-			service.convertShapefileToSQLStream(
+			var query:DelayedAsyncInvocation = service.convertShapefileToSQLStream(
 				activeConnectionName,
 				activePassword,
 				fileName,
@@ -514,6 +519,14 @@ package weave.services
 				srsCode,
 				nullValues
 			);
+			query.addAsyncResponder(handler);
+			function handler(..._):void
+			{
+				getDataTableNames();
+				getGeometryCollectionNames();
+				getKeyTypes();
+			}
+			return query;
 		}
 		
 		/**
@@ -551,12 +564,13 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				getDataTableNames();
+				getKeyTypes();
 			}
 			
 			return query;
 		}
 		
-		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):void
+		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.addConfigDataTableFromDatabase(
 				activeConnectionName,
@@ -574,7 +588,9 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				getDataTableNames();
+				getKeyTypes();
 			}
+			return query;
 		}
 		
 

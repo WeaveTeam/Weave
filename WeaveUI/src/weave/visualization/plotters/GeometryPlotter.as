@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -39,6 +40,7 @@ package weave.visualization.plotters
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
+	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -254,15 +256,10 @@ package weave.visualization.plotters
 		{
 			var minImportance:Number = getDataAreaPerPixel(dataBounds, screenBounds) * pixellation.value;
 			
-			// try to find an internal StreamedGeometryColumn
-			var column:IAttributeColumn = geometryColumn;
-
-			while (!(column is StreamedGeometryColumn) && column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
-			
-			// if the internal geometry column is a streamed column, request the required detail
-			var streamedColumn:StreamedGeometryColumn = column as StreamedGeometryColumn;
-			if (streamedColumn)
+			// find nested StreamedGeometryColumn objects
+			var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(geometryColumn, StreamedGeometryColumn);
+			// request the required detail
+			for each (var streamedColumn:StreamedGeometryColumn in descendants)
 			{
 				var requestedDataBounds:IBounds2D = dataBounds;
 				var requestedMinImportance:Number = minImportance;
@@ -285,7 +282,7 @@ package weave.visualization.plotters
 				var recordKey:IQualifiedKey = recordKeys[recIndex] as IQualifiedKey;
 				var geoms:Array;
 				
-				var value:* = column.getValueFromKey(recordKey);//geometry.getValueFromKey(recordKey);
+				var value:* = geometryColumn.getValueFromKey(recordKey);
 				if (value is Array)
 					geoms = value;
 				else if (value is GeneralizedGeometry)

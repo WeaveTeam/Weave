@@ -71,7 +71,7 @@ package weave.data.AttributeColumns
 			if (internalColumn != null)
 			{
 				_keyType = internalColumn.getMetadata(AttributeColumnMetadata.DATA_TYPE);
-				if ((_keyType || '') == '')
+				if (!_keyType)
 					_keyType = DataTypes.STRING;
 			}
 			

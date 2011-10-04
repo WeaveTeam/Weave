@@ -119,14 +119,23 @@ package weave.api.core
 		 * @param child An ILinkableObject that was registered as a child of another ILinkableObject.
 		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
 		 */
-		function getLinkableObjectOwner(child:ILinkableObject):ILinkableObject;
+		function getLinkableOwner(child:ILinkableObject):ILinkableObject;
+		
+		/**
+		 * This function will return all the descendant objects that implement ILinkableObject.
+		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
+		 * @param root A root object to get the descendants of.
+		 * @param filter An optional Class definition which will be used to filter the results.
+		 * @return An Array containing a list of descendant objects.
+		 */
+		function getLinkableDescendants(root:ILinkableObject, flter:Class = null):Array;
 		
 		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
 		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
 		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
 		 */
-		function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean):void;
+		function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void;
 		
 		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).

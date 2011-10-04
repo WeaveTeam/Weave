@@ -35,7 +35,7 @@
 		</mx:HBox>
 	
 		<ui:CustomDataGrid id="dataGrid"  
-					 	horizontalScrollPolicy="auto" verticalScrollPolicy="auto"
+					 	horizontalScrollPolicy="off" verticalScrollPolicy="auto"
 						 dataProvider="{dataRowKeys}" 
 						 width="100%" height="100%"
 						 allowMultipleSelection="true"
@@ -151,6 +151,7 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				_userWindowSettings.backgroundColorEnabled = false;
 				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
 				
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
@@ -617,8 +618,8 @@
 				}
 				
 				// loop through the data and put them into the data grid
-				var totalWidth:Number = dataGrid.width;				
-				for (var j:int = 0; j < _currentDataGridColumns.length; ++j)
+				var totalWidth:Number = dataGrid.width - dataGrid.getScrollWidth(CustomDataGrid.VERTICAL_SCROLL);
+				for (var j:int = 0; j < _currentDataGridColumns.length - 1; ++j)
 				{
 					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[j] as WeaveDataGridImageColumn;
 					var columnName:String = columns.getName(dgc.attrColumn);
@@ -632,18 +633,21 @@
 					if (sessionedWidth.value)
 						temp =  NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
 					else
-						temp = dataGrid.width / _currentDataGridColumns.length - 1;
+						temp = totalWidth / _currentDataGridColumns.length - 1;
 
 					if (temp <= 5 || isNaN(temp)) 
 						temp = _minSuggestedColumnSize;
 					
 					// always force the width to be the new value
-					dgc.setWidth(Math.floor(Math.min(temp, dataGrid.width - 1))); 
-					dgc.width = Math.floor(Math.min(temp, dataGrid.width - 1));
+					var newWidth:int = Math.floor(Math.min(temp, totalWidth - 1));
+					dgc.setWidth(newWidth);
+					dgc.width = newWidth;
 					
 					// now we force it into doing the proper resizing (if any)
-					dgc.width = dgc.width; 
+					dgc.width = dgc.width;
 				}
+//				dataGrid.invalidateDisplayList();
+				dataGrid.validateSize(true);
 			}
 			private var _guiWidthChanged:Boolean = false; 
 			
@@ -671,7 +675,7 @@
 				if (totalColumnWidths < dataGrid.width) 
 					dataGrid.horizontalScrollPolicy = "off";
 				else
-					dataGrid.horizontalScrollPolicy = "auto";
+					dataGrid.horizontalScrollPolicy = "off";
 			}
 			
 			private function indexOfAttributeColumnAdded(attrCol:IAttributeColumn):int

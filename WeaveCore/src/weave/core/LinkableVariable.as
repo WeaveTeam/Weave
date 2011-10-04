@@ -53,9 +53,15 @@ package weave.core
 		 */
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
-			// if there is no restriction on the type, use ObjectUtil.compare()
-			if (_sessionStateType == null)
-				return ObjectUtil.compare(_sessionState, otherSessionState) == 0;
+			if (_sessionStateType == null) // if no type restriction...
+			{
+				var type:String = typeof(otherSessionState);
+				if (type != typeof(_sessionState))
+					return false; // types differ, so not equal
+				if (type == 'object')
+					return false; // do not attempt an object compare.. assume not equal
+				return ObjectUtil.compare(_sessionState, otherSessionState) == 0; // compare primitive value
+			}
 			return _sessionState == otherSessionState;
 		}
 		
@@ -102,9 +108,14 @@ package weave.core
 			if (_locked)
 				return;
 
-			// if the value is not the appropriate type, cast it now
+			// cast value now in case it is not the appropriate type
 			if (_sessionStateType != null)
 				value = value as _sessionStateType;
+			
+			// If the value is non-primitive, save a copy because we don't want
+			// two LinkableVariables to share the same object as their session state.
+			if (typeof(value) == 'object')
+				value = ObjectUtil.copy(value);
 			
 			// stop if verifier says it's not an accepted value
 			if (_verifier != null && !_verifier(value))

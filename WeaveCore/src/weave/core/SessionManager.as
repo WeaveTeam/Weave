@@ -233,7 +233,7 @@ package weave.core
 		 * @param child An ILinkableObject that was registered as a child of another ILinkableObject.
 		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
 		 */
-		public function getLinkableObjectOwner(child:ILinkableObject):ILinkableObject
+		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
 			return childToOwnerMap[child] as ILinkableObject;
 		}
@@ -267,7 +267,7 @@ package weave.core
 		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
 		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
 		 */
-		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean):void
+		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 		{
 			if (linkableObject == null)
 			{
@@ -360,24 +360,26 @@ package weave.core
 			// use ignore list to prevent infinite recursion
 			ignoreList[sessionedObject] = true;
 			
-			// special cases:
+			// special cases (explicit session state)
 			if (sessionedObject is ILinkableVariable)
 				return (sessionedObject as ILinkableVariable).getSessionState();
 			if (sessionedObject is ILinkableCompositeObject)
 				return (sessionedObject as ILinkableCompositeObject).getSessionState();
 
+			// implicit session state
 			// first pass: get property names
 			var propertyNames:Array = getLinkablePropertyNames(sessionedObject);
 			var resultNames:Array = [];
 			var resultProperties:Array = [];
+			var property:ILinkableObject = null;
 			var i:int;
 			//trace("getting session state for "+getQualifiedClassName(sessionedObject),"propertyNames="+propertyNames);
 			for (i = 0; i < propertyNames.length; i++)
 			{
 				var name:String = propertyNames[i];
-				var property:ILinkableObject = null;
 				try
 				{
+					property = null; // must set this to null first because accessing the property may fail
 					property = sessionedObject[name] as ILinkableObject;
 				}
 				catch (e:Error)
@@ -400,11 +402,19 @@ package weave.core
 					//trace("skipped property",name,property,ignoreList[property]);
 				}
 			}
+			// special case if there are no child objects
+			if (resultNames.length == 0)
+				return null;
 			// second pass: get values from property names
 			var result:Object = new Object();
 			for (i = 0; i < resultNames.length; i++)
 			{
-				result[resultNames[i]] = internalGetSessionState(resultProperties[i], ignoreList);
+				var value:Object = internalGetSessionState(resultProperties[i], ignoreList);
+				property = resultProperties[i] as ILinkableObject;
+				// do not include objects that have a null implicit session state (no child objects)
+				if (value == null && !(property is ILinkableVariable) && !(property is ILinkableCompositeObject))
+					continue;
+				result[resultNames[i]] = value;
 				//trace("getState",getQualifiedClassName(sessionedObject),resultNames[i],result[resultNames[i]]);
 			}
 			return result;
@@ -426,7 +436,7 @@ package weave.core
 		 * @param filter An optional Class definition which will be used to filter the results.
 		 * @return An Array containing a list of descendant objects.
 		 */
-		weave_internal function getDescendants(root:ILinkableObject, filter:Class = null):Array
+		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
 		{
 			if (root == null)
 			{
@@ -484,6 +494,9 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * @private
+		 */
 		weave_internal function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
 		{
 			if (linkableObject == null)
@@ -746,7 +759,7 @@ package weave.core
 		{
 			// set some variables to aid in debugging
 			var obj:* = disposedObject;
-			var ownerPath:Array = []; while (obj = getLinkableObjectOwner(obj)) { ownerPath.unshift(obj); }
+			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
 			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject] || []) { parents.push[obj]; }
 			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject] || []) { children.push[obj]; }
 			var sessionState:Object = getSessionState(disposedObject);

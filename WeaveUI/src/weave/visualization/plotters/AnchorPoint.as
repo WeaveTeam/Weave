@@ -22,6 +22,7 @@ package weave.visualization.plotters
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 
 	/**
 	 * AnchorPoint
@@ -34,6 +35,7 @@ package weave.visualization.plotters
 		
 		public const polarRadians:LinkableNumber = newLinkableChild(this,LinkableNumber);
 		public const radius:LinkableNumber = newLinkableChild(this,LinkableNumber);
+		public const title:LinkableString = newLinkableChild(this, LinkableString);
 		
 		public function AnchorPoint()
 		{

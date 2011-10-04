@@ -39,9 +39,12 @@ package weave.primitives
 			super();
 			addImmediateCallback(this, firstCallback);
 			if (rampXML == null)
-				rampXML = <colorRamp name="Grayscale">
-						<node color="0x000000" position="0.0"/>
-						<node color="0xffffff" position="1.0"/>
+				rampXML = 	<colorRamp name="5-Color" source="OIC" category="basic">
+						<node color="0xEFF3FF" position="0"/>
+						<node color="0xBDD7E7" position="0.25"/>
+						<node color="0x6BAED6" position="0.5"/>
+						<node color="0x3182BD" position="0.75"/>
+						<node color="0x08519C" position="1"/>
 					</colorRamp>;
 			setSessionState(rampXML);
 		}

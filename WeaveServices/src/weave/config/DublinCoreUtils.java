@@ -112,9 +112,14 @@ public class DublinCoreUtils
 		if (!SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
 		{
 			Statement stmt = conn.createStatement();
-			stmt.execute("CREATE TABLE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " ("
-					+ DATASET_ELEMENTS_DATASET_COLUMN + " varchar(255), " + DATASET_ELEMENTS_ELEMENT_COLUMN + " varchar(255), "
-					+ DATASET_ELEMENTS_VALUE_COLUMN + " text)");
+			if (SQLUtils.isOracleServer(conn))
+				stmt.execute("CREATE TABLE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " ("
+						+ DATASET_ELEMENTS_DATASET_COLUMN + " varchar(255), " + DATASET_ELEMENTS_ELEMENT_COLUMN + " varchar(255), "
+						+ DATASET_ELEMENTS_VALUE_COLUMN + " varchar(1024))");
+			else
+				stmt.execute("CREATE TABLE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " ("
+						+ DATASET_ELEMENTS_DATASET_COLUMN + " varchar(255), " + DATASET_ELEMENTS_ELEMENT_COLUMN + " varchar(255), "
+						+ DATASET_ELEMENTS_VALUE_COLUMN + " text)");
 		}
 	}
 

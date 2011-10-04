@@ -39,7 +39,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * @see ISessionManager.registerDisposableChild
+	 * @see weave.api.core.ISessionManager
 	 */
 	public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 	{

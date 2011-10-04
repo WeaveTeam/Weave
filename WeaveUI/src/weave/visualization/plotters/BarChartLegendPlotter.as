@@ -21,18 +21,28 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
+	import flash.text.TextLineMetrics;
+	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
+	import weave.utils.LegendUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -50,17 +60,6 @@ package weave.visualization.plotters
 		{
 			shapeSize.value = 12;
 			
-//			//***
-//			//ToDo get columns from event dispatch from CompoundBarChartTool
-//			var compoundBarChartTool:CompoundBarChartTool = Weave.getObject("CompoundBarChartTool") as CompoundBarChartTool;
-//			var siv:SimpleInteractiveVisualization = compoundBarChartTool.children.getObject("visualization") as SimpleInteractiveVisualization;
-//			var sp:SelectablePlotLayer = siv.layers.getObject("plot") as SelectablePlotLayer;
-//			var dynamicPlotter:DynamicPlotter = sp.plotter as DynamicPlotter;
-//			var barChartPlotter:CompoundBarChartPlotter = dynamicPlotter.internalObject as CompoundBarChartPlotter;
-//			//chartColors = barChartPlotter.chartColors;
-//			//dynamicColumns = barChartPlotter.heightColumns.getObjects(DynamicColumn);
-//			//***
-			
 			registerNonSpatialProperties(
 				Weave.properties.axisFontSize,
 				Weave.properties.axisFontColor,
@@ -71,96 +70,88 @@ package weave.visualization.plotters
 			);
 		}
 		
-		public const columns:ILinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const columns:ILinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), createColumnHashes);
 		public const chartColors:ColorRamp = newSpatialProperty(ColorRamp);
-		
-		// this is used to draw text on bitmaps
-		private const bitmapText:BitmapText = new BitmapText();
-		
-		/**
-		 * This is the radius of the circle, in screen coordinates.
-		 */
 		public const shapeSize:LinkableNumber = newNonSpatialProperty(LinkableNumber);
-		/**
-		 * This is the line style used to draw the outline of the shape.
-		 */
 		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		[Bindable] public var numColumns:int = 0;
+		private var _columnOrdering:Array = [];
+		private var _columnToBounds:Dictionary = new Dictionary();
+		private var _columnToTitle:Dictionary = new Dictionary();
+		private var _maxBoxSize:Number = 8;
+		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createColumnHashes);
+		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
+		
+		override public function getBackgroundDataBounds():IBounds2D
+		{
+			return getReusableBounds(0, 0, 1, 1);
+		}
+		private function createColumnHashes():void
+		{
+			_columnOrdering = [];
+			_columnToBounds = new Dictionary();
+			_columnToTitle = new Dictionary();
+			var columnObjects:Array = columns.getObjects();
+			numColumns = columnObjects.length;
+			for (var i:int = 0; i < numColumns; ++i)
+			{
+				var column:IAttributeColumn = columnObjects[i];
+				var colTitle:String = ColumnUtils.getTitle(column);
+				var b:IBounds2D = new Bounds2D();
+				
+				_columnOrdering.push(column);
+				_columnToTitle[column] = colTitle;
+			}
+			
+			if (reverseOrder.value)
+				_columnOrdering = _columnOrdering.reverse(); 
+		}
+
+		private const _itemBounds:IBounds2D = new Bounds2D();
+		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			screenBounds.getRectangle(clipRectangle);
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+			lineStyle.beginLineStyle(null, g);
+			var maxCols:int = maxColumns.value;
+			var margin:int = 4;
+			var actualShapeSize:int = Math.max(_maxBoxSize, shapeSize.value);
+			for (var iColumn:int = 0; iColumn < numColumns; ++iColumn)
+			{
+				var column:IAttributeColumn = _columnOrdering[iColumn];
+				var title:String = _columnToTitle[column];
+				LegendUtils.getBoundsFromItemID(screenBounds, iColumn, _itemBounds, numColumns, maxCols);
+				LegendUtils.renderLegendItemText(destination, title, _itemBounds, actualShapeSize + margin, clipRectangle);
+
+				// draw the rectangle
+				// if we have reversed the order of the columns, iColumn should match the colors (this has always been backwards?)
+				// otherwise, we reverse the iColorIndex
+				var iColorIndex:int = reverseOrder.value ? iColumn : (numColumns - 1 - iColumn);
+				var color:Number = chartColors.getColorFromNorm(iColorIndex / (numColumns - 1));
+				if (color <= Infinity) // alternative to !isNaN()
+					g.beginFill(color, 1.0);
+				var xMin:Number = _itemBounds.getXNumericMin();
+				var xMax:Number = _itemBounds.getXNumericMax();
+				var yMin:Number = _itemBounds.getYNumericMin();
+				var yMax:Number = _itemBounds.getYNumericMax();
+				var yCoverage:Number = _itemBounds.getYCoverage();
+				// we don't want the rectangles touching
+				yMin += 0.1 * yCoverage;
+				yMax -= 0.1 * yCoverage;
+				tempShape.graphics.drawRect(
+					xMin,
+					yMin,
+					actualShapeSize,
+					yMax - yMin
+				);
+			}
+			destination.draw(tempShape, null, null, null, clipRectangle);
+		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			// draw nothing -- everything is in the background layer
-		}
-		
-		private const tempPoint:Point = new Point(); // reusable temporary object
-		
-		private var XMIN:Number = 0, XMAX:Number = 1;
-		
-		override public function getBackgroundDataBounds():IBounds2D
-		{
-			var columnObjects:Array = columns.getObjects();
-			var yMin:Number = 0;
-			var yMax:Number = columnObjects.length - 1;
-			return getReusableBounds(XMIN, yMin - 0.5, XMAX, yMax + 0.5);
-		}
-		
-		private var _legendBoxSize:Number = 0.4;
-		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			// set up BitmapText
-			bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-			bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-			bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
-			bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
-			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
-			
-			var g:Graphics = tempShape.graphics;
-			g.clear();
-				
-			var margin:int = 4;
-			
-			// get height of record graphics
-			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();
-			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value, height));
-			
-			var columnObjects:Array = columns.getObjects().reverse();
-			// draw the bins
-			for (var i:int = 0; i < columnObjects.length; i++)
-			{
-				//***
-				// draw graphics
-				var color:Number = chartColors.getColorFromNorm(i / (columnObjects.length - 1));
-				
-				var xMin:Number = screenBounds.getXNumericMin();
-				var xMax:Number = screenBounds.getXNumericMax();
-				
-				// get y coordinate to display graphics at.
-				tempPoint.y = i - _legendBoxSize;
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-				var yMin:Number = tempPoint.y;
-				tempPoint.y = i + _legendBoxSize;
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-				var yMax:Number = tempPoint.y;
-				
-				// draw circle
-				lineStyle.beginLineStyle(null, g);
-				if (color <= Infinity) // alternative to !isNaN()
-					g.beginFill(color, 1.0);
-				tempShape.graphics.drawRect(
-						xMin,
-						yMin,
-						actualShapeSize,
-						yMax - yMin
-					);
-
-				bitmapText.text = ColumnUtils.getTitle(columnObjects[i]);
-				bitmapText.x = xMin + actualShapeSize + margin;
-				bitmapText.y = (yMin + yMax) / 2;
-				bitmapText.draw(destination);
-			}
-			
-			destination.draw(tempShape);
 		}
 	}
 }

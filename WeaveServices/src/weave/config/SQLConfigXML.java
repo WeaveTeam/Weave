@@ -253,6 +253,21 @@ public class SQLConfigXML implements ISQLConfig
 
 	synchronized public void setDatabaseConfigInfo(DatabaseConfigInfo newInfo) throws IOException, ParserConfigurationException, SAXException
 	{
+		if (getDatabaseConfigInfo() != null)
+		{
+			// remove existing tag
+			try
+			{
+				Node node = (Node) xpath.evaluate("/sqlConfig/databaseConfig", doc, XPathConstants.NODE);
+				if (node != null)
+					node.getParentNode().removeChild(node);
+			}
+			catch (XPathExpressionException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
 		String tag = String.format(
 				"\n\t<databaseConfig connection=\"%s\" schema=\"%s\" geometryConfigTable=\"%s\" dataConfigTable=\"%s\"/>\n",
 				XMLUtils.escapeSpecialCharacters(newInfo.connection), XMLUtils.escapeSpecialCharacters(newInfo.schema),
@@ -330,9 +345,8 @@ public class SQLConfigXML implements ISQLConfig
 	{
 		try
 		{
-			Node node = (Node) xpath.evaluate(
-					String.format("/sqlConfig/%s[@name=\"%s\"]", entryType, XMLUtils.escapeSpecialCharacters(entryName)), doc,
-					XPathConstants.NODE);
+			String pathStr = String.format("/sqlConfig/%s[@name=\"%s\"]", entryType, XMLUtils.escapeSpecialCharacters(entryName));
+			Node node = (Node) xpath.evaluate(pathStr, doc, XPathConstants.NODE);
 			if (node == null)
 				return;
 			node.getParentNode().removeChild(node);

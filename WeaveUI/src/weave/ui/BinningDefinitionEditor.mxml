@@ -101,10 +101,12 @@ BinningDefinitionEditor
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IBinningDefinition;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableDynamicObject;
@@ -141,9 +143,7 @@ BinningDefinitionEditor
 				binnedColumn.addGroupedCallback(this,handleBinnedColumnChange,true);
 				
 				EventUtils.addDelayedCallback(numOfBins,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(csEditor.splitMax,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(csEditor.splitMin,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(csEditor.binRange,Event.CHANGE,saveSessionState);
+				EventUtils.addDelayedCallback(csEditor.splitValues,Event.CHANGE,saveSessionState);
 				EventUtils.addDelayedCallback(refQuantile,Event.CHANGE,saveSessionState);
 				EventUtils.addDelayedCallback(dataInterval,Event.CHANGE,saveSessionState);
 				EventUtils.addDelayedCallback(SD,Event.CHANGE,saveSessionState);
@@ -177,9 +177,7 @@ BinningDefinitionEditor
 				{
 					var _eBD:CustomSplitBinningDefinition = def as CustomSplitBinningDefinition;
 					typeGroup.selection = ncRadio;
-					csEditor.splitMin.text = _eBD.dataMin.value.toString();
-					csEditor.splitMax.text = _eBD.dataMax.value.toString();
-					csEditor.binRange.text = _eBD.binRange.value;
+					csEditor.splitValues.text = _eBD.splitValues.value;
 				}
 				else if(def is QuantileBinningDefinition)
 				{
@@ -214,9 +212,7 @@ BinningDefinitionEditor
 						break;
 					case ncRadio:
 						var _eBD:CustomSplitBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(CustomSplitBinningDefinition, false);
-						_eBD.dataMin.value= Number(csEditor.splitMin.text);
-						_eBD.dataMax.value = Number(csEditor.splitMax.text);
-						_eBD.binRange.value = csEditor.binRange.text;
+						_eBD.splitValues.value = csEditor.splitValues.text;
 						break;
 					case quantileRadio:
 						var _qBD:QuantileBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(QuantileBinningDefinition, false);
@@ -233,35 +229,6 @@ BinningDefinitionEditor
 					
 				}
 				binnedColumn.resumeCallbacks();
-			}
-			
-			private function handleModeClick():void{
-				switch (typeGroup.selection)
-				{
-					case simpleRadio:
-						var _sBD:SimpleBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
-						linkBindableProperty(_sBD.numberOfBins, numOfBins, "text");
-						break;
-					case ncRadio:
-						var _eBD:CustomSplitBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(CustomSplitBinningDefinition, false);
-						linkBindableProperty(_eBD.dataMin, csEditor.splitMin,"text");
-						linkBindableProperty(_eBD.dataMax, csEditor.splitMax,"text");
-						linkBindableProperty(_eBD.binRange, csEditor.binRange,"text");
-						break;
-					case quantileRadio:
-						var _qBD:QuantileBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(QuantileBinningDefinition, false);
-						linkBindableProperty(_qBD.refQuantile,refQuantile,"text");
-						break;
-					case equalIntervalRadio:
-						var _eiBD:EqualIntervalBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(EqualIntervalBinningDefinition, false);
-						linkBindableProperty(_eiBD.dataInterval, dataInterval, "text");
-						break;
-					case sdRadio:
-						var _sdBD:StandardDeviationBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(StandardDeviationBinningDefinition, false);
-						linkBindableProperty(_sdBD.sdNumber, SD ,"text");
-						break;
-					
-				}
 			}
 		]]>
 	</mx:Script>

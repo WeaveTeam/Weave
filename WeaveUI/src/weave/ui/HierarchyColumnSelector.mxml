@@ -158,14 +158,14 @@
 						ref = refCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
 					
 					if (ref != null)
-						copyPathToRef(ref);
+						copyPathToRef(selectedPath.value, ref);
 				}
 			}
 			
-			private function copyPathToRef(ref:HierarchyColumnReference):void
+			public function copyPathToRef(path:XML, ref:HierarchyColumnReference):void
 			{
 				// convert the multiDataSource path to a path for a column reference
-				var path:XML = (selectedPath.value.category[0] as XML).copy();
+				path = (path.category[0] as XML).copy();
 				path.setName("hierarchy");
 				var source:IDataSource = Weave.root.getObject(path.@dataSourceName) as IDataSource;
 				var sourceName:String = path.@dataSourceName;
@@ -195,7 +195,7 @@
 				equationColumn.equation.value = 'getValueFromKey(data, getKey(lookup))'; // lookup is mapping cube -> fips
 				var dataCol:ReferencedColumn = equationColumn.requestVariable(DATA_VARIABLE, ReferencedColumn);
 				var dataRef:HierarchyColumnReference = dataCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-				copyPathToRef(dataRef);
+				copyPathToRef(selectedPath.value, dataRef);
 				var actualKeyType:String = dataRef.getMetadata(AttributeColumnMetadata.KEY_TYPE);
 				var desiredKeyType:String = keyTypeCombo.selectedItem as String;
 				var mappings:Array = WeaveAPI.QKeyManager.getKeyMappings(desiredKeyType, actualKeyType);

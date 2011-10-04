@@ -35,12 +35,15 @@ package weave.ui
 		public function TextInputWithPrompt()
 		{
 			super();
+			showPrompt();
 		}
+		
+		public function asTextInput():TextInput { return this; }
 		
 		protected static const PROMPT_TEXT_ALPHA:Number = 0.5; // alpha of text when prompt is shown
 		protected static const DEFAULT_TEXT_ALPHA:Number = 1.0; // alpha of text when prompt is not shown
 		
-		private var _promptIsShown:Boolean = true; // to know if the prompt is shown or not
+		private var _promptIsShown:Boolean = false; // to know if the prompt is shown or not
 		private var _prompt:String = ''; // for storing the prompt text
 
 		/**
@@ -72,13 +75,21 @@ package weave.ui
 				return '';
 			return super.text;
 		}
+		
 		/**
 		 * Setting the text causes the prompt to disappear. 
 		 */
 		override public function set text(value:String):void
 		{
-			hidePrompt();
-			super.text = value; // bypass local setter
+			if (value)
+			{
+				hidePrompt();
+				super.text = value; // bypass local setter
+			}
+			else
+			{
+				showPrompt();
+			}
 		}
 		
 		/**
@@ -98,10 +109,13 @@ package weave.ui
 		 */
 		private function showPrompt():void
 		{
-			_promptIsShown = true;
-			super.text = _prompt; // bypass local setter
-			if (textField)
-				textField.alpha = PROMPT_TEXT_ALPHA;
+			if (!_promptIsShown && !_hasFocus)
+			{
+				_promptIsShown = true;
+				super.text = _prompt; // bypass local setter
+				if (textField)
+					textField.alpha = PROMPT_TEXT_ALPHA;
+			}
 		}
 		
 		/**
@@ -109,19 +123,24 @@ package weave.ui
 		 */
 		private function hidePrompt():void
 		{
-			_promptIsShown = false;
-			super.text = ''; // bypass local setter
-			if (textField)
-				textField.alpha = DEFAULT_TEXT_ALPHA;
+			if (_promptIsShown)
+			{
+				_promptIsShown = false;
+				super.text = ''; // bypass local setter
+				if (textField)
+					textField.alpha = DEFAULT_TEXT_ALPHA;
+			}
 		}
+		
+		private var _hasFocus:Boolean = false;
 		
 		/**
 		 * This function hides the prompt if it is shown, and selects all if autoSelect is true.
 		 */
 		override protected function focusInHandler(event:FocusEvent):void
 		{
-			if (_promptIsShown)
-				hidePrompt();
+			_hasFocus = true;
+			hidePrompt();
 			
 			if (autoSelect)
 			{
@@ -137,7 +156,8 @@ package weave.ui
 		 */
 		override protected function focusOutHandler(event:FocusEvent):void
 		{
-			if (!_promptIsShown && text == '')
+			_hasFocus = false;
+			if (!text)
 				showPrompt();
 
 			super.focusOutHandler(event);

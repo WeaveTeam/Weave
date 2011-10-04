@@ -98,7 +98,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
-			import weave.api.getLinkableObjectOwner;
+			import weave.api.getLinkableOwner;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
@@ -141,6 +141,8 @@
 			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
 			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 			
+			public const panelTitle:LinkableString = registerLinkableChild(this,new LinkableString(''));
+
 			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
 			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
@@ -154,6 +156,8 @@
 			public const panelBackgroundColor:LinkableNumber 	= registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
+			
+			
 			
 			protected const helpButton:Button = new Button();
 			protected const userControlButton:Button = new Button();
@@ -212,7 +216,9 @@
 				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
-
+				
+				linkBindableProperty(panelTitle,this,"title");
+				
 			}
 			
 			/**
@@ -637,7 +643,7 @@
     			var value:* = null;	
 	    		
 				// if we override the borders before the window has been intialized, tools display nothing
-				if (initialized && getLinkableObjectOwner(this))
+				if (initialized && getLinkableOwner(this))
 				{
 					// update temporary admin dashboard border mode
 					var enableBordersFlag:Boolean = !Weave.properties.dashboardMode.value && enableBorders.value;
@@ -1412,7 +1418,7 @@
 			public function get controlPanel():ControlPanel { return _controlPanel; }
 			public function get helpPanel():HelpPanel { return _helpPanel; }
 			
-			protected function toggleHelpPanel():void
+			public function toggleHelpPanel():void
 			{
 				if(_helpPanel)
 				{
@@ -1421,7 +1427,7 @@
 					_helpPanel.sendWindowToForeground();
 				}
 			}
-			protected function toggleControlPanel():void
+			public function toggleControlPanel():void
 			{
 				if (_controlPanel)
 				{

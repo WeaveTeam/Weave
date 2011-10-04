@@ -24,6 +24,19 @@
 		 width="100%"
 		 creationComplete="creationComplete()"
 		 xmlns:ui="weave.ui.*">
+
+	<mx:RadioButtonGroup id="shapeOrKey"/>
+	<mx:HBox>
+		<mx:RadioButton id="geometryCollectionRadio" group="{shapeOrKey}" label="{StringDefinition.DEFAULT_GEOMETRY_COLLECTION_RADIOBUTTON_LABEL}" textAlign="left" width="{_indent}"/>
+		<ui:CustomComboBox id="geometryCollectionCombo" enabled="{geometryCollectionRadio.selected}" prompt="Select a geometry collection..." dataProvider="{AdminInterface.instance.geometryCollectionNames}" toolTip="{StringDefinition.DEFAULT_GEOMETRY_COLLECTION_DROPDOWNBOX_TOOLTIP}"/>
+		<mx:Button label="Refresh" enabled="{geometryCollectionRadio.selected}" click="AdminInterface.instance.getGeometryCollectionNames()" toolTip="{StringDefinition.DEFAULT_GEOMETRY_COLLECTIONS_REFRESH_BUTTON_TOOLTIP}"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_LABEL}" textAlign="left" width="{_indent}" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_TOOLTIP}"/> 
+		<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{keyType}" enabled="{keyTypeRadio.selected}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_DROPDOWNBOX_TOOLTIP}" valueCommit="keyType = keyTypeCombo.text"/>
+		<mx:Button label="Refresh" enabled="{keyTypeRadio.selected}" click="AdminInterface.instance.getKeyTypes()" toolTip="{StringDefinition.DEFAULT_KEY_TYPES_REFRESH_BUTTON_TOOLTIP}"/>
+		<!--mx:Button label="?" click="showHelpForKeyType()"/-->
+	</mx:HBox>
 	
 	<!-- Choose between Assgning a Geometry Collection Name or a Key Type-->
 	<mx:Script>
@@ -38,7 +51,7 @@
 			import weave.utils.ByteArrayUtils;
 			
 			
-			[Bindable] private var _indent:int = 145;
+			[Bindable] private var _indent:Number = NaN;
 			
 			private function creationComplete():void
 			{
@@ -58,33 +71,22 @@
 			
 			public function get selectedGeometryCollection():String
 			{
-				if(geometryCollectionRadio.selected)
+				if (geometryCollectionRadio.selected)
 					return geometryCollectionCombo.text;
-				else return'';
+				else
+					return '';
 			}
 			
 			public function get selectedKeyType():String
 			{
-				if(keyTypeRadio.selected)
+				if (keyTypeRadio.selected)
 					return keyTypeCombo.text;
-				else return'';
+				else
+					return '';
 			}
 			
 			[Bindable] public var keyType:String = "";
 			
 		]]>
 	</mx:Script>
-	<mx:RadioButtonGroup id="shapeOrKey"/>
-	<mx:HBox>
-		<mx:RadioButton id="geometryCollectionRadio" group="{shapeOrKey}" label="{StringDefinition.DEFAULT_GEOMETRY_COLLECTION_RADIOBUTTON_LABEL}" textAlign="left" width="{_indent}"/>
-		<ui:CustomComboBox id="geometryCollectionCombo" enabled="{geometryCollectionRadio.selected}" dataProvider="{AdminInterface.instance.geometryCollectionNames}" toolTip="{StringDefinition.DEFAULT_GEOMETRY_COLLECTION_DROPDOWNBOX_TOOLTIP}"/>
-		<mx:Button label="Refresh" enabled="{geometryCollectionRadio.selected}" click="AdminInterface.instance.getGeometryCollectionNames()" toolTip="{StringDefinition.DEFAULT_GEOMETRY_COLLECTIONS_REFRESH_BUTTON_TOOLTIP}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_LABEL}" textAlign="left" width="{_indent}" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_TOOLTIP}"/> 
-		<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{keyType}" enabled="{keyTypeRadio.selected}" dataProvider="{AdminInterface.instance.keyTypes}" change="keyType = keyTypeCombo.text" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_DROPDOWNBOX_TOOLTIP}"/>
-		<mx:Button label="Refresh" enabled="{keyTypeRadio.selected}" click="AdminInterface.instance.getKeyTypes()" toolTip="{StringDefinition.DEFAULT_KEY_TYPES_REFRESH_BUTTON_TOOLTIP}"/>
-		<!--mx:Button label="?" click="showHelpForKeyType()"/-->
-	</mx:HBox>
-	
 </mx:VBox>

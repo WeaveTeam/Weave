@@ -26,6 +26,7 @@ package weave.data.AttributeColumns
 	
 	import mx.formatters.NumberFormatter;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
@@ -84,8 +85,8 @@ package weave.data.AttributeColumns
 
 			if (keys.length > numericData.length)
 			{
-				trace("WARNING: keys vector length > data vector length. keys truncated.",keys,numericData);
-				keys.length = numericData.length;
+				WeaveAPI.ErrorManager.reportError(new Error("Array lengths differ"));
+				return;
 			}
 			
 			// clear previous data mapping

@@ -156,7 +156,7 @@ package weave.utils
 				for( var j:int = 0; j < length; j++ )
 				{
 					// augmented similarity measure
-					tempRowArray.push(getCosineSimilarity(keys, array[i], array[j], keyNumberMap) * getEuclideanDistance( keys, array[i], array[j], keyNumberMap ));
+					tempRowArray.push(getCosineSimilarity(keys, array[i], array[j], keyNumberMap));
 				}
 				similarityMatrix.push(tempRowArray) ;
 				tempRowArray = null ;

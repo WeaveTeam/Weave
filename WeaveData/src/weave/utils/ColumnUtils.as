@@ -43,28 +43,16 @@ package weave.utils
 		 */		
 		public static function getTitle(column:IAttributeColumn):String
 		{
-			var title:String = column.getMetadata(AttributeColumnMetadata.TITLE) || '';
-			
-			// TEMPORARY SOLUTION -- INSTEAD, DATA SOURCE SHOULD DO THIS
-			if (title == '')
-				title = column.getMetadata('name') || '';
-			
-			if (title == '')
-				title = 'Undefined';
-			
-			// hack -- this should be replaced by a "default title formatting function" like "title (year)"
-			var year:String = column.getMetadata('year') || '';
-			if (year != '')
-				title += '(' + year + ')';
+			var title:String = column.getMetadata(AttributeColumnMetadata.TITLE) || 'Undefined';
 			
 			// debug code
 			if (false)
 			{
-				var keyType:String = column.getMetadata(AttributeColumnMetadata.KEY_TYPE) || '';
-				if (keyType == '')
-					title += " (No key type)";
-				else
+				var keyType:String = column.getMetadata(AttributeColumnMetadata.KEY_TYPE);
+				if (keyType)
 					title += " (Key type: " + keyType + ")";
+				else
+					title += " (No key type)";
 			}
 
 			return title;

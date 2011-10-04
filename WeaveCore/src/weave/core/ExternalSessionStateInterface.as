@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -27,6 +28,8 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
 
 	use namespace weave_internal;
 	
@@ -63,7 +66,7 @@ package weave.core
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
 		 * @return A pointer to the object referred to by objectPath.
 		 */
-		weave_internal function getObject(objectPath:Array):ILinkableObject
+		public function getObject(objectPath:Array):ILinkableObject
 		{
 			var object:ILinkableObject = _rootObject;
 			for (var i:int = 0; i < objectPath.length; i++)
@@ -148,6 +151,7 @@ package weave.core
 			WeaveAPI.SessionManager.setSessionState(object, newState, removeMissingObjects);
 			return true;
 		}
+		
 		/**
 		 * This function will get the qualified class name of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
@@ -157,6 +161,7 @@ package weave.core
 		{
 			return getQualifiedClassName(getObject(objectPath));
 		}
+		
 		/**
 		 * This function gets a list of names of children of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
@@ -173,6 +178,7 @@ package weave.core
 				return [(object as ILinkableDynamicObject).globalName];
 			return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 		}
+		
 		/**
 		 * This function will reorder children of an object implementing ILinkableHashMap.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
@@ -264,6 +270,27 @@ package weave.core
 			var state:Object = WeaveXMLDecoder.decode(sessionStateXML as XML);
 			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
+		}
+
+		/**
+		 * @see weave.api.core.IExternalSessionStateInterface
+		 */   
+		public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*
+		{
+			var result:* = undefined;
+			try
+			{
+				var compiler:Compiler = new Compiler();
+				compiler.includeLibraries.apply(null, staticLibraries);
+				var thisObject:ILinkableObject = (scopeObjectPath) ? getObject(scopeObjectPath) : null;
+				var compiledMethod:Function = compiler.compileToFunction(expression, variables, false, thisObject != null);
+				result = compiledMethod.apply(thisObject, arguments);
+			}
+			catch (e:Error)
+			{
+				WeaveAPI.ErrorManager.reportError(e);
+			}
+			return result;
 		}
 	}
 }

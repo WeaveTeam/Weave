@@ -58,7 +58,7 @@ package weave.data
 		public function getQKey(keyType:String, localName:String):IQualifiedKey
 		{
 			// if there is no keyType specified, use the default
-			if ((keyType || '') == '')
+			if (!keyType)
 				keyType = DataTypes.STRING;
 			
 			// get mapping of key strings to QKey weak refrences
@@ -158,10 +158,10 @@ package weave.data
 		public function registerKeyMapping(columnReference:IColumnReference):void
 		{
 			// get the keyType(domain) and dataType(range) from the reference and store a lookup from those types to the IColumnReference.
-			var keyType:String = columnReference.getMetadata(AttributeColumnMetadata.KEY_TYPE) || '';
-			var dataType:String = columnReference.getMetadata(AttributeColumnMetadata.DATA_TYPE) || '';
+			var keyType:String = columnReference.getMetadata(AttributeColumnMetadata.KEY_TYPE);
+			var dataType:String = columnReference.getMetadata(AttributeColumnMetadata.DATA_TYPE);
 			// make sure the referenced column is actually a key mapping
-			if (keyType == '' || dataType == '' ||
+			if (!keyType || !dataType ||
 				dataType == DataTypes.STRING ||
 				dataType == DataTypes.NUMBER ||
 				dataType == DataTypes.GEOMETRY)

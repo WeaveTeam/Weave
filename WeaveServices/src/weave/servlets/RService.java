@@ -129,7 +129,7 @@ public class RService extends GenericServlet
 					rConnection.assign(name, value);
 				}
 				// double[] value = inputValues[i];
-				System.out.println("input " + name);
+//				System.out.println("input " + name);
 				// Assigning Column to its Name in R
 
 			}
@@ -145,8 +145,8 @@ public class RService extends GenericServlet
 					while (trimedString.indexOf('[') > 0)
 					{
 						int pos = trimedString.indexOf('[');
-						System.out.println(pos + "\n");
-						System.out.println(trimedString + "\n");
+//						System.out.println(pos + "\n");
+//						System.out.println(trimedString + "\n");
 						trimedString = trimedString.substring(pos + 1);
 					}
 					trimedString = "[" + trimedString;					
@@ -215,7 +215,7 @@ public class RService extends GenericServlet
 					else{
 						results[i] = new RResult(name, evalValue.toDebugString());
 					}
-					System.out.println(name + " = " + evalValue.toDebugString() + "\n");
+//					System.out.println(name + " = " + evalValue.toDebugString() + "\n");
 					
 				}//end of for - to store result
 			}//end of IF for intermediate results
@@ -227,7 +227,7 @@ public class RService extends GenericServlet
 				{
 					results = new RResult[outputNames.length + 1];
 					String plotEvalValue = plotEvalScript(rConnection, plotScript, showWarnings);
-					System.out.println(plotEvalValue);
+//					System.out.println(plotEvalValue);
 					results[0] = new RResult("Plot Results", plotEvalValue);
 					i = 1;
 					iterationTimes = outputNames.length + 1;
@@ -252,7 +252,7 @@ public class RService extends GenericServlet
 					}
 					// Script to get R - output
 					evalValue = evalScript(rConnection, name, showWarnings);				
-					System.out.println(evalValue);
+//					System.out.println(evalValue);
 
 					if (evalValue.isVector()){
 						if (evalValue instanceof REXPString)
@@ -274,7 +274,7 @@ public class RService extends GenericServlet
 						results[i] = new RResult(name, evalValue.toDebugString());
 					}
 
-					System.out.println(name + " = " + evalValue.toDebugString() + "\n");					
+//					System.out.println(name + " = " + evalValue.toDebugString() + "\n");					
 				}
 			}
 		}
@@ -389,7 +389,7 @@ public class RService extends GenericServlet
 			// Returns the image from R
 			// option for storing the image of the graphic output from R
 			String str = String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Kmeans_Clustering.jpg");
-			System.out.println(str);
+//			System.out.println(str);
 			evalScript(rConnection, str,false);
 			rConnection
 					.eval("plot(dataframe1,xlab= \"x\", ylab= \"y\", main = \"Kmeans Clustering\", col = Cluster$cluster) \n points(Cluster$centers, col = 1:5, pch = 10)");
