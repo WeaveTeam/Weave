@@ -35,6 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -1162,35 +1163,43 @@ public class SQLUtils
             rs.first();
             return rs.getInt(1);
         }
-	public static List<Map<String,String>> joinedSelectQuery( Connection conn, String schemaName, List<String> columnNames,  String[] tables,  String[] joinCols, Map<String, String> whereClauses) throws SQLException
+	/**
+	 * This function performs a join on two tables.
+	 * The parameters to this function should be qualified like t1."columnName" instead of just "columnName".
+	 * @param conn A SQL connection
+	 * @param tableAliases Two variable names corresponding to the tables
+	 * @param qualifiedColumnNames Any number of qualified column names to select 
+	 * @param qualifiedTables Two SQL table names qualified with the schema they belong to
+	 * @param qualifiedJoinCols Two qualified columns to assert as equal when joining rows
+	 * @param qualifiedWhereClauses Additional conditions on the select which use qualified column names
+	 * @return The result of the join
+	 * @throws SQLException
+	 */
+	public static List<Map<String,String>> joinedSelectQuery( Connection conn, String[] tableAliases, String[] qualifiedColumnNames,  String[] qualifiedTables,  String[] qualifiedJoinCols, Map<String, String> qualifiedWhereClauses) throws SQLException
 	{
 		PreparedStatement stmt = null;
-		String quotedColNames = "";
 		List<Map<String, String>> rows = new LinkedList<Map<String,String>>();
 		ResultSet rs;
-		for (String colName : columnNames )
-		{
-			quotedColNames = quotedColNames.concat( "t1." + quoteSymbol(conn, colName) + ",");
-		}
-		quotedColNames = quotedColNames.substring(0, quotedColNames.length()-1);
 		
-		String whereQuery = buildWhereClause(conn, whereClauses, true, false);
-		String query = String.format("SELECT %s FROM %s AS t1 JOIN %s AS t2 ON t1.%s=t2.%s %s", quotedColNames,
-				quoteSchemaTable(conn, schemaName, tables[0]),
-				quoteSchemaTable(conn, schemaName, tables[1]),
-				quoteSymbol(conn, joinCols[0]), 
-				quoteSymbol(conn, joinCols[1]),
-				whereQuery);
+		String query = String.format(
+				"SELECT %s FROM %s AS %s JOIN %s AS %s ON %s=%s %s",
+				stringJoin(",", Arrays.asList(qualifiedColumnNames)),
+				qualifiedTables[0],
+				tableAliases[0],
+				qualifiedTables[1],
+				tableAliases[1],
+				qualifiedJoinCols[0],
+				qualifiedJoinCols[1],
+				buildWhereClause(conn, qualifiedWhereClauses, true, false));
 		try
 		{
 			stmt = conn.prepareCall(query);
-			int i = 1;			
 			rs = stmt.executeQuery();
 			java.sql.ResultSetMetaData rsmeta = rs.getMetaData();
 			while (rs.next())
 			{
 				HashMap<String,String> row = new HashMap<String,String>();
-				for (i = 1; i <= rsmeta.getColumnCount(); i++)
+				for (int i = 1; i <= rsmeta.getColumnCount(); i++)
 				{
 					String colName;
 					String colValue;

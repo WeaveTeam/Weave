@@ -21,15 +21,12 @@ import java.util.Vector;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.DebugTimer;
-import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
-import weave.utils.DBFUtils;
 import org.w3c.dom.*;
 
 /**
@@ -268,15 +265,15 @@ public class SQLConfig
 			Connection conn = getConnection();
 			if (connectionName == null)
 			{
-					
-					String[] tables = {sqltable_public, sqltable_public};
-					String[] id_cols = {"id", "id"};
-					List<String> cols = Arrays.asList("value");
+					String[] cols = {"t1.value"};
+					String qTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, sqltable_public);
+					String[] tables = {qTable, qTable};
+					String[] join_cols = {"t1.id", "t2.id"};
 					HashMap<String,String> whereClauses = new HashMap<String,String>();
-					whereClauses.put(SQLUtils.quoteSymbol(conn, "t2") + "." + SQLUtils.quoteSymbol(conn, "property"), "dataType");
-					whereClauses.put(SQLUtils.quoteSymbol(conn, "t2") + "." + SQLUtils.quoteSymbol(conn, "value"), "geometry");
-					whereClauses.put(SQLUtils.quoteSymbol(conn, "t1") + "." + SQLUtils.quoteSymbol(conn, "property"), "name");
-					sqlRes = SQLUtils.joinedSelectQuery(getConnection(), dbInfo.schema, cols, tables, id_cols, whereClauses);
+					whereClauses.put("t2.property", "dataType");
+					whereClauses.put("t2.value", "geometry");
+					whereClauses.put("t1.property", "name");
+					sqlRes = SQLUtils.joinedSelectQuery(getConnection(), new String[]{"t1","t2"}, cols, tables, join_cols, whereClauses);
 					
 					for (Map<String,String> row : sqlRes)
 					{
