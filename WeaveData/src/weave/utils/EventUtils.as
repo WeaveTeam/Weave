@@ -114,7 +114,7 @@ package weave.utils
 		 * @param bindablePropertyName The variable name of the bindable property.
 		 * @param delay The delay before copying the bindable value to the linkable value.
 		 */
-		public function delayedLinkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:int = 500):void
+		public static function delayedLinkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:int = 500):void
 		{
 			var setBindableProperty:Function = function():void
 			{

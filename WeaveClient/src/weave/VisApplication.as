@@ -118,6 +118,7 @@ package weave
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStatePanel;
 	import weave.ui.JRITextEditor;
+	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
 	import weave.ui.PenTool;
@@ -1336,10 +1337,10 @@ package weave
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				
-//				if(Weave.properties.enableMarker.value)
-//				{
-//					CustomContextMenuManager.createAndAddMenuItemToDestination("Add Marker",destination,handleAddRemove,"2.1 textBoxMenuItem");
-//				}
+				if(Weave.properties.enableMarker.value)
+				{
+					MarkerSettingsComponent.createContextMenuItems(this);
+				}
 				
 				SessionedTextBox.createContextMenuItems(this);
 				PenTool.createContextMenuItems(this);
