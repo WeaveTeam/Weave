@@ -159,7 +159,7 @@ package weave.api.core
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
 		 * @return true if objectPath refers to an existing object in the session state.
 		 */
-		function addCallback(objectPath:Array, groupedCallback:String, triggerCallbackNow:Boolean = false):Boolean;
+		function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.
