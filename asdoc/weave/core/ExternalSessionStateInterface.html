@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="ExternalSessionStateInterface,weave.core.ExternalSessionStateInterface,convertSessionStateObjectToXML,convertSessionStateXMLToObject,evaluateExpression,getChildNames,getObject,getObjectType,getSessionState,removeObject,requestObject,setChildNameOrder,setLinkableObjectRoot,setSessionState" name="keywords">
+<meta content="ExternalSessionStateInterface,weave.core.ExternalSessionStateInterface,addCallback,convertSessionStateObjectToXML,convertSessionStateXMLToObject,evaluateExpression,getChildNames,getObject,getObjectType,getSessionState,removeCallback,removeObject,requestObject,setChildNameOrder,setLinkableObjectRoot,setSessionState" name="keywords">
 <title>weave.core.ExternalSessionStateInterface</title>
 </head>
 <body>
@@ -59,6 +59,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#addCallback()">addCallback</a>(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</div>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -120,6 +128,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#removeCallback()">removeCallback</a>(objectPath:Array, callback:String):Boolean</div>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#removeObject()">removeObject</a>(objectPath:Array):Boolean</div>
 <div class="summaryTableDescription">
    This function will remove a dynamically created object if it is the child of an ILinkableCompositeObject.</div>
@@ -167,10 +183,50 @@ showHideInherited();
 <div class="MainContent">
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
+<a name="addCallback()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">addCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">callback</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">triggerCallbackNow</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Boolean</code></td>
+</tr>
+</table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">
+<a href="../api/core/IExternalSessionStateInterface.html" target="">weave.api.core.IExternalSessionStateInterface</a>
+</div>
+</div>
 <a name="convertSessionStateObjectToXML()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">convertSessionStateObjectToXML</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">convertSessionStateObjectToXML</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -373,6 +429,40 @@ showHideInherited();
    </td>
 </tr>
 </table>
+</div>
+<a name="removeCallback()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">removeCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function removeCallback(objectPath:Array, callback:String):Boolean</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">callback</span>:String</code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Boolean</code></td>
+</tr>
+</table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">
+<a href="../api/core/IExternalSessionStateInterface.html" target="">weave.api.core.IExternalSessionStateInterface</a>
+</div>
 </div>
 <a name="removeObject()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
