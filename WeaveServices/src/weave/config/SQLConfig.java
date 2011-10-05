@@ -204,27 +204,59 @@ public class SQLConfig
         }
         private Map<String,String> getProperties(Integer id, List<String> properties)
         {
-            return null;         
+        //    String query = String.format("SELECT property,value FROM %s WHERE %s %s %s");
+                return null;
         }
-        private String getProperty(Integer id, String property)
+        private void setProperty(Integer id, String property, String value) throws RemoteException 
         {
-            return null;
+            try {
+            Connection conn = getConnection();
+            String table = null;
+            Map<String,Object> insert_args = new HashMap<String,Object>();
+            insert_args.put("property", property);
+            insert_args.put("value", value);
+            insert_args.put("id", id);
+            Map<String,Object> delete_args = new HashMap<String,Object>();
+            delete_args.put("property", property);
+            delete_args.put("id", id);
+            if (true) /* TODO: Add check for private-only keys here */
+            {
+                table = sqltable_public;
+            }
+            else
+            {
+                table = sqltable_private;
+            }
+            //TODO: Fix deleteRows to accept <String,Object>
+            //SQLUtils.deleteRows(getConnection(), dbInfo.schema, table, delete_args);
+            SQLUtils.insertRow(getConnection(), dbInfo.schema, table, insert_args);
+            }
+            catch (Exception e)
+            {
+                throw new RemoteException("Failed to set property.", e);
+            }
         }
         public Integer addEntry(String description, Map<String,String> properties) throws RemoteException
         {
-            Integer id = null; 
+            Integer uniq_id = null; 
             try {
                 Connection conn = getConnection();
                 Map<String,Object> dummyProp = new HashMap<String,Object>();
                 dummyProp.put("description", description);
-                id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, sqltable_desc, dummyProp);
-                // If we made it this far, we have a new unique ID in the description table.
+                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, sqltable_desc, dummyProp);
+                // If we made it this far, we have a new unique ID in the description table. Now let's build the info we need to do the necessary row inserts...
+                for (Entry<String,String> keyvalpair : properties.entrySet())
+                {
+                    String key = keyvalpair.getKey();
+                    String val = keyvalpair.getValue();
+                    setProperty(uniq_id, key, val);
+                } 
             }
             catch (Exception e)
             {
                 throw new RemoteException("Unable to insert description item.",e);
             }
-            return id;
+            return uniq_id;
         }
 /* ** END** Private methods which handle the barebones of the extended attribute value system. */
 	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException

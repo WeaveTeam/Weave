@@ -1079,22 +1079,36 @@ public class SQLUtils
             }
             return stringJoin(" OR ", conjunctions);
         }
+        private static List<Entry<String,String>> imposeMapOrdering(Map<String,String> inputMap)
+        {
+            List<Entry<String,String>> orderedEntries = new LinkedList<Entry<String,String>>();
+            for (Entry<String,String> pair : inputMap.entrySet())
+            {
+                orderedEntries.add(pair);
+            }
+            return orderedEntries;
+        }
+        public static List<String> insertOnDuplicate(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
+        {
+            return null; // TODO
+        }
+
         public static List<String> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
         {
             // Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for, this will only be two entries long, but this covers the general case.
             PreparedStatement stmt = null;
             List<String> results = new LinkedList<String>();
             List<String> values = new LinkedList<String>();
+            ResultSet rs;
             List<List<Entry<String,String>>> flattenedMap = new LinkedList<List<Entry<String,String>>>();
             // Flatten the list of maps to a list of entries; this ensures that value ordering is preserved when we go to make the query. Replace the entry element values with the placeholder character.
             for (Map<String,String> columnData : columns)
             {
-                List<Entry<String,String>> pairs = new LinkedList<Entry<String,String>>();
-                for (Entry<String,String> keyValPair : columnData.entrySet())
+                List<Entry<String,String>> pairs = imposeMapOrdering(columnData);
+                for (Entry<String,String> keyValPair : pairs)
                 {
                     values.add(keyValPair.getValue());
                     keyValPair.setValue(" ?");
-                    pairs.add(keyValPair);
                 }
                 flattenedMap.add(pairs);
             }
@@ -1103,10 +1117,17 @@ public class SQLUtils
                 quoteSymbol(conn, column), quoteSymbol(conn, column), quoteSchemaTable(conn, schemaName, table),
                 buildDisjunctiveNormalForm(conn, flattenedMap),
                 columns.size());
-            stmt = conn.prepareStatement(query);
-//            stmt.executeQuery();
-            int i=0;
             System.out.println(query);
+            stmt = conn.prepareStatement(query);
+
+            int i = 1;
+            for (String value : values)
+            {
+                stmt.setString(i,value);
+                i+=1;
+            }
+
+            rs = stmt.executeQuery();
             return results;
         }
         public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data) throws SQLException

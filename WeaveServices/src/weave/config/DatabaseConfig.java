@@ -218,12 +218,8 @@ public class DatabaseConfig
 		}
 		catch (SQLException e)
 		{
-			// If the indices already exist, we don't care.
-		}
-		catch (SQLException e)
-		{
 			e.printStackTrace();
-			// assume the table has the indexes already.
+			// If the indices already exist, we don't care.
 		}
 	}
 
