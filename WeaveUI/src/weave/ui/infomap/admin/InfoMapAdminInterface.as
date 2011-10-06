@@ -131,5 +131,14 @@ package weave.ui.infomap.admin
 					getRssFeeds();
 				}
 			}
+			
+			public function renameFile(filePath:String,newFileName:String,overwrite:Boolean=false):void
+			{
+				generateQueryAndAddToQueue("renameFile",[filePath,newFileName,overwrite]).addAsyncResponder(handler);
+				function handler(event:ResultEvent, token:Object=null):void
+				{
+					Alert.show(event.result.toString());
+				}
+			}
 		}
 }

@@ -81,6 +81,7 @@ package weave
 	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.services.IURLRequestUtils;
@@ -97,6 +98,7 @@ package weave
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.KeyColumn;
+	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
@@ -116,6 +118,7 @@ package weave
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStatePanel;
 	import weave.ui.JRITextEditor;
+	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
 	import weave.ui.PenTool;
@@ -858,6 +861,12 @@ package weave
 				tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
 			}
 			
+			// add missing attribute titles
+			for each (var hierarchy:XML in _configFileXML.descendants('hierarchy'))
+				for each (tag in hierarchy.descendants("attribute"))
+					if (!String(tag.@title) && tag.@name)
+						tag.@title = tag.@name;
+
 			Weave.setSessionStateXML(_configFileXML, true);
 			fixCommonSessionStateProblems();
 
@@ -911,18 +920,6 @@ package weave
 			var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
 				subset.includeMissingKeys.value = true;
-			
-			// fill in missing title metadata in WeaveDataSource hierarchies
-			var wdsArray:Array = Weave.root.getObjects(WeaveDataSource);
-			for each (var wds:WeaveDataSource in wdsArray)
-			{
-				var root:XML = getSessionState(wds.attributeHierarchy) as XML;
-				if (!root)
-					continue;
-				for each (var tag:XML in root.descendants('attribute'))
-					if (!tag.@title && tag.@name)
-						tag.@title = tag.@name;
-			}
 		}
 		
 		private function handleWeaveListChange():void
@@ -1091,7 +1088,7 @@ package weave
 			var label:Function = function():String
 			{
 				var menuLabel:String = "untitled ";
-				if(panel.title.replace(" ", "").length > 0) 
+				if(panel.title && panel.title.replace(" ", "").length > 0) 
 					menuLabel = panel.title;
 				else
 					menuLabel += " window";
@@ -1346,6 +1343,11 @@ package weave
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				
+				if(Weave.properties.enableMarker.value)
+				{
+					MarkerSettingsComponent.createContextMenuItems(this);
+				}
+				
 				SessionedTextBox.createContextMenuItems(this);
 		
 				if(Weave.properties.enableInfoMap.value)
@@ -1369,6 +1371,8 @@ package weave
 				// one tool at a time)
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
+				
+				
 				
 				
 				// Add context menu items for handling search queries

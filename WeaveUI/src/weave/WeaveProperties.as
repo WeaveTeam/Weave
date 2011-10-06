@@ -149,6 +149,8 @@ package weave
 		
 		public const enableSearchForRecord:LinkableBoolean = new LinkableBoolean(true); // allow user to right click search for record
 		
+		public const enableMarker:LinkableBoolean = new LinkableBoolean(true);
+		
 		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
 		public const enableTaskbar:LinkableBoolean = new LinkableBoolean(true); // taskbar for minimize/restore
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets

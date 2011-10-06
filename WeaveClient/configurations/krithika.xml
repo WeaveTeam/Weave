@@ -385,19 +385,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <url>MA_municipal_indicators.csv</url>
   </CSVDataSource>
   <LinkableHashMap encoding="dynamic" name="Probed Columns">
-    <ReferencedColumn name="ReferencedColumn8">
-      <dynamicColumnReference encoding="dynamic">
-        <HierarchyColumnReference>
-          <dataSourceName>RadVizTest</dataSourceName>
-          <hierarchyPath encoding="xml">
-            <hierarchy>
-              <attribute keyType="RadVizTest" csvColumn="col1" title="col1"/>
-            </hierarchy>
-          </hierarchyPath>
-        </HierarchyColumnReference>
-      </dynamicColumnReference>
-    </ReferencedColumn>
-    <ReferencedColumn name="ReferencedColumn9">
+       <ReferencedColumn name="ReferencedColumn9">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
           <dataSourceName>RadVizTest</dataSourceName>

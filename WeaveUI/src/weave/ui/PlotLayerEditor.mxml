@@ -155,7 +155,7 @@
 						   paddingLeft="2" paddingRight="2"
 						   width="60"
 						   toolTip="Click here to view this layer's modifiable parameters."
-						   click="handleEditButtonClicked(settingsButton, controlsStack)"
+						   click="handleEditButtonClicked(settingsButton, controlsStack,_label)"
 						   />
 					
 					
@@ -259,7 +259,7 @@
 									</mx:VBox>
 								</mx:HBox>
 							</mx:VBox>
-
+							
 							
 							
 							<mx:VBox borderStyle="solid" verticalGap="0" 
@@ -338,6 +338,7 @@
 						import weave.visualization.plotters.DynamicPlotter;
 						import weave.visualization.plotters.GeometryLabelPlotter;
 						import weave.visualization.plotters.GeometryPlotter;
+						import weave.visualization.plotters.SingleImagePlotter;
 						import weave.visualization.plotters.WMSPlotter;
 						import weave.visualization.plotters.styles.SolidFillStyle;
 						import weave.visualization.plotters.styles.SolidLineStyle;
@@ -370,7 +371,7 @@
 							plotter.styles.value = requestStyles.text;
 						}
 
-						private function handleEditButtonClicked(button:Button, stack:ViewStack):void
+						private function handleEditButtonClicked(button:Button, stack:ViewStack, layerName:String=null):void
 						{
 							if(!settingsButton.selected)
 								controlsStack.selectedChild = empty;
@@ -383,7 +384,13 @@
 									controlsStack.selectedChild = geometryPlotterControls;
 								if (plotter is WMSPlotter)
 									controlsStack.selectedChild = wmsPlotterControls;
-							}
+								if (plotter is SingleImagePlotter)
+								{
+									settingsButton.selected = false;
+
+									MarkerSettingsComponent.openInstance(plotter as SingleImagePlotter,layerName);
+								}
+							} 
 						}
 						
 						private function handleLinkButtonCreated():void 
@@ -478,6 +485,9 @@
 								linkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
 								linkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
 								linkBindableProperty(wmsPlotter.serviceName,wmsLayerService,"selectedItem");
+							}else if(plotter is SingleImagePlotter)
+							{
+								settingsButton.visible = true;
 							}
 						}
 						
@@ -610,7 +620,10 @@
 							{
 								linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
 								linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-								selectableCheckbox.visible = true;
+								if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter)
+									selectableCheckbox.visible = false;
+								else
+									selectableCheckbox.visible = true;
 							}
 							else
 							{
@@ -667,6 +680,9 @@
 							else if (plotter is WMSPlotter)
 							{
 								SessionStateEditor.openDefaultEditor(plotter);
+							}else if(plotter is SingleImagePlotter)
+							{
+								return;
 							}
 							else
 							{

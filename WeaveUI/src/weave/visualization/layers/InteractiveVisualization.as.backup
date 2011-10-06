@@ -188,7 +188,10 @@ package weave.visualization.layers
 			if(shift)
 				interactions.insertKeyboardEvent(InteractionController.SHIFT);
 			
-			_temporaryMouseMode = interactions.determineMouseMode();
+			if(!(alt || shift || ctrl))
+				_temporaryMouseMode = null;
+			else
+				_temporaryMouseMode = interactions.determineMouseMode();
 			
 			if(!enableZoomAndPan.value)
 				if(_temporaryMouseMode == InteractionController.ZOOM 
@@ -412,6 +415,7 @@ package weave.visualization.layers
 			
 			var dragReleased:Boolean = mouseDragActive ? !event.buttonDown : false;
 			var mode:String = _temporaryMouseMode || mouseModeDefault.value;
+			var str:String;
 			switch(mode)//(interactions.determineAction())
 			{
 				case InteractionController.SELECT_ADD:
@@ -515,6 +519,11 @@ package weave.visualization.layers
 			// finally, unset mouseDragActive if button was released
 			if (dragReleased)
 				mouseDragActive = false;
+			
+			if(event.type == MouseEvent.DOUBLE_CLICK && mouseIsRolledOver && !(enableZoomAndPan.value && mode != InteractionController.SELECT_ADD && mode != InteractionController.SELECT_REMOVE))
+			{
+				selectAllVisibleRecords();
+			}
 			
 			updateSelectionRectangleGraphics();
 			interactions.clearEvents();

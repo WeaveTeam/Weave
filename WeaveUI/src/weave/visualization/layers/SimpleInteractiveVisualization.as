@@ -395,8 +395,6 @@ package weave.visualization.layers
 							ttPoint = localToGlobal( new Point(queryBounds.getXCoverage()/2, queryBounds.getYMax()) ); 
 											
 							createXTooltip = true;
-							
-							//hideMouseCursors();
 						}
 					}
 	
@@ -412,8 +410,6 @@ package weave.visualization.layers
 							ttPoint = localToGlobal(new Point(queryBounds.getXMax(), queryBounds.getYCoverage() / 2));
 	
 							createYTooltip = true;
-							
-							//hideMouseCursors();
 						}						
 					}
 					

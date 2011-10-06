@@ -307,4 +307,27 @@ public class AdminService extends GenericServlet{
 		}
 		
 	}
+    
+    public String renameFile(String filePath, String newName, Boolean overwrite)
+    {
+    	File file = new File(filePath);
+    	 if(file.isFile())
+    	 {
+    		 File newFile = new File(file.getAbsolutePath()+newName);
+    		 if(newFile.isFile())
+    			 if(!overwrite)
+    				 return "file name already exists. Give a new file name or allow overwrite.";
+    			 else{
+    				 newFile.delete();
+    			 }
+    		
+    		 Boolean result = file.renameTo(newFile);
+    		 if(result)
+    			 return "file sucessfully renamed";
+    		 else
+    			 return "file rename not successful";
+    	 }else{
+    		 return "Given file path is not a file";
+    	 }
+    }
 }

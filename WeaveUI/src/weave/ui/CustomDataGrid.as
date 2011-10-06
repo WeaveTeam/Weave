@@ -52,5 +52,21 @@ package weave.ui
 			
 			super.addClipMask(layoutChanged);
 		}
+		
+		public static const VERTICAL_SCROLL:String = "Vertical";
+		public static const HORIZONTAL_SCROLL:String = "Horizontal";
+		public function getScrollWidth(scrollBar:String):int
+		{
+			if (scrollBar == VERTICAL_SCROLL && verticalScrollBar)
+			{
+				return verticalScrollBar.getExplicitOrMeasuredWidth();
+			}
+			else if (scrollBar == HORIZONTAL_SCROLL && horizontalScrollBar)
+			{
+				return horizontalScrollBar.getExplicitOrMeasuredWidth();
+			}
+			
+			return 0;
+		}
 	}
 }

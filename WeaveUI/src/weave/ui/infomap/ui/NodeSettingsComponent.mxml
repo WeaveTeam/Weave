@@ -167,9 +167,9 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 {
 						 startDateStr.value = nodeHandler.node.dateFilter.startDate.value;
 					 	startRange.selectedDate = DateUtils.getDateFromString(nodeHandler.node.dateFilter.startDate.value);
-					 }
 					 if(nodeHandler.node.dateFilter.startDate.value.search('NOW') == -1)
 					 	rangeComboBox.selectedItem = "--Quick Select--";
+					 }
 				 }
 				 
 				 private function handleEndDateFilterChange():void

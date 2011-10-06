@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:ControlPanel xmlns="weave.ui.annotation.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				 xmlns:ui="weave.ui.*"
+				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				 layout="absolute"
+				 title="Edit Marker"
+				 width="40%"
+				 height="40%"
+				
+				 >
+	
+	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
+		<mx:HBox>
+			<mx:Label width="100" fontWeight="bold" text="Image URL:"/>
+			<mx:TextInput id="imageURLText" borderStyle="solid" cornerRadius="5" width="200"/>
+			<ui:HelpComponent showPopup="false" helpText="Enter a URL to an image. If the URL empty it defaults to a red circle."/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label width="100" fontWeight="bold" text="X Coordinate: "/>
+			<mx:TextInput id="dataXText" borderStyle="solid" cornerRadius="5" width="100"/>
+			<mx:Label width="120" fontWeight="bold" text="Y Coordinate: "/>
+			<mx:TextInput id="dataYText" borderStyle="solid" cornerRadius="5"  width="100"/>
+		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:Label width="100" fontWeight="bold" text="Vertical Align :" />
+			<mx:ComboBox id="verticalAlignComboBox" width="100"/>
+			<mx:Label width="120" fontWeight="bold" text="Horizontal Align :" />
+			<mx:ComboBox id="horizonatalAlignComboBox" width="100"/>
+		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:Label width="100" fontWeight="bold" text="Data Width:"/>
+			<mx:TextInput id="dataWidthText" borderStyle="solid" cornerRadius="5"  width="100"/>
+			<mx:Label width="120" fontWeight="bold" text="Data Height:"/>
+			<mx:TextInput id="dataHeightText" borderStyle="solid" cornerRadius="5"  width="100"/>
+			<ui:HelpComponent showPopup="false" helpText="Enter the width and height in data coordinates. The image will adjust to the width and height of the data coordinates."/>
+		</mx:HBox>		
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.Application;
+			import mx.managers.PopUpManager;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableContainer;
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.core.LinkableHashMap;
+			import weave.core.StageUtils;
+			import weave.primitives.Bounds2D;
+			import weave.primitives.ZoomBounds;
+			import weave.utils.EventUtils;
+			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.SingleImagePlotter;
+			import weave.visualization.tools.MapTool;
+			
+			override protected function childrenCreated():void
+			{
+				horizonatalAlignComboBox.dataProvider = ["left","center","right"];
+				verticalAlignComboBox.dataProvider = ["top","center","bottom"];
+				
+				
+				
+			}
+			
+			private static var _editContextMenuItem:ContextMenuItem 	= null;
+			private static var _addRemoveContextMenuItem:ContextMenuItem = null;
+			private static const ADD_CAPTION:String           = "Add Marker"
+//			private static const REMOVE_CAPTION:String        = "Remove Remove Marker"
+//			private static const EDIT_TEXT_CAPTION:String     = "Edit Marker"
+				
+			public static function createContextMenuItems(destination:DisplayObject):Boolean
+			{
+				if(!destination.hasOwnProperty("contextMenu") )
+					return false;
+				
+				
+				// Add a listener to this destination context menu for when it is opened
+				var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
+				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+				
+				// Create a context menu item for printing of a single tool with title and logo
+				_addRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddMarker,"2.1 textBoxMenuItem");
+//				_editContextMenuItem  = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
+				
+				return true;
+			}
+			
+			private static function handleAddMarker(e:ContextMenuEvent):void
+			{
+				if(panel)
+				{
+					var name:String = (panel as MapTool).visualization.layers.generateUniqueName("marker");
+					var plotLayer:SelectablePlotLayer = (panel as MapTool).visualization.layers.requestObject(name,SelectablePlotLayer,false);
+					var plotter:SingleImagePlotter = plotLayer.getDynamicPlotter().requestLocalObject(SingleImagePlotter,false);
+					
+					var tempScreenBounds:Bounds2D = new Bounds2D();
+					var tempDataBounds:Bounds2D = new Bounds2D();
+					
+					(panel as MapTool).visualization.zoomBounds.getScreenBounds(tempScreenBounds);
+					(panel as MapTool).visualization.zoomBounds.getDataBounds(tempDataBounds);
+					
+					var localAnchorPoint:Point = (panel as MapTool).visualization.globalToLocal(anchorPoint);
+					
+					tempScreenBounds.projectPointTo(localAnchorPoint,tempDataBounds);
+					
+					plotter.dataX.value = localAnchorPoint.x;
+					plotter.dataY.value = localAnchorPoint.y;
+					
+					
+				}
+			}
+			
+			
+			
+			private static var panel:DraggablePanel = null;
+			private static var anchorPoint:Point = new Point();
+			private static function handleContextMenuOpened(e:ContextMenuEvent):void
+			{	
+				
+				
+				panel = DraggablePanel.activePanel;
+				if(panel is MapTool)
+				{
+					_addRemoveContextMenuItem.enabled = true;
+					anchorPoint.x = e.mouseTarget.stage.mouseX;
+					anchorPoint.y = e.mouseTarget.stage.mouseY;
+				}
+				else
+				{
+					_addRemoveContextMenuItem.enabled = false;
+					panel = null;
+				}
+				
+			}
+			
+			public var plotter:SingleImagePlotter = null;
+			
+			public static function openInstance(plotter:SingleImagePlotter,markerName:String):void
+			{
+				var settingsPanel:MarkerSettingsComponent = PopUpManager.createPopUp(Application.application as Application,MarkerSettingsComponent) as MarkerSettingsComponent;
+				PopUpManager.bringToFront(settingsPanel);
+				
+				settingsPanel.plotter = plotter;
+				settingsPanel.targets = [plotter.imageURL,plotter.dataX,plotter.dataY,plotter.dataWidth,plotter.dataHeight];
+				
+				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
+			
+				settingsPanel.title = "Edit " + markerName;
+				
+				EventUtils.delayedLinkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText,"text",1000);
+				
+				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText,"text");
+				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText,"text");
+				linkBindableProperty(settingsPanel.plotter.dataWidth, settingsPanel.dataWidthText,"text");
+				linkBindableProperty(settingsPanel.plotter.dataHeight, settingsPanel.dataHeightText,"text");
+				linkBindableProperty(settingsPanel.plotter.horizontalAlign, settingsPanel.horizonatalAlignComboBox, "selectedItem");
+				linkBindableProperty(settingsPanel.plotter.verticalAlign, settingsPanel.verticalAlignComboBox, "selectedItem");
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+</ui:ControlPanel>

@@ -83,7 +83,7 @@ package weave.data.DataSources
 			var defaultServletName:String = '/DataService';
 			
 			var deprecatedBaseURL:String = '/OpenIndicatorsDataServices';
-			if (url.value == null || url.value == '' || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + defaultServletName)
+			if (!url.value || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + defaultServletName)
 				url.value = defaultBaseURL + defaultServletName;
 			
 			// backwards compatibility -- if url ends in default base url, append default servlet name
@@ -124,7 +124,7 @@ package weave.data.DataSources
 			});
 			for each (var node:XML in root.descendants())
 			{
-				if (!node.@title)
+				if (!String(node.@title))
 					node.@title = node.@name;
 			}
 		}
@@ -316,7 +316,7 @@ package weave.data.DataSources
 						metadata['title'] = metadata['name'];
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
-						if (metadata[property] != null && metadata[property] != '')
+						if (metadata[property])
 							node['@'+property] = metadata[property];
 					hierarchyNode.appendChild(node);
 				}
@@ -426,22 +426,22 @@ package weave.data.DataSources
 
 				hierarchyNode.@year = result.year;
 				
-				if (String(hierarchyNode.@title) == '')
+				if (!String(hierarchyNode.@title))
 				{
 					hierarchyNode.@title = result.attributeColumnName;
 					
 					// year hack -- this could be replaced by a global "default title formatting function" like "title (year)"
 					var year:String = hierarchyNode.@year;
-					if (year != '')
+					if (year)
 						hierarchyNode.@title += ' (' + year + ')';
 				}
 
-				if (result.min != null && result.min != '')
+				if (result.min)
 					hierarchyNode.@min = result.min;
 				else
 					delete hierarchyNode["@min"];
 
-				if (result.max != null && result.max != '')
+				if (result.max)
 					hierarchyNode.@max = result.max;
 				else
 					delete hierarchyNode["@max"];

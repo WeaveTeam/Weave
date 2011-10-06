@@ -92,7 +92,7 @@ so that it can be moved, selected, handle filters.
 			 * This helps an IInfoMapNodeLayout to decide if it 
 			 * needs to re-compute the position of this image.
 			 * */
-			public const hasBeenMoved:LinkableBoolean = new LinkableBoolean(false);
+			public const hasBeenMoved:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
 			
 			/**
 			 * @private

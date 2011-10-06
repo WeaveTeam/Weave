@@ -46,6 +46,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.rpc.Responder;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			import mx.utils.Base64Encoder;
 			import mx.utils.StringUtil;
 			import mx.utils.XMLUtil;
 			
@@ -100,7 +101,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			public var globalDateFilter:DateRangeFilter = new DateRangeFilter();
 			
-			
+			public const backgroundImageName:LinkableString = registerLinkableChild(this,new LinkableString(''),handleBackgroundImageChange);
 			
 			override protected function constructor():void
 			{
@@ -319,11 +320,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_fileLoader.load();
 			}
 			
+			private function handleBackgroundImageChange():void
+			{
+				map.setStyle("backgroundImage","/infomap_images/"+ backgroundImageName.value+".png");
+			}
+			
 			private var _mapImage:BitmapData
 			private var imgLoader:Loader = new Loader();
 			private function handleDatasetLoaded(event:Event):void
 			{
-				imageURL.text = _fileLoader.name;
+				imageURL.text = _fileLoader.name.substr(0,_fileLoader.name.length-4);
 				
 //				map.setStyle("backgroundImage",_fileLoader.data);
 				
@@ -344,12 +350,39 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function saveImage(event:Event):void
 			{
 				
-				_fileLoader.save(_fileLoader.data,_fileLoader.name);
+								
+				var _byteArray:ByteArray = new ByteArray();
+				_byteArray.writeBytes(_fileLoader.data as ByteArray);
+				var encoder:Base64Encoder = new Base64Encoder();
+				encoder.encodeBytes(_byteArray);
+				
+				var request:URLRequest = new URLRequest('/ImageService/Base64ImageService/'+imageURL.text);
+				var encoderStr:String = encoder.drain();
+				request.method = URLRequestMethod.POST;
+				request.data = encoderStr;
+				trace('sent byteArray:', encoderStr.length);
+				WeaveAPI.URLRequestUtils.getURL(request, handleImageSave, handleImageSaveFault, null, URLLoaderDataFormat.BINARY);
+
 			}
+			
+			private function handleImageSave(event:ResultEvent,token:Object=null):void
+			{
+				Alert.show("Image saved as " + event.result,"Saved");
+				
+				backgroundImageName.value = imageURL.text;
+				
+			}
+			
+			private function handleImageSaveFault(event:ResultEvent,token:Object=null):void
+			{
+				Alert.show("Image could not be saved" + event.message,"Error");	
+			}
+			
 			
 			private function clearImage():void
 			{
 				map.graphics.clear();
+				backgroundImageName.value = "";				
 			}
 		]]>
 	</mx:Script>

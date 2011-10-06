@@ -81,6 +81,7 @@ package weave.visualization.plotters
 		public const hideOverlappingText:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
 		public const xScreenOffset:LinkableNumber = newNonSpatialProperty(LinkableNumber);
 		public const yScreenOffset:LinkableNumber = newNonSpatialProperty(LinkableNumber);
+		public const maxWidth:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(80));
 
 		/**
 		 * This function is used with Array.sort to sort a list of record keys by the sortColumn values.
@@ -120,6 +121,7 @@ package weave.visualization.plotters
 				bitmapText.verticalAlign = vAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.horizontalAlign = hAlign.getValueFromKey(recordKey, String) as String;
 				bitmapText.angle = angle.getValueFromKey(recordKey, Number);
+				bitmapText.maxWidth = maxWidth.value - xScreenOffset.value;
 				
 				// init text format			
 				var f:TextFormat = bitmapText.textFormat;
@@ -149,7 +151,6 @@ package weave.visualization.plotters
 					
 					if (overlaps)
 					{
-						//f.color = 0xFF0000;
 						textWasDrawn[i] = false;
 						continue;
 					}
