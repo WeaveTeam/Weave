@@ -106,8 +106,7 @@ package weave.visualization.tools
 			visCanvas.percentWidth = 100;
 			toolVBox.addChild(visCanvas);
 			
-			titleLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
-			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
+			updateTitleLabel();
 			
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
