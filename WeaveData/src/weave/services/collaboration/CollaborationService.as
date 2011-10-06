@@ -92,8 +92,8 @@ package weave.services.collaboration
 		private var roomToJoin:String;
 		private var room:Room;
 
-		private var baseEncoder:Base64Encoder = new Base64Encoder();
-		private var baseDecoder:Base64Decoder = new Base64Decoder();
+		private const baseEncoder:Base64Encoder = new Base64Encoder();
+		private const baseDecoder:Base64Decoder = new Base64Decoder();
 		private var connectedToRoom:Boolean = false;
 		private var stateLog:SessionStateLog = null;
 		
