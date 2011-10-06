@@ -74,7 +74,7 @@
 			{	
 				//Pops up the control panel when a user opens the tool
 				//so that they can type in the server to connect to.
-				toggleUserControlPanel();
+				toggleControlPanel();
 				
 				//Callbakcs to be heard from the collabService, this is how the collabservice
 				//can talk back to the Collaboration tool
@@ -122,9 +122,9 @@
 					serverNameError.visible = false;
 				}
 			}
-			override protected function toggleUserControlPanel():void
+			override public function toggleControlPanel():void
 			{
-				super.toggleUserControlPanel();
+				super.toggleControlPanel();
 				updateEnabledSettings();
 			}
 			private function updateEnabledSettings():void
@@ -137,30 +137,16 @@
 			
 			private function lockedError(e:Event):void
 			{
-				toggleUserControlPanel();
+				toggleControlPanel();
 				serverNameError.visible = true;
 			}
 			private function nickConflictError(e:Event):void
 			{
-				disconnect();
-				toggleUserControlPanel();
+				collabService.disconnect();
+				toggleControlPanel();
 				usernameError.visible = true;
 			}
 			
-			
-			//Only dissconnect if you're sure you're connected to the server, otherwise
-			//collabservice.disconnect() will fail, and than all the buttons will be
-			//disabled
-			private function disconnect():void
-			{
-				if( collabService.isConnectedToServer == true)
-					collabService.disconnect();
-				input.enabled = false;
-				sendButton.enabled = false;
-				disconnectButton.enabled = false;
-				connectButton.enabled = true;					
-			}
-
 			//For when a text message is recieved from the server, it is displayed to the log
 			//NOTE: I could not get proper scrolling to work once the recieved text messages
 			//		went below the height of the log window. 
@@ -335,7 +321,7 @@
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Button id="connectButton" label="Connect" click="connect();" />
-				<mx:Button id="disconnectButton" label="Disconnect" enabled="false" click="disconnect();"/>
+				<mx:Button id="disconnectButton" label="Disconnect" enabled="false" click="collabService.disconnect();"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>

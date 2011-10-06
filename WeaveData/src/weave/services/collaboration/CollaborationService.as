@@ -77,7 +77,6 @@ package weave.services.collaboration
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.compiler.StringLib;
 	import weave.core.ErrorManager;
 	import weave.core.SessionStateLog;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;

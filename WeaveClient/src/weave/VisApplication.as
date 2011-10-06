@@ -665,12 +665,12 @@ package weave
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", ProbeToolTipEditor.openDefaultEditor );
 				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", createGlobalObject, [EquationEditor, "EquationEditor"]);
 				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
+				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Collaboration Tool", createGlobalObject, [CollaborationTool, "CollaborationTool"]);
 				
 				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
 					var userUI:NewUserWizard = new NewUserWizard();
 					WizardPanel.createWizard(instance,userUI);
 				});
-				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Collaboration Tool", createGlobalObject, [CollaborationTool, "CollaborationTool"]);
 
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				
