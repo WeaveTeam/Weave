@@ -63,7 +63,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addCallback()">addCallback</a>(objectPath:Array, groupedCallback:String, triggerCallbackNow:Boolean = false):Boolean</div>
+<a class="signatureLink" href="#addCallback()">addCallback</a>(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</div>
 <div class="summaryTableDescription">
    This function will add a callback that will be delayed except during a scheduled time each frame.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
@@ -173,7 +173,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function addCallback(objectPath:Array, groupedCallback:String, triggerCallbackNow:Boolean = false):Boolean</code><p>
+<code>public function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</code><p>
    This function will add a callback that will be delayed except during a scheduled time each frame.  These grouped callbacks use a
    central trigger list, meaning that if multiple CallbackCollections trigger the same grouped callback before the scheduled time,
    it will behave as if it were only triggered once.  The callback function will not be called recursively as a result of it
@@ -188,7 +188,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">groupedCallback</span>:String</code> &mdash; The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
+<td width="20px"></td><td><code><span class="label">callback</span>:String</code> &mdash; The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
    </td>
 </tr>
 <tr>
