@@ -27,30 +27,18 @@
 
 package weave.services.collaboration
 {	
-	import com.modestmaps.extras.ui.FullScreenButton;
-	
-	import flash.events.ErrorEvent;
-	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.net.registerClassAlias;
-	import flash.text.engine.BreakOpportunity;
 	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
-	import flash.utils.Endian;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.charts.renderers.BoxItemRenderer;
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.events.CloseEvent;
-	import mx.events.FlexEvent;
-	import mx.managers.PopUpManager;
-	import mx.messaging.messages.ErrorMessage;
 	import mx.utils.Base64Decoder;
 	import mx.utils.Base64Encoder;
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
-	import mx.validators.StringValidator;
 	
 	import org.igniterealtime.xiff.auth.*;
 	import org.igniterealtime.xiff.bookmark.*;
