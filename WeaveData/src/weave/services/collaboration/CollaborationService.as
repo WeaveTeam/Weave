@@ -368,6 +368,9 @@ package weave.services.collaboration
 						// received diff from someone else -- rewind local changes and replay them.
 						else
 						{
+							// apply any pending changes now
+							stateLog.synchronizeNow();
+							
 							// rewind local changes
 							for (i = stateLog.undoHistory.length - 1; i >= 0; i--)
 								setSessionState(root, stateLog.undoHistory[i].backward, false);

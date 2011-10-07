@@ -160,6 +160,15 @@ package weave.core
 			cc.resumeCallbacks();
 		}
 
+		/**
+		 * This function will save any pending diff in session state.
+		 * Use this function only when necessary (for example, when writing a collaboration service that must synchronize).
+		 */
+		public function synchronizeNow():void
+		{
+			saveDiff(true);
+		}
+		
 		public function undo(numberOfSteps:int = 1):void
 		{
 			applyDiffs(-numberOfSteps);
