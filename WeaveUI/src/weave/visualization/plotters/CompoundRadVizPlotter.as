@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
+	import weave.radviz.BruteForceLayoutAlgorithm;
 	import weave.radviz.GreedyLayoutAlgorithm;
 	import weave.radviz.IncrementalLayoutAlgorithm;
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
@@ -73,6 +74,7 @@ package weave.visualization.plotters
 			algorithms[GREEDY_LAYOUT] = GreedyLayoutAlgorithm;
 			algorithms[NEAREST_NEIGHBOR] = NearestNeighborLayoutAlgorithm;
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
+			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -545,11 +547,12 @@ package weave.visualization.plotters
 		private var _algorithm:ILayoutAlgorithm = newSpatialProperty(GreedyLayoutAlgorithm);
 		
 		// algorithms
-		[Bindable] public var algorithms:Array = [RANDOM_LAYOUT, GREEDY_LAYOUT, NEAREST_NEIGHBOR, INCREMENTAL_LAYOUT];
+		[Bindable] public var algorithms:Array = [RANDOM_LAYOUT, GREEDY_LAYOUT, NEAREST_NEIGHBOR, INCREMENTAL_LAYOUT, BRUTE_FORCE];
 		public const currentAlgorithm:LinkableString = registerNonSpatialProperty(new LinkableString(GREEDY_LAYOUT), changeAlgorithm);
 		public static const RANDOM_LAYOUT:String = "Random layout";
 		public static const GREEDY_LAYOUT:String = "Greedy layout";
 		public static const NEAREST_NEIGHBOR:String = "Nearest neighbor";
 		public static const INCREMENTAL_LAYOUT:String = "Incremental layout";
+		public static const BRUTE_FORCE:String = "Brute force";
 	}
 }
