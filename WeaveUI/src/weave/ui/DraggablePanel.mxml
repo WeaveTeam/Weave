@@ -1018,7 +1018,7 @@
 				
 				var minimizedPanelAlphaEffect:AnimateProperty = new AnimateProperty(minimizedComponentVersion);
 				minimizedPanelAlphaEffect.fromValue = 0.0;
-				minimizedPanelAlphaEffect.toValue = MinimizedComponent.MINIMIZED_COMPONENT_ALPHA;
+				minimizedPanelAlphaEffect.toValue = 1.0;
 				minimizedPanelAlphaEffect.property = "alpha";
 				
 				minimizedPanelAlphaEffect.easingFunction = mx.effects.easing.Exponential.easeIn;
@@ -1122,7 +1122,7 @@
 				alphaEffect.property = "alpha";
 				
 				var minimizedPanelAlphaEffect:AnimateProperty = new AnimateProperty(minimizedComponentVersion);
-				minimizedPanelAlphaEffect.fromValue = MinimizedComponent.MINIMIZED_COMPONENT_ALPHA;
+				minimizedPanelAlphaEffect.fromValue = 1.0;
 				minimizedPanelAlphaEffect.toValue = 0.0;
 				minimizedPanelAlphaEffect.property = "alpha";
 				if(minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode == BOOMERANG_MINIMIZE_EFFECT)
