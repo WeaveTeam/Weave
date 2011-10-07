@@ -308,8 +308,8 @@
 						imgExtension = ".png";
 					}
 
-					if(linkExtension != 'pdf')
-					{
+//					if(linkExtension != 'pdf')
+//					{
 						//each document retrived is added to the docs map in the parent infomap panel
 						docObject = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);					
 						docObject.url.value = link;
@@ -319,7 +319,7 @@
 						docObject.date.value = doc.date.text().toXMLString();
 						docObject.imageURL.value = "http://129.63.8.219:8080/infomap/thumbnails/"+  doc.str.(@name=="imgName").text().toXMLString() + imgExtension;					
 						response.addItem(link);
-					}
+//					}
 				}
 				handleParsedResult(response);
 			}
