@@ -19,6 +19,9 @@
 
 package weave.core
 {
+	import flash.net.registerClassAlias;
+	import flash.utils.getQualifiedClassName;
+
 	/**
 	 * This contains a session state object plus some metadata: objectName and className.
 	 * 
@@ -26,6 +29,10 @@ package weave.core
 	 */
 	public class DynamicState
 	{
+		{ /** begin static code block **/
+			registerClassAlias(getQualifiedClassName(DynamicState), DynamicState);
+		} /** end static code block **/
+		
 		public function DynamicState(objectName:String = null, className:String = null, sessionState:Object = null)
 		{
 			this.objectName = objectName;
