@@ -17,14 +17,6 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	Whomeever this code gets passed onto, please feel free to delete or
-	rewrite the comments I have written. They are only painfully obvious
-	to facilitate the transferring of this code to the new maintainer.
-	
-	~Andrew Wilkinson
-*/
-
 package weave.services.collaboration
 {	
 	import flash.events.EventDispatcher;
@@ -474,13 +466,17 @@ package weave.services.collaboration
 			else
 				disconnect();		
 		}
-		
 		//handled whenever any user joins the same room as this
 		private function onUserJoin(e:RoomEvent):void
 		{
 			dispatchLogEvent(e.nickname + " has joined the room.");
 			updateUsersList();
-		
+			
+			dispatchEvent(new CollaborationEvent(
+				CollaborationEvent.USER_JOINED_CREATE_MOUSE, 
+				Math.random() * 0xFFFFFF
+			));
+			
 			//This whole sequence of steps is just to determine alphabetially
 			//who's on the top of the list. It needs to be sorted, because order
 			//of names in array is not guarenteed

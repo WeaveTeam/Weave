@@ -31,9 +31,11 @@ package weave.services.collaboration
 		public static const LOCKED_ERROR:String = 'collab_locked_error';
 
 		public static const LOG:String 		= "collab_log";
-//		public static const USERS_LIST:String 	= "collab_users_list_receive";
 		public static const CONNECT:String 	= "collab_connect";
 		public static const DISCONNECT:String 	= "collab_disconnect";
+		
+		public static const USER_JOINED_CREATE_MOUSE:String = "user_joined_create_mouse";
+		public static const USER_LEFT_REMOVE_MOUSE:String = "user_left_remove_mouse";
 		
 		//generic data
 		public var data:Object;
