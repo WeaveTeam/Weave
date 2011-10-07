@@ -84,6 +84,7 @@ package weave.services.collaboration
 		private const baseDecoder:Base64Decoder = new Base64Decoder();
 		private var connectedToRoom:Boolean = false;
 		private var stateLog:SessionStateLog = null;
+		private var synchronizingIncomingDiff:Boolean = false;
 		
 		public const userList:ArrayCollection = new ArrayCollection();
 		public var username:String;
@@ -105,19 +106,6 @@ package weave.services.collaboration
 			if( connectedToRoom ) disconnect();
 		}
 		
-		//If the Session state changes in anyway, a diff is created and stored in the
-		//StateLog history. The latest entry is than sent to the server, to be sent
-		//to everyone else to update their collaboration session.
-		private function handleStateChange():void
-		{
-			// note: this code may need to be changed later if SessionStateLog implementation changes.
-			if (connectedToRoom && stateLog != null)
-			{
-				var log:Array 	 = stateLog.undoHistory;
-				var entry:Object = log[log.length - 1];
-				sendSessionStateDiff( entry.id, entry.forward );
-			}
-		}
 		public function get isConnected():Boolean 
 		{
 			return connectedToRoom;
@@ -221,17 +209,18 @@ package weave.services.collaboration
 		//Handles Sending the entire session state. Should only be used if
 		//someone needs a hard reset, or joining the collaboration server
 		//for the first time.
-		public function sendFullSessionState( diffID:int, diff:Object, target:String=null ):void
+		public function sendFullSessionState( diffID:int, diff:Object, target:String ):void
 		{
 			var message:FullSessionState = new FullSessionState(diffID, diff);
 			sendEncodedObject( message, target );
 		}
 		
 		//Handles sending session state changes
-		public function sendSessionStateDiff( diffID:int, diff:Object, target:String=null ):void
+		public function sendSessionStateDiff( diffID:int, diff:Object ):void
 		{
+			//dispatchLogEvent('\nOUTGOING ' + diffID + ' ' + ObjectUtil.toString(diff) + '\n--------------------------\n');
 			var message:SessionStateMessage = new SessionStateMessage(diffID, diff);
-			sendEncodedObject( message, target );
+			sendEncodedObject(message, null);
 		}
 		
 		//When a message is recieved pass it on to the user
@@ -287,6 +276,26 @@ package weave.services.collaboration
 			{
 				disposeObjects(stateLog);
 				stateLog = null;
+			}
+		}
+		//If the Session state changes in anyway, a diff is created and stored in the
+		//StateLog history. The latest entry is than sent to the server, to be sent
+		//to everyone else to update their collaboration session.
+		private function handleStateChange():void
+		{
+			// note: this code may need to be changed later if SessionStateLog implementation changes.
+			if (connectedToRoom && stateLog != null)
+			{
+				var log:Array = stateLog.undoHistory;
+				if (synchronizingIncomingDiff)
+				{
+					log.pop(); // suppress the outgoing diff that results from an incoming diff
+				}
+				else
+				{
+					var entry:Object = log[log.length - 1];
+					sendSessionStateDiff( entry.id, entry.forward );
+				}
 			}
 		}
 		
@@ -347,6 +356,8 @@ package weave.services.collaboration
 						var ssm:SessionStateMessage = o as SessionStateMessage;
 						if (userAlias == this.username)
 						{
+							//dispatchLogEvent('\nECHO ' + ssm.id + '\n--------------------------\n');
+							
 							// received echo back from local state change
 							// search history for diff with matching id
 							var foundID:Boolean = false;
@@ -375,12 +386,19 @@ package weave.services.collaboration
 							for (i = stateLog.undoHistory.length - 1; i >= 0; i--)
 								setSessionState(root, stateLog.undoHistory[i].backward, false);
 							
+							//dispatchLogEvent('\nINCOMING ' + userAlias + '.' + ssm.id + ' ' + ObjectUtil.toString(ssm.diff) + '\n--------------------------\n');
+							
 							// apply remote change
 							setSessionState(root, ssm.diff, false);
 							
 							// replay local changes
 							for (i = 0; i < stateLog.undoHistory.length; i++)
 								setSessionState(root, stateLog.undoHistory[i].forward, false);
+							
+							// this will compute the diff and trigger handleStateChange()
+							synchronizingIncomingDiff = true;
+							stateLog.synchronizeNow();
+							synchronizingIncomingDiff = false;
 						}
 					}
 				}
