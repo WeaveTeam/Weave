@@ -108,14 +108,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#sendFullSessionState()">sendFullSessionState</a>(diffID:int, diff:Object, target:String = null):void</div>
+<a class="signatureLink" href="#sendFullSessionState()">sendFullSessionState</a>(diffID:int, diff:Object, target:String):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CollaborationService</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#sendSessionStateDiff()">sendSessionStateDiff</a>(diffID:int, diff:Object, target:String = null):void</div>
+<a class="signatureLink" href="#sendSessionStateDiff()">sendSessionStateDiff</a>(diffID:int, diff:Object):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CollaborationService</td>
 </tr>
@@ -259,7 +259,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function sendFullSessionState(diffID:int, diff:Object, target:String = null):void</code><span class="label">Parameters</span>
+<code>public function sendFullSessionState(diffID:int, diff:Object, target:String):void</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">diffID</span>:int</code></td>
@@ -274,7 +274,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">target</span>:String</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">target</span>:String</code></td>
 </tr>
 </table>
 </div>
@@ -285,7 +285,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function sendSessionStateDiff(diffID:int, diff:Object, target:String = null):void</code><span class="label">Parameters</span>
+<code>public function sendSessionStateDiff(diffID:int, diff:Object):void</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">diffID</span>:int</code></td>
@@ -295,12 +295,6 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">diff</span>:Object</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">target</span>:String</code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 </div>
