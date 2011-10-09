@@ -291,7 +291,7 @@
 								</mx:HBox>
 							</mx:VBox>
 							
-							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
+							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected}"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:Label text="point size:"/>
 								<mx:NumericStepper 	id="pointSize" 
@@ -301,8 +301,8 @@
 							</mx:VBox>
 							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:CheckBox id="useImagesBox"	 label="Enable Images"/>
-								<mx:TextInput id="imageURL" focusOut="imageURL_focusOutHandler(event)"/>
+								<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
+								<mx:TextInput id="imageURL" initialize="EventUtils.addDelayedCallback(imageURL, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 							</mx:VBox>
 						</mx:HBox>
 					</mx:VBox>
@@ -329,6 +329,7 @@
 						import weave.core.LinkableHashMap;
 						import weave.core.SessionManager;
 						import weave.core.weave_internal;
+						import weave.data.AttributeColumns.AlwaysDefinedColumn;
 						import weave.data.AttributeColumns.GeometryColumn;
 						import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 						import weave.primitives.Geometry;
@@ -337,6 +338,7 @@
 						import weave.ui.AttributeSelectorPanel;
 						import weave.ui.SessionStateEditor;
 						import weave.utils.ColumnUtils;
+						import weave.utils.EventUtils;
 						import weave.utils.NumberUtils;
 						import weave.visualization.layers.PlotLayer;
 						import weave.visualization.layers.SelectablePlotLayer;
@@ -471,6 +473,7 @@
 								settingsButton.visible = true;
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
+								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
 								linkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
 								
 								linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
@@ -481,7 +484,6 @@
 								linkBindableProperty(geomPlotter.line.color.defaultValue, lineColor, "selectedColor");
 								linkBindableProperty(geomPlotter.line.alpha.defaultValue, lineAlpha, "value");
 								linkBindableProperty(geomPlotter.line.weight.defaultValue, lineWeight, "value");
-								linkBindableProperty(geomPlotter.useImages, useImagesBox, "selected");
 							}
 							else if(plotter is WMSPlotter)
 							{
@@ -516,6 +518,7 @@
 							{
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
+								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
 								unlinkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
 									
 								unlinkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
@@ -705,13 +708,28 @@
 							unlinkGeometryProperties();
 						}
 						
-						protected function imageURL_focusOutHandler(event:FocusEvent):void
+						private function handleGeomPlotterImageToggle():void
 						{
-							var plotter:IPlotter = getPlotter(data as IPlotLayer);
-							if (plotter is GeometryPlotter)
-								(plotter as GeometryPlotter).urlString.value = imageURL.text;
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							if (!useImagesCheck.selected)
+								plotter.pointDataImageColumn.removeObject();
+							else
+								handleGeomPlotterImageInput();
 						}
-						
+						private function handleGeomPlotterImageInput():void
+						{
+							var url:String = imageURL.text;
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.requestLocalObject(AlwaysDefinedColumn, false);
+							adc.defaultValue.value = url;
+						}
+						private function handleGeomPlotterImageURLChange():void
+						{
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+							if (adc)
+								imageURL.text = adc.defaultValue.value as String;
+						}
 					]]>
 				</mx:Script>
 			</mx:VBox>

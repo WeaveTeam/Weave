@@ -23,6 +23,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.LineScaleMode;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.net.URLRequest;
@@ -53,6 +54,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
@@ -85,8 +87,6 @@ package weave.visualization.plotters
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
 
 			setKeySource(geometryColumn);
-			
-			registerNonSpatialProperty(imagePointColumn);
 		}
 
 		/**
@@ -96,28 +96,12 @@ package weave.visualization.plotters
 		/**
 		 *  This is the default URL path for images, when using images in place of points.
 		 */
-		public const imagePointColumn:AlwaysDefinedColumn = new AlwaysDefinedColumn( "http://www.helpexamples.com/flash/images/image2.jpg" );
-		
-		//Add in column for the URL String.
+		public const pointDataImageColumn:ImageColumn = newNonSpatialProperty(ImageColumn);
 		
 		[Embed(source="/weave/resources/images/missing.png")]
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 		
-		/**
-		 * Boolean to indicate whether the user desires to use images or not. 
-		 */
-		public const useImages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		
-		/**
-		 * This variable contains whatever the user entered image URL is, should they enter one.
-		 */
-		public const urlString:LinkableString = registerLinkableChild(this, new LinkableString(""));
-		
-		/**
-		 * This is the image cache.
-		 */
-		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
@@ -244,23 +228,8 @@ package weave.visualization.plotters
 		// this function returns the BitmapData associated with the given key
 		private function drawCircle(destination:BitmapData, color:Number, x:Number, y:Number):void
 		{
-			var _imageURL:String = new String();
-			
-			if( useImages.value == true )
-			{
-				if( urlString.value != "")
-					_imageURL = urlString.value;
-				else
-					_imageURL = imagePointColumn.defaultValue.value as String;
-				if( _urlToImageMap[_imageURL] == undefined ){
-					_urlToImageMap[_imageURL] = _missingImage;
-					WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
-				}
-				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
-			}
-			else
-				var bitmapData:BitmapData = colorToBitmapMap[color] as BitmapData;
-			if (!bitmapData && useImages.value == false)
+			var bitmapData:BitmapData = colorToBitmapMap[color] as BitmapData;
+			if (!bitmapData)
 			{
 				// create bitmap
 				try
@@ -273,7 +242,7 @@ package weave.visualization.plotters
 				}
 				colorToBitmapMap[color] = bitmapData;
 			}
-			if (colorToBitmapValidFlagMap[color] == undefined && useImages.value == false)
+			if (colorToBitmapValidFlagMap[color] == undefined)
 			{
 				// draw graphics on cached bitmap
 				var g:Graphics = tempShape.graphics;
@@ -299,29 +268,7 @@ package weave.visualization.plotters
 			// copy bitmap graphics
 			tempPoint.x = Math.round(x - pointOffset);
 			tempPoint.y = Math.round(y - pointOffset);
-			if( useImages.value == true )
-				destination.copyPixels(image, circleBitmapDataRectangle, tempPoint, null, null, true);
-			else
-				destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
-		}
-		
-		/**
-		 * This function will save a downloaded image into the image cache.
-		 */
-		private function handleImageDownload(event:ResultEvent, token:Object = null):void
-		{
-			var bitmap:Bitmap = event.result as Bitmap;
-			_urlToImageMap[token] = bitmap.bitmapData;
-			//getCallbackCollection((this).triggerCallbacks();
-		}
-		/**
-		 * This function is called when there is an error downloading an image.
-		 */
-		private function handleFault(event:FaultEvent, token:Object=null):void
-		{
-			trace("Error downloading image:", ObjectUtil.toString(event.message), token);
-			_urlToImageMap[token] = null;
-			getCallbackCollection(this).triggerCallbacks();
+			destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
 		}
 		
 		public const pixellation:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1));
@@ -387,7 +334,7 @@ package weave.visualization.plotters
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object
-
+		private static const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		/**
 		 * This function draws a list of GeneralizedGeometry objects
@@ -402,7 +349,7 @@ package weave.visualization.plotters
 		 * This function draws a single geometry.
 		 * @param points An Array or Vector of objects, each having x and y properties.
 		 */
-		private function drawShape(key:IQualifiedKey, points:Object, shapeType:String, dataBounds:IBounds2D, screenBounds:IBounds2D, graphics:Graphics, bitmapData:BitmapData):void
+		private function drawShape(key:IQualifiedKey, points:Object, shapeType:String, dataBounds:IBounds2D, screenBounds:IBounds2D, outputGraphics:Graphics, outputBitmapData:BitmapData):void
 		{
 			if (points.length == 0)
 				return;
@@ -416,14 +363,24 @@ package weave.visualization.plotters
 					tempPoint.x = currentNode.x;
 					tempPoint.y = currentNode.y;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
-					drawCircle(bitmapData, fill.color.getValueFromKey(key, Number), tempPoint.x, tempPoint.y);
+					if (pointDataImageColumn.internalColumn)
+					{
+						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
+						tempMatrix.identity();
+						tempMatrix.translate(tempPoint.x - bitmapData.width / 2, tempPoint.y - bitmapData.height / 2);
+						outputBitmapData.draw(bitmapData, tempMatrix);
+					}
+					else
+					{
+						drawCircle(outputBitmapData, fill.color.getValueFromKey(key, Number), tempPoint.x, tempPoint.y);
+					}
 				}
 				return;
 			}
 
 			// prevent moveTo/lineTo from drawing a filled polygon if the shape type is line
 			if (shapeType == GeneralizedGeometry.GEOM_TYPE_LINE)
-				graphics.endFill();
+				outputGraphics.endFill();
 
 			var numPoints:int = points.length;
 			var firstX:Number, firstY:Number;
@@ -438,14 +395,14 @@ package weave.visualization.plotters
 				{
 					firstX = tempPoint.x;
 					firstY = tempPoint.y;
-					graphics.moveTo(tempPoint.x, tempPoint.y);
+					outputGraphics.moveTo(tempPoint.x, tempPoint.y);
 					continue;
 				}
-				graphics.lineTo(tempPoint.x, tempPoint.y);
+				outputGraphics.lineTo(tempPoint.x, tempPoint.y);
 			}
 			
 			if (shapeType == GeneralizedGeometry.GEOM_TYPE_POLYGON)
-				graphics.lineTo(firstX, firstY);
+				outputGraphics.lineTo(firstX, firstY);
 		}
 		
 		override public function dispose():void
