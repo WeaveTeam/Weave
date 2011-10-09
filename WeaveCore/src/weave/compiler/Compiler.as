@@ -68,7 +68,7 @@ package weave.compiler
 		/**
 		 * This is used to match number tokens.
 		 */		
-		private static const numberRegex:RegExp = /^(0x[0-9A-F]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
+		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 
 		/**
 		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
