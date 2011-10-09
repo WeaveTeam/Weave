@@ -82,7 +82,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#locked">locked</a> : Boolean<div class="summaryTableDescription">[read-only]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#locked">locked</a> : Boolean<div class="summaryTableDescription">[read-only]
+   This is set to true when lock() is called.</div>
 </td><td class="summaryTableOwnerCol">LinkableVariable</td>
 </tr>
 <tr class="hideInheritedProperty">
@@ -113,9 +114,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_locked">_locked</a> : Boolean = false<div class="summaryTableDescription">
-   locked
-   This is set to true when lock() is called.</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_locked">_locked</a> : Boolean = false<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">LinkableVariable</td>
 </tr>
 <tr class="">
@@ -128,7 +127,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_sessionStateWasSet">_sessionStateWasSet</a> : Boolean = false<div class="summaryTableDescription">
-   _sessionStateWasSet
    This is true if the session state has been set at least once.</div>
 </td><td class="summaryTableOwnerCol">LinkableVariable</td>
 </tr>
@@ -213,7 +211,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#isUndefined()">isUndefined</a>():Boolean</div>
 <div class="summaryTableDescription">
-   isUndefined
    </div>
 </td><td class="summaryTableOwnerCol">LinkableVariable</td>
 </tr>
@@ -222,7 +219,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#lock()">lock</a>():void</div>
 <div class="summaryTableDescription">
-   lock
    Call this function when you do not want to allow any more changes to the value of this sessioned property.</div>
 </td><td class="summaryTableOwnerCol">LinkableVariable</td>
 </tr>
@@ -288,7 +284,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#sessionStateEquals()">sessionStateEquals</a>(otherSessionState:*):Boolean</div>
 <div class="summaryTableDescription">
-   valueEquals
    This function is used in setSessionState() to determine if the value has changed or not.</div>
 </td><td class="summaryTableOwnerCol">LinkableVariable</td>
 </tr>
@@ -308,11 +303,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected var _locked:Boolean = false</code><p>
-   locked
-   This is set to true when lock() is called.
-   Subsequent calls to setSessionState() will have no effect.
-   </p></div>
+<code>protected var _locked:Boolean = false</code>
+</div>
 <a name="locked"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -320,7 +312,10 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>locked:Boolean</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<code>locked:Boolean</code>&nbsp;&nbsp;[read-only]<p>
+   This is set to true when lock() is called.
+   Subsequent calls to setSessionState() will have no effect.
+   </p><span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get locked():Boolean</code>
 <br>
@@ -351,7 +346,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected var _sessionStateWasSet:Boolean = false</code><p>
-   _sessionStateWasSet
    This is true if the session state has been set at least once.
    </p></div>
 <a name="_verifier"></a>
@@ -446,7 +440,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function isUndefined():Boolean</code><p>
-   isUndefined
    </p><p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -464,7 +457,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function lock():void</code><p>
-   lock
    Call this function when you do not want to allow any more changes to the value of this sessioned property.
    </p></div>
 <a name="sessionStateEquals()"></a>
@@ -475,7 +467,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected function sessionStateEquals(otherSessionState:*):Boolean</code><p>
-   valueEquals
    This function is used in setSessionState() to determine if the value has changed or not.
    Classes that extend this class may override this function.
    </p><span class="label">Parameters</span>
