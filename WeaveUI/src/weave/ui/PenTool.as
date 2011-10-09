@@ -28,6 +28,7 @@ package weave.ui
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
+	import mx.containers.Canvas;
 	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.managers.CursorManagerPriority;
@@ -38,9 +39,12 @@ package weave.ui
 	import weave.api.core.ILinkableObject;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.StageUtils;
 	import weave.utils.CustomCursorManager;
 	
 	
@@ -49,15 +53,23 @@ package weave.ui
 	 * This is a class that controls the graphical annotations within Weave.
 	 *
 	 * @author jfallon
+	 * @author adufilie
 	 */
 	public class PenTool extends UIComponent implements ILinkableObject, IDisposableObject
 	{
 		public function PenTool()
 		{
-			//Initial setup
-			coords.value = "";
-			lineWidth.value = 2;
-			lineColor.value = 0x000000;
+			percentWidth = 100;
+			percentHeight = 100;
+			
+			// add local event listeners for rollOver/rollOut for changing the cursor
+			addEventListener(MouseEvent.MOUSE_OVER, handleRollOver);
+			addEventListener(MouseEvent.MOUSE_OUT, handleRollOut);
+			// add local event listener for mouse down.  local rather than global because we don't care if mouse was pressed elsewhere
+			addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
+			// add global event listener for mouse move and mouse up because user may move or release outside this display object
+			StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
+			StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
 		}
 		
 		public function dispose():void
@@ -65,13 +77,22 @@ package weave.ui
 			editMode = false; // public setter cleans up event listeners and cursor
 		}
 		
-		public const coords:LinkableString = newLinkableChild( this, LinkableString, handleCoordsChange ); //This is used for sessiong all of the coordinates.
-		public const lineWidth:LinkableNumber = newLinkableChild( this, LinkableNumber, invalidateDisplayList ); //Allows user to change the size of the line.
-		public const lineColor:LinkableNumber = newLinkableChild( this, LinkableNumber, invalidateDisplayList ); //Allows the user to change the color of the line.
-		
 		private var _editMode:Boolean = false; // true when editing
-		private var _drawing:Boolean = false;
+		private var _drawing:Boolean = false; // true when editing and mouse is down
 		private var _coordsArrays:Array = []; // parsed from coords LinkableString
+		
+		/**
+		 * This is used for sessiong all of the coordinates.
+		 */
+		public const coords:LinkableString = registerLinkableChild(this, new LinkableString(''), handleCoordsChange);
+		/**
+		 * Allows user to change the size of the line.
+		 */
+		public const lineWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), invalidateDisplayList);
+		/**
+		 * Allows the user to change the color of the line.
+		 */
+		public const lineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000), invalidateDisplayList);
 		
 		public function get editMode():Boolean
 		{
@@ -81,24 +102,14 @@ package weave.ui
 		{
 			if (_editMode == value)
 				return;
+			
 			_editMode = value;
+			
+			_drawing = false;
 			if (value)
-			{
-				// enable pen
 				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
-				
-				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown );
-				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp );
-				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove );
-			}
 			else
-			{
-				removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown );
-				removeEventListener(MouseEvent.MOUSE_UP, handleMouseUp );
-				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove );
-				
 				CustomCursorManager.removeAllCursors();
-			}
 			invalidateDisplayList();
 		}
 		
@@ -110,12 +121,15 @@ package weave.ui
 		}
 		
 		/**
-		 * This function is called when the tool is active and the left mouse button is clicked.
-		 * It adds the initial mouse position cooardinate to the session state so it knows where
+		 * This function is called when the left mouse button is pressed inside the PenTool UIComponent.
+		 * It adds the initial mouse position coordinate to the session state so it knows where
 		 * to start from for the following lineTo's added to it.
 		 */
-		public function handleMouseDown(event:MouseEvent):void
+		private function handleMouseDown(event:MouseEvent):void
 		{
+			if (!_editMode)
+				return;
+			
 			_drawing = true;
 			// new line in CSV means "moveTo"
 			_coordsArrays.push([mouseX, mouseY]);
@@ -123,33 +137,50 @@ package weave.ui
 			invalidateDisplayList();
 		}
 		
-		public function handleMouseUp(event:MouseEvent):void
+		private function handleMouseUp():void
 		{
+			if (!_editMode)
+				return;
+			
 			_drawing = false;
 			invalidateDisplayList();
 		}
 		
-		/**
-		 * This function is called when the tool is enabled and the mouse is being held down.
-		 * It adds coordinates for lineTo to the session state in the form of ( "l,500,450" ).
-		 */
-		public function handleMouseMove(event:MouseEvent):void
+		private function handleMouseMove():void
 		{
-			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22); //This is a temporary fix, should be changed if there is another way.
-			if( _drawing ){
-				_coordsArrays[_coordsArrays.length - 1].push(mouseX, mouseY);
-				coords.value += '' + mouseX + "," + mouseY + ",";
-				invalidateDisplayList();
+			if (!_editMode)
+				return;
+			
+			if (_drawing)
+			{
+				var x:Number = StandardLib.constrain(mouseX, 0, unscaledWidth);
+				var y:Number = StandardLib.constrain(mouseY, 0, unscaledHeight);
+				
+				var line:Array = _coordsArrays[_coordsArrays.length - 1];
+				// only save new coords if they are different from previous coordinates
+				if (line.length < 2 || line[line.length - 2] != x || line[line.length - 1] != y)
+				{
+					line.push(x, y);
+					coords.value += x + "," + y + ",";
+					invalidateDisplayList();
+				}
 			}
 		}
 		
-		override public function validateSize(recursive:Boolean=false):void
+		private function handleRollOver( e:MouseEvent ):void
 		{
-			if (parent)
-			{
-				width = parent.width;
-				height = parent.height;
-			}
+			if (!_editMode)
+				return;
+			
+			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+		}
+		
+		private function handleRollOut( e:MouseEvent ):void
+		{
+			if (!_editMode)
+				return;
+			
+			CustomCursorManager.removeAllCursors();
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -158,41 +189,27 @@ package weave.ui
 			
 			graphics.clear();
 			
-			if (editMode)
+			if (_editMode)
 			{
 				// draw invisible transparent rectangle to capture mouse events
 				graphics.lineStyle(0, 0, 0);
 				graphics.beginFill(0, 0);
-				graphics.drawRect(0, 0, width, height);
+				graphics.drawRect(0, 0, unscaledWidth, unscaledHeight);
 				graphics.endFill();
-				addEventListener( MouseEvent.MOUSE_OUT, removeCursor );
-				addEventListener( MouseEvent.MOUSE_OVER, addCursor );
 			}
 			
 			graphics.lineStyle(lineWidth.value, lineColor.value);
 			for (var line:int = 0; line < _coordsArrays.length; line++)
 			{
 				var lineArray:Array = _coordsArrays[line];
-				for(var i:int = 0; i < lineArray.length - 1 ; i += 2 )
+				for (var i:int = 0; i < lineArray.length - 1 ; i += 2 )
 				{
-					if( i == 0 ){
+					if ( i == 0 )
 						graphics.moveTo( lineArray[i], lineArray[i+1] );
-					}
-					else {
+					else
 						graphics.lineTo( lineArray[i], lineArray[i+1] );
-					}
 				}
 			}
-		}
-		
-		public function removeCursor( e:MouseEvent ):void
-		{
-			CustomCursorManager.removeAllCursors();
-		}
-		
-		public function addCursor( e:MouseEvent ):void
-		{
-			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
 		}
 		
 		/*************************************************
@@ -215,8 +232,8 @@ package weave.ui
 			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 			
 			// Create a context menu item for printing of a single tool with title and logo
-			_penToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(ENABLE_PEN, destination, drawFunction, "5 drawingMenuItems");
-			_removeDrawingsMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Remove All Drawings", destination, eraseDrawings, "5 drawingMenuItems");
+			_penToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(ENABLE_PEN, destination, handleDrawModeMenuItem, "5 drawingMenuItems");
+			_removeDrawingsMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Remove All Drawings", destination, handleEraseDrawingsMenuItem, "5 drawingMenuItems");
 			_removeDrawingsMenuItem.enabled = false;
 			
 			return true;
@@ -260,7 +277,7 @@ package weave.ui
 		 * All of the necessary event listeners are added and captions are
 		 * dealt with appropriately.
 		 */
-		public static function drawFunction(e:ContextMenuEvent):void
+		private static function handleDrawModeMenuItem(e:ContextMenuEvent):void
 		{
 			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
 			
@@ -294,9 +311,9 @@ package weave.ui
 		{
 			var targetComponent:* = target;
 			
-			while(targetComponent)
+			while (targetComponent)
 			{
-				if(targetComponent is ILinkableContainer)
+				if (targetComponent is ILinkableContainer)
 					return targetComponent as ILinkableContainer;
 				
 				targetComponent = targetComponent.parent;
@@ -309,7 +326,7 @@ package weave.ui
 		 * This function occurs when Remove All Drawings is pressed.
 		 * It removes the PenMouse object and clears all of the event listeners.
 		 */
-		public static function eraseDrawings(e:ContextMenuEvent):void
+		private static function handleEraseDrawingsMenuItem(e:ContextMenuEvent):void
 		{
 			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
 			
