@@ -13,24 +13,28 @@ Learn more about Flex at http://flex.org
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>${title}</title>
+<title></title>
 <script src="AC_OETags.js" language="javascript"></script>
 <style>
-body { margin: 0px}
+body { margin: 0px }
 </style>
 <script language="JavaScript" type="text/javascript">
 <!--
 // -----------------------------------------------------------------------------
 // Globals
 // Major version of Flash required
-var requiredMajorVersion = ${version_major};
+var requiredMajorVersion = 10;
 // Minor version of Flash required
-var requiredMinorVersion = ${version_minor};
+var requiredMinorVersion = 0;
 // Minor version of Flash required
-var requiredRevision = ${version_revision};
+var requiredRevision = 0;
 // -----------------------------------------------------------------------------
 // -->
 </script>
+<script type="text/javascript" src="http://stringencoders.googlecode.com/svn-history/r210/trunk/javascript/base64.js"></script>
+<!--<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js"></script>-->
+<!--<script type="text/javascript" src="http://svgkit.svn.sourceforge.net/viewvc/svgkit/trunk/SVGKit/SVGKit.js?revision=412&content-type=text%2Fplain"></script>-->
+<!--<script src="bar.js" language="JavaScript"></script>-->
 </head>
 
 <body>
@@ -57,13 +61,13 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 	AC_FL_RunContent(
 		"src", "playerProductInstall",
 		"FlashVars", "MMredirectURL="+MMredirectURL+'&MMplayerType='+MMPlayerType+'&MMdoctitle='+MMdoctitle+"",
-		"width", "${width}",
-		"height", "${height}",
+		"width", "100%",
+		"height", "100%",
 		"align", "middle",
-		"id", "${application}",
+		"id", "weave",
 		"quality", "high",
-		"bgcolor", "${bgcolor}",
-		"name", "${application}",
+		"bgcolor", "#869ca7",
+		"name", "weave",
 		"allowScriptAccess","sameDomain",
 		"type", "application/x-shockwave-flash",
 		"pluginspage", "http://www.adobe.com/go/getflashplayer"
@@ -72,15 +76,15 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 	// if we've detected an acceptable version
 	// embed the Flash Content SWF when all tests are passed
 	AC_FL_RunContent(
-			"src", "${swf}",
+			"src", "weave",
 			"flashVars", "",
-			"width", "${width}",
-			"height", "${height}",
+			"width", "100%",
+			"height", "100%",
 			"align", "middle",
-			"id", "${application}",
+			"id", "weave",
 			"quality", "high",
-			"bgcolor", "${bgcolor}",
-			"name", "${application}",
+			"bgcolor", "#869ca7",
+			"name", "weave",
 			"allowScriptAccess","sameDomain",
 			"type", "application/x-shockwave-flash",
 			"pluginspage", "http://www.adobe.com/go/getflashplayer"
@@ -95,15 +99,15 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 </script>
 <noscript>
   	<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
-			id="${application}" width="${width}" height="${height}"
+			id="weave" width="100%" height="100%"
 			codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab">
-			<param name="movie" value="${swf}.swf" />
+			<param name="movie" value="weave.swf" />
 			<param name="quality" value="high" />
-			<param name="bgcolor" value="${bgcolor}" />
+			<param name="bgcolor" value="#869ca7" />
 			<param name="allowScriptAccess" value="sameDomain" />
 			<param name="FlashVars" value="" >
-			<embed src="${swf}.swf" quality="high" bgcolor="${bgcolor}"
-				width="${width}" height="${height}" name="${application}" align="middle"
+			<embed src="weave.swf" quality="high" bgcolor="#869ca7"
+				width="100%" height="100%" name="weave" align="middle"
 				play="true"
 				loop="false"
 				quality="high"

@@ -33,9 +33,11 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
@@ -52,6 +54,7 @@
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
+			import weave.utils.D3Caller;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.plotters.AxisPlotter;
@@ -344,6 +347,60 @@
 				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(this);
 			}
 
+				
+			private function createD3barChart():void
+			{
+				var yDataArray:Array = [];
+				var xTicksArray:Array = [];
+				var yTicksArray:Array = [];
+				var color:String;
+				
+				var bounds:IBounds2D;
+				
+				for each(var key:IQualifiedKey in _plotter.getSortedKeys())
+				{
+					bounds = _plotter.getDataBoundsFromRecordKey(key)[0];
+					color = _plotter.colorColumn.getValueFromKey(key, String) as String;
+					color = color.replace("0x","#");
+					
+					//yDataArray.push("{y: "+bounds.getHeight()+", color: \""+color+'\"}');
+					yDataArray.push({y: bounds.getHeight(), color: color});
+				}
+				
+				for each(var k:IQualifiedKey in xAxisLayer.axisPlotter.keySet.keys)
+				{
+					bounds = xAxisLayer.axisPlotter.getDataBoundsFromRecordKey(k)[0];
+					
+					label= sortAxisLabelFunction(bounds.getXCenter());
+					xTicksArray.push({num: bounds.getXCenter(), str: label });
+				}
+				
+				for each(var qkey:IQualifiedKey in yAxisLayer.axisPlotter.keySet.keys)
+				{
+					bounds = yAxisLayer.axisPlotter.getDataBoundsFromRecordKey(qkey)[0];
+					yTicksArray.push(bounds.getYCenter());
+				}
+								
+				var barData:Object = new Object();
+				barData.yDataArray = yDataArray;
+				barData.xTicks = xTicksArray;
+				barData.xAxisMin = xAxisLayer.axisPlotter.axisLineMinValue.value;
+				barData.xAxisMax = xAxisLayer.axisPlotter.axisLineMaxValue.value;
+				barData.yTicks = yTicksArray;
+				barData.axisMax = yAxisLayer.axisPlotter.axisLineMaxValue.value;
+				barData.axisMin = yAxisLayer.axisPlotter.axisLineMinValue.value;
+				barData.width = width;
+				barData.height = height;
+				barData.marginTop = visualization.marginTop.value;
+				barData.marginBottom = visualization.marginBottom.value;
+				barData.marginLeft = visualization.marginLeft.value;
+				barData.marginRight = visualization.marginRight.value;
+				barData.title = title;
+				barData.yTitle = ColumnUtils.getTitle(_plotter.heightColumns.getObjects()[0] as IAttributeColumn);
+				barData.xTitle = ColumnUtils.getTitle(_plotter.sortColumn);							
+				
+				D3Caller.generateBarChart(barData);
+			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -378,6 +435,9 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
 						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+			<mx:Button label="Generate SVG" click="createD3barChart()"
+					   toolTip="Click here to generate an SVG image from this tool"
+					   />
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
