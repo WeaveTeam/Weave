@@ -94,7 +94,6 @@
 				var fc:FilteredColumn = plotter.internalBinnedColumn.internalColumn as FilteredColumn;
 				initColumnDefaults(fc.internalDynamicColumn);
 				
-				toolTitle.addGroupedCallback(this, updateTitle);
 				plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
 			}
 			
@@ -124,9 +123,10 @@
 				}
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Histogram of " + ColumnUtils.getTitle(plotter.dynamicColorColumn);
 			}
 
@@ -164,7 +164,7 @@
 			
 			private function updateAxisLabels():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 				
 				visualization.setXAxisColumn(plotter.dynamicColorColumn);
 				

@@ -7,6 +7,7 @@ package weave.visualization.plotters
 	import flash.net.URLRequest;
 	
 	import mx.controls.Alert;
+	import mx.core.BitmapAsset;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
@@ -43,73 +44,95 @@ package weave.visualization.plotters
 		
 		private var _tempDataBounds:IBounds2D;
 		private var _tempScreenBounds:IBounds2D;
-		private var _tempBitmapData:BitmapData;
-		private var _tempMatrix:Matrix = new Matrix();
+		private var imageBitmapData:BitmapData;
+		private var translationMatrix:Matrix = new Matrix();
+		
+		[Embed(source='/weave/resources/images/red-circle.png')]
+		private var defaultImageSource:Class;
+		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			_tempDataBounds = dataBounds;
 			_tempScreenBounds = screenBounds;
 			
-			var tempPoint:Point = new Point(dataX.value,dataY.value);
+			if(isNaN(dataX.value) || isNaN(dataY.value) )
+				return;
 			
-			_tempDataBounds.projectPointTo(tempPoint,_tempScreenBounds);
-			
-			if(_tempBitmapData == null)
-				WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL.value),handleImageRequest,handleImageFaultRequest,imageURL.value);
+			if(imageBitmapData == null)
+			{
+				if(imageURL.value)
+					WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL.value),handleImageRequest,handleImageFaultRequest,imageURL.value);
+				else
+				{
+					var image:BitmapAsset = new defaultImageSource() as BitmapAsset;
+					
+					imageBitmapData = image.bitmapData;
+					plotBitmapData(destination);
+				}
+			}
 			else
 			{
-				_tempMatrix.identity();
-				
-				var xOffset:Number=0;
-				var yOffset:Number=0;
-				
-				
-				switch (verticalAlign.value)
-				{
-					default: // default vertical align: top
-					case BitmapText.VERTICAL_ALIGN_TOP: 
-						yOffset = 0;
-						break;
-					case BitmapText.VERTICAL_ALIGN_CENTER: 
-						yOffset = -_tempBitmapData.height/2;
-						break;
-					case BitmapText.VERTICAL_ALIGN_BOTTOM:
-						yOffset = -_tempBitmapData.height;
-						break;
-				}
-				
-				switch (horizontalAlign.value)
-				{
-					default: // default horizontal align: left
-					case BitmapText.HORIZONTAL_ALIGN_LEFT: // x is aligned to left side of text
-						xOffset = 0;
-						break;
-					case BitmapText.HORIZONTAL_ALIGN_CENTER: 
-						xOffset = -_tempBitmapData.width/2;
-						break;
-					case BitmapText.HORIZONTAL_ALIGN_RIGHT: // x is aligned to right side of text
-						xOffset = -_tempBitmapData.width;
-						break;
-				}
-				_tempMatrix.translate(xOffset,yOffset);
-				
-				var scaleWidth:Number = screenBounds.getWidth() / dataBounds.getWidth()/_tempBitmapData.width*dataWidth.value;
-				var scaleHeight:Number = -screenBounds.getHeight() / dataBounds.getHeight()/_tempBitmapData.height*dataHeight.value;
-				if(isNaN(dataWidth.value))
-				{
-					scaleWidth =1;
-				}
-				if(isNaN(dataHeight.value))
-				{
-					scaleHeight = 1;
-				}
-				
-				
-				_tempMatrix.scale(scaleWidth, scaleHeight);
-				
-				_tempMatrix.translate(tempPoint.x,tempPoint.y);
-				destination.draw(_tempBitmapData,_tempMatrix);
+				plotBitmapData(destination);
 			}
+		}
+		
+		private function plotBitmapData(destination:BitmapData):void
+		{
+			var tempPoint:Point = new Point(dataX.value,dataY.value);
+			_tempDataBounds.projectPointTo(tempPoint,_tempScreenBounds);
+			
+			
+			translationMatrix.identity();
+			
+			
+			var xOffset:Number=0;
+			var yOffset:Number=0;
+			
+			
+			switch (verticalAlign.value)
+			{
+				default: // default vertical align: top
+				case BitmapText.VERTICAL_ALIGN_TOP: 
+					yOffset = 0;
+					break;
+				case BitmapText.VERTICAL_ALIGN_CENTER: 
+					yOffset = -imageBitmapData.height/2;
+					break;
+				case BitmapText.VERTICAL_ALIGN_BOTTOM:
+					yOffset = -imageBitmapData.height;
+					break;
+			}
+			
+			switch (horizontalAlign.value)
+			{
+				default: // default horizontal align: left
+				case BitmapText.HORIZONTAL_ALIGN_LEFT: // x is aligned to left side of text
+					xOffset = 0;
+					break;
+				case BitmapText.HORIZONTAL_ALIGN_CENTER: 
+					xOffset = -imageBitmapData.width/2;
+					break;
+				case BitmapText.HORIZONTAL_ALIGN_RIGHT: // x is aligned to right side of text
+					xOffset = -imageBitmapData.width;
+					break;
+			}
+			translationMatrix.translate(xOffset,yOffset);
+			
+			var scaleWidth:Number = _tempScreenBounds.getWidth() / _tempDataBounds.getWidth()/imageBitmapData.width*dataWidth.value;
+			var scaleHeight:Number = -_tempScreenBounds.getHeight() / _tempDataBounds.getHeight()/imageBitmapData.height*dataHeight.value;
+			if(isNaN(dataWidth.value))
+			{
+				scaleWidth =1;
+			}
+			if(isNaN(dataHeight.value))
+			{
+				scaleHeight = 1;
+			}
+			
+			translationMatrix.scale(scaleWidth, scaleHeight);
+			
+			translationMatrix.translate(tempPoint.x,tempPoint.y);
+			destination.draw(imageBitmapData,translationMatrix);
 		}
 		
 		private function handleImageRequest(event:ResultEvent,token:Object=null):void
@@ -119,7 +142,7 @@ package weave.visualization.plotters
 					return;
 			if((token as String)== imageURL.value)
 			{
-			_tempBitmapData = (event.result as Bitmap).bitmapData;
+			imageBitmapData = (event.result as Bitmap).bitmapData;
 			getCallbackCollection(this).triggerCallbacks();
 			}
 			
@@ -133,7 +156,7 @@ package weave.visualization.plotters
 		
 		private function handleImageURLChange():void
 		{
-			_tempBitmapData = null;
+			imageBitmapData = null;
 		}
 	}
 }

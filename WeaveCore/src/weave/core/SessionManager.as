@@ -279,7 +279,25 @@ package weave.core
 			// special cases:
 			if (linkableObject is ILinkableVariable)
 			{
-				(linkableObject as ILinkableVariable).setSessionState(newState);
+				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
+				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
+				{
+					// apply diff
+					var oldState:Object = lv.getSessionState();
+					for (var key:String in newState)
+					{
+						var value:Object = newState[key];
+						//if (typeof(value) == 'object')
+						//	todo: recursive call
+						//else
+						oldState[key] = value;
+					}
+					lv.setSessionState(oldState);
+				}
+				else
+				{
+					lv.setSessionState(newState);
+				}
 				return;
 			}
 			if (linkableObject is ILinkableCompositeObject)
@@ -980,7 +998,7 @@ package weave.core
 				return;
 			}
 			
-			// copySessionState is a function that takes zero parameters and sets the bindable value.
+			// a function that takes zero parameters and sets the bindable value.
 			var setBindableProperty:Function = function():void
 			{
 				var value:Object = linkableVariable.getSessionState();

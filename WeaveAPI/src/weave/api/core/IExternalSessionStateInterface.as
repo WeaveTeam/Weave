@@ -148,5 +148,25 @@ package weave.api.core
 		 * @return The value of the evaluated expression.
 		 */
 		function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*;
+		
+		/**
+		 * This function will add a callback that will be delayed except during a scheduled time each frame.  These grouped callbacks use a
+		 * central trigger list, meaning that if multiple CallbackCollections trigger the same grouped callback before the scheduled time,
+		 * it will behave as if it were only triggered once.  The callback function will not be called recursively as a result of it
+		 * triggering callbacks recursively.
+		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 * @param callback The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
+		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
+		 * @return true if objectPath refers to an existing object in the session state.
+		 */
+		function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean;
+		
+		/**
+		 * This function will remove a callback that was previously added.
+		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 * @param callback The function to remove from the list of callbacks, which must be specified as a String.
+		 * @return true if objectPath refers to an existing object in the session state.
+		 */
+		function removeCallback(objectPath:Array, callback:String):Boolean;
 	}
 }

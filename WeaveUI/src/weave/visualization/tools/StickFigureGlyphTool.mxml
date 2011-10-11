@@ -59,8 +59,6 @@
 						_plotter.theta4
 					);
 				
-				toolTitle.addImmediateCallback(this, updateTitle);
-				
 				_plotter.dataX.addImmediateCallback(this,updateProbeColumns);
 				_plotter.dataY.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta1.addImmediateCallback(this,updateProbeColumns);
@@ -99,12 +97,13 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Stick Figure Plot of " + ColumnUtils.getTitle(_plotter.dataX)
 						+ " -vs- " + ColumnUtils.getTitle(_plotter.dataY)
 						+ ", with angles of " + ColumnUtils.getTitle(_plotter.theta1) 

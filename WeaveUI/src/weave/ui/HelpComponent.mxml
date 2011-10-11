@@ -30,9 +30,8 @@
 	source="@Embed(source='/weave/resources/images/menu_help.png')"
 	width="12"
 	height="12"
-	buttonMode="true"
-	mouseDown="toggleHelpPanel();"
-	filters="{_helpWindow || mouseOver ? [new GlowFilter()] : []}"
+	buttonMode="{showPopup}"
+	mouseDown="if (showPopup) toggleHelpPanel();"
 	rollOver="mouseOver = true; ToolTipManager.showDelay = 0;"
 	rollOut="mouseOver = false; ToolTipManager.showDelay = _tipDelay;"
 	>
@@ -51,7 +50,8 @@
 			
 			[Bindable] private var mouseOver:Boolean = false;
 			
-			
+			[Bindable][Inspectable]
+			public var showPopup:Boolean = true;
 			private var _helpText:Object = new Object();
 			[Inspectable]
 			public function set helpText(value:*):void

@@ -82,9 +82,6 @@
 				for each (var object:ILinkableObject in objects)
 					getCallbackCollection(object).addGroupedCallback(this, updateAxes, true);
 				
-				// BEGIN TEMPORARY SOLUTION
-				
-				// END TEMPORARY SOLUTION
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleXAxisClick);
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
@@ -100,7 +97,6 @@
 				_plotter.lineStyle.weight.defaultValue.value=1;
 				_plotter.shapeBorderThickness.value=2;
 				_plotter.shapeBorderColor.value=0x000000;
-				toolTitle.addImmediateCallback(this, updateTitle);
 			}
 			
 			private function handleXAxisClick():void
@@ -168,7 +164,7 @@
 				if (!parent)
 					return callLater(updateAxes);
 
-				updateTitle();
+				handlePanelTitleChange();
 
 				var columns:Array = _plotter.columns.getObjects();
 				var axisPlotters:Array = getAxisPlotters();
@@ -222,9 +218,10 @@
 				}
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 				{
 					// try to get unique attribute names separated by commas
 					// should probably be unique names for parallel coordinates, single name for line chart with years listed...?
@@ -248,7 +245,7 @@
 			}
 			
 			// add a new axis
-			private function initAxis(name:String, labelVerticalAlign:String = BitmapText.VERTICAL_ALIGN_CENTER):void
+			private function initAxis(name:String, labelVerticalAlign:String = 'center'):void
 			{
 				var newAxisLayer:AxisLayer = visualization.layers.requestObject(name, AxisLayer, false);
 				var newAxisPlotter:SimpleAxisPlotter = newAxisLayer.axisPlotter;

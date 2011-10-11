@@ -8,6 +8,7 @@
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
   <WeaveProperties name="WeaveProperties">
+    <startupJavaScript>console.debug(weave);</startupJavaScript>
     <axisFontBold>true</axisFontBold>
     <axisFontColor>0</axisFontColor>
     <axisFontFamily>Sophia Nubian</axisFontFamily>

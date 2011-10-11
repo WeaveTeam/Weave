@@ -28,6 +28,7 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
 
@@ -291,6 +292,47 @@ package weave.core
 				WeaveAPI.ErrorManager.reportError(e);
 			}
 			return result;
+		}
+		
+		/**
+		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
+		 */		
+		private const _callbackFunctionCache:Object = {};
+		private function getCachedCallbackFunction(callback:String):Function
+		{
+			if (!_callbackFunctionCache[callback])
+			{
+				_callbackFunctionCache[callback] = function():void
+				{
+					ExternalInterface.call(callback);
+				}
+			}
+			return _callbackFunctionCache[callback];
+		}
+		
+		/**
+		 * @see weave.api.core.IExternalSessionStateInterface
+		 */
+		public function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean
+		{
+			var object:ILinkableObject = getObject(objectPath);
+			if (object == null)
+				return false;
+			// always use a grouped callback to avoid messy situations with javascript alert boxes
+			getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+			return true;
+		}
+		
+		/**
+		 * @see weave.api.core.IExternalSessionStateInterface
+		 */
+		public function removeCallback(objectPath:Array, callback:String):Boolean
+		{
+			var object:ILinkableObject = getObject(objectPath);
+			if (object == null)
+				return false;
+			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
+			return true;
 		}
 	}
 }

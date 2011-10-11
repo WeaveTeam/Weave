@@ -75,7 +75,6 @@
 				
 				visualization.topMarginClickCallbacks.addImmediateCallback(this, handleMarginLabelClick);
 				_colorLegendPlotter.dynamicColorColumn.addGroupedCallback(this, updateMarginLabel, true);
-				toolTitle.addGroupedCallback(this, updateTitle, true);
 
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";
@@ -172,12 +171,11 @@
 				else marginLabel.setStyle("textDecoration", "none");
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
-				{
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Bar Chart Legend";
-				}
 			}
 			
 		]]>

@@ -84,7 +84,6 @@
 				invalidateAxes();
 				
 				initColumnDefaults( _plotter.dataX, _plotter.dataY);
-				toolTitle.addImmediateCallback(this, updateTitle);
 				
 				_plotter.xColumn.addImmediateCallback(this,updateProbeColumns);
 				_plotter.yColumn.addImmediateCallback(this,updateProbeColumns);
@@ -121,12 +120,13 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Scatter Plot of " + ColumnUtils.getTitle(_plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(_plotter.yColumn);
 			}
 			
