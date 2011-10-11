@@ -27,11 +27,11 @@
 		</buildCommand>
 		<buildCommand>
 			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
-			<triggers>auto,incremental,</triggers>
+			<triggers>full,incremental,</triggers>
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/Deploy_war.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/Auto-export WAR in Eclipse.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
