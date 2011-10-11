@@ -79,7 +79,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(RadVizPlotter) as RadVizPlotter;
-				getCallbackCollection(_plotter).addGroupedCallback(this, updateTitle);
+				getCallbackCollection(_plotter).addGroupedCallback(this, handlePanelTitleChange);
 				
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableFixedAspectRatio.value = true;
@@ -217,9 +217,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 				{				
 					// try to get unique attribute names separated by commas					
 					var newTitle:String = "RadViz of ";

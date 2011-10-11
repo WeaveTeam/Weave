@@ -100,7 +100,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				initColumnDefaults(plotter.xColumn, plotter.yColumn);
 				
-				toolTitle.addGroupedCallback(this, updateTitle);
 			}
 			
 			override protected function childrenCreated():void
@@ -170,15 +169,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
 			}
 			
 			private function updateAxisLabels():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 				visualization.setXAxisColumn(plotter.xColumn);
 				visualization.setYAxisColumn(plotter.yColumn);
 				

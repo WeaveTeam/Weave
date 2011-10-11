@@ -71,8 +71,6 @@
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";
 				
-				toolTitle.addImmediateCallback(this, updateTitle, null, true);
-
 				visualization.marginBottom.value = 5;
 				visualization.marginTop.value    = DEFAULT_MARGIN_TOP;
 				visualization.marginLeft.value   = 5;
@@ -173,9 +171,10 @@
 					marginLabel.setStyle("textDecoration", "none");
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Color Legend";
 			}
 			

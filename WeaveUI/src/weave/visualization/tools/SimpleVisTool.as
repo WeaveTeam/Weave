@@ -188,18 +188,6 @@ package weave.visualization.tools
 			invalidateDisplayList();
 		}
 		
-		public const toolTitle:LinkableString = newLinkableChild(this, LinkableString, handleToolTitleChange);
-		private function handleToolTitleChange():void
-		{
-			if (toolTitle.value == '')
-				toolTitle.value = null;
-
-			if (toolTitle.value != null)
-			{
-				title = toolTitle.value;
-			}
-		}
-
 		private const MIN_TOOL_WIDTH:int  = 250;
 		private const MIN_TOOL_HEIGHT:int = 250;
 		

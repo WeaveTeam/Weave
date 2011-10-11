@@ -100,7 +100,6 @@
 				_plotter.lineStyle.weight.defaultValue.value=1;
 				_plotter.shapeBorderThickness.value=2;
 				_plotter.shapeBorderColor.value=0x000000;
-				toolTitle.addImmediateCallback(this, updateTitle);
 			}
 			
 			private function handleXAxisClick():void
@@ -168,7 +167,7 @@
 				if (!parent)
 					return callLater(updateAxes);
 
-				updateTitle();
+				handlePanelTitleChange();
 
 				var columns:Array = _plotter.columns.getObjects();
 				var axisPlotters:Array = getAxisPlotters();
@@ -222,9 +221,10 @@
 				}
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 				{
 					// try to get unique attribute names separated by commas
 					// should probably be unique names for parallel coordinates, single name for line chart with years listed...?

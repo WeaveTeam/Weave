@@ -120,8 +120,6 @@
 				
 				initColumnDefaults(plotter.xColumn, plotter.yColumn, colorColumn);
 				
-				toolTitle.addImmediateCallback(this, updateTitle);
-				
 				plotter.xColumn.addGroupedCallback(this, updateProbeColumns);
 				plotter.yColumn.addGroupedCallback(this, updateProbeColumns);
 				colorColumn.addGroupedCallback(this, updateProbeColumns);
@@ -389,12 +387,13 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Scatter Plot of " + ColumnUtils.getTitle(plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(plotter.yColumn);
 			}
 			

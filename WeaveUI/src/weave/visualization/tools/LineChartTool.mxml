@@ -106,8 +106,6 @@
 				if (columnsToInit.length > 0)
 					initColumnDefaults.apply(null, columnsToInit);
 				
-				toolTitle.addImmediateCallback(this, updateTitle);
-				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
 				_plotter.xValues.addGroupedCallback(this, updateFilterText);
 				
@@ -250,7 +248,7 @@
 			
 			private function updateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 				
 				var columns:Array = _plotter.columns.getObjects();
 				
@@ -295,9 +293,10 @@
 				yAxisLayer.axisPlotter.updateLabels();			
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 				{
 					var columns:Array = _plotter.columns.getObjects();
 					if (columns.length == 0)
