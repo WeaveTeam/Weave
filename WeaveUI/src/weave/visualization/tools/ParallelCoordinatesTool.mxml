@@ -245,7 +245,7 @@
 			}
 			
 			// add a new axis
-			private function initAxis(name:String, labelVerticalAlign:String = BitmapText.VERTICAL_ALIGN_CENTER):void
+			private function initAxis(name:String, labelVerticalAlign:String = 'center'):void
 			{
 				var newAxisLayer:AxisLayer = visualization.layers.requestObject(name, AxisLayer, false);
 				var newAxisPlotter:SimpleAxisPlotter = newAxisLayer.axisPlotter;
