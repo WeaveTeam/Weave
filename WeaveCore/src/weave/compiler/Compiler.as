@@ -457,6 +457,10 @@ package weave.compiler
 		 */
 		private function compileTokens(tokens:Array, allowEmptyExpression:Boolean):ICompiledObject
 		{
+			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
+			if (debug)
+				trace("compiling tokens", tokens.join(' '));
+
 			var i:int;
 			var token:String;
 			
@@ -486,15 +490,6 @@ package weave.compiler
 			// next step: handle operators ".[]{}()"
 			compileBracketsAndProperties(tokens);
 
-			// -------------------
-
-			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
-			if (debug)
-				trace("compiling tokens", tokens.join(' '));
-			
-			// next step: handle infix '.'
-			// TODO
-			
 			// next step: compile constants and variable names
 			for (i = 0; i < tokens.length; i++)
 			{
@@ -888,11 +883,15 @@ package weave.compiler
 				if (index >= 0)
 				{
 					// compile the tokens before the comma as a parameter
+					if (index == 0 && separator == ',')
+						throw new Error("Expecting expression before comma");
 					compiledObjects.push(compileTokens(tokens.splice(0, index), separator == ';'));
 					tokens.shift(); // remove comma
 				}
 				else
 				{
+					if (tokens.length == 0 && separator == ',')
+						throw new Error("Expecting expression after comma");
 					// compile remaining group of tokens as a parameter
 					compiledObjects.push(compileTokens(tokens, separator == ';'));
 					break;
