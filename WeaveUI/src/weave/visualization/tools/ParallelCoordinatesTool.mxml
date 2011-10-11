@@ -82,9 +82,6 @@
 				for each (var object:ILinkableObject in objects)
 					getCallbackCollection(object).addGroupedCallback(this, updateAxes, true);
 				
-				// BEGIN TEMPORARY SOLUTION
-				
-				// END TEMPORARY SOLUTION
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleXAxisClick);
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
