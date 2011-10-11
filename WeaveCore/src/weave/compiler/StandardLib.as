@@ -401,7 +401,7 @@ package weave.compiler
 			
 			for(x = graphmin; x < graphmax + 0.5*d; x += d)
 			{
-				values[i++] = x;
+				values[i++] = roundSignificant(x); // this fixes values like x = 0.6000000000000001 that may occur from x += d
 			}
 			
 			return values;
