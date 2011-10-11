@@ -1,6 +1,6 @@
 <!-- 
-To use this build script in Eclipse, first set the value of WEAVE_WEBAPPS to your tomcat/webapps
-directory. Then go to the Project Properties for WeaveServices, then Builders and add this as a builder.
+To use this build script in Eclipse, first set the environment variable TOMCAT_HOME to your tomcat path.
+Then go to the Project Properties for WeaveServices, then Builders and add this as a builder.
 
 Make sure you set the Target for "After AutoBuild" to be the "dist" target. 
 
@@ -9,11 +9,12 @@ Whenever you build WeaveServices, this will automatically export the WAR file.
 -->
 
 <project name="WeaveServices" default="dist">
-	<property name="WEAVE_WEBAPPS" value="<tomcat>/webapps"/>	
+	<property environment="env"/>
+	<property name="TOMCAT_HOME" value="${env.TOMCAT_HOME}"/>
     <target name="dist">
     	<echo message="Deploying WeaveServices..."/>	
         <mkdir dir="build/jar"/>
-        <war destfile="${WEAVE_WEBAPPS}/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
+        <war destfile="${TOMCAT_HOME}/webapps/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
             <lib dir="lib/"/>
             <classes dir="build/classes"/>
             <webinf dir="WebContent/WEB-INF"/>
