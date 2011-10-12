@@ -317,10 +317,8 @@
 				{
 					try
 					{
-						var encodedTitle:String = compiler.encodeString(panelTitle.value, '`');
-						// unescape '{'
-						encodedTitle = encodedTitle.split('\\{').join('{');
-						_panelTitleFunction = compiler.compileToFunction(encodedTitle, null, true, true);
+						var str:String = '`' + panelTitle.value.split('`').join('\\`') + '`';
+						_panelTitleFunction = compiler.compileToFunction(str, null, true, true);
 						evaluatePanelTitle();
 					}
 					catch (e:Error)
