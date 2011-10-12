@@ -169,7 +169,9 @@ public class DatabaseConfig
 		Connection conn = getConnection();
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		// add (possibly) missing columns
-		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString()})
+		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString(), 
+											  AttributeColumnInfo.Metadata.NUMBER.toString(),
+											  AttributeColumnInfo.Metadata.STRING.toString()})
 		{
 			try
 			{

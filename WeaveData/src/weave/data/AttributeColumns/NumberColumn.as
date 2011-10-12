@@ -31,6 +31,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.utils.EquationColumnLib;
 	
@@ -60,6 +61,12 @@ package weave.data.AttributeColumns
 		protected var _keyToNumericDataMapping:Dictionary = new Dictionary();
 
 		/**
+		 * This object maps keys to the string values of numeric data after 
+		 * applying the compiler expressions in NUMBER and STRING metadata fields.
+		 */
+		protected var _keyToStringDataMapping:Dictionary = new Dictionary();
+		
+		/**
 		 * _uniqueKeys
 		 * This is a list of unique keys this column defines values for.
 		 */
@@ -77,7 +84,8 @@ package weave.data.AttributeColumns
 		{
 			return _keyToNumericDataMapping[key] != undefined;
 		}
-
+		
+		private static const compiler:Compiler = new Compiler();
 		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
 		{
 			var index:int;
@@ -97,9 +105,26 @@ package weave.data.AttributeColumns
 			{
 				key = keys[index] as IQualifiedKey;
 				var n:Number = Number(numericData[index]);
+				
 				if (isFinite(n))
 				{
-					_keyToNumericDataMapping[key] = n;
+					var compiledMethod:Function;
+					var numberFormatter:String = getMetadata(AttributeColumnMetadata.NUMBER);
+					
+					if (numberFormatter)
+					{
+						compiledMethod = compiler.compileToFunction(numberFormatter, {"number" : n}, true, false);
+						_keyToNumericDataMapping[key] = compiledMethod.apply();
+					}
+					else
+						_keyToNumericDataMapping[key] = n;
+					
+					var stringFormatter:String = getMetadata(AttributeColumnMetadata.STRING);
+					if (stringFormatter)
+					{
+						compiledMethod = compiler.compileToFunction(numberFormatter, {"number" : n}, true, false);
+						_keyToStringDataMapping[key] = compiledMethod.apply();
+					}
 				}
 			}
 
@@ -113,39 +138,34 @@ package weave.data.AttributeColumns
 		}
 
 		/**
-		 * numberFormatter:
-		 * the NumberFormatter to use when generating a string from a number
-		 */
-		private var _numberFormatter:NumberFormatter = new NumberFormatter();
-		public function get numberFormatter():NumberFormatter
-		{
-			return _numberFormatter;
-		}
-		public function set numberFormatter(value:NumberFormatter):void
-		{
-			_numberFormatter = value;
-		}
-
-		/**
 		 * maxDerivedSignificantDigits:
 		 * maximum number of significant digits to return when calling deriveStringFromNorm()
 		 */		
 		public var maxDerivedSignificantDigits:uint = 10;
 		
-		// get a string value for a given numeric value
+		/**
+		 * Get a string value for a given number.
+		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
-			if (numberFormatter == null)
-				return number.toString();
-			else
+			var string:String = _keyToStringDataMapping[number] as String;
+			if (string)
 			{
-				return numberFormatter.format(
-					StandardLib.roundSignificant(
-							number,
-							maxDerivedSignificantDigits
-						)
-					);
+				var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
+				if (stringFormat)
+				{
+					var compiledMethod:Function = compiler.compileToFunction(stringFormat, {"number" : number}, true);
+					return compiledMethod.apply();
+				}
+				else
+					return string;						
 			}
+				
+
+			string = StandardLib.formatNumber(number);
+			if (isFinite(number))
+				_keyToStringDataMapping[number] = string;
+			return string;
 		}
 
 		/**

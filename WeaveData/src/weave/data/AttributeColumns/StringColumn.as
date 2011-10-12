@@ -19,8 +19,6 @@
 
 package weave.data.AttributeColumns
 {
-	import __AS3__.vec.Vector;
-	
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -29,6 +27,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.Compiler;
 	import weave.core.weave_internal;
 	import weave.utils.VectorUtils;
 	
@@ -85,6 +84,13 @@ package weave.data.AttributeColumns
 		 * This effectively stores the column data.
 		 */
 		private var _keyToUniqueStringIndexMapping:Dictionary = new Dictionary();
+
+		/**
+		 * This maps keys to index values in the _uniqueStrings vector.
+		 * This effectively stores the column data after applying the function 
+		 * from the NUMBER metadata.
+		 */
+		private var _keyToNumberMapping:Dictionary = new Dictionary();
 		
 		public function setRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>):void
 		{
@@ -139,20 +145,53 @@ package weave.data.AttributeColumns
 				stringToIndexMap[_uniqueStrings[index] as String] = index;
 			for (key in dataMap)
 				_keyToUniqueStringIndexMapping[key] = stringToIndexMap[dataMap[key] as String];
-
+			
+			// save new internal keyToNumber
+			var numberFormatter:String = getMetadata(AttributeColumnMetadata.NUMBER);
+			if (numberFormatter)
+			{
+				for (key in _keyToUniqueStringIndexMapping)
+				{
+					var uniqueStr:String = _keyToUniqueStringIndexMapping[key] as String;
+					var compiledMethod:Function = compiler.compileToFunction(numberFormatter, {"string" : uniqueStr}, true);
+					_keyToNumberMapping[key] = compiledMethod.apply();
+				}
+			}
 			triggerCallbacks();
 		}
+		private static const compiler:Compiler = new Compiler();
 		
 		// find the closest string value at a given normalized value
 		public function deriveStringFromNumber(number:Number):String
 		{
-			number = Math.round(number);
-			if (0 <= number && number < _uniqueStrings.length)
-				return _uniqueStrings[number];
+			var numberFormat:String = getMetadata(AttributeColumnMetadata.NUMBER);
+			if (numberFormat)
+			{
+				var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
+				if (stringFormat)
+				{
+					var uniqueStr:String = '';
+					number = Math.round(number);
+					if (0 <= number && number < _uniqueStrings.length)
+						uniqueStr = _uniqueStrings[number];
+					
+					var compiledMethod:Function = compiler.compileToFunction(numberFormat, {"string" : uniqueStr}, true);
+					var evaluatedNumber:Number = compiledMethod.apply() as Number;
+					compiledMethod = compiler.compileToFunction(stringFormat, {"number" : evaluatedNumber}, true);
+					return compiledMethod.apply();
+				}
+				return '';
+			}
 			else
 			{
-				//return "Undefined at "+number;
-				return "";
+				number = Math.round(number);
+				if (0 <= number && number < _uniqueStrings.length)
+					return _uniqueStrings[number];
+				else
+				{
+					//return "Undefined at "+number;
+					return '';
+				}
 			}
 		}
 		
@@ -161,7 +200,13 @@ package weave.data.AttributeColumns
 			var index:Number = _keyToUniqueStringIndexMapping[key];
 			
 			if (dataType == Number)
+			{
+				var numericValue:Number = _keyToNumberMapping[key] as Number;
+				if (numericValue)
+					return numericValue;
+				
 				return index;
+			}
 			
 			if (dataType == null)
 				dataType = String;
