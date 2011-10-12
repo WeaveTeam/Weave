@@ -1528,7 +1528,7 @@ public class SQLUtils
 	 * @throws SQLException If the query fails.
 	 */
 	@SuppressWarnings("unchecked")
-	public static void deleteRows(Connection conn, String schemaName, String tableName, Map<String,String> whereParams) throws SQLException
+	public static void deleteRows(Connection conn, String schemaName, String tableName, Map<String,Object> whereParams) throws SQLException
 	{
 		CallableStatement cstmt = null;
 		String query = "";
@@ -1537,7 +1537,7 @@ public class SQLUtils
 		{
 			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schemaName, tableName) + " WHERE ";
 			
-			Entry<String,String>[] params = whereParams.entrySet().toArray(new Entry[0]);
+			Entry<String,Object>[] params = whereParams.entrySet().toArray(new Entry[0]);
 
 			for (int i = 0; i < params.length; i++)
 			{
@@ -1549,7 +1549,7 @@ public class SQLUtils
 			cstmt = conn.prepareCall(query);
 			
 			for (int i = 0; i < params.length; i++)
-				cstmt.setString(i + 1, params[i].getValue());
+				cstmt.setObject(i + 1, params[i].getValue());
 			
 			cstmt.execute();
 		}

@@ -395,7 +395,7 @@ public class DatabaseConfig
 		try
 		{
 			Connection conn = getConnection();
-			Map<String,String> whereParams = new HashMap<String,String>();
+			Map<String,Object> whereParams = new HashMap<String,Object>();
 			whereParams.put("name", name);
 			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
 		}
@@ -410,7 +410,7 @@ public class DatabaseConfig
 		try
 		{
 			Connection conn = getConnection();
-			Map<String,String> whereParams = new HashMap<String,String>();
+			Map<String,Object> whereParams = new HashMap<String,Object>();
 			whereParams.put("dataTable", name);
 			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.dataConfigTable, whereParams);
 		}

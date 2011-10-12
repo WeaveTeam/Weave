@@ -169,8 +169,16 @@ public class SQLConfig
 	{
 		return connectionConfig.getConnectionNames();
 	}
-/* Private methods which handle the barebones of the extended attribute value system. */
+/* Private methods which handle the barebones of the entity-attribute-value system. */
         private List<Integer> getFromKeyVals(Map<String,String> constraints) throws RemoteException
+        {
+            return getFromKeyValsForTable(sqltable_public, constraints);
+        }
+        private List<Integer> getFromKeyValsPrivate(Map<String,String> constraints) throws RemoteException
+        {
+            return getFromKeyValsForTable(sqltable_private, constraints);
+        }
+        private List<Integer> getFromKeyValsForTable(String table, Map<String,String> constraints) throws RemoteException
         {
             List<Integer> ids = new LinkedList<Integer>();
             try
@@ -186,7 +194,7 @@ public class SQLConfig
                     crossRowArgs.add(colvalpair);
                 } 
 
-                raw_ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, sqltable_public, "id", crossRowArgs);
+                raw_ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, table, "id", crossRowArgs);
                 for (String str_id : raw_ids)
                 {
                     Integer id = Integer.parseInt(str_id);
@@ -201,7 +209,14 @@ public class SQLConfig
         }
         private Map<String,String> getProperties(Integer id, List<String> properties)
         {
-        //    String query = String.format("SELECT property,value FROM %s WHERE %s %s %s");
+                List<Integer> ids = new LinkedList<Integer>();
+                Map<Integer,Map<String,String>> retval;
+                ids.add(id);
+                retval = getProperties(ids, properties);
+                return retval.get(id);
+        }
+        private Map<Integer,Map<String,String>> getProperties(List<Integer> ids, List<String> properties)
+        {
                 return null;
         }
         private void setProperty(Integer id, String property, String value) throws RemoteException 
@@ -224,8 +239,7 @@ public class SQLConfig
             {
                 table = sqltable_private;
             }
-            //TODO: Fix deleteRows to accept <String,Object>
-            //SQLUtils.deleteRows(getConnection(), dbInfo.schema, table, delete_args);
+            SQLUtils.deleteRows(getConnection(), dbInfo.schema, table, delete_args);
             SQLUtils.insertRow(getConnection(), dbInfo.schema, table, insert_args);
             }
             catch (Exception e)
@@ -258,52 +272,35 @@ public class SQLConfig
 /* ** END** Private methods which handle the barebones of the extended attribute value system. */
 	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
 	{
-		List<String> names = new LinkedList<String>();
-		List<Map<String,String>> sqlRes;
-		try
-		{
-			Connection conn = getConnection();
-			if (connectionName == null)
-			{
-					String[] cols = {"t1.value"};
-					String qTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, sqltable_public);
-					String[] tables = {qTable, qTable};
-					String[] join_cols = {"t1.id", "t2.id"};
-					HashMap<String,String> whereClauses = new HashMap<String,String>();
-					whereClauses.put("t2.property", "dataType");
-					whereClauses.put("t2.value", "geometry");
-					whereClauses.put("t1.property", "name");
-					sqlRes = SQLUtils.joinedSelectQuery(getConnection(), new String[]{"t1","t2"}, cols, tables, join_cols, whereClauses);
-					
-					for (Map<String,String> row : sqlRes)
-					{
-						names.add(row.get("value"));
-					}
-			}
-			else
-			{
-				Map<String, String> whereParams = new HashMap<String, String>();
-				whereParams.put(GeometryCollectionInfo.CONNECTION, connectionName);
+            List<String> names = new LinkedList<String>();
+            try
+            {
+                HashMap<String,String> geom_constraints = new HashMap<String,String>();
+                Set<Integer> geom_ids = null;
+                Set<Integer> conn_ids = null;
 
-				List<String> selectColumns = Arrays.asList(GeometryCollectionInfo.NAME.toString());
-				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(
-						getConnection(), selectColumns, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
+                geom_constraints.put("property", "dataType");
+                geom_constraints.put("value", "geometry");
+                geom_ids = new HashSet(getFromKeyVals(geom_constraints));
 
-				HashSet<String> hashSet = new HashSet<String>();
-				for (Map<String, String> mapping : columnRecords)
-				{
-					String geomName = mapping.get(GeometryCollectionInfo.NAME.toString());
-					hashSet.add(geomName);
-				}
-				names = new Vector<String>(hashSet);
-			}
-			Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-			return names;
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Unable to get GeometryCollection names", e);
-		}
+                if (connectionName != null)
+                {
+                    HashMap<String,String> conn_constraints = new HashMap<String,String>();
+
+                    conn_constraints.put("property", "connection");
+                    conn_constraints.put("value", connectionName);
+
+                    conn_ids = new HashSet(getFromKeyVals(conn_constraints));
+                    geom_ids.retainAll(conn_ids);
+                }
+                
+                
+            }
+            catch (Exception e)
+            {
+                throw new RemoteException("Unable to get GeometryCollection names", e);
+            }
+            return names;
 	}
 
 	public List<String> getDataTableNames(String connectionName) throws RemoteException
@@ -408,7 +405,7 @@ public class SQLConfig
 		try
 		{
 			Connection conn = getConnection();
-			Map<String,String> whereParams = new HashMap<String,String>();
+			Map<String,Object> whereParams = new HashMap<String,Object>();
 			whereParams.put("name", name);
 			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
 		}
@@ -423,7 +420,7 @@ public class SQLConfig
 		try
 		{
 			Connection conn = getConnection();
-			Map<String,String> whereParams = new HashMap<String,String>();
+			Map<String,Object> whereParams = new HashMap<String,Object>();
 			whereParams.put("dataTable", name);
 			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.dataConfigTable, whereParams);
 		}
