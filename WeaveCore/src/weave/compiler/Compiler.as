@@ -362,7 +362,7 @@ package weave.compiler
 			var c:String = expression.charAt(index);
 			
 			// handle quoted string
-			if (c == '"' || c == "'")
+			if (c == '"' || c == "'" || c == '`')
 			{
 				var quote:String = c;
 				// index points to the opening quote
@@ -472,7 +472,7 @@ package weave.compiler
 					continue;
 				
 				// if the token starts with a quote, treat it as a String
-				if (str.charAt(0) == '"' || str.charAt(0) == "'")
+				if (str.charAt(0) == '"' || str.charAt(0) == "'" || str.charAt(0) == '`')
 				{
 					tokens[i] = compileStringLiteral(str);
 				}
@@ -656,9 +656,8 @@ package weave.compiler
 		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
 		 * @return The given String formatted for ActionScript.
 		 */
-		public function encodeString(string:String, doubleQuote:Boolean = true):String
+		public function encodeString(string:String, quote:String = '"'):String
 		{
-			var quote:String = doubleQuote ? '"' : "'";
 			var result:Array = new Array(string.length);
 			for (var i:int = 0; i < string.length; i++)
 			{
@@ -666,7 +665,7 @@ package weave.compiler
 				var esc:String = chr == quote ? quote : ENCODE_LOOKUP[chr];
 				result[i] = esc ? '\\' + esc : chr;
 			}
-			return quote + result.join("") + quote;
+			return quote + result.join('') + quote;
 		}
 		
 		/**
@@ -674,11 +673,11 @@ package weave.compiler
 		 * @param encodedString A quoted String with special characters escaped using ActionScript string literal format.
 		 * @return The compiled string.
 		 */
-		private function compileStringLiteral(quotedString:String):ICompiledObject
+		private function compileStringLiteral(encodedString:String):ICompiledObject
 		{
 			// remove quotes
-			var quote:String = quotedString.charAt(0);
-			var input:String = quotedString.substr(1, quotedString.length - 2);
+			var quote:String = encodedString.charAt(0);
+			var input:String = encodedString.substr(1, encodedString.length - 2);
 			input = input.split(quote + quote).join(quote); // handle doubled quote escape sequences
 			var output:String = "";
 			var searchIndex:int = 0;
@@ -688,14 +687,15 @@ package weave.compiler
 				var escapeIndex:int = input.indexOf("\\", searchIndex);
 				if (escapeIndex < 0)
 					escapeIndex = input.length;
-				var bracketIndex:int = input.indexOf("{", searchIndex);
+				// only support expressions inside { } if the string literal is surrounded by the '`' quote symbol.
+				var bracketIndex:int = quote == '`' ? input.indexOf("{", searchIndex) : -1;
 				if (bracketIndex < 0)
 					bracketIndex = input.length;
 				
 				if (bracketIndex == escapeIndex) // handle end of string
 				{
 					output += input.substring(searchIndex);
-					input = encodeString(output, quote == '"'); // convert to preferred syntax
+					input = encodeString(output, quote); // use original quote symbol
 					
 					var compiledString:CompiledConstant = new CompiledConstant(input, output);
 					
