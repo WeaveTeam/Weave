@@ -101,29 +101,24 @@ package weave.data.AttributeColumns
 			_keyToNumericDataMapping = new Dictionary();
 			
 			// save a mapping from keys to data
+			var stringFormatter:String = getMetadata(AttributeColumnMetadata.STRING);
+			var compiledMethod:Function = null;
+			if (stringFormatter)
+			{
+				compiledMethod = compiler.compileToFunction("number=arguments[0];" + stringFormatter, null, true, false); 
+			}
+			
 			for (index = keys.length - 1; index >= 0; index--)
 			{
 				key = keys[index] as IQualifiedKey;
 				var n:Number = Number(numericData[index]);
 				
+				_keyToNumericDataMapping[key] = n;
 				if (isFinite(n))
 				{
-					var compiledMethod:Function;
-					var numberFormatter:String = getMetadata(AttributeColumnMetadata.NUMBER);
-					
-					if (numberFormatter)
-					{
-						compiledMethod = compiler.compileToFunction(numberFormatter, {"number" : n}, true, false);
-						_keyToNumericDataMapping[key] = compiledMethod.apply();
-					}
-					else
-						_keyToNumericDataMapping[key] = n;
-					
-					var stringFormatter:String = getMetadata(AttributeColumnMetadata.STRING);
 					if (stringFormatter)
 					{
-						compiledMethod = compiler.compileToFunction(numberFormatter, {"number" : n}, true, false);
-						_keyToStringDataMapping[key] = compiledMethod.apply();
+						_keyToStringDataMapping[key] = compiledMethod.call(null, n);
 					}
 				}
 			}
@@ -148,24 +143,14 @@ package weave.data.AttributeColumns
 		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
-			var string:String = _keyToStringDataMapping[number] as String;
-			if (string)
+			var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
+			if (stringFormat)
 			{
-				var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
-				if (stringFormat)
-				{
-					var compiledMethod:Function = compiler.compileToFunction(stringFormat, {"number" : number}, true);
-					return compiledMethod.apply();
-				}
-				else
-					return string;						
+				var compiledMethod:Function = compiler.compileToFunction("number=arguments[0];" + stringFormat, null, true);
+				return compiledMethod.call(null, number);
 			}
-				
 
-			string = StandardLib.formatNumber(number);
-			if (isFinite(number))
-				_keyToStringDataMapping[number] = string;
-			return string;
+			return StandardLib.formatNumber(number);
 		}
 
 		/**

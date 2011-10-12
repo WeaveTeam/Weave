@@ -143,20 +143,23 @@ package weave.data.AttributeColumns
 			var stringToIndexMap:Object = new Object();
 			for (index = 0; index < _uniqueStrings.length; index++)
 				stringToIndexMap[_uniqueStrings[index] as String] = index;
-			for (key in dataMap)
-				_keyToUniqueStringIndexMapping[key] = stringToIndexMap[dataMap[key] as String];
 			
-			// save new internal keyToNumber
 			var numberFormatter:String = getMetadata(AttributeColumnMetadata.NUMBER);
+			var compiledMethod:Function = null;
 			if (numberFormatter)
+				compiledMethod = compiler.compileToFunction("string=arguments[0]; " + numberFormatter, null, true);
+			for (key in dataMap)
 			{
-				for (key in _keyToUniqueStringIndexMapping)
-				{
-					var uniqueStr:String = _keyToUniqueStringIndexMapping[key] as String;
-					var compiledMethod:Function = compiler.compileToFunction(numberFormatter, {"string" : uniqueStr}, true);
-					_keyToNumberMapping[key] = compiledMethod.apply();
-				}
+				var str:String = dataMap[key] as String;
+				index = stringToIndexMap[str];
+				_keyToUniqueStringIndexMapping[key] = index;
+				
+				if (numberFormatter)
+					_keyToNumberMapping[key] = compiledMethod.call(null, str);
+				else
+					_keyToNumberMapping[key] = index;
 			}
+			
 			triggerCallbacks();
 		}
 		private static const compiler:Compiler = new Compiler();
@@ -170,15 +173,14 @@ package weave.data.AttributeColumns
 				var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
 				if (stringFormat)
 				{
-					var uniqueStr:String = '';
-					number = Math.round(number);
-					if (0 <= number && number < _uniqueStrings.length)
-						uniqueStr = _uniqueStrings[number];
-					
-					var compiledMethod:Function = compiler.compileToFunction(numberFormat, {"string" : uniqueStr}, true);
-					var evaluatedNumber:Number = compiledMethod.apply() as Number;
-					compiledMethod = compiler.compileToFunction(stringFormat, {"number" : evaluatedNumber}, true);
-					return compiledMethod.apply();
+//					var uniqueStr:String = '';
+//					number = Math.round(number);
+//					if (0 <= number && number < _uniqueStrings.length)
+//						uniqueStr = _uniqueStrings[number];
+//					
+					trace("number:", number);
+					var compiledMethod:Function = compiler.compileToFunction("number=arguments[0];" + stringFormat, null, true);
+					return compiledMethod.call(null, number);
 				}
 				return '';
 			}
@@ -201,11 +203,8 @@ package weave.data.AttributeColumns
 			
 			if (dataType == Number)
 			{
-				var numericValue:Number = _keyToNumberMapping[key] as Number;
-				if (numericValue)
-					return numericValue;
-				
-				return index;
+				var numericValue:Number = _keyToNumberMapping[key];
+				return numericValue;
 			}
 			
 			if (dataType == null)
