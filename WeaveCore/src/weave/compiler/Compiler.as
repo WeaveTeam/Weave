@@ -543,12 +543,12 @@ package weave.compiler
 				if (right < 0 || left < 1 || left + 1 == right || right + 1 == tokens.length)
 					break;
 				
-				// false branch includes everything after ':' and up until the next '?', ':', or ','
+				// false branch includes everything after ':' and up until the next ?:,;
 				var end:int = right + 2;
 				while (end < tokens.length)
 				{
 					token = tokens[end] as String;
-					if (token && '?:,'.indexOf(token) >= 0)
+					if (token && '?:,;'.indexOf(token) >= 0)
 						break;
 					end++;
 				}
