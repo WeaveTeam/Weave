@@ -81,7 +81,7 @@
 				visualization.marginLeft.value   = 80;
 				visualization.marginRight.value  = 10;
 				
-				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange);
+				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
 				visualization.enableXAxisProbing = true;
 
 				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
@@ -97,9 +97,14 @@
 				plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
 			}
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Bins"];
+				return ["bin data"];
 			}
 			override public function getSelectableAttributes():Array
 			{
