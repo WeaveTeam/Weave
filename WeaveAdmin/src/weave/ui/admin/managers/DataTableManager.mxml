@@ -93,6 +93,7 @@
 		<![CDATA[
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
+			import flash.utils.setTimeout;
 			
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
@@ -121,7 +122,6 @@
 			import weave.services.WeaveDataServlet;
 			import weave.services.beans.AttributeColumnDataWithKeys;
 			import weave.services.beans.AttributeColumnInfo;
-			import weave.ui.PopupDialog;
 			import weave.ui.admin.ColumnMetadataPopup;
 			import weave.ui.admin.DublinCoreEntryComponent;
 			import weave.ui.admin.WizardPanel;
@@ -176,10 +176,15 @@
 					// ask user to confirm
 					PopUpUtils.confirm(
 						this,
-						"Leave current DataTable",
-						'Are you sure you want to leave the current DataTable? Any unsaved changes will be lost.',
-						leave
+						"Discard changes",
+						'Discard unsaved changes?',
+						leave, cancel,
+						'Discard', 'Cancel'
 					);
+					function cancel():void
+					{
+						treeWithSearch.tree.selectedItem = null;
+					}
 					function leave():void
 					{
 						changeSelectedTreeItem();
@@ -282,7 +287,8 @@
 						this,
 						"Confirm overwrite",
 						'Overwrite DataTable entry "'+dataTableName+'"?',
-						overwrite
+						overwrite, null,
+						'Overwrite', 'Cancel'
 					);
 				function overwrite():void
 				{
@@ -301,7 +307,8 @@
 						this,
 						"Confirm delete",
 						'Delete DataTable entry "'+dataTableName+'"?',
-						del
+						del, null,
+						'Delete', 'Cancel'
 					);
 				
 				function del():void
@@ -530,7 +537,8 @@
 					this,
 					"Confirm delete",
 					'Delete selected Dublin Core element' + (dcElementsEditor.selectedItems.length > 1 ? 's' : '') + ' from data table ' + tableName + '?',
-					del
+					del, null,
+					'Delete', 'Cancel'
 				);
 				function del():void
 				{
@@ -566,7 +574,7 @@
 				
 				var dataTableName:String = getCurrentTableName();
 //				Alert.show("label = "+label+", data = "+data);
-				var popup:DublinCoreEntryComponent = PopupDialog.openDialog(this, DublinCoreEntryComponent) as DublinCoreEntryComponent;
+				var popup:DublinCoreEntryComponent = DublinCoreEntryComponent.openDialog(this);
 				popup.setElement(label);
 				popup.setDataset(dataTableName);
 				popup.setSuccessCallback(function():void{
@@ -595,20 +603,15 @@
 			private function dcElementsEditorEditHandler(event:DataGridEvent):void
 			{
 				var row:Number = Number(event.rowIndex);
+				var item:Object = dcElementsEditor.dataProvider.getItemAt(row);
 				var tableName:String = getCurrentTableName();
-				var element:String = dcElementsEditor.dataProvider.getItemAt(row)[ELEMENT];
-				var oldValue:String = dcElementsEditor.dataProvider.getItemAt(row)[FIELD];
+				var element:String = item[ELEMENT];
+				var oldValue:String = item[FIELD];
 				var newValue:String = dcElementsEditor.itemEditorInstance[dcElementsEditor.columns[event.columnIndex].editorDataField];
 				
 				if (oldValue != newValue)
 				{
-					PopUpUtils.confirm(
-						this,
-						"Confirm Update",
-						'Update Dublin Core element?',
-						yes,
-						no
-					);
+					var self:DataTableManager = this;
 					function yes():void
 					{
 						var o:Object = {element:element, oldValue:oldValue, newValue:newValue};
@@ -622,10 +625,22 @@
 					}
 					function no():void
 					{
-						// This might need to be fixed
-						dcElementsEditor.dataProvider.getItemAt(row)[FIELD] = oldValue;
-						loadDublinCoreElements();
+						item[FIELD] = oldValue;
+						(dcElementsEditor.dataProvider as ICollectionView).refresh();
 					}
+					function confirm():void
+					{
+						PopUpUtils.confirm(
+							self,
+							"Confirm Update",
+							'Update Dublin Core element?',
+							yes, no,
+							'Update', 'Cancel'
+						);
+					}
+					// Use setTimeout because if we alert immediately for some reason the data grid
+					// will dispatch another item-edit-end event and call this function recursively.
+					setTimeout(confirm, 0);
 				}
 			}
 			

@@ -19,7 +19,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*">
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*" xmlns:ui="weave.ui.*">
 	<mx:Panel
 		headerHeight="25"
 		title="Administration Console for Weave {version}"
@@ -28,7 +28,7 @@
 		borderAlpha="0.5" backgroundColor="#DBDBDB" cornerRadius="0"
 		bottom="20" top="20" right="20" left="20"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
-		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? 0 : 1}">
+		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? 0 : (AdminInterface.instance.sqlConfigExists ? 1 : 2)}">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox width="100%">
 					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->
@@ -53,9 +53,13 @@
 					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false"/>
 				</mx:VDividedBox>
 			</mx:VBox>
-			<mx:Box horizontalAlign="center" verticalAlign="middle">
-				<admin:LoginPopup/>
+			<mx:Box horizontalAlign="center" verticalAlign="middle" show="login.connectionInput.setFocus()">
+				<admin:LoginPopup id="login"/>
 			</mx:Box>
+			<mx:VBox show="Alert.show(firstTimeTextArea.text, 'First time setup'); AdminInterface.instance.getConnectionNames();">
+				<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
+				<managers:SQLConnectionManager/>
+			</mx:VBox>
 		</mx:ViewStack>
 	</mx:Panel>
 	
@@ -75,6 +79,7 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
 			import mx.controls.TextArea;
 			import mx.core.IFlexDisplayObject;
 			import mx.events.CloseEvent;
@@ -84,11 +89,9 @@
 			import weave.Weave;
 			import weave.services.AdminInterface;
 			import weave.services.WeaveAdminService;
-			import weave.ui.PopupDialog;
 			import weave.ui.admin.LoginPopup;
 			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.wizards.CSVImportWizard;
-			import weave.ui.admin.wizards.FirstTimeSetupWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
 			import weave.utils.EventUtils;
@@ -98,8 +101,6 @@
 			
 			private function handleCreationComplete():void
 			{
-				BindingUtils.bindSetter(handleSQLConfigExists, AdminInterface.instance, "sqlConfigExists");
-
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
 				function handleMessageLog():void
 				{
@@ -126,26 +127,6 @@
 							tabNavigator.removeChild(adminToolsManager);
 						}
 					}
-				}
-			}
-			
-			private function handleSQLConfigExists(exists:Boolean):void
-			{
-				if (!exists)
-				{
-					var viewStack:FirstTimeSetupWizard = new FirstTimeSetupWizard();
-					var panel:WizardPanel = WizardPanel.createWizard(this, viewStack) as WizardPanel;
-					
-					//we don't want the user to hit the close button before the migration step, so we disable it.
-					panel.cancelButton.visible = false;
-					
-					//When setup finishes, we close the wizard and direct the user to the client configuration tab
-					function handleSetupClose(..._):void
-					{
-						tabNavigator.selectedChild = clientConfig;
-						PopUpManager.removePopUp(panel);
-					}
-					viewStack.addEventListener(CloseEvent.CLOSE, handleSetupClose);
 				}
 			}
 		]]>

@@ -28,7 +28,19 @@ Author: skolman
 		  xmlns:ui="weave.ui.*"
 		  xmlns="weave.ui.admin.*"
 		  backgroundAlpha="1"
-		  creationComplete="handleCreationComplete()">
+		  creationComplete="onCreationComplete()">
+	
+	<mx:HBox>
+		<mx:Label text="Connection Name:" width="110" textAlign="right"/>
+		<mx:TextInput id="connectionInput" enter="login()" minWidth="150"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="SQL Password:" width="110" textAlign="right"/>
+		<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
+	</mx:HBox>
+	<ui:Center>
+		<mx:Button label="Sign in" click="login()"/>
+	</ui:Center>
 	
 	<mx:Script>
 		<![CDATA[
@@ -39,10 +51,9 @@ Author: skolman
 			import weave.services.AdminInterface;
 
 			/**
-			 * This function gets called only when this Panel
-			 * has been added as a popup for the first time.
+			 * This function gets called when this panel is shown.
 			 */
-			private function handleCreationComplete():void
+			private function onCreationComplete():void
 			{
 				connectionInput.setFocus();
 				//Fix to set cursor in Text Input. Though the focus is set to the password inout box the cursor is not set it till 
@@ -72,17 +83,4 @@ Author: skolman
 			}
 		]]>
 	</mx:Script>
-	
-	<mx:HBox>
-		<mx:Label text="Connection Name:" width="110" textAlign="right"/>
-		<mx:TextInput id="connectionInput" enter="login()" minWidth="150"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="SQL Password:" width="110" textAlign="right"/>
-		<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
-	</mx:HBox>
-	<ui:Center>
-		<mx:Button label="Sign in" click="login()"/>
-	</ui:Center>
-	
 </mx:Panel>
