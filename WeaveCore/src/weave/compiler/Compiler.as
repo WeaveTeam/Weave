@@ -221,11 +221,9 @@ package weave.compiler
 			// add built-in functions
 			constants['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
 			constants['typeof'] = function(value:*):* { return typeof(value); };
-			constants['trace'] = function(...args):void {
-				// for trace debugging, debug must be set to true
-				if (debug)
-					trace.apply(null, args);
-			};
+			// for trace debugging, debug must be set to true
+			if (debug)
+				constants['trace'] = function(...args):void { trace.apply(null, args); };
 			
 			// add constants
 			constants['isNaN'] = isNaN;

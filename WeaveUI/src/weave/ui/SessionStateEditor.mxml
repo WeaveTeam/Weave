@@ -114,6 +114,7 @@
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.core.DynamicState;
+			import weave.core.ExternalSessionStateInterface;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -781,16 +782,37 @@
 			// console
 			
 			private const compiler:Compiler = new Compiler();
+			private function consoleTrace(...args):void
+			{
+				log.text += '\r' + args.join('\r') + '\r';
+				log.validateNow();
+				log.verticalScrollPosition = log.maxVerticalScrollPosition;
+			}
+			private function consoleWatch(target:ILinkableObject, name:String):void
+			{
+				getCallbackCollection(target).addImmediateCallback(null, consoleTrace, [name]);
+			}
+			private function consoleUnwatch(target:ILinkableObject):void
+			{
+				getCallbackCollection(target).removeCallback(consoleTrace);
+			}
+			private function consoleClear():void
+			{
+				log.text = '';
+			}
 			
+			private const symbolTable:Object = {
+				'JS': ExternalInterface.call,
+				'application': Application.application,
+				'print': ObjectUtil.toString as Function,
+				'getObject': (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject,
+				'clear': consoleClear,
+				'watch': consoleWatch,
+				'unwatch': consoleUnwatch,
+				'trace': consoleTrace
+			};
 			private function runCommand():void
 			{
-				var symbolTable:Object = {
-					'JS': ExternalInterface.call,
-					'application': Application.application,
-					'print': ObjectUtil.toString as Function,
-					'clear': function():void { log.text = ''; }
-				};
-				
 				var result:*;
 				var decompiled:String;
 				try
