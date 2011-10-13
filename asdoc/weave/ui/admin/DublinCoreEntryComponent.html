@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="DublinCoreEntryComponent,weave.ui.admin.DublinCoreEntryComponent,getWizardButtons,setDataset,setElement,setSuccessCallback" name="keywords">
+<meta content="DublinCoreEntryComponent,weave.ui.admin.DublinCoreEntryComponent,openDialog,setDataset,setElement,setSuccessCallback" name="keywords">
 <title>weave.ui.admin.DublinCoreEntryComponent</title>
 </head>
 <body>
@@ -38,7 +38,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Class</td><td class="classSignature">public class DublinCoreEntryComponent</td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">DublinCoreEntryComponent <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> mx.containers.VBox</td>
+<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">DublinCoreEntryComponent <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> mx.containers.Panel</td>
 </tr>
 </table>
 <p></p>
@@ -56,9 +56,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getWizardButtons()">getWizardButtons</a>():Object</div>
-<div class="summaryTableDescription">
-    This function is called to generate the buttons at the bottom of the wizard.</div>
+<a class="signatureLink" href="#openDialog()">openDialog</a>(parent:DisplayObject):<a href="../admin/DublinCoreEntryComponent.html">DublinCoreEntryComponent</a>
+</div>
+<div class="summaryTableDescription">[static]
+    </div>
 </td><td class="summaryTableOwnerCol">DublinCoreEntryComponent</td>
 </tr>
 <tr class="">
@@ -93,23 +94,26 @@ showHideInherited();
 <div class="MainContent">
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="getWizardButtons()"></a>
+<a name="openDialog()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">getWizardButtons</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">openDialog</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getWizardButtons():Object</code><p>
-    This function is called to generate the buttons at the bottom of the wizard.
-    It returns a map of button labels to their callbacks.
-    Callbacks take a single argument, which is a function which will close the outer popup when called.
-    See PopupDialog.mxml
-    </p><p></p>
+<code>public static function openDialog(parent:DisplayObject):<a href="../admin/DublinCoreEntryComponent.html">DublinCoreEntryComponent</a></code><p>
+    </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">parent</span>:DisplayObject</code> &mdash; A Class that extends Container and contains controls you want to display inside a popup.
+    </td>
+</tr>
+</table>
+<p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Object</code></td>
+<td width="20"></td><td><code><a href="../admin/DublinCoreEntryComponent.html">DublinCoreEntryComponent</a></code></td>
 </tr>
 </table>
 </div>
