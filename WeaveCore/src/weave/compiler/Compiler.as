@@ -81,6 +81,7 @@ package weave.compiler
 		 */
 		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false):Function
 		{
+			// TODO: add option to specify an array of param names
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = compileTokens(tokens, true);
@@ -1119,6 +1120,7 @@ package weave.compiler
 		 */
 		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean):Function
 		{
+			//TODO: add option to specify array of param names
 			if (compiledObject == null)
 				return null;
 			

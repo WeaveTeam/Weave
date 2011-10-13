@@ -288,7 +288,7 @@
 						"Confirm overwrite",
 						'Overwrite DataTable entry "'+dataTableName+'"?',
 						overwrite, null,
-						'Overwrite', 'Cancel'
+						'Overwrite', 'Cancel', 85
 					);
 				function overwrite():void
 				{

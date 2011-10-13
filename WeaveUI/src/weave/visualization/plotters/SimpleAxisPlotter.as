@@ -148,7 +148,7 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < _axisDescription.numberOfTicks; i++)
 			{
 				// only include tick marks that are between min,max values
-				var tickValue:Number = _axisDescription.tickMin + i * _axisDescription.tickDelta;
+				var tickValue:Number = StandardLib.roundSignificant(_axisDescription.tickMin + i * _axisDescription.tickDelta);
 				if (axisLineMinValue.value <= tickValue && tickValue <= axisLineMaxValue.value)
 					newKeys.push(WeaveAPI.QKeyManager.getQKey(null, String(i)));
 			}
@@ -189,7 +189,7 @@ package weave.visualization.plotters
 			else
 			{
 				var tickIndex:int = parseInt(recordKey.localName);
-				tickValue = _axisDescription.tickMin + tickIndex * _axisDescription.tickDelta;
+				tickValue = StandardLib.roundSignificant(_axisDescription.tickMin + tickIndex * _axisDescription.tickDelta);
 				outputPoint.x = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.xMin.value, axisLineDataBounds.xMax.value);
 				outputPoint.y = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.yMin.value, axisLineDataBounds.yMax.value);
 			}

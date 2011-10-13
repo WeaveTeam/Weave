@@ -28,6 +28,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
 	import weave.core.weave_internal;
 	import weave.utils.VectorUtils;
 	
@@ -173,16 +174,10 @@ package weave.data.AttributeColumns
 				var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
 				if (stringFormat)
 				{
-//					var uniqueStr:String = '';
-//					number = Math.round(number);
-//					if (0 <= number && number < _uniqueStrings.length)
-//						uniqueStr = _uniqueStrings[number];
-//					
-					trace("number:", number);
 					var compiledMethod:Function = compiler.compileToFunction("number=arguments[0];" + stringFormat, null, true);
 					return compiledMethod.call(null, number);
 				}
-				return '';
+				return StandardLib.formatNumber(number);
 			}
 			else
 			{
