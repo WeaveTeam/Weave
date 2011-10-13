@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -62,14 +63,14 @@ package weave.visualization.plotters
 		private var _binLookup:StringLookupColumn;
 		private var _binnedData:BinnedColumn;
 		private var _filteredData:FilteredColumn;
-		public const chartColors:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 		
 		public function get binnedData():BinnedColumn { return _binnedData; }
 		
 		public function get unfilteredData():DynamicColumn { return _filteredData.internalDynamicColumn; }
-		public const lineStyle:DynamicLineStyle = registerNonSpatialProperty(new DynamicLineStyle(SolidLineStyle));
-		public const fillStyle:DynamicFillStyle = registerNonSpatialProperty(new DynamicFillStyle(SolidFillStyle));
-		public const labelAngleRatio:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
+		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
+		public const fillStyle:DynamicFillStyle = registerLinkableChild(this, new DynamicFillStyle(SolidFillStyle));
+		public const labelAngleRatio:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLabelAngleRatio));
 		
 		private function verifyLabelAngleRatio(value:Number):Boolean
 		{
@@ -90,13 +91,11 @@ package weave.visualization.plotters
 			_binnedData = _binLookup.requestLocalObject(BinnedColumn, true);
 			_filteredData = binnedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
-			registerSpatialProperties(_binnedData);
+			registerSpatialProperty(_binnedData);
 			setKeySource(_filteredData);
 			
-			registerNonSpatialProperties(
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor
-			);
+			registerLinkableChild(this, Weave.properties.axisFontSize);
+			registerLinkableChild(this, Weave.properties.axisFontColor);
 		}
 		
 		/**

@@ -130,7 +130,7 @@ package weave.data.AttributeColumns
 			
 			// initialize for new column
 			if (_internalColumn != null)
-				_internalColumn.addImmediateCallback(this, triggerCallbacks);
+				_internalColumn.addImmediateCallback(this, triggerCallbacks, null, false, true); // trigger last
 
 			triggerCallbacks();
 		}

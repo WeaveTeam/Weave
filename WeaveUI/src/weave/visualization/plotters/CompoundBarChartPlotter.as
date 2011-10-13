@@ -26,11 +26,13 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
@@ -76,19 +78,21 @@ package weave.visualization.plotters
 			linkSessionState(_filteredKeySet.keyFilter, _filteredSortColumn.filter);
 			
 			heightColumns.addGroupedCallback(this, defineSortColumnIfUndefined);
-			registerNonSpatialProperty(colorColumn);
 			registerSpatialProperty(sortColumn);
 			
-			registerNonSpatialProperties(
+			for each (var child:ILinkableObject in [
+				colorColumn,
 				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor
-			);
+				Weave.properties.axisFontColor])
+			{
+				registerLinkableChild(this, child);
+			}
 		}
 		
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		public const lineStyle:DynamicLineStyle = registerNonSpatialProperty(new DynamicLineStyle(SolidLineStyle));
+		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
 		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
 		// for now it is a solid fill style -- needs to be updated to be dynamic fill style later
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
@@ -101,10 +105,9 @@ package weave.visualization.plotters
 		
 		public function getSortedKeys():Array { return _sortedIndexColumn.keys; }
 		
-		public const chartColors:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
-		public const showValueLabels:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
@@ -116,6 +119,8 @@ package weave.visualization.plotters
 		{
 			return [GROUP, STACK, PERCENT_STACK].indexOf(mode) >= 0;
 		}
+		
+		public const showValueLabels:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		private function defineSortColumnIfUndefined():void
 		{

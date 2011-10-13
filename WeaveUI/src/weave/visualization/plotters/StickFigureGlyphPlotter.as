@@ -24,7 +24,9 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -42,40 +44,25 @@ package weave.visualization.plotters
 	{
 		public function StickFigureGlyphPlotter()
 		{
-			_lineStyle.requestLocalObject(SolidLineStyle, false);
-			registerNonSpatialProperties(theta1, theta2, theta3, theta4, limbLength, lineStyle, curvature);
-		
-			curvature.value = 0.0;
 		}
 
 		/**
 		 * This is the angle at which each line will be drawn from the vertical axis.
 		 */
-		public const theta1:DynamicColumn = new DynamicColumn();
-		
-		public const theta2:DynamicColumn = new DynamicColumn();		
-		
-		public const theta3:DynamicColumn = new DynamicColumn();
-		
-		public const theta4:DynamicColumn = new DynamicColumn();		
+		public const theta1:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const theta2:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const theta3:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const theta4:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the limb length.
 		 */
-		public const limbLength:AlwaysDefinedColumn = new AlwaysDefinedColumn(10);
+		public const limbLength:AlwaysDefinedColumn = registerLinkableChild(this, AlwaysDefinedColumn(10));
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		private var _lineStyle:DynamicLineStyle = new DynamicLineStyle();
-		/**
-		 * This is the fill style used to fill the rectangle.
-		 */
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
-		public function get lineStyle():SolidLineStyle
-		{
-			return _lineStyle.internalObject as SolidLineStyle;
-		}
-		
-		public const curvature:LinkableNumber = new LinkableNumber();
+		public const curvature:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

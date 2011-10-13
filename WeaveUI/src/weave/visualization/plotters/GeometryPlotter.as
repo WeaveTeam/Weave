@@ -43,6 +43,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
@@ -78,7 +79,7 @@ package weave.visualization.plotters
 	{
 		public function GeometryPlotter()
 		{
-			registerSpatialProperties(geometryColumn.internalDynamicColumn);
+			registerSpatialProperty(geometryColumn.internalDynamicColumn);
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
@@ -96,7 +97,7 @@ package weave.visualization.plotters
 		/**
 		 *  This is the default URL path for images, when using images in place of points.
 		 */
-		public const pointDataImageColumn:ImageColumn = newNonSpatialProperty(ImageColumn);
+		public const pointDataImageColumn:ImageColumn = newLinkableChild(this, ImageColumn);
 		
 		[Embed(source="/weave/resources/images/missing.png")]
 		private static var _missingImageClass:Class;
@@ -105,16 +106,16 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
-		public const line:ExtendedSolidLineStyle = newNonSpatialProperty(ExtendedSolidLineStyle, invalidateCachedBitmaps);
+		public const line:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle, invalidateCachedBitmaps);
 		/**
 		 * This is the fill style used to fill the geometries.
 		 */
-		public const fill:ExtendedSolidFillStyle = newNonSpatialProperty(ExtendedSolidFillStyle, invalidateCachedBitmaps);
+		public const fill:ExtendedSolidFillStyle = newLinkableChild(this, ExtendedSolidFillStyle, invalidateCachedBitmaps);
 
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
 		 **/
-		public const pointShapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5, validatePointShapeSize), disposeCachedBitmaps);
+		public const pointShapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, validatePointShapeSize), disposeCachedBitmaps);
 		private function validatePointShapeSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
 
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
@@ -271,7 +272,7 @@ package weave.visualization.plotters
 			destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
 		}
 		
-		public const pixellation:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1));
+		public const pixellation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{

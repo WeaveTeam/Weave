@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -70,20 +71,20 @@ package weave.visualization.plotters
 		}
 		
 		//TODO: put this huge list of properties into a separate object instead
-		public const axisFontFamily:LinkableString = registerNonSpatialProperty(new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
-		public const axisFontBold:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
-		public const axisFontItalic:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		public const axisFontUnderline:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		public const axisFontSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(10, isFinite));
-		public const axisFontColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0x000000, isFinite));
-		public const axisLabelDistance:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(-10, isFinite));
-		public const axisLabelRelativeAngle:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(-45, isFinite));
-		public const axisGridLineThickness:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1, isFinite));
-		public const axisGridLineColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0xDDDDDD));
-		public const axisGridLineAlpha:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1, isFinite));
-		public const axesThickness:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(10, isFinite));
-		public const axesColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0xB0B0B0, isFinite));
-		public const axesAlpha:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1, isFinite));
+		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const axisFontBold:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const axisFontItalic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const axisFontUnderline:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const axisFontSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite));
+		public const axisFontColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000, isFinite));
+		public const axisLabelDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10, isFinite));
+		public const axisLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-45, isFinite));
+		public const axisGridLineThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
+		public const axisGridLineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xDDDDDD));
+		public const axisGridLineAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
+		public const axesThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite));
+		public const axesColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xB0B0B0, isFinite));
+		public const axesAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
 		
 		// the axis line beginning and end data coordinates
 		public const axisLineDataBounds:LinkableBounds2D = newSpatialProperty(LinkableBounds2D);
@@ -96,21 +97,21 @@ package weave.visualization.plotters
 		// the value corresponding to the end of the axis line.  If not specified, axisLineMaxValue will be used.
 		public const tickMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
-		public const overrideAxisName:LinkableString = newNonSpatialProperty(LinkableString);
+		public const overrideAxisName:LinkableString = newLinkableChild(this, LinkableString);
 		// show or hide the axis name
-		public const showAxisName:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
+		public const showAxisName:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		// number of requested tick marks
 		public const tickCountRequested:LinkableNumber = registerSpatialProperty(new LinkableNumber(10));
 		// This option forces the axis to generate the exact number of requested tick marks between tick min and max values (inclusive)
 		public const forceTickCount:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		// formatter to use when generating tick mark labels
-		public const labelNumberFormatter:LinkableNumberFormatter = newNonSpatialProperty(LinkableNumberFormatter);
-		public const labelTextAlignment:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
-		public const labelHorizontalAlign:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
-		public const labelVerticalAlign:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
-		public const labelDistanceIsVertical:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		public const labelWordWrapSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(80));
+		public const labelNumberFormatter:LinkableNumberFormatter = newLinkableChild(this, LinkableNumberFormatter);
+		public const labelTextAlignment:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
+		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
+		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const labelDistanceIsVertical:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const labelWordWrapSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
 		
 		private const _keySet:KeySet = newSpatialProperty(KeySet); // stores tick mark keys
 		private const _axisDescription:LooseAxisDescription = new LooseAxisDescription(); // calculates tick marks

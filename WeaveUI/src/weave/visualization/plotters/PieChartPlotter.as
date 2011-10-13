@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
@@ -73,10 +74,8 @@ package weave.visualization.plotters
 			registerSpatialProperty(data);
 			setKeySource(_filteredData);
 			
-			registerNonSpatialProperties(
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor
-			);
+			registerLinkableChild(this, Weave.properties.axisFontSize);
+			registerLinkableChild(this, Weave.properties.axisFontColor);
 		}
 
 		private var _beginRadians:EquationColumn;
@@ -84,11 +83,11 @@ package weave.visualization.plotters
 		private var _filteredData:FilteredColumn;
 		
 		public function get data():DynamicColumn { return _filteredData.internalDynamicColumn; }
-		public const label:DynamicColumn = newNonSpatialProperty(DynamicColumn);
+		public const label:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
-		public const lineStyle:DynamicLineStyle = registerNonSpatialProperty(new DynamicLineStyle(SolidLineStyle));
-		public const fillStyle:DynamicFillStyle = registerNonSpatialProperty(new DynamicFillStyle(SolidFillStyle));
-		public const labelAngleRatio:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
+		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
+		public const fillStyle:DynamicFillStyle = registerLinkableChild(this, new DynamicFillStyle(SolidFillStyle));
+		public const labelAngleRatio:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLabelAngleRatio));
 		
 		private function verifyLabelAngleRatio(value:Number):Boolean
 		{

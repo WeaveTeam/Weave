@@ -90,9 +90,9 @@ package weave.visualization.plotters
 		}
 		
 		
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
-		public const binColors:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Linear Gray"))); // bars get their color from here
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		public const binColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Linear Gray"))); // bars get their color from here
 		
 		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn,handleColumnChange);
 		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn,handleColumnChange);
