@@ -77,15 +77,17 @@ package weave.compiler
 		 * @param expression An expression to compile.
 		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
+		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
+		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
-		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false):Function
+		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
-			// TODO: add option to specify an array of param names
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = compileTokens(tokens, true);
-			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope);
+			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope, paramNames, paramDefaults);
 		}
 		
 		/**
@@ -99,7 +101,6 @@ package weave.compiler
 			return compileTokens(getTokens(expression), true);
 		}
 		
-		// TODO: add option to make resulting function throw an error instead of returning undefined
 		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
 		
 		/**
@@ -928,7 +929,7 @@ package weave.compiler
 				if (!(param is CompiledConstant))
 					return compiledFunctionCall; // this compiled funciton call cannot be evaluated to a constant
 			// if there are no CompiledFunctionCall objects in the compiled parameters, evaluate the compiled function call to a constant.
-			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false, false); // no symbol table required for evaluating a constant
+			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false, false, null, null); // no symbol table required for evaluating a constant
 			return new CompiledConstant(decompileObject(compiledFunctionCall), callWrapper());
 		}
 
@@ -1116,13 +1117,22 @@ package weave.compiler
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
 		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
+		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
+		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
-			//TODO: add option to specify array of param names
 			if (compiledObject == null)
 				return null;
+			if (paramNames)
+			{
+				if (!paramDefaults)
+					paramDefaults = new Array(paramNames.length);
+				else if (paramNames.length != paramDefaults.length)
+					throw new Error("paramNames and paramDefaults Arrays must have same length");
+			}
 			
 			if (symbolTable == null)
 				symbolTable = {};
@@ -1171,8 +1181,17 @@ package weave.compiler
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function(...args):*
 			{
+				// reset local symbol table each time the function is called
+				for (symbolName in localSymbolTable)
+					localSymbolTable[symbolName] = undefined;
+				
 				builtInSymbolTable['this'] = this;
 				builtInSymbolTable['arguments'] = args;
+				// make function parameters available under the specified parameter names
+				if (paramNames)
+					for (i = 0; i < paramNames.length; i++)
+						builtInSymbolTable[paramNames[i] as String] = args.length > i ? args[i] : paramDefaults[i];
+				
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
 				// initialize top-level function and push it onto the stack

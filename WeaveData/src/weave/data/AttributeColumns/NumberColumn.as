@@ -25,6 +25,7 @@ package weave.data.AttributeColumns
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.NumberFormatter;
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
@@ -82,7 +83,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _keyToNumericDataMapping[key] != undefined;
+			return _keyToNumericDataMapping[key] !== undefined;
 		}
 		
 		private static const compiler:Compiler = new Compiler();
@@ -99,27 +100,30 @@ package weave.data.AttributeColumns
 			
 			// clear previous data mapping
 			_keyToNumericDataMapping = new Dictionary();
-			
-			// save a mapping from keys to data
-			var stringFormatter:String = getMetadata(AttributeColumnMetadata.STRING);
-			var compiledMethod:Function = null;
-			if (stringFormatter)
+
+			// compile the string format function from the metadata
+			var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
+			if (stringFormat)
 			{
-				compiledMethod = compiler.compileToFunction("number=arguments[0];" + stringFormatter, null, true, false); 
+				try
+				{
+					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, ['number']);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e);
+				}
 			}
-			
+
+			// save a mapping from keys to data
 			for (index = keys.length - 1; index >= 0; index--)
 			{
 				key = keys[index] as IQualifiedKey;
-				var n:Number = Number(numericData[index]);
-				
-				_keyToNumericDataMapping[key] = n;
-				if (isFinite(n))
+				var number:Number = numericData[index] as Number; // fast and safe because numericData is Vector.<Number>
+				if (!isNaN(number))
 				{
-					if (stringFormatter)
-					{
-						_keyToStringDataMapping[key] = compiledMethod.call(null, n);
-					}
+					_keyToNumericDataMapping[key] = number;
+					_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction.call(null, number));
 				}
 			}
 
@@ -132,25 +136,14 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 
-		/**
-		 * maxDerivedSignificantDigits:
-		 * maximum number of significant digits to return when calling deriveStringFromNorm()
-		 */		
-		public var maxDerivedSignificantDigits:uint = 10;
+		private var numberToStringFunction:Function = StandardLib.formatNumber;
 		
 		/**
 		 * Get a string value for a given number.
 		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
-			var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
-			if (stringFormat)
-			{
-				var compiledMethod:Function = compiler.compileToFunction("number=arguments[0];" + stringFormat, null, true);
-				return compiledMethod.call(null, number);
-			}
-
-			return StandardLib.formatNumber(number);
+			return numberToStringFunction.call(null, number);
 		}
 
 		/**
@@ -159,7 +152,7 @@ package weave.data.AttributeColumns
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (dataType == String)
-				return deriveStringFromNumber(_keyToNumericDataMapping[key]);
+				return _keyToStringDataMapping[key] || '';
 			// make sure to cast as a Number so missing values return as NaN instead of undefined
 			var value:Number = Number(_keyToNumericDataMapping[key]);
 			if (dataType == null)
