@@ -58,7 +58,6 @@
 			import weave.utils.DebugUtils;
 			import weave.utils.EventUtils;
 			import weave.utils.NumberUtils;
-			import weave.utils.PopUpUtils;
 			import weave.utils.VectorUtils;
 			use namespace weave_internal;
 			

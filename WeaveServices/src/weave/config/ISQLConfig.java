@@ -278,7 +278,9 @@ public interface ISQLConfig
 			YEAR("year"),
 			MIN("min"),
 			MAX("max"),
-			TITLE("title");
+			TITLE("title"),
+			NUMBER("number"),
+			STRING("string");
 
 			Metadata(String name)
 			{

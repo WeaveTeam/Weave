@@ -68,7 +68,7 @@ package weave.compiler
 		/**
 		 * This is used to match number tokens.
 		 */		
-		private static const numberRegex:RegExp = /^(0x[0-9A-F]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
+		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 
 		/**
 		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
@@ -77,14 +77,17 @@ package weave.compiler
 		 * @param expression An expression to compile.
 		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
+		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
+		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
-		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false):Function
+		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = compileTokens(tokens, true);
-			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope);
+			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope, paramNames, paramDefaults);
 		}
 		
 		/**
@@ -98,7 +101,6 @@ package weave.compiler
 			return compileTokens(getTokens(expression), true);
 		}
 		
-		// TODO: add option to make resulting function throw an error instead of returning undefined
 		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
 		
 		/**
@@ -362,7 +364,7 @@ package weave.compiler
 			var c:String = expression.charAt(index);
 			
 			// handle quoted string
-			if (c == '"' || c == "'")
+			if (c == '"' || c == "'" || c == '`')
 			{
 				var quote:String = c;
 				// index points to the opening quote
@@ -457,6 +459,10 @@ package weave.compiler
 		 */
 		private function compileTokens(tokens:Array, allowEmptyExpression:Boolean):ICompiledObject
 		{
+			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
+			if (debug)
+				trace("compiling tokens", tokens.join(' '));
+
 			var i:int;
 			var token:String;
 			
@@ -468,7 +474,7 @@ package weave.compiler
 					continue;
 				
 				// if the token starts with a quote, treat it as a String
-				if (str.charAt(0) == '"' || str.charAt(0) == "'")
+				if (str.charAt(0) == '"' || str.charAt(0) == "'" || str.charAt(0) == '`')
 				{
 					tokens[i] = compileStringLiteral(str);
 				}
@@ -486,15 +492,6 @@ package weave.compiler
 			// next step: handle operators ".[]{}()"
 			compileBracketsAndProperties(tokens);
 
-			// -------------------
-
-			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
-			if (debug)
-				trace("compiling tokens", tokens.join(' '));
-			
-			// next step: handle infix '.'
-			// TODO
-			
 			// next step: compile constants and variable names
 			for (i = 0; i < tokens.length; i++)
 			{
@@ -548,12 +545,12 @@ package weave.compiler
 				if (right < 0 || left < 1 || left + 1 == right || right + 1 == tokens.length)
 					break;
 				
-				// false branch includes everything after ':' and up until the next '?', ':', or ','
+				// false branch includes everything after ':' and up until the next ?:,;
 				var end:int = right + 2;
 				while (end < tokens.length)
 				{
 					token = tokens[end] as String;
-					if (token && '?:,'.indexOf(token) >= 0)
+					if (token && '?:,;'.indexOf(token) >= 0)
 						break;
 					end++;
 				}
@@ -661,9 +658,8 @@ package weave.compiler
 		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
 		 * @return The given String formatted for ActionScript.
 		 */
-		public function encodeString(string:String, doubleQuote:Boolean = true):String
+		public function encodeString(string:String, quote:String = '"'):String
 		{
-			var quote:String = doubleQuote ? '"' : "'";
 			var result:Array = new Array(string.length);
 			for (var i:int = 0; i < string.length; i++)
 			{
@@ -671,7 +667,7 @@ package weave.compiler
 				var esc:String = chr == quote ? quote : ENCODE_LOOKUP[chr];
 				result[i] = esc ? '\\' + esc : chr;
 			}
-			return quote + result.join("") + quote;
+			return quote + result.join('') + quote;
 		}
 		
 		/**
@@ -679,11 +675,11 @@ package weave.compiler
 		 * @param encodedString A quoted String with special characters escaped using ActionScript string literal format.
 		 * @return The compiled string.
 		 */
-		private function compileStringLiteral(quotedString:String):ICompiledObject
+		private function compileStringLiteral(encodedString:String):ICompiledObject
 		{
 			// remove quotes
-			var quote:String = quotedString.charAt(0);
-			var input:String = quotedString.substr(1, quotedString.length - 2);
+			var quote:String = encodedString.charAt(0);
+			var input:String = encodedString.substr(1, encodedString.length - 2);
 			input = input.split(quote + quote).join(quote); // handle doubled quote escape sequences
 			var output:String = "";
 			var searchIndex:int = 0;
@@ -693,14 +689,15 @@ package weave.compiler
 				var escapeIndex:int = input.indexOf("\\", searchIndex);
 				if (escapeIndex < 0)
 					escapeIndex = input.length;
-				var bracketIndex:int = input.indexOf("{", searchIndex);
+				// only support expressions inside { } if the string literal is surrounded by the '`' quote symbol.
+				var bracketIndex:int = quote == '`' ? input.indexOf("{", searchIndex) : -1;
 				if (bracketIndex < 0)
 					bracketIndex = input.length;
 				
 				if (bracketIndex == escapeIndex) // handle end of string
 				{
 					output += input.substring(searchIndex);
-					input = encodeString(output, quote == '"'); // convert to preferred syntax
+					input = encodeString(output, quote); // use original quote symbol
 					
 					var compiledString:CompiledConstant = new CompiledConstant(input, output);
 					
@@ -888,11 +885,15 @@ package weave.compiler
 				if (index >= 0)
 				{
 					// compile the tokens before the comma as a parameter
+					if (index == 0 && separator == ',')
+						throw new Error("Expecting expression before comma");
 					compiledObjects.push(compileTokens(tokens.splice(0, index), separator == ';'));
 					tokens.shift(); // remove comma
 				}
 				else
 				{
+					if (tokens.length == 0 && separator == ',')
+						throw new Error("Expecting expression after comma");
 					// compile remaining group of tokens as a parameter
 					compiledObjects.push(compileTokens(tokens, separator == ';'));
 					break;
@@ -928,7 +929,7 @@ package weave.compiler
 				if (!(param is CompiledConstant))
 					return compiledFunctionCall; // this compiled funciton call cannot be evaluated to a constant
 			// if there are no CompiledFunctionCall objects in the compiled parameters, evaluate the compiled function call to a constant.
-			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false, false); // no symbol table required for evaluating a constant
+			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false, false, null, null); // no symbol table required for evaluating a constant
 			return new CompiledConstant(decompileObject(compiledFunctionCall), callWrapper());
 		}
 
@@ -1116,12 +1117,22 @@ package weave.compiler
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
 		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
+		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
+		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
 			if (compiledObject == null)
 				return null;
+			if (paramNames)
+			{
+				if (!paramDefaults)
+					paramDefaults = new Array(paramNames.length);
+				else if (paramNames.length != paramDefaults.length)
+					throw new Error("paramNames and paramDefaults Arrays must have same length");
+			}
 			
 			if (symbolTable == null)
 				symbolTable = {};
@@ -1170,8 +1181,17 @@ package weave.compiler
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function(...args):*
 			{
+				// reset local symbol table each time the function is called
+				for (symbolName in localSymbolTable)
+					localSymbolTable[symbolName] = undefined;
+				
 				builtInSymbolTable['this'] = this;
 				builtInSymbolTable['arguments'] = args;
+				// make function parameters available under the specified parameter names
+				if (paramNames)
+					for (i = 0; i < paramNames.length; i++)
+						builtInSymbolTable[paramNames[i] as String] = args.length > i ? args[i] : paramDefaults[i];
+				
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
 				// initialize top-level function and push it onto the stack

@@ -54,13 +54,13 @@
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openDefaultSelector, [dataColumn]);
 				
-				getCallbackCollection(plotter).addGroupedCallback(this, updateTitle);
-				toolTitle.addGroupedCallback(this, updateTitle);
+				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange);
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Wordle visualization";
 			}
 			

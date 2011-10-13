@@ -19,23 +19,41 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox 	xmlns:mx="http://www.adobe.com/2006/mxml"
-			xmlns:ui="weave.ui.*"
-			label="Metadata entry"
-			xmlns="weave.ui.admin.*" 
-			width="100%" height="100%" 
-			paddingTop="5"
-			paddingLeft="5"
-			>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
+		  xmlns="weave.ui.*"
+		  layout="absolute"
+		  width="600" height="400"
+		  title="Metadata entry"
+		  borderAlpha="1"
+		  borderColor="#C5C3A8"
+		  borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
+		  headerHeight="20" roundedBottomCorners="true">
+	<mx:VBox 	xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:ui="weave.ui.*"
+				xmlns="weave.ui.admin.*" 
+				width="100%" height="100%" 
+				paddingTop="5"
+				paddingLeft="5"
+				>
+		<mx:Label id="elementLabel" />
+		<mx:LinkButton label="Click for Dublin Core Reference" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
+		<mx:TextArea id="textArea" height="100%" width = "100%"/>
+	</mx:VBox>
+	<mx:ControlBar id="bar" paddingTop="5" paddingBottom="5">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Cancel" click="PopUpManager.removePopUp(this)"/>
+		<mx:Button id="okButton" label="Ok" enabled="true" emphasized="true" click="ok()"/>
+	</mx:ControlBar>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.core.Container;
 			import mx.core.IFlexDisplayObject;
+			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.AdminInterface;
-			import weave.ui.PopupDialog;
 			
 			private var elementName:String = null;
 			private var datasetName:String = null;
@@ -58,33 +76,65 @@
 			{
 				this.successCallback = successCallback;
 			}
-			/**
-			 * This function is called to generate the buttons at the bottom of the wizard.
-			 * It returns a map of button labels to their callbacks.
-			 * Callbacks take a single argument, which is a function which will close the outer popup when called.
-			 * See PopupDialog.mxml
-			 */
- 			public function getWizardButtons():Object
+			private function ok():void
 			{
-				return {"Ok": ok};
-				function ok(closePopupFunction:Function):void
-				{
-					elementLabel.text = "Submitting data to server...";
-					
-					var elements:Object = new Object();
-					elements[elementName] = textArea.text;
-					AdminInterface.instance.addDCElements(datasetName, elements).addAsyncResponder(handleAdd);
-					function handleAdd(event:ResultEvent, token:Object = null):void
-					{
-						successCallback();
-						closePopupFunction();
-					}
-				}
+				elementLabel.text = "Submitting data to server...";
+				
+				var elements:Object = new Object();
+				elements[elementName] = textArea.text;
+				AdminInterface.instance.addDCElements(datasetName, elements).addAsyncResponder(handleAdd);
+			}
+			private function handleAdd(event:ResultEvent, token:Object = null):void
+			{
+				successCallback();
+				PopUpManager.removePopUp(this);
+			}
+			/**
+			 * @param dialogClass A Class that extends Container and contains controls you want to display inside a popup.
+			 */
+			public static function openDialog(parent:DisplayObject):DublinCoreEntryComponent
+			{
+				var popup:DublinCoreEntryComponent = PopUpManager.createPopUp(parent, DublinCoreEntryComponent, true) as DublinCoreEntryComponent;
+				PopUpManager.centerPopUp(popup);
+				return popup;
 			}
 		]]>
 	</mx:Script>
 	
-	<mx:Label id="elementLabel" />
-	<mx:LinkButton label="Click for Dublin Core Reference" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
-	<mx:TextArea id="textArea" height="100%" width = "100%"/>
-</mx:VBox>
+	<mx:Style>
+		.weave-panel-style, .weave-system-style {
+			borderAlpha: 0.95;
+			alpha: 1.0;
+			backgroundAlpha: 1.0;
+			borderColor: #4D5258;
+			
+			headerHeight: 20;
+			
+			paddingLeft: 0;
+			paddingRight: 0;
+			paddingTop: 0;
+			paddingBottom: 0;
+			
+			resizeBorderThickness: 5;
+			
+			borderThicknessTop: 2;
+			borderThicknessBottom: 2;
+			borderThicknessLeft: 2;
+			borderThicknessRight: 2;
+			
+			roundedBottomCorners: false;
+			cornerRadius: 0;
+		}
+		.weave-system-style, .weave-system-title-style {
+			fontFamily: Verdana;
+			fontWeight: normal;
+			fontSize: 10;
+			fontStyle: normal;
+			textDecoration: none;
+		}
+		.weave-panel-title-style, .weave-system-title-style {
+			fontWeight: normal;
+			color: white;
+		}
+	</mx:Style>
+</mx:Panel>

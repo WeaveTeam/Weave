@@ -57,7 +57,6 @@
 				invalidateAxes();
 				
 				initColumnDefaults(_plotter.unfilteredData);
-				toolTitle.addImmediateCallback(this, updateTitle);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,null,true);
 				
 				visualization.marginTop.value = 65;
@@ -99,12 +98,13 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
 			}
 			

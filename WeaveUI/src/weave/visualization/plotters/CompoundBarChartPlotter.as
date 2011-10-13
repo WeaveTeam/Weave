@@ -28,9 +28,11 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -109,11 +111,18 @@ package weave.visualization.plotters
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
 		public const horizontalMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
-		public const groupMode:LinkableBoolean = newSpatialProperty(LinkableBoolean,toggleStackToCentMode);
-		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
-		public const barSpacing:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const showValueLabels:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
-		public const stackToCentMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
+
+		public const groupMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleSpatialCallback);
+		public const zoomToSubset:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleSpatialCallback);
+		public const barSpacing:LinkableNumber = registerLinkableChild(this, new LinkableNumber(), handleSpatialCallback);
+		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean());
+		public const stackToCentMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean());
+
+		private function handleSpatialCallback():void
+		{
+			spatialCallbacks.triggerCallbacks();
+//			getCallbackCollection(this).triggerCallbacks();
+		}
 		
 		private function defineSortColumnIfUndefined():void
 		{

@@ -266,9 +266,7 @@ package weave.services
 
 		public function updateEditedDCElement(connectionName:String, password:String, dataTableName:String, object:Object):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("updateEditedDCElement", arguments);
-			query.addAsyncResponder(alertResult);
-			return query;
+			return generateQueryAndAddToQueue("updateEditedDCElement", arguments);
 		}
 		
 		

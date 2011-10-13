@@ -64,7 +64,6 @@
 			import weave.data.DataSources.CSVDataSource;
 			import weave.api.data.IDataSource;
 			import weave.data.KeySets.KeySet;
-			import weave.utils.PopUpUtils;
 			import weave.utils.VectorUtils;
 			
 			[Bindable]

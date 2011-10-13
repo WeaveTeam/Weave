@@ -71,7 +71,6 @@
 			import weave.ui.DraggablePanel;
 			import mx.core.Application;
 			import mx.managers.PopUpManager;
-			import weave.utils.PopUpUtils;
 			import mx.core.Container;
 			import mx.events.FlexEvent;
 			

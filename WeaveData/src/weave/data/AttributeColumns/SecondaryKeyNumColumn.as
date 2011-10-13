@@ -151,8 +151,10 @@ package weave.data.AttributeColumns
 			
 			//if it's string data - create list of unique strings
 			var dataType:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
-			if (data[0] is String || (dataType != '' && dataType != DataTypes.NUMBER))
+			if (data[0] is String || (dataType && dataType != DataTypes.NUMBER))
 			{
+				if (!dataType)
+					dataType = DataTypes.STRING;
 				for (var i:int = 0; i < data.length; i++)
 				{
 					if (_uniqueStrings.indexOf(data[i]) < 0)
@@ -166,10 +168,12 @@ package weave.data.AttributeColumns
 			}
 			else
 			{
+				dataType = DataTypes.NUMBER;
 				// reset min,max before looping over records
 				_minNumber = NaN;
 				_maxNumber = NaN;
 			}
+			_metadata.attribute(AttributeColumnMetadata.DATA_TYPE).setChildren(dataType);
 			
 			// save a mapping from keys to data
 			for (index = 0; index < keysA.length; index++)

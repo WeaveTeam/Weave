@@ -102,8 +102,6 @@
 				visualization.enableXAxisProbing = true;
 				visualization.enableYAxisProbing = true;
 				
-				toolTitle.addGroupedCallback(this, updateTitle, true);
-
 				//BEGIN TEMPORARY SOLUTION
 				// END TEMPORARY SOLUTION
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [true]);
@@ -205,9 +203,10 @@
 			 */
 			public const showAllLabels:LinkableBoolean = newLinkableChild(this, LinkableBoolean, updateAxisLabels, true);
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 				{
 					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
 					for (var i:int = 0; i < columns.length; i++)
@@ -221,7 +220,7 @@
 
 			private function updateAxisLabels():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 				
 				var heightColumns:Array = _plotter.heightColumns.getObjects();
 				

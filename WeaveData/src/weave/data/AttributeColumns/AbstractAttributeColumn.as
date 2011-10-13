@@ -36,8 +36,9 @@ package weave.data.AttributeColumns
 	{
 		public function AbstractAttributeColumn(metadata:XML = null)
 		{
-			if (metadata != null)
-				_metadata = metadata;
+			// make a copy because we don't want any surprises (metadata being set afterwards)
+			if (metadata)
+				_metadata = metadata.copy();
 		}
 		
 		protected var _metadata:XML = <attribute title="Undefined column"/>;

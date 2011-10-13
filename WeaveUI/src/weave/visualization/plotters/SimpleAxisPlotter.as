@@ -110,6 +110,7 @@ package weave.visualization.plotters
 		public const labelHorizontalAlign:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
 		public const labelDistanceIsVertical:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
+		public const labelWordWrapSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(80));
 		
 		private const _keySet:KeySet = newSpatialProperty(KeySet); // stores tick mark keys
 		private const _axisDescription:LooseAxisDescription = new LooseAxisDescription(); // calculates tick marks
@@ -147,7 +148,7 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < _axisDescription.numberOfTicks; i++)
 			{
 				// only include tick marks that are between min,max values
-				var tickValue:Number = _axisDescription.tickMin + i * _axisDescription.tickDelta;
+				var tickValue:Number = StandardLib.roundSignificant(_axisDescription.tickMin + i * _axisDescription.tickDelta);
 				if (axisLineMinValue.value <= tickValue && tickValue <= axisLineMaxValue.value)
 					newKeys.push(WeaveAPI.QKeyManager.getQKey(null, String(i)));
 			}
@@ -188,7 +189,7 @@ package weave.visualization.plotters
 			else
 			{
 				var tickIndex:int = parseInt(recordKey.localName);
-				tickValue = _axisDescription.tickMin + tickIndex * _axisDescription.tickDelta;
+				tickValue = StandardLib.roundSignificant(_axisDescription.tickMin + tickIndex * _axisDescription.tickDelta);
 				outputPoint.x = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.xMin.value, axisLineDataBounds.xMax.value);
 				outputPoint.y = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.yMin.value, axisLineDataBounds.yMax.value);
 			}
@@ -243,7 +244,7 @@ package weave.visualization.plotters
 			var yLabelOffset:Number = Math.sin(labelAngle + labelAngleOffset) * axisLabelDistance.value;
 			
 			setupBitmapText();
-			_bitmapText.maxWidth = 80; // TEMPORARY SOLUTION (for word wrap)
+			_bitmapText.maxWidth = labelWordWrapSize.value;
 			
 			// calculate the distance between tick marks to use as _bitmapText.maxHeight
 			var lineLength:Number = Math.sqrt(Math.pow(_axisLineScreenBounds.getWidth(), 2) + Math.pow(_axisLineScreenBounds.getHeight(), 2));

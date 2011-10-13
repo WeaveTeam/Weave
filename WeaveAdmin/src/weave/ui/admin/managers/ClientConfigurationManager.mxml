@@ -100,7 +100,8 @@
 						this,
 						"Confirm Delete",
 						'Delete file "'+fileName+'"?',
-						del
+						del, null,
+						'Delete', 'Cancel'
 					);
 					
 					function del():void

@@ -50,6 +50,9 @@ package weave.core
 		
 		public function dispose():void
 		{
+			if (_undoHistory == null)
+				throw new Error("SessionStateLog.dispose() called more than once");
+			
 			_subject = null;
 			_undoHistory = null;
 			_redoHistory = null;
@@ -157,6 +160,15 @@ package weave.core
 			cc.resumeCallbacks();
 		}
 
+		/**
+		 * This function will save any pending diff in session state.
+		 * Use this function only when necessary (for example, when writing a collaboration service that must synchronize).
+		 */
+		public function synchronizeNow():void
+		{
+			saveDiff(true);
+		}
+		
 		public function undo(numberOfSteps:int = 1):void
 		{
 			applyDiffs(-numberOfSteps);

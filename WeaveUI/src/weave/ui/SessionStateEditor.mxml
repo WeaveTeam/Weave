@@ -245,12 +245,17 @@
 					}
 				};
 				var functionDontSave:Function = function():void { loadSelectedSessionObjectInView(); sessionNav.refresh(); };
+				askToSave(functionSave, functionDontSave);
+			}
+			
+			private function askToSave(save:Function, discard:Function):void
+			{
 				PopUpUtils.confirm(
 					this,
-					"Save",
+					"Save?",
 					"Session state has been changed.  Save Changes?",
-					functionSave,
-					functionDontSave
+					save, discard,
+					'Save', 'Discard'
 				);
 			}
 
@@ -750,15 +755,7 @@
 			override public function removePanel():void
 			{
 				if (_textModified)
-				{
-					PopUpUtils.confirm(
-							this,
-							"Save",
-							"Session state has been changed.  Save Changes?",
-							saveAndClosePanel,
-							super.removePanel
-						);
-				}
+					askToSave(saveAndClosePanel, super.removePanel);
 				else
 					super.removePanel();
 			}

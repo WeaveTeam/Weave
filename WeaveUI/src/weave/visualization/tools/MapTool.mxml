@@ -80,8 +80,7 @@
 				visualization.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
 				
-				colorColumn.addGroupedCallback(this, updateTitle);
-				toolTitle.addGroupedCallback(this, updateTitle);
+				colorColumn.addGroupedCallback(this, handlePanelTitleChange);
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
@@ -199,12 +198,11 @@
 					visualization.additionalProbeColumns = null;
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if(toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Map " + (colorColumn.internalColumn == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
-				else
-					title = toolTitle.value;
 			}
 			
 			override protected function createChildren():void

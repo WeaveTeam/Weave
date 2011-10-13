@@ -19,11 +19,16 @@
 
 package weave
 {
+	import flash.external.ExternalInterface;
+	
+	import mx.utils.StringUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
@@ -121,6 +126,7 @@ package weave
 		public const enableAddRScriptEditor:LinkableBoolean = new LinkableBoolean(true); // Add R Script Editor option tools menu		
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
 		
 //		public const enableAddStickFigurePlot:LinkableBoolean = new LinkableBoolean(true); // Add Stick Figure Plot option tools menu
 		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu		
@@ -290,6 +296,32 @@ package weave
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);
+
+		
+		/**
+		 * This field contains JavaScript code that will run when Weave is loaded, immediately after the session state
+		 * interface is initialized.  The variable 'weave' can be used in the JavaScript code to refer to the weave instance.
+		 */
+		public const startupJavaScript:LinkableString = new LinkableString();
+		
+		/**
+		 * This function will run the JavaScript code specified in the startupScript LinkableString.
+		 */
+		public function runStartupJavaScript():void
+		{
+			if (!startupJavaScript.value)
+				return;
+			
+			var script:String = 'function(id){ var weave = document.getElementById(id); ' + startupJavaScript.value + ' }';
+			try
+			{
+				ExternalInterface.call(script, ExternalInterface.objectID);
+			}
+			catch (e:Error)
+			{
+				WeaveAPI.ErrorManager.reportError(e);
+			}
+		}
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY

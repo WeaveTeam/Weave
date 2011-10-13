@@ -87,7 +87,7 @@ package weave.data
 			if (qkey == null)
 			{
 				// QKey not created for this key yet (or it has been garbage-collected)
-				qkey = new QKey(keyType, localName);
+				qkey = new QKey().init(keyType, localName);
 				qkeyRef[qkey] = null; //save weak reference
 				
 				// trigger callbacks whenever a new key is created
@@ -280,10 +280,11 @@ import weave.api.data.IQualifiedKey;
  */
 internal class QKey implements IQualifiedKey
 {
-	public function QKey(keyType:String, key:String)
+	internal function init(keyType:String, key:String):QKey
 	{
 		_keyType = keyType;
 		_localName = key;
+		return this;
 	}
 
 	private var _keyType:String; // namespace

@@ -154,18 +154,14 @@ public class SQLUtils
 	 * This maps a connection string to a Connection object.  Used by getStaticReadOnlyConnection().
 	 */
 	private static Map<String, Connection> _staticReadOnlyConnections = new HashMap<String, Connection>();
-
+	
 	/**
-	 * This function tests if a given Connection is valid.
-	 * @param conn A Connection object which may or may not be valid.
-	 * @return A value of true if the given Connection is still connected.
+	 * This function will test a connection by running a simple test query.
+	 * @param conn A SQL Connection.
+	 * @throws SQLException Thrown if the test query fails.
 	 */
-	public static boolean connectionIsValid(Connection conn)
+	public static void testConnection(Connection conn) throws SQLException
 	{
-		boolean result = false;
-		if (conn == null)
-			return false;
-
 		PreparedStatement stmt = null;
 		try
 		{
@@ -175,23 +171,35 @@ public class SQLUtils
 			else
 				stmt = conn.prepareStatement("SELECT 0;");
 			stmt.execute(); // this will throw an exception if the connection is invalid
-			result = true;
+		}
+		finally
+		{
+			cleanup(stmt);
+		}
+	}
+
+	/**
+	 * This function tests if a given Connection is valid.
+	 * @param conn A Connection object which may or may not be valid.
+	 * @return A value of true if the given Connection is still connected.
+	 */
+	public static boolean connectionIsValid(Connection conn)
+	{
+		if (conn == null)
+			return false;
+		
+		try
+		{
+			testConnection(conn);
+			return true;
 		}
 		catch (SQLException e)
 		{
 //			e.printStackTrace();
 			SQLUtils.cleanup(conn);
 		}
-		catch (NullPointerException e)
-		{
-			SQLUtils.cleanup(conn);
-		}
-		finally
-		{
-			SQLUtils.cleanup(stmt);
-		}
 		
-		return result;
+		return false;
 	}
 	
 	/**

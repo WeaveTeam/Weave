@@ -40,6 +40,10 @@ package weave.visualization.plotters
 	{
 		public function AbstractGlyphPlotter()
 		{
+			init();
+		}
+		private function init():void
+		{
 			clipDrawing = false;
 			setKeySource(dataX);
 			

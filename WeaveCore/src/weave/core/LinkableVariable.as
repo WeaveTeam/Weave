@@ -47,7 +47,6 @@ package weave.core
 		}
 
 		/**
-		 * valueEquals
 		 * This function is used in setSessionState() to determine if the value has changed or not.
 		 * Classes that extend this class may override this function.
 		 */
@@ -66,7 +65,6 @@ package weave.core
 		}
 		
 		/**
-		 * isUndefined
 		 * @return true if the session state is considered undefined.
 		 */
 		public function isUndefined():Boolean
@@ -93,7 +91,6 @@ package weave.core
 		}
 
 		/**
-		 * _sessionStateWasSet
 		 * This is true if the session state has been set at least once.
 		 */
 		protected var _sessionStateWasSet:Boolean = false;
@@ -133,7 +130,6 @@ package weave.core
 		}
 
 		/**
-		 * lock
 		 * Call this function when you do not want to allow any more changes to the value of this sessioned property.
 		 */
 		public function lock():void
@@ -142,15 +138,14 @@ package weave.core
 		}
 		
 		/**
-		 * locked
 		 * This is set to true when lock() is called.
 		 * Subsequent calls to setSessionState() will have no effect.
 		 */
-		protected var _locked:Boolean = false;
 		public function get locked():Boolean
 		{
 			return _locked;
 		}
+		protected var _locked:Boolean = false;
 
 		override public function dispose():void
 		{
