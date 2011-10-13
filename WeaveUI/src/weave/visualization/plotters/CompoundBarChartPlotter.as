@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -76,11 +77,11 @@ package weave.visualization.plotters
 			
 			horizontalMode.value = false;
 			showValueLabels.value = false;
-			groupMode.value = false;
+//			groupMode.value = false;
 			barSpacing.value = 0;
 			zoomToSubset.value = true;
-			stackToCentMode.value = false;
 			
+			barsMode.value = "STACKED";
 			heightColumns.addGroupedCallback(this, defineSortColumnIfUndefined);
 			registerNonSpatialProperty(colorColumn);
 			registerSpatialProperty(sortColumn);
@@ -112,12 +113,13 @@ package weave.visualization.plotters
 		
 		public const horizontalMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 
-		public const groupMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleSpatialCallback);
+//		public const groupMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleSpatialCallback);
 		public const zoomToSubset:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleSpatialCallback);
 		public const barSpacing:LinkableNumber = registerLinkableChild(this, new LinkableNumber(), handleSpatialCallback);
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean());
-		public const stackToCentMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean());
-
+//		public const stackToCentMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
+		public const barsMode:LinkableString = newSpatialProperty(LinkableString);
+		
 		private function handleSpatialCallback():void
 		{
 			spatialCallbacks.triggerCallbacks();
@@ -140,7 +142,7 @@ package weave.visualization.plotters
 		{
 			// save local copies of these values to speed up calculations
 			var _barSpacing:Number = barSpacing.value;
-			var _groupMode:Boolean = groupMode.value;
+//			var _groupMode:Boolean = groupMode.value;
 			var _horizontalMode:Boolean = horizontalMode.value;
 			var _heightColumns:Array = heightColumns.getObjects().reverse();
 			
@@ -181,7 +183,7 @@ package weave.visualization.plotters
 				var spacing:Number = 0.5 * Math.min(1.0, Math.max(0.0, _barSpacing) );
 				var halfSpacing:Number = spacing/2;
 				var numHeightColumns:int = _heightColumns.length;
-				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupMode) || numHeightColumns == 1);
+				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && (barsMode.value == "GROUPED")) || numHeightColumns == 1);
 				var groupedBarWidth:Number = (xMax - xMin - spacing)/(numHeightColumns);
 				
 				var totalHeight:Number = 0;
@@ -211,7 +213,7 @@ package weave.visualization.plotters
 					{
 						//if height is missing we set it to 0 for 100% stacked bar else
 						// we assign average value of the column
-						if(stackToCentMode.value)
+						if(barsMode.value == "STACKEDTO100")
 							height = 0;
 						else
 							height = WeaveAPI.StatisticsCache.getMean(heightColumn);		
@@ -223,14 +225,14 @@ package weave.visualization.plotters
 					if (height >= 0)
 					{
 						//normalizing to 100% stack
-						if(stackToCentMode.value)
+						if(barsMode.value == "STACKEDTO100")
 							yMax = yMin + (100/totalHeight *height);
 						else
 							yMax = yMin + height;
 					}
 					else
 					{
-						if(stackToCentMode.value)
+						if(barsMode.value == "STACKEDTO100")
 							yNegativeMax = yNegativeMin + (100/totalHeight *height);
 						else
 							yNegativeMax = yNegativeMin + height;
@@ -242,7 +244,7 @@ package weave.visualization.plotters
 					{
 						// bar starts at bar center - half width of the bar, plus the spacing between this and previous bar
 						var barStart:Number = xMin + halfSpacing - halfXRange;
-						if (_groupMode)
+						if ((barsMode.value == "GROUPED"))
 							barStart = xMin + (i - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
 						
 						if ( height >= 0)
@@ -274,7 +276,7 @@ package weave.visualization.plotters
 						}
 						// bar ends at bar center + half width of the bar, less the spacing between this and next bar
 						var barEnd:Number = xMin - halfSpacing + halfXRange;
-						if (_groupMode)
+						if ((barsMode.value == "GROUPED"))
 							barEnd = xMin + (i+1 - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
 						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
@@ -330,7 +332,7 @@ package weave.visualization.plotters
 						graphics.endFill();
 					}						
 					
-					if (!_groupMode)
+					if (!(barsMode.value == "GROUPED"))
 					{
 						// the next bar starts on top of this bar
 						if (height >= 0)
@@ -482,7 +484,7 @@ package weave.visualization.plotters
 		{
 			var errorBounds:IBounds2D = getReusableBounds(); // the bounds of key + error bars
 			var keyBounds:IBounds2D = getReusableBounds(); // the bounds of just the key
-			var _groupMode:Boolean = groupMode.value;
+//			var _groupMode:Boolean = groupMode.value;
 			var errorColumnsIncluded:Boolean = false; // are error columns the i = 1 and i=2 columns in height columns?
 			
 			// bar position depends on sorted index
@@ -506,7 +508,7 @@ package weave.visualization.plotters
 			tempRange.setRange(0, 0); // bar starts at zero
 			
 			
-			if(stackToCentMode.value)
+			if(barsMode.value == "STACKEDTO100")
 			{
 				tempRange.begin = 0;
 				tempRange.end = 100;
@@ -539,7 +541,7 @@ package weave.visualization.plotters
 						height = WeaveAPI.StatisticsCache.getMean(heightColumn);
 					if (isNaN(height))
 						height = 0;
-					if (_groupMode)
+					if ((barsMode.value == "GROUPED"))
 					{
 						tempRange.includeInRange(height);
 					}
@@ -586,12 +588,12 @@ package weave.visualization.plotters
 				var _heightColumns:Array = heightColumns.getObjects();
 				for each (var column:IAttributeColumn in _heightColumns)
 				{
-					if (groupMode.value)
+					if ((barsMode.value == "GROUPED"))
 					{
 						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMin(column));
 						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMax(column));
 					}
-					else if (stackToCentMode.value)
+					else if (barsMode.value == "STACKEDTO100")
 					{
 						tempRange.begin = 0;
 						tempRange.end = 100;
@@ -626,15 +628,6 @@ package weave.visualization.plotters
 			return bounds;
 		}
 		
-		//when grouped mode is on we turn off 100% stacked mode
-		private function toggleStackToCentMode():void
-		{
-			if(stackToCentMode.value)
-			{
-				if(groupMode.value)
-					stackToCentMode.value = false;
-			}
-		}
 		
 		
 		
