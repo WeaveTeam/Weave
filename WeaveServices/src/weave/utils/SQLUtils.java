@@ -1094,7 +1094,7 @@ public class SQLUtils
 	public static void addColumn( Connection conn, String schemaName, String tableName, String columnName, String columnType)
 		throws SQLException
 	{
-		String format = "ALTER TABLE %s ADD (%s %s)";
+		String format = "ALTER TABLE %s ADD %s %s"; // Note: PostGreSQL does not accept parentheses around the new column definition.
 		String query = String.format(format, quoteSchemaTable(conn, schemaName, tableName), quoteSymbol(conn, columnName), columnType);
 		Statement stmt = null;
 		try
