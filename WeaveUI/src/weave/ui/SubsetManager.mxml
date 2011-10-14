@@ -26,13 +26,19 @@
 				layout="vertical">
 
 	
-	<LinkableObjectList id="savedSubsetsList"
+	<!--<LinkableObjectList id="savedSubsetsList"
 						width="100%" height="100%"
 						hashMap="{_hashMap}" 
 						labelFunction="subsetsListLabelFunction"
 						allowMultipleSelection="false">
 		
 	</LinkableObjectList>
+	-->
+	<mx:List id="savedSubsetsList"
+			 width="100%" height="100%"
+			 dataProvider="{savedSubsetsMap.getObjects()}"
+			 labelFunction="subsetsListLabelFunction"
+			 allowMultipleSelection="false" />
 	
 	<mx:HBox>
 		<mx:Button label="Delete" 
@@ -49,22 +55,22 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-			import weave.api.copySessionState;
-			import weave.api.data.IKeyFilter;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.core.Application;
 			import mx.events.CollectionEvent;
 			import mx.events.CollectionEventKind;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.data.KeySets.KeyFilter;
-			import weave.data.KeySets.KeySet;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IKeyFilter;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
 			import weave.ui.controlBars.WeaveMenuItem;
 			
@@ -171,10 +177,10 @@
 					clickFunction = function():void
 					{
 						// when a user clicks this option we will create the SelectionManager as a popup 
-						_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SubsetManager, true) as SubsetManager;
+						_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SubsetManager) as SubsetManager;
 						
 						// this makes it so the popup is not draggable
-						_popupManager.isPopUp = false;
+						//_popupManager.isPopUp = false;
 						
 						PopUpManager.centerPopUp(_popupManager);
 					};
@@ -187,19 +193,31 @@
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
-				// get the saved subsets map and get the names of the saved subsets
-				var subsets:Array = savedSubsetsMap.getObjects();
+				if( Weave.properties.enableSubsetSelectionBox.value )
+				{
+					// get the saved subsets map and get the names of the saved subsets
+					var subsets:Array = savedSubsetsMap.getObjects();
+					
+					// if we have at least one saved subset, we will add a separator before them
+//					if (subsets.length > 0) {
+						parentMenu.addSeparatorToMenu(destinationMenu);
+						clickFunction = function():void
+						{
+							Weave.root.requestObject("SubsetSelector", SubsetSelector, false);
+						};
+						menuItem = new WeaveMenuItem("Select Subset", clickFunction);
+						parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+//					}
+				}
 				
-				// if we have at least one saved subset, we will add a separator before them
-				if (subsets.length > 0)
-					parentMenu.addSeparatorToMenu(destinationMenu);
-				
+				/*
 				for (var i:int = 0; i < subsets.length; i++)
 				{
 					var label:String = subsetsListLabelFunction(subsets[i]);
 					menuItem = new WeaveMenuItem(label, copySessionState, [subsets[i], globalSubset]);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
+				*/
 			}
 			
 			private static function get savedSubsetsMap():LinkableHashMap

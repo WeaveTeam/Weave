@@ -309,6 +309,7 @@
 				//_dragCanvas.percentWidth = 100;
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
+				panelNeedsUpdate();
 			}
 			
 			// this gets called when panelTitle changes
@@ -543,6 +544,7 @@
 				
 				invalidateSize();
 				invalidateDisplayList();
+				updateBorders();
 			}
 
 			/**
@@ -663,7 +665,7 @@
 			public function updateBorders():void
 			{
     			if (!parent)
-    				return;
+    				return callLater(updateBorders);
 				
 				styleChanged("headerHeight");
 				notifyStyleChangeInChildren("headerHeight", true);
