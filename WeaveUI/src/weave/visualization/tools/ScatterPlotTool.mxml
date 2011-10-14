@@ -30,11 +30,13 @@
 		<![CDATA[
 			import mx.controls.TextArea;
 			import mx.core.IToolTip;
+			import mx.events.ColorPickerEvent;
 			import mx.events.FlexEvent;
 			import mx.events.SliderEvent;
 			import mx.managers.ToolTipManager;
 			
 			import weave.Weave;
+			import weave.api.copySessionState;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.data.IKeyFilter;
@@ -53,6 +55,7 @@
 			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
@@ -64,10 +67,13 @@
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
+			import weave.visualization.plotters.AbstractPlotter;
 			import weave.visualization.plotters.AxisPlotter;
+			import weave.visualization.plotters.CircleGlyphPlotter;
 			import weave.visualization.plotters.ProbeLinePlotter;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
+			import weave.visualization.plotters.styles.DynamicFillStyle;
 			import weave.visualization.plotters.styles.SolidFillStyle;
 			
 			public var plotter:ScatterPlotPlotter = null;
@@ -535,6 +541,29 @@
 				var sizeBinLegendTool:SizeBinLegendTool = Weave.root.requestObject(null, SizeBinLegendTool, false);
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
 			}
+			
+			protected function scatterplotColorOverride_changeHandler(event:ColorPickerEvent):void
+			{
+				var fill:SolidFillStyle = new SolidFillStyle();
+				fill.color.defaultValue.value = event.color;
+				plotter.circlePlotter.fillStyle.copyLocalObject(fill);
+			}
+			
+			private function updateColorPicker():void
+			{
+				if( showColorPicker.value )
+					scatterplotColorOverride.enabled = true;
+				else
+				{
+					scatterplotColorOverride.enabled = false;;
+					var globalFill:SolidFillStyle = plotter.circlePlotter.fillStyle.requestLocalObject(SolidFillStyle, false);
+					globalFill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+					plotter.circlePlotter.fillStyle.copyLocalObject(globalFill);
+				}
+			}
+			
+			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateColorPicker)
+			
 		]]>
 	</mx:Script>
 	<ui:AutoResizingTextArea id="equationText"
@@ -632,6 +661,14 @@
 				</mx:VBox>
 			</userControls:ControlsSubsetBox>
 			<settings:GridLineSettings tool="{this}"/>
+			<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="Grid Line Settings"
+					 creationPolicy="all" width="15%" borderStyle="solid" cornerRadius="5">
+				<mx:HBox>
+					<mx:Label text="Override Global Color"/>
+					<mx:CheckBox id="colorOverrideCheckbox"  creationComplete="linkBindableProperty(showColorPicker,colorOverrideCheckbox,'selected')"/>
+				</mx:HBox>
+				<mx:ColorPicker id="scatterplotColorOverride" change="scatterplotColorOverride_changeHandler(event)" enabled="false"/>		
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
