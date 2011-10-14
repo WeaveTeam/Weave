@@ -342,6 +342,7 @@
 						import weave.utils.NumberUtils;
 						import weave.visualization.layers.PlotLayer;
 						import weave.visualization.layers.SelectablePlotLayer;
+						import weave.visualization.plotters.CirclePlotter;
 						import weave.visualization.plotters.DynamicPlotter;
 						import weave.visualization.plotters.GeometryLabelPlotter;
 						import weave.visualization.plotters.GeometryPlotter;
@@ -396,6 +397,12 @@
 									settingsButton.selected = false;
 
 									MarkerSettingsComponent.openInstance(plotter as SingleImagePlotter,layerName);
+								}
+								if (plotter is CirclePlotter)
+								{
+									settingsButton.selected = false;
+									
+									CirclePlotterSettings.openInstance(plotter as CirclePlotter,layerName);
 								}
 							} 
 						}
@@ -494,6 +501,10 @@
 								linkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
 								linkBindableProperty(wmsPlotter.serviceName,wmsLayerService,"selectedItem");
 							}else if(plotter is SingleImagePlotter)
+							{
+								settingsButton.visible = true;
+							}
+							else if(plotter is CirclePlotter)
 							{
 								settingsButton.visible = true;
 							}
@@ -629,7 +640,8 @@
 							{
 								linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
 								linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-								if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter)
+								if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter || (data as SelectablePlotLayer).getDynamicPlotter().internalObject is CirclePlotter)
+									
 									selectableCheckbox.visible = false;
 								else
 									selectableCheckbox.visible = true;
@@ -689,7 +701,7 @@
 							else if (plotter is WMSPlotter)
 							{
 								SessionStateEditor.openDefaultEditor(plotter);
-							}else if(plotter is SingleImagePlotter)
+							}else if(plotter is SingleImagePlotter || plotter is CirclePlotter)
 							{
 								return;
 							}
