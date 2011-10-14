@@ -38,6 +38,10 @@ import org.w3c.dom.Document;
  * @author Administrator
  *
  */
+/**
+ * @author Andy
+ *
+ */
 public interface ISQLConfig
 {
 	/**
@@ -172,6 +176,12 @@ public interface ISQLConfig
 	 */
 	List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException;
 
+	
+	/**
+	 * @return true if this ISQLConfig object is successfully connected to the database using DatabaseConfigInfo.
+	 */
+	boolean isConnectedToDatabase();
+	
 	/**
 	 * @return A DatabaseConfigInfo object, or null if this ISQLConfig is not configured to store info in a database.
 	 */

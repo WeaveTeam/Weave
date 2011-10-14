@@ -100,6 +100,11 @@ public class DatabaseConfig
 	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
 	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
 
+	public boolean isConnectedToDatabase()
+	{
+		return true; // since this ISQLConfig object got past the constructor, it is connected to the database.
+	}
+
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();
@@ -183,10 +188,7 @@ public class DatabaseConfig
 				// if the column is missing, throw the error
 				List<String> existingColumnNames = SQLUtils.getColumns(conn, dbInfo.schema, dbInfo.dataConfigTable);
 				if (ListUtils.findIgnoreCase(columnName, existingColumnNames) < 0)
-				{
-					System.out.println(String.format("Column %s not found in [%s]", columnName, existingColumnNames));
-					throw e;
-				}
+					throw new RemoteException(String.format("Unable to add column %s to config table", columnName), e);
 			}
 		}
 		

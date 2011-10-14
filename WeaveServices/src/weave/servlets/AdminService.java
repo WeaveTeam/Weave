@@ -145,10 +145,7 @@ public class AdminService extends GenericServlet
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<String> connectionNames = config.getConnectionNames();
-		DatabaseConfigInfo dbInfo = config.getDatabaseConfigInfo();
-		// only check password and superuser privileges if dbInfo is valid
-		return (dbInfo != null && ListUtils.findString(dbInfo.connection, connectionNames) >= 0);
+		return config.isConnectedToDatabase();
 	}
 
 	synchronized public boolean authenticate(String connectionName, String password) throws RemoteException
@@ -426,8 +423,7 @@ public class AdminService extends GenericServlet
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		// if there are existing connections and DatabaseConfigInfo exists, check the password.
-		// otherwise, allow anything.
+		// if there are existing connections and DatabaseConfigInfo exists, check the password. otherwise, allow anything.
 		if (config.getConnectionNames().size() > 0 && config.getDatabaseConfigInfo() != null)
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
@@ -538,8 +534,17 @@ public class AdminService extends GenericServlet
 
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo(String connectionName, String password) throws RemoteException
 	{
-		if (databaseConfigExists())
-			return checkPasswordAndGetConfig(connectionName, password).getDatabaseConfigInfo();
+		try
+		{
+			if (databaseConfigExists())
+				return checkPasswordAndGetConfig(connectionName, password).getDatabaseConfigInfo();
+		}
+		catch (RemoteException e)
+		{
+			if (e.detail instanceof FileNotFoundException)
+				return null;
+			throw e;
+		}
 		return null;
 	}
 
