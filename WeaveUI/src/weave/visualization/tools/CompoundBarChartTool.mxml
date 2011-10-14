@@ -69,8 +69,8 @@
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(CompoundBarChartPlotter) as CompoundBarChartPlotter;
 				visualization.enableProbeLine(false, true);
-				_plotter.barsMode.addGroupedCallback(this, updateProbeLines ) ;
-				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines ) ;
+				_plotter.groupingMode.addGroupedCallback(this, updateProbeLines);
+				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines);
 				
 				yAxisEnabled = true;
 				xAxisEnabled = true;
@@ -126,11 +126,8 @@
 				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
 				linkBindableProperty(showAllLabels, showAllLabelsCheckBox, "selected");
 				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
-				linkBindableProperty(_plotter.horizontalMode, visualization, "barChartHorizontalMode" );
-				
-				
-				
-				_plotter.barsMode.addImmediateCallback(this,handleModeChange,null,true);
+				linkBindableProperty(_plotter.groupingMode, mode, 'selectedValue');
+				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
 			}
 			
@@ -147,7 +144,7 @@
 			
 			private function updateProbeLines():void
 			{
-				if(_plotter.barsMode.value == "GROUPED") 
+				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP) 
 					visualization.disableProbelines();
 				else if( _plotter.horizontalMode.value) 
 					visualization.enableProbeLine(true, false);
@@ -288,7 +285,7 @@
 			//add a percent sign to the Y-axis label if bars are stacked to 100%
 			private function addPercentLabel(value:Number):String
 			{
-				if(_plotter.barsMode.value == "STACKEDTO100")
+				if (_plotter.getActualGroupingMode() == CompoundBarChartPlotter.PERCENT_STACK && _plotter.heightColumns.getNames().length > 1)
 					return value.toString() + '%';
 				else
 					return value.toString();
@@ -330,22 +327,23 @@
 			{
 				if (!parent)
 					return callLater(updateInteractivity);
-				if(_plotter.heightColumns.getNames().length > 1)
+				if (_plotter.heightColumns.getNames().length > 1)
 				{
 					cRampEditor.enabled = true;
-					groupedRadioButton.enabled = true;
+					mode.enabled = true;
 					if (groupedRadioButton.selected) 
 						showValueLabelsCheckBox.enabled = true;
 					else 
 						showValueLabelsCheckBox.enabled = false;
+					colorColumInput.enabled = false;
 				}
 				else
 				{
 					cRampEditor.enabled = false;
-					groupedRadioButton.enabled = false;
+					mode.enabled = false;
 					showValueLabelsCheckBox.enabled = true;
+					colorColumInput.enabled = true;
 				}
-				colorColumInput.enabled = _plotter.heightColumns.getNames().length <= 1;
 			}
 			
 			private const groupCheckDisabledToolTip:String = 'There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.';
@@ -355,39 +353,6 @@
 			{
 				var barChartLegendTool:BarChartLegendTool = Weave.root.requestObject(null, BarChartLegendTool, false);
 				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(this);
-			}
-			
-			//if groupMode and stackToCentMode is false, set radiogroup selection to stacked		
-			private function handleModeChange():void
-			{
-				if(_plotter.barsMode.value =="STACKED")
-				{
-					stackedRadioButton.selected = true;
-					visualization.barChartGroupMode = false;
-				}
-				else if (_plotter.barsMode.value =="GROUPED")
-				{
-					groupedRadioButton.selected = true;
-					visualization.barChartGroupMode = true;
-				}
-				else if(_plotter.barsMode.value =="STACKEDTO100")
-				{
-					centStackedRadioButton.selected = true;
-					visualization.barChartGroupMode = false;
-					
-				}
-				
-				updateInteractivity();
-			}				
-			
-			private function handleModeComboBoxChange():void
-			{
-				if(stackedRadioButton.selected)
-					_plotter.barsMode.value = "STACKED";
-				else if(centStackedRadioButton.selected)
-					_plotter.barsMode.value = "STACKEDTO100";
-				else if(groupedRadioButton.selected)
-					_plotter.barsMode.value = "GROUPED";
 			}
 		]]>
 	</mx:Script>
@@ -406,10 +371,10 @@
 			<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
 						 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
 			<mx:HBox>
-				<mx:RadioButtonGroup id="mode" change="handleModeComboBoxChange()"/>
-				<mx:RadioButton id="stackedRadioButton" groupName="mode" label="Stacked Bars" value="stacked"/>
-				<mx:RadioButton id="centStackedRadioButton" groupName="mode" label="100% Stacked Bars" value="centStacked"/>
-				<mx:RadioButton id="groupedRadioButton" groupName="mode" label="Grouped Bars" value="grouped"/>
+				<mx:RadioButtonGroup id="mode"/>
+				<mx:RadioButton id="stackedRadioButton" groupName="mode" label="Stacked Bars" value="{CompoundBarChartPlotter.STACK}"/>
+				<mx:RadioButton id="percentStackedRadioButton" groupName="mode" label="100% Stacked Bars" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
+				<mx:RadioButton id="groupedRadioButton" groupName="mode" label="Grouped Bars" value="{CompoundBarChartPlotter.GROUP}"/>
 			</mx:HBox>
 			
 			<!--<mx:CheckBox id="groupCheckBox" label="Grouped bars"
