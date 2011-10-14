@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="NumberColumn,weave.data.AttributeColumns.NumberColumn,_keyToNumericDataMapping,_keyToStringDataMapping,_uniqueKeys,maxDerivedSignificantDigits,keys,containsKey,deriveStringFromNumber,getMetadata,getValueFromKey,setRecords,toString" name="keywords">
+<meta content="NumberColumn,weave.data.AttributeColumns.NumberColumn,_keyToNumericDataMapping,_keyToStringDataMapping,_uniqueKeys,keys,containsKey,deriveStringFromNumber,getMetadata,getValueFromKey,setRecords,toString" name="keywords">
 <title>weave.data.AttributeColumns.NumberColumn</title>
 </head>
 <body>
@@ -79,13 +79,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keys">keys</a> : Array<div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">NumberColumn</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxDerivedSignificantDigits">maxDerivedSignificantDigits</a> : uint = 10<div class="summaryTableDescription">
-   maxDerivedSignificantDigits:
-   maximum number of significant digits to return when calling deriveStringFromNorm()
-   </div>
 </td><td class="summaryTableOwnerCol">NumberColumn</td>
 </tr>
 <tr class="hideInheritedProperty">
@@ -166,7 +159,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="../../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void</div>
+<a class="signatureLink" href="../../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback using the given function and parameters.</div>
 </td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
@@ -339,17 +332,6 @@ showHideInherited();
 <code>protected var _keyToStringDataMapping:Dictionary</code><p>
    This object maps keys to the string values of numeric data after 
    applying the compiler expressions in NUMBER and STRING metadata fields.
-   </p></div>
-<a name="maxDerivedSignificantDigits"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">maxDerivedSignificantDigits</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public var maxDerivedSignificantDigits:uint = 10</code><p>
-   maxDerivedSignificantDigits:
-   maximum number of significant digits to return when calling deriveStringFromNorm()
    </p></div>
 <a name="constructorDetail"></a>
 <div class="detailSectionHeader">Constructor detail</div>

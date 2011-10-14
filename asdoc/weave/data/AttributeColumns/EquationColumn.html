@@ -145,7 +145,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="../../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void</div>
+<a class="signatureLink" href="../../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback using the given function and parameters.</div>
 </td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
@@ -185,7 +185,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getValueFromKey()">getValueFromKey</a>(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataTypeParam:Class = null):*</div>
+<a class="signatureLink" href="#getValueFromKey()">getValueFromKey</a>(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</div>
 <div class="summaryTableDescription">
    </div>
 </td><td class="summaryTableOwnerCol">EquationColumn</td>
@@ -390,7 +390,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public override function getValueFromKey(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataTypeParam:Class = null):*</code><p>
+<code>public override function getValueFromKey(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -400,7 +400,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">dataTypeParam</span>:Class</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">dataType</span>:Class</code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 <p></p>
@@ -411,6 +411,12 @@ showHideInherited();
    </td>
 </tr>
 </table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">
+<a href="../../api/data/IAttributeColumn.html" target="">weave.api.data.IAttributeColumn</a>
+</div>
 </div>
 <a name="requestVariable()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
