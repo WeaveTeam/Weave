@@ -127,7 +127,8 @@
 				else
 				{
 					superuserCheckbox.enabled = true;
-					tabNavigator.selectedChild = migrateTab;
+					if (!AdminInterface.instance.sqlConfigExists)
+						tabNavigator.selectedChild = migrateTab;
 				}
 			}
 			
