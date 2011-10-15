@@ -21,7 +21,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.CapsStyle;
 	import flash.display.Graphics;
-	import flash.display.JointStyle;
+	import flash.display.LineScaleMode;
 	import flash.geom.Point;
 	import flash.text.TextFormatAlign;
 	
@@ -272,7 +272,7 @@ package weave.visualization.plotters
 				
 				// draw tick mark line and grid lines
 				graphics.clear();
-				graphics.lineStyle(axisGridLineThickness.value, axisGridLineColor.value, axisGridLineAlpha.value, false, "normal", CapsStyle.NONE);
+				graphics.lineStyle(axisGridLineThickness.value, axisGridLineColor.value, axisGridLineAlpha.value, false, LineScaleMode.NORMAL, CapsStyle.NONE);
 				
 				if ( key == MIN_LABEL_KEY || key == MAX_LABEL_KEY )
 				{
@@ -388,7 +388,7 @@ package weave.visualization.plotters
 			// draw the axis line
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
-			graphics.lineStyle(1, axesColor.value, axesAlpha.value);
+			graphics.lineStyle(1, axesColor.value, axesAlpha.value, true, LineScaleMode.NORMAL, CapsStyle.SQUARE);
 			graphics.beginFill(axesColor.value, axesAlpha.value);
 			var offset:Number = 1 ;
 			if(axisAngle == 0 )

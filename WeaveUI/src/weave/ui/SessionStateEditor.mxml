@@ -782,19 +782,27 @@
 			// console
 			
 			private const compiler:Compiler = new Compiler();
+			private function getObject(target:Object):ILinkableObject
+			{
+				if (target is String)
+					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
+				if (target is Array)
+					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
+				return ILinkableObject(target);
+			}
+			private function consoleWatch(target:Object, name:String):void
+			{
+				getCallbackCollection(getObject(target)).addImmediateCallback(null, consoleTrace, [name]);
+			}
+			private function consoleUnwatch(target:Object):void
+			{
+				getCallbackCollection(getObject(target)).removeCallback(consoleTrace);
+			}
 			private function consoleTrace(...args):void
 			{
 				log.text += '\r' + args.join('\r') + '\r';
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
-			}
-			private function consoleWatch(target:ILinkableObject, name:String):void
-			{
-				getCallbackCollection(target).addImmediateCallback(null, consoleTrace, [name]);
-			}
-			private function consoleUnwatch(target:ILinkableObject):void
-			{
-				getCallbackCollection(target).removeCallback(consoleTrace);
 			}
 			private function consoleClear():void
 			{
@@ -802,10 +810,10 @@
 			}
 			
 			private const symbolTable:Object = {
-				'JS': ExternalInterface.call,
+				'javaScript': ExternalInterface.call,
 				'application': Application.application,
 				'print': ObjectUtil.toString as Function,
-				'getObject': (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject,
+				'getObject': getObject,
 				'clear': consoleClear,
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,

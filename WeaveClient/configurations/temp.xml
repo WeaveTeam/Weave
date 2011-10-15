@@ -31,7 +31,7 @@
     <enableAddPieChart>true</enableAddPieChart>
     <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
     <enableAddRadViz>true</enableAddRadViz>
-    <enableAddRamachandranPlot>true</enableAddRamachandranPlot>
+    <enableAddRamachandranPlot>false</enableAddRamachandranPlot>
     <enableAddRScriptEditor>true</enableAddRScriptEditor>
     <enableAddScatterplot>true</enableAddScatterplot>
     <enableAddThermometerTool>true</enableAddThermometerTool>
@@ -44,6 +44,7 @@
     <enableCreateSubsets>true</enableCreateSubsets>
     <enableDataMenu>true</enableDataMenu>
     <enableDebugAlert>false</enableDebugAlert>
+    <enableDrawCircle>true</enableDrawCircle>
     <enableDynamicTools>true</enableDynamicTools>
     <enableEditDataSource>true</enableEditDataSource>
     <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
@@ -142,14 +143,26 @@ wheel</zoom>
     <version>1.0 Beta Nightly Build</version>
     <windowSnapGridSize>5</windowSnapGridSize>
   </WeaveProperties>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <KeyFilter name="defaultSubsetKeyFilter">
+    <excluded/>
+    <included/>
+    <includeMissingKeys>true</includeMissingKeys>
+    <includeMissingKeyTypes>true</includeMissingKeyTypes>
+  </KeyFilter>
   <ColorColumn name="defaultColorColumn">
     <internalDynamicColumn encoding="dynamic">
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="Grayscale">
-        <node color="0x000000" position="0.0"/>
-        <node color="0xffffff" position="1.0"/>
+      <colorRamp category="aesthetic" name="Van Gogh" reverse="false" source="OIC">
+        <node color="0x31415A" position="0"/>
+        <node color="0x609DCD" position="0.15"/>
+        <node color="0xE9B400" position="0.3"/>
+        <node color="0xFFFF00" position="0.4"/>
+        <node color="0xBE2E00" position="0.8"/>
+        <node color="0xBE2E00" position="1"/>
       </colorRamp>
     </ramp>
   </ColorColumn>
@@ -171,12 +184,12 @@ wheel</zoom>
       <ReferencedColumn>
         <dynamicColumnReference encoding="dynamic">
           <HierarchyColumnReference>
-            <dataSourceName>data</dataSourceName>
+            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <category name="Data Tables" title="Data Tables">
-                  <category name="obesityTimeDimensionwid" title="obesityTimeDimensionwid">
-                    <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" dataType="US State Name" name="State" year="" id="79310" title="State"/>
+                <category name="DataTables" title="DataTables">
+                  <category name="Obesity" title="Obesity">
+                    <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="5684" dataType="number" title="Percent Obese 1995"/>
                   </category>
                 </category>
               </hierarchy>
@@ -186,22 +199,225 @@ wheel</zoom>
       </ReferencedColumn>
     </internalDynamicColumn>
   </FilteredColumn>
-  <KeyFilter name="defaultSubsetKeyFilter">
-    <excluded/>
-    <included/>
-    <includeMissingKeys>true</includeMissingKeys>
-    <includeMissingKeyTypes>true</includeMissingKeyTypes>
-  </KeyFilter>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
-  <WeaveDataSource name="data">
+  <WeaveDataSource name="OpenIndicatorsDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy name="IVPR Indicator Server">
-        <category name="Data Tables" title="Data Tables">
+        <category name="GeometryCollections" title="GeometryCollections">
+          <attribute name="11_4_reprojected" dataType="geometry" title="11_4_reprojected"/>
+          <attribute name="11_4_reprojected_geometry" dataType="geometry" title="11_4_reprojected_geometry"/>
+          <attribute name="arra_mass_points201004" dataType="geometry" title="arra_mass_points201004"/>
+          <attribute name="arra_point" dataType="geometry" title="arra_point"/>
+          <attribute name="arra_point" dataType="geometry" title="arra_point"/>
+          <attribute name="Arrests_Nashua" dataType="geometry" title="Arrests_Nashua"/>
+          <attribute name="Atlanta Superdistricts" dataType="geometry" title="Atlanta Superdistricts"/>
+          <attribute name="Atlanta Superdistricts11" dataType="geometry" title="Atlanta Superdistricts11"/>
+          <attribute name="Atlanta Transportation Analysis Zones" dataType="geometry" title="Atlanta Transportation Analysis Zones"/>
+          <attribute name="Atlanta_CLCC_GDCH" dataType="geometry" title="Atlanta_CLCC_GDCH"/>
+          <attribute name="Atlanta_ES_4th_CRCT_Reading" dataType="geometry" title="Atlanta_ES_4th_CRCT_Reading"/>
+          <attribute name="Atlanta_Head_Start" dataType="geometry" title="Atlanta_Head_Start"/>
+          <attribute name="Atlanta_LowPerfSchools" dataType="geometry" title="Atlanta_LowPerfSchools"/>
+          <attribute name="Atlanta_MSA_Counties" dataType="geometry" title="Atlanta_MSA_Counties"/>
+          <attribute name="Atlanta_MSA_Interstates" dataType="geometry" title="Atlanta_MSA_Interstates"/>
+          <attribute name="Atlanta_MSA_Places" dataType="geometry" title="Atlanta_MSA_Places"/>
+          <attribute name="Atlanta_NPUs" dataType="geometry" title="Atlanta_NPUs"/>
+          <attribute name="Atlanta_Pre-K" dataType="geometry" title="Atlanta_Pre-K"/>
+          <attribute name="Atlanta_Vuln3_5" dataType="geometry" title="Atlanta_Vuln3_5"/>
+          <attribute name="Atlanta_Vuln3Plus" dataType="geometry" title="Atlanta_Vuln3Plus"/>
+          <attribute name="Atlanta_Vuln6_10" dataType="geometry" title="Atlanta_Vuln6_10"/>
+          <attribute name="Boston 2005 Parcels" dataType="geometry" title="Boston 2005 Parcels"/>
+          <attribute name="Boston 2005 Parcels Subset" dataType="geometry" title="Boston 2005 Parcels Subset"/>
+          <attribute name="boston_foreclosure_deeds" dataType="geometry" title="boston_foreclosure_deeds"/>
+          <attribute name="Boston_Hositals" dataType="geometry" title="Boston_Hositals"/>
+          <attribute name="Boston_Hositals111" dataType="geometry" title="Boston_Hositals111"/>
+          <attribute name="Boston_Neighborhoods" dataType="geometry" title="Boston_Neighborhoods"/>
+          <attribute name="boston_roads" dataType="geometry" title="boston_roads"/>
+          <attribute name="Boston_zips" dataType="geometry" title="Boston_zips"/>
+          <attribute name="CATCHMENTS_poly_region" dataType="geometry" title="CATCHMENTS_poly_region"/>
+          <attribute name="CBSAs" dataType="geometry" title="CBSAs"/>
+          <attribute name="cd_110thCongress" dataType="geometry" title="cd_110thCongress"/>
+          <attribute name="census2000blockgroups_poly_orig" dataType="geometry" title="census2000blockgroups_poly_orig"/>
+          <attribute name="census2000tracts_ICC_Towns" dataType="geometry" title="census2000tracts_ICC_Towns"/>
+          <attribute name="chic_counties" dataType="geometry" title="chic_counties"/>
+          <attribute name="Chicago Census Tracts" dataType="geometry" title="Chicago Census Tracts"/>
+          <attribute name="chicago_arra_munis" dataType="geometry" title="chicago_arra_munis"/>
+          <attribute name="chicago_arra_point" dataType="geometry" title="chicago_arra_point"/>
+          <attribute name="Chicago_Muni_ARRA" dataType="geometry" title="Chicago_Muni_ARRA"/>
+          <attribute name="chicpoint2" dataType="geometry" title="chicpoint2"/>
+          <attribute name="chicpoint2111" dataType="geometry" title="chicpoint2111"/>
+          <attribute name="chicpoint3" dataType="geometry" title="chicpoint3"/>
+          <attribute name="CHN_adm2" dataType="geometry" title="CHN_adm2"/>
+          <attribute name="CHN_adm3" dataType="geometry" title="CHN_adm3"/>
+          <attribute name="CityofAtlanta" dataType="geometry" title="CityofAtlanta"/>
+          <attribute name="Counties" dataType="geometry" title="Counties"/>
+          <attribute name="Countries" dataType="geometry" title="Countries"/>
+          <attribute name="County Subdivisions" dataType="geometry" title="County Subdivisions"/>
+          <attribute name="eec2" dataType="geometry" title="eec2"/>
+          <attribute name="eec_artificial_child" dataType="geometry" title="eec_artificial_child"/>
+          <attribute name="eec_familyservices_reproj" dataType="geometry" title="eec_familyservices_reproj"/>
+          <attribute name="eec_lowellschools_reproj" dataType="geometry" title="eec_lowellschools_reproj"/>
+          <attribute name="eec_prekpregnant_reproj" dataType="geometry" title="eec_prekpregnant_reproj"/>
+          <attribute name="EEC_Providers" dataType="geometry" title="EEC_Providers"/>
+          <attribute name="eec_regcnt_MA_ElemSchoolDistricts" dataType="geometry" title="eec_regcnt_MA_ElemSchoolDistricts"/>
+          <attribute name="eec_registrants_ma" dataType="geometry" title="eec_registrants_ma"/>
+          <attribute name="eec_schoolagedchildren_reproj" dataType="geometry" title="eec_schoolagedchildren_reproj"/>
+          <attribute name="eec_test1" dataType="geometry" title="eec_test1"/>
+          <attribute name="eec_test2" dataType="geometry" title="eec_test2"/>
+          <attribute name="emassnh_catchments" dataType="geometry" title="emassnh_catchments"/>
+          <attribute name="FamilyServices" dataType="geometry" title="FamilyServices"/>
+          <attribute name="fd_2005" dataType="geometry" title="fd_2005"/>
+          <attribute name="fd_2006" dataType="geometry" title="fd_2006"/>
+          <attribute name="fd_2007" dataType="geometry" title="fd_2007"/>
+          <attribute name="fd_2008" dataType="geometry" title="fd_2008"/>
+          <attribute name="fd_2009" dataType="geometry" title="fd_2009"/>
+          <attribute name="fd_2010" dataType="geometry" title="fd_2010"/>
+          <attribute name="FD_points_Lowell_new1" dataType="geometry" title="FD_points_Lowell_new1"/>
+          <attribute name="fe_2007_44_elsd" dataType="geometry" title="fe_2007_44_elsd"/>
+          <attribute name="fe_2007_44_unsd" dataType="geometry" title="fe_2007_44_unsd"/>
+          <attribute name="FullPoints_Final" dataType="geometry" title="FullPoints_Final"/>
+          <attribute name="FullPoints_Lowell" dataType="geometry" title="FullPoints_Lowell"/>
+          <attribute name="fullpoints_lowell_reprojected" dataType="geometry" title="fullpoints_lowell_reprojected"/>
+          <attribute name="higher_ed_ma" dataType="geometry" title="higher_ed_ma"/>
+          <attribute name="higher_ed_ma_x" dataType="geometry" title="higher_ed_ma_x"/>
+          <attribute name="hwt_point" dataType="geometry" title="hwt_point"/>
+          <attribute name="IPEDS(For)2009" dataType="geometry" title="IPEDS(For)2009"/>
+          <attribute name="IPEDS(Non)2009" dataType="geometry" title="IPEDS(Non)2009"/>
+          <attribute name="IPEDS(Public)2009" dataType="geometry" title="IPEDS(Public)2009"/>
+          <attribute name="ireland_counties" dataType="geometry" title="ireland_counties"/>
+          <attribute name="ireland_latlongpoints" dataType="geometry" title="ireland_latlongpoints"/>
+          <attribute name="ireland_latlongpoints_v3" dataType="geometry" title="ireland_latlongpoints_v3"/>
+          <attribute name="ireland_latlongpoints_v4" dataType="geometry" title="ireland_latlongpoints_v4"/>
+          <attribute name="ireland_latlongpoints_v5" dataType="geometry" title="ireland_latlongpoints_v5"/>
+          <attribute name="ireland_municipal_combined" dataType="geometry" title="ireland_municipal_combined"/>
+          <attribute name="ireland_nation" dataType="geometry" title="ireland_nation"/>
+          <attribute name="ireland_regions" dataType="geometry" title="ireland_regions"/>
+          <attribute name="Lawrence Parcel" dataType="geometry" title="Lawrence Parcel"/>
+          <attribute name="lawrence_home buyers active" dataType="geometry" title="lawrence_home buyers active"/>
+          <attribute name="LCW Home purchase" dataType="geometry" title="LCW Home purchase"/>
+          <attribute name="lowell_nccs_3" dataType="geometry" title="lowell_nccs_3"/>
+          <attribute name="lowell_neighborhoods_reprojected" dataType="geometry" title="lowell_neighborhoods_reprojected"/>
+          <attribute name="Lowell_Parcels" dataType="geometry" title="Lowell_Parcels"/>
+          <attribute name="lowell_registrants" dataType="geometry" title="lowell_registrants"/>
+          <attribute name="LowellFD_2009_Final" dataType="geometry" title="LowellFD_2009_Final"/>
+          <attribute name="lowelltracts_w_eec_registrant_count" dataType="geometry" title="lowelltracts_w_eec_registrant_count"/>
+          <attribute name="MA Census Tract" dataType="geometry" title="MA Census Tract"/>
+          <attribute name="MA Census Tract 6-digit" dataType="geometry" title="MA Census Tract 6-digit"/>
+          <attribute name="ma_childcare_2009_sample_points" dataType="geometry" title="ma_childcare_2009_sample_points"/>
+          <attribute name="MA_COC" dataType="geometry" title="MA_COC"/>
+          <attribute name="MA_EEC_Registrants" dataType="geometry" title="MA_EEC_Registrants"/>
+          <attribute name="MA_Major_Streams_Lines" dataType="geometry" title="MA_Major_Streams_Lines"/>
+          <attribute name="ma_SCHOOLS_PT" dataType="geometry" title="ma_SCHOOLS_PT"/>
+          <attribute name="ma_shapes_delete" dataType="geometry" title="ma_shapes_delete"/>
+          <attribute name="ma_town_region3" dataType="geometry" title="ma_town_region3"/>
+          <attribute name="MA_Towns_MultiPoly_TOWN" dataType="geometry" title="MA_Towns_MultiPoly_TOWN"/>
+          <attribute name="ma_tract_w_eec_regcnt_and_town" dataType="geometry" title="ma_tract_w_eec_regcnt_and_town"/>
+          <attribute name="ma_tracts_w_eec_regcnt" dataType="geometry" title="ma_tracts_w_eec_regcnt"/>
+          <attribute name="MA_ZCTA" dataType="geometry" title="MA_ZCTA"/>
+          <attribute name="MA_ZipCodes_Poly" dataType="geometry" title="MA_ZipCodes_Poly"/>
+          <attribute name="MAPC_Municipalities" dataType="geometry" title="MAPC_Municipalities"/>
+          <attribute name="mass_benchmarks" dataType="geometry" title="mass_benchmarks"/>
+          <attribute name="Massachusetts Towns" dataType="geometry" title="Massachusetts Towns"/>
+          <attribute name="MassARRA" dataType="geometry" title="MassARRA"/>
+          <attribute name="MassARRALowellOnly" dataType="geometry" title="MassARRALowellOnly"/>
+          <attribute name="MassARRApoint" dataType="geometry" title="MassARRApoint"/>
+          <attribute name="MassARRAPoint" dataType="geometry" title="MassARRAPoint"/>
+          <attribute name="MassARRAVer6" dataType="geometry" title="MassARRAVer6"/>
+          <attribute name="masstowns_w_eec_registrant_count" dataType="geometry" title="masstowns_w_eec_registrant_count"/>
+          <attribute name="MBTABUSROUTES_ARC" dataType="geometry" title="MBTABUSROUTES_ARC"/>
+          <attribute name="MBTABUSSTOPS_PT" dataType="geometry" title="MBTABUSSTOPS_PT"/>
+          <attribute name="Metropolitan Division" dataType="geometry" title="Metropolitan Division"/>
+          <attribute name="MFI_Points_2007" dataType="geometry" title="MFI_Points_2007"/>
+          <attribute name="MSA_Tracts" dataType="geometry" title="MSA_Tracts"/>
+          <attribute name="mvhp" dataType="geometry" title="mvhp"/>
+          <attribute name="Nashua_Tract" dataType="geometry" title="Nashua_Tract"/>
+          <attribute name="NCCS_Lowell" dataType="geometry" title="NCCS_Lowell"/>
+          <attribute name="nccs_ma_reprojected" dataType="geometry" title="nccs_ma_reprojected"/>
+          <attribute name="nccs_shape2" dataType="geometry" title="nccs_shape2"/>
+          <attribute name="nccs_shape_CT" dataType="geometry" title="nccs_shape_CT"/>
+          <attribute name="nccs_shape_LA" dataType="geometry" title="nccs_shape_LA"/>
+          <attribute name="nccs_shape_LA_FIPS22051" dataType="geometry" title="nccs_shape_LA_FIPS22051"/>
+          <attribute name="nccs_shape_MA" dataType="geometry" title="nccs_shape_MA"/>
+          <attribute name="nccs_shape_MACT" dataType="geometry" title="nccs_shape_MACT"/>
+          <attribute name="ne_cd99_110" dataType="geometry" title="ne_cd99_110"/>
+          <attribute name="ne_lldistricts" dataType="geometry" title="ne_lldistricts"/>
+          <attribute name="ne_lsdistricts" dataType="geometry" title="ne_lsdistricts"/>
+          <attribute name="ne_streams" dataType="geometry" title="ne_streams"/>
+          <attribute name="nehucs10" dataType="geometry" title="nehucs10"/>
+          <attribute name="new_england_subbasins" dataType="geometry" title="new_england_subbasins"/>
+          <attribute name="newengland_subbasins_v2" dataType="geometry" title="newengland_subbasins_v2"/>
+          <attribute name="od_2005" dataType="geometry" title="od_2005"/>
+          <attribute name="od_2006_reprojected" dataType="geometry" title="od_2006_reprojected"/>
+          <attribute name="od_2007" dataType="geometry" title="od_2007"/>
+          <attribute name="od_2008" dataType="geometry" title="od_2008"/>
+          <attribute name="od_2009" dataType="geometry" title="od_2009"/>
+          <attribute name="od_2010" dataType="geometry" title="od_2010"/>
+          <attribute name="Ohio County Subdivisions" dataType="geometry" title="Ohio County Subdivisions"/>
+          <attribute name="Ohio Places" dataType="geometry" title="Ohio Places"/>
+          <attribute name="ON no FD 2005" dataType="geometry" title="ON no FD 2005"/>
+          <attribute name="on no fd 2006_reprojected" dataType="geometry" title="on no fd 2006_reprojected"/>
+          <attribute name="on no fd 2007_reprojected" dataType="geometry" title="on no fd 2007_reprojected"/>
+          <attribute name="on no fd 2008_reprojected" dataType="geometry" title="on no fd 2008_reprojected"/>
+          <attribute name="on no fd 2009_reprojected" dataType="geometry" title="on no fd 2009_reprojected"/>
+          <attribute name="on no fd 2010_reprojected" dataType="geometry" title="on no fd 2010_reprojected"/>
+          <attribute name="on no fd_2005" dataType="geometry" title="on no fd_2005"/>
+          <attribute name="PreK" dataType="geometry" title="PreK"/>
+          <attribute name="PreK2" dataType="geometry" title="PreK2"/>
+          <attribute name="Prek3" dataType="geometry" title="Prek3"/>
+          <attribute name="Prek4" dataType="geometry" title="Prek4"/>
+          <attribute name="PreK6" dataType="geometry" title="PreK6"/>
+          <attribute name="PreKPregnant" dataType="geometry" title="PreKPregnant"/>
+          <attribute name="PrekPregnant2" dataType="geometry" title="PrekPregnant2"/>
+          <attribute name="PreKPregnant3" dataType="geometry" title="PreKPregnant3"/>
+          <attribute name="private_IPEDS" dataType="geometry" title="private_IPEDS"/>
+          <attribute name="Registrants_US1" dataType="geometry" title="Registrants_US1"/>
+          <attribute name="registrants_us1" dataType="geometry" title="registrants_us1"/>
+          <attribute name="ri_bg" dataType="geometry" title="ri_bg"/>
+          <attribute name="ri_schools08_projected" dataType="geometry" title="ri_schools08_projected"/>
+          <attribute name="Rwanda_Districts" dataType="geometry" title="Rwanda_Districts"/>
+          <attribute name="Rwanda_Provinces" dataType="geometry" title="Rwanda_Provinces"/>
+          <attribute name="SchoolAged" dataType="geometry" title="SchoolAged"/>
+          <attribute name="schooldis_elem_POLY" dataType="geometry" title="schooldis_elem_POLY"/>
+          <attribute name="schooldishigh_POLY_ma" dataType="geometry" title="schooldishigh_POLY_ma"/>
+          <attribute name="schooldist_elem_ma" dataType="geometry" title="schooldist_elem_ma"/>
+          <attribute name="schooldist_elem_maPOLY" dataType="geometry" title="schooldist_elem_maPOLY"/>
+          <attribute name="SCHOOLDISTELEM_POLY" dataType="geometry" title="SCHOOLDISTELEM_POLY"/>
+          <attribute name="SCHOOLDISTHIGH_POLY" dataType="geometry" title="SCHOOLDISTHIGH_POLY"/>
+          <attribute name="State" dataType="geometry" title="State"/>
+          <attribute name="States" dataType="geometry" title="States"/>
+          <attribute name="StatesforNREL" dataType="geometry" title="StatesforNREL"/>
+          <attribute name="test" dataType="geometry" title="test"/>
+          <attribute name="tl_2009_09_bg00" dataType="geometry" title="tl_2009_09_bg00"/>
+          <attribute name="tl_2009_us_state" dataType="geometry" title="tl_2009_us_state"/>
+          <attribute name="tr25_d00_reprojected" dataType="geometry" title="tr25_d00_reprojected"/>
+          <attribute name="Turi points" dataType="geometry" title="Turi points"/>
+          <attribute name="turi points" dataType="geometry" title="turi points"/>
+          <attribute name="turi points 2008" dataType="geometry" title="turi points 2008"/>
+          <attribute name="TURI_all_2008" dataType="geometry" title="TURI_all_2008"/>
+          <attribute name="Turkey" dataType="geometry" title="Turkey"/>
+          <attribute name="us_cbsa" dataType="geometry" title="us_cbsa"/>
+          <attribute name="us_interstates" dataType="geometry" title="us_interstates"/>
+          <attribute name="USCoastFinalver2selectable" dataType="geometry" title="USCoastFinalver2selectable"/>
+          <attribute name="USCoastFinalver2selectabledelete" dataType="geometry" title="USCoastFinalver2selectabledelete"/>
+          <attribute name="USCoastFinalver2selectableWITHFIPS" dataType="geometry" title="USCoastFinalver2selectableWITHFIPS"/>
+          <attribute name="USoilPlatforms" dataType="geometry" title="USoilPlatforms"/>
+          <attribute name="USoilPlatformsDelete" dataType="geometry" title="USoilPlatformsDelete"/>
+          <attribute name="westminster_const_region" dataType="geometry" title="westminster_const_region"/>
+          <attribute name="world" dataType="geometry" title="world"/>
+          <attribute name="World Borders" dataType="geometry" title="World Borders"/>
+          <attribute name="World Borders (UN Codes)" dataType="geometry" title="World Borders (UN Codes)"/>
+          <attribute name="World UN" dataType="geometry" title="World UN"/>
+          <attribute name="yb_points" dataType="geometry" title="yb_points"/>
+          <attribute name="youthbuild_points" dataType="geometry" title="youthbuild_points"/>
+        </category>
+        <category name="DataTables" title="DataTables">
           <category name="% children under 5 with fever receiving antimalarial drugs" title="% children under 5 with fever receiving antimalarial drugs"/>
+          <category name="00DHeckerHighTech" title="00DHeckerHighTech"/>
+          <category name="00dheckerhightech11" title="00dheckerhightech11"/>
+          <category name="00dheckerhightech111" title="00dheckerhightech111"/>
+          <category name="00DHeckerHighTechcombined" title="00DHeckerHighTechcombined"/>
           <category name="01dheckerhightech" title="01dheckerhightech"/>
+          <category name="01DHeckerHighTech" title="01DHeckerHighTech"/>
           <category name="01DHeckerHighTechcombined" title="01DHeckerHighTechcombined"/>
           <category name="02dheckerhightech" title="02dheckerhightech"/>
           <category name="02DHeckerHighTech" title="02DHeckerHighTech"/>
@@ -227,11 +443,10 @@ wheel</zoom>
           <category name="09DHeckerHighTech" title="09DHeckerHighTech"/>
           <category name="09dheckerhightech" title="09dheckerhightech"/>
           <category name="09DHeckerHighTechcombined" title="09DHeckerHighTechcombined"/>
-          <category name="11_4_reprojected" title="11_4_reprojected"/>
           <category name="11_4_reprojected_geometry" title="11_4_reprojected_geometry"/>
           <category name="1990-2007 all chemicals" title="1990-2007 all chemicals"/>
-          <category name="1997_allnaics_empl" title="1997_allnaics_empl"/>
           <category name="1997_AllNAICS_EMPL" title="1997_AllNAICS_EMPL"/>
+          <category name="1997_allnaics_empl" title="1997_allnaics_empl"/>
           <category name="1998_allnaics_empl" title="1998_allnaics_empl"/>
           <category name="1999_allnaics_empl" title="1999_allnaics_empl"/>
           <category name="2000_allnaics_empl" title="2000_allnaics_empl"/>
@@ -280,8 +495,8 @@ wheel</zoom>
           <category name="agriculture support estimate for oecd countries_million usdollar" title="agriculture support estimate for oecd countries_million usdollar"/>
           <category name="Agriculture support estimate for OECD_million USdollar" title="Agriculture support estimate for OECD_million USdollar"/>
           <category name="Agriculture support estimate for OECD_pct. of their GDP" title="Agriculture support estimate for OECD_pct. of their GDP"/>
-          <category name="aids deaths" title="aids deaths"/>
           <category name="AIDS deaths" title="AIDS deaths"/>
+          <category name="aids deaths" title="aids deaths"/>
           <category name="AIDS orphans_one or both parents" title="AIDS orphans_one or both parents"/>
           <category name="ale Over-weight or Obese %" title="ale Over-weight or Obese %"/>
           <category name="all_ri_blkgrp" title="all_ri_blkgrp"/>
@@ -297,43 +512,24 @@ wheel</zoom>
           <category name="arra_chicago_counties" title="arra_chicago_counties"/>
           <category name="arra_chicago_municipalities" title="arra_chicago_municipalities"/>
           <category name="arra_il_county_agg" title="arra_il_county_agg"/>
-          <category name="arra_mass_points201004" title="arra_mass_points201004"/>
           <category name="arra_municipal" title="arra_municipal"/>
           <category name="arra_municipal_illinois" title="arra_municipal_illinois"/>
-          <category name="arra_point" title="arra_point"/>
-          <category name="Arrests_Nashua" title="Arrests_Nashua"/>
-          <category name="Asthma-related Chemicals by Town" title="Asthma-related Chemicals by Town"/>
           <category name="Asthma-related chemicals by town" title="Asthma-related chemicals by town"/>
+          <category name="Asthma-related Chemicals by Town" title="Asthma-related Chemicals by Town"/>
           <category name="asthmagen_facility_location" title="asthmagen_facility_location"/>
           <category name="asthmagen_records" title="asthmagen_records"/>
           <category name="Atlanta Employment Data" title="Atlanta Employment Data"/>
           <category name="atlanta example" title="atlanta example"/>
           <category name="Atlanta Superdistrict Data" title="Atlanta Superdistrict Data"/>
-          <category name="Atlanta Superdistricts" title="Atlanta Superdistricts"/>
-          <category name="Atlanta Superdistricts11" title="Atlanta Superdistricts11"/>
-          <category name="Atlanta Transportation Analysis Zones" title="Atlanta Transportation Analysis Zones"/>
           <category name="Atlanta_10-county_HealthyStart" title="Atlanta_10-county_HealthyStart"/>
           <category name="Atlanta_10County" title="Atlanta_10County"/>
-          <category name="Atlanta_CLCC_GDCH" title="Atlanta_CLCC_GDCH"/>
-          <category name="Atlanta_ES_4th_CRCT_Reading" title="Atlanta_ES_4th_CRCT_Reading"/>
-          <category name="Atlanta_Head_Start" title="Atlanta_Head_Start"/>
           <category name="Atlanta_Low_Perf_Schools" title="Atlanta_Low_Perf_Schools"/>
-          <category name="Atlanta_LowPerfSchools" title="Atlanta_LowPerfSchools"/>
-          <category name="Atlanta_MSA_Counties" title="Atlanta_MSA_Counties"/>
           <category name="atlanta_msa_health_tract" title="atlanta_msa_health_tract"/>
-          <category name="Atlanta_MSA_Interstates" title="Atlanta_MSA_Interstates"/>
-          <category name="Atlanta_MSA_Places" title="Atlanta_MSA_Places"/>
-          <category name="Atlanta_NPUs" title="Atlanta_NPUs"/>
-          <category name="Atlanta_Pre-K" title="Atlanta_Pre-K"/>
           <category name="atlanta_vscores" title="atlanta_vscores"/>
-          <category name="Atlanta_Vuln3_5" title="Atlanta_Vuln3_5"/>
-          <category name="Atlanta_Vuln3Plus" title="Atlanta_Vuln3Plus"/>
-          <category name="Atlanta_Vuln6_10" title="Atlanta_Vuln6_10"/>
           <category name="atlantapopulation" title="atlantapopulation"/>
           <category name="Average Teacher Salary" title="Average Teacher Salary"/>
           <category name="Banking_the_Poor_US" title="Banking_the_Poor_US"/>
           <category name="Bellerica_Foreclosures_Deeds" title="Bellerica_Foreclosures_Deeds"/>
-          <category name="bikeped_facilities" title="bikeped_facilities"/>
           <category name="Bilateral ODA commitments that is untied" title="Bilateral ODA commitments that is untied"/>
           <category name="Bilateral, sector-allocable ODA to basic social services" title="Bilateral, sector-allocable ODA to basic social services"/>
           <category name="Billerica_Foreclosures_Deeds" title="Billerica_Foreclosures_Deeds"/>
@@ -385,14 +581,10 @@ wheel</zoom>
           <category name="blsagg1990" title="blsagg1990"/>
           <category name="Book1" title="Book1"/>
           <category name="bos_dropoutrate_schools" title="bos_dropoutrate_schools"/>
-          <category name="Boston 2005 Parcels" title="Boston 2005 Parcels"/>
-          <category name="Boston 2005 Parcels Subset" title="Boston 2005 Parcels Subset"/>
           <category name="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal" title="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal"/>
           <category name="Boston Land Use" title="Boston Land Use"/>
           <category name="Boston Parcel Data" title="Boston Parcel Data"/>
-          <category name="boston_foreclosure_deeds" title="boston_foreclosure_deeds"/>
           <category name="Boston_Hositals" title="Boston_Hositals"/>
-          <category name="Boston_Hositals111" title="Boston_Hositals111"/>
           <category name="Boston_Neighborhoods" title="Boston_Neighborhoods"/>
           <category name="Boston_Neighborhoods_Obesity" title="Boston_Neighborhoods_Obesity"/>
           <category name="boston_roads" title="boston_roads"/>
@@ -420,51 +612,32 @@ wheel</zoom>
           <category name="cba_agg" title="cba_agg"/>
           <category name="cba_working" title="cba_working"/>
           <category name="CBSAs" title="CBSAs"/>
-          <category name="cd99_110" title="cd99_110"/>
-          <category name="cd_110thCongress" title="cd_110thCongress"/>
           <category name="Census County Data" title="Census County Data"/>
           <category name="census tract Race_Nashua" title="census tract Race_Nashua"/>
-          <category name="Census Trats MA 2010" title="Census Trats MA 2010"/>
-          <category name="census2000blockgroups_poly_orig" title="census2000blockgroups_poly_orig"/>
           <category name="census2000tracts_ICC_Towns" title="census2000tracts_ICC_Towns"/>
           <category name="Census2010StateChgs" title="Census2010StateChgs"/>
           <category name="Change in Population 1990-2000" title="Change in Population 1990-2000"/>
           <category name="Chelmsford_Foreclosures_Deeds" title="Chelmsford_Foreclosures_Deeds"/>
           <category name="Chelmsford_MassGIS" title="Chelmsford_MassGIS"/>
-          <category name="chic_counties" title="chic_counties"/>
-          <category name="Chicago Census Tracts" title="Chicago Census Tracts"/>
           <category name="Chicago Demographics" title="Chicago Demographics"/>
-          <category name="Chicago_area_master_table" title="Chicago_area_master_table"/>
           <category name="chicago_area_master_table" title="chicago_area_master_table"/>
-          <category name="chicago_arra_munis" title="chicago_arra_munis"/>
-          <category name="chicago_arra_point" title="chicago_arra_point"/>
+          <category name="Chicago_area_master_table" title="Chicago_area_master_table"/>
           <category name="chicago_arra_point_data" title="chicago_arra_point_data"/>
-          <category name="Chicago_Muni_ARRA" title="Chicago_Muni_ARRA"/>
-          <category name="chicpoint2" title="chicpoint2"/>
-          <category name="chicpoint2111" title="chicpoint2111"/>
-          <category name="chicpoint3" title="chicpoint3"/>
           <category name="childhood_poverty_by_ct" title="childhood_poverty_by_ct"/>
           <category name="Children 1 year old immunized against measles_percentage" title="Children 1 year old immunized against measles_percentage"/>
           <category name="Children under 5 moderately or severely underweigh_percentage" title="Children under 5 moderately or severely underweigh_percentage"/>
           <category name="Children under 5 severely underweight_percentage" title="Children under 5 severely underweight_percentage"/>
           <category name="Children under 5 sleeping under insecticide treated bed nets_pct" title="Children under 5 sleeping under insecticide treated bed nets_pct"/>
           <category name="Children under 5 with fever receiving antimalarial drugs_pct" title="Children under 5 with fever receiving antimalarial drugs_pct"/>
-          <category name="Children under five mortality rate per 1000 live births" title="Children under five mortality rate per 1000 live births"/>
           <category name="children under five mortality rate per 1000 live births" title="children under five mortality rate per 1000 live births"/>
+          <category name="Children under five mortality rate per 1000 live births" title="Children under five mortality rate per 1000 live births"/>
           <category name="Children with fever receiving antimalarial drugs" title="Children with fever receiving antimalarial drugs"/>
-          <category name="CHN_adm1" title="CHN_adm1"/>
           <category name="CHN_adm2" title="CHN_adm2"/>
           <category name="CHN_adm3" title="CHN_adm3"/>
           <category name="CHSI Demographics" title="CHSI Demographics"/>
           <category name="CHSI Relative Health Importance" title="CHSI Relative Health Importance"/>
-          <category name="chsi_leading_causes_of_death" title="chsi_leading_causes_of_death"/>
-          <category name="chsi_measures_of_birth_and_death" title="chsi_measures_of_birth_and_death"/>
-          <category name="chsi_preventive_services_use" title="chsi_preventive_services_use"/>
-          <category name="chsi_summary_measures_of_health" title="chsi_summary_measures_of_health"/>
-          <category name="chsi_vulnerable_populations_env_health" title="chsi_vulnerable_populations_env_health"/>
           <category name="chsidemographics" title="chsidemographics"/>
           <category name="chsirisk" title="chsirisk"/>
-          <category name="CityofAtlanta" title="CityofAtlanta"/>
           <category name="CO2 emissions (kg per PPP $ of GDP)" title="CO2 emissions (kg per PPP $ of GDP)"/>
           <category name="CO2 emissions (kt)" title="CO2 emissions (kt)"/>
           <category name="CO2 emissions (metric tons per capita)" title="CO2 emissions (metric tons per capita)"/>
@@ -479,16 +652,16 @@ wheel</zoom>
           <category name="combined_education" title="combined_education"/>
           <category name="CombinedCounty" title="CombinedCounty"/>
           <category name="Community Health Status Indicators" title="Community Health Status Indicators"/>
-          <category name="Community_ED EEC" title="Community_ED EEC"/>
           <category name="Commuting to Work" title="Commuting to Work"/>
           <category name="CompedniumEDA" title="CompedniumEDA"/>
           <category name="CompendiumEDA" title="CompendiumEDA"/>
-          <category name="compendiumEDA(MidWest)" title="compendiumEDA(MidWest)"/>
           <category name="CompendiumEDA(MidWest)" title="CompendiumEDA(MidWest)"/>
-          <category name="comprehensive correct knowledge of hiv-aids ages 15-24  female" title="comprehensive correct knowledge of hiv-aids ages 15-24  female"/>
-          <category name="Comprehensive correct knowledge of HIV-AIDS ages 15-24  female" title="Comprehensive correct knowledge of HIV-AIDS ages 15-24  female"/>
-          <category name="comprehensive correct knowledge of hiv-aids ages 15-24 male" title="comprehensive correct knowledge of hiv-aids ages 15-24 male"/>
+          <category name="compendiumEDA(MidWest)" title="compendiumEDA(MidWest)"/>
+          <category name="Complete_SEDSfromEIA" title="Complete_SEDSfromEIA"/>
+          <category name="Comprehensive correct knowledge of HIV-AIDS ages 15-24&#x9;female" title="Comprehensive correct knowledge of HIV-AIDS ages 15-24&#x9;female"/>
+          <category name="comprehensive correct knowledge of hiv-aids ages 15-24&#x9;female" title="comprehensive correct knowledge of hiv-aids ages 15-24&#x9;female"/>
           <category name="Comprehensive correct knowledge of HIV-AIDS ages 15-24 male" title="Comprehensive correct knowledge of HIV-AIDS ages 15-24 male"/>
+          <category name="comprehensive correct knowledge of hiv-aids ages 15-24 male" title="comprehensive correct knowledge of hiv-aids ages 15-24 male"/>
           <category name="Condom use at last high-risk sex 15-24 years old_men_pct." title="Condom use at last high-risk sex 15-24 years old_men_pct."/>
           <category name="Condom use at last high-risk sex 15-24 years old_women_pct." title="Condom use at last high-risk sex 15-24 years old_women_pct."/>
           <category name="Condom use population ages 15-24 female" title="Condom use population ages 15-24 female"/>
@@ -503,31 +676,21 @@ wheel</zoom>
           <category name="contraceptive use among married women 15-49 age_any method_pct" title="contraceptive use among married women 15-49 age_any method_pct"/>
           <category name="contraceptive use among married women 15-49 age_condom_pct" title="contraceptive use among married women 15-49 age_condom_pct"/>
           <category name="contraceptive use among married women 15-49_modern methods_pct" title="contraceptive use among married women 15-49_modern methods_pct"/>
-          <category name="ContractedKids_byAgeGroup" title="ContractedKids_byAgeGroup"/>
-          <category name="Contractedkids_bytype" title="Contractedkids_bytype"/>
-          <category name="ContractedKidsvcdescr" title="ContractedKidsvcdescr"/>
           <category name="Contributing family workers female" title="Contributing family workers female"/>
           <category name="Contributing family workers male" title="Contributing family workers male"/>
           <category name="Contributing family workers total" title="Contributing family workers total"/>
           <category name="Copy of laucnty02" title="Copy of laucnty02"/>
           <category name="CoronaryHeart" title="CoronaryHeart"/>
           <category name="countcas_id_year" title="countcas_id_year"/>
-          <category name="Counties" title="Counties"/>
           <category name="CountiesAbove" title="CountiesAbove"/>
           <category name="CountiesAbove(MidWest)" title="CountiesAbove(MidWest)"/>
           <category name="Countries" title="Countries"/>
           <category name="countries HIPC decision points_countries HIPC completion points" title="countries HIPC decision points_countries HIPC completion points"/>
           <category name="Country Code" title="Country Code"/>
           <category name="CountryCodes" title="CountryCodes"/>
-          <category name="County Subdivisions" title="County Subdivisions"/>
           <category name="County2000Unemployment" title="County2000Unemployment"/>
           <category name="CountyHighTech" title="CountyHighTech"/>
-          <category name="CountyHighTech(Final)" title="CountyHighTech(Final)"/>
-          <category name="CountyHighTech(Final)2" title="CountyHighTech(Final)2"/>
-          <category name="CountyHighTech(Final)3" title="CountyHighTech(Final)3"/>
           <category name="CountyHighTech(Industry)" title="CountyHighTech(Industry)"/>
-          <category name="CountyHighTech2" title="CountyHighTech2"/>
-          <category name="CountyStemAwards2009" title="CountyStemAwards2009"/>
           <category name="countyunemployment1990" title="countyunemployment1990"/>
           <category name="countyunemployment1991" title="countyunemployment1991"/>
           <category name="countyunemployment1992" title="countyunemployment1992"/>
@@ -562,8 +725,6 @@ wheel</zoom>
           <category name="Debt service-pct of exports excluding workers remittances" title="Debt service-pct of exports excluding workers remittances"/>
           <category name="debt service_% of exports of goods and services and net income" title="debt service_% of exports of goods and services and net income"/>
           <category name="degree granting institution enrollment by state" title="degree granting institution enrollment by state"/>
-          <category name="DEGREES BY INSTITUTION " title="DEGREES BY INSTITUTION "/>
-          <category name="DEGREESCOUNTY2009" title="DEGREESCOUNTY2009"/>
           <category name="demo" title="demo"/>
           <category name="demo_wrk_2010_04_25" title="demo_wrk_2010_04_25"/>
           <category name="demographics" title="demographics"/>
@@ -578,8 +739,8 @@ wheel</zoom>
           <category name="EDAUnemployment(2008)M12" title="EDAUnemployment(2008)M12"/>
           <category name="EDAUnemployment(2009)m01" title="EDAUnemployment(2009)m01"/>
           <category name="EDAUnemployment(2009)M01" title="EDAUnemployment(2009)M01"/>
-          <category name="EDAUnemployment(2009)M02" title="EDAUnemployment(2009)M02"/>
           <category name="EDAUnemployment(2009)m02" title="EDAUnemployment(2009)m02"/>
+          <category name="EDAUnemployment(2009)M02" title="EDAUnemployment(2009)M02"/>
           <category name="EDAUnemployment(2009)M03" title="EDAUnemployment(2009)M03"/>
           <category name="EDAUnemployment(2009)M04" title="EDAUnemployment(2009)M04"/>
           <category name="EDAUnemployment(2009)M05" title="EDAUnemployment(2009)M05"/>
@@ -617,8 +778,6 @@ wheel</zoom>
           <category name="educational attainment v3" title="educational attainment v3"/>
           <category name="educational attainment_final" title="educational attainment_final"/>
           <category name="educational_attainment_final" title="educational_attainment_final"/>
-          <category name="EducAttain_State1990_2008" title="EducAttain_State1990_2008"/>
-          <category name="EEC" title="EEC"/>
           <category name="eec2" title="eec2"/>
           <category name="eec_artificial_child" title="eec_artificial_child"/>
           <category name="eec_familyservices_reproj" title="eec_familyservices_reproj"/>
@@ -632,10 +791,8 @@ wheel</zoom>
           <category name="EEC_scheme_adult" title="EEC_scheme_adult"/>
           <category name="EEC_scheme_child" title="EEC_scheme_child"/>
           <category name="eec_schoolagedchildren_reproj" title="eec_schoolagedchildren_reproj"/>
-          <category name="EEC_Score" title="EEC_Score"/>
           <category name="eec_test1" title="eec_test1"/>
           <category name="eec_test2" title="eec_test2"/>
-          <category name="EEC_Training Lorenzo" title="EEC_Training Lorenzo"/>
           <category name="emassnh_catchments" title="emassnh_catchments"/>
           <category name="employees nonfarm by state" title="employees nonfarm by state"/>
           <category name="Employment in Arts, Entertainment and Recreation" title="Employment in Arts, Entertainment and Recreation"/>
@@ -654,19 +811,14 @@ wheel</zoom>
           <category name="enrollment_city" title="enrollment_city"/>
           <category name="ex_all" title="ex_all"/>
           <category name="Example Table" title="Example Table"/>
-          <category name="Exempt" title="Exempt"/>
-          <category name="Exempt by town" title="Exempt by town"/>
           <category name="existing home sales 2000 to 2007 by state" title="existing home sales 2000 to 2007 by state"/>
           <category name="existing home sales 2006 to 2009 by state" title="existing home sales 2006 to 2009 by state"/>
           <category name="external-debt-stocks-total-dod-current-us-dollars" title="external-debt-stocks-total-dod-current-us-dollars"/>
-          <category name="FAA_WT_OffAirport_2000_2011" title="FAA_WT_OffAirport_2000_2011"/>
           <category name="FamilyServices" title="FamilyServices"/>
           <category name="farm income by state" title="farm income by state"/>
           <category name="farmsteads roads misc farmland by state" title="farmsteads roads misc farmland by state"/>
           <category name="Fastfoods_locations_geocoded" title="Fastfoods_locations_geocoded"/>
           <category name="FBICrimeMass" title="FBICrimeMass"/>
-          <category name="FCC_SGSAC by town" title="FCC_SGSAC by town"/>
-          <category name="FCHC" title="FCHC"/>
           <category name="fd_2005" title="fd_2005"/>
           <category name="FD_2005_Coded" title="FD_2005_Coded"/>
           <category name="fd_2006" title="fd_2006"/>
@@ -678,28 +830,20 @@ wheel</zoom>
           <category name="fd_2009" title="fd_2009"/>
           <category name="FD_2009_Coded" title="FD_2009_Coded"/>
           <category name="fd_2010" title="fd_2010"/>
-          <category name="FD_points_Lowell_new1" title="FD_points_Lowell_new1"/>
-          <category name="fe_2007_44_elsd" title="fe_2007_44_elsd"/>
-          <category name="fe_2007_44_unsd" title="fe_2007_44_unsd"/>
           <category name="federalfoodstamp by state" title="federalfoodstamp by state"/>
-          <category name="Female_Ovary" title="Female_Ovary"/>
           <category name="female_ovary" title="female_ovary"/>
+          <category name="Female_Ovary" title="Female_Ovary"/>
           <category name="Fertility rate total (births per woman)" title="Fertility rate total (births per woman)"/>
           <category name="fips_county" title="fips_county"/>
           <category name="Foreclosures by parcel_Lowell" title="Foreclosures by parcel_Lowell"/>
           <category name="forest area (% of land area)" title="forest area (% of land area)"/>
           <category name="Full Export b" title="Full Export b"/>
-          <category name="FullPoints_Final" title="FullPoints_Final"/>
-          <category name="FullPoints_Lowell" title="FullPoints_Lowell"/>
-          <category name="fullpoints_lowell_reprojected" title="fullpoints_lowell_reprojected"/>
           <category name="GDP per person employed (constant 1990 PPP $)" title="GDP per person employed (constant 1990 PPP $)"/>
           <category name="Gender Parity Index in primary level enrolment" title="Gender Parity Index in primary level enrolment"/>
           <category name="Gender Parity Index in secondary level enrolment" title="Gender Parity Index in secondary level enrolment"/>
           <category name="Gender Parity Index in tertiary level enrolment" title="Gender Parity Index in tertiary level enrolment"/>
           <category name="georgia_counties" title="georgia_counties"/>
           <category name="geothermal as pct of total energy by state" title="geothermal as pct of total energy by state"/>
-          <category name="GHA_boundaries" title="GHA_boundaries"/>
-          <category name="GHA_outline" title="GHA_outline"/>
           <category name="gini_1990_county" title="gini_1990_county"/>
           <category name="gini_2000_county" title="gini_2000_county"/>
           <category name="gini_county_2007_2009" title="gini_county_2007_2009"/>
@@ -723,24 +867,17 @@ wheel</zoom>
           <category name="HazardousWasteFacilitiesMass" title="HazardousWasteFacilitiesMass"/>
           <category name="hd2003ma" title="hd2003ma"/>
           <category name="hd2008ma" title="hd2008ma"/>
-          <category name="Head Start by town" title="Head Start by town"/>
-          <category name="HeadStart" title="HeadStart"/>
           <category name="healthy people 2010" title="healthy people 2010"/>
           <category name="healthy_people_2010" title="healthy_people_2010"/>
           <category name="Higher Ed by county in MA" title="Higher Ed by county in MA"/>
-          <category name="higher_ed_ma" title="higher_ed_ma"/>
-          <category name="higher_ed_ma_x" title="higher_ed_ma_x"/>
-          <category name="HighTechEmploymentEducation" title="HighTechEmploymentEducation"/>
           <category name="HIV prevalence rate_men 15-49 age_in national based surveys" title="HIV prevalence rate_men 15-49 age_in national based surveys"/>
           <category name="HIV prevalence rate_women 15-49 age_in national based surveys" title="HIV prevalence rate_women 15-49 age_in national based surveys"/>
           <category name="hmsa_ma" title="hmsa_ma"/>
           <category name="home ownership rates 1910 to 2000 by state" title="home ownership rates 1910 to 2000 by state"/>
           <category name="home ownership rates 1984 to 2009 by state" title="home ownership rates 1984 to 2009 by state"/>
-          <category name="HomeslessRates_COC" title="HomeslessRates_COC"/>
           <category name="homeslessrates_coc" title="homeslessrates_coc"/>
+          <category name="HomeslessRates_COC" title="HomeslessRates_COC"/>
           <category name="house-price-index" title="house-price-index"/>
-          <category name="household and income" title="household and income"/>
-          <category name="household and income delete" title="household and income delete"/>
           <category name="Housing Price Index" title="Housing Price Index"/>
           <category name="housing price index q1 by state" title="housing price index q1 by state"/>
           <category name="Housing Price Index V2" title="Housing Price Index V2"/>
@@ -763,19 +900,11 @@ wheel</zoom>
           <category name="hwt_big" title="hwt_big"/>
           <category name="hwt_hydrochloric" title="hwt_hydrochloric"/>
           <category name="hwt_perc_town" title="hwt_perc_town"/>
-          <category name="hwt_point" title="hwt_point"/>
           <category name="hwt_styrene_by_town" title="hwt_styrene_by_town"/>
           <category name="hwt_tetrachloroethylene_town" title="hwt_tetrachloroethylene_town"/>
           <category name="hwt_totals_1990_2007_muni" title="hwt_totals_1990_2007_muni"/>
           <category name="hydroelectric as pct of total energy by state" title="hydroelectric as pct of total energy by state"/>
           <category name="icc_censustract" title="icc_censustract"/>
-          <category name="icmb" title="icmb"/>
-          <category name="icmb towns" title="icmb towns"/>
-          <category name="ICMB_ct" title="ICMB_ct"/>
-          <category name="icmb_demographic" title="icmb_demographic"/>
-          <category name="icmb_household and income" title="icmb_household and income"/>
-          <category name="icmb_travel behavior" title="icmb_travel behavior"/>
-          <category name="icmbdelete" title="icmbdelete"/>
           <category name="id_latitude_longitude_year" title="id_latitude_longitude_year"/>
           <category name="ie_additional_demographics" title="ie_additional_demographics"/>
           <category name="ie_childrenserved_city" title="ie_childrenserved_city"/>
@@ -787,147 +916,35 @@ wheel</zoom>
           <category name="Improved water source % of population with access" title="Improved water source % of population with access"/>
           <category name="Incidence of tuberculosis (per 100,000 people)" title="Incidence of tuberculosis (per 100,000 people)"/>
           <category name="incidence_rate" title="incidence_rate"/>
-          <category name="Income Employment and Unemployment 2000 Municipal.csv" title="Income Employment and Unemployment 2000 Municipal.csv"/>
           <category name="Income share held by lowest 20%" title="Income share held by lowest 20%"/>
           <category name="Infant mortality rate_0-1 year_per 1000 live births" title="Infant mortality rate_0-1 year_per 1000 live births"/>
           <category name="InfantMortalityRate_modified_comma" title="InfantMortalityRate_modified_comma"/>
-          <category name="informal Child Care Towns" title="informal Child Care Towns"/>
           <category name="internet connectivity by state" title="internet connectivity by state"/>
           <category name="Internet users" title="Internet users"/>
           <category name="Internet users (per 100 people)" title="Internet users (per 100 people)"/>
-          <category name="Internet users per 100 population" title="Internet users per 100 population"/>
           <category name="internet users per 100 population" title="internet users per 100 population"/>
-          <category name="ipd_2digit_delete" title="ipd_2digit_delete"/>
+          <category name="Internet users per 100 population" title="Internet users per 100 population"/>
           <category name="ipd_2digitvar" title="ipd_2digitvar"/>
           <category name="ipd_3digitvar" title="ipd_3digitvar"/>
           <category name="IPEDS(For)2009" title="IPEDS(For)2009"/>
           <category name="IPEDS(Non)2009" title="IPEDS(Non)2009"/>
           <category name="IPEDS(Public)2009" title="IPEDS(Public)2009"/>
-          <category name="ireland_counties" title="ireland_counties"/>
           <category name="Ireland_industry_segments" title="Ireland_industry_segments"/>
-          <category name="ireland_latlongpoints" title="ireland_latlongpoints"/>
-          <category name="ireland_latlongpoints_v3" title="ireland_latlongpoints_v3"/>
-          <category name="ireland_latlongpoints_v4" title="ireland_latlongpoints_v4"/>
-          <category name="ireland_latlongpoints_v5" title="ireland_latlongpoints_v5"/>
-          <category name="ireland_municipal_combined" title="ireland_municipal_combined"/>
-          <category name="ireland_nation" title="ireland_nation"/>
           <category name="ireland_points" title="ireland_points"/>
           <category name="ireland_points2010_02_23" title="ireland_points2010_02_23"/>
           <category name="ireland_points2010_02_23_prelim" title="ireland_points2010_02_23_prelim"/>
           <category name="ireland_products" title="ireland_products"/>
           <category name="Ireland_region" title="Ireland_region"/>
           <category name="ireland_region_count" title="ireland_region_count"/>
-          <category name="ireland_regions" title="ireland_regions"/>
           <category name="ireland_total_by_region" title="ireland_total_by_region"/>
           <category name="jiraissue" title="jiraissue"/>
           <category name="Key" title="Key"/>
-          <category name="KidsCount_2-year-olds_who_were_immunized.csv" title="KidsCount_2-year-olds_who_were_immunized.csv"/>
-          <category name="KidsCount_4th_grade_math_achievement_levels" title="KidsCount_4th_grade_math_achievement_levels"/>
-          <category name="KidsCount_4th_grade_reading_achievement_levels" title="KidsCount_4th_grade_reading_achievement_levels"/>
-          <category name="KidsCount_4th_grade_science_achievement_levels" title="KidsCount_4th_grade_science_achievement_levels"/>
-          <category name="KidsCount_4th_grade_science_achievement_levels2009" title="KidsCount_4th_grade_science_achievement_levels2009"/>
-          <category name="KidsCount_4th_grade_writing_achievement_levels" title="KidsCount_4th_grade_writing_achievement_levels"/>
-          <category name="KidsCount_4th_lt_proficient_reading_disabl" title="KidsCount_4th_lt_proficient_reading_disabl"/>
-          <category name="KidsCount_4th_lt_proficient_reading_ELL" title="KidsCount_4th_lt_proficient_reading_ELL"/>
-          <category name="KidsCount_4th_lt_proficient_reading_fam_income" title="KidsCount_4th_lt_proficient_reading_fam_income"/>
-          <category name="KidsCount_4th_lt_proficient_reading_geog" title="KidsCount_4th_lt_proficient_reading_geog"/>
-          <category name="KidsCount_4th_lt_proficient_reading_race_Hispanic" title="KidsCount_4th_lt_proficient_reading_race_Hispanic"/>
-          <category name="KidsCount_4th_lt_proficient_reading_sch_income" title="KidsCount_4th_lt_proficient_reading_sch_income"/>
-          <category name="KidsCount_6_to_12yrs_all_avail_parents_in_laborforce2009" title="KidsCount_6_to_12yrs_all_avail_parents_in_laborforce2009"/>
-          <category name="KidsCount_8th_grade_math_achievement_levels" title="KidsCount_8th_grade_math_achievement_levels"/>
-          <category name="KidsCount_8th_grade_reading_achievement_levels" title="KidsCount_8th_grade_reading_achievement_levels"/>
-          <category name="KidsCount_8th_science_achievement" title="KidsCount_8th_science_achievement"/>
-          <category name="KidsCount_8th_science_achievement_2009" title="KidsCount_8th_science_achievement_2009"/>
-          <category name="KidsCount_8th_writing_achievement" title="KidsCount_8th_writing_achievement"/>
-          <category name="KidsCount_Binge_alcohol_youths_agegrp" title="KidsCount_Binge_alcohol_youths_agegrp"/>
-          <category name="KidsCount_Births_by_race" title="KidsCount_Births_by_race"/>
-          <category name="KidsCount_Births_late_or_no_prenatal_care" title="KidsCount_Births_late_or_no_prenatal_care"/>
-          <category name="KidsCount_Births_late_or_no_prenatal_care2003" title="KidsCount_Births_late_or_no_prenatal_care2003"/>
-          <category name="KidsCount_Births_to_females_lt_20_yrs" title="KidsCount_Births_to_females_lt_20_yrs"/>
-          <category name="KidsCount_Births_to_foreign-born_mothers" title="KidsCount_Births_to_foreign-born_mothers"/>
-          <category name="KidsCount_Births_to_mothers_lt_12_years_of_education2003" title="KidsCount_Births_to_mothers_lt_12_years_of_education2003"/>
-          <category name="KidsCount_Births_to_mothers_lt_12_yrs_education" title="KidsCount_Births_to_mothers_lt_12_yrs_education"/>
-          <category name="KidsCount_Births_to_mothers_who_smoked_during_pregnancy" title="KidsCount_Births_to_mothers_who_smoked_during_pregnancy"/>
-          <category name="KidsCount_Births_to_mothers_who_smoked_during_pregnancy2007" title="KidsCount_Births_to_mothers_who_smoked_during_pregnancy2007"/>
-          <category name="KidsCount_Births_to_unmarried_women" title="KidsCount_Births_to_unmarried_women"/>
-          <category name="KidsCount_Child_deaths" title="KidsCount_Child_deaths"/>
-          <category name="KidsCount_Child_deaths_by_race" title="KidsCount_Child_deaths_by_race"/>
-          <category name="KidsCount_Child_population_by_household_type" title="KidsCount_Child_population_by_household_type"/>
-          <category name="KidsCount_Child_population_by_nativity" title="KidsCount_Child_population_by_nativity"/>
-          <category name="KidsCount_Child_population_by_race" title="KidsCount_Child_population_by_race"/>
-          <category name="KidsCount_Child_population_by_single_age" title="KidsCount_Child_population_by_single_age"/>
-          <category name="KidsCount_Children_1_5yrs_read_to_lt_3_daysperwk" title="KidsCount_Children_1_5yrs_read_to_lt_3_daysperwk"/>
-          <category name="KidsCount_Children_3_5yrs_not_in_nurssch_preschl_kinderg" title="KidsCount_Children_3_5yrs_not_in_nurssch_preschl_kinderg"/>
-          <category name="KidsCount_Children_6_17yrs_repeat_grades_since_kinderg_start" title="KidsCount_Children_6_17yrs_repeat_grades_since_kinderg_start"/>
-          <category name="KidsCount_Children_6_to_12yrs_all_avail_parents_in_laborforce" title="KidsCount_Children_6_to_12yrs_all_avail_parents_in_laborforce"/>
-          <category name="KidsCount_Children_all_parents_not_in_lbr_frce_immig_fam" title="KidsCount_Children_all_parents_not_in_lbr_frce_immig_fam"/>
-          <category name="KidsCount_Children_and_teens_not_exercising_regularly" title="KidsCount_Children_and_teens_not_exercising_regularly"/>
-          <category name="KidsCount_Children_below_150pct_poverty" title="KidsCount_Children_below_150pct_poverty"/>
-          <category name="KidsCount_Children_below_200pct_poverty" title="KidsCount_Children_below_200pct_poverty"/>
-          <category name="KidsCount_Children_below_250pct_poverty" title="KidsCount_Children_below_250pct_poverty"/>
-          <category name="KidsCount_Children_by_household_heads_educational_attainment" title="KidsCount_Children_by_household_heads_educational_attainment"/>
-          <category name="KidsCount_Children_crowded_households_immigr_fams" title="KidsCount_Children_crowded_households_immigr_fams"/>
-          <category name="KidsCount_Children_family_spend_gt_30pct_income_housing_costs" title="KidsCount_Children_family_spend_gt_30pct_income_housing_costs"/>
-          <category name="KidsCount_Children_household_food_insecure_inyr" title="KidsCount_Children_household_food_insecure_inyr"/>
-          <category name="KidsCount_Children_immigr_famil_parents_resident_noncitizens" title="KidsCount_Children_immigr_famil_parents_resident_noncitizens"/>
-          <category name="KidsCount_Children_immigr_famil_resid_parnts_difficult_English" title="KidsCount_Children_immigr_famil_resid_parnts_difficult_English"/>
-          <category name="KidsCount_Children_immigr_famil_resident_parents_lt_9thgrd" title="KidsCount_Children_immigr_famil_resident_parents_lt_9thgrd"/>
-          <category name="KidsCount_Children_immigr_famil_US_citizens" title="KidsCount_Children_immigr_famil_US_citizens"/>
-          <category name="KidsCount_Children_immigr_families_parent_origin_region" title="KidsCount_Children_immigr_families_parent_origin_region"/>
-          <category name="KidsCount_Children_immigr_families_parents_resident_lt_6yrs" title="KidsCount_Children_immigr_families_parents_resident_lt_6yrs"/>
-          <category name="KidsCount_Children_in_extreme_poverty" title="KidsCount_Children_in_extreme_poverty"/>
-          <category name="KidsCount_Children_in_immigrant_families" title="KidsCount_Children_in_immigrant_families"/>
-          <category name="KidsCount_Children_linguistically_isolated_household_immigr_fam" title="KidsCount_Children_linguistically_isolated_household_immigr_fam"/>
-          <category name="KidsCount_Children_living_in_crowded_housing" title="KidsCount_Children_living_in_crowded_housing"/>
-          <category name="KidsCount_Children_living_in_households_that_are_owned" title="KidsCount_Children_living_in_households_that_are_owned"/>
-          <category name="KidsCount_Children_living_with_cohabiting_domestic_partners" title="KidsCount_Children_living_with_cohabiting_domestic_partners"/>
-          <category name="KidsCount_Children_living_with_neither_parent" title="KidsCount_Children_living_with_neither_parent"/>
-          <category name="KidsCount_Children_low-inc_fam_lt_200pct_poverty_immigr_fam" title="KidsCount_Children_low-inc_fam_lt_200pct_poverty_immigr_fam"/>
-          <category name="KidsCount_Children_low-inc_househ_no_adults_work" title="KidsCount_Children_low-inc_househ_no_adults_work"/>
-          <category name="KidsCount_Children_low-inc_househ_no_adults_work2009" title="KidsCount_Children_low-inc_househ_no_adults_work2009"/>
-          <category name="KidsCount_Children_low-income_fam_no_telephone" title="KidsCount_Children_low-income_fam_no_telephone"/>
-          <category name="KidsCount_Children_low-income_fam_no_telephone2009" title="KidsCount_Children_low-income_fam_no_telephone2009"/>
-          <category name="KidsCount_Children_low-income_housing_cost_gt_30_pct_inc" title="KidsCount_Children_low-income_housing_cost_gt_30_pct_inc"/>
-          <category name="KidsCount_Children_low-income_wrkg_fam_by_age_grp2009" title="KidsCount_Children_low-income_wrkg_fam_by_age_grp2009"/>
-          <category name="KidsCount_Children_low-income_wrkg_fam_immigrant_fam2009" title="KidsCount_Children_low-income_wrkg_fam_immigrant_fam2009"/>
-          <category name="KidsCount_Children_low-income_wrkg_families_agegrp" title="KidsCount_Children_low-income_wrkg_families_agegrp"/>
-          <category name="KidsCount_Children_no_parent_empl_ft_yr_rnd_2009" title="KidsCount_Children_no_parent_empl_ft_yr_rnd_2009"/>
-          <category name="KidsCount_Children_no_parent_employd_ft_yr_rnd_race2009" title="KidsCount_Children_no_parent_employd_ft_yr_rnd_race2009"/>
-          <category name="KidsCount_Children_no_parent_employd_ft_yr_round" title="KidsCount_Children_no_parent_employd_ft_yr_round"/>
-          <category name="KidsCount_Children_no_parent_emplyd_ft_yr_rnd_race" title="KidsCount_Children_no_parent_emplyd_ft_yr_rnd_race"/>
-          <category name="KidsCount_Children_no_secure_parent_employm_immigr_fam" title="KidsCount_Children_no_secure_parent_employm_immigr_fam"/>
-          <category name="KidsCount_Children_no_secure_parent_employmt_immigr_fam2009" title="KidsCount_Children_no_secure_parent_employmt_immigr_fam2009"/>
-          <category name="KidsCount_Children_over_11yrs_foster_care_inyear" title="KidsCount_Children_over_11yrs_foster_care_inyear"/>
-          <category name="KidsCount_Children_owned_house_immigr_fam" title="KidsCount_Children_owned_house_immigr_fam"/>
-          <category name="KidsCount_Children_speak_nonEnglish_language_at_home" title="KidsCount_Children_speak_nonEnglish_language_at_home"/>
-          <category name="KidsCount_Children_teens_overweight_obese_gender" title="KidsCount_Children_teens_overweight_obese_gender"/>
-          <category name="KidsCount_Children_that_have_difficulty_speaking_English" title="KidsCount_Children_that_have_difficulty_speaking_English"/>
-          <category name="KidsCount_Children_u18yrs_no_health_insurance" title="KidsCount_Children_u18yrs_no_health_insurance"/>
-          <category name="KidsCount_Children_u18yrs_no_health_insurance_agegrp" title="KidsCount_Children_u18yrs_no_health_insurance_agegrp"/>
-          <category name="KidsCount_Children_u18yrs_no_health_insurance_povertylvl" title="KidsCount_Children_u18yrs_no_health_insurance_povertylvl"/>
-          <category name="KidsCount_Children_u19yrs_no_health_insurance" title="KidsCount_Children_u19yrs_no_health_insurance"/>
-          <category name="KidsCount_Children_u_6yrs_all_avail_parents_in_labor_force2009" title="KidsCount_Children_u_6yrs_all_avail_parents_in_labor_force2009"/>
-          <category name="KidsCount_Children_u_6yrs_family-based_childcare" title="KidsCount_Children_u_6yrs_family-based_childcare"/>
-          <category name="KidsCount_Children_w_special_health_care_needs" title="KidsCount_Children_w_special_health_care_needs"/>
-          <category name="KidsCount_Children_without_a_computer_at_home" title="KidsCount_Children_without_a_computer_at_home"/>
-          <category name="KidsCount_Children_without_a_telephone_at_home" title="KidsCount_Children_without_a_telephone_at_home"/>
-          <category name="KidsCount_Children_without_a_telephone_at_home2009" title="KidsCount_Children_without_a_telephone_at_home2009"/>
           <category name="KidsCount_ChildrenInPoverty_State" title="KidsCount_ChildrenInPoverty_State"/>
           <category name="kidscount_combined_state" title="kidscount_combined_state"/>
-          <category name="KidsCount_Combined_State_2011" title="KidsCount_Combined_State_2011"/>
-          <category name="KidsCount_Combined_State_2011test.csv" title="KidsCount_Combined_State_2011test.csv"/>
-          <category name="KidsCount_KIDS_COUNT_overall_rank" title="KidsCount_KIDS_COUNT_overall_rank"/>
           <category name="land in defense and industrial areas by state" title="land in defense and industrial areas by state"/>
           <category name="landusedelete" title="landusedelete"/>
-          <category name="Lawrence Parcel" title="Lawrence Parcel"/>
-          <category name="lawrence_home buyers active" title="lawrence_home buyers active"/>
-          <category name="LCW Home purchase" title="LCW Home purchase"/>
           <category name="lcw home purchase" title="lcw home purchase"/>
-          <category name="Lead Poisoning Rates 1998 -2008 Municipal" title="Lead Poisoning Rates 1998 -2008 Municipal"/>
           <category name="lead_town" title="lead_town"/>
-          <category name="level 4 schools with PreK" title="level 4 schools with PreK"/>
-          <category name="LGSAC" title="LGSAC"/>
-          <category name="LGSAC by town" title="LGSAC by town"/>
           <category name="Libraries" title="Libraries"/>
           <category name="Life expectancy at birth, total (years)" title="Life expectancy at birth, total (years)"/>
           <category name="Literacy rate adult total (% of people ages 15 and above" title="Literacy rate adult total (% of people ages 15 and above"/>
@@ -955,17 +972,14 @@ wheel</zoom>
           <category name="lowell_nccs_3" title="lowell_nccs_3"/>
           <category name="lowell_nccs_alt" title="lowell_nccs_alt"/>
           <category name="lowell_neighborhoods" title="lowell_neighborhoods"/>
-          <category name="lowell_neighborhoods_reprojected" title="lowell_neighborhoods_reprojected"/>
           <category name="lowell_parcel_fd&amp;deed" title="lowell_parcel_fd&amp;deed"/>
           <category name="lowell_parcel_v2" title="lowell_parcel_v2"/>
-          <category name="Lowell_Parcels" title="Lowell_Parcels"/>
           <category name="lowell_registrants" title="lowell_registrants"/>
           <category name="lowell_regsWtract" title="lowell_regsWtract"/>
           <category name="lowell_school_mobility" title="lowell_school_mobility"/>
           <category name="lowell_school_mobility_actual" title="lowell_school_mobility_actual"/>
           <category name="Lowell_tract_eec_reg_stats" title="Lowell_tract_eec_reg_stats"/>
           <category name="LowellEECforeclosure" title="LowellEECforeclosure"/>
-          <category name="LowellFD_2009_Final" title="LowellFD_2009_Final"/>
           <category name="lowellfd_2009_final" title="lowellfd_2009_final"/>
           <category name="LowellSchoolsData" title="LowellSchoolsData"/>
           <category name="lowelltracts_w_ec_registrant_count" title="lowelltracts_w_ec_registrant_count"/>
@@ -973,15 +987,10 @@ wheel</zoom>
           <category name="lowelltracts_w_eec_registrant_count" title="lowelltracts_w_eec_registrant_count"/>
           <category name="Lynn(JosephTorname)" title="Lynn(JosephTorname)"/>
           <category name="Lynn2" title="Lynn2"/>
-          <category name="MA Census Tract" title="MA Census Tract"/>
-          <category name="MA Census Tract 6-digit" title="MA Census Tract 6-digit"/>
-          <category name="MA Pop" title="MA Pop"/>
           <category name="ma_1_2007_v07" title="ma_1_2007_v07"/>
           <category name="ma_2009performance_school" title="ma_2009performance_school"/>
           <category name="MA_Birth_ED_Attainment" title="MA_Birth_ED_Attainment"/>
           <category name="MA_Births_Less_than_High_Sch" title="MA_Births_Less_than_High_Sch"/>
-          <category name="ma_childcare_2009_sample_points" title="ma_childcare_2009_sample_points"/>
-          <category name="MA_COC" title="MA_COC"/>
           <category name="ma_ed_care2004" title="ma_ed_care2004"/>
           <category name="ma_ed_care200409" title="ma_ed_care200409"/>
           <category name="MA_EducCare_2004LicenseData" title="MA_EducCare_2004LicenseData"/>
@@ -1007,10 +1016,8 @@ wheel</zoom>
           <category name="ma_subsidized_housing_pha" title="ma_subsidized_housing_pha"/>
           <category name="MA_Subsidized_Housing_PHA" title="MA_Subsidized_Housing_PHA"/>
           <category name="ma_town_region3" title="ma_town_region3"/>
-          <category name="MA_Towns_MultiPoly_TOWN" title="MA_Towns_MultiPoly_TOWN"/>
           <category name="ma_tract_w_eec_regcnt_and_town" title="ma_tract_w_eec_regcnt_and_town"/>
           <category name="ma_tracts_w_eec_regcnt" title="ma_tracts_w_eec_regcnt"/>
-          <category name="MA_ZCTA" title="MA_ZCTA"/>
           <category name="MA_ZipCodes_Poly" title="MA_ZipCodes_Poly"/>
           <category name="macs_lunch_g3_0310" title="macs_lunch_g3_0310"/>
           <category name="MAHigher_ed_2" title="MAHigher_ed_2"/>
@@ -1034,21 +1041,12 @@ wheel</zoom>
           <category name="Marine areas protected_sq. km." title="Marine areas protected_sq. km."/>
           <category name="Marine protected areas" title="Marine protected areas"/>
           <category name="Mass Job Vacancies" title="Mass Job Vacancies"/>
-          <category name="mass towns" title="mass towns"/>
-          <category name="mass_benchmarks" title="mass_benchmarks"/>
           <category name="Mass_Education_Care_Combined_Table" title="Mass_Education_Care_Combined_Table"/>
-          <category name="mass_towns" title="mass_towns"/>
           <category name="Massachusetts Land Use" title="Massachusetts Land Use"/>
           <category name="Massachusetts Public Housing Agencies data" title="Massachusetts Public Housing Agencies data"/>
-          <category name="Massachusetts Towns" title="Massachusetts Towns"/>
-          <category name="MassARRA" title="MassARRA"/>
           <category name="MassARRADatacommaLowellV3" title="MassARRADatacommaLowellV3"/>
           <category name="MassARRADatacommaV3" title="MassARRADatacommaV3"/>
           <category name="MassARRADatacommaV4" title="MassARRADatacommaV4"/>
-          <category name="MassARRALowellOnly" title="MassARRALowellOnly"/>
-          <category name="MassARRApoint" title="MassARRApoint"/>
-          <category name="MassARRAPoint" title="MassARRAPoint"/>
-          <category name="MassARRAVer6" title="MassARRAVer6"/>
           <category name="masschip_infant_mortality_2007" title="masschip_infant_mortality_2007"/>
           <category name="masschip_infant_mortality_2007_sel" title="masschip_infant_mortality_2007_sel"/>
           <category name="masshospitalizations" title="masshospitalizations"/>
@@ -1056,8 +1054,6 @@ wheel</zoom>
           <category name="masstowns_w_eec_registrant_count" title="masstowns_w_eec_registrant_count"/>
           <category name="Maternal mortality ratio" title="Maternal mortality ratio"/>
           <category name="Maternal mortality ratio per 100000 live births" title="Maternal mortality ratio per 100000 live births"/>
-          <category name="MBTA_ARC" title="MBTA_ARC"/>
-          <category name="MBTA_NODE" title="MBTA_NODE"/>
           <category name="MBTABUSROUTES_ARC" title="MBTABUSROUTES_ARC"/>
           <category name="MBTABUSSTOPS_PT" title="MBTABUSSTOPS_PT"/>
           <category name="mcas_district_g3_2008" title="mcas_district_g3_2008"/>
@@ -1081,24 +1077,17 @@ wheel</zoom>
           <category name="measuresofbirthdeath_county" title="measuresofbirthdeath_county"/>
           <category name="Median Family Income by State" title="Median Family Income by State"/>
           <category name="Men 15-24 years old with correct knowledge of HIV-AIDS_pct" title="Men 15-24 years old with correct knowledge of HIV-AIDS_pct"/>
-          <category name="Merged Turi" title="Merged Turi"/>
-          <category name="MetroBoston Employment by Sector 2001-2006" title="MetroBoston Employment by Sector 2001-2006"/>
-          <category name="MetroBoston_Schools" title="MetroBoston_Schools"/>
-          <category name="MetroBoston_Schools_MAPC" title="MetroBoston_Schools_MAPC"/>
           <category name="Metropolitan Division" title="Metropolitan Division"/>
-          <category name="MFI Ben" title="MFI Ben"/>
-          <category name="MFI_GH" title="MFI_GH"/>
-          <category name="MFI_GH1" title="MFI_GH1"/>
           <category name="MFI_Points_2007" title="MFI_Points_2007"/>
           <category name="MidWest(Industries)2001" title="MidWest(Industries)2001"/>
           <category name="MidWest(Industries)2008" title="MidWest(Industries)2008"/>
           <category name="midwest(industries)2008" title="midwest(industries)2008"/>
-          <category name="midwest(industries)2009" title="midwest(industries)2009"/>
           <category name="MidWest(Industries)2009" title="MidWest(Industries)2009"/>
+          <category name="midwest(industries)2009" title="midwest(industries)2009"/>
           <category name="MidWest(Industries)ALL" title="MidWest(Industries)ALL"/>
           <category name="midwest0009" title="midwest0009"/>
-          <category name="midwest2009_naics" title="midwest2009_naics"/>
           <category name="midwest2009_NAICS" title="midwest2009_NAICS"/>
+          <category name="midwest2009_naics" title="midwest2009_naics"/>
           <category name="Midwest26month" title="Midwest26month"/>
           <category name="Midwest7500" title="Midwest7500"/>
           <category name="midwest7500" title="midwest7500"/>
@@ -1113,7 +1102,6 @@ wheel</zoom>
           <category name="Mortality rate under-5 (per 1,000)" title="Mortality rate under-5 (per 1,000)"/>
           <category name="mortgage-lending-hmda" title="mortgage-lending-hmda"/>
           <category name="MPS_Elected_May2010" title="MPS_Elected_May2010"/>
-          <category name="MSA_Tracts" title="MSA_Tracts"/>
           <category name="MSAD" title="MSAD"/>
           <category name="munidebt" title="munidebt"/>
           <category name="munidebt 2000" title="munidebt 2000"/>
@@ -1126,10 +1114,6 @@ wheel</zoom>
           <category name="munidebt 2007" title="munidebt 2007"/>
           <category name="munidebt 2008" title="munidebt 2008"/>
           <category name="munidebt 2009" title="munidebt 2009"/>
-          <category name="mvhp" title="mvhp"/>
-          <category name="mvhp_reprojected_v2" title="mvhp_reprojected_v2"/>
-          <category name="my cool test table" title="my cool test table"/>
-          <category name="my_obesity" title="my_obesity"/>
           <category name="N_Middlesex Municipal" title="N_Middlesex Municipal"/>
           <category name="NAEP 4th Grade Reading All Students" title="NAEP 4th Grade Reading All Students"/>
           <category name="NAEP 4th Grade Reading by ELL" title="NAEP 4th Grade Reading by ELL"/>
@@ -1138,9 +1122,6 @@ wheel</zoom>
           <category name="NAEP_4th_Grade_Reading_by_Race" title="NAEP_4th_Grade_Reading_by_Race"/>
           <category name="NAEP_ELL_4th_Grade_Reading" title="NAEP_ELL_4th_Grade_Reading"/>
           <category name="Name" title="Name"/>
-          <category name="Nashua_Tract" title="Nashua_Tract"/>
-          <category name="NationalHighTech2002to2009" title="NationalHighTech2002to2009"/>
-          <category name="NationalSTEM2009" title="NationalSTEM2009"/>
           <category name="nccs_194c0" title="nccs_194c0"/>
           <category name="NCCS_Lowell" title="NCCS_Lowell"/>
           <category name="nccs_ma_reprojected" title="nccs_ma_reprojected"/>
@@ -1159,10 +1140,6 @@ wheel</zoom>
           <category name="nccs_shape_MACT" title="nccs_shape_MACT"/>
           <category name="NCHC" title="NCHC"/>
           <category name="nchc" title="nchc"/>
-          <category name="ne_cd99_110" title="ne_cd99_110"/>
-          <category name="ne_lldistricts" title="ne_lldistricts"/>
-          <category name="ne_lsdistricts" title="ne_lsdistricts"/>
-          <category name="ne_senate_vote" title="ne_senate_vote"/>
           <category name="ne_state_house_vote" title="ne_state_house_vote"/>
           <category name="ne_statesenate_vote" title="ne_statesenate_vote"/>
           <category name="ne_streams" title="ne_streams"/>
@@ -1181,45 +1158,63 @@ wheel</zoom>
           <category name="Net ODA to LDCs as percentage of OECD-DAC donors GNI" title="Net ODA to LDCs as percentage of OECD-DAC donors GNI"/>
           <category name="Net ODA to LDCs_million US dollars" title="Net ODA to LDCs_million US dollars"/>
           <category name="net oda_million us$" title="net oda_million us$"/>
-          <category name="net oda_million usdollars" title="net oda_million usdollars"/>
           <category name="Net ODA_million USdollars" title="Net ODA_million USdollars"/>
+          <category name="net oda_million usdollars" title="net oda_million usdollars"/>
           <category name="New England Congressional District Data" title="New England Congressional District Data"/>
           <category name="New England HPI without MSAD" title="New England HPI without MSAD"/>
-          <category name="New England Lower House Data" title="New England Lower House Data"/>
           <category name="New England Lower House District Data" title="New England Lower House District Data"/>
           <category name="New England Municipal Data" title="New England Municipal Data"/>
           <category name="New England Subbasin Data" title="New England Subbasin Data"/>
           <category name="New England Upper House District Data" title="New England Upper House District Data"/>
-          <category name="new_england_subbasins" title="new_england_subbasins"/>
-          <category name="NewEngland_Cousub" title="NewEngland_Cousub"/>
           <category name="newengland_subbasins_v2" title="newengland_subbasins_v2"/>
           <category name="NewEnglandCatchments" title="NewEnglandCatchments"/>
           <category name="nitrogen_load_subbasin" title="nitrogen_load_subbasin"/>
           <category name="nonsenseHeather" title="nonsenseHeather"/>
-          <category name="NREL_New_England" title="NREL_New_England"/>
-          <category name="NREL_NewEnglandShapeWGS84" title="NREL_NewEnglandShapeWGS84"/>
           <category name="number of farms by state" title="number of farms by state"/>
           <category name="number of nonprofits by state" title="number of nonprofits by state"/>
-          <category name="Obesity" title="Obesity"/>
-          <category name="obesity" title="obesity"/>
+          <category name="obesity" title="obesity">
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53566" name="US State FIPS Code" title="US State FIPS Code"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53567" name="State" title="State"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53568" name="Percent Obese 1995" title="Percent Obese 1995"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53569" name="Percent Obese 1996" title="Percent Obese 1996"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53570" name="Percent Obese 1997" title="Percent Obese 1997"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53571" name="Percent Obese 1998" title="Percent Obese 1998"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53572" name="Percent Obese 1999" title="Percent Obese 1999"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53573" name="Percent Obese 2000" title="Percent Obese 2000"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53574" name="Percent Obese 2001" title="Percent Obese 2001"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53575" name="Percent Obese 2002" title="Percent Obese 2002"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53576" name="Percent Obese 2003" title="Percent Obese 2003"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53577" name="Percent Obese 2004" title="Percent Obese 2004"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53578" name="Percent Obese 2005" title="Percent Obese 2005"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53579" name="Percent Obese 2006" title="Percent Obese 2006"/>
+            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53580" name="Percent Obese 2007" title="Percent Obese 2007"/>
+          </category>
+          <category name="Obesity" title="Obesity">
+            <attribute geometryCollection="States" dataTable="Obesity" keyType="US State FIPS Code" id="68866" name="State" title="State"/>
+            <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68867" title="Percent Obese 1995"/>
+            <attribute dataTable="Obesity" name="Percent Obese 1996" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68868" title="Percent Obese 1996"/>
+            <attribute dataTable="Obesity" name="Percent Obese 1997" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68869" title="Percent Obese 1997"/>
+            <attribute dataTable="Obesity" name="Percent Obese 1998" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68870" title="Percent Obese 1998"/>
+            <attribute dataTable="Obesity" name="Percent Obese 1999" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68871" title="Percent Obese 1999"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2000" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68872" title="Percent Obese 2000"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2001" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68873" title="Percent Obese 2001"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2002" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68874" title="Percent Obese 2002"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2003" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68875" title="Percent Obese 2003"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2004" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68876" title="Percent Obese 2004"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2005" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68877" title="Percent Obese 2005"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2006" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68878" title="Percent Obese 2006"/>
+            <attribute dataTable="Obesity" name="Percent Obese 2007" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68879" title="Percent Obese 2007"/>
+          </category>
           <category name="obesity by state" title="obesity by state"/>
           <category name="Obesity Years" title="Obesity Years"/>
-          <category name="obesity1" title="obesity1"/>
           <category name="Obesity_County_2004_2007" title="Obesity_County_2004_2007"/>
           <category name="obesity_district" title="obesity_district"/>
           <category name="obesity_g10_2009" title="obesity_g10_2009"/>
           <category name="obesity_mcas_g10_2010" title="obesity_mcas_g10_2010"/>
           <category name="obesity_state" title="obesity_state"/>
+          <category name="obesity_test" title="obesity_test"/>
           <category name="obesityTimeDimension" title="obesityTimeDimension"/>
-          <category name="obesityTimeDimensionwid" title="obesityTimeDimensionwid">
-            <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="ID" id="79309" title="ID"/>
-            <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="State" id="79310" title="State"/>
-            <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="FIPS2" id="79311" title="FIPS2"/>
-            <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="Year" id="79312" title="Year"/>
-            <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="PercentObese" id="79313" title="PercentObese"/>
-            <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="PercentOverweight" id="79314" title="PercentOverweight"/>
-            <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="PercentNotOverweight" id="79315" title="PercentNotOverweight"/>
-          </category>
+          <category name="obesityTimeDimensionwid" title="obesityTimeDimensionwid"/>
           <category name="od_2005" title="od_2005"/>
           <category name="od_2006_reprojected" title="od_2006_reprojected"/>
           <category name="od_2007" title="od_2007"/>
@@ -1237,12 +1232,9 @@ wheel</zoom>
           <category name="ODA that is untied_percentage" title="ODA that is untied_percentage"/>
           <category name="ODA to basic social services as pct of sector-allocable ODA" title="ODA to basic social services as pct of sector-allocable ODA"/>
           <category name="ODA to basic social services_million US dollars" title="ODA to basic social services_million US dollars"/>
-          <category name="OECD_Combined health and Ineq." title="OECD_Combined health and Ineq."/>
           <category name="oecd_combined health and ineq." title="oecd_combined health and ineq."/>
-          <category name="OECD_Gini_Health" title="OECD_Gini_Health"/>
+          <category name="OECD_Combined health and Ineq." title="OECD_Combined health and Ineq."/>
           <category name="oecd_obese2008" title="oecd_obese2008"/>
-          <category name="Ohio County Subdivisions" title="Ohio County Subdivisions"/>
-          <category name="Ohio Places" title="Ohio Places"/>
           <category name="ON no FD 2005" title="ON no FD 2005"/>
           <category name="on no fd 2006_reprojected" title="on no fd 2006_reprojected"/>
           <category name="on no fd 2007_reprojected" title="on no fd 2007_reprojected"/>
@@ -1262,9 +1254,8 @@ wheel</zoom>
           <category name="own-account and contributing family workers_women_pct" title="own-account and contributing family workers_women_pct"/>
           <category name="Pancreatic_Cancer99-06" title="Pancreatic_Cancer99-06"/>
           <category name="pancreatic_cancer_county" title="pancreatic_cancer_county"/>
-          <category name="par160" title="par160"/>
-          <category name="pct females_15-49_ having comprehensive  knowledge about HIV" title="pct females_15-49_ having comprehensive  knowledge about HIV"/>
-          <category name="pct males_15-49_ having comprehensive  knowledge about HIV" title="pct males_15-49_ having comprehensive  knowledge about HIV"/>
+          <category name="pct females_15-49_ having comprehensive&#x9;knowledge about HIV" title="pct females_15-49_ having comprehensive&#x9;knowledge about HIV"/>
+          <category name="pct males_15-49_ having comprehensive&#x9;knowledge about HIV" title="pct males_15-49_ having comprehensive&#x9;knowledge about HIV"/>
           <category name="Pct pupils starting grade 1 reach last grade of primary_both" title="Pct pupils starting grade 1 reach last grade of primary_both"/>
           <category name="Pct pupils starting grade 1 reach last grade of primary_girls" title="Pct pupils starting grade 1 reach last grade of primary_girls"/>
           <category name="Pct pupils starting grade 1 who reach last grade of primary_boys" title="Pct pupils starting grade 1 who reach last grade of primary_boys"/>
@@ -1291,8 +1282,8 @@ wheel</zoom>
           <category name="Population living in slums (% of urban population)" title="Population living in slums (% of urban population)"/>
           <category name="population race by state" title="population race by state"/>
           <category name="Population undernourished_number of people" title="Population undernourished_number of people"/>
-          <category name="Population undernourished_percentage" title="Population undernourished_percentage"/>
           <category name="population undernourished_percentage" title="population undernourished_percentage"/>
+          <category name="Population undernourished_percentage" title="Population undernourished_percentage"/>
           <category name="population using improved drinking water sources_rural" title="population using improved drinking water sources_rural"/>
           <category name="population using improved drinking water sources_total" title="population using improved drinking water sources_total"/>
           <category name="population using improved drinking water sources_urban" title="population using improved drinking water sources_urban"/>
@@ -1336,6 +1327,9 @@ wheel</zoom>
           <category name="preventive services use" title="preventive services use"/>
           <category name="PREVENTIVE_SERVICES_USE" title="PREVENTIVE_SERVICES_USE"/>
           <category name="pricespopulationenergy" title="pricespopulationenergy"/>
+          <category name="PricesPopulationEnergy" title="PricesPopulationEnergy"/>
+          <category name="PricesPopulationEnergyTotalsforUS" title="PricesPopulationEnergyTotalsforUS"/>
+          <category name="PricesPopulationEnergyVer2" title="PricesPopulationEnergyVer2"/>
           <category name="Primary completion rate, total (% of relevant age group)" title="Primary completion rate, total (% of relevant age group)"/>
           <category name="Primary completion rate_both sexes" title="Primary completion rate_both sexes"/>
           <category name="Primary completion rate_boys" title="Primary completion rate_boys"/>
@@ -1351,10 +1345,7 @@ wheel</zoom>
           <category name="prostate_cancer" title="prostate_cancer"/>
           <category name="Prostate_Cancer1999-2006" title="Prostate_Cancer1999-2006"/>
           <category name="public charities and private foundations by state" title="public charities and private foundations by state"/>
-          <category name="Public Libraries MA" title="Public Libraries MA"/>
           <category name="public school enrollment by state" title="public school enrollment by state"/>
-          <category name="Public School Pre K" title="Public School Pre K"/>
-          <category name="Public School Pre k by town" title="Public School Pre k by town"/>
           <category name="Ratio of female to male primary enrollment (%)" title="Ratio of female to male primary enrollment (%)"/>
           <category name="Ratio of female to male secondary enrollment (%)" title="Ratio of female to male secondary enrollment (%)"/>
           <category name="Ratio of female to male tertiary enrollment (%)" title="Ratio of female to male tertiary enrollment (%)"/>
@@ -1365,14 +1356,12 @@ wheel</zoom>
           <category name="Ratio of unemployment_Youth to adult_men" title="Ratio of unemployment_Youth to adult_men"/>
           <category name="Ratio of unemployment_Youth to adult_women" title="Ratio of unemployment_Youth to adult_women"/>
           <category name="Registrants_distribution" title="Registrants_distribution"/>
-          <category name="Registrants_US1" title="Registrants_US1"/>
           <category name="registrants_us1" title="registrants_us1"/>
+          <category name="Registrants_US1" title="Registrants_US1"/>
           <category name="relative health importance" title="relative health importance"/>
           <category name="RELATIVE_HEALTH_IMPORTANCE" title="RELATIVE_HEALTH_IMPORTANCE"/>
           <category name="Renewable internal freshwater resources per capita-cubic meters" title="Renewable internal freshwater resources per capita-cubic meters"/>
           <category name="RI School Proficiency" title="RI School Proficiency"/>
-          <category name="ri_bg" title="ri_bg"/>
-          <category name="ri_schools08_projected" title="ri_schools08_projected"/>
           <category name="riders_by_stop" title="riders_by_stop"/>
           <category name="risk factors and access to care" title="risk factors and access to care"/>
           <category name="Rosling Indicators" title="Rosling Indicators"/>
@@ -1403,7 +1392,6 @@ wheel</zoom>
           <category name="Seats held by women in national parliament" title="Seats held by women in national parliament"/>
           <category name="Seats held by women in national parliament_percentage" title="Seats held by women in national parliament_percentage"/>
           <category name="seds_complete_jun_2010" title="seds_complete_jun_2010"/>
-          <category name="SEDS_Complete_Jun_2010_v2" title="SEDS_Complete_Jun_2010_v2"/>
           <category name="SFC_Indicators" title="SFC_Indicators"/>
           <category name="sfc_indicators" title="sfc_indicators"/>
           <category name="Share of women employed in the nonagricultural sector" title="Share of women employed in the nonagricultural sector"/>
@@ -1419,7 +1407,6 @@ wheel</zoom>
           <category name="Slum population in urban areas" title="Slum population in urban areas"/>
           <category name="solar as pct of total energy by state" title="solar as pct of total energy by state"/>
           <category name="special land by state" title="special land by state"/>
-          <category name="st99_d00" title="st99_d00"/>
           <category name="State" title="State"/>
           <category name="STATE" title="STATE"/>
           <category name="state arts appropriations by state" title="state arts appropriations by state"/>
@@ -1434,16 +1421,11 @@ wheel</zoom>
           <category name="StatesHealth" title="StatesHealth"/>
           <category name="StatesHealth Years" title="StatesHealth Years"/>
           <category name="Status under enhanced HIPC initiative" title="Status under enhanced HIPC initiative"/>
-          <category name="STEM BY INSTITUTION" title="STEM BY INSTITUTION"/>
-          <category name="STEMCOUNTY2009" title="STEMCOUNTY2009"/>
           <category name="student_CMD" title="student_CMD"/>
           <category name="student_EJL" title="student_EJL"/>
           <category name="Styrene By Town" title="Styrene By Town"/>
-          <category name="Subsidy_TotalCapacity" title="Subsidy_TotalCapacity"/>
           <category name="substance abu" title="substance abu"/>
           <category name="substance_abuse" title="substance_abuse"/>
-          <category name="Success_Boston_AggCollege" title="Success_Boston_AggCollege"/>
-          <category name="Success_Boston_Student_Cohorts" title="Success_Boston_Student_Cohorts"/>
           <category name="Suffolk County Demographics By Census Tract" title="Suffolk County Demographics By Census Tract"/>
           <category name="SUMLEV" title="SUMLEV"/>
           <category name="summary measures of health" title="summary measures of health"/>
@@ -1466,12 +1448,12 @@ wheel</zoom>
           <category name="test" title="test"/>
           <category name="test delete" title="test delete"/>
           <category name="test_demo_1" title="test_demo_1"/>
-          <category name="test_nccs" title="test_nccs"/>
+          <category name="test_obesity" title="test_obesity"/>
+          <category name="Test_Obesity" title="Test_Obesity"/>
           <category name="test_oby" title="test_oby"/>
           <category name="testingHeather" title="testingHeather"/>
           <category name="testobesity" title="testobesity"/>
           <category name="Tetrachloroethylene by town" title="Tetrachloroethylene by town"/>
-          <category name="tl_2009_09_bg00" title="tl_2009_09_bg00"/>
           <category name="tl_2009_us_state" title="tl_2009_us_state"/>
           <category name="Total debt service (% of exports of goods, services and income)" title="Total debt service (% of exports of goods, services and income)"/>
           <category name="Total enrollment primary (% net)" title="Total enrollment primary (% net)"/>
@@ -1481,9 +1463,7 @@ wheel</zoom>
           <category name="Total number of seats in national parliament" title="Total number of seats in national parliament"/>
           <category name="totalchemicals_town" title="totalchemicals_town"/>
           <category name="TotalEnergyPricesExpendituresEIA" title="TotalEnergyPricesExpendituresEIA"/>
-          <category name="TotalLicCapacityinMA" title="TotalLicCapacityinMA"/>
           <category name="toxics all years" title="toxics all years"/>
-          <category name="tr25_d00_reprojected" title="tr25_d00_reprojected"/>
           <category name="tract_ma_trial" title="tract_ma_trial"/>
           <category name="Trade (% of GDP)" title="Trade (% of GDP)"/>
           <category name="TRICHLOROETHYLENE by Town" title="TRICHLOROETHYLENE by Town"/>
@@ -1495,34 +1475,11 @@ wheel</zoom>
           <category name="Tuberculosis prevalence rate per 100000 population" title="Tuberculosis prevalence rate per 100000 population"/>
           <category name="Tuberculosis treatment success rate (% of registered cases)" title="Tuberculosis treatment success rate (% of registered cases)"/>
           <category name="Tuberculosis treatment success rate under DOTS_percentage" title="Tuberculosis treatment success rate under DOTS_percentage"/>
-          <category name="turi points" title="turi points"/>
           <category name="Turi points" title="Turi points"/>
+          <category name="turi points" title="turi points"/>
           <category name="turi points 2008" title="turi points 2008"/>
           <category name="TURI Totals 1990-2007 by town" title="TURI Totals 1990-2007 by town"/>
-          <category name="turi00" title="turi00"/>
-          <category name="turi01" title="turi01"/>
-          <category name="turi02" title="turi02"/>
-          <category name="turi03" title="turi03"/>
-          <category name="turi04" title="turi04"/>
-          <category name="turi05" title="turi05"/>
-          <category name="turi06" title="turi06"/>
-          <category name="turi06-" title="turi06-"/>
-          <category name="turi07" title="turi07"/>
-          <category name="turi07new" title="turi07new"/>
-          <category name="turi08" title="turi08"/>
-          <category name="turi90" title="turi90"/>
-          <category name="turi91" title="turi91"/>
-          <category name="turi92" title="turi92"/>
-          <category name="turi93" title="turi93"/>
-          <category name="turi94" title="turi94"/>
-          <category name="turi95" title="turi95"/>
-          <category name="turi96" title="turi96"/>
-          <category name="turi97" title="turi97"/>
-          <category name="turi98" title="turi98"/>
-          <category name="turi99" title="turi99"/>
           <category name="TURI_all_2008" title="TURI_all_2008"/>
-          <category name="turi_by_facility_by_year_by_amount" title="turi_by_facility_by_year_by_amount"/>
-          <category name="Turkey" title="Turkey"/>
           <category name="turkey-amount of municipal waste by destination_2008" title="turkey-amount of municipal waste by destination_2008"/>
           <category name="UKIncome_MediansMeans" title="UKIncome_MediansMeans"/>
           <category name="UmassTotals20032008" title="UmassTotals20032008"/>
@@ -1535,7 +1492,6 @@ wheel</zoom>
           <category name="Unmet need for family planning_total_percentage" title="Unmet need for family planning_total_percentage"/>
           <category name="urbaninst_census_acs" title="urbaninst_census_acs"/>
           <category name="urbanrural years" title="urbanrural years"/>
-          <category name="us_cbsa" title="us_cbsa"/>
           <category name="us_interstates" title="us_interstates"/>
           <category name="us_state_voting_addenda" title="us_state_voting_addenda"/>
           <category name="us_voterturnout_state_2008" title="us_voterturnout_state_2008"/>
@@ -1547,12 +1503,6 @@ wheel</zoom>
           <category name="USoilPlatforms" title="USoilPlatforms"/>
           <category name="USoilPlatformsDelete" title="USoilPlatformsDelete"/>
           <category name="USprisoners" title="USprisoners"/>
-          <category name="UW2010QualityOfLifeIndex" title="UW2010QualityOfLifeIndex"/>
-          <category name="UWEverythingAboutWater" title="UWEverythingAboutWater"/>
-          <category name="UWUrbanPopulationYearOneCol" title="UWUrbanPopulationYearOneCol"/>
-          <category name="VoucherKidsby_AgeGroup" title="VoucherKidsby_AgeGroup"/>
-          <category name="VoucherKidsby_programtype" title="VoucherKidsby_programtype"/>
-          <category name="Voucherkidsby_ServiceCode" title="Voucherkidsby_ServiceCode"/>
           <category name="Vulnerable employment, female (% of female employment)" title="Vulnerable employment, female (% of female employment)"/>
           <category name="Vulnerable employment, male (% of male employment)" title="Vulnerable employment, male (% of male employment)"/>
           <category name="Vulnerable employment, total (% of total employment)" title="Vulnerable employment, total (% of total employment)"/>
@@ -1560,13 +1510,10 @@ wheel</zoom>
           <category name="vulnerable_pops_and_env_health" title="vulnerable_pops_and_env_health"/>
           <category name="vulnerablepops" title="vulnerablepops"/>
           <category name="WB economic indicator" title="WB economic indicator"/>
-          <category name="wb1" title="wb1"/>
           <category name="wbc" title="wbc"/>
           <category name="Weave Jira Issues" title="Weave Jira Issues"/>
-          <category name="weave_turi_by_city_by_year_by_amount" title="weave_turi_by_city_by_year_by_amount"/>
           <category name="Westford_Foreclosures_Deeds" title="Westford_Foreclosures_Deeds"/>
           <category name="Westford_MassGIS" title="Westford_MassGIS"/>
-          <category name="westminster_const_region" title="westminster_const_region"/>
           <category name="WHO 2003" title="WHO 2003"/>
           <category name="who_03" title="who_03"/>
           <category name="Wind Capacity by State MW" title="Wind Capacity by State MW"/>
@@ -1577,296 +1524,77 @@ wheel</zoom>
           <category name="WindCapInstalledbyStateVer7" title="WindCapInstalledbyStateVer7"/>
           <category name="Women 15-24 years old with correct knowledge of HIV-AIDS_pct" title="Women 15-24 years old with correct knowledge of HIV-AIDS_pct"/>
           <category name="Women to men parity index_as ratio of literacy rates_15-24 age" title="Women to men parity index_as ratio of literacy rates_15-24 age"/>
-          <category name="world" title="world"/>
           <category name="World 3Dig" title="World 3Dig"/>
           <category name="World Bank Development Indicators" title="World Bank Development Indicators"/>
           <category name="World Bank Years" title="World Bank Years"/>
-          <category name="World Borders" title="World Borders"/>
-          <category name="World Borders (UN Codes)" title="World Borders (UN Codes)"/>
           <category name="World Name Table" title="World Name Table"/>
-          <category name="World UN" title="World UN"/>
           <category name="World_3 digit" title="World_3 digit"/>
           <category name="WorldBankWSecKey" title="WorldBankWSecKey"/>
-          <category name="WT_FAAOE_2000_2011" title="WT_FAAOE_2000_2011"/>
-          <category name="yb_points" title="yb_points"/>
           <category name="Youth unemployment rate_aged 15-24_both sexes" title="Youth unemployment rate_aged 15-24_both sexes"/>
           <category name="Youth unemployment rate_aged 15-24_men" title="Youth unemployment rate_aged 15-24_men"/>
           <category name="Youth unemployment rate_aged 15-24_women" title="Youth unemployment rate_aged 15-24_women"/>
-          <category name="youthbuild_points" title="youthbuild_points"/>
           <category name="YouthBuildPoint2009Unemployment" title="YouthBuildPoint2009Unemployment"/>
           <category name="YouthBuildPrograms2009" title="YouthBuildPrograms2009"/>
           <category name="YouthBuildPrograms2009_point" title="YouthBuildPrograms2009_point"/>
-          <category name="ZillowNeighborhoods" title="ZillowNeighborhoods"/>
-        </category>
-        <category name="Geometry Collections" title="Geometry Collections">
-          <attribute name="11_4_reprojected" dataType="geometry" title="11_4_reprojected"/>
-          <attribute name="11_4_reprojected_geometry" dataType="geometry" title="11_4_reprojected_geometry"/>
-          <attribute name="arra_mass_points201004" dataType="geometry" title="arra_mass_points201004"/>
-          <attribute name="arra_point" dataType="geometry" title="arra_point"/>
-          <attribute name="arra_point" dataType="geometry" title="arra_point"/>
-          <attribute name="Arrests_Nashua" dataType="geometry" title="Arrests_Nashua"/>
-          <attribute name="Atlanta Superdistricts" dataType="geometry" title="Atlanta Superdistricts"/>
-          <attribute name="Atlanta Superdistricts11" dataType="geometry" title="Atlanta Superdistricts11"/>
-          <attribute name="Atlanta Transportation Analysis Zones" dataType="geometry" title="Atlanta Transportation Analysis Zones"/>
-          <attribute name="Atlanta_CLCC_GDCH" dataType="geometry" title="Atlanta_CLCC_GDCH"/>
-          <attribute name="Atlanta_ES_4th_CRCT_Reading" dataType="geometry" title="Atlanta_ES_4th_CRCT_Reading"/>
-          <attribute name="Atlanta_Head_Start" dataType="geometry" title="Atlanta_Head_Start"/>
-          <attribute name="Atlanta_LowPerfSchools" dataType="geometry" title="Atlanta_LowPerfSchools"/>
-          <attribute name="Atlanta_MSA_Counties" dataType="geometry" title="Atlanta_MSA_Counties"/>
-          <attribute name="Atlanta_MSA_Interstates" dataType="geometry" title="Atlanta_MSA_Interstates"/>
-          <attribute name="Atlanta_MSA_Places" dataType="geometry" title="Atlanta_MSA_Places"/>
-          <attribute name="Atlanta_NPUs" dataType="geometry" title="Atlanta_NPUs"/>
-          <attribute name="Atlanta_Pre-K" dataType="geometry" title="Atlanta_Pre-K"/>
-          <attribute name="Atlanta_Vuln3_5" dataType="geometry" title="Atlanta_Vuln3_5"/>
-          <attribute name="Atlanta_Vuln3Plus" dataType="geometry" title="Atlanta_Vuln3Plus"/>
-          <attribute name="Atlanta_Vuln6_10" dataType="geometry" title="Atlanta_Vuln6_10"/>
-          <attribute name="bikeped_facilities" dataType="geometry" title="bikeped_facilities"/>
-          <attribute name="Boston 2005 Parcels" dataType="geometry" title="Boston 2005 Parcels"/>
-          <attribute name="Boston 2005 Parcels Subset" dataType="geometry" title="Boston 2005 Parcels Subset"/>
-          <attribute name="boston_foreclosure_deeds" dataType="geometry" title="boston_foreclosure_deeds"/>
-          <attribute name="Boston_Hositals" dataType="geometry" title="Boston_Hositals"/>
-          <attribute name="Boston_Hositals111" dataType="geometry" title="Boston_Hositals111"/>
-          <attribute name="Boston_Neighborhoods" dataType="geometry" title="Boston_Neighborhoods"/>
-          <attribute name="boston_roads" dataType="geometry" title="boston_roads"/>
-          <attribute name="Boston_zips" dataType="geometry" title="Boston_zips"/>
-          <attribute name="CATCHMENTS_poly_region" dataType="geometry" title="CATCHMENTS_poly_region"/>
-          <attribute name="CBSAs" dataType="geometry" title="CBSAs"/>
-          <attribute name="cd99_110" dataType="geometry" title="cd99_110"/>
-          <attribute name="cd_110thCongress" dataType="geometry" title="cd_110thCongress"/>
-          <attribute name="Census Trats MA 2010" dataType="geometry" title="Census Trats MA 2010"/>
-          <attribute name="census2000blockgroups_poly_orig" dataType="geometry" title="census2000blockgroups_poly_orig"/>
-          <attribute name="census2000tracts_ICC_Towns" dataType="geometry" title="census2000tracts_ICC_Towns"/>
-          <attribute name="chic_counties" dataType="geometry" title="chic_counties"/>
-          <attribute name="Chicago Census Tracts" dataType="geometry" title="Chicago Census Tracts"/>
-          <attribute name="chicago_arra_munis" dataType="geometry" title="chicago_arra_munis"/>
-          <attribute name="chicago_arra_point" dataType="geometry" title="chicago_arra_point"/>
-          <attribute name="Chicago_Muni_ARRA" dataType="geometry" title="Chicago_Muni_ARRA"/>
-          <attribute name="chicpoint2" dataType="geometry" title="chicpoint2"/>
-          <attribute name="chicpoint2111" dataType="geometry" title="chicpoint2111"/>
-          <attribute name="chicpoint3" dataType="geometry" title="chicpoint3"/>
-          <attribute name="CHN_adm1" dataType="geometry" title="CHN_adm1"/>
-          <attribute name="CHN_adm2" dataType="geometry" title="CHN_adm2"/>
-          <attribute name="CHN_adm3" dataType="geometry" title="CHN_adm3"/>
-          <attribute name="CityofAtlanta" dataType="geometry" title="CityofAtlanta"/>
-          <attribute name="Community_ED EEC" dataType="geometry" title="Community_ED EEC"/>
-          <attribute name="Counties" dataType="geometry" title="Counties"/>
-          <attribute name="Countries" dataType="geometry" title="Countries"/>
-          <attribute name="County Subdivisions" dataType="geometry" title="County Subdivisions"/>
-          <attribute name="DEGREES BY INSTITUTION " dataType="geometry" title="DEGREES BY INSTITUTION "/>
-          <attribute name="eec2" dataType="geometry" title="eec2"/>
-          <attribute name="eec_artificial_child" dataType="geometry" title="eec_artificial_child"/>
-          <attribute name="eec_familyservices_reproj" dataType="geometry" title="eec_familyservices_reproj"/>
-          <attribute name="eec_lowellschools_reproj" dataType="geometry" title="eec_lowellschools_reproj"/>
-          <attribute name="eec_prekpregnant_reproj" dataType="geometry" title="eec_prekpregnant_reproj"/>
-          <attribute name="EEC_Providers" dataType="geometry" title="EEC_Providers"/>
-          <attribute name="eec_regcnt_MA_ElemSchoolDistricts" dataType="geometry" title="eec_regcnt_MA_ElemSchoolDistricts"/>
-          <attribute name="eec_registrants_ma" dataType="geometry" title="eec_registrants_ma"/>
-          <attribute name="eec_schoolagedchildren_reproj" dataType="geometry" title="eec_schoolagedchildren_reproj"/>
-          <attribute name="eec_test1" dataType="geometry" title="eec_test1"/>
-          <attribute name="eec_test2" dataType="geometry" title="eec_test2"/>
-          <attribute name="emassnh_catchments" dataType="geometry" title="emassnh_catchments"/>
-          <attribute name="Exempt" dataType="geometry" title="Exempt"/>
-          <attribute name="FamilyServices" dataType="geometry" title="FamilyServices"/>
-          <attribute name="FCHC" dataType="geometry" title="FCHC"/>
-          <attribute name="fd_2005" dataType="geometry" title="fd_2005"/>
-          <attribute name="fd_2006" dataType="geometry" title="fd_2006"/>
-          <attribute name="fd_2007" dataType="geometry" title="fd_2007"/>
-          <attribute name="fd_2008" dataType="geometry" title="fd_2008"/>
-          <attribute name="fd_2009" dataType="geometry" title="fd_2009"/>
-          <attribute name="fd_2010" dataType="geometry" title="fd_2010"/>
-          <attribute name="FD_points_Lowell_new1" dataType="geometry" title="FD_points_Lowell_new1"/>
-          <attribute name="fe_2007_44_elsd" dataType="geometry" title="fe_2007_44_elsd"/>
-          <attribute name="fe_2007_44_unsd" dataType="geometry" title="fe_2007_44_unsd"/>
-          <attribute name="FullPoints_Final" dataType="geometry" title="FullPoints_Final"/>
-          <attribute name="FullPoints_Lowell" dataType="geometry" title="FullPoints_Lowell"/>
-          <attribute name="fullpoints_lowell_reprojected" dataType="geometry" title="fullpoints_lowell_reprojected"/>
-          <attribute name="GHA_boundaries" dataType="geometry" title="GHA_boundaries"/>
-          <attribute name="GHA_outline" dataType="geometry" title="GHA_outline"/>
-          <attribute name="HeadStart" dataType="geometry" title="HeadStart"/>
-          <attribute name="higher_ed_ma" dataType="geometry" title="higher_ed_ma"/>
-          <attribute name="higher_ed_ma_x" dataType="geometry" title="higher_ed_ma_x"/>
-          <attribute name="hwt_point" dataType="geometry" title="hwt_point"/>
-          <attribute name="ICMB_ct" dataType="geometry" title="ICMB_ct"/>
-          <attribute name="IPEDS(For)2009" dataType="geometry" title="IPEDS(For)2009"/>
-          <attribute name="IPEDS(Non)2009" dataType="geometry" title="IPEDS(Non)2009"/>
-          <attribute name="IPEDS(Public)2009" dataType="geometry" title="IPEDS(Public)2009"/>
-          <attribute name="ireland_counties" dataType="geometry" title="ireland_counties"/>
-          <attribute name="ireland_latlongpoints" dataType="geometry" title="ireland_latlongpoints"/>
-          <attribute name="ireland_latlongpoints_v3" dataType="geometry" title="ireland_latlongpoints_v3"/>
-          <attribute name="ireland_latlongpoints_v4" dataType="geometry" title="ireland_latlongpoints_v4"/>
-          <attribute name="ireland_latlongpoints_v5" dataType="geometry" title="ireland_latlongpoints_v5"/>
-          <attribute name="ireland_municipal_combined" dataType="geometry" title="ireland_municipal_combined"/>
-          <attribute name="ireland_nation" dataType="geometry" title="ireland_nation"/>
-          <attribute name="ireland_regions" dataType="geometry" title="ireland_regions"/>
-          <attribute name="Lawrence Parcel" dataType="geometry" title="Lawrence Parcel"/>
-          <attribute name="lawrence_home buyers active" dataType="geometry" title="lawrence_home buyers active"/>
-          <attribute name="LCW Home purchase" dataType="geometry" title="LCW Home purchase"/>
-          <attribute name="LGSAC" dataType="geometry" title="LGSAC"/>
-          <attribute name="lowell_nccs_3" dataType="geometry" title="lowell_nccs_3"/>
-          <attribute name="lowell_neighborhoods_reprojected" dataType="geometry" title="lowell_neighborhoods_reprojected"/>
-          <attribute name="Lowell_Parcels" dataType="geometry" title="Lowell_Parcels"/>
-          <attribute name="lowell_registrants" dataType="geometry" title="lowell_registrants"/>
-          <attribute name="LowellFD_2009_Final" dataType="geometry" title="LowellFD_2009_Final"/>
-          <attribute name="lowelltracts_w_eec_registrant_count" dataType="geometry" title="lowelltracts_w_eec_registrant_count"/>
-          <attribute name="MA Census Tract" dataType="geometry" title="MA Census Tract"/>
-          <attribute name="MA Census Tract 6-digit" dataType="geometry" title="MA Census Tract 6-digit"/>
-          <attribute name="ma_childcare_2009_sample_points" dataType="geometry" title="ma_childcare_2009_sample_points"/>
-          <attribute name="MA_COC" dataType="geometry" title="MA_COC"/>
-          <attribute name="MA_EEC_Registrants" dataType="geometry" title="MA_EEC_Registrants"/>
-          <attribute name="MA_Major_Streams_Lines" dataType="geometry" title="MA_Major_Streams_Lines"/>
-          <attribute name="ma_SCHOOLS_PT" dataType="geometry" title="ma_SCHOOLS_PT"/>
-          <attribute name="ma_shapes_delete" dataType="geometry" title="ma_shapes_delete"/>
-          <attribute name="ma_town_region3" dataType="geometry" title="ma_town_region3"/>
-          <attribute name="MA_Towns_MultiPoly_TOWN" dataType="geometry" title="MA_Towns_MultiPoly_TOWN"/>
-          <attribute name="ma_tract_w_eec_regcnt_and_town" dataType="geometry" title="ma_tract_w_eec_regcnt_and_town"/>
-          <attribute name="ma_tracts_w_eec_regcnt" dataType="geometry" title="ma_tracts_w_eec_regcnt"/>
-          <attribute name="MA_ZCTA" dataType="geometry" title="MA_ZCTA"/>
-          <attribute name="MA_ZipCodes_Poly" dataType="geometry" title="MA_ZipCodes_Poly"/>
-          <attribute name="MAPC_Municipalities" dataType="geometry" title="MAPC_Municipalities"/>
-          <attribute name="mass towns" dataType="geometry" title="mass towns"/>
-          <attribute name="mass_benchmarks" dataType="geometry" title="mass_benchmarks"/>
-          <attribute name="mass_towns" dataType="geometry" title="mass_towns"/>
-          <attribute name="Massachusetts Towns" dataType="geometry" title="Massachusetts Towns"/>
-          <attribute name="MassARRA" dataType="geometry" title="MassARRA"/>
-          <attribute name="MassARRALowellOnly" dataType="geometry" title="MassARRALowellOnly"/>
-          <attribute name="MassARRApoint" dataType="geometry" title="MassARRApoint"/>
-          <attribute name="MassARRAPoint" dataType="geometry" title="MassARRAPoint"/>
-          <attribute name="MassARRAVer6" dataType="geometry" title="MassARRAVer6"/>
-          <attribute name="masstowns_w_eec_registrant_count" dataType="geometry" title="masstowns_w_eec_registrant_count"/>
-          <attribute name="MBTA_ARC" dataType="geometry" title="MBTA_ARC"/>
-          <attribute name="MBTA_NODE" dataType="geometry" title="MBTA_NODE"/>
-          <attribute name="MBTABUSROUTES_ARC" dataType="geometry" title="MBTABUSROUTES_ARC"/>
-          <attribute name="MBTABUSSTOPS_PT" dataType="geometry" title="MBTABUSSTOPS_PT"/>
-          <attribute name="Merged Turi" dataType="geometry" title="Merged Turi"/>
-          <attribute name="MetroBoston_Schools" dataType="geometry" title="MetroBoston_Schools"/>
-          <attribute name="Metropolitan Division" dataType="geometry" title="Metropolitan Division"/>
-          <attribute name="MFI Ben" dataType="geometry" title="MFI Ben"/>
-          <attribute name="MFI_GH" dataType="geometry" title="MFI_GH"/>
-          <attribute name="MFI_GH1" dataType="geometry" title="MFI_GH1"/>
-          <attribute name="MFI_Points_2007" dataType="geometry" title="MFI_Points_2007"/>
-          <attribute name="MSA_Tracts" dataType="geometry" title="MSA_Tracts"/>
-          <attribute name="mvhp" dataType="geometry" title="mvhp"/>
-          <attribute name="mvhp_reprojected_v2" dataType="geometry" title="mvhp_reprojected_v2"/>
-          <attribute name="Nashua_Tract" dataType="geometry" title="Nashua_Tract"/>
-          <attribute name="NCCS_Lowell" dataType="geometry" title="NCCS_Lowell"/>
-          <attribute name="nccs_ma_reprojected" dataType="geometry" title="nccs_ma_reprojected"/>
-          <attribute name="nccs_shape2" dataType="geometry" title="nccs_shape2"/>
-          <attribute name="nccs_shape_CT" dataType="geometry" title="nccs_shape_CT"/>
-          <attribute name="nccs_shape_LA" dataType="geometry" title="nccs_shape_LA"/>
-          <attribute name="nccs_shape_LA_FIPS22051" dataType="geometry" title="nccs_shape_LA_FIPS22051"/>
-          <attribute name="nccs_shape_MA" dataType="geometry" title="nccs_shape_MA"/>
-          <attribute name="nccs_shape_MACT" dataType="geometry" title="nccs_shape_MACT"/>
-          <attribute name="ne_cd99_110" dataType="geometry" title="ne_cd99_110"/>
-          <attribute name="ne_lldistricts" dataType="geometry" title="ne_lldistricts"/>
-          <attribute name="ne_lsdistricts" dataType="geometry" title="ne_lsdistricts"/>
-          <attribute name="ne_streams" dataType="geometry" title="ne_streams"/>
-          <attribute name="nehucs10" dataType="geometry" title="nehucs10"/>
-          <attribute name="new_england_subbasins" dataType="geometry" title="new_england_subbasins"/>
-          <attribute name="NewEngland_Cousub" dataType="geometry" title="NewEngland_Cousub"/>
-          <attribute name="newengland_subbasins_v2" dataType="geometry" title="newengland_subbasins_v2"/>
-          <attribute name="NREL_NewEnglandShapeWGS84" dataType="geometry" title="NREL_NewEnglandShapeWGS84"/>
-          <attribute name="od_2005" dataType="geometry" title="od_2005"/>
-          <attribute name="od_2006_reprojected" dataType="geometry" title="od_2006_reprojected"/>
-          <attribute name="od_2007" dataType="geometry" title="od_2007"/>
-          <attribute name="od_2008" dataType="geometry" title="od_2008"/>
-          <attribute name="od_2009" dataType="geometry" title="od_2009"/>
-          <attribute name="od_2010" dataType="geometry" title="od_2010"/>
-          <attribute name="Ohio County Subdivisions" dataType="geometry" title="Ohio County Subdivisions"/>
-          <attribute name="Ohio Places" dataType="geometry" title="Ohio Places"/>
-          <attribute name="ON no FD 2005" dataType="geometry" title="ON no FD 2005"/>
-          <attribute name="on no fd 2006_reprojected" dataType="geometry" title="on no fd 2006_reprojected"/>
-          <attribute name="on no fd 2007_reprojected" dataType="geometry" title="on no fd 2007_reprojected"/>
-          <attribute name="on no fd 2008_reprojected" dataType="geometry" title="on no fd 2008_reprojected"/>
-          <attribute name="on no fd 2009_reprojected" dataType="geometry" title="on no fd 2009_reprojected"/>
-          <attribute name="on no fd 2010_reprojected" dataType="geometry" title="on no fd 2010_reprojected"/>
-          <attribute name="on no fd_2005" dataType="geometry" title="on no fd_2005"/>
-          <attribute name="PreK" dataType="geometry" title="PreK"/>
-          <attribute name="PreK2" dataType="geometry" title="PreK2"/>
-          <attribute name="Prek3" dataType="geometry" title="Prek3"/>
-          <attribute name="Prek4" dataType="geometry" title="Prek4"/>
-          <attribute name="PreK6" dataType="geometry" title="PreK6"/>
-          <attribute name="PreKPregnant" dataType="geometry" title="PreKPregnant"/>
-          <attribute name="PrekPregnant2" dataType="geometry" title="PrekPregnant2"/>
-          <attribute name="PreKPregnant3" dataType="geometry" title="PreKPregnant3"/>
-          <attribute name="private_IPEDS" dataType="geometry" title="private_IPEDS"/>
-          <attribute name="Public Libraries MA" dataType="geometry" title="Public Libraries MA"/>
-          <attribute name="Public School Pre K" dataType="geometry" title="Public School Pre K"/>
-          <attribute name="Registrants_US1" dataType="geometry" title="Registrants_US1"/>
-          <attribute name="registrants_us1" dataType="geometry" title="registrants_us1"/>
-          <attribute name="ri_bg" dataType="geometry" title="ri_bg"/>
-          <attribute name="ri_schools08_projected" dataType="geometry" title="ri_schools08_projected"/>
-          <attribute name="Rwanda_Districts" dataType="geometry" title="Rwanda_Districts"/>
-          <attribute name="Rwanda_Provinces" dataType="geometry" title="Rwanda_Provinces"/>
-          <attribute name="SchoolAged" dataType="geometry" title="SchoolAged"/>
-          <attribute name="schooldis_elem_POLY" dataType="geometry" title="schooldis_elem_POLY"/>
-          <attribute name="schooldishigh_POLY_ma" dataType="geometry" title="schooldishigh_POLY_ma"/>
-          <attribute name="schooldist_elem_ma" dataType="geometry" title="schooldist_elem_ma"/>
-          <attribute name="schooldist_elem_maPOLY" dataType="geometry" title="schooldist_elem_maPOLY"/>
-          <attribute name="SCHOOLDISTELEM_POLY" dataType="geometry" title="SCHOOLDISTELEM_POLY"/>
-          <attribute name="SCHOOLDISTHIGH_POLY" dataType="geometry" title="SCHOOLDISTHIGH_POLY"/>
-          <attribute name="st99_d00" dataType="geometry" title="st99_d00"/>
-          <attribute name="State" dataType="geometry" title="State"/>
-          <attribute name="States" dataType="geometry" title="States"/>
-          <attribute name="StatesforNREL" dataType="geometry" title="StatesforNREL"/>
-          <attribute name="STEM BY INSTITUTION" dataType="geometry" title="STEM BY INSTITUTION"/>
-          <attribute name="Success_Boston_Student_Cohorts" dataType="geometry" title="Success_Boston_Student_Cohorts"/>
-          <attribute name="test" dataType="geometry" title="test"/>
-          <attribute name="test_nccs" dataType="geometry" title="test_nccs"/>
-          <attribute name="tl_2009_09_bg00" dataType="geometry" title="tl_2009_09_bg00"/>
-          <attribute name="tl_2009_us_state" dataType="geometry" title="tl_2009_us_state"/>
-          <attribute name="tr25_d00_reprojected" dataType="geometry" title="tr25_d00_reprojected"/>
-          <attribute name="Turi points" dataType="geometry" title="Turi points"/>
-          <attribute name="turi points" dataType="geometry" title="turi points"/>
-          <attribute name="turi points 2008" dataType="geometry" title="turi points 2008"/>
-          <attribute name="turi00" dataType="geometry" title="turi00"/>
-          <attribute name="turi01" dataType="geometry" title="turi01"/>
-          <attribute name="turi02" dataType="geometry" title="turi02"/>
-          <attribute name="turi03" dataType="geometry" title="turi03"/>
-          <attribute name="turi04" dataType="geometry" title="turi04"/>
-          <attribute name="turi05" dataType="geometry" title="turi05"/>
-          <attribute name="turi06" dataType="geometry" title="turi06"/>
-          <attribute name="turi06-" dataType="geometry" title="turi06-"/>
-          <attribute name="turi07" dataType="geometry" title="turi07"/>
-          <attribute name="turi07new" dataType="geometry" title="turi07new"/>
-          <attribute name="turi08" dataType="geometry" title="turi08"/>
-          <attribute name="turi90" dataType="geometry" title="turi90"/>
-          <attribute name="turi91" dataType="geometry" title="turi91"/>
-          <attribute name="turi92" dataType="geometry" title="turi92"/>
-          <attribute name="turi93" dataType="geometry" title="turi93"/>
-          <attribute name="turi94" dataType="geometry" title="turi94"/>
-          <attribute name="turi95" dataType="geometry" title="turi95"/>
-          <attribute name="turi96" dataType="geometry" title="turi96"/>
-          <attribute name="turi97" dataType="geometry" title="turi97"/>
-          <attribute name="turi98" dataType="geometry" title="turi98"/>
-          <attribute name="turi99" dataType="geometry" title="turi99"/>
-          <attribute name="TURI_all_2008" dataType="geometry" title="TURI_all_2008"/>
-          <attribute name="Turkey" dataType="geometry" title="Turkey"/>
-          <attribute name="us_cbsa" dataType="geometry" title="us_cbsa"/>
-          <attribute name="us_interstates" dataType="geometry" title="us_interstates"/>
-          <attribute name="USCoastFinalver2selectable" dataType="geometry" title="USCoastFinalver2selectable"/>
-          <attribute name="USCoastFinalver2selectabledelete" dataType="geometry" title="USCoastFinalver2selectabledelete"/>
-          <attribute name="USCoastFinalver2selectableWITHFIPS" dataType="geometry" title="USCoastFinalver2selectableWITHFIPS"/>
-          <attribute name="USoilPlatforms" dataType="geometry" title="USoilPlatforms"/>
-          <attribute name="USoilPlatformsDelete" dataType="geometry" title="USoilPlatformsDelete"/>
-          <attribute name="wb1" dataType="geometry" title="wb1"/>
-          <attribute name="westminster_const_region" dataType="geometry" title="westminster_const_region"/>
-          <attribute name="world" dataType="geometry" title="world"/>
-          <attribute name="World Borders" dataType="geometry" title="World Borders"/>
-          <attribute name="World Borders (UN Codes)" dataType="geometry" title="World Borders (UN Codes)"/>
-          <attribute name="World UN" dataType="geometry" title="World UN"/>
-          <attribute name="WT_FAAOE_2000_2011" dataType="geometry" title="WT_FAAOE_2000_2011"/>
-          <attribute name="yb_points" dataType="geometry" title="yb_points"/>
-          <attribute name="youthbuild_points" dataType="geometry" title="youthbuild_points"/>
-          <attribute name="ZillowNeighborhoods" dataType="geometry" title="ZillowNeighborhoods"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
     <hierarchyURL/>
-    <url>http://demo.oicweave.org:8080/WeaveServices/DataService</url>
+    <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns"/>
-  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
-  <ScatterPlotTool name="ScatterPlotTool">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="DataTables" title="DataTables">
+                <category name="Obesity" title="Obesity">
+                  <attribute dataTable="Obesity" year="" name="Percent Obese 1995" max="40" min="0" keyType="US State FIPS Code" id="5684" dataType="number" title="Percent Obese 1995"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn2">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="DataTables" title="DataTables">
+                <category name="Obesity" title="Obesity">
+                  <attribute dataTable="Obesity" year="" name="Percent Obese 2007" max="40" min="0" keyType="US State FIPS Code" id="5672" dataType="number" title="Percent Obese 2007"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <hierarchy>
+              <category name="DataTables" title="DataTables">
+                <category name="Obesity" title="Obesity">
+                  <attribute dataTable="Obesity" year="" name="State" keyType="US State FIPS Code" id="5671" dataType="string" title="State"/>
+                </category>
+              </category>
+            </hierarchy>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <CompoundBarChartTool name="CompoundBarChartTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -1880,8 +1608,8 @@ wheel</zoom>
         <axisFontSize>11</axisFontSize>
         <axisFontUnderline>false</axisFontUnderline>
         <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>true</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>true</enableAutoZoomYToNiceNumbers>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
         <enableFixedAspectRatio>false</enableFixedAspectRatio>
         <enableProbe>true</enableProbe>
         <enableSelection>true</enableSelection>
@@ -1899,13 +1627,13 @@ wheel</zoom>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>0</xMax>
-                  <xMin>0</xMin>
-                  <yMax>40</yMax>
-                  <yMin>10</yMin>
+                  <xMax>-0.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>20.1</yMax>
+                  <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>40</axisLineMaxValue>
-                <axisLineMinValue>10</axisLineMinValue>
+                <axisLineMaxValue>20.1</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -1926,8 +1654,8 @@ wheel</zoom>
                 <labelVerticalAlign>bottom</labelVerticalAlign>
                 <labelWordWrapSize>80</labelWordWrapSize>
                 <overrideAxisName/>
-                <showAxisName>false</showAxisName>
-                <tickCountRequested>10</tickCountRequested>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>5</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
               </SimpleAxisPlotter>
@@ -1942,14 +1670,14 @@ wheel</zoom>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>14</xMax>
-                  <xMin>0</xMin>
-                  <yMax>10</yMax>
-                  <yMin>10</yMin>
+                  <xMax>47.5</xMax>
+                  <xMin>-0.5</xMin>
+                  <yMax>0</yMax>
+                  <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>14</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
+                <axisLineMaxValue>47.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
@@ -1969,210 +1697,122 @@ wheel</zoom>
                 <labelVerticalAlign>top</labelVerticalAlign>
                 <labelWordWrapSize>80</labelWordWrapSize>
                 <overrideAxisName/>
-                <showAxisName>false</showAxisName>
-                <tickCountRequested>10</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>48</tickCountRequested>
+                <tickMaxValue>47</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
               </SimpleAxisPlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
           </AxisLayer>
-          <SelectablePlotLayer name="undefinedX">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ScatterPlotPlotter>
-                <alphaColumn>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alphaColumn>
-                <colorColumn>
-                  <defaultValue>NaN</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <GlobalObjectReference name="defaultColorColumn"/>
-                  </internalDynamicColumn>
-                </colorColumn>
-                <defaultScreenRadius>5</defaultScreenRadius>
-                <enabledSizeBy>true</enabledSizeBy>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <maxScreenRadius>10</maxScreenRadius>
-                <minScreenRadius>5</minScreenRadius>
-                <radiusColumn encoding="dynamic"/>
-                <xColumn encoding="dynamic"/>
-                <yColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>data</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables">
-                              <category name="obesityTimeDimensionwid">
-                                <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="PercentObese" id="79313" title="PercentObese"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </yColumn>
-                <zoomToSubset>false</zoomToSubset>
-              </ScatterPlotPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="undefinedY">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ScatterPlotPlotter>
-                <alphaColumn>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alphaColumn>
-                <colorColumn>
-                  <defaultValue>NaN</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <GlobalObjectReference name="defaultColorColumn"/>
-                  </internalDynamicColumn>
-                </colorColumn>
-                <defaultScreenRadius>5</defaultScreenRadius>
-                <enabledSizeBy>true</enabledSizeBy>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <maxScreenRadius>10</maxScreenRadius>
-                <minScreenRadius>5</minScreenRadius>
-                <radiusColumn encoding="dynamic"/>
-                <xColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>data</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables">
-                              <category name="obesityTimeDimensionwid">
-                                <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="Year" id="79312" title="Year"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </xColumn>
-                <yColumn encoding="dynamic"/>
-                <zoomToSubset>false</zoomToSubset>
-              </ScatterPlotPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="undefinedXY">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ScatterPlotPlotter>
-                <alphaColumn>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alphaColumn>
-                <colorColumn>
-                  <defaultValue>NaN</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <GlobalObjectReference name="defaultColorColumn"/>
-                  </internalDynamicColumn>
-                </colorColumn>
-                <defaultScreenRadius>5</defaultScreenRadius>
-                <enabledSizeBy>true</enabledSizeBy>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <maxScreenRadius>10</maxScreenRadius>
-                <minScreenRadius>5</minScreenRadius>
-                <radiusColumn encoding="dynamic"/>
-                <xColumn encoding="dynamic"/>
-                <yColumn encoding="dynamic"/>
-                <zoomToSubset>false</zoomToSubset>
-              </ScatterPlotPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
           <SelectablePlotLayer name="plot">
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
-              <ScatterPlotPlotter>
-                <alphaColumn>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alphaColumn>
+              <CompoundBarChartPlotter>
+                <barSpacing>0</barSpacing>
+                <chartColors encoding="xml">
+                  <colorRamp category="aesthetic" name="Doppler Radar" source="OIC" dataFormat="qualitative">
+                    <node color="0x04E9E7" position="0"/>
+                    <node color="0x009DF4" position="0.08"/>
+                    <node color="0x0201F4" position="0.16"/>
+                    <node color="0x01FC01" position="0.24"/>
+                    <node color="0x00C400" position="0.32"/>
+                    <node color="0x008C00" position="0.4"/>
+                    <node color="0x0FDF801" position="0.48"/>
+                    <node color="0xF99200" position="0.56"/>
+                    <node color="0xFD0000" position="0.64"/>
+                    <node color="0xBC0000" position="0.72"/>
+                    <node color="0xBC0000" position="0.8"/>
+                    <node color="0xF800FD" position="0.88"/>
+                    <node color="0x9854C6" position="1.0"/>
+                  </colorRamp>
+                </chartColors>
                 <colorColumn>
                   <defaultValue>NaN</defaultValue>
                   <internalDynamicColumn encoding="dynamic">
                     <GlobalObjectReference name="defaultColorColumn"/>
                   </internalDynamicColumn>
                 </colorColumn>
-                <defaultScreenRadius>5</defaultScreenRadius>
-                <enabledSizeBy>true</enabledSizeBy>
+                <groupingMode>stack</groupingMode>
+                <heightColumns encoding="dynamic">
+                  <ReferencedColumn name="ReferencedColumn">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="DataTables" title="DataTables">
+                              <category name="Obesity" title="Obesity">
+                                <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="5684" dataType="number" title="Percent Obese 1995"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </heightColumns>
+                <horizontalMode>false</horizontalMode>
                 <keySet>
                   <keyFilter encoding="dynamic">
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
-                <maxScreenRadius>10</maxScreenRadius>
-                <minScreenRadius>5</minScreenRadius>
-                <radiusColumn encoding="dynamic"/>
-                <xColumn encoding="dynamic">
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+                <negativeError encoding="dynamic"/>
+                <positiveError encoding="dynamic"/>
+                <showValueLabels>false</showValueLabels>
+                <sortColumn encoding="dynamic">
                   <ReferencedColumn>
                     <dynamicColumnReference encoding="dynamic">
                       <HierarchyColumnReference>
-                        <dataSourceName>data</dataSourceName>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <category name="Data Tables">
-                              <category name="obesityTimeDimensionwid">
-                                <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="Year" id="79312" title="Year"/>
+                            <category name="DataTables">
+                              <category name="Obesity">
+                                <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" title="Percent Obese 1995"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2180,27 +1820,9 @@ wheel</zoom>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
-                </xColumn>
-                <yColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>data</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables">
-                              <category name="obesityTimeDimensionwid">
-                                <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="PercentObese" id="79313" title="PercentObese"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </yColumn>
-                <zoomToSubset>false</zoomToSubset>
-              </ScatterPlotPlotter>
+                </sortColumn>
+                <zoomToSubset>true</zoomToSubset>
+              </CompoundBarChartPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
               <GlobalObjectReference name="defaultProbeKeySet"/>
@@ -2213,97 +1835,6 @@ wheel</zoom>
             </subsetFilter>
             <useTextBitmapFilters>false</useTextBitmapFilters>
           </SelectablePlotLayer>
-          <PlotLayer name="regressionLine">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <RegressionLinePlotter>
-                <drawLine>false</drawLine>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <xColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>data</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables">
-                              <category name="obesityTimeDimensionwid">
-                                <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="Year" id="79312" title="Year"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </xColumn>
-                <yColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>data</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables">
-                              <category name="obesityTimeDimensionwid">
-                                <attribute dataTable="obesityTimeDimensionwid" keyType="US State FIPS Code" name="PercentObese" id="79313" title="PercentObese"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </yColumn>
-              </RegressionLinePlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-          </PlotLayer>
           <PlotLayer name="probeLine">
             <isOverlay>false</isOverlay>
             <layerIsVisible>true</layerIsVisible>
@@ -2359,150 +1890,16 @@ wheel</zoom>
         </layers>
         <marginBottom>80</marginBottom>
         <marginLeft>80</marginLeft>
-        <marginRight>50</marginRight>
-        <marginTop>50</marginTop>
+        <marginRight>30</marginRight>
+        <marginTop>30</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <xMax>14</xMax>
-          <xMin>0</xMin>
-          <yMax>40</yMax>
-          <yMin>10</yMin>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.851%</panelHeight>
-    <panelStyleList/>
-    <panelTitle/>
-    <panelWidth>50%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>0%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-  </ScatterPlotTool>
-  <ColorBinLegendTool name="ColorBinLegendTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ColorBinLegendPlotter>
-                <dynamicColorColumn encoding="dynamic">
-                  <GlobalObjectReference name="defaultColorColumn"/>
-                </dynamicColorColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <maxColumns>1</maxColumns>
-                <reverseOrder>false</reverseOrder>
-                <shapeSize>20</shapeSize>
-              </ColorBinLegendPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>true</useTextBitmapFilters>
-          </SelectablePlotLayer>
-        </layers>
-        <marginBottom>5</marginBottom>
-        <marginLeft>5</marginLeft>
-        <marginRight>5</marginRight>
-        <marginTop>25</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-        <zoomBounds>
-          <xMax>1</xMax>
-          <xMin>0</xMin>
-          <yMax>1</yMax>
+          <xMax>47.5</xMax>
+          <xMin>-0.5</xMin>
+          <yMax>20.1</yMax>
           <yMin>0</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
@@ -2511,90 +1908,44 @@ wheel</zoom>
     <draggable>true</draggable>
     <enableBorders>true</enableBorders>
     <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <labelColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <hierarchy>
+                <category name="DataTables" title="DataTables">
+                  <category name="Obesity" title="Obesity">
+                    <attribute dataTable="Obesity" name="State" geometryCollection="States" keyType="US State FIPS Code" id="5671" dataType="string" title="State"/>
+                  </category>
+                </category>
+              </hierarchy>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </labelColumn>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.738%</panelHeight>
+    <panelHeight>49.528%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>20%</panelWidth>
-    <panelX>51.875%</panelX>
-    <panelY>2.6178%</panelY>
+    <panelWidth>66.016%</panelWidth>
+    <panelX>33.984%</panelX>
+    <panelY>50.118%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
     <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
+    <showAllLabels>true</showAllLabels>
     <showCloseDialog>false</showCloseDialog>
-  </ColorBinLegendTool>
-  <DimensionSliderTool name="DimensionSliderTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic"/>
-        <marginBottom>0</marginBottom>
-        <marginLeft>0</marginLeft>
-        <marginRight>0</marginRight>
-        <marginTop>0</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-        <zoomBounds>
-          <xMax>NaN</xMax>
-          <xMin>NaN</xMin>
-          <yMax>NaN</yMax>
-          <yMin>NaN</yMin>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <currentSliderPosition>0</currentSliderPosition>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableTitle>false</enableTitle>
-    <labelsLinkableString>1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009</labelsLinkableString>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>32.286%</panelHeight>
-    <panelStyleList/>
-    <panelTitle/>
-    <panelWidth>78.75%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>49.738%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-    <timerDelay>2500</timerDelay>
-  </DimensionSliderTool>
+    <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
+  </CompoundBarChartTool>
 </Weave>

@@ -341,15 +341,15 @@ package weave.visualization.plotters
 							_bitmapText.text = heightColumn.getValueFromKey(recordKey, Number);;
 							if (!_horizontalMode)
 							{
-								_tempPoint.x = (barStart + barEnd) / 2;
+								tempPoint.x = (barStart + barEnd) / 2;
 								if (height >= 0)
 								{
-									_tempPoint.y = yMax;
+									tempPoint.y = yMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 								}
 								else
 								{
-									_tempPoint.y = yNegativeMax;
+									tempPoint.y = yNegativeMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 								}
 								_bitmapText.angle = 270;
@@ -357,23 +357,23 @@ package weave.visualization.plotters
 							}
 							else
 							{
-								_tempPoint.y = (barStart + barEnd) / 2;
+								tempPoint.y = (barStart + barEnd) / 2;
 								if (height >= 0)
 								{
-									_tempPoint.x = yMax;
+									tempPoint.x = yMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 								}
 								else
 								{
-									_tempPoint.x = yNegativeMax;
+									tempPoint.x = yNegativeMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 								}
 								_bitmapText.angle = 0;
 								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 							}
-							dataBounds.projectPointTo(_tempPoint, screenBounds);
-							_bitmapText.x = _tempPoint.x;
-							_bitmapText.y = _tempPoint.y;
+							dataBounds.projectPointTo(tempPoint, screenBounds);
+							_bitmapText.x = tempPoint.x;
+							_bitmapText.y = tempPoint.y;
 							_bitmapText.draw(destination);
 						}
 					}
@@ -468,12 +468,11 @@ package weave.visualization.plotters
 		}
 		
 		private const _bitmapText:BitmapText = new BitmapText();
-		private const _tempPoint:Point = new Point();
 		
 		/**
 		 * This function takes into account whether or not there is only a single height column specified.
 		 * @return The actual grouping mode, which may differ from the session state of the groupingMode variable.
-		 */		
+		 */
 		public function getActualGroupingMode():String
 		{
 			return heightColumns.getNames().length == 1 ? STACK : groupingMode.value;

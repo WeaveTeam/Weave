@@ -71,6 +71,7 @@
 				visualization.enableProbeLine(false, true);
 				_plotter.groupingMode.addGroupedCallback(this, updateProbeLines);
 				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines);
+				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				
 				yAxisEnabled = true;
 				xAxisEnabled = true;
