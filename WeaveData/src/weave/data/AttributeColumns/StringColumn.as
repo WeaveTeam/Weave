@@ -92,6 +92,10 @@ package weave.data.AttributeColumns
 		 * from the NUMBER metadata.
 		 */
 		private var _keyToNumberMapping:Dictionary = new Dictionary();
+		/**
+		 * This serves as the inverse of _keyToNumberMapping.
+		 */		
+		private var _numberToKeyMapping:Dictionary = new Dictionary();
 		
 		public function setRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>):void
 		{
@@ -121,6 +125,7 @@ package weave.data.AttributeColumns
 			var index:int;
 
 			_keyToUniqueStringIndexMapping = new Dictionary();
+			_numberToKeyMapping = new Dictionary();
 			
 			// save a list of data values
 			index = 0;
@@ -145,57 +150,79 @@ package weave.data.AttributeColumns
 			for (index = 0; index < _uniqueStrings.length; index++)
 				stringToIndexMap[_uniqueStrings[index] as String] = index;
 			
-			var numberFormatter:String = getMetadata(AttributeColumnMetadata.NUMBER);
-			var compiledMethod:Function = null;
-			if (numberFormatter)
-				compiledMethod = compiler.compileToFunction("string=arguments[0]; " + numberFormatter, null, true);
+			// compile the number format function from the metadata
+			var stringToNumberFunction:Function = null;
+			var numberFormat:String = getMetadata(AttributeColumnMetadata.NUMBER);
+			if (numberFormat)
+			{
+				try
+				{
+					stringToNumberFunction = compiler.compileToFunction(numberFormat, null, true, false, [AttributeColumnMetadata.STRING]);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e);
+				}
+			}
+			
+			// compile the string format function from the metadata
+			var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
+			if (stringFormat)
+			{
+				try
+				{
+					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, [AttributeColumnMetadata.NUMBER]);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e);
+				}
+			}
+			
 			for (key in dataMap)
 			{
 				var str:String = dataMap[key] as String;
 				index = stringToIndexMap[str];
 				_keyToUniqueStringIndexMapping[key] = index;
 				
-				if (numberFormatter)
-					_keyToNumberMapping[key] = compiledMethod.call(null, str);
+				if (stringToNumberFunction != null)
+				{
+					var number:Number = stringToNumberFunction(str);
+					_keyToNumberMapping[key] = number;
+					// save reverse lookup
+					_numberToKeyMapping[number] = key;
+				}
 				else
 					_keyToNumberMapping[key] = index;
 			}
 			
 			triggerCallbacks();
 		}
+
 		private static const compiler:Compiler = new Compiler();
+		private var numberToStringFunction:Function = null;
 		
 		// find the closest string value at a given normalized value
 		public function deriveStringFromNumber(number:Number):String
 		{
-			var numberFormat:String = getMetadata(AttributeColumnMetadata.NUMBER);
-			if (numberFormat)
+			if (getMetadata(AttributeColumnMetadata.NUMBER))
 			{
-				var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
-				if (stringFormat)
-				{
-					var compiledMethod:Function = compiler.compileToFunction("number=arguments[0];" + stringFormat, null, true);
-					return compiledMethod.call(null, number);
-				}
-				return StandardLib.formatNumber(number);
+				if (numberToStringFunction != null)
+					return numberToStringFunction(number);
+
+				var key:IQualifiedKey = _numberToKeyMapping[number] as IQualifiedKey;
+				if (key)
+					return getValueFromKey(key, String);
 			}
-			else
+			else if (number == int(number) && 0 <= number && number < _uniqueStrings.length)
 			{
-				number = Math.round(number);
-				if (0 <= number && number < _uniqueStrings.length)
-					return _uniqueStrings[number];
-				else
-				{
-					//return "Undefined at "+number;
-					return '';
-				}
+				return _uniqueStrings[int(number)];
 			}
+			return '';
 		}
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			var index:Number = _keyToUniqueStringIndexMapping[key];
-			
 			if (dataType == Number)
 			{
 				var numericValue:Number = _keyToNumberMapping[key];
@@ -204,6 +231,8 @@ package weave.data.AttributeColumns
 			
 			if (dataType == null)
 				dataType = String;
+			
+			var index:Number = _keyToUniqueStringIndexMapping[key];
 			
 			if (isNaN(index))
 				return '' as dataType;

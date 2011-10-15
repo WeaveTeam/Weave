@@ -86,7 +86,7 @@ package weave.data.AttributeColumns
 			return _keyToNumericDataMapping[key] !== undefined;
 		}
 		
-		private static const compiler:Compiler = new Compiler();
+
 		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
 		{
 			var index:int;
@@ -107,7 +107,7 @@ package weave.data.AttributeColumns
 			{
 				try
 				{
-					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, ['number']);
+					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, [AttributeColumnMetadata.NUMBER]);
 				}
 				catch (e:Error)
 				{
@@ -123,7 +123,7 @@ package weave.data.AttributeColumns
 				if (!isNaN(number))
 				{
 					_keyToNumericDataMapping[key] = number;
-					_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction.call(null, number));
+					_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
 				}
 			}
 
@@ -136,6 +136,7 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 
+		private static const compiler:Compiler = new Compiler();
 		private var numberToStringFunction:Function = StandardLib.formatNumber;
 		
 		/**
@@ -143,7 +144,7 @@ package weave.data.AttributeColumns
 		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
-			return numberToStringFunction.call(null, number);
+			return numberToStringFunction(number);
 		}
 
 		/**
