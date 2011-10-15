@@ -483,40 +483,6 @@ public class SQLUtils
 	
 	/**
 	 * @param conn An existing SQL Connection
-	 * @param selectColumns The list of column names 
-	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
-	 * @param fromTable The table to perform the SELECT statement on.
-	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
-	 * @return The resulting rows returned by the query.
-	 * @throws SQLException If the query fails.
-	 */
-	public static List<Map<String,String>> getRecordsFromQuery(
-			Connection conn,
-			List<String> selectColumns,
-			String fromSchema,
-			String fromTable,
-			Map<String,String> whereParams
-		) throws SQLException
-	{
-		CallableStatement cstmt = null;
-		ResultSet rs = null;
-		List<Map<String,String>> records = null;
-		try
-		{
-			cstmt = prepareCall(conn, selectColumns, fromSchema, fromTable, whereParams);
-			rs = cstmt.executeQuery();
-			records = getRecordsFromResultSet(rs);
-		}
-		finally
-		{
-			cleanup(rs);
-			cleanup(cstmt);
-		}
-		return records;
-	}
-	
-	/**
-	 * @param conn An existing SQL Connection
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
@@ -563,19 +529,26 @@ public class SQLUtils
 		return getRowSetFromQuery(conn, null, fromSchema, fromTable, whereParams);
 	}
 	
+	
 	/**
-	 * @param conn
-	 * @param selectColumns
-	 * @param fromSchema
-	 * @param fromTable
-	 * @param whereParams
-	 * @return
-	 * @throws SQLException
+	 * @param conn An existing SQL Connection
+	 * @param selectColumns The list of column names 
+	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
+	 * @param fromTable The table to perform the SELECT statement on.
+	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @return The resulting rows returned by the query.
+	 * @throws SQLException If the query fails.
 	 */
-	public static CallableStatement prepareCall(Connection conn, List<String> selectColumns, String fromSchema, String fromTable, Map<String,String> whereParams)
-		throws SQLException
+	public static List<Map<String,String>> getRecordsFromQuery(
+			Connection conn,
+			List<String> selectColumns,
+			String fromSchema,
+			String fromTable,
+			Map<String,String> whereParams
+		) throws SQLException
 	{
 		CallableStatement cstmt = null;
+		ResultSet rs = null;
 		String query = null;
 		try
 		{
@@ -626,14 +599,21 @@ public class SQLUtils
 				i++;
 			}
 			
+			rs = cstmt.executeQuery();
+			
+			return getRecordsFromResultSet(rs);
 		}
 		catch (SQLException e)
 		{
-			// close everything in reverse order
-			SQLUtils.cleanup(cstmt);
+			System.out.println(query);
 			throw e;
 		}
-		return cstmt;
+		finally
+		{
+			// close everything in reverse order
+			cleanup(rs);
+			cleanup(cstmt);
+		}
 	}
 	
 	/**

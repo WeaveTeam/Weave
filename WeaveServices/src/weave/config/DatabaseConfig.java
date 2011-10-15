@@ -464,8 +464,7 @@ public class DatabaseConfig
 			DebugTimer t = new DebugTimer();
 			t.report("getAttributeColumnInfo");
 			// get rows matching given parameters
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(
-					getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
 			t.lap(metadataQueryParams + "; got records " + records.size());
 			for (int i = 0; i < records.size(); i++)
 			{
@@ -510,6 +509,7 @@ public class DatabaseConfig
 		}
 		catch (SQLException e)
 		{
+			
 			throw new RemoteException("Unable to get AttributeColumn info", e);
 		}
 		return results;
