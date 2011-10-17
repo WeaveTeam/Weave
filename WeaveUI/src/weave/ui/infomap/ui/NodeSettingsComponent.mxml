@@ -179,7 +179,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 						endDateStr.value = nodeHandler.node.dateFilter.endDate.value;
 					 	endRange.selectedDate = DateUtils.getDateFromString(nodeHandler.node.dateFilter.endDate.value);
 					 }
-					 if(nodeHandler.node.dateFilter.startDate.value.search('NOW') == -1)
+					 if(nodeHandler.node.dateFilter.endDate.value &&  nodeHandler.node.dateFilter.startDate.value.search('NOW') == -1)
 						 rangeComboBox.selectedItem = "--Quick Select--";
 				 }
 				 
