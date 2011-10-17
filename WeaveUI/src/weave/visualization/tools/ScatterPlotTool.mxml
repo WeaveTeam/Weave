@@ -542,24 +542,20 @@
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
 			}
 			
-			protected function scatterplotColorOverride_changeHandler(event:ColorPickerEvent):void
-			{
-				var fill:SolidFillStyle = new SolidFillStyle();
-				fill.color.defaultValue.value = event.color;
-				plotter.circlePlotter.fillStyle.copyLocalObject(fill);
-			}
-			
 			private function updateColorPicker():void
 			{
-				if( showColorPicker.value )
-					scatterplotColorOverride.enabled = true;
+				var fill:SolidFillStyle = plotter.circlePlotter.fillStyle.requestLocalObject(SolidFillStyle, false);
+				if ( showColorPicker.value )
+				{
+					fill.color.defaultValue.value = scatterplotColorOverride.selectedColor;
+					fill.color.internalDynamicColumn.removeObject();
+				}
 				else
 				{
-					scatterplotColorOverride.enabled = false;;
-					var globalFill:SolidFillStyle = plotter.circlePlotter.fillStyle.requestLocalObject(SolidFillStyle, false);
-					globalFill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
-					plotter.circlePlotter.fillStyle.copyLocalObject(globalFill);
+					fill.color.defaultValue.value = NaN;
+					fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
 				}
+				scatterplotColorOverride.enabled = showColorPicker.value;
 			}
 			
 			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateColorPicker)
@@ -661,14 +657,10 @@
 				</mx:VBox>
 			</userControls:ControlsSubsetBox>
 			<settings:GridLineSettings tool="{this}"/>
-			<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="Grid Line Settings"
-					 creationPolicy="all" width="15%" borderStyle="solid" cornerRadius="5">
-				<mx:HBox>
-					<mx:Label text="Override Global Color"/>
-					<mx:CheckBox id="colorOverrideCheckbox"  creationComplete="linkBindableProperty(showColorPicker,colorOverrideCheckbox,'selected')"/>
-				</mx:HBox>
-				<mx:ColorPicker id="scatterplotColorOverride" change="scatterplotColorOverride_changeHandler(event)" enabled="false"/>		
-			</mx:VBox>
+			<mx:HBox>
+				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" initialize="linkBindableProperty(showColorPicker,colorOverrideCheckbox,'selected')"/>
+				<mx:ColorPicker id="scatterplotColorOverride" change="updateColorPicker()"/>
+			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
