@@ -44,6 +44,11 @@ package weave.api.core
 	 */
 	public interface ILinkableContainer extends ILinkableObject
 	{
+		/**
+		 * Get the hash map of the children of this object.
+		 * 
+		 * @return The hash map of the ILinkableObject children.
+		 */		
 		function getLinkableChildren():ILinkableHashMap;
 	}
 }
