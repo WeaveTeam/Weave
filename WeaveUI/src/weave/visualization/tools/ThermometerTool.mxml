@@ -82,7 +82,6 @@
 				
 				initColumnDefaults(_plotter.meterColumn);
 				
-				toolTitle.addImmediateCallback(this, updateTitle);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -96,12 +95,13 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Thermometer of " + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			

@@ -129,7 +129,6 @@
 				getCallbackCollection(_selection).addGroupedCallback(this, handleGlobalSelectionChange);
 				getCallbackCollection(_subset).addGroupedCallback(this, handleSubsetChange);
 				Weave.properties.axisFontSize.addGroupedCallback(this, handleFontChange, true);
-				toolTitle.addGroupedCallback(this, updateTitle, true);
 
 				registerLinkableChild(this, columns);
 				
@@ -196,9 +195,10 @@
 			{
 				callLater(handleNewWidth, [NaN, false]);
 			}
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Data Table";
 			}
 			

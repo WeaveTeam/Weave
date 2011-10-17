@@ -21,6 +21,7 @@ package weave.visualization.layers
 {
 	import flash.display.Bitmap;
 	import flash.display.PixelSnapping;
+	import flash.events.Event;
 	
 	import mx.core.UIComponent;
 	import mx.utils.NameUtil;
@@ -37,6 +38,8 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.LinkableBoolean;
+	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.DebugUtils;
@@ -55,6 +58,15 @@ package weave.visualization.layers
 		public function PlotLayer(externalPlotter:DynamicPlotter = null, externalSpatialIndex:SpatialIndex = null)
 		{
 			super();
+			init(externalPlotter, externalSpatialIndex);
+		}
+		
+		/**
+		 * This function gets called by the constructor.
+		 * This code is in its own function because constructors do not get compiled.
+		 */
+		private function init(externalPlotter:DynamicPlotter, externalSpatialIndex:SpatialIndex):void
+		{
 			if (externalPlotter && externalSpatialIndex)
 			{
 				_dynamicPlotter = registerLinkableChild(this, externalPlotter, invalidateGraphics);
@@ -64,18 +76,9 @@ package weave.visualization.layers
 			else
 			{
 				_dynamicPlotter = newLinkableChild(this, DynamicPlotter, invalidateGraphics);
-				_spatialIndex = new SpatialIndex();
+				_spatialIndex = newLinkableChild(this, SpatialIndex);
 				usingExternalSpatialIndex = false;
 			}
-			init();
-		}
-		
-		/**
-		 * This function gets called by the constructor.
-		 * This code is in its own function because constructors do not get compiled.
-		 */
-		private function init():void
-		{
 			// generate a name for debugging
 			name = NameUtil.createUniqueName(this);
 			// default size = 100%,100%
@@ -89,7 +92,7 @@ package weave.visualization.layers
 			registerLinkableChild(this, selectionFilter);
 
 			if (!usingExternalSpatialIndex)
-				_dynamicPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallback);
+				_dynamicPlotter.spatialCallbacks.addImmediateCallback(this, invalidateSpatialIndex);
 			
 			//_filteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 			
@@ -217,13 +220,14 @@ package weave.visualization.layers
 		 */
 		public function invalidateGraphics():void
 		{
-			//trace("invalidateGraphics");
+			//trace(name,"invalidateGraphics");
 			_graphicsAreValid = false;
 			invalidateDisplayList();
 		}
 		
-		private function spatialCallback():void
+		private function invalidateSpatialIndex():void
 		{
+			//trace(name,'invalidateSpatialIndex');
 			_spatialIndexDirty = true;
 			_spatialIndex.clear();
 		}
@@ -245,12 +249,13 @@ package weave.visualization.layers
 
 		public function validateSpatialIndex():void
 		{
+			//trace(name,'validateSpatialIndex()',_spatialIndexDirty);
 			if (_spatialIndexDirty)
 			{
-				//trace(this,"updating spatial index", CallbackCollection.getStackTrace());
+				//trace(name,"updating spatial index"); // DebugUtils.getCompactStackTrace(new Error())
 				_spatialIndexDirty = false;
 				_spatialIndex.createIndex(plotter, showMissingRecords);
-				//trace(this,"updated spatial index",spatialIndex.collectiveBounds);
+				//trace(name,"updated spatial index", (spatialIndex as SpatialIndex).collectiveBounds);
 			}
 		}
 		public function getSelectedKeys():Array
@@ -301,6 +306,7 @@ package weave.visualization.layers
 		 */
 		protected function validateGraphics(unscaledWidth:Number, unscaledHeight:Number):void
 		{
+			//trace(name,'begin validateGraphics', _dataBounds);
 			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && layerIsVisible.value;
 			//validate spatial index if necessary
 			if (shouldDraw)
@@ -328,6 +334,7 @@ package weave.visualization.layers
 					plotter.drawPlot(keys, _dataBounds, _screenBounds, plotBitmap.bitmapData);
 				}
 			}
+			//trace(name,'end validateGraphics', _dataBounds);
 		}
 		
 		/**
@@ -385,11 +392,6 @@ package weave.visualization.layers
 				validateGraphics(unscaledWidth, unscaledHeight);
 				_graphicsAreValid = true;
 			}
-		}
-
-		private function trace(...args):void
-		{
-			DebugUtils.debug_trace(this, selectionFilter.globalName, args);
 		}
 	}
 }

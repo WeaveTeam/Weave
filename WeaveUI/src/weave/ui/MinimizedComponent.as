@@ -19,7 +19,6 @@
 package weave.ui
 {
 	import flash.display.BitmapData;
-	import flash.geom.Matrix;
 	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
@@ -29,47 +28,39 @@ package weave.ui
 	public class MinimizedComponent extends Canvas
 	{
 		public var restoreFunction:Function = null;
-		
 		public var componentGroup:Array = null;
-
 		private var _mainComponent:UIComponent = null;
-		
-		public static const MINIMIZED_COMPONENT_ALPHA:Number = 1;
 		
 		public function MinimizedComponent(componentGroup:Array, desiredWidth:int, desiredHeight:int, restoreFunction:Function)
 		{
-			this.toolTip = "";
-			
 			this.restoreFunction = restoreFunction;
-
-			
 			this.componentGroup = componentGroup.concat();
 			
 			var minimizedComponents:int = 0;
-			for each(var component:UIComponent in componentGroup)
+			for each (var component:UIComponent in componentGroup)
 			{
-				if(component.visible)
+				if (component.visible)
 					minimizedComponents++;
 			}
 			
 			_mainComponent = componentGroup[0];
 			
-			if(_mainComponent.hasOwnProperty("title") )
-				this.toolTip = (_mainComponent["title"].toString().length > 0) ? _mainComponent["title"] : "untitled window";
-				
 			updateMinimizedIcon(desiredWidth, desiredHeight);	
 			
-			this.toolTip += (minimizedComponents > 1 ? "\n (" + minimizedComponents + "items minimized)" : "");
+			this.toolTip = '';
+			if(_mainComponent.hasOwnProperty("title") )
+				this.toolTip = _mainComponent["title"] || '';
+			if (minimizedComponents > 1)
+				this.toolTip += "\n (" + minimizedComponents + "items minimized)";
 		}	
-		
 
 		public function updateMinimizedIcon(desiredWidth:int, desiredHeight:int):void
 		{
-			this.graphics.clear();
-			this.width  = desiredWidth;
-			this.height = desiredHeight;
+			graphics.clear();
+			width  = desiredWidth;
+			height = desiredHeight;
 			var thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(_mainComponent, desiredWidth, desiredHeight);
-			BitmapUtils.drawCenteredIcon(this.graphics, desiredWidth/2, desiredHeight/2, thumbnail);
+			BitmapUtils.drawCenteredIcon(graphics, desiredWidth/2, desiredHeight/2, thumbnail);
 		}
 	}
 }

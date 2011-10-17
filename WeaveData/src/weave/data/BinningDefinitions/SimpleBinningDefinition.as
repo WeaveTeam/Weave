@@ -21,6 +21,7 @@ package weave.data.BinningDefinitions
 {
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IColumnWrapper;
@@ -30,6 +31,7 @@ package weave.data.BinningDefinitions
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * Divides a data range into a number of equally spaced bins.
@@ -65,7 +67,7 @@ package weave.data.BinningDefinitions
 			while (nonWrapperColumn is IColumnWrapper)
 				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).internalColumn;
 			
-			var integerValuesOnly:Boolean = nonWrapperColumn is StringColumn;
+			var integerValuesOnly:Boolean = nonWrapperColumn && ColumnUtils.getDataType(nonWrapperColumn) != DataTypes.NUMBER;
 			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
 			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
 			

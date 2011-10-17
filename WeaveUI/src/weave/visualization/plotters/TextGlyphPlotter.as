@@ -31,7 +31,9 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -66,22 +68,22 @@ package weave.visualization.plotters
 
 		private static const tempPoint:Point = new Point(); // reusable object
 		
-		public const sortColumn:DynamicColumn = newNonSpatialProperty(DynamicColumn);
+		public const sortColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 
-		public const text:DynamicColumn = newNonSpatialProperty(DynamicColumn);
-		public const font:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
-		public const size:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_SIZE));
-		public const color:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(0x000000));
-		public const bold:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(false));
-		public const italic:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(false));
-		public const underline:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(false));
-		public const hAlign:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(BitmapText.HORIZONTAL_ALIGN_CENTER));
-		public const vAlign:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(BitmapText.VERTICAL_ALIGN_CENTER));
-		public const angle:AlwaysDefinedColumn = registerNonSpatialProperty(new AlwaysDefinedColumn(0));
-		public const hideOverlappingText:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
-		public const xScreenOffset:LinkableNumber = newNonSpatialProperty(LinkableNumber);
-		public const yScreenOffset:LinkableNumber = newNonSpatialProperty(LinkableNumber);
-		public const maxWidth:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(80));
+		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const font:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const size:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_SIZE));
+		public const color:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0x000000));
+		public const bold:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
+		public const italic:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
+		public const underline:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
+		public const hAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.HORIZONTAL_ALIGN_CENTER));
+		public const vAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const angle:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
+		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const yScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
 
 		/**
 		 * This function is used with Array.sort to sort a list of record keys by the sortColumn values.

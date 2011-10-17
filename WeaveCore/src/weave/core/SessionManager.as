@@ -128,7 +128,8 @@ package weave.core
 				
 				// make child changes trigger parent callbacks
 				var parentCC:ICallbackCollection = getCallbackCollection(linkableParent as ILinkableObject);
-				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks);
+				// set alwaysTriggerLast=true for triggering parent callbacks, so parent will be triggered after all the other child callbacks
+				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, null, false, true); // parent-child relationship
 			}
 
 			return linkableChild;
@@ -279,7 +280,25 @@ package weave.core
 			// special cases:
 			if (linkableObject is ILinkableVariable)
 			{
-				(linkableObject as ILinkableVariable).setSessionState(newState);
+				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
+				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
+				{
+					// apply diff
+					var oldState:Object = lv.getSessionState();
+					for (var key:String in newState)
+					{
+						var value:Object = newState[key];
+						//if (typeof(value) == 'object')
+						//	todo: recursive call
+						//else
+						oldState[key] = value;
+					}
+					lv.setSessionState(oldState);
+				}
+				else
+				{
+					lv.setSessionState(newState);
+				}
 				return;
 			}
 			if (linkableObject is ILinkableCompositeObject)

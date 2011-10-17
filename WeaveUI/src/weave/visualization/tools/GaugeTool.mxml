@@ -82,7 +82,6 @@
 				invalidateAxes();
 				
 				initColumnDefaults(_plotter.meterColumn);
-				toolTitle.addImmediateCallback(this, updateTitle);
 				_plotter.meterColumn.addGroupedCallback(this, updateMarginLabel, true);
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
 				
@@ -103,14 +102,15 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (_plotter == null)
+				super.handlePanelTitleChange();
+				if (!_plotter)
 					title = "Gauge";
-				if (toolTitle.value == null)
+				if (!panelTitle.value)
 					title = "Gauge of " + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			

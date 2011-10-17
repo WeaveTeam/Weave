@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.services.IURLRequestUtils;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -52,14 +53,13 @@ package weave.visualization.plotters
 		}
 		private function init():void
 		{
-			registerNonSpatialProperties(imageURL, imageSize);
 		}
 		
 		public function get xColumn():DynamicColumn { return dataX; }
 		public function get yColumn():DynamicColumn { return dataY; }
 		
-		public const imageURL:AlwaysDefinedColumn = new AlwaysDefinedColumn( "arrowRight.png" );
-		public const imageSize:AlwaysDefinedColumn = new AlwaysDefinedColumn( 32 );
+		public const imageURL:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn( "arrowRight.png" ));
+		public const imageSize:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn( 32 ));
 		private const tempPoint:Point = new Point(); // reusable object
 		private const tempMatrix:Matrix = new Matrix(); // reusable object
 

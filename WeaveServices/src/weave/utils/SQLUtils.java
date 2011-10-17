@@ -154,18 +154,14 @@ public class SQLUtils
 	 * This maps a connection string to a Connection object.  Used by getStaticReadOnlyConnection().
 	 */
 	private static Map<String, Connection> _staticReadOnlyConnections = new HashMap<String, Connection>();
-
+	
 	/**
-	 * This function tests if a given Connection is valid.
-	 * @param conn A Connection object which may or may not be valid.
-	 * @return A value of true if the given Connection is still connected.
+	 * This function will test a connection by running a simple test query.
+	 * @param conn A SQL Connection.
+	 * @throws SQLException Thrown if the test query fails.
 	 */
-	public static boolean connectionIsValid(Connection conn)
+	public static void testConnection(Connection conn) throws SQLException
 	{
-		boolean result = false;
-		if (conn == null)
-			return false;
-
 		PreparedStatement stmt = null;
 		try
 		{
@@ -175,23 +171,35 @@ public class SQLUtils
 			else
 				stmt = conn.prepareStatement("SELECT 0;");
 			stmt.execute(); // this will throw an exception if the connection is invalid
-			result = true;
+		}
+		finally
+		{
+			cleanup(stmt);
+		}
+	}
+
+	/**
+	 * This function tests if a given Connection is valid.
+	 * @param conn A Connection object which may or may not be valid.
+	 * @return A value of true if the given Connection is still connected.
+	 */
+	public static boolean connectionIsValid(Connection conn)
+	{
+		if (conn == null)
+			return false;
+		
+		try
+		{
+			testConnection(conn);
+			return true;
 		}
 		catch (SQLException e)
 		{
 //			e.printStackTrace();
 			SQLUtils.cleanup(conn);
 		}
-		catch (NullPointerException e)
-		{
-			SQLUtils.cleanup(conn);
-		}
-		finally
-		{
-			SQLUtils.cleanup(stmt);
-		}
 		
-		return result;
+		return false;
 	}
 	
 	/**
@@ -475,40 +483,6 @@ public class SQLUtils
 	
 	/**
 	 * @param conn An existing SQL Connection
-	 * @param selectColumns The list of column names 
-	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
-	 * @param fromTable The table to perform the SELECT statement on.
-	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
-	 * @return The resulting rows returned by the query.
-	 * @throws SQLException If the query fails.
-	 */
-	public static List<Map<String,String>> getRecordsFromQuery(
-			Connection conn,
-			List<String> selectColumns,
-			String fromSchema,
-			String fromTable,
-			Map<String,String> whereParams
-		) throws SQLException
-	{
-		CallableStatement cstmt = null;
-		ResultSet rs = null;
-		List<Map<String,String>> records = null;
-		try
-		{
-			cstmt = prepareCall(conn, selectColumns, fromSchema, fromTable, whereParams);
-			rs = cstmt.executeQuery();
-			records = getRecordsFromResultSet(rs);
-		}
-		finally
-		{
-			cleanup(rs);
-			cleanup(cstmt);
-		}
-		return records;
-	}
-	
-	/**
-	 * @param conn An existing SQL Connection
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
@@ -555,19 +529,26 @@ public class SQLUtils
 		return getRowSetFromQuery(conn, null, fromSchema, fromTable, whereParams);
 	}
 	
+	
 	/**
-	 * @param conn
-	 * @param selectColumns
-	 * @param fromSchema
-	 * @param fromTable
-	 * @param whereParams
-	 * @return
-	 * @throws SQLException
+	 * @param conn An existing SQL Connection
+	 * @param selectColumns The list of column names 
+	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
+	 * @param fromTable The table to perform the SELECT statement on.
+	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @return The resulting rows returned by the query.
+	 * @throws SQLException If the query fails.
 	 */
-	public static CallableStatement prepareCall(Connection conn, List<String> selectColumns, String fromSchema, String fromTable, Map<String,String> whereParams)
-		throws SQLException
+	public static List<Map<String,String>> getRecordsFromQuery(
+			Connection conn,
+			List<String> selectColumns,
+			String fromSchema,
+			String fromTable,
+			Map<String,String> whereParams
+		) throws SQLException
 	{
 		CallableStatement cstmt = null;
+		ResultSet rs = null;
 		String query = null;
 		try
 		{
@@ -618,14 +599,21 @@ public class SQLUtils
 				i++;
 			}
 			
+			rs = cstmt.executeQuery();
+			
+			return getRecordsFromResultSet(rs);
 		}
 		catch (SQLException e)
 		{
-			// close everything in reverse order
-			SQLUtils.cleanup(cstmt);
+			System.out.println(query);
 			throw e;
 		}
-		return cstmt;
+		finally
+		{
+			// close everything in reverse order
+			cleanup(rs);
+			cleanup(cstmt);
+		}
 	}
 	
 	/**
@@ -1086,7 +1074,7 @@ public class SQLUtils
 	public static void addColumn( Connection conn, String schemaName, String tableName, String columnName, String columnType)
 		throws SQLException
 	{
-		String format = "ALTER TABLE %s ADD (%s %s)";
+		String format = "ALTER TABLE %s ADD %s %s"; // Note: PostGreSQL does not accept parentheses around the new column definition.
 		String query = String.format(format, quoteSchemaTable(conn, schemaName, tableName), quoteSymbol(conn, columnName), columnType);
 		Statement stmt = null;
 		try

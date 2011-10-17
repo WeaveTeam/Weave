@@ -291,13 +291,18 @@
 								</mx:HBox>
 							</mx:VBox>
 							
-							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
+							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected}"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:Label text="point size:"/>
 								<mx:NumericStepper 	id="pointSize" 
 													toolTip="Set the default point size when point-based geometries are used."
 													minimum="0.2" maximum="60"
 													width="50"/>
+							</mx:VBox>
+							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
+									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+								<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
+								<mx:TextInput id="imageURL" initialize="EventUtils.addDelayedCallback(imageURL, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 							</mx:VBox>
 						</mx:HBox>
 					</mx:VBox>
@@ -324,6 +329,7 @@
 						import weave.core.LinkableHashMap;
 						import weave.core.SessionManager;
 						import weave.core.weave_internal;
+						import weave.data.AttributeColumns.AlwaysDefinedColumn;
 						import weave.data.AttributeColumns.GeometryColumn;
 						import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 						import weave.primitives.Geometry;
@@ -332,9 +338,11 @@
 						import weave.ui.AttributeSelectorPanel;
 						import weave.ui.SessionStateEditor;
 						import weave.utils.ColumnUtils;
+						import weave.utils.EventUtils;
 						import weave.utils.NumberUtils;
 						import weave.visualization.layers.PlotLayer;
 						import weave.visualization.layers.SelectablePlotLayer;
+						import weave.visualization.plotters.CirclePlotter;
 						import weave.visualization.plotters.DynamicPlotter;
 						import weave.visualization.plotters.GeometryLabelPlotter;
 						import weave.visualization.plotters.GeometryPlotter;
@@ -389,6 +397,12 @@
 									settingsButton.selected = false;
 
 									MarkerSettingsComponent.openInstance(plotter as SingleImagePlotter,layerName);
+								}
+								if (plotter is CirclePlotter)
+								{
+									settingsButton.selected = false;
+									
+									CirclePlotterSettings.openInstance(plotter as CirclePlotter,layerName);
 								}
 							} 
 						}
@@ -466,6 +480,7 @@
 								settingsButton.visible = true;
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
+								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
 								linkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
 								
 								linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
@@ -486,6 +501,10 @@
 								linkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
 								linkBindableProperty(wmsPlotter.serviceName,wmsLayerService,"selectedItem");
 							}else if(plotter is SingleImagePlotter)
+							{
+								settingsButton.visible = true;
+							}
+							else if(plotter is CirclePlotter)
 							{
 								settingsButton.visible = true;
 							}
@@ -510,6 +529,7 @@
 							{
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
+								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
 								unlinkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
 									
 								unlinkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
@@ -620,7 +640,8 @@
 							{
 								linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
 								linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-								if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter)
+								if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter || (data as SelectablePlotLayer).getDynamicPlotter().internalObject is CirclePlotter)
+									
 									selectableCheckbox.visible = false;
 								else
 									selectableCheckbox.visible = true;
@@ -680,7 +701,7 @@
 							else if (plotter is WMSPlotter)
 							{
 								SessionStateEditor.openDefaultEditor(plotter);
-							}else if(plotter is SingleImagePlotter)
+							}else if(plotter is SingleImagePlotter || plotter is CirclePlotter)
 							{
 								return;
 							}
@@ -697,6 +718,29 @@
 							hashMap.removeObject(name);
 							
 							unlinkGeometryProperties();
+						}
+						
+						private function handleGeomPlotterImageToggle():void
+						{
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							if (!useImagesCheck.selected)
+								plotter.pointDataImageColumn.removeObject();
+							else
+								handleGeomPlotterImageInput();
+						}
+						private function handleGeomPlotterImageInput():void
+						{
+							var url:String = imageURL.text;
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.requestLocalObject(AlwaysDefinedColumn, false);
+							adc.defaultValue.value = url;
+						}
+						private function handleGeomPlotterImageURLChange():void
+						{
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+							if (adc)
+								imageURL.text = adc.defaultValue.value as String;
 						}
 					]]>
 				</mx:Script>

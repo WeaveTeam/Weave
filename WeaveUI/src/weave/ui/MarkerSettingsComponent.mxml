@@ -9,7 +9,7 @@
 				
 				 >
 	
-	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
+	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="Marker Settings">
 		<mx:HBox>
 			<mx:Label width="100" fontWeight="bold" text="Image URL:"/>
 			<mx:TextInput id="imageURLText" borderStyle="solid" cornerRadius="5" width="200"/>

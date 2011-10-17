@@ -23,9 +23,11 @@ package weave.visualization.plotters
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
 	import weave.core.ClassUtils;
 	import weave.core.SessionManager;
@@ -60,7 +62,7 @@ package weave.visualization.plotters
 				throw new Error("AbstractSimplifiedPlotter: Class does not implement IPlotter: " + plotterClassName);
 			
 			_internalPlotter = newLinkableChild(this, plotterClass); // create the internal plotter
-			_internalPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks);
+			registerLinkableChild(spatialCallbacks, _internalPlotter.spatialCallbacks);
 			// the base key set is the key set of the internal plotter
 			_filteredKeySet.setBaseKeySet(_internalPlotter.keySet);
 			// link the filters so the internal plotter filters its keys before generating graphics

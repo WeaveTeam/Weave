@@ -163,17 +163,17 @@ package weave.compiler
 			
 			var precision:Number = asNumber(formatterOrPrecision);
 			if (isFinite(precision))
-				defaultNumberFormatter.precision = uint(precision);
+				_defaultNumberFormatter.precision = uint(precision);
 			else
-				defaultNumberFormatter.precision = -1;
+				_defaultNumberFormatter.precision = -1;
 			
-			return defaultNumberFormatter.format(number);
+			return _defaultNumberFormatter.format(number);
 		}
 		
 		/**
 		 * This is the default NumberFormatter to use inside the formatNumber() function.
 		 */
-		private static const defaultNumberFormatter:NumberFormatter = new NumberFormatter();
+		private static const _defaultNumberFormatter:NumberFormatter = new NumberFormatter();
 
 		/**
 		 * This function returns -1 if the given value is negative, and 1 otherwise.
@@ -302,16 +302,19 @@ package weave.compiler
 				return sign * Math.round(absValue / pow10) * pow10;
 			}
 		}
-//		private static var testResult:* = testRoundSignificant();
-//		private static function testRoundSignificant():*
-//		{
-//			for (var pow:int = -5; pow <= 5; pow++)
-//			{
-//				var n:Number = 1234.5678 * Math.pow(10, pow);
-//				for (var d:int = 0; d <= 9; d++)
-//					trace('roundSignificant(',n,',',d,') =',roundSignificant(n, d));
-//			}
-//		}
+		
+//		{ /** begin static code block **/
+//			testRoundSignificant();
+//		} /** end static code block **/
+		private static function testRoundSignificant():void
+		{
+			for (var pow:int = -5; pow <= 5; pow++)
+			{
+				var n:Number = 1234.5678 * Math.pow(10, pow);
+				for (var d:int = 0; d <= 9; d++)
+					trace('roundSignificant(',n,',',d,') =',roundSignificant(n, d));
+			}
+		}
 
 		/**
 		 * @param normValue A Number between 0 and 1.
@@ -401,7 +404,7 @@ package weave.compiler
 			
 			for(x = graphmin; x < graphmax + 0.5*d; x += d)
 			{
-				values[i++] = x;
+				values[i++] = roundSignificant(x); // this fixes values like x = 0.6000000000000001 that may occur from x += d
 			}
 			
 			return values;

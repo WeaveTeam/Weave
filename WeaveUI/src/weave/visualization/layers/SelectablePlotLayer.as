@@ -23,17 +23,20 @@ package weave.visualization.layers
 	import flash.filters.BlurFilter;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.containers.Canvas;
 	import mx.controls.Label;
 	
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
@@ -135,6 +138,21 @@ package weave.visualization.layers
 			
 			addEventListener(Event.ENTER_FRAME, handleFrameEnter);
 			getCallbackCollection(probeFilter).addGroupedCallback(this, resetAnimator);
+			
+			// for debugging
+			StageUtils.callLater(this, function(self:SelectablePlotLayer):void
+			{
+				var hashMap:ILinkableHashMap = getLinkableOwner(self) as ILinkableHashMap;
+				if (hashMap)
+				{
+					var className:String = getQualifiedClassName(getDynamicPlotter().internalObject).split(':').pop() as String;
+					self.name = 'SelectablePlotLayer ' + className;
+					self._plotLayer.name      = 'plotLayer      ' + className;
+					self._selectionLayer.name = 'selectionLayer ' + className;
+					self._probeLayer.name     = 'probeLayer     ' + className;
+				}
+				//StageUtils.addEventCallback(Event.RENDER, this, trace, [self.name,'RENDER']);
+			}, [this]);
 		}
 		
 		private static var _frameTimeCurrent:int = 0;
@@ -219,6 +237,8 @@ package weave.visualization.layers
 
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
+			//_plotLayer.getDataBounds(tempBounds); trace(name, 'updateDisplayList dataBounds', tempBounds);
+			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
 			// center this text
@@ -248,6 +268,7 @@ package weave.visualization.layers
 		
 		public function invalidateGraphics():void
 		{
+			//trace(name,'invalidateGraphics');
 			// invalidate the graphics of all the layers in SelectablePlotLayer
 			_plotLayer.invalidateGraphics();
 			_selectionLayer.invalidateGraphics();

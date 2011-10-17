@@ -58,7 +58,7 @@ package weave.services
 			{
 				if (event.result.status as Boolean == false)
 				{
-					userHasAuthenticated = true;
+					userHasAuthenticated = false;
 					WeaveAdminService.messageDisplay("Configuration problem", String(event.result.comment), false);
 					//Alert.show(event.result.comment, "Configuration problem");
 					sqlConfigExists = false;
@@ -100,20 +100,17 @@ package weave.services
 			connectionNames = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 			
-			if (userHasAuthenticated)
+			service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames);
+			function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
 			{
-				service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames);
-				function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
-				{
-					//trace("handleGetConnectionNames");
-					connectionNames = event.result as Array || [];
-				}
+				//trace("handleGetConnectionNames");
+				connectionNames = event.result as Array || [];
+			}
 
-				service.getDatabaseConfigInfo(activeConnectionName, activePassword).addAsyncResponder(handleGetDatabaseConfigInfo);
-				function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
-				{
-					databaseConfigInfo = new DatabaseConfigInfo(event.result);
-				}
+			service.getDatabaseConfigInfo(activeConnectionName, activePassword).addAsyncResponder(handleGetDatabaseConfigInfo);
+			function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
+			{
+				databaseConfigInfo = new DatabaseConfigInfo(event.result);
 			}
 		}
 		

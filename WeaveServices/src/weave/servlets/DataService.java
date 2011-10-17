@@ -402,12 +402,7 @@ public class DataService extends GenericServlet
 		}
 
 		AttributeColumnDataWithKeys result = new AttributeColumnDataWithKeys(
-				attributeColumnName,
-				info.getMetadata(Metadata.KEYTYPE.toString()),
-				dataType,
-				infoMinStr,
-				infoMaxStr,
-				info.getMetadata(Metadata.YEAR.toString()),
+				info.metadata,
 				keys.toArray(new String[0]),
 				numericData != null ? numericData.toArray(new Double[0]) : stringData.toArray(new String[0]),
 				hasSecondaryKey ? secKeys.toArray(new String[0]) : null

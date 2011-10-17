@@ -114,6 +114,7 @@
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.core.DynamicState;
+			import weave.core.ExternalSessionStateInterface;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -245,12 +246,17 @@
 					}
 				};
 				var functionDontSave:Function = function():void { loadSelectedSessionObjectInView(); sessionNav.refresh(); };
+				askToSave(functionSave, functionDontSave);
+			}
+			
+			private function askToSave(save:Function, discard:Function):void
+			{
 				PopUpUtils.confirm(
 					this,
-					"Save",
+					"Save?",
 					"Session state has been changed.  Save Changes?",
-					functionSave,
-					functionDontSave
+					save, discard,
+					'Save', 'Discard'
 				);
 			}
 
@@ -750,15 +756,7 @@
 			override public function removePanel():void
 			{
 				if (_textModified)
-				{
-					PopUpUtils.confirm(
-							this,
-							"Save",
-							"Session state has been changed.  Save Changes?",
-							saveAndClosePanel,
-							super.removePanel
-						);
-				}
+					askToSave(saveAndClosePanel, super.removePanel);
 				else
 					super.removePanel();
 			}
@@ -784,16 +782,45 @@
 			// console
 			
 			private const compiler:Compiler = new Compiler();
+			private function getObject(target:Object):ILinkableObject
+			{
+				if (target is String)
+					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
+				if (target is Array)
+					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
+				return ILinkableObject(target);
+			}
+			private function consoleWatch(target:Object, name:String):void
+			{
+				getCallbackCollection(getObject(target)).addImmediateCallback(null, consoleTrace, [name]);
+			}
+			private function consoleUnwatch(target:Object):void
+			{
+				getCallbackCollection(getObject(target)).removeCallback(consoleTrace);
+			}
+			private function consoleTrace(...args):void
+			{
+				log.text += '\r' + args.join('\r') + '\r';
+				log.validateNow();
+				log.verticalScrollPosition = log.maxVerticalScrollPosition;
+			}
+			private function consoleClear():void
+			{
+				log.text = '';
+			}
 			
+			private const symbolTable:Object = {
+				'javaScript': ExternalInterface.call,
+				'application': Application.application,
+				'print': ObjectUtil.toString as Function,
+				'getObject': getObject,
+				'clear': consoleClear,
+				'watch': consoleWatch,
+				'unwatch': consoleUnwatch,
+				'trace': consoleTrace
+			};
 			private function runCommand():void
 			{
-				var symbolTable:Object = {
-					'JS': ExternalInterface.call,
-					'application': Application.application,
-					'print': ObjectUtil.toString as Function,
-					'clear': function():void { log.text = ''; }
-				};
-				
 				var result:*;
 				var decompiled:String;
 				try

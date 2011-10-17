@@ -1,6 +1,6 @@
 <Weave encoding="dynamic">
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
     <included/>
@@ -23,6 +23,7 @@
     <enableAboutMenu>true</enableAboutMenu>
     <enableAdd2DHistogram>true</enableAdd2DHistogram>
     <enableAddBarChart>true</enableAddBarChart>
+    <enableAddCollaborationTool>false</enableAddCollaborationTool>
     <enableAddColorLegend>true</enableAddColorLegend>
     <enableAddColormapHistogram>true</enableAddColormapHistogram>
     <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
@@ -61,6 +62,7 @@
     <enableGoFullscreen>true</enableGoFullscreen>
     <enableManageSavedSelections>true</enableManageSavedSelections>
     <enableManageSavedSubsets>true</enableManageSavedSubsets>
+    <enableMarker>true</enableMarker>
     <enableMenuBar>true</enableMenuBar>
     <enableMinimizeAllWindows>true</enableMinimizeAllWindows>
     <enableMouseWheel>true</enableMouseWheel>
@@ -131,7 +133,27 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <startupJavaScript>var d = document.getElementById('weavePopup') || document.createElement('v');
+d.id = 'weavePopup';
+var style = {
+ position: 'absolute',
+ left: '200px',
+ top: '100px',
+ width: '200px',
+ height: '50px',
+ color: "#ffffff",
+ fontWeight: 'bold',
+ backgroundColor: '#800080',
+ textAlign: 'center',
+ lineHeight: '50px',
+ fontSize: '25px'
+};
+for (var key in style)
+ d.style[key] = style[key];
+d.innerHTML = 'Hello, world.';
+document.body.appendChild(d);</startupJavaScript>
     <toolInteractions>
+      <defaultDragMode>select</defaultDragMode>
       <pan>alt,drag</pan>
       <probe>move</probe>
       <select>drag</select>
@@ -150,7 +172,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp reverse="false" name="Van Gogh" category="aesthetic" source="OIC">
+      <colorRamp category="aesthetic" reverse="false" name="Van Gogh" source="OIC">
         <node color="0x31415A" position="0"/>
         <node color="0x609DCD" position="0.15"/>
         <node color="0xE9B400" position="0.3"/>
@@ -181,7 +203,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <dataSourceName/>
             <hierarchyPath encoding="xml">
               <hierarchy title="Equations">
-                <attribute title="Equation Column" name="EquationEditorColumn"/>
+                <attribute name="EquationEditorColumn" title="Equation Column"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
@@ -194,330 +216,330 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
   <WeaveDataSource name="OpenIndicatorsDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy name="IVPR Indicator Server">
-        <category name="GeometryCollections">
-          <attribute dataType="geometry" name="Atlanta Superdistricts"/>
-          <attribute dataType="geometry" name="Atlanta Transportation Analysis Zones"/>
-          <attribute dataType="geometry" name="Boston 2005 Parcels Subset"/>
-          <attribute dataType="geometry" name="Massachusetts Towns"/>
-          <attribute dataType="geometry" name="Ohio Places"/>
-          <attribute dataType="geometry" name="Ohio County Subdivisions"/>
-          <attribute dataType="geometry" name="Chicago Census Tracts"/>
-          <attribute dataType="geometry" name="ri_schools08_projected"/>
-          <attribute dataType="geometry" name="fe_2007_44_unsd"/>
-          <attribute dataType="geometry" name="fe_2007_44_elsd"/>
-          <attribute dataType="geometry" name="MA Census Tract"/>
-          <attribute dataType="geometry" name="boston_foreclosure_deeds"/>
-          <attribute dataType="geometry" name="Boston 2005 Parcels"/>
-          <attribute dataType="geometry" name="World Borders"/>
-          <attribute dataType="geometry" keyType="US State FIPS Code" name="States"/>
-          <attribute dataType="geometry" name="Counties"/>
-          <attribute dataType="geometry" name="County Subdivisions"/>
+        <category name="GeometryCollections" title="GeometryCollections">
+          <attribute name="Atlanta Superdistricts" dataType="geometry" title="Atlanta Superdistricts"/>
+          <attribute name="Atlanta Transportation Analysis Zones" dataType="geometry" title="Atlanta Transportation Analysis Zones"/>
+          <attribute name="Boston 2005 Parcels Subset" dataType="geometry" title="Boston 2005 Parcels Subset"/>
+          <attribute name="Massachusetts Towns" dataType="geometry" title="Massachusetts Towns"/>
+          <attribute name="Ohio Places" dataType="geometry" title="Ohio Places"/>
+          <attribute name="Ohio County Subdivisions" dataType="geometry" title="Ohio County Subdivisions"/>
+          <attribute name="Chicago Census Tracts" dataType="geometry" title="Chicago Census Tracts"/>
+          <attribute name="ri_schools08_projected" dataType="geometry" title="ri_schools08_projected"/>
+          <attribute name="fe_2007_44_unsd" dataType="geometry" title="fe_2007_44_unsd"/>
+          <attribute name="fe_2007_44_elsd" dataType="geometry" title="fe_2007_44_elsd"/>
+          <attribute name="MA Census Tract" dataType="geometry" title="MA Census Tract"/>
+          <attribute name="boston_foreclosure_deeds" dataType="geometry" title="boston_foreclosure_deeds"/>
+          <attribute name="Boston 2005 Parcels" dataType="geometry" title="Boston 2005 Parcels"/>
+          <attribute name="World Borders" dataType="geometry" title="World Borders"/>
+          <attribute keyType="US State FIPS Code" dataType="geometry" name="States" title="States"/>
+          <attribute name="Counties" dataType="geometry" title="Counties"/>
+          <attribute name="County Subdivisions" dataType="geometry" title="County Subdivisions"/>
         </category>
-        <category name="DataTables">
-          <category name="Access Log">
-            <attribute year="" name="time stamp" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="unix numeric timestamp" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="ip address of user" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query running time (milliseconds)" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query method name" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg1" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg2" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg3" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg4" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg5" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg6" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg7" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg8" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg9" dataTable="Access Log" keyType="time stamp"/>
-            <attribute year="" name="query arg10" dataTable="Access Log" keyType="time stamp"/>
+        <category name="DataTables" title="DataTables">
+          <category name="Access Log" title="Access Log">
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="time stamp" title="time stamp"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="unix numeric timestamp" title="unix numeric timestamp"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="ip address of user" title="ip address of user"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query running time (milliseconds)" title="query running time (milliseconds)"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query method name" title="query method name"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg1" title="query arg1"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg2" title="query arg2"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg3" title="query arg3"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg4" title="query arg4"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg5" title="query arg5"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg6" title="query arg6"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg7" title="query arg7"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg8" title="query arg8"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg9" title="query arg9"/>
+            <attribute keyType="time stamp" dataTable="Access Log" year="" name="query arg10" title="query arg10"/>
           </category>
-          <category name="oecd_obese2008"/>
-          <category name="obesity"/>
-          <category name="Community Health Status Indicators"/>
-          <category name="OECD_Obese2008"/>
-          <category name="lowell_census tract"/>
-          <category name="OECD_Combined health and Ineq."/>
-          <category name="Arizona"/>
-          <category name="Asthma-related chemicals by town"/>
-          <category name="TURI Totals 1990-2007 by town"/>
-          <category name="Perc by Town"/>
-          <category name="Weave Jira Issues"/>
-          <category name="Mitre Data"/>
-          <category name="unicefcombined"/>
-          <category name="StatesHealth Years"/>
-          <category name="StatesHealth"/>
-          <category name="Arizona Years"/>
-          <category name="Chicago Demographics"/>
-          <category name="USprisoners"/>
-          <category name="school_performance_level"/>
-          <category name="urbanrural years"/>
-          <category name="Obesity Years">
-            <attribute keyType="US State FIPS Code" year="" name="State" max="" dataTable="Obesity Years" min=""/>
-            <attribute year="1995" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute keyType="US State FIPS Code" year="1995" name="Percent Obese (BMI >= 30)" max="" dataTable="Obesity Years" min=""/>
-            <attribute year="1997" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="1998" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="1999" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="2000" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="2001" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="2002" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="2003" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="2004" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="2005" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute year="2006" name="Percent Obese (BMI >= 30)" dataTable="Obesity Years" keyType="US State FIPS Code"/>
-            <attribute keyType="US State FIPS Code" year="1995" name="Percent Obese (BMI >= 30)" max="" dataTable="Obesity Years" min=""/>
+          <category name="oecd_obese2008" title="oecd_obese2008"/>
+          <category name="obesity" title="obesity"/>
+          <category name="Community Health Status Indicators" title="Community Health Status Indicators"/>
+          <category name="OECD_Obese2008" title="OECD_Obese2008"/>
+          <category name="lowell_census tract" title="lowell_census tract"/>
+          <category name="OECD_Combined health and Ineq." title="OECD_Combined health and Ineq."/>
+          <category name="Arizona" title="Arizona"/>
+          <category name="Asthma-related chemicals by town" title="Asthma-related chemicals by town"/>
+          <category name="TURI Totals 1990-2007 by town" title="TURI Totals 1990-2007 by town"/>
+          <category name="Perc by Town" title="Perc by Town"/>
+          <category name="Weave Jira Issues" title="Weave Jira Issues"/>
+          <category name="Mitre Data" title="Mitre Data"/>
+          <category name="unicefcombined" title="unicefcombined"/>
+          <category name="StatesHealth Years" title="StatesHealth Years"/>
+          <category name="StatesHealth" title="StatesHealth"/>
+          <category name="Arizona Years" title="Arizona Years"/>
+          <category name="Chicago Demographics" title="Chicago Demographics"/>
+          <category name="USprisoners" title="USprisoners"/>
+          <category name="school_performance_level" title="school_performance_level"/>
+          <category name="urbanrural years" title="urbanrural years"/>
+          <category name="Obesity Years" title="Obesity Years">
+            <attribute keyType="US State FIPS Code" year="" name="State" max="" dataTable="Obesity Years" min="" title="State"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="1995" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" year="1995" name="Percent Obese (BMI >= 30)" max="" dataTable="Obesity Years" min="" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="1997" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="1998" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="1999" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="2000" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="2001" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="2002" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="2003" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="2004" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="2005" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity Years" year="2006" name="Percent Obese (BMI >= 30)" title="Percent Obese (BMI >= 30)"/>
+            <attribute keyType="US State FIPS Code" year="1995" name="Percent Obese (BMI >= 30)" max="" dataTable="Obesity Years" min="" title="Percent Obese (BMI >= 30)"/>
           </category>
-          <category name="atlanta example"/>
-          <category name="New England Upper House District Data"/>
-          <category name="New England Lower House District Data"/>
-          <category name="New England Congressional District Data"/>
-          <category name="World Bank Development Indicators"/>
-          <category name="New England Subbasin Data"/>
-          <category name="New England Municipal Data"/>
-          <category name="Suffolk County Demographics By Census Tract"/>
-          <category name="World Name Table"/>
-          <category name="Boston Parcel Data"/>
-          <category name="RI School Proficiency"/>
-          <category name="Educational Attainment (Census Tract)"/>
-          <category name="Unemployment MSA data"/>
-          <category name="Housing Price Index"/>
-          <category name="Housing Price Index V2"/>
-          <category name="Obesity">
-            <attribute keyType="US State FIPS Code" year="" name="State" max="" dataTable="Obesity" min=""/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1995" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1996" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1997" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1998" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1999" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2000" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2001" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2002" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2003" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2004" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2005" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2006" max="40" dataTable="Obesity" min="0"/>
-            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2007" max="40" dataTable="Obesity" min="0"/>
+          <category name="atlanta example" title="atlanta example"/>
+          <category name="New England Upper House District Data" title="New England Upper House District Data"/>
+          <category name="New England Lower House District Data" title="New England Lower House District Data"/>
+          <category name="New England Congressional District Data" title="New England Congressional District Data"/>
+          <category name="World Bank Development Indicators" title="World Bank Development Indicators"/>
+          <category name="New England Subbasin Data" title="New England Subbasin Data"/>
+          <category name="New England Municipal Data" title="New England Municipal Data"/>
+          <category name="Suffolk County Demographics By Census Tract" title="Suffolk County Demographics By Census Tract"/>
+          <category name="World Name Table" title="World Name Table"/>
+          <category name="Boston Parcel Data" title="Boston Parcel Data"/>
+          <category name="RI School Proficiency" title="RI School Proficiency"/>
+          <category name="Educational Attainment (Census Tract)" title="Educational Attainment (Census Tract)"/>
+          <category name="Unemployment MSA data" title="Unemployment MSA data"/>
+          <category name="Housing Price Index" title="Housing Price Index"/>
+          <category name="Housing Price Index V2" title="Housing Price Index V2"/>
+          <category name="Obesity" title="Obesity">
+            <attribute keyType="US State FIPS Code" year="" name="State" max="" dataTable="Obesity" min="" title="State"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1995" max="40" dataTable="Obesity" min="0" title="Percent Obese 1995"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1996" max="40" dataTable="Obesity" min="0" title="Percent Obese 1996"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1997" max="40" dataTable="Obesity" min="0" title="Percent Obese 1997"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1998" max="40" dataTable="Obesity" min="0" title="Percent Obese 1998"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1999" max="40" dataTable="Obesity" min="0" title="Percent Obese 1999"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2000" max="40" dataTable="Obesity" min="0" title="Percent Obese 2000"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2001" max="40" dataTable="Obesity" min="0" title="Percent Obese 2001"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2002" max="40" dataTable="Obesity" min="0" title="Percent Obese 2002"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2003" max="40" dataTable="Obesity" min="0" title="Percent Obese 2003"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2004" max="40" dataTable="Obesity" min="0" title="Percent Obese 2004"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2005" max="40" dataTable="Obesity" min="0" title="Percent Obese 2005"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2006" max="40" dataTable="Obesity" min="0" title="Percent Obese 2006"/>
+            <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2007" max="40" dataTable="Obesity" min="0" title="Percent Obese 2007"/>
           </category>
-          <category name="Columbus Data">
-            <attribute year="" name="Feature Name" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute keyType="Ohio FIPS codes" year="" name="Students in Kindergarten in Columbus Public Schools, Number" max="" dataTable="Columbus Data" min=""/>
-            <attribute year="" name="Students in Grade 1 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 2 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 3 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 4 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 5 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 6 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 7 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 8 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 9 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 10 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 11 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Grade 12 in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 4th Grade Proficiency Test in Mathematics (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 4th Grade Proficiency Test in Mathematics (CPS only), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 4th Grade Proficiency Test in Reading (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 4th Grade Proficiency Test in Reading (CPS only), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Gifted Children in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Gifted Children in Columbus Public Schools, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Total Students Enrolled in Columbus Public Schools, Percent of Total School-Age Children" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Total Students Enrolled in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Attending Columbus Public Schools who Receive Free/Reduced Lunch, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Attending Columbus Public Schools who Receive Free/Reduced Lunch, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in 12th Grade Graduating from Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in 12th Grade Graduating from Columbus Public Schools, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Enrolled in English as a Second Language Classes in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Enrolled in English as a Second Language Classes in Columbus Public Schools, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Enrolled in Special Education Classes (disability) in Columbus Public Schools, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Enrolled in Special Education Classes (disability) in Columbus Public Schools, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 6th Grade Proficiency Test in Mathematics (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 6th Grade Proficiency Test in Mathematics (CPS only), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 6th Grade Proficiency Test in Reading (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 6th Grade Proficiency Test in Reading (CPS only), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 9th Grade Proficiency Test in Mathematics (CPS only), Number of 9th Graders" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 9th Grade Proficiency Test in Mathematics (CPS only), Percent of 9th Graders Taking the Test" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 9th Grade Proficiency Test in Reading (CPS only), Number of 9th Graders" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Passing the 9th Grade Proficiency Test in Reading (CPS only), Percent of 9th Graders Taking the Test" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-5), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-5), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 6-8), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 6-8), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 9-12), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 9-12), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-12), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-12), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-5), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-5), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 6-8), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 6-8), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 9-12), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 9-12), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-12), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-12), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Taking the 4th Grade Proficiency Test in Mathematics (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Taking the 4th Grade Proficiency Test in Reading (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Taking the 6th Grade Proficiency Test in Mathematics (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Students Taking the 6th Grade Proficiency Test in Reading (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="9th Grade Students Taking the 9th Grade Proficiency Test in Mathematics (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="9th Grade Students Taking the 9th Grade Proficiency Test in Reading (CPS only), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="White Alone, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="White Alone, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Black or African American Alone, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Black or African American Alone, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="American Indian, Eskimo or Aleutian Alone, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="American Indian, Eskimo or Aleutian Alone, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Asian Alone, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Asian Alone, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Hawaiian or Pacific Islanders Alone, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Hawaiian or Pacific Islander Alone, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons of Other Races Alone, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons of Other Races Alone, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Hispanics or Latinos, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Hispanics or Latinos, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 0-4 Years Old, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 0-4 Years Old, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 5-11 Years Old, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 5-11 Years Old, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 12-14 Years Old, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 12-14 Years Old, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 15-18 Years Old, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 15-18 Years Old, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 65+ Years Old, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 65+ Years Old, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 25+ Years Old" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Median Age of the Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 0-1 years old, number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 2-3 years old, number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 4-5 years old, number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Population 6-18 years old, number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Males, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Males, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Females, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Females, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Households, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Families, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Families, Percent of Households" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Children (ages 0-17), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Children (ages 0-17), Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="School-aged children (ages 5-17), Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="School-aged Children (ages 5-17), Percent of Total Children" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Two-parent Households with Children, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Two-parent Households with Children, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Male-headed Households with Children, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Male-headed Households with Children, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Female-headed Households with Children, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Female-headed Households with Children, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Nonfamily Households, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Nonfamily Households, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Not a High School Graduate, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Not a High School Graduate, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Attained a High School Diploma or Higher, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Attained a High School Diploma or Higher, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Attained a Bachelor's Degree or Higher, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Attained a Bachelor's Degree or Higher, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Median Household Income" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Median Family Income" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Per Capita Income" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Housing Units, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Occupied Housing Units, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Occupied Housing Units, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Vacant Housing Units, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Vacant Housing Units, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Owner-Occupied Housing Units, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Owner-Occupied Housing Units, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Renter-Occupied Housing Units, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Renter-Occupied Housing Units, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Median Monthly Rent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Median Value" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Median Year Structure Built" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons in Poverty, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons in Poverty, Percent of Total Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Children in Poverty, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Children in Poverty, Percent of Total Children" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons Living Alone, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons Living Alone, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Grandparents Responsible for Grandchildren, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Grandparents Responsible for Grandchildren, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Housing Units Where Owner Costs are Greater than 35% of Household Income, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Housing Units Where Owner Costs are Greater than 35% of Household Income, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Housing Units Where Renter Costs are Greater than 35% of Household Income, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Housing Units Where Renter Costs are Greater than 35% of Household Income, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Foreign-born Persons with Year of Entry from 1990 to March 2000, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Foreign-born Persons with Year of Entry from 1990 to March 2000, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Males Age 16 and Over, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Males Age 16 and Over in the Labor Force, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Females Age 16 and Over, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Females Age 16 and Over in the Labor Force, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Females Age 16 and Over in the Labor Force, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons Age 16 and Over, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Persons Age 16 and Over in the Labor Force, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Live Births, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births to Females Aged 15-44" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Fertility Rate per 1,000 Females Aged 15-44" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Low Birthweight Births, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Low Birthweight Births, Rate per 1,000 Live Births" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Very Low Birthweight Births, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Very Low Birthweight Births, Rate per 1,000 Live Births" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Premature Births, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Premature Births, Rate per 1,000 Live Births" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births to Teen Mothers aged 15-19, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births to Teen Mothers aged 15-19, per 1000 teen females aged 15-19" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births to Unmarried Mothers, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births to Unmarried Mothers, Rate per 1,000 Live Births" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births with Prenatal Care Anytime during Pregnancy, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births with Prenatal Care Anytime during Pregnancy, Rate per 1,000 Live Births" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births with Prenatal Care Begun in 1st Trimester, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Births with Prenatal Care Begun in 1st Trimester, Rate per 1,000 Live Births" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Birth Mothers with &lt;12 Years of Education, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Birth Mothers with &lt;12 Years of Education, Percent" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Birth Mothers with 12 Years of Education or More, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths per 1,000 Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Infant Deaths, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Infant Mortality Rate per 1,000 Live Births" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Heart Disease, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Heart Disease, Rate per 100,000 Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Cancer, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Cancer, Rate per 100,000 Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Stroke, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Stroke, Rate per 100,000 Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Chronic Lower Respiratory Disease, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Chronic Lower Resp. Disease, Rate per 100,000 Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Accidents, Number" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
-            <attribute year="" name="Deaths Due to Accidents, Rate per 100,000 Population" dataTable="Columbus Data" keyType="Ohio FIPS codes"/>
+          <category name="Columbus Data" title="Columbus Data">
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Feature Name" title="Feature Name"/>
+            <attribute keyType="Ohio FIPS codes" year="" name="Students in Kindergarten in Columbus Public Schools, Number" max="" dataTable="Columbus Data" min="" title="Students in Kindergarten in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 1 in Columbus Public Schools, Number" title="Students in Grade 1 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 2 in Columbus Public Schools, Number" title="Students in Grade 2 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 3 in Columbus Public Schools, Number" title="Students in Grade 3 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 4 in Columbus Public Schools, Number" title="Students in Grade 4 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 5 in Columbus Public Schools, Number" title="Students in Grade 5 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 6 in Columbus Public Schools, Number" title="Students in Grade 6 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 7 in Columbus Public Schools, Number" title="Students in Grade 7 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 8 in Columbus Public Schools, Number" title="Students in Grade 8 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 9 in Columbus Public Schools, Number" title="Students in Grade 9 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 10 in Columbus Public Schools, Number" title="Students in Grade 10 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 11 in Columbus Public Schools, Number" title="Students in Grade 11 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Grade 12 in Columbus Public Schools, Number" title="Students in Grade 12 in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 4th Grade Proficiency Test in Mathematics (CPS only), Number" title="Students Passing the 4th Grade Proficiency Test in Mathematics (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 4th Grade Proficiency Test in Mathematics (CPS only), Percent" title="Students Passing the 4th Grade Proficiency Test in Mathematics (CPS only), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 4th Grade Proficiency Test in Reading (CPS only), Number" title="Students Passing the 4th Grade Proficiency Test in Reading (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 4th Grade Proficiency Test in Reading (CPS only), Percent" title="Students Passing the 4th Grade Proficiency Test in Reading (CPS only), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Gifted Children in Columbus Public Schools, Number" title="Gifted Children in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Gifted Children in Columbus Public Schools, Percent" title="Gifted Children in Columbus Public Schools, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Total Students Enrolled in Columbus Public Schools, Percent of Total School-Age Children" title="Total Students Enrolled in Columbus Public Schools, Percent of Total School-Age Children"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Total Students Enrolled in Columbus Public Schools, Number" title="Total Students Enrolled in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Attending Columbus Public Schools who Receive Free/Reduced Lunch, Number" title="Students Attending Columbus Public Schools who Receive Free/Reduced Lunch, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Attending Columbus Public Schools who Receive Free/Reduced Lunch, Percent" title="Students Attending Columbus Public Schools who Receive Free/Reduced Lunch, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in 12th Grade Graduating from Columbus Public Schools, Number" title="Students in 12th Grade Graduating from Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in 12th Grade Graduating from Columbus Public Schools, Percent" title="Students in 12th Grade Graduating from Columbus Public Schools, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Enrolled in English as a Second Language Classes in Columbus Public Schools, Number" title="Students Enrolled in English as a Second Language Classes in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Enrolled in English as a Second Language Classes in Columbus Public Schools, Percent" title="Students Enrolled in English as a Second Language Classes in Columbus Public Schools, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Enrolled in Special Education Classes (disability) in Columbus Public Schools, Number" title="Students Enrolled in Special Education Classes (disability) in Columbus Public Schools, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Enrolled in Special Education Classes (disability) in Columbus Public Schools, Percent" title="Students Enrolled in Special Education Classes (disability) in Columbus Public Schools, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 6th Grade Proficiency Test in Mathematics (CPS only), Number" title="Students Passing the 6th Grade Proficiency Test in Mathematics (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 6th Grade Proficiency Test in Mathematics (CPS only), Percent" title="Students Passing the 6th Grade Proficiency Test in Mathematics (CPS only), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 6th Grade Proficiency Test in Reading (CPS only), Number" title="Students Passing the 6th Grade Proficiency Test in Reading (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 6th Grade Proficiency Test in Reading (CPS only), Percent" title="Students Passing the 6th Grade Proficiency Test in Reading (CPS only), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 9th Grade Proficiency Test in Mathematics (CPS only), Number of 9th Graders" title="Students Passing the 9th Grade Proficiency Test in Mathematics (CPS only), Number of 9th Graders"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 9th Grade Proficiency Test in Mathematics (CPS only), Percent of 9th Graders Taking the Test" title="Students Passing the 9th Grade Proficiency Test in Mathematics (CPS only), Percent of 9th Graders Taking the Test"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 9th Grade Proficiency Test in Reading (CPS only), Number of 9th Graders" title="Students Passing the 9th Grade Proficiency Test in Reading (CPS only), Number of 9th Graders"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Passing the 9th Grade Proficiency Test in Reading (CPS only), Percent of 9th Graders Taking the Test" title="Students Passing the 9th Grade Proficiency Test in Reading (CPS only), Percent of 9th Graders Taking the Test"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-5), Number" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-5), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-5), Percent" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-5), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 6-8), Number" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades 6-8), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 6-8), Percent" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades 6-8), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 9-12), Number" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades 9-12), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades 9-12), Percent" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades 9-12), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-12), Number" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-12), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-12), Percent" title="Students in Columbus Public Schools Absent &lt;10 Days (Grades K-12), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-5), Number" title="Students in Columbus Public Schools Absent 25+ Days (Grades K-5), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-5), Percent" title="Students in Columbus Public Schools Absent 25+ Days (Grades K-5), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 6-8), Number" title="Students in Columbus Public Schools Absent 25+ Days (Grades 6-8), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 6-8), Percent" title="Students in Columbus Public Schools Absent 25+ Days (Grades 6-8), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 9-12), Number" title="Students in Columbus Public Schools Absent 25+ Days (Grades 9-12), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades 9-12), Percent" title="Students in Columbus Public Schools Absent 25+ Days (Grades 9-12), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-12), Number" title="Students in Columbus Public Schools Absent 25+ Days (Grades K-12), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students in Columbus Public Schools Absent 25+ Days (Grades K-12), Percent" title="Students in Columbus Public Schools Absent 25+ Days (Grades K-12), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Taking the 4th Grade Proficiency Test in Mathematics (CPS only), Number" title="Students Taking the 4th Grade Proficiency Test in Mathematics (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Taking the 4th Grade Proficiency Test in Reading (CPS only), Number" title="Students Taking the 4th Grade Proficiency Test in Reading (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Taking the 6th Grade Proficiency Test in Mathematics (CPS only), Number" title="Students Taking the 6th Grade Proficiency Test in Mathematics (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Students Taking the 6th Grade Proficiency Test in Reading (CPS only), Number" title="Students Taking the 6th Grade Proficiency Test in Reading (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="9th Grade Students Taking the 9th Grade Proficiency Test in Mathematics (CPS only), Number" title="9th Grade Students Taking the 9th Grade Proficiency Test in Mathematics (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="9th Grade Students Taking the 9th Grade Proficiency Test in Reading (CPS only), Number" title="9th Grade Students Taking the 9th Grade Proficiency Test in Reading (CPS only), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population, Number" title="Population, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="White Alone, Number" title="White Alone, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="White Alone, Percent" title="White Alone, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Black or African American Alone, Number" title="Black or African American Alone, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Black or African American Alone, Percent" title="Black or African American Alone, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="American Indian, Eskimo or Aleutian Alone, Number" title="American Indian, Eskimo or Aleutian Alone, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="American Indian, Eskimo or Aleutian Alone, Percent" title="American Indian, Eskimo or Aleutian Alone, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Asian Alone, Number" title="Asian Alone, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Asian Alone, Percent" title="Asian Alone, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Hawaiian or Pacific Islanders Alone, Number" title="Hawaiian or Pacific Islanders Alone, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Hawaiian or Pacific Islander Alone, Percent" title="Hawaiian or Pacific Islander Alone, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons of Other Races Alone, Number" title="Persons of Other Races Alone, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons of Other Races Alone, Percent" title="Persons of Other Races Alone, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Hispanics or Latinos, Number" title="Hispanics or Latinos, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Hispanics or Latinos, Percent" title="Hispanics or Latinos, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 0-4 Years Old, Number" title="Population 0-4 Years Old, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 0-4 Years Old, Percent" title="Population 0-4 Years Old, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 5-11 Years Old, Number" title="Population 5-11 Years Old, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 5-11 Years Old, Percent" title="Population 5-11 Years Old, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 12-14 Years Old, Number" title="Population 12-14 Years Old, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 12-14 Years Old, Percent" title="Population 12-14 Years Old, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 15-18 Years Old, Number" title="Population 15-18 Years Old, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 15-18 Years Old, Percent" title="Population 15-18 Years Old, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 65+ Years Old, Number" title="Population 65+ Years Old, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 65+ Years Old, Percent" title="Population 65+ Years Old, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 25+ Years Old" title="Population 25+ Years Old"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Median Age of the Population" title="Median Age of the Population"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 0-1 years old, number" title="Population 0-1 years old, number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 2-3 years old, number" title="Population 2-3 years old, number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 4-5 years old, number" title="Population 4-5 years old, number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Population 6-18 years old, number" title="Population 6-18 years old, number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Males, Number" title="Males, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Males, Percent" title="Males, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Females, Number" title="Females, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Females, Percent" title="Females, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Households, Number" title="Households, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Families, Number" title="Families, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Families, Percent of Households" title="Families, Percent of Households"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Children (ages 0-17), Number" title="Children (ages 0-17), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Children (ages 0-17), Percent" title="Children (ages 0-17), Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="School-aged children (ages 5-17), Number" title="School-aged children (ages 5-17), Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="School-aged Children (ages 5-17), Percent of Total Children" title="School-aged Children (ages 5-17), Percent of Total Children"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Two-parent Households with Children, Number" title="Two-parent Households with Children, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Two-parent Households with Children, Percent" title="Two-parent Households with Children, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Male-headed Households with Children, Number" title="Male-headed Households with Children, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Male-headed Households with Children, Percent" title="Male-headed Households with Children, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Female-headed Households with Children, Number" title="Female-headed Households with Children, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Female-headed Households with Children, Percent" title="Female-headed Households with Children, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Nonfamily Households, Number" title="Nonfamily Households, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Nonfamily Households, Percent" title="Nonfamily Households, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Not a High School Graduate, Number" title="Not a High School Graduate, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Not a High School Graduate, Percent" title="Not a High School Graduate, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Attained a High School Diploma or Higher, Number" title="Attained a High School Diploma or Higher, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Attained a High School Diploma or Higher, Percent" title="Attained a High School Diploma or Higher, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Attained a Bachelor's Degree or Higher, Number" title="Attained a Bachelor's Degree or Higher, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Attained a Bachelor's Degree or Higher, Percent" title="Attained a Bachelor's Degree or Higher, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Median Household Income" title="Median Household Income"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Median Family Income" title="Median Family Income"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Per Capita Income" title="Per Capita Income"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Housing Units, Number" title="Housing Units, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Occupied Housing Units, Number" title="Occupied Housing Units, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Occupied Housing Units, Percent" title="Occupied Housing Units, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Vacant Housing Units, Number" title="Vacant Housing Units, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Vacant Housing Units, Percent" title="Vacant Housing Units, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Owner-Occupied Housing Units, Number" title="Owner-Occupied Housing Units, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Owner-Occupied Housing Units, Percent" title="Owner-Occupied Housing Units, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Renter-Occupied Housing Units, Number" title="Renter-Occupied Housing Units, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Renter-Occupied Housing Units, Percent" title="Renter-Occupied Housing Units, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Median Monthly Rent" title="Median Monthly Rent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Median Value" title="Median Value"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Median Year Structure Built" title="Median Year Structure Built"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons in Poverty, Number" title="Persons in Poverty, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons in Poverty, Percent of Total Population" title="Persons in Poverty, Percent of Total Population"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Children in Poverty, Number" title="Children in Poverty, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Children in Poverty, Percent of Total Children" title="Children in Poverty, Percent of Total Children"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons Living Alone, Number" title="Persons Living Alone, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons Living Alone, Percent" title="Persons Living Alone, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Grandparents Responsible for Grandchildren, Number" title="Grandparents Responsible for Grandchildren, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Grandparents Responsible for Grandchildren, Percent" title="Grandparents Responsible for Grandchildren, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Housing Units Where Owner Costs are Greater than 35% of Household Income, Number" title="Housing Units Where Owner Costs are Greater than 35% of Household Income, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Housing Units Where Owner Costs are Greater than 35% of Household Income, Percent" title="Housing Units Where Owner Costs are Greater than 35% of Household Income, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Housing Units Where Renter Costs are Greater than 35% of Household Income, Number" title="Housing Units Where Renter Costs are Greater than 35% of Household Income, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Housing Units Where Renter Costs are Greater than 35% of Household Income, Percent" title="Housing Units Where Renter Costs are Greater than 35% of Household Income, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Foreign-born Persons with Year of Entry from 1990 to March 2000, Number" title="Foreign-born Persons with Year of Entry from 1990 to March 2000, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Foreign-born Persons with Year of Entry from 1990 to March 2000, Percent" title="Foreign-born Persons with Year of Entry from 1990 to March 2000, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Males Age 16 and Over, Number" title="Males Age 16 and Over, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Males Age 16 and Over in the Labor Force, Number" title="Males Age 16 and Over in the Labor Force, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Females Age 16 and Over, Number" title="Females Age 16 and Over, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Females Age 16 and Over in the Labor Force, Number" title="Females Age 16 and Over in the Labor Force, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Females Age 16 and Over in the Labor Force, Percent" title="Females Age 16 and Over in the Labor Force, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons Age 16 and Over, Number" title="Persons Age 16 and Over, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Persons Age 16 and Over in the Labor Force, Number" title="Persons Age 16 and Over in the Labor Force, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Live Births, Number" title="Live Births, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births to Females Aged 15-44" title="Births to Females Aged 15-44"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Fertility Rate per 1,000 Females Aged 15-44" title="Fertility Rate per 1,000 Females Aged 15-44"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Low Birthweight Births, Number" title="Low Birthweight Births, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Low Birthweight Births, Rate per 1,000 Live Births" title="Low Birthweight Births, Rate per 1,000 Live Births"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Very Low Birthweight Births, Number" title="Very Low Birthweight Births, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Very Low Birthweight Births, Rate per 1,000 Live Births" title="Very Low Birthweight Births, Rate per 1,000 Live Births"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Premature Births, Number" title="Premature Births, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Premature Births, Rate per 1,000 Live Births" title="Premature Births, Rate per 1,000 Live Births"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births to Teen Mothers aged 15-19, Number" title="Births to Teen Mothers aged 15-19, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births to Teen Mothers aged 15-19, per 1000 teen females aged 15-19" title="Births to Teen Mothers aged 15-19, per 1000 teen females aged 15-19"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births to Unmarried Mothers, Number" title="Births to Unmarried Mothers, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births to Unmarried Mothers, Rate per 1,000 Live Births" title="Births to Unmarried Mothers, Rate per 1,000 Live Births"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births with Prenatal Care Anytime during Pregnancy, Number" title="Births with Prenatal Care Anytime during Pregnancy, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births with Prenatal Care Anytime during Pregnancy, Rate per 1,000 Live Births" title="Births with Prenatal Care Anytime during Pregnancy, Rate per 1,000 Live Births"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births with Prenatal Care Begun in 1st Trimester, Number" title="Births with Prenatal Care Begun in 1st Trimester, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Births with Prenatal Care Begun in 1st Trimester, Rate per 1,000 Live Births" title="Births with Prenatal Care Begun in 1st Trimester, Rate per 1,000 Live Births"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Birth Mothers with &lt;12 Years of Education, Number" title="Birth Mothers with &lt;12 Years of Education, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Birth Mothers with &lt;12 Years of Education, Percent" title="Birth Mothers with &lt;12 Years of Education, Percent"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Birth Mothers with 12 Years of Education or More, Number" title="Birth Mothers with 12 Years of Education or More, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths, Number" title="Deaths, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths per 1,000 Population" title="Deaths per 1,000 Population"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Infant Deaths, Number" title="Infant Deaths, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Infant Mortality Rate per 1,000 Live Births" title="Infant Mortality Rate per 1,000 Live Births"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Heart Disease, Number" title="Deaths Due to Heart Disease, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Heart Disease, Rate per 100,000 Population" title="Deaths Due to Heart Disease, Rate per 100,000 Population"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Cancer, Number" title="Deaths Due to Cancer, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Cancer, Rate per 100,000 Population" title="Deaths Due to Cancer, Rate per 100,000 Population"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Stroke, Number" title="Deaths Due to Stroke, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Stroke, Rate per 100,000 Population" title="Deaths Due to Stroke, Rate per 100,000 Population"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Chronic Lower Respiratory Disease, Number" title="Deaths Due to Chronic Lower Respiratory Disease, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Chronic Lower Resp. Disease, Rate per 100,000 Population" title="Deaths Due to Chronic Lower Resp. Disease, Rate per 100,000 Population"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Accidents, Number" title="Deaths Due to Accidents, Number"/>
+            <attribute keyType="Ohio FIPS codes" dataTable="Columbus Data" year="" name="Deaths Due to Accidents, Rate per 100,000 Population" title="Deaths Due to Accidents, Rate per 100,000 Population"/>
           </category>
-          <category name="Atlanta Superdistrict Data"/>
-          <category name="Atlanta Employment Data"/>
-          <category name="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal"/>
-          <category name="Massachusetts Land Use"/>
-          <category name="Boston Land Use"/>
-          <category name="Census County Data"/>
-          <category name="Connecticut Data"/>
-          <category name="Arizona Data"/>
-          <category name="student_CMD"/>
-          <category name="student_EJL"/>
-          <category name="employment_bls_county"/>
-          <category name="educational attainment"/>
-          <category name="educational attainment v3"/>
-          <category name="CombinedCounty"/>
-          <category name="Rosling Indicators"/>
-          <category name="empty"/>
+          <category name="Atlanta Superdistrict Data" title="Atlanta Superdistrict Data"/>
+          <category name="Atlanta Employment Data" title="Atlanta Employment Data"/>
+          <category name="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal" title="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal"/>
+          <category name="Massachusetts Land Use" title="Massachusetts Land Use"/>
+          <category name="Boston Land Use" title="Boston Land Use"/>
+          <category name="Census County Data" title="Census County Data"/>
+          <category name="Connecticut Data" title="Connecticut Data"/>
+          <category name="Arizona Data" title="Arizona Data"/>
+          <category name="student_CMD" title="student_CMD"/>
+          <category name="student_EJL" title="student_EJL"/>
+          <category name="employment_bls_county" title="employment_bls_county"/>
+          <category name="educational attainment" title="educational attainment"/>
+          <category name="educational attainment v3" title="educational attainment v3"/>
+          <category name="CombinedCounty" title="CombinedCounty"/>
+          <category name="Rosling Indicators" title="Rosling Indicators"/>
+          <category name="empty" title="empty"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns">
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
           <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <category name="DataTables">
-                <category name="Obesity">
-                  <attribute dataType="number" max="40" min="0" year="" name="Percent Obese 1995" dataTable="Obesity" title="Percent Obese 1995" keyType="US State FIPS Code"/>
+              <category name="DataTables" title="DataTables">
+                <category name="Obesity" title="Obesity">
+                  <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1995" title="Percent Obese 1995" max="40" dataTable="Obesity" min="0" dataType="number"/>
                 </category>
               </category>
             </hierarchy>
@@ -531,9 +553,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <category name="DataTables">
-                <category name="Obesity">
-                  <attribute dataType="number" max="40" min="0" year="" name="Percent Obese 2007" dataTable="Obesity" title="Percent Obese 2007" keyType="US State FIPS Code"/>
+              <category name="DataTables" title="DataTables">
+                <category name="Obesity" title="Obesity">
+                  <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2007" title="Percent Obese 2007" max="40" dataTable="Obesity" min="0" dataType="number"/>
                 </category>
               </category>
             </hierarchy>
@@ -542,16 +564,16 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
           <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <category name="DataTables">
-                <category name="Obesity">
-                  <attribute dataType="string" year="" name="State" dataTable="Obesity" title="State" keyType="US State FIPS Code"/>
+              <category name="DataTables" title="DataTables">
+                <category name="Obesity" title="Obesity">
+                  <attribute title="State" dataTable="Obesity" year="" name="State" dataType="string" keyType="US State FIPS Code"/>
                 </category>
               </category>
             </hierarchy>
@@ -575,7 +597,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <hierarchy>
                 <category name="DataTables">
                   <category name="Obesity">
-                    <attribute dataType="number" max="40" min="0" year="" name="Percent Obese 1995" dataTable="Obesity" title="Percent Obese 1995" keyType="US State FIPS Code"/>
+                    <attribute keyType="US State FIPS Code" year="" name="Percent Obese 1995" title="Percent Obese 1995" max="40" dataTable="Obesity" min="0" dataType="number"/>
                   </category>
                 </category>
               </hierarchy>
@@ -591,7 +613,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <hierarchy>
                 <category name="DataTables">
                   <category name="Obesity">
-                    <attribute dataType="number" max="40" min="0" year="" name="Percent Obese 2007" dataTable="Obesity" title="Percent Obese 2007" keyType="US State FIPS Code"/>
+                    <attribute keyType="US State FIPS Code" year="" name="Percent Obese 2007" title="Percent Obese 2007" max="40" dataTable="Obesity" min="0" dataType="number"/>
                   </category>
                 </category>
               </hierarchy>
@@ -618,7 +640,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisFontItalic>false</axisFontItalic>
                 <axisFontSize>11</axisFontSize>
                 <axisFontUnderline>false</axisFontUnderline>
-                <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
                 <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
                 <enableAutoZoomXToNiceNumbers>true</enableAutoZoomXToNiceNumbers>
                 <enableAutoZoomYToNiceNumbers>true</enableAutoZoomYToNiceNumbers>
@@ -664,6 +685,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         </labelNumberFormatter>
                         <labelTextAlignment>left</labelTextAlignment>
                         <labelVerticalAlign>bottom</labelVerticalAlign>
+                        <labelWordWrapSize>60</labelWordWrapSize>
                         <overrideAxisName/>
                         <showAxisName>true</showAxisName>
                         <tickCountRequested>10</tickCountRequested>
@@ -706,6 +728,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                         </labelNumberFormatter>
                         <labelTextAlignment>left</labelTextAlignment>
                         <labelVerticalAlign>top</labelVerticalAlign>
+                        <labelWordWrapSize>60</labelWordWrapSize>
                         <overrideAxisName/>
                         <showAxisName>true</showAxisName>
                         <tickCountRequested>10</tickCountRequested>
@@ -751,7 +774,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                                   <hierarchy>
                                     <category name="DataTables">
                                       <category name="Obesity">
-                                        <attribute year="" name="Percent Obese 2007" dataTable="Obesity" keyType="US State FIPS Code"/>
+                                        <attribute keyType="US State FIPS Code" dataTable="Obesity" year="" name="Percent Obese 2007" title="Percent Obese 2007"/>
                                       </category>
                                     </category>
                                   </hierarchy>
@@ -809,7 +832,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                                   <hierarchy>
                                     <category name="DataTables">
                                       <category name="Obesity">
-                                        <attribute year="" name="Percent Obese 1995" dataTable="Obesity" keyType="US State FIPS Code"/>
+                                        <attribute keyType="US State FIPS Code" dataTable="Obesity" year="" name="Percent Obese 1995" title="Percent Obese 1995"/>
                                       </category>
                                     </category>
                                   </hierarchy>
@@ -910,7 +933,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                                   <hierarchy>
                                     <category name="DataTables">
                                       <category name="Obesity">
-                                        <attribute year="" name="Percent Obese 1995" dataTable="Obesity" keyType="US State FIPS Code"/>
+                                        <attribute keyType="US State FIPS Code" dataTable="Obesity" year="" name="Percent Obese 1995" title="Percent Obese 1995"/>
                                       </category>
                                     </category>
                                   </hierarchy>
@@ -928,7 +951,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                                   <hierarchy>
                                     <category name="DataTables">
                                       <category name="Obesity">
-                                        <attribute year="" name="Percent Obese 2007" dataTable="Obesity" keyType="US State FIPS Code"/>
+                                        <attribute keyType="US State FIPS Code" dataTable="Obesity" year="" name="Percent Obese 2007" title="Percent Obese 2007"/>
                                       </category>
                                     </category>
                                   </hierarchy>
@@ -1007,7 +1030,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                                   <hierarchy>
                                     <category name="DataTables">
                                       <category name="Obesity">
-                                        <attribute year="" name="Percent Obese 1995" dataTable="Obesity" keyType="US State FIPS Code"/>
+                                        <attribute keyType="US State FIPS Code" dataTable="Obesity" year="" name="Percent Obese 1995" title="Percent Obese 1995"/>
                                       </category>
                                     </category>
                                   </hierarchy>
@@ -1025,7 +1048,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                                   <hierarchy>
                                     <category name="DataTables">
                                       <category name="Obesity">
-                                        <attribute year="" name="Percent Obese 2007" dataTable="Obesity" keyType="US State FIPS Code"/>
+                                        <attribute keyType="US State FIPS Code" dataTable="Obesity" year="" name="Percent Obese 2007" title="Percent Obese 2007"/>
                                       </category>
                                     </category>
                                   </hierarchy>
@@ -1120,7 +1143,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <panelBorderColor>NaN</panelBorderColor>
             <panelHeight>100%</panelHeight>
             <panelStyleList/>
-            <panelTitle>Scatter Plot of Percent Obese 1995 -vs- Percent Obese 2007</panelTitle>
+            <panelTitle/>
             <panelWidth>75.163%</panelWidth>
             <panelX>0%</panelX>
             <panelY>0%</panelY>
@@ -1130,7 +1153,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <pinnedToBack>false</pinnedToBack>
             <resizeable>false</resizeable>
             <showCloseDialog>false</showCloseDialog>
-            <toolTitle/>
           </ScatterPlotTool>
           <ColorBinLegendTool name="legend">
             <buttonRadius>3</buttonRadius>
@@ -1145,7 +1167,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisFontItalic>false</axisFontItalic>
                 <axisFontSize>11</axisFontSize>
                 <axisFontUnderline>false</axisFontUnderline>
-                <defaultMouseMode>InteractiveVisualization.SELECT_MODE_REPLACE</defaultMouseMode>
                 <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
                 <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
                 <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
@@ -1255,7 +1276,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <panelBorderColor>NaN</panelBorderColor>
             <panelHeight>100%</panelHeight>
             <panelStyleList/>
-            <panelTitle>Color Legend</panelTitle>
+            <panelTitle/>
             <panelWidth>26.144%</panelWidth>
             <panelX>73.856%</panelX>
             <panelY>0%</panelY>
@@ -1265,7 +1286,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <pinnedToBack>false</pinnedToBack>
             <resizeable>false</resizeable>
             <showCloseDialog>false</showCloseDialog>
-            <toolTitle/>
           </ColorBinLegendTool>
         </children>
         <eventListeners/>
@@ -1307,11 +1327,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <LinkableDisplayObject name="button">
             <children encoding="dynamic"/>
             <eventListeners>
-              <click>if (confirm(
-  'mouse click stage coords: ' + event.stageX + ',' + event.stageY + '\n'
-  + 'Click OK to open a ScatterPlotTool'
-))
-  weave.requestObject([null],'ScatterPlotTool');</click>
+              <click>ExternalInterface.call( "function(prompt)\{ if (confirm(prompt)) weave.requestObject([null],'ScatterPlotTool'); }",  'mouse click stage coords: ' + event.stageX + ',' + event.stageY + '\nClick OK to open a ScatterPlotTool');</click>
             </eventListeners>
             <properties>
               <label>click me</label>

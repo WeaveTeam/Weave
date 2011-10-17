@@ -140,7 +140,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				initColumnDefaults(_plotter.xColumn, _plotter.yColumn, colorColumn);
 				registerLinkableChild(this,histogramColumn);
 				
-				toolTitle.addImmediateCallback(this, updateTitle);
 			}
 			override protected function childrenCreated():void
 			{
@@ -169,15 +168,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
 			[Bindable]
 			private var rpToolTitle:String ="";
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Ramachandran Plot " + rpToolTitle;
 			}
 			

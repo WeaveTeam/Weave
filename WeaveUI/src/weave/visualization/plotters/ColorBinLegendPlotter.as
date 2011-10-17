@@ -28,8 +28,11 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
@@ -63,14 +66,16 @@ package weave.visualization.plotters
 			
 			setKeySource(dynamicColorColumn);
 			
-			registerNonSpatialProperties(
+			for each (var child:ILinkableObject in [
 				Weave.properties.axisFontSize,
 				Weave.properties.axisFontColor,
 				Weave.properties.axisFontFamily,
 				Weave.properties.axisFontItalic,
 				Weave.properties.axisFontUnderline,
-				Weave.properties.axisFontBold
-			);
+				Weave.properties.axisFontBold])
+			{
+				registerLinkableChild(this, child);
+			}
 		}
 		
 		/**
@@ -91,11 +96,11 @@ package weave.visualization.plotters
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
-		public const shapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(20));
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
 		/**
 		 * This is the line style used to draw the outline of the shape.
 		 */
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
 		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createHashMaps);
 		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);

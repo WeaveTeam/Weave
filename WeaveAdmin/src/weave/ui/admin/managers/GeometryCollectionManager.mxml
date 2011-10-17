@@ -63,14 +63,19 @@
 			
 			private function handleItemClick(event:ListEvent):void
 			{
-				if(geomEditor.dataChanged)
+				if (geomEditor.dataChanged)
 				{
+					function cancel():void
+					{
+						treeWithSearch.tree.selectedItem = null;
+					}
 					// ask user to confirm
 					PopUpUtils.confirm(
 						this,
-						"Leave current Geometry Collection",
-						'Are you sure you want to leave the current Geometry Collection? Any unsaved changes will be lost.',
-						loadGeometryInfo
+						"Discard changes",
+						'Discard unsaved changes?',
+						loadGeometryInfo, cancel,
+						'Discard', 'Cancel'
 					);
 				}
 				else loadGeometryInfo();

@@ -69,8 +69,9 @@
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(CompoundBarChartPlotter) as CompoundBarChartPlotter;
 				visualization.enableProbeLine(false, true);
-				_plotter.groupMode.addGroupedCallback(this, updateProbeLines ) ;
-				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines ) ;
+				_plotter.groupingMode.addGroupedCallback(this, updateProbeLines);
+				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines);
+				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				
 				yAxisEnabled = true;
 				xAxisEnabled = true;
@@ -97,12 +98,11 @@
 				
 				visualization.enableZoomAndPan.value = false;
 
-
+				
+				
 				visualization.enableXAxisProbing = true;
 				visualization.enableYAxisProbing = true;
 				
-				toolTitle.addGroupedCallback(this, updateTitle, true);
-
 				//BEGIN TEMPORARY SOLUTION
 				// END TEMPORARY SOLUTION
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [true]);
@@ -124,15 +124,12 @@
 				super.childrenCreated();
 				cRampEditor.colorRamp = _plotter.chartColors;
 				linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
-				linkBindableProperty(_plotter.groupMode, groupCheckBox, "selected");
 				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
 				linkBindableProperty(showAllLabels, showAllLabelsCheckBox, "selected");
 				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
-				linkBindableProperty(_plotter.groupMode, visualization, "barChartGroupMode" );
-				linkBindableProperty(_plotter.horizontalMode, visualization, "barChartHorizontalMode" );
-				
+				linkBindableProperty(_plotter.groupingMode, mode, 'selectedValue');
+				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
-				getCallbackCollection(_plotter.groupMode).addGroupedCallback(this, updateInteractivity);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -148,7 +145,7 @@
 			
 			private function updateProbeLines():void
 			{
-				if( _plotter.groupMode.value ) 
+				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP) 
 					visualization.disableProbelines();
 				else if( _plotter.horizontalMode.value) 
 					visualization.enableProbeLine(true, false);
@@ -196,9 +193,10 @@
 			 */
 			public const showAllLabels:LinkableBoolean = newLinkableChild(this, LinkableBoolean, updateAxisLabels, true);
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 				{
 					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
 					for (var i:int = 0; i < columns.length; i++)
@@ -212,7 +210,7 @@
 
 			private function updateAxisLabels():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 				
 				var heightColumns:Array = _plotter.heightColumns.getObjects();
 				
@@ -262,6 +260,7 @@
 				barAxisLayer.axisPlotter.setLabelFunction(sortAxisLabelFunction);
 				sizeAxisLayer.axisPlotter.setLabelFunction(null);
 				
+				
 				// size axis uses automatic min,max based on data
 				sizeAxisLayer.axisPlotter.tickMinValue.value = NaN;
 				sizeAxisLayer.axisPlotter.tickMaxValue.value = NaN;
@@ -281,6 +280,16 @@
 				
 				xAxisLayer.axisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
 				yAxisLayer.axisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				yAxisLayer.axisPlotter.setLabelFunction(addPercentLabel);
+			}
+			
+			//add a percent sign to the Y-axis label if bars are stacked to 100%
+			private function addPercentLabel(value:Number):String
+			{
+				if (_plotter.getActualGroupingMode() == CompoundBarChartPlotter.PERCENT_STACK && _plotter.heightColumns.getNames().length > 1)
+					return value.toString() + '%';
+				else
+					return value.toString();
 			}
 			
 			private function sortAxisLabelFunction(value:Number):String
@@ -319,20 +328,23 @@
 			{
 				if (!parent)
 					return callLater(updateInteractivity);
-				if(_plotter.heightColumns.getNames().length > 1)
+				if (_plotter.heightColumns.getNames().length > 1)
 				{
 					cRampEditor.enabled = true;
-					groupCheckBox.enabled = true;
-					if (groupCheckBox.selected) showValueLabelsCheckBox.enabled = true;
-					else showValueLabelsCheckBox.enabled = false;
+					mode.enabled = true;
+					if (groupedRadioButton.selected) 
+						showValueLabelsCheckBox.enabled = true;
+					else 
+						showValueLabelsCheckBox.enabled = false;
+					colorColumInput.enabled = false;
 				}
 				else
 				{
 					cRampEditor.enabled = false;
-					groupCheckBox.enabled = false;
+					mode.enabled = false;
 					showValueLabelsCheckBox.enabled = true;
+					colorColumInput.enabled = true;
 				}
-				colorColumInput.enabled = _plotter.heightColumns.getNames().length <= 1;
 			}
 			
 			private const groupCheckDisabledToolTip:String = 'There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.';
@@ -343,7 +355,6 @@
 				var barChartLegendTool:BarChartLegendTool = Weave.root.requestObject(null, BarChartLegendTool, false);
 				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(this);
 			}
-
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -360,8 +371,17 @@
 			<mx:Button id="Legend" label="legend" click="Legend_clickHandler(event)"/>
 			<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
 						 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
-			<mx:CheckBox id="groupCheckBox" label="Grouped bars"
+			<mx:HBox>
+				<mx:RadioButtonGroup id="mode"/>
+				<mx:RadioButton id="stackedRadioButton" groupName="mode" label="Stacked Bars" value="{CompoundBarChartPlotter.STACK}"/>
+				<mx:RadioButton id="percentStackedRadioButton" groupName="mode" label="100% Stacked Bars" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
+				<mx:RadioButton id="groupedRadioButton" groupName="mode" label="Grouped Bars" value="{CompoundBarChartPlotter.GROUP}"/>
+			</mx:HBox>
+			
+			<!--<mx:CheckBox id="groupCheckBox" label="Grouped bars"
 						 toolTip="{groupCheckBox.enabled ? groupCheckEnabledToolTip : groupCheckDisabledToolTip}"/>
+			<mx:CheckBox id="centCheckBox" label="Stack to 100%"
+						 toolTip="Check this box to stack the bars to a 100%. This will be disabled if the bar chart is in grouped mode."/>-->
 			<userControls:ControlsSubsetBox>
 				<mx:Label text="Bar spacing:"/>
 				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No Gap', '1:4', '1:1']" tickInterval="0.25"

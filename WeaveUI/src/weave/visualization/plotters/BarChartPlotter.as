@@ -19,10 +19,13 @@
 
 package weave.visualization.plotters
 {
+	import weave.api.core.ILinkableObject;
+	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.unlinkSessionState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.api.linkSessionState;
-	import weave.api.unlinkSessionState;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
@@ -70,15 +73,17 @@ package weave.visualization.plotters
 			zero.defaultValue.setSessionState(0); // default: bars start from zero
 			
 			// register the public properties
-			registerSpatialProperties(yBarBegin, yBarEnd, sortColumn, xBarStart, xBarSpacing);
-			registerNonSpatialProperties(colorColumn, alphaColumn);
+			for each (var spatialProperty:ILinkableObject in [yBarBegin, yBarEnd, sortColumn, xBarStart, xBarSpacing])
+				registerSpatialProperty(spatialProperty);
+			registerLinkableChild(this, colorColumn);
+			registerLinkableChild(this, alphaColumn);
 			
 			setKeySource(yBarEnd);
 			
 			linkSortToHeight.value = false;
 		}
 
-		public const linkSortToHeight:LinkableBoolean = newNonSpatialProperty(LinkableBoolean, handleLinkSortToHeight);
+		public const linkSortToHeight:LinkableBoolean = newLinkableChild(this, LinkableBoolean, handleLinkSortToHeight);
 		private function handleLinkSortToHeight():void
 		{
 			// if the sort column is linked to the height column, use the same column for yBarEnd as for sortColumn

@@ -19,13 +19,20 @@
 
 package weave.visualization.plotters
 {
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.LineScaleMode;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
+	import mx.controls.Image;
+	import mx.graphics.ImageSnapshot;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
@@ -35,17 +42,23 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.core.SessionManager;
+	import weave.core.LinkableString;
 	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.data.AttributeColumns.StringColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.PlotterUtils;
@@ -55,6 +68,7 @@ package weave.visualization.plotters
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
+	import weave.visualization.tools.MapTool;
 	
 	/**
 	 * GeometryPlotter
@@ -65,7 +79,7 @@ package weave.visualization.plotters
 	{
 		public function GeometryPlotter()
 		{
-			registerSpatialProperties(geometryColumn.internalDynamicColumn);
+			registerSpatialProperty(geometryColumn.internalDynamicColumn);
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
@@ -80,20 +94,28 @@ package weave.visualization.plotters
 		 * This is the reprojected geometry column to draw.
 		 */
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
+		/**
+		 *  This is the default URL path for images, when using images in place of points.
+		 */
+		public const pointDataImageColumn:ImageColumn = newLinkableChild(this, ImageColumn);
+		
+		[Embed(source="/weave/resources/images/missing.png")]
+		private static var _missingImageClass:Class;
+		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 		
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
-		public const line:ExtendedSolidLineStyle = newNonSpatialProperty(ExtendedSolidLineStyle, invalidateCachedBitmaps);
+		public const line:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle, invalidateCachedBitmaps);
 		/**
 		 * This is the fill style used to fill the geometries.
 		 */
-		public const fill:ExtendedSolidFillStyle = newNonSpatialProperty(ExtendedSolidFillStyle, invalidateCachedBitmaps);
+		public const fill:ExtendedSolidFillStyle = newLinkableChild(this, ExtendedSolidFillStyle, invalidateCachedBitmaps);
 
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
 		 **/
-		public const pointShapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5, validatePointShapeSize), disposeCachedBitmaps);
+		public const pointShapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, validatePointShapeSize), disposeCachedBitmaps);
 		private function validatePointShapeSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
 
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
@@ -250,7 +272,7 @@ package weave.visualization.plotters
 			destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
 		}
 		
-		public const pixellation:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1));
+		public const pixellation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -313,7 +335,7 @@ package weave.visualization.plotters
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object
-
+		private static const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		/**
 		 * This function draws a list of GeneralizedGeometry objects
@@ -328,7 +350,7 @@ package weave.visualization.plotters
 		 * This function draws a single geometry.
 		 * @param points An Array or Vector of objects, each having x and y properties.
 		 */
-		private function drawShape(key:IQualifiedKey, points:Object, shapeType:String, dataBounds:IBounds2D, screenBounds:IBounds2D, graphics:Graphics, bitmapData:BitmapData):void
+		private function drawShape(key:IQualifiedKey, points:Object, shapeType:String, dataBounds:IBounds2D, screenBounds:IBounds2D, outputGraphics:Graphics, outputBitmapData:BitmapData):void
 		{
 			if (points.length == 0)
 				return;
@@ -342,14 +364,24 @@ package weave.visualization.plotters
 					tempPoint.x = currentNode.x;
 					tempPoint.y = currentNode.y;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
-					drawCircle(bitmapData, fill.color.getValueFromKey(key, Number), tempPoint.x, tempPoint.y);
+					if (pointDataImageColumn.internalColumn)
+					{
+						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
+						tempMatrix.identity();
+						tempMatrix.translate(tempPoint.x - bitmapData.width / 2, tempPoint.y - bitmapData.height / 2);
+						outputBitmapData.draw(bitmapData, tempMatrix);
+					}
+					else
+					{
+						drawCircle(outputBitmapData, fill.color.getValueFromKey(key, Number), tempPoint.x, tempPoint.y);
+					}
 				}
 				return;
 			}
 
 			// prevent moveTo/lineTo from drawing a filled polygon if the shape type is line
 			if (shapeType == GeneralizedGeometry.GEOM_TYPE_LINE)
-				graphics.endFill();
+				outputGraphics.endFill();
 
 			var numPoints:int = points.length;
 			var firstX:Number, firstY:Number;
@@ -364,14 +396,14 @@ package weave.visualization.plotters
 				{
 					firstX = tempPoint.x;
 					firstY = tempPoint.y;
-					graphics.moveTo(tempPoint.x, tempPoint.y);
+					outputGraphics.moveTo(tempPoint.x, tempPoint.y);
 					continue;
 				}
-				graphics.lineTo(tempPoint.x, tempPoint.y);
+				outputGraphics.lineTo(tempPoint.x, tempPoint.y);
 			}
 			
 			if (shapeType == GeneralizedGeometry.GEOM_TYPE_POLYGON)
-				graphics.lineTo(firstX, firstY);
+				outputGraphics.lineTo(firstX, firstY);
 		}
 		
 		override public function dispose():void

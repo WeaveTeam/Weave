@@ -86,8 +86,9 @@ package weave.core
 		 * @param callback The function to call when callbacks are triggered.
 		 * @param parameters An array of parameters that will be used as parameters to the callback function.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
+		 * @param alwaysTriggerLast If this is set to true, the callback will be always be triggered after any callbacks that were added with alwaysTriggerLast=false.  Use this to establish the desired child-to-parent triggering order.
 		 */
-		public final function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void
+		public final function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void
 		{
 			if (callback == null)
 				return;
@@ -101,6 +102,8 @@ package weave.core
 			entry.callback = callback;
 			entry.parameters = parameters;
 			entry.recursionLimit = 0;
+			if (alwaysTriggerLast)
+				entry.schedule = 1;
 			
 			// UNCOMMENT THIS LINE FOR DEBUGGING
 			entry.addCallback_stackTrace = new Error().getStackTrace();
@@ -150,43 +153,50 @@ package weave.core
 			// This flag is set to false before running the callbacks.  When it becomes true, the loop exits.
 			_runCallbacksCompleted = false;
 			
-			// run the callbacks in the order they were added
-			for (var i:int = 0; i < _callbackEntries.length; i++)
+			// first run callbacks with schedule 0, then those with schedule 1
+			for (var schedule:int = 0; schedule < 2; schedule++)
 			{
-				// If this flag is set to true, it means a recursive call has finished running callbacks.
-				// If preCallbackParams are specified, we don't want to exit the loop because that cause a loss of information.
-				if (_runCallbacksCompleted && preCallbackParams.length == 0)
-					break;
-				
-				var entry:CallbackEntry = _callbackEntries[i] as CallbackEntry;
-				// Remove the entry if the context was disposed of by SessionManager.
-				var shouldRemoveEntry:Boolean;
-				if (entry.callback == null)
-					shouldRemoveEntry = true;
-				else if (entry.context is CallbackCollection) // special case
-					shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
-				else
-					shouldRemoveEntry = (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(entry.context);
-				if (shouldRemoveEntry)
+				// run the callbacks in the order they were added
+				for (var i:int = 0; i < _callbackEntries.length; i++)
 				{
-					if (entry.callback != null)
-						entry.removeCallback_stackTrace = new Error("context disposed").getStackTrace();
-					// help the garbage-collector a bit
-					entry.context = null;
-					entry.callback = null;
-					entry.parameters = null;
-					// remove the empty callback reference from the list
-					_callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
-					continue;
-				}
-				// if preCallbackParams are specified, we don't want to limit recursion because that would cause a loss of information.
-				if (entry.recursionCount <= entry.recursionLimit || preCallbackParams.length > 0)
-				{
-					entry.recursionCount++; // increase count to signal that we are currently running this callback.
-					if (_preCallback != null)
-						_preCallback.apply(null, preCallbackParams);
-					entry.callback.apply(null, entry.parameters);
-					entry.recursionCount--; // decrease count because the callback finished.
+					// If this flag is set to true, it means a recursive call has finished running callbacks.
+					// If preCallbackParams are specified, we don't want to exit the loop because that cause a loss of information.
+					if (_runCallbacksCompleted && preCallbackParams.length == 0)
+						break;
+					
+					var entry:CallbackEntry = _callbackEntries[i] as CallbackEntry;
+					// if we haven't reached the matching schedule yet, skip this callback
+					if (entry.schedule != schedule)
+						continue;
+					// Remove the entry if the context was disposed of by SessionManager.
+					var shouldRemoveEntry:Boolean;
+					if (entry.callback == null)
+						shouldRemoveEntry = true;
+					else if (entry.context is CallbackCollection) // special case
+						shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
+					else
+						shouldRemoveEntry = (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(entry.context);
+					if (shouldRemoveEntry)
+					{
+						if (entry.callback != null)
+							entry.removeCallback_stackTrace = new Error("context disposed").getStackTrace();
+						// help the garbage-collector a bit
+						entry.context = null;
+						entry.callback = null;
+						entry.parameters = null;
+						// remove the empty callback reference from the list
+						_callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
+						continue;
+					}
+					// if preCallbackParams are specified, we don't want to limit recursion because that would cause a loss of information.
+					if (entry.recursionCount <= entry.recursionLimit || preCallbackParams.length > 0)
+					{
+						entry.recursionCount++; // increase count to signal that we are currently running this callback.
+						if (_preCallback != null)
+							_preCallback.apply(null, preCallbackParams);
+						entry.callback.apply(null, entry.parameters);
+						entry.recursionCount--; // decrease count because the callback finished.
+					}
 				}
 			}
 
@@ -467,6 +477,10 @@ internal class CallbackEntry
 	 * If this is greater than zero, it means the function is currently running.
 	 */
 	public var recursionCount:uint = 0;
+	/**
+	 * This is 0 if the callback was added with alwaysTriggerLast=false, or 1 for alwaysTriggerLast=true
+	 */	
+	public var schedule:int = 0;
 	/**
 	 * This is a stack trace from when the callback was added.
 	 */

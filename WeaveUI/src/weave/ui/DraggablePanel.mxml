@@ -99,11 +99,14 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
+			import weave.api.getLinkableRoot;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
+			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
+			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -141,7 +144,7 @@
 			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
 			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 			
-			public const panelTitle:LinkableString = registerLinkableChild(this,new LinkableString(''));
+			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
 
 			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
 			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
@@ -216,9 +219,7 @@
 				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
-				
-				linkBindableProperty(panelTitle,this,"title");
-				
+				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 			}
 			
 			/**
@@ -308,29 +309,66 @@
 				rawChildren.addChild(_dragCanvas);
 			}
 			
-			private function handleTitleColorChange():void {			
-				if(this.titleBar != null)
-					this.titleBar.setStyle("color",Weave.properties.panelTitleFontColor.value);
+			// this gets called when panelTitle changes
+			protected function handlePanelTitleChange():void
+			{
+				_panelTitleFunction = null;
+				if (panelTitle.value)
+				{
+					try
+					{
+						var str:String = '`' + panelTitle.value.split('`').join('\\`') + '`';
+						_panelTitleFunction = compiler.compileToFunction(str, null, true, true);
+						evaluatePanelTitle();
+					}
+					catch (e:Error)
+					{
+						//WeaveAPI.ErrorManager.reportError(e);
+						title = panelTitle.value;
+					}
+				}
 			}
-			private function handleTitleWeightChange():void	{
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontWeight", (Weave.properties.panelTitleFontBold.value) ? "bold" : "normal" ) ;	
+			private static const compiler:Compiler = new Compiler(); // this is used in handlePanelTitleChange()
+			{ /** begin static code block **/
+				compiler.includeLibraries(WeaveAPI);
+			} /** end static code block **/
+			private var _panelTitleFunction:Function = null; // this gets set inside handlePanelTitle()
+			// this gets called as a grouped callback when Weave.root changes and whenever panelTitle can be compiled to a function
+			private function evaluatePanelTitle():void
+			{
+				if (_panelTitleFunction != null)
+					title = _panelTitleFunction.apply(this);
 			}
-			private function handleTitleDecorationChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("textDecoration", (Weave.properties.panelTitleFontUnderline.value)? "underline" : "none");	
+
+			private function handleTitleColorChange():void
+			{			
+				if (titleBar)
+					titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
 			}
-			private function handleTitleStyleChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontStyle",(Weave.properties.panelTitleFontItalic.value) ? "italic" : "normal");
+			private function handleTitleWeightChange():void
+			{
+				if (titleBar)
+					titleBar.setStyle("fontWeight", (Weave.properties.panelTitleFontBold.value) ? "bold" : "normal" ) ;	
+			}
+			private function handleTitleDecorationChange():void
+			{
+				if (titleBar)
+					titleBar.setStyle("textDecoration", (Weave.properties.panelTitleFontUnderline.value)? "underline" : "none");	
+			}
+			private function handleTitleStyleChange():void
+			{
+				if (titleBar)
+					titleBar.setStyle("fontStyle", (Weave.properties.panelTitleFontItalic.value) ? "italic" : "normal");
 			}			
-			private function handleTitleFamilyChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontFamily",Weave.properties.panelTitleFontFamily.value);
+			private function handleTitleFamilyChange():void
+			{
+				if (titleBar)
+					titleBar.setStyle("fontFamily", Weave.properties.panelTitleFontFamily.value);
 			}			
-			private function handleTitleSizeChange():void {
-				if(this.titleBar != null )
-					this.titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
+			private function handleTitleSizeChange():void
+			{
+				if (titleBar)
+					titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
 			}
 			
 			[Inspectable]
@@ -1018,7 +1056,7 @@
 				
 				var minimizedPanelAlphaEffect:AnimateProperty = new AnimateProperty(minimizedComponentVersion);
 				minimizedPanelAlphaEffect.fromValue = 0.0;
-				minimizedPanelAlphaEffect.toValue = MinimizedComponent.MINIMIZED_COMPONENT_ALPHA;
+				minimizedPanelAlphaEffect.toValue = 1.0;
 				minimizedPanelAlphaEffect.property = "alpha";
 				
 				minimizedPanelAlphaEffect.easingFunction = mx.effects.easing.Exponential.easeIn;
@@ -1122,7 +1160,7 @@
 				alphaEffect.property = "alpha";
 				
 				var minimizedPanelAlphaEffect:AnimateProperty = new AnimateProperty(minimizedComponentVersion);
-				minimizedPanelAlphaEffect.fromValue = MinimizedComponent.MINIMIZED_COMPONENT_ALPHA;
+				minimizedPanelAlphaEffect.fromValue = 1.0;
 				minimizedPanelAlphaEffect.toValue = 0.0;
 				minimizedPanelAlphaEffect.property = "alpha";
 				if(minimizeEffectMode == CIRCULAR_MINIMIZE_EFFECT || minimizeEffectMode == BOOMERANG_MINIMIZE_EFFECT)
@@ -1939,6 +1977,11 @@
 			private function handleDragEnter(event:DragEvent):void
 			{
 				restorePanel();
+			}
+			
+			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void
+			{
+				panelTitle.value = value;
 			}
 		]]>
 	</mx:Script>

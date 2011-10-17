@@ -23,8 +23,10 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -41,8 +43,8 @@ package weave.visualization.plotters
 	{
 		public function LinePlotter()
 		{
-			registerSpatialProperties(x1Data, y1Data, x2Data, y2Data);
-			registerNonSpatialProperties(x1ScreenOffset, y1ScreenOffset, x2ScreenOffset, y2ScreenOffset, lineStyle);
+			for each (var spatialProperty:ILinkableObject in [x1Data, y1Data, x2Data, y2Data])
+				registerSpatialProperty(spatialProperty);
 			// initialize default line style
 			lineStyle.requestLocalObject(SolidLineStyle, false);
 			
@@ -71,23 +73,23 @@ package weave.visualization.plotters
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const x1ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const x1ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const y1ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const y1ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const x2ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const x2ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const y2ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const y2ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is the line style used to draw the line.
 		 */
-		public const lineStyle:DynamicLineStyle = new DynamicLineStyle();
+		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle());
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.

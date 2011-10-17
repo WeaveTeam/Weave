@@ -47,9 +47,14 @@ package weave.data.AttributeColumns
 		 * This is the image cache.
 		 */
 		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+		
+		/**
+		 * This function returns BitmapData objects as its default dataType.
+		 * @see weave.api.data.IAttributeColumn
+		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (dataType != null)
+			if (dataType != null && dataType != BitmapData)
 				return super.getValueFromKey(key, dataType);
 			var _imageURL:String = super.getValueFromKey(key, String) as String;
 			if(_imageURL == null)
