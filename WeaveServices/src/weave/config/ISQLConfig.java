@@ -342,8 +342,7 @@ public interface ISQLConfig
 					case Types.DOUBLE:
 					case Types.REAL:
 					case Types.NUMERIC:
-						// case Types.ROWID: // produces compiler error in some
-						// environments
+					/* case Types.ROWID: // produces compiler error in some environments */
 						return DataType.NUMBER;
 					default:
 						return DataType.STRING;
@@ -356,6 +355,10 @@ public interface ISQLConfig
 			this.connection = connection;
 			this.sqlQuery = sqlQuery;
 			this.metadata = metadata;
+			
+			// TODO: TEMPORARY SOLUTION -- REMOVE THIS CODE AFTER SERVER REFACTORING
+			if (getMetadata(Metadata.TITLE.toString()).length() == 0)
+				metadata.put(Metadata.TITLE.toString(), getMetadata(Metadata.NAME.toString()));
 		}
 
 		// returns a non-null value
