@@ -243,6 +243,7 @@
 			 */
 			private function updateKeyTypeCombo():void
 			{
+				return;
 				var compatibleTypes:Array;
 				var keyType:String = null;
 				var node:XML = HierarchyUtils.getLeafNodeFromPath(selectedPath.value);

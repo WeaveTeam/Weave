@@ -577,7 +577,8 @@
 					var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
 
 					_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"Tag");
-					sessionStateTextArea.text = _currentSessionStateXML.children().toXMLString();
+					var cleanString:String = _currentSessionStateXML.children().toXMLString();
+					sessionStateTextArea.text = cleanString; 
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.validateNow();
 					sessionStateTextArea.verticalScrollPosition = vsp;

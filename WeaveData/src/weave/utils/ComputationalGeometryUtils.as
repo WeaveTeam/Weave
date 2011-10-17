@@ -329,6 +329,7 @@ package weave.utils
 			
 			return false;
 		}
+
 		private static const _tempBitmap:Bitmap = new Bitmap(new BitmapData(360, 180, true));
 		private static const _tempMatrix:Matrix = new Matrix();
 		/**
@@ -437,6 +438,20 @@ package weave.utils
 		 * @param bx The X coordinate of point B
 		 * @param by The Y coordinate of point B
 		 * @return The distance from point A to point B
+		 */
+		public static function getDistanceFromPoint(ax:Number, ay:Number, bx:Number, by:Number):Number
+		{
+			var dx:Number = bx - ax;
+			var dy:Number = by - ay;
+			return Math.sqrt(dx * dx + dy * dy);
+		}
+		
+		/**
+		 * @param ax The X coordinate of point A
+		 * @param ay The Y coordinate of point A
+		 * @param bx The X coordinate of point B
+		 * @param by The Y coordinate of point B
+		 * @return The distance from point A to point B squared.
 		 */
 		public static function getDistanceFromPointSq(ax:Number, ay:Number, bx:Number, by:Number):Number
 		{
