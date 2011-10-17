@@ -97,7 +97,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#constrainPoint()">constrainPoint</a>(point:Point):void</div>
+<a class="signatureLink" href="#constrainPoint()">constrainPoint</a>(point:Point, preserveSlope:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This constrains a point to be within this IBounds2D.</div>
 </td><td class="summaryTableOwnerCol">IBounds2D</td>
@@ -673,12 +673,21 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function constrainPoint(point:Point):void</code><p>
+<code>public function constrainPoint(point:Point, preserveSlope:Boolean = false):void</code><p>
    This constrains a point to be within this IBounds2D.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">point</span>:Point</code> &mdash; The point to constrain.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">preserveSlope</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; A boolean indicating whether a point outside of the bounds
+   should be constrained inside the bounds at a position which lies on a line from 
+   the bounds center to the original point's location.
    </td>
 </tr>
 </table>
