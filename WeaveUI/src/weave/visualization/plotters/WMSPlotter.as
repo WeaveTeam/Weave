@@ -102,8 +102,7 @@ package weave.visualization.plotters
 		public const gridSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(12)); // number of pixels between grid points
 		private const _tempBounds:IBounds2D = new Bounds2D();
 		private const _tempImageBounds:IBounds2D = new Bounds2D(); // bounds of the image
-		private const _latLonBounds:IBounds2D = new Bounds2D(
-			-180 + ProjConstants.EPSLN, -90 + ProjConstants.EPSLN, 180 - ProjConstants.EPSLN, 90 - ProjConstants.EPSLN);
+		private const _latLonBounds:IBounds2D = new Bounds2D(-180 + ProjConstants.EPSLN, -90 + ProjConstants.EPSLN, 180 - ProjConstants.EPSLN, 90 - ProjConstants.EPSLN);
 		private const _allowedTileReprojBounds:IBounds2D = new Bounds2D(); // allowed bounds for point to point reprojections
 		private const _normalizedGridBounds:IBounds2D = new Bounds2D();
 		private const _tempReprojPoint:Point = new Point(); // reusable object for reprojections
@@ -385,18 +384,6 @@ package weave.visualization.plotters
 			{
 				disposeObjects(_service);
 			}
-			
-			// TEMPORARY SOLUTION (this should be handled by the verifyServiceName() function)
-			// if there is no valid provider (which may happen due to ComboBox issue or manual change in session state),
-			// default to NASA
-			if (provider == '' || provider == null) // || WMSProviders.providers.indexOf(provider) < 0)
-			{
-				serviceName.delayCallbacks(); // prevent a recursive callback call for next line
-				serviceName.value = WMSProviders.NASA;
-				provider = serviceName.value;
-				serviceName.resumeCallbacks(); // allow the callback to be called again
-			}
-			// END TEMPORARY SOLUTION
 			
 			if (provider == WMSProviders.NASA)
 			{

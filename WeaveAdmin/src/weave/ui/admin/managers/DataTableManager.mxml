@@ -247,7 +247,7 @@
 				return ObjectUtil.stringCompare(a as String, b as String, true);
 			}
 			
-			private const preferredMetadataOrder:Array = "title,name,keyType,dataType,number,string,min,max,year,geometryCollection,dataTable,connection,sqlQuery".split(',');
+			private const preferredMetadataOrder:Array = "title,keyType,dataType,number,string,min,max,year,name,geometryCollection,dataTable,connection,sqlQuery".split(',');
 
 			private function getActiveDataTableName():String
 			{
