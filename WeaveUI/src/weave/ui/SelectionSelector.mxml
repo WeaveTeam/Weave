@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				title="Saved Selections"
+				width="25%" height="10%"
+				layout="vertical" xmlns:tools="weave.visualization.tools.*">
+	
+	<mx:Canvas width="100%" height="100%">
+		
+		<CustomComboBox id="selectionSelectorBox" prompt="Select a selection..."
+						width="100%" height="100%"
+						labelFunction="selectionsListLabelFunction"
+						valueCommit="itemSelected()"
+						/>
+	</mx:Canvas>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.DropdownEvent;
+			import mx.events.FlexEvent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableHashMap;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			
+			
+			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
+			private var setToIndex:int = -1;
+			
+			private static function get savedSelectionsMap():LinkableHashMap
+			{
+				return Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS) as LinkableHashMap;
+			}
+			private static function get globalSelection():KeySet
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			}
+
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				minimizable.value = false;
+				maximizable.value = false;
+				pinned.value = true;
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				savedSelectionsMap.addGroupedCallback(this, updateSubsets, true);
+				getCallbackCollection(globalSelection).addGroupedCallback(this, handleGlobalSubsetChange);
+			}
+			private function handleGlobalSubsetChange():void
+			{
+				if( !globalSelection.keys.length ) // IF SHOWING ALL RECORDS
+					selectionSelectorBox.selectedIndex = -1;
+			}
+			private function updateSubsets():void
+			{
+				var list:Array = savedSelectionsMap.getObjects();
+				if (includeAllRecordsOption.value)
+					list.unshift(false);
+				selectionSelectorBox.dataProvider = list;
+				if( setToIndex >= 0 )
+				{
+					selectionSelectorBox.selectedIndex = setToIndex;
+					setToIndex = -1;
+				}
+			}
+			public function setSelectionsSelectorIndex(subsetName:String):void
+			{
+				var list:Array = savedSelectionsMap.getObjects();
+				var label:String = "";
+				var i:int = 0;
+				for( i; i < list.length; i++ ) {
+					label = savedSelectionsMap.getName(list[i]);
+					if( label == subsetName )
+						break;
+				}
+				setToIndex = i;
+			}
+			
+			/**
+			 * Function used solely to get the label for each item in the list
+			 **/
+			private static function selectionsListLabelFunction(item:Object):String
+			{
+				// The label will be the name of the item followed by the record count
+				var label:String = savedSelectionsMap.getName(item as KeySet);
+				return label + " (" + (item as KeySet).keys.length + " records)";
+			}
+			
+			protected function itemSelected():void
+			{
+				if (selectionSelectorBox.selectedIndex == -1 ||
+					selectionSelectorBox.selectedItem == null ) return;
+				
+				var selection:KeySet = selectionSelectorBox.selectedItem as KeySet;
+				if (selection)
+					copySessionState(selection, globalSelection);
+				else
+					globalSelection.clearKeys(); // all records
+				
+				// reset the selected item to what it was before we set the global subset
+				selectionSelectorBox.selectedItem = selection;
+			}
+			
+		]]>
+	</mx:Script>
+</DraggablePanel>

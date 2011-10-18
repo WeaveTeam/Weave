@@ -23,8 +23,8 @@
 					 title="Saved Subsets"
 					 width="25%" height="10%"
 					 layout="vertical" xmlns:tools="weave.visualization.tools.*">
-	<mx:Canvas
-				 width="100%" height="100%">
+	
+	<mx:Canvas width="100%" height="100%">
 		
 	<CustomComboBox id="subsetSelectorBox" prompt="Select a subset..."
 				 width="100%" height="100%"
@@ -34,8 +34,10 @@
 	</mx:Canvas>
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
 			import mx.events.DropdownEvent;
 			import mx.events.FlexEvent;
+			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -51,6 +53,7 @@
 			
 			
 			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
+			private var setToIndex:int = -1;
 			
 			private function get savedSubsetsMap():LinkableHashMap
 			{
@@ -81,7 +84,8 @@
 			}
 			private function handleGlobalSubsetChange():void
 			{
-				subsetSelectorBox.selectedIndex = -1;
+				if( !globalSubset.included.keys.length ) // IF SHOWING ALL RECORDS
+					subsetSelectorBox.selectedIndex = -1;
 			}
 			private function updateSubsets():void
 			{
@@ -89,8 +93,24 @@
 				if (includeAllRecordsOption.value)
 					list.unshift(false);
 				subsetSelectorBox.dataProvider = list;
+				if( setToIndex >= 0 )
+				{
+					subsetSelectorBox.selectedIndex = setToIndex;
+					setToIndex = -1;
+				}
 			}
-			
+			public function setSubsetSelectorIndex(subsetName:String):void
+			{
+				var list:Array = savedSubsetsMap.getObjects();
+				var label:String = "";
+				var i:int = 0;
+				for( i; i < list.length; i++ ) {
+					label = savedSubsetsMap.getName(list[i]);
+					if( label == subsetName )
+						break;
+				}
+				setToIndex = i;
+			}
 			/**
 			 * Function used solely to get the label for each list item
 			 **/
@@ -122,8 +142,8 @@
 			
 			protected function itemSelected():void
 			{
-				if (subsetSelectorBox.selectedIndex == -1)
-					return;
+				if (subsetSelectorBox.selectedIndex == -1) return;
+				
 				var subset:KeyFilter = subsetSelectorBox.selectedItem as KeyFilter;
 				if (subset)
 					copySessionState(subset, globalSubset);
