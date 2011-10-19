@@ -410,10 +410,13 @@ package weave.graphs
 					if (!key)
 						trace('no key in handleLayoutResult');
 					node = _keyToNode[key];
+					if (!node)
+						throw new Error("Result returned from RService contains invalid vertices.");
 					
 					var point:Array = resultLocations[i] as Array;
 					if (!point)
 						throw new Error("Invalid result returned from RService. Is Rserve running with the igraph library?");
+					
 					var x:Number = point[0];
 					var y:Number = point[1];
 					
