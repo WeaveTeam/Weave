@@ -390,8 +390,15 @@
 			</userControls:ControlsSubsetBox>
 			<mx:CheckBox id="showAllLabelsCheckBox" label="Show all bar labels"
 						 toolTip="This option will always show a label for each bar."/>
-			<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
-						 toolTip="This option will show a value label for each bar."/>
+			<mx:HBox>				
+				<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
+							 toolTip="This option will show a value label for each bar."/>
+				<mx:HBox>
+					<mx:Label text="Value label data coordinate"/>
+					<mx:TextInput id="valueDataCoordTxtInput" 
+								  initialize="linkBindableProperty(_plotter.labelBarHeightPercentage, valueDataCoordTxtInput, 'text')"/>
+				</mx:HBox>
+			</mx:HBox>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>

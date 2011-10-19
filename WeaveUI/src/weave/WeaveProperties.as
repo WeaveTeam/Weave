@@ -122,6 +122,7 @@ package weave
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
+		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
 		
 //		public const enableAddStickFigurePlot:LinkableBoolean = new LinkableBoolean(true); // Add Stick Figure Plot option tools menu
 		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu		

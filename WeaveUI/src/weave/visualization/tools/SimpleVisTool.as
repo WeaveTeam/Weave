@@ -46,6 +46,7 @@ package weave.visualization.tools
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.ui.DraggablePanel;
+	import weave.ui.LayerListComponent;
 	import weave.ui.UserWindowSettings;
 	import weave.utils.ColumnUtils;
 	import weave.utils.ProbeTextUtils;
@@ -136,8 +137,21 @@ package weave.visualization.tools
 		{
 			super.childrenCreated();
 			
+			var layerSettings:VBox = new VBox();
+			layerSettings.creationPolicy = "all";
+			layerSettings.percentHeight = layerSettings.percentWidth = 100;
+			
+			var layersList:LayerListComponent = new LayerListComponent();
+			layersList.label = "Layers";
+			layersList.visTool = this;
+			layersList.hashMap = visualization.layers;
+			
+			layerSettings.addChild(layersList);
+			
 			if (controlPanel)
-				controlPanel.children = [_userWindowSettings];
+			{
+				controlPanel.children = [layersList, _userWindowSettings];
+			}
 			
 			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
 		}

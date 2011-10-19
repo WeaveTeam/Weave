@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TabNavigator xmlns:mx="http://www.adobe.com/2006/mxml" 
+				 xmlns:ui="weave.ui.*" 
+				 xmlns:userControls="weave.ui.userControls.*"
+				 xmlns:settings="weave.ui.settings.*"
+				 label="Bar Settings"
+				 creationPolicy="all" width="100%" borderStyle="solid" cornerRadius="5">
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.linkBindableProperty;
+			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.visualization.plotters.CompoundBarChartPlotter;
+			import weave.visualization.tools.BarChartLegendTool;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			private var _plotter:CompoundBarChartPlotter= null;
+			private var _tool:SimpleVisTool = null;
+			
+			[Inspectable]
+			public function set tool(value:SimpleVisTool):void
+			{
+				_tool = value;
+				
+				colorColumInput.visTool = _tool;				
+				sortColumnInput.visTool = _tool;
+				columnsList.visTool = _tool;
+				posErrorComponent.visTool = _tool;
+				negErrorComponent.visTool = _tool;
+			}
+			
+			[Inspectable]
+			public function set plotter(value:CompoundBarChartPlotter):void
+			{
+				_plotter = value;
+
+				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;				
+				
+				sortColumnInput.dynamicObject = _plotter.sortColumn;
+				colorColumInput.dynamicObject = fc.internalDynamicColumn;
+				columnsList.hashMap = _plotter.heightColumns;
+				posErrorComponent.dynamicObject = _plotter.positiveError;
+				negErrorComponent.dynamicObject = _plotter.negativeError;
+				
+				cRampEditor.colorRamp = _plotter.chartColors;
+				linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
+				linkBindableProperty(_plotter.groupMode, groupCheckBox, "selected");
+				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");				
+				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
+				linkBindableProperty(_plotter.labelBarHeightPercentage, barHeightPctTxtInput, 'text');
+				linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, "selected");
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
+			protected function Legend_clickHandler(event:MouseEvent):void
+			{
+				var barChartLegendTool:BarChartLegendTool = Weave.root.requestObject(null, BarChartLegendTool, false);
+				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(_tool);
+			}
+			
+			private const groupCheckDisabledToolTip:String = 'There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.';
+			private const groupCheckEnabledToolTip:String = 'Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.';
+			
+		]]>
+	</mx:Script>
+	<mx:VBox id="attributesPanel" label="Attributes">
+		
+		<ui:DynamicColumnComponent  id="colorColumInput" label="Color" 
+									toolTip="Color column selection is enabled when only a single column is in the list below."/>
+		<ui:DynamicColumnComponent  id="sortColumnInput" label="Sort"/>
+		<ui:ColumnListComponent id="columnsList" label="Height attributes" minimumNumObjectsInList="1" />
+	</mx:VBox>
+	
+	<mx:VBox id="cRamp" label="Bar Properties">
+		<mx:Button id="Legend" label="legend" click="Legend_clickHandler(event)"/>
+		<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
+					 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
+		<mx:CheckBox id="groupCheckBox" label="Grouped bars"
+					 toolTip="{groupCheckBox.enabled ? groupCheckEnabledToolTip : groupCheckDisabledToolTip}"/>
+		<userControls:ControlsSubsetBox>
+			<mx:Label text="Bar spacing:"/>
+			<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No Gap', '1:4', '1:1']" tickInterval="0.25"
+						toolTip="Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width." showDataTip="false"
+						liveDragging="true"/>
+		</userControls:ControlsSubsetBox>
+		<mx:HBox>				
+			<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
+						 toolTip="This option will show a value label for each bar."/>
+			<mx:HBox>
+				<mx:Label text="Label bar height percentage"/>
+				<mx:TextInput id="barHeightPctTxtInput" />
+			</mx:HBox>
+		</mx:HBox>
+		<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
+					 toolTip="Enables automatic zooming to the subset of data currently displayed"/>			
+	</mx:VBox>
+	<mx:VBox id="advControlsPanel" label="Advanced">
+		<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
+		<ui:DynamicColumnComponent id="posErrorComponent" label="Positive Error" />
+		<ui:DynamicColumnComponent id="negErrorComponent" label="Negative Error" />
+	</mx:VBox>
+</mx:TabNavigator>
