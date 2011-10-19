@@ -108,6 +108,7 @@ package weave.visualization.plotters
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
+		public const labelBarHeightPercentage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
@@ -338,18 +339,19 @@ package weave.visualization.plotters
 					{
 						if (height != 0)
 						{
-							_bitmapText.text = heightColumn.getValueFromKey(recordKey, Number);;
+							_bitmapText.text = heightColumn.getValueFromKey(recordKey, Number);
+							var percent:Number = isNaN(labelBarHeightPercentage.value) ? 1 : labelBarHeightPercentage.value / 100;
 							if (!_horizontalMode)
 							{
 								tempPoint.x = (barStart + barEnd) / 2;
 								if (height >= 0)
 								{
-									tempPoint.y = yMax;
+									tempPoint.y = percent * yMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 								}
 								else
 								{
-									tempPoint.y = yNegativeMax;
+									tempPoint.y = percent * yNegativeMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 								}
 								_bitmapText.angle = 270;
@@ -360,12 +362,12 @@ package weave.visualization.plotters
 								tempPoint.y = (barStart + barEnd) / 2;
 								if (height >= 0)
 								{
-									tempPoint.x = yMax;
+									tempPoint.x = percent * yMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 								}
 								else
 								{
-									tempPoint.x = yNegativeMax;
+									tempPoint.x = percent * yNegativeMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 								}
 								_bitmapText.angle = 0;

@@ -35,7 +35,7 @@ An empty SimpleVisTool designed for adding custom layers
 			{
 				super.constructor();
 				
-				toolTitle.value =  "Custom Tool";
+				panelTitle.value =  "Custom Tool";
 			}
 
 		]]>
