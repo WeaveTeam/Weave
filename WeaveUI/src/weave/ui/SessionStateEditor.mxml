@@ -202,7 +202,6 @@
 				{
 					if (autoRefresh && _needRefresh && !_textModified) 
 					{
-						autoRefresh = false; // this prevents text from refreshing every time -- we only want it to refresh when text area gains focus.
 						sessionNav.refresh();
 						loadSelectedSessionObjectInView();
 					}
