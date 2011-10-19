@@ -70,7 +70,6 @@
 			private var _hashMap:LinkableHashMap = savedSelectionsMap;
 			
 			private static var _popupManager:SelectionManager = null;
-			private static var _selectionSelector:SelectionSelector = null;
 			
 			/**
 			 * Function used solely to get the label for each item in the list
@@ -139,7 +138,7 @@
 				{
 					clickFunction = function():void
 					{
-						_selectionSelector = (Weave.root.requestObject("SelectionSelector", SelectionSelector, false) as SelectionSelector);
+						Weave.root.requestObject("SelectionSelector", SelectionSelector, false);
 					};
 					menuItem = new WeaveMenuItem("Selection Selector Tool", clickFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
@@ -229,6 +228,7 @@
 						return;
 					
 					savedSelectionsMap.copyObject(e.textInput, globalSelection);
+					var _selectionSelector:SelectionSelector = Weave.root.getObject("SelectionSelector") as SelectionSelector;
 					if( _selectionSelector )
 						_selectionSelector.setSelectionsSelectorIndex(e.textInput);
 				});

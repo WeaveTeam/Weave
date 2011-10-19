@@ -78,7 +78,6 @@
 			private var _hashMap:LinkableHashMap = savedSubsetsMap;
 			
 			private static var _popupManager:SubsetManager = null;
-			private static var _subsetSelector:SubsetSelector = null;
 			
 			/**
 			 * Function used solely to get the label for each list item
@@ -209,7 +208,7 @@
 				{
 					clickFunction = function():void
 					{
-						_subsetSelector = (Weave.root.requestObject("SubsetSelector", SubsetSelector, false) as SubsetSelector);
+						Weave.root.requestObject("SubsetSelector", SubsetSelector, false);
 					};
 					menuItem = new WeaveMenuItem("Subset Selector Tool", clickFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
@@ -303,6 +302,7 @@
 						if( !e.confirm ) return;
 						
 						savedSubsetsMap.copyObject(e.textInput, globalSubset);
+						var _subsetSelector:SubsetSelector = Weave.root.getObject("SubsetSelector") as SubsetSelector;
 						if( _subsetSelector )
 							_subsetSelector.setSubsetSelectorIndex(e.textInput); // once saved, auto select the subset in the tool
 					}
