@@ -176,13 +176,13 @@ package weave.visualization.layers
 				if (!fullDataBounds.isEmpty())
 				{
 					tempDataBounds.copyFrom(fullDataBounds);
-					if(xMinOverride.value <= Infinity)
+					if (isFinite(xMinOverride.value))
 						tempDataBounds.setXMin(xMinOverride.value);
-					if(xMaxOverride.value <= Infinity)
+					if (isFinite(xMaxOverride.value))
 						tempDataBounds.setXMax(xMaxOverride.value);
-					if(yMinOverride.value <= Infinity)
+					if (isFinite(yMinOverride.value))
 						tempDataBounds.setYMin(yMinOverride.value);
-					if(yMaxOverride.value <= Infinity)
+					if (isFinite(yMaxOverride.value))
 						tempDataBounds.setYMax(yMaxOverride.value);
 					if (enableFixedAspectRatio.value)
 					{

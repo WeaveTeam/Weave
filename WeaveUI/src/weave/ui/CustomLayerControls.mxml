@@ -32,30 +32,23 @@
 					 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
 					 backgroundAlpha="0.8" backgroundColor="white" cornerRadius="5"
 					 width="100%" height="100%">
-		<mx:VBox label="DataBounds Overrides">
-			<mx:HBox>
-				<mx:Label text="xMin"/>
-				<mx:TextInput id="xMinTxt"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="yMin"/>
-				<mx:TextInput id="yMinTxt"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="xMax"/>
-				<mx:TextInput id="xMaxTxt"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="yMax"/>
-				<mx:TextInput id="yMaxTxt"/>
-			</mx:HBox>
-		</mx:VBox>
+		<mx:HBox label="DataBounds Overrides" verticalAlign="middle">
+			<mx:Label text="Override data bounds:"/>
+			<TextInputWithPrompt id="xMinTxt" prompt="xMin" width="{textAreaWidth}"/>
+			<mx:VBox>
+				<TextInputWithPrompt id="yMaxTxt" prompt="yMax" width="{textAreaWidth}"/>
+				<TextInputWithPrompt id="yMinTxt" prompt="yMin" width="{textAreaWidth}"/>
+			</mx:VBox>
+			<TextInputWithPrompt id="xMaxTxt" prompt="xMax" width="{textAreaWidth}"/>
+		</mx:HBox>
 	</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[
 			import weave.api.linkBindableProperty;
 			import weave.visualization.tools.SimpleVisTool;
 
+			private const textAreaWidth:int = 64;
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -66,7 +59,7 @@
 			
 			public function setTargetTool(tool:SimpleVisTool):void
 			{
-				if(tool)
+				if (tool)
 				{
 					linkBindableProperty(tool.visualization.xMinOverride, xMinTxt, 'text');
 					linkBindableProperty(tool.visualization.yMinOverride, yMinTxt, 'text');

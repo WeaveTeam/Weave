@@ -393,11 +393,10 @@
 			<mx:HBox>				
 				<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
 							 toolTip="This option will show a value label for each bar."/>
-				<mx:HBox>
-					<mx:Label text="Value label data coordinate"/>
-					<mx:TextInput id="valueDataCoordTxtInput" 
-								  initialize="linkBindableProperty(_plotter.labelBarHeightPercentage, valueDataCoordTxtInput, 'text')"/>
-				</mx:HBox>
+				<mx:ColorPicker id="valueLabelColorPicker" initialize="linkBindableProperty(_plotter.valueLabelColor, valueLabelColorPicker, 'selectedColor');"/>
+				<mx:Label text="Value label data coordinate"/>
+				<mx:TextInput id="valueDataCoordTxtInput" 
+							  initialize="linkBindableProperty(_plotter.labelBarHeightPercentage, valueDataCoordTxtInput, 'text')"/>
 			</mx:HBox>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"

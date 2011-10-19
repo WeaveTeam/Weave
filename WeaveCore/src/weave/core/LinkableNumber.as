@@ -62,8 +62,8 @@ package weave.core
 		{
 			if (!(value is Number))
 			{
-				// use NaN instead of null because null gets converted to 0
-				if (value == null)
+				// special case for null and '' which would otherwise get converted to 0
+				if (value == null || value === '')
 					value = NaN;
 				else
 					value = Number(value);

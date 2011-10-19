@@ -121,7 +121,7 @@ package weave.visualization.plotters
 			return [GROUP, STACK, PERCENT_STACK].indexOf(mode) >= 0;
 		}
 		
-		public const showValueLabels:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		private function defineSortColumnIfUndefined():void
 		{
@@ -134,6 +134,7 @@ package weave.visualization.plotters
 		// this is a way to get the number of keys (bars or groups of bars) shown
 		public function get numBarsShown():int { return _filteredKeySet.keys.length }
 		
+		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -143,11 +144,10 @@ package weave.visualization.plotters
 			var _groupingMode:String = getActualGroupingMode();
 			var _horizontalMode:Boolean = horizontalMode.value;
 			
-			_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-			_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+			_bitmapText.textFormat.color = valueLabelColor.value;
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------

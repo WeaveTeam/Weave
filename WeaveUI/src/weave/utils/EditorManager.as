@@ -27,7 +27,7 @@ package weave.utils
 	{
 		public static function registerEditor(objType:Class, editorType:Class):void
 		{
-			editorLookup[objType] = editorType;	
+			editorLookup[objType] = editorType;
 		}
 		
 		public static const editorLookup:Dictionary = new Dictionary();

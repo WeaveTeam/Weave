@@ -1003,11 +1003,19 @@ package weave.core
 			var setBindableProperty:Function = function():void
 			{
 				var value:Object = linkableVariable.getSessionState();
-				if (bindableParent[bindablePropertyName] is Number && !(value is Number))
+				if ((bindableParent[bindablePropertyName] is Number) != (value is Number))
 				{
 					try {
-						linkableVariable.setSessionState(Number(value));
-						value = linkableVariable.getSessionState();
+						if (value is Number)
+						{
+							if (isNaN(value as Number))
+								value = '';
+						}
+						else
+						{
+							linkableVariable.setSessionState(Number(value));
+							value = linkableVariable.getSessionState();
+						}
 					} catch (e:Error) { }
 				}
 				bindableParent[bindablePropertyName] = value;
@@ -1033,7 +1041,7 @@ package weave.core
 			_changeWatcherMap[linkableVariable][bindableParent][bindablePropertyName] = watcher;
 			// when session state changes, set bindable property
 			_changeWatcherToCopyFunctionMap[watcher] = setBindableProperty;
-			getCallbackCollection(linkableVariable).addImmediateCallback(bindableParent, setBindableProperty);
+			getCallbackCollection(linkableVariable).addGroupedCallback(bindableParent, setBindableProperty);
 		}
 		/**
 		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().

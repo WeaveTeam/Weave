@@ -18,10 +18,12 @@
 */
 package weave.ui
 {
+	import flash.display.DisplayObject;
 	import flash.events.FocusEvent;
 	
 	import mx.controls.TextInput;
 	import mx.core.mx_internal;
+
 	use namespace mx_internal;
 
 	/**
@@ -39,6 +41,14 @@ package weave.ui
 		}
 		
 		public function asTextInput():TextInput { return this; }
+		
+		private var _toolTipSet:Boolean = false;
+		
+		override public function set toolTip(value:String):void
+		{
+			_toolTipSet = true;
+			super.toolTip = value;
+		}
 		
 		protected static const PROMPT_TEXT_ALPHA:Number = 0.5; // alpha of text when prompt is shown
 		protected static const DEFAULT_TEXT_ALPHA:Number = 1.0; // alpha of text when prompt is not shown
@@ -64,8 +74,14 @@ package weave.ui
 			_prompt = value;
 			if (_promptIsShown)
 				super.text = _prompt; // bypass local setter
+			if (!_toolTipSet)
+				super.toolTip = value;
 		}
 		
+		[Bindable("textChanged")]
+		[CollapseWhiteSpace]
+		[Inspectable(category="General", defaultValue="")]
+		[NonCommittingChangeEvent("change")]
 		/**
 		 * This function makes sure the prompt text gets replaced with an empty String.
 		 */
@@ -81,7 +97,7 @@ package weave.ui
 		 */
 		override public function set text(value:String):void
 		{
-			if (value)
+			if (value || _hasFocus)
 			{
 				hidePrompt();
 				super.text = value; // bypass local setter
