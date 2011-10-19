@@ -309,7 +309,6 @@
 				//_dragCanvas.percentWidth = 100;
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
-				panelNeedsUpdate();
 			}
 			
 			// this gets called when panelTitle changes
