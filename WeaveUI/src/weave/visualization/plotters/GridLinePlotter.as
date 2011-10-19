@@ -25,6 +25,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -54,7 +55,7 @@ package weave.visualization.plotters
 			horizontal.value = false;
 		}
 		
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const horizontal:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 		
 		public const start:LinkableNumber = newSpatialProperty(LinkableNumber);

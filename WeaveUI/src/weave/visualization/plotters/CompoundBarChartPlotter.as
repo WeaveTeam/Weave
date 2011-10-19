@@ -156,7 +156,6 @@ package weave.visualization.plotters
 			clipRectangle.height++; // avoid clipping lines
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
-			graphics.clear();
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
 			{
 				var recordKey:IQualifiedKey = recordKeys[iRecord] as IQualifiedKey;
@@ -164,6 +163,7 @@ package weave.visualization.plotters
 				//------------------------------------
 				// BEGIN code to draw one compound bar
 				//------------------------------------
+				graphics.clear();
 				
 				var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
 				
@@ -198,6 +198,9 @@ package weave.visualization.plotters
 				// loop over height columns, incrementing y coordinates
 				for (var i:int = 0; i < _heightColumns.length; i++)
 				{
+					//------------------------------------
+					// BEGIN code to draw one bar segment
+					//------------------------------------
 					var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 					// add this height to the current bar
 					var height:Number = heightColumn.getValueFromKey(recordKey, Number);
@@ -303,7 +306,11 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						tempBounds.setMaxPoint(tempPoint);
 						
-						// draw graphics
+						//////////////////////////
+						// BEGIN draw graphics
+						//////////////////////////
+						graphics.clear();
+						
 						var color:Number = chartColors.getColorFromNorm(i / (_heightColumns.length - 1));
 						
 						// if there is one column, act like a regular bar chart and color in with a chosen color
@@ -321,6 +328,10 @@ package weave.visualization.plotters
 						graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 						
 						graphics.endFill();
+						destination.draw(tempShape, null, null, null, clipRectangle);
+						//////////////////////////
+						// END draw graphics
+						//////////////////////////
 					}						
 					
 					if (_groupingMode != GROUP)
@@ -331,9 +342,12 @@ package weave.visualization.plotters
 						else
 							yNegativeMin = yNegativeMax;
 					}
+					//------------------------------------
+					// END code to draw one bar segment
+					//------------------------------------
 					
 					//------------------------------------
-					// BEGIN code to draw one bar value label
+					// BEGIN code to draw one bar value label (directly to BitmapData)
 					//------------------------------------
 					if (shouldDrawBarLabel)
 					{
@@ -380,7 +394,7 @@ package weave.visualization.plotters
 						}
 					}
 					//------------------------------------
-					// END code to draw one bar value label
+					// END code to draw one bar value label (directly to BitmapData)
 					//------------------------------------
 					
 				}
@@ -436,6 +450,8 @@ package weave.visualization.plotters
 								coords.push(bottom, left, bottom, right);
 							}
 							
+							// BEGIN DRAW
+							graphics.clear();
 							for (i = 0; i < coords.length; i += 2) // loop over x,y coordinate pairs
 							{
 								tempPoint.x = coords[i];
@@ -446,24 +462,15 @@ package weave.visualization.plotters
 								else
 									graphics.lineTo(tempPoint.x, tempPoint.y);
 							}
+							destination.draw(tempShape, null, null, null, clipRectangle);
+							// END DRAW
 						}
 					}
 				}
 				//------------------------------------
 				// END code to draw one error bar
 				//------------------------------------
-				
-				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > AbstractPlotter.recordsPerDraw)
-				{
-					destination.draw(tempShape, null, null, null, clipRectangle);
-					graphics.clear();
-					count = 0;
-				}
 			}
-			// flush the tempShape buffer
-			if (count > 0)
-				destination.draw(tempShape, null, null, null, clipRectangle);
 			
 			//---------------------------------------------------------
 			// END template code

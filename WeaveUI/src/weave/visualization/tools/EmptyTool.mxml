@@ -27,6 +27,7 @@ An empty SimpleVisTool designed for adding custom layers
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
+		 title="Custom Tool"
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
@@ -34,10 +35,13 @@ An empty SimpleVisTool designed for adding custom layers
 			override protected function constructor():void
 			{
 				super.constructor();
-				
-				panelTitle.value =  "Custom Tool";
 			}
-
+			override protected function handlePanelTitleChange():void
+			{
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
+					title = "Custom Tool";
+			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
