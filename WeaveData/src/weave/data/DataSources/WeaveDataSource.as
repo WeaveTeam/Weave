@@ -28,18 +28,16 @@ package weave.data.DataSources
 	
 	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.api.services.IURLRequestUtils;
 	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
-	import weave.core.LinkableXML;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -47,14 +45,12 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.services.DelayedAsyncResponder;
-	import weave.services.URLRequestUtils;
 	import weave.services.WeaveDataServlet;
 	import weave.services.beans.AttributeColumnDataWithKeys;
 	import weave.services.beans.DataServiceMetadata;
 	import weave.services.beans.DataTableMetadata;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * WeaveDataSource is an interface for retrieving columns from Weave data servlets.
@@ -420,34 +416,27 @@ package weave.data.DataSources
 				// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
 				if (hierarchyNode == null)
 					hierarchyNode = <attribute/>;
-				hierarchyNode.@keyType = result.keyType;
-				hierarchyNode.@dataType = result.dataType;
-				hierarchyNode.@name = result.attributeColumnName;
-
-				hierarchyNode.@year = result.year;
+				for (var metadataName:String in result.metadata)
+				{
+					var metadataValue:String = result.metadata[metadataName];
+					if (metadataValue)
+						hierarchyNode['@' + metadataName] = metadataValue;
+				}
 				
 				if (!String(hierarchyNode.@title))
 				{
-					hierarchyNode.@title = result.attributeColumnName;
+					hierarchyNode.@title = result.metadata.name; // temporary hack
 					
 					// year hack -- this could be replaced by a global "default title formatting function" like "title (year)"
 					var year:String = hierarchyNode.@year;
 					if (year)
 						hierarchyNode.@title += ' (' + year + ')';
 				}
+				
+				var keyType:String = hierarchyNode['@' + AttributeColumnMetadata.KEY_TYPE];
+				var dataType:String = hierarchyNode['@' + AttributeColumnMetadata.DATA_TYPE];
 
-				if (result.min)
-					hierarchyNode.@min = result.min;
-				else
-					delete hierarchyNode["@min"];
-
-				if (result.max)
-					hierarchyNode.@max = result.max;
-				else
-					delete hierarchyNode["@max"];
-
-				var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(result.keyType, result.keys)
-				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
+				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(keyType, result.keys));
 				if (result.secKeys != null)
 				{
 					var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
@@ -456,7 +445,7 @@ package weave.data.DataSources
 					proxyColumn.internalColumn = newColumn;
 					proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
 				}
-				else if (ObjectUtil.stringCompare(result.dataType, DataTypes.NUMBER, true) == 0)
+				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
 					var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
 					newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));

@@ -110,6 +110,7 @@ package weave
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.AutoResizingTextArea;
+	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorBinEditor;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.DatasetLoader;
@@ -152,6 +153,7 @@ package weave
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.Histogram2DTool;
+	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.HistogramTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
@@ -1344,6 +1346,11 @@ package weave
 				if(Weave.properties.enableMarker.value)
 				{
 					MarkerSettingsComponent.createContextMenuItems(this);
+				}
+				
+				if(Weave.properties.enableDrawCircle.value)
+				{
+					CirclePlotterSettings.createContextMenuItems(this);
 				}
 				
 				SessionedTextBox.createContextMenuItems(this);

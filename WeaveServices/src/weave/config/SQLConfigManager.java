@@ -146,19 +146,18 @@ public final class SQLConfigManager
 				throw new RemoteException("Server failed to initialize because no configuration file was specified.");
 			try
 			{
-				_lastModifiedTime = 0L;
+				_lastModifiedTime = 0L; // this forces the config file to be rechecked next time if this function fails
 				new File(configFileName).getAbsoluteFile().getParentFile().mkdirs();
 				config = new SQLConfigXML(configFileName);
 				try
 				{
 					config = new DatabaseConfig(config);
-					//System.out.println("Using configuration stored in database instead of "+configFileName);
+					System.out.println("Successfully initialized Weave database connection");
 				}
 				catch (Exception e)
 				{
-					//TODO Get rid of exception code dealing with failover to XML config.
-					//e.printStackTrace();
-					//System.out.println("Using configuration stored in "+configFileName);
+					e.printStackTrace();
+					System.out.println("Using configuration stored in "+configFileName);
 				}
 				_lastModifiedTime = new File(configFileName).lastModified();
 			}

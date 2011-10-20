@@ -31,9 +31,12 @@ package weave.visualization.plotters
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -60,20 +63,22 @@ package weave.visualization.plotters
 		{
 			shapeSize.value = 12;
 			
-			registerNonSpatialProperties(
-				Weave.properties.axisFontSize,
+			for each (var child:ILinkableObject in [
+				Weave.properties.axisFontBold,
 				Weave.properties.axisFontColor,
 				Weave.properties.axisFontFamily,
 				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontUnderline,
-				Weave.properties.axisFontBold
-			);
+				Weave.properties.axisFontSize,
+				Weave.properties.axisFontUnderline])
+			{
+				registerLinkableChild(this, child);
+			}
 		}
 		
 		public const columns:ILinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), createColumnHashes);
 		public const chartColors:ColorRamp = newSpatialProperty(ColorRamp);
-		public const shapeSize:LinkableNumber = newNonSpatialProperty(LinkableNumber);
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const shapeSize:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		[Bindable] public var numColumns:int = 0;
 		private var _columnOrdering:Array = [];
 		private var _columnToBounds:Dictionary = new Dictionary();

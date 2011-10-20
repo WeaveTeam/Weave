@@ -248,13 +248,12 @@
 					}
 					if (columnWrapper is ExtendedDynamicColumn)
 						columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
-					
-					linkToDynamicColumn(columnWrapper as DynamicColumn);
 				}
+				
+				linkToDynamicColumn(columnWrapper as DynamicColumn);
 				
 				if (columnOrHashMap is ILinkableHashMap)
 				{
-					linkToDynamicColumn(null);
 
 					// set path to first column.
 					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(DynamicColumn);

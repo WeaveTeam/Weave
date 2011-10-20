@@ -45,8 +45,12 @@ package weave.utils
 		 * @param yesVoidFunction A function with no parameters to call when 'yes' is clicked.
 		 * @param noVoidFunction A function with no parameters to call when 'no' is clicked.
 		 */
-		public static function confirm(parent:Sprite, title:String, question:String, yesVoidFunction:Function, noVoidFunction:Function = null):void
+		public static function confirm(parent:Sprite, title:String, question:String, yesVoidFunction:Function, noVoidFunction:Function = null, yesLabel:String = null, noLabel:String = null, buttonWidth:int = 70):void
 		{
+			var prevButtonWidth:int = Alert.buttonWidth;
+			Alert.yesLabel = yesLabel;
+			Alert.noLabel = noLabel;
+			Alert.buttonWidth = buttonWidth;
 			Alert.show(
 					question,
 					title,
@@ -66,6 +70,9 @@ package weave.utils
 						}
 					}
 				);
+			Alert.yesLabel = null;
+			Alert.noLabel = null;
+			Alert.buttonWidth = prevButtonWidth;
 		}
 	}
 }

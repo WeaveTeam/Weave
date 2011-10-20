@@ -26,14 +26,19 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -72,26 +77,22 @@ package weave.visualization.plotters
 			// This is so the records will be filtered before they are sorted in the _sortColumn.
 			linkSessionState(_filteredKeySet.keyFilter, _filteredSortColumn.filter);
 			
-			horizontalMode.value = false;
-			showValueLabels.value = false;
-			groupMode.value = false;
-			barSpacing.value = 0;
-			zoomToSubset.value = true;
-			
 			heightColumns.addGroupedCallback(this, defineSortColumnIfUndefined);
-			registerNonSpatialProperty(colorColumn);
 			registerSpatialProperty(sortColumn);
 			
-			registerNonSpatialProperties(
+			for each (var child:ILinkableObject in [
+				colorColumn,
 				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor
-			);
+				Weave.properties.axisFontColor])
+			{
+				registerLinkableChild(this, child);
+			}
 		}
 		
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		public const lineStyle:DynamicLineStyle = registerNonSpatialProperty(new DynamicLineStyle(SolidLineStyle));
+		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
 		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
 		// for now it is a solid fill style -- needs to be updated to be dynamic fill style later
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
@@ -104,14 +105,22 @@ package weave.visualization.plotters
 		
 		public function getSortedKeys():Array { return _sortedIndexColumn.keys; }
 		
-		public const chartColors:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
-		public const horizontalMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
-		public const groupMode:LinkableBoolean = newSpatialProperty(LinkableBoolean);
-		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
-		public const barSpacing:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const showValueLabels:LinkableBoolean = newNonSpatialProperty(LinkableBoolean);
+		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
+		public const groupingMode:LinkableString = registerSpatialProperty(new LinkableString(STACK, verifyGroupingMode));
+		public static const GROUP:String = 'group';
+		public static const STACK:String = 'stack';
+		public static const PERCENT_STACK:String = 'percentStack';
+		private function verifyGroupingMode(mode:String):Boolean
+		{
+			return [GROUP, STACK, PERCENT_STACK].indexOf(mode) >= 0;
+		}
+		
+		public const showValueLabels:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		private function defineSortColumnIfUndefined():void
 		{
@@ -129,9 +138,9 @@ package weave.visualization.plotters
 		{
 			// save local copies of these values to speed up calculations
 			var _barSpacing:Number = barSpacing.value;
-			var _groupMode:Boolean = groupMode.value;
-			var _horizontalMode:Boolean = horizontalMode.value;
 			var _heightColumns:Array = heightColumns.getObjects().reverse();
+			var _groupingMode:String = getActualGroupingMode();
+			var _horizontalMode:Boolean = horizontalMode.value;
 			
 			_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
@@ -170,8 +179,20 @@ package weave.visualization.plotters
 				var spacing:Number = 0.5 * Math.min(1.0, Math.max(0.0, _barSpacing) );
 				var halfSpacing:Number = spacing/2;
 				var numHeightColumns:int = _heightColumns.length;
-				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupMode) || numHeightColumns == 1);
+				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
 				var groupedBarWidth:Number = (xMax - xMin - spacing)/(numHeightColumns);
+				
+				var totalHeight:Number = 0;
+				for (var hCount:int = 0; hCount < _heightColumns.length; hCount++)
+				{
+					var column:IAttributeColumn = _heightColumns[hCount] as IAttributeColumn;
+					var h:Number = column.getValueFromKey(recordKey, Number);
+					
+					if (isNaN(h))
+						continue;
+					
+					totalHeight = totalHeight + h;
+				}
 				
 				// loop over height columns, incrementing y coordinates
 				for (var i:int = 0; i < _heightColumns.length; i++)
@@ -180,19 +201,32 @@ package weave.visualization.plotters
 					// add this height to the current bar
 					var height:Number = heightColumn.getValueFromKey(recordKey, Number);
 					var heightMissing:Boolean = isNaN(height);
-					
 					if (heightMissing)
-						height = WeaveAPI.StatisticsCache.getMean(heightColumn);
-					if (!(height <= Infinity)) // alternative is isNaN
+					{
+						//if height is missing we set it to 0 for 100% stacked bar else
+						// we assign average value of the column
+						if (_groupingMode == PERCENT_STACK)
+							height = 0;
+						else
+							height = WeaveAPI.StatisticsCache.getMean(heightColumn);		
+					}
+					if (isNaN(height)) // check again because getMean may return NaN
 						height = 0;
-					// avoid adding NaN to y coordinate (because result will be NaN).
+					
 					if (height >= 0)
 					{
-						yMax = yMin + height;
+						//normalizing to 100% stack
+						if (_groupingMode == PERCENT_STACK)
+							yMax = yMin + (100/totalHeight *height);
+						else
+							yMax = yMin + height;
 					}
 					else
 					{
-						yNegativeMax = yNegativeMin + height;
+						if (_groupingMode == PERCENT_STACK)
+							yNegativeMax = yNegativeMin + (100/totalHeight *height);
+						else
+							yNegativeMax = yNegativeMin + height;
 					}
 					var halfXRange:Number = (xMax - xMin) / 2;
 					var halfColumnWidth:Number = (_heightColumns.length - 1) / 2;
@@ -201,7 +235,7 @@ package weave.visualization.plotters
 					{
 						// bar starts at bar center - half width of the bar, plus the spacing between this and previous bar
 						var barStart:Number = xMin + halfSpacing - halfXRange;
-						if (_groupMode)
+						if (_groupingMode == GROUP)
 							barStart = xMin + (i - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
 						
 						if ( height >= 0)
@@ -233,13 +267,13 @@ package weave.visualization.plotters
 						}
 						// bar ends at bar center + half width of the bar, less the spacing between this and next bar
 						var barEnd:Number = xMin - halfSpacing + halfXRange;
-						if (_groupMode)
+						if (_groupingMode == GROUP)
 							barEnd = xMin + (i+1 - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
 						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						tempBounds.setMinPoint(tempPoint);
 						
-						if(height >= 0)
+						if (height >= 0)
 						{
 							if (_horizontalMode)
 							{
@@ -254,7 +288,6 @@ package weave.visualization.plotters
 						}
 						else
 						{
-							
 							if (_horizontalMode)
 							{
 								tempPoint.x = yNegativeMin; // swapped
@@ -289,7 +322,7 @@ package weave.visualization.plotters
 						graphics.endFill();
 					}						
 					
-					if (!_groupMode)
+					if (_groupingMode != GROUP)
 					{
 						// the next bar starts on top of this bar
 						if (height >= 0)
@@ -308,15 +341,15 @@ package weave.visualization.plotters
 							_bitmapText.text = heightColumn.getValueFromKey(recordKey, Number);;
 							if (!_horizontalMode)
 							{
-								_tempPoint.x = (barStart + barEnd) / 2;
+								tempPoint.x = (barStart + barEnd) / 2;
 								if (height >= 0)
 								{
-									_tempPoint.y = yMax;
+									tempPoint.y = yMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 								}
 								else
 								{
-									_tempPoint.y = yNegativeMax;
+									tempPoint.y = yNegativeMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 								}
 								_bitmapText.angle = 270;
@@ -324,23 +357,23 @@ package weave.visualization.plotters
 							}
 							else
 							{
-								_tempPoint.y = (barStart + barEnd) / 2;
+								tempPoint.y = (barStart + barEnd) / 2;
 								if (height >= 0)
 								{
-									_tempPoint.x = yMax;
+									tempPoint.x = yMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 								}
 								else
 								{
-									_tempPoint.x = yNegativeMax;
+									tempPoint.x = yNegativeMax;
 									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 								}
 								_bitmapText.angle = 0;
 								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 							}
-							dataBounds.projectPointTo(_tempPoint, screenBounds);
-							_bitmapText.x = _tempPoint.x;
-							_bitmapText.y = _tempPoint.y;
+							dataBounds.projectPointTo(tempPoint, screenBounds);
+							_bitmapText.x = tempPoint.x;
+							_bitmapText.y = tempPoint.y;
 							_bitmapText.draw(destination);
 						}
 					}
@@ -435,13 +468,21 @@ package weave.visualization.plotters
 		}
 		
 		private const _bitmapText:BitmapText = new BitmapText();
-		private const _tempPoint:Point = new Point();
+		
+		/**
+		 * This function takes into account whether or not there is only a single height column specified.
+		 * @return The actual grouping mode, which may differ from the session state of the groupingMode variable.
+		 */
+		public function getActualGroupingMode():String
+		{
+			return heightColumns.getNames().length == 1 ? STACK : groupingMode.value;
+		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
 			var errorBounds:IBounds2D = getReusableBounds(); // the bounds of key + error bars
 			var keyBounds:IBounds2D = getReusableBounds(); // the bounds of just the key
-			var _groupMode:Boolean = groupMode.value;
+			var _groupingMode:String = getActualGroupingMode();
 			var errorColumnsIncluded:Boolean = false; // are error columns the i = 1 and i=2 columns in height columns?
 			
 			// bar position depends on sorted index
@@ -464,57 +505,66 @@ package weave.visualization.plotters
 			
 			tempRange.setRange(0, 0); // bar starts at zero
 			
-			// loop over height columns, incrementing y coordinates
-			for (var i:int = 0; i < _heightColumns.length; i++)
+			
+			if (_groupingMode == PERCENT_STACK)
 			{
-				var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
-				var height:Number = heightColumn.getValueFromKey(recordKey, Number);
-
-				if (heightColumn == positiveError)
+				tempRange.begin = 0;
+				tempRange.end = 100;
+			}
+			else
+			{
+				// loop over height columns, incrementing y coordinates
+				for (var i:int = 0; i < _heightColumns.length; i++)
 				{
-					if (tempRange.end == 0)
-						continue;
-				}
-				if (heightColumn == negativeError)
-				{
-					if (isNaN(height))
-						height = positiveError.getValueFromKey(recordKey, Number);
-					if (tempRange.begin < 0)
-						height = -height;
-					else
-						continue;
-				}
-				
-				if (isNaN(height))
-					height = WeaveAPI.StatisticsCache.getMean(heightColumn);
-				if (isNaN(height))
-					height = 0;
-				if (_groupMode)
-				{
-					tempRange.includeInRange(height);
-				}
-				else
-				{
-					// add this height to the current bar, so add to y value
-					// avoid adding NaN to y coordinate (because result will be NaN).
-					if (isFinite(height))
+					var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
+					var height:Number = heightColumn.getValueFromKey(recordKey, Number);
+					
+					if (heightColumn == positiveError)
 					{
-						if (height >= 0)
-							tempRange.end += height;
-						else
-							tempRange.begin += height;
+						if (tempRange.end == 0)
+							continue;
 					}
-				}
-				
-				// if there are no error columns in _heightColumns, 
-				// or if there are error columns (which occurs only if there is one height column),
-				// we want to include the current range in keyBounds
-				if (!errorColumnsIncluded || i == 0) 
-				{
-					if (horizontalMode.value)
-						keyBounds.setXRange(tempRange.begin, tempRange.end);
+					if (heightColumn == negativeError)
+					{
+						if (isNaN(height))
+							height = positiveError.getValueFromKey(recordKey, Number);
+						if (tempRange.begin < 0)
+							height = -height;
+						else
+							continue;
+					}
+					
+					if (isNaN(height))
+						height = WeaveAPI.StatisticsCache.getMean(heightColumn);
+					if (isNaN(height))
+						height = 0;
+					if (_groupingMode == GROUP)
+					{
+						tempRange.includeInRange(height);
+					}
 					else
-						keyBounds.setYRange(tempRange.begin, tempRange.end);
+					{
+						// add this height to the current bar, so add to y value
+						// avoid adding NaN to y coordinate (because result will be NaN).
+						if (isFinite(height))
+						{
+							if (height >= 0)
+								tempRange.end += height;
+							else
+								tempRange.begin += height;
+						}
+					}
+					
+					// if there are no error columns in _heightColumns, 
+					// or if there are error columns (which occurs only if there is one height column),
+					// we want to include the current range in keyBounds
+					if (!errorColumnsIncluded || i == 0) 
+					{
+						if (horizontalMode.value)
+							keyBounds.setXRange(tempRange.begin, tempRange.end);
+						else
+							keyBounds.setYRange(tempRange.begin, tempRange.end);
+					}
 				}
 			}
 			
@@ -533,12 +583,18 @@ package weave.visualization.plotters
 			{
 				tempRange.setRange(0, 0);
 				var _heightColumns:Array = heightColumns.getObjects();
+				var _groupingMode:String = getActualGroupingMode();
 				for each (var column:IAttributeColumn in _heightColumns)
 				{
-					if (groupMode.value)
+					if (_groupingMode == GROUP)
 					{
 						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMin(column));
 						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMax(column));
+					}
+					else if (_groupingMode == PERCENT_STACK)
+					{
+						tempRange.begin = 0;
+						tempRange.end = 100;
 					}
 					else
 					{
@@ -570,8 +626,14 @@ package weave.visualization.plotters
 			return bounds;
 		}
 		
+		
+		
+		
 		private const tempRange:Range = new Range(); // reusable temporary object
 		private const tempPoint:Point = new Point(); // reusable temporary object
 		private const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
+		
+		// backwards compatibility
+		[Deprecated(replacement='groupingMode')] public function set groupMode(value:Boolean):void { groupingMode.value = value ? GROUP : STACK; }
 	}
 }

@@ -23,27 +23,16 @@ package weave.services.beans
 	{
 		public function AttributeColumnDataWithKeys(result:Object)
 		{
-			this.attributeColumnName = result.attributeColumnName;
-			this.keyType = result.keyType;
-			this.dataType = result.dataType;
-
+			this.metadata = result.metadata;
 			this.keys = result.keys;
 			this.data = result.data;
 			this.secKeys = result.secKeys;
-			this.min = result.min;
-			this.max = result.max;
-			this.year = result.year;
 		}
 		
-		public var attributeColumnName: String;
-		public var keyType: String;
-		public var dataType: String;
-		public var min: String;
-		public var max: String;
-		public var year: String;
-		public var keys: Array;
-		public var data: Array;
-		public var secKeys: Array;
+		public var metadata:Object;
+		public var keys:Array;
+		public var data:Array;
+		public var secKeys:Array;
 	}
 
 }

@@ -90,9 +90,9 @@ package weave.visualization.plotters
 		}
 		
 		
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
-		public const binColors:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Linear Gray"))); // bars get their color from here
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		public const binColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Linear Gray"))); // bars get their color from here
 		
 		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn,handleColumnChange);
 		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn,handleColumnChange);
@@ -100,15 +100,15 @@ package weave.visualization.plotters
 		public function get xColumn():DynamicColumn {return xBinnedColumn.internalDynamicColumn;}
 		public function get yColumn():DynamicColumn {return yBinnedColumn.internalDynamicColumn;}
 		
-		private var cellToKeysMap:Dictionary;
-		private var keyToCellMap:Dictionary;
+		private var cellToKeysMap:Object = {};
+		private var keyToCellMap:Dictionary = new Dictionary(true);
 		private function handleColumnChange():void
 		{
 			
 			if(xBinnedColumn.internalColumn != null && yBinnedColumn.internalColumn != null)
 			{
-				cellToKeysMap = new Dictionary();
-				keyToCellMap = new Dictionary();
+				cellToKeysMap = {};
+				keyToCellMap = new Dictionary(true);
 				
 				for each(var key:Object in _keySet.keys)
 				{

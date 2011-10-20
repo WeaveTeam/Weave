@@ -19,13 +19,16 @@
 
 package weave.visualization.layers
 {
+	import flash.events.Event;
 	import flash.geom.Point;
 	
 	import mx.containers.Canvas;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -35,6 +38,7 @@ package weave.visualization.layers
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.StageUtils;
 	import weave.core.UIUtils;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.LinkableBounds2D;
@@ -69,7 +73,8 @@ package weave.visualization.layers
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));
-		public const zoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, updateZoom, false);
+		public const zoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, updateZoom, false); // must be immediate callback to avoid displaying a stretched map, for example
+		
 		public const marginRight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
 		public const marginLeft:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
 		public const marginTop:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
@@ -91,6 +96,7 @@ package weave.visualization.layers
 		 */
 		protected function updateFullDataBounds():void
 		{
+			//trace('begin updateFullDataBounds ',ObjectUtil.toString(fullDataBounds));
 			var layer:IPlotLayer;
 			var plotLayer:PlotLayer;
 			var selectablePlotLayer:SelectablePlotLayer;
@@ -123,7 +129,10 @@ package weave.visualization.layers
 				fullDataBounds.includeBounds((layer.spatialIndex as SpatialIndex).collectiveBounds);
 			}
 			if (!tempBounds.equals(fullDataBounds))
+			{
+				//trace('fullDataBounds changed',ObjectUtil.toString(fullDataBounds));
 				getCallbackCollection(this).triggerCallbacks();
+			}
 		}
 		
 		/**
@@ -132,6 +141,7 @@ package weave.visualization.layers
 		protected function updateZoom():void
 		{
 			getCallbackCollection(this).delayCallbacks();
+			//trace('begin updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
 			
 			var layer:IPlotLayer;
 			var plotLayer:PlotLayer;
@@ -201,6 +211,7 @@ package weave.visualization.layers
 				if (selectablePlotLayer && !selectablePlotLayer.lockScreenBounds)
 					selectablePlotLayer.setScreenBounds(tempScreenBounds);
 			}
+			//trace('end updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
 			
 			getCallbackCollection(this).resumeCallbacks();
 		}

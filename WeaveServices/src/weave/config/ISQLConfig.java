@@ -38,6 +38,10 @@ import org.w3c.dom.Document;
  * @author Administrator
  *
  */
+/**
+ * @author Andy
+ *
+ */
 public interface ISQLConfig
 {
 	/**
@@ -172,6 +176,12 @@ public interface ISQLConfig
 	 */
 	List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException;
 
+	
+	/**
+	 * @return true if this ISQLConfig object is successfully connected to the database using DatabaseConfigInfo.
+	 */
+	boolean isConnectedToDatabase();
+	
 	/**
 	 * @return A DatabaseConfigInfo object, or null if this ISQLConfig is not configured to store info in a database.
 	 */
@@ -279,7 +289,9 @@ public interface ISQLConfig
 			CATEGORY_ID("category_id"),
 			MIN("min"),
 			MAX("max"),
-			TITLE("title");
+			TITLE("title"),
+			NUMBER("number"),
+			STRING("string");
 
 			Metadata(String name)
 			{
@@ -331,8 +343,7 @@ public interface ISQLConfig
 					case Types.DOUBLE:
 					case Types.REAL:
 					case Types.NUMERIC:
-						// case Types.ROWID: // produces compiler error in some
-						// environments
+					/* case Types.ROWID: // produces compiler error in some environments */
 						return DataType.NUMBER;
 					default:
 						return DataType.STRING;
@@ -345,6 +356,10 @@ public interface ISQLConfig
 			this.connection = connection;
 			this.sqlQuery = sqlQuery;
 			this.metadata = metadata;
+			
+			// TODO: TEMPORARY SOLUTION -- REMOVE THIS CODE AFTER SERVER REFACTORING
+			if (getMetadata(Metadata.TITLE.toString()).length() == 0)
+				metadata.put(Metadata.TITLE.toString(), getMetadata(Metadata.NAME.toString()));
 		}
 
 		// returns a non-null value

@@ -84,7 +84,7 @@ package weave.data.AttributeColumns
 			_reprojectedColumn = newColumn;
 			
 			if (_reprojectedColumn)
-				_reprojectedColumn.addImmediateCallback(this, triggerCallbacks);
+				_reprojectedColumn.addImmediateCallback(this, triggerCallbacks, null, false, true); // parent-child relationship
 		}
 		
 		private var _reprojectedColumn:IAttributeColumn = null;

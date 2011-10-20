@@ -25,7 +25,9 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -49,22 +51,23 @@ package weave.visualization.plotters
 			maxScreenRadius.value = 10;
 			defaultScreenRadius.value = 5;
 			
-			registerNonSpatialProperties(
+			for each (var child:ILinkableObject in [
 				lineStyle,
 				Weave.properties.axisFontSize,
 				Weave.properties.axisFontColor,
 				Weave.properties.axisFontFamily,
 				Weave.properties.axisFontItalic,
 				Weave.properties.axisFontUnderline,
-				Weave.properties.axisFontBold
-			);
-			registerSpatialProperties(radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius);
+				Weave.properties.axisFontBold])
+			{
+				registerLinkableChild(this, child);
+			}
 		}
 		
-		public const radiusColumn:DynamicColumn = new DynamicColumn();
-		public const minScreenRadius:LinkableNumber = new LinkableNumber();
-		public const maxScreenRadius:LinkableNumber = new LinkableNumber();
-		public const defaultScreenRadius:LinkableNumber = new LinkableNumber();
+		public const radiusColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const minScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const maxScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const defaultScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
 		// this is used to draw text on bitmaps
 		private const bitmapText:BitmapText = new BitmapText();

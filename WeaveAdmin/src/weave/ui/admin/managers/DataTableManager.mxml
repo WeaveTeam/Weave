@@ -103,6 +103,7 @@
 		<![CDATA[
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
+			import flash.utils.setTimeout;
 			
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
@@ -131,7 +132,6 @@
 			import weave.services.WeaveDataServlet;
 			import weave.services.beans.AttributeColumnDataWithKeys;
 			import weave.services.beans.AttributeColumnInfo;
-			import weave.ui.PopupDialog;
 			import weave.ui.admin.ColumnMetadataPopup;
 			import weave.ui.admin.DublinCoreEntryComponent;
 			import weave.ui.admin.WizardPanel;
@@ -186,10 +186,15 @@
 					// ask user to confirm
 					PopUpUtils.confirm(
 						this,
-						"Leave current DataTable",
-						'Are you sure you want to leave the current DataTable? Any unsaved changes will be lost.',
-						leave
+						"Discard changes",
+						'Discard unsaved changes?',
+						leave, cancel,
+						'Discard', 'Cancel'
 					);
+					function cancel():void
+					{
+						treeWithSearch.tree.selectedItem = null;
+					}
 					function leave():void
 					{
 						changeSelectedTreeItem();
@@ -226,8 +231,7 @@
 			
 			/**
 			 * This function compares two DataGridColumn objects by comparing the dataField property.
-			 * If Strings are given as parameters, it compares them directly.
-			 * This compare function will put "name" in front of any other String.
+			 * Items will be sorted according to preferredMetadataOrder.
 			 * @param a The first value to compare, either a DataGridColumn or a String.
 			 * @param b The second value to compare, either a DataGridColumn or a String.
 			 * @return A value of -1, 0, or 1, which is used by Array.sort().
@@ -238,19 +242,22 @@
 					a = (a as DataGridColumn).dataField;
 				if (b is DataGridColumn)
 					b = (b as DataGridColumn).dataField;
+				
+				var order:Array = preferredMetadataOrder;
+				var ia:int = order.indexOf(a);
+				var ib:int = order.indexOf(b);
+				if (ia >= 0 && ib >= 0)
+					return ObjectUtil.numericCompare(ia, ib);
+				
+				if (ia >= 0)
+					return -1;
+				if (ib >= 0)
+					return 1;
 
-				// we want the 'name' column to appear first in the list.
-				if (a == "name")
-					return -1;
-				if (b == "name")
-					return 1;
-				// special case to make 'min' appear before 'max'
-				if (a == 'min' && b == 'max')
-					return -1;
-				if (a == 'max' && b == 'min')
-					return 1;
 				return ObjectUtil.stringCompare(a as String, b as String, true);
 			}
+			
+			private const preferredMetadataOrder:Array = "title,keyType,dataType,number,string,min,max,year,name,geometryCollection,dataTable,connection,sqlQuery".split(',');
 
 			private function getActiveDataTableName():String
 			{
@@ -292,7 +299,8 @@
 						this,
 						"Confirm overwrite",
 						'Overwrite DataTable entry "'+dataTableName+'"?',
-						overwrite
+						overwrite, null,
+						'Overwrite', 'Cancel', 85
 					);
 				function overwrite():void
 				{
@@ -311,7 +319,8 @@
 						this,
 						"Confirm delete",
 						'Delete DataTable entry "'+dataTableName+'"?',
-						del
+						del, null,
+						'Delete', 'Cancel'
 					);
 				
 				function del():void
@@ -540,7 +549,8 @@
 					this,
 					"Confirm delete",
 					'Delete selected Dublin Core element' + (dcElementsEditor.selectedItems.length > 1 ? 's' : '') + ' from data table ' + tableName + '?',
-					del
+					del, null,
+					'Delete', 'Cancel'
 				);
 				function del():void
 				{
@@ -576,7 +586,7 @@
 				
 				var dataTableName:String = getCurrentTableName();
 //				Alert.show("label = "+label+", data = "+data);
-				var popup:DublinCoreEntryComponent = PopupDialog.openDialog(this, DublinCoreEntryComponent) as DublinCoreEntryComponent;
+				var popup:DublinCoreEntryComponent = DublinCoreEntryComponent.openDialog(this);
 				popup.setElement(label);
 				popup.setDataset(dataTableName);
 				popup.setSuccessCallback(function():void{
@@ -605,20 +615,15 @@
 			private function dcElementsEditorEditHandler(event:DataGridEvent):void
 			{
 				var row:Number = Number(event.rowIndex);
+				var item:Object = dcElementsEditor.dataProvider.getItemAt(row);
 				var tableName:String = getCurrentTableName();
-				var element:String = dcElementsEditor.dataProvider.getItemAt(row)[ELEMENT];
-				var oldValue:String = dcElementsEditor.dataProvider.getItemAt(row)[FIELD];
+				var element:String = item[ELEMENT];
+				var oldValue:String = item[FIELD];
 				var newValue:String = dcElementsEditor.itemEditorInstance[dcElementsEditor.columns[event.columnIndex].editorDataField];
 				
 				if (oldValue != newValue)
 				{
-					PopUpUtils.confirm(
-						this,
-						"Confirm Update",
-						'Update Dublin Core element?',
-						yes,
-						no
-					);
+					var self:DataTableManager = this;
 					function yes():void
 					{
 						var o:Object = {element:element, oldValue:oldValue, newValue:newValue};
@@ -632,10 +637,22 @@
 					}
 					function no():void
 					{
-						// This might need to be fixed
-						dcElementsEditor.dataProvider.getItemAt(row)[FIELD] = oldValue;
-						loadDublinCoreElements();
+						item[FIELD] = oldValue;
+						(dcElementsEditor.dataProvider as ICollectionView).refresh();
 					}
+					function confirm():void
+					{
+						PopUpUtils.confirm(
+							self,
+							"Confirm Update",
+							'Update Dublin Core element?',
+							yes, no,
+							'Update', 'Cancel'
+						);
+					}
+					// Use setTimeout because if we alert immediately for some reason the data grid
+					// will dispatch another item-edit-end event and call this function recursively.
+					setTimeout(confirm, 0);
 				}
 			}
 			

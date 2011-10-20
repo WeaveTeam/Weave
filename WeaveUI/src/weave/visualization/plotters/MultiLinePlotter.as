@@ -24,7 +24,9 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -43,8 +45,6 @@ package weave.visualization.plotters
 	{
 		public function MultiLinePlotter()
 		{
-			registerSpatialProperties(x1Data, y1Data, x2Data, y2Data);
-			registerNonSpatialProperties(x1ScreenOffset, y1ScreenOffset, x2ScreenOffset, y2ScreenOffset, lineStyle);
 			// initialize default line style
 			lineStyle.requestLocalObject(SolidLineStyle, false);
 			
@@ -60,46 +60,46 @@ package weave.visualization.plotters
 		/**
 		 * This is the beginning X data value associated with the line.
 		 */
-		public const x1Data:DynamicColumn = new DynamicColumn();
+		public const x1Data:DynamicColumn = newSpatialProperty(DynamicColumn);
 		/**
 		 * This is the beginning Y data value associated with the line.
 		 */
-		public const y1Data:DynamicColumn = new DynamicColumn();
+		public const y1Data:DynamicColumn = newSpatialProperty(DynamicColumn);
 		/**
 		 * This is the ending X data value associated with the line.
 		 */
-		public const x2Data:DynamicColumn = new DynamicColumn();
+		public const x2Data:DynamicColumn = newSpatialProperty(DynamicColumn);
 		/**
 		 * This is the ending Y data value associated with the line.
 		 */
-		public const y2Data:DynamicColumn = new DynamicColumn();
+		public const y2Data:DynamicColumn = newSpatialProperty(DynamicColumn);
 
 		// visual properties
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const x1ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const x1ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const y1ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const y1ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const x2ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const x2ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the line onto the screen.
 		 */
-		public const y2ScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const y2ScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is the line style used to draw the line.
 		 */
-		public const lineStyle:DynamicLineStyle = new DynamicLineStyle();
+		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
 
 		/**
 		 * This is a flag to set to cause the line to be drawn as a curve instead
 		 */
-		public const curveType:LinkableString = new LinkableString();
+		public const curveType:LinkableString = newLinkableChild(this, LinkableString);
 	
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.

@@ -28,8 +28,10 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -50,8 +52,8 @@ package weave.visualization.plotters
 		private var _keySet:KeySet;
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
-		public const enableWedgeColoring:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false), fillColorMap);
-		public const colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
@@ -61,13 +63,16 @@ package weave.visualization.plotters
 		
 		public function AnchorPlotter()	
 		{
-			registerNonSpatialProperties(
+			for each (var child:ILinkableObject in [
 				Weave.properties.axisFontBold,
 				Weave.properties.axisFontColor,
 				Weave.properties.axisFontFamily,
 				Weave.properties.axisFontItalic,
 				Weave.properties.axisFontSize,
-				Weave.properties.axisFontUnderline);			
+				Weave.properties.axisFontUnderline])
+			{
+				registerLinkableChild(this, child);
+			}
 		}
 		
 		public function handleAnchorsChange():void

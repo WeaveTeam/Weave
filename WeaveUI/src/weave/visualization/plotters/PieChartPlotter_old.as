@@ -65,7 +65,8 @@ package weave.visualization.plotters
 			_sliceSizeCol = sliceEquationCol.requestVariable("x", DynamicColumn);
 			
 			
-			registerSpatialProperties(sliceSize, keySet);
+			registerSpatialProperty(sliceSize);
+			registerSpatialProperty(keySet);
 		}
 		
 		private var _sliceSizeCol:DynamicColumn;

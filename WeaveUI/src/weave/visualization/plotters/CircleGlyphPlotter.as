@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -50,7 +51,6 @@ package weave.visualization.plotters
 		}
 		private function init():void
 		{
-			registerNonSpatialProperties(screenRadius,enabledSizeBy, minScreenRadius, maxScreenRadius, lineStyle, fillStyle, defaultScreenRadius);
 			// initialize default line & fill styles
 			lineStyle.requestLocalObject(SolidLineStyle, false);
 			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
@@ -62,23 +62,23 @@ package weave.visualization.plotters
 			enabledSizeBy.value = false;
 		}
 
-		public const minScreenRadius:LinkableNumber = new LinkableNumber();
-		public const maxScreenRadius:LinkableNumber = new LinkableNumber();
-		public const defaultScreenRadius:LinkableNumber = new LinkableNumber();
-		public const enabledSizeBy:LinkableBoolean = new LinkableBoolean();
+		public const minScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const maxScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const defaultScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const enabledSizeBy:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
-		public const screenRadius:DynamicColumn = new DynamicColumn();
+		public const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		public const lineStyle:DynamicLineStyle = new DynamicLineStyle();
+		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
 		/**
 		 * This is the fill style used to fill the rectangle.
 		 */
-		public const fillStyle:DynamicFillStyle = new DynamicFillStyle();
+		public const fillStyle:DynamicFillStyle = newLinkableChild(this, DynamicFillStyle);
 
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

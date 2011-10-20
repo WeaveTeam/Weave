@@ -86,7 +86,8 @@ package weave.core
 		 */
 		public static function decodeDynamicState(xml:XML):Array
 		{
-			_encodedXML.parseXML(xml.toString());
+			var tempString:String = xml.toXMLString().replace(/(\r\n)|\r/gm, "\n");
+			_encodedXML.parseXML(tempString);
 			return _xmlDecoder.decodeDynamicStateXMLNode(_encodedXML.firstChild);
 		}
 
@@ -98,7 +99,8 @@ package weave.core
 		 */
 		public static function decode(xml:XML):Object
 		{
-			_encodedXML.parseXML(xml.toXMLString());
+			var tempString:String = xml.toXMLString().replace(/(\r\n)|\r/gm, "\n");
+			_encodedXML.parseXML(tempString);
 			var result:Object = _xmlDecoder.decodeXML(_encodedXML.firstChild);
 			return result;
 		}

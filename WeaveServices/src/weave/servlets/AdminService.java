@@ -124,24 +124,28 @@ public class AdminService extends GenericServlet
 
 	synchronized public AdminServiceResponse checkSQLConfigExists()
 	{
-		File configFile = new File(configManager.getConfigFileName());
 		try
 		{
-			configManager.detectConfigChanges();
-			ISQLConfig config = configManager.getConfig();
-			List<String> connectionNames = config.getConnectionNames();
-			DatabaseConfigInfo dbInfo = config.getDatabaseConfigInfo();
-			if (dbInfo != null && ListUtils.findString(dbInfo.connection, connectionNames) >= 0)
+			if (databaseConfigExists())
 				return new AdminServiceResponse(true, "Configuration file exists.");
 		}
 		catch (RemoteException se)
 		{
 			se.printStackTrace();
+			
+			File configFile = new File(configManager.getConfigFileName());
 			if (configFile.exists())
 				return new AdminServiceResponse(false, String.format("%s is invalid. Please edit the file and fix the problem"
 						+ " or delete it and create a new one through the admin console.\n\n%s", configFile.getName(), se.getMessage()));
 		}
 		return new AdminServiceResponse(false, "The configuration storage location must be specified.");
+	}
+
+	synchronized private boolean databaseConfigExists() throws RemoteException
+	{
+		configManager.detectConfigChanges();
+		ISQLConfig config = configManager.getConfig();
+		return config.isConnectedToDatabase();
 	}
 
 	synchronized public boolean authenticate(String connectionName, String password) throws RemoteException
@@ -346,33 +350,51 @@ public class AdminService extends GenericServlet
 	// /////////////////////////////////////////////////
 	// functions for managing SQL connection entries
 	// /////////////////////////////////////////////////
-
+	
 	synchronized public String[] getConnectionNames(String connectionName, String password) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (config.getConnectionInfo(connectionName).is_superuser)
-			return ListUtils.toStringArray(getSortedUniqueValues(config.getConnectionNames(), false));
-		
-		// non-superusers can't get connection info for other users
-		return new String[]{connectionName};
+		try
+		{
+			// only check password and superuser privileges if dbInfo is valid
+			if (databaseConfigExists())
+			{
+				ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+				// non-superusers can't get connection info for other users
+				if (!config.getConnectionInfo(connectionName).is_superuser)
+					return new String[]{connectionName};
+			}
+			// otherwise, return all connection names
+			List<String> connectionNames = configManager.getConfig().getConnectionNames();
+			return ListUtils.toStringArray(getSortedUniqueValues(connectionNames, false));
+		}
+		catch (RemoteException se)
+		{
+			return new String[]{};
+		}
 	}
 	
 	synchronized public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
-		if (config.getConnectionInfo(loginConnectionName).is_superuser)
+		ISQLConfig config;
+		if (databaseConfigExists())
 		{
-			ConnectionInfo info = config.getConnectionInfo(connectionNameToGet);
-			info.pass = ""; // don't send password
-			return info;
+			config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
+			// non-superusers can't get connection info
+			if (!config.getConnectionInfo(loginConnectionName).is_superuser)
+				return null;
 		}
-		// non-superusers can't get connection info
-		return null;
+		else
+		{
+			config = configManager.getConfig();
+		}
+		ConnectionInfo info = config.getConnectionInfo(connectionNameToGet);
+		info.pass = ""; // don't send password
+		return info;
 	}
 
 	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
 	{
-		if (newConnectionName.equals("") || currentConnectionName.equals(""))
+		if (newConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
 		
 		ConnectionInfo newConnectionInfo = new ConnectionInfo();
@@ -401,8 +423,7 @@ public class AdminService extends GenericServlet
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		// if there are existing connections and DatabaseConfigInfo exists, check the password.
-		// otherwise, allow anything.
+		// if there are existing connections and DatabaseConfigInfo exists, check the password. otherwise, allow anything.
 		if (config.getConnectionNames().size() > 0 && config.getDatabaseConfigInfo() != null)
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
@@ -419,6 +440,7 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = newConnectionInfo.getConnection();
+			SQLUtils.testConnection(conn);
 		}
 		catch (Exception e)
 		{
@@ -512,8 +534,18 @@ public class AdminService extends GenericServlet
 
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo(String connectionName, String password) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return config.getDatabaseConfigInfo();
+		try
+		{
+			if (databaseConfigExists())
+				return checkPasswordAndGetConfig(connectionName, password).getDatabaseConfigInfo();
+		}
+		catch (RemoteException e)
+		{
+			if (e.detail instanceof FileNotFoundException)
+				return null;
+			throw e;
+		}
+		return null;
 	}
 
 	synchronized public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException

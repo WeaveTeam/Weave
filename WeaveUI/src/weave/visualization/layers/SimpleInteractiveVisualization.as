@@ -460,15 +460,6 @@ package weave.visualization.layers
 		}
 		
 		/**
-		 * indicates whether the bar chart is in horizontal mode 
-		 */		
-		public var barChartHorizontalMode:Boolean = false;
-		
-		/**
-		 * indicates whether the bar chart is in grouped mode 
-		 */		
-		public var barChartGroupMode:Boolean = false;
-		/**
 		 * a ProbeLinePlotter instance for the probe line layer 
 		 */		
 		private var _probePlotter:ProbeLinePlotter = null ;

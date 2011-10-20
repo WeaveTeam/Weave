@@ -111,6 +111,12 @@ public class DatabaseConfig
 	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
 	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
 	private final String SQLTYPE_INT = "INT";
+
+	public boolean isConnectedToDatabase()
+	{
+		return true; // since this ISQLConfig object got past the constructor, it is connected to the database.
+	}
+
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();
@@ -192,7 +198,9 @@ public class DatabaseConfig
 		Connection conn = getConnection();
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		// add (possibly) missing columns
-		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString()})
+		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString(), 
+											  AttributeColumnInfo.Metadata.NUMBER.toString(),
+											  AttributeColumnInfo.Metadata.STRING.toString()})
 		{
 			try
 			{
@@ -204,10 +212,7 @@ public class DatabaseConfig
 				// if the column is missing, throw the error
 				List<String> existingColumnNames = SQLUtils.getColumns(conn, dbInfo.schema, dbInfo.dataConfigTable);
 				if (ListUtils.findIgnoreCase(columnName, existingColumnNames) < 0)
-				{
-					System.out.println(String.format("Column %s not found in [%s]", columnName, existingColumnNames));
-					throw e;
-				}
+					throw new RemoteException(String.format("Unable to add column %s to config table", columnName), e);
 			}
 		}
 		
@@ -484,8 +489,7 @@ public class DatabaseConfig
 			DebugTimer t = new DebugTimer();
 			t.report("getAttributeColumnInfo");
 			// get rows matching given parameters
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(
-					getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
 			t.lap(metadataQueryParams + "; got records " + records.size());
 			for (int i = 0; i < records.size(); i++)
 			{
@@ -530,6 +534,7 @@ public class DatabaseConfig
 		}
 		catch (SQLException e)
 		{
+			
 			throw new RemoteException("Unable to get AttributeColumn info", e);
 		}
 		return results;

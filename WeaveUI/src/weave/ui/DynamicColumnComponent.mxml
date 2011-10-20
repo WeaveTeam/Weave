@@ -68,7 +68,6 @@
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
 				internalList.dynamicObject = value;
-//				connComponent.dynamicObject = value;
 			}
 			
 			private var _visTool:SimpleVisTool = null;

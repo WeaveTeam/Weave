@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
@@ -76,7 +77,7 @@ package weave.visualization.plotters
 		/*
 		 * This is the line style used to draw the lines.
 		 */
-		public const lineStyle:ExtendedSolidLineStyle = newNonSpatialProperty(ExtendedSolidLineStyle);
+		public const lineStyle:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle);
 		
 		public function get alphaColumn():AlwaysDefinedColumn { return lineStyle.alpha; }
 		
@@ -88,7 +89,7 @@ package weave.visualization.plotters
 		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
-		private const _combinedKeySet:KeySet = newNonSpatialProperty(KeySet);
+		private const _combinedKeySet:KeySet = newLinkableChild(this, KeySet);
 		
 		private var _columns:Array = [];
 		private function handleColumnsChange():void
@@ -203,8 +204,8 @@ package weave.visualization.plotters
 		}		
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const curveType:LinkableString = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));
-		public const shapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
+		public const curveType:LinkableString = registerLinkableChild(this, new LinkableString(CURVE_NONE, curveTypeVerifier));
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 
 		public static const CURVE_NONE:String = 'none';
@@ -240,9 +241,9 @@ package weave.visualization.plotters
 			return shapesAvailable.indexOf(type) >= 0;
 		}
 		
-		public const shapeToDraw:LinkableString = registerNonSpatialProperty(new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
-		public const shapeBorderThickness:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0));
-		public const shapeBorderColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0x000000));
+		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
+		public const shapeBorderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		public const shapeBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{

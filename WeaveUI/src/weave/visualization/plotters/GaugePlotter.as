@@ -25,9 +25,12 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.SessionManager;
 	import weave.data.BinClassifiers.BinClassifierCollection;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
@@ -78,7 +81,7 @@ package weave.visualization.plotters
 		
 		//wrapper for a SimpleBinningDefinition, which creates equally spaced bins
 		//TODO create UI for editing the number of bins
-		public const binningDefinition:DynamicBinningDefinition = newNonSpatialProperty(DynamicBinningDefinition, updateBins);
+		public const binningDefinition:DynamicBinningDefinition = newLinkableChild(this, DynamicBinningDefinition, updateBins);
 		
 		//the approximate desired number of tick marks
 		//TODO make this part of the session state
@@ -89,7 +92,7 @@ package weave.visualization.plotters
 		private const bins:BinClassifierCollection = newDisposableChild(this, BinClassifierCollection);
 		
 		//the color ramp mapping bins to colors
-		public const colorRamp:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Traffic Light")));
+		public const colorRamp:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Traffic Light")));
 		
 		// reusable point objects
 		private const p1:Point = new Point(), p2:Point = new Point();
@@ -109,7 +112,8 @@ package weave.visualization.plotters
 			meterColumn.addImmediateCallback(this, updateBins);
 			meterColumn.addImmediateCallback(this, updateAxis);
 			
-			registerNonSpatialProperties(Weave.properties.axisFontSize, Weave.properties.axisFontColor);
+			for each (var child:ILinkableObject in [Weave.properties.axisFontSize, Weave.properties.axisFontColor])
+				registerLinkableChild(this, child);
 		}
 		
 		/**

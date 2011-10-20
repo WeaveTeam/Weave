@@ -23,11 +23,13 @@ package weave.visualization.plotters
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -49,8 +51,10 @@ package weave.visualization.plotters
 			//circlePlotter.fillStyle.lock();
 			setKeySource(_keySet);
 			getCallbackCollection(this).addImmediateCallback(this, updateKeys);						
-			registerSpatialProperties(xColumn, yColumn, zoomToSubset);
-			registerNonSpatialProperties(colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy);
+			for each (var spatialProperty:ILinkableObject in [xColumn, yColumn, zoomToSubset])
+				registerSpatialProperty(spatialProperty);
+			for each (var child:ILinkableObject in [colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy])
+				registerLinkableChild(this, child);
 		}
 		
 		private var _keySet:KeySet = newDisposableChild(this,KeySet);
@@ -100,7 +104,7 @@ package weave.visualization.plotters
 		}
 		// the private plotter being simplified
 		public function get defaultScreenRadius():LinkableNumber {return circlePlotter.defaultScreenRadius;}
-		private function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
+		public function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
 		public function get enabledSizeBy():LinkableBoolean {return circlePlotter.enabledSizeBy; }
 		public function get minScreenRadius():LinkableNumber { return circlePlotter.minScreenRadius; }
 		public function get maxScreenRadius():LinkableNumber { return circlePlotter.maxScreenRadius; }

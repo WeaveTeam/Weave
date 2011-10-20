@@ -19,57 +19,33 @@
 
 package weave.beans;
 
+import java.util.Map;
+
 public class AttributeColumnDataWithKeys {
-	private String attributeColumnName;
-	private String keyType;
-	private String dataType;
+	private Map<String,String> metadata;
 	private String[] keys;
 	private Object[] data;
 	private String[] secKeys;
-	private String min;
-	private String max;
-	private String year;
+	
 	public AttributeColumnDataWithKeys(){}
 	
 	public AttributeColumnDataWithKeys(
-			String attributeColumnName, 
-			String keyType, 
-			String dataType, 
-			String min, String max, String year, 
+			Map<String,String> metadata,
 			String[] keys, 
 			Object[] data,
 			String[] secKeys) 
 	{
-		this.attributeColumnName = attributeColumnName;
-		this.keyType = keyType;
-		this.dataType = dataType;
+		this.metadata = metadata;
 		this.keys = keys;
 		this.data = data;
 		this.secKeys = secKeys;
-		this.min = min;
-		this.max = max;
-		this.year = year;
 	}
 	
-	public String getAttributeColumnName() {
-		return attributeColumnName;
+	public Map<String,String> getMetadata() {
+		return metadata;
 	}
-	public void setAttributeColumnName(String attributeColumnName) {
-		this.attributeColumnName = attributeColumnName;
-	}
-	public String getKeyType() {
-		return keyType;
-	}
-	public void setKeyType(String keyType) {
-		this.keyType = keyType;
-	}
-	public String getDataType()
-	{
-		return dataType;
-	}
-	public void setDataType(String dataType)
-	{
-		this.dataType = dataType;
+	public void setMetadata(Map<String,String> metadata) {
+		this.metadata = metadata;
 	}
 	public String[] getKeys() {
 		return keys;
@@ -88,32 +64,6 @@ public class AttributeColumnDataWithKeys {
 	}
 	public void setData(Object[] data) {
 		this.data = data;
-	}
-
-	public void setMin(String min) {
-		this.min = min;
-	}
-
-	public String getMin() {
-		return min;
-	}
-
-	public void setMax(String max) {
-		this.max = max;
-	}
-
-	public String getMax() {
-		return max;
-	}
-
-	public String getYear()
-	{
-		return year;
-	}
-	
-	public void setYear(String year)
-	{
-		this.year = year;
 	}
 }
 

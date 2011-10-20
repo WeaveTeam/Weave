@@ -275,6 +275,11 @@ public class SQLConfigXML implements ISQLConfig
 				XMLUtils.escapeSpecialCharacters(newInfo.dataConfigTable));
 		XMLUtils.prependXMLChildFromString(doc, tag);
 	}
+	
+	public boolean isConnectedToDatabase()
+	{
+		return false; // since this is an XML-only configuration, there is no active database connection.
+	}
 
 	/**
 	 * Returns null if the config information is not stored in a database (when

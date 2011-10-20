@@ -209,8 +209,11 @@ package weave.api.primitives
 		/**
 		 * This constrains a point to be within this IBounds2D.
 		 * @param point The point to constrain.
+		 * @param preserveSlope A boolean indicating whether a point outside of the bounds
+		 * should be constrained inside the bounds at a position which lies on a line from 
+		 * the bounds center to the original point's location.
 		 */
-		function constrainPoint(point:Point):void;
+		function constrainPoint(point:Point, preserveSlope:Boolean = false):void;
 
 		/**
 		 * This constrains the center point of another IBounds2D to be overlapping the center of this IBounds2D.

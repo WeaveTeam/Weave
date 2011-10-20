@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
@@ -61,7 +62,7 @@ package weave.visualization.plotters
 		public const xColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const yColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
 		
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 
 		private var Rservice:WeaveStatisticsServlet = new WeaveStatisticsServlet(Weave.properties.rServiceURL.value);
 		

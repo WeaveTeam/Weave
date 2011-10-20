@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableString;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
@@ -43,7 +44,7 @@ package weave.visualization.plotters
 			
 		}
 		
-		public const lineStyle:DynamicLineStyle = newNonSpatialProperty(DynamicLineStyle);
+		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
 		
 		private var drawLine:Boolean = false;
 		private const yAxis:Point = new Point();//reusable object

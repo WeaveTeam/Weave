@@ -25,12 +25,14 @@ package weave.data.AttributeColumns
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.NumberFormatter;
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.utils.EquationColumnLib;
 	
@@ -60,6 +62,12 @@ package weave.data.AttributeColumns
 		protected var _keyToNumericDataMapping:Dictionary = new Dictionary();
 
 		/**
+		 * This object maps keys to the string values of numeric data after 
+		 * applying the compiler expressions in NUMBER and STRING metadata fields.
+		 */
+		protected var _keyToStringDataMapping:Dictionary = new Dictionary();
+		
+		/**
 		 * _uniqueKeys
 		 * This is a list of unique keys this column defines values for.
 		 */
@@ -75,8 +83,9 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _keyToNumericDataMapping[key] != undefined;
+			return _keyToNumericDataMapping[key] !== undefined;
 		}
+		
 
 		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
 		{
@@ -91,15 +100,30 @@ package weave.data.AttributeColumns
 			
 			// clear previous data mapping
 			_keyToNumericDataMapping = new Dictionary();
-			
+
+			// compile the string format function from the metadata
+			var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
+			if (stringFormat)
+			{
+				try
+				{
+					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, [AttributeColumnMetadata.NUMBER]);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e);
+				}
+			}
+
 			// save a mapping from keys to data
 			for (index = keys.length - 1; index >= 0; index--)
 			{
 				key = keys[index] as IQualifiedKey;
-				var n:Number = Number(numericData[index]);
-				if (isFinite(n))
+				var number:Number = numericData[index] as Number; // fast and safe because numericData is Vector.<Number>
+				if (!isNaN(number))
 				{
-					_keyToNumericDataMapping[key] = n;
+					_keyToNumericDataMapping[key] = number;
+					_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
 				}
 			}
 
@@ -112,40 +136,15 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 
-		/**
-		 * numberFormatter:
-		 * the NumberFormatter to use when generating a string from a number
-		 */
-		private var _numberFormatter:NumberFormatter = new NumberFormatter();
-		public function get numberFormatter():NumberFormatter
-		{
-			return _numberFormatter;
-		}
-		public function set numberFormatter(value:NumberFormatter):void
-		{
-			_numberFormatter = value;
-		}
-
-		/**
-		 * maxDerivedSignificantDigits:
-		 * maximum number of significant digits to return when calling deriveStringFromNorm()
-		 */		
-		public var maxDerivedSignificantDigits:uint = 10;
+		private static const compiler:Compiler = new Compiler();
+		private var numberToStringFunction:Function = StandardLib.formatNumber;
 		
-		// get a string value for a given numeric value
+		/**
+		 * Get a string value for a given number.
+		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
-			if (numberFormatter == null)
-				return number.toString();
-			else
-			{
-				return numberFormatter.format(
-					StandardLib.roundSignificant(
-							number,
-							maxDerivedSignificantDigits
-						)
-					);
-			}
+			return numberToStringFunction(number);
 		}
 
 		/**
@@ -154,7 +153,7 @@ package weave.data.AttributeColumns
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (dataType == String)
-				return deriveStringFromNumber(_keyToNumericDataMapping[key]);
+				return _keyToStringDataMapping[key] || '';
 			// make sure to cast as a Number so missing values return as NaN instead of undefined
 			var value:Number = Number(_keyToNumericDataMapping[key]);
 			if (dataType == null)

@@ -511,15 +511,28 @@ package weave.primitives
 		 * This constrains a point to be within this Bounds2D.
 		 * @param point The point to constrain.
 		 */
-		public function constrainPoint(point:Point):void
+		public function constrainPoint(point:Point, preserveSlope:Boolean = false):void
 		{
-			// find numerical min,max x values and constrain x coordinate
-			if (!isNaN(xMin) && !isNaN(xMax)) // do not constrain point if bounds is undefined
-				point.x = Math.max(Math.min(xMin, xMax), Math.min(point.x, Math.max(xMin, xMax)));
-			
-			// find numerical min,max y values and constrain y coordinate
-			if (!isNaN(yMin) && !isNaN(yMax)) // do not constrain point if bounds is undefined
-				point.y = Math.max(Math.min(yMin, yMax), Math.min(point.y, Math.max(yMin, yMax)));
+			// if the point should just be brought into the bounds
+			if (preserveSlope == false)
+			{
+				// find numerical min,max x values and constrain x coordinate
+				if (!isNaN(xMin) && !isNaN(xMax)) // do not constrain point if bounds is undefined
+					point.x = Math.max(Math.min(xMin, xMax), Math.min(point.x, Math.max(xMin, xMax)));
+				
+				// find numerical min,max y values and constrain y coordinate
+				if (!isNaN(yMin) && !isNaN(yMax)) // do not constrain point if bounds is undefined
+					point.y = Math.max(Math.min(yMin, yMax), Math.min(point.y, Math.max(yMin, yMax)));
+			}
+			else
+			{
+				// the bounds must be defined for this constraining to make any sense
+				if (isNaN(xMin) || isNaN(xMax) || isNaN(yMin) || isNaN(yMax))
+					return;
+				
+				point.x = Math.min(xMax, Math.max(xMin, point.x));
+				point.y = Math.min(yMax, Math.max(yMin, point.y));
+			}
 		}
 
 		// reusable temporary objects

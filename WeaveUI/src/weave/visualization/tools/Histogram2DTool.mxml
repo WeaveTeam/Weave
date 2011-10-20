@@ -104,6 +104,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
+				
 				cRampEditor.colorRamp = plotter.binColors;
 				handleBinColRadioButtonChange();
 				xColumnComponent.dynamicObject = plotter.xColumn;

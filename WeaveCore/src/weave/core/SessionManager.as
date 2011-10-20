@@ -128,7 +128,8 @@ package weave.core
 				
 				// make child changes trigger parent callbacks
 				var parentCC:ICallbackCollection = getCallbackCollection(linkableParent as ILinkableObject);
-				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks);
+				// set alwaysTriggerLast=true for triggering parent callbacks, so parent will be triggered after all the other child callbacks
+				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, null, false, true); // parent-child relationship
 			}
 
 			return linkableChild;

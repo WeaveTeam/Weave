@@ -19,17 +19,20 @@
 
 package weave.visualization.plotters
 {
-	import mx.controls.Alert;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.primitives.Bounds2D;
-	import weave.data.KeySets.KeySet;
 	import flash.display.BitmapData;
+	import flash.display.CapsStyle;
 	import flash.display.Graphics;
 	import flash.display.Shape;
-	import flash.geom.Point;	
-    import flash.display.CapsStyle;
-    import weave.Weave;
-    import weave.core.LinkableNumber;
+	import flash.geom.Point;
+	
+	import mx.controls.Alert;
+	
+	import weave.Weave;
+	import weave.api.newLinkableChild;
+	import weave.core.LinkableNumber;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.KeySets.KeySet;
+	import weave.primitives.Bounds2D;
 	
 	/**
 	 * This abstract class contains functionality common to any "meter tool" such as the thermometer and the gauge.
@@ -44,7 +47,7 @@ package weave.visualization.plotters
 		public const COLUMN_AVERAGE_MODE:Number = 1;
 		
 		//the sessioned number controlling the input mode
-		private const inputMode:LinkableNumber = newNonSpatialProperty(LinkableNumber, updateMode); 
+		private const inputMode:LinkableNumber = newLinkableChild(this, LinkableNumber, updateMode); 
 		
 		//the column whose value drives this meter 
 		public const meterColumn:DynamicColumn = newSpatialProperty(DynamicColumn);

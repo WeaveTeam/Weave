@@ -242,7 +242,7 @@ package weave.data.AttributeColumns
 				else
 				{
 					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true, false);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true, false, ['key', 'dataType']);
 					_equationIsConstant = false;
 				}
 			}
@@ -327,8 +327,9 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
+		 * @see weave.api.data.IAttributeColumn
 		 */
-		override public function getValueFromKey(key:IQualifiedKey, dataTypeParam:Class = null):*
+		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
 				return undefined;
@@ -374,10 +375,10 @@ package weave.data.AttributeColumns
 			}
 			
 			// if dataType not specified, use default type specified by this.dataType.value
-			if (dataTypeParam == null)
-				dataTypeParam = _defaultDataType;
+			if (dataType == null)
+				dataType = _defaultDataType;
 			
-			if (dataTypeParam == IQualifiedKey)
+			if (dataType == IQualifiedKey)
 			{
 				if (!(value is IQualifiedKey))
 				{
@@ -386,9 +387,9 @@ package weave.data.AttributeColumns
 					value = WeaveAPI.QKeyManager.getQKey(getMetadata(AttributeColumnMetadata.DATA_TYPE), value);
 				}
 			}
-			else if (dataTypeParam != null)
+			else if (dataType != null)
 			{
-				value = EquationColumnLib.cast(value, dataTypeParam);
+				value = EquationColumnLib.cast(value, dataType);
 			}
 			
 			return value;

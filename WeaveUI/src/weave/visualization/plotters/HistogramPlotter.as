@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
@@ -69,7 +70,7 @@ package weave.visualization.plotters
 			linkSessionState(keySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
-			registerSpatialProperties(dynamicColorColumn);
+			registerSpatialProperty(dynamicColorColumn);
 
 			setKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
@@ -101,9 +102,9 @@ package weave.visualization.plotters
 		{
 			return fillStyle.color.internalDynamicColumn;
 		}
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
-		public const drawPartialBins:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		public const drawPartialBins:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
 		 * This function returns the collective bounds of all the bins.

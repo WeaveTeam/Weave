@@ -20,10 +20,11 @@
 package weave.visualization.plotters
 {
 	import weave.WeaveProperties;
+	import weave.api.linkSessionState;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.api.linkSessionState;
 	import weave.data.AttributeColumns.DynamicColumn;
 	
 	/**
@@ -58,7 +59,7 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < vars.length; i += 2)
 			{
 				// register public properties that affect the appearance of the tick marks
-				registerNonSpatialProperties(vars[i]);
+				registerLinkableChild(this, vars[i]);
 				// link private and public variables
 				linkSessionState(vars[i + 1], vars[i]);
 			}
@@ -66,8 +67,11 @@ package weave.visualization.plotters
 			xPixelOffset.value = 0;
 			yPixelOffset.value = 0;
 
-			registerNonSpatialProperties(text, xPixelOffset, yPixelOffset);
-			registerSpatialProperties(xData, yData);
+			registerLinkableChild(this, text);
+			registerLinkableChild(this, xPixelOffset);
+			registerLinkableChild(this, yPixelOffset);
+			registerSpatialProperty(xData);
+			registerSpatialProperty(yData);
 			
 			setKeySource(text);
 		}

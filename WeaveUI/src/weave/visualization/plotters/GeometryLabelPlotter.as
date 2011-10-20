@@ -52,7 +52,7 @@ package weave.visualization.plotters
 		}
 		private function init():void
 		{
-			registerSpatialProperties(geometryColumn);
+			registerSpatialProperty(geometryColumn);
 			
 			// hide dataX,dataY because they don't need to be shown in the session state.
 			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, dataX);

@@ -41,6 +41,7 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
@@ -478,18 +479,23 @@
 				marker.dataHeight.value = height;
 			}
 
+			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			
 		]]>
 	</mx:Script>
 
 	<mx:VBox	id="mapControls"
-				horizontalAlign="center" verticalGap="2" 
+				horizontalAlign="center"
+				verticalGap="{zoomControlsToggle.selected ? 2 : 0}"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 				right="2" bottom="2"
 				backgroundColor="white" backgroundAlpha="0.01">
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				 height="{zoomControlsToggle.selected ? 0 : NaN}"
-				 verticalGap="2">
+				height="{zoomControlsToggle.selected ? NaN : 0}"
+				visible="{zoomControlsToggle.selected}"
+				verticalGap="2">
 			
 			<mx:VBox id="panControls" horizontalAlign="center" verticalGap="1" height="100%">
 				<mx:Button id="north"
@@ -532,9 +538,9 @@
 		</mx:VBox>
 		
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				height="{zoomControlsToggle.selected ? 0 : NaN}"
 				verticalGap="2"
-				visible="{!zoomControlsToggle.selected}"
+				height="{zoomControlsToggle.selected ? NaN : 0}"
+				visible="{zoomControlsToggle.selected}"
 				backgroundColor="white" backgroundAlpha="0.5" borderStyle="outset">
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
@@ -553,10 +559,12 @@
 					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 		</mx:VBox>
 		
-		<mx:Spacer height="{zoomControlsToggle.selected ? 0 : 5}"/>
+		<mx:Spacer height="{zoomControlsToggle.selected ? 5 : 0}"/>
 	
 		<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
 		<mx:HBox id="mouseModeBox" horizontalGap="1" right="2" bottom="2"  
+				 height="{mouseModeControlsToggle.selected ? NaN : 0}"
+				 visible="{mouseModeControlsToggle.selected}"
 				 backgroundColor="white" backgroundAlpha="0.01"
 				 alpha="1"> 
 			<mx:Button id="panModeButton" 
@@ -604,9 +612,10 @@
 				toggle="true"
 				toolTip="Select this mode to enable zooming on the map using the mouse to create a box around the area you want to zoom into."
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
-			<mx:Button id="zoomControlsToggle"
-					   icon="@Embed(source='/weave/resources/images/minimize_icon.png')"
-					   width="17" height="17" toggle="true" selected="false"/>
+			<mx:Button id="zoomControlsMinimizeCheck" icon="@Embed(source='/weave/resources/images/minimize_icon.png')"
+					   width="17" height="17" toggle="true"
+					   selected="{!zoomControlsToggle.selected}"
+					   change="zoomControlsToggle.selected = !zoomControlsMinimizeCheck.selected"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -673,6 +682,12 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
 						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+			<mx:CheckBox id="zoomControlsToggle" label="Show zoom and pan controls"
+						 toolTip="This option enables the zoom slider and pan buttons"
+						 initialize="linkBindableProperty(showZoomControls,zoomControlsToggle,'selected')"/>
+			<mx:CheckBox id="mouseModeControlsToggle" label="Show mouse mode controls"
+						 toolTip="This option enables the mouse mode buttons"
+						 initialize="linkBindableProperty(showMouseModeControls,mouseModeControlsToggle,'selected')"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>
