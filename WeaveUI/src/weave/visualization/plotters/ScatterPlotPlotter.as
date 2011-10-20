@@ -104,7 +104,7 @@ package weave.visualization.plotters
 		}
 		// the private plotter being simplified
 		public function get defaultScreenRadius():LinkableNumber {return circlePlotter.defaultScreenRadius;}
-		private function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
+		public function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
 		public function get enabledSizeBy():LinkableBoolean {return circlePlotter.enabledSizeBy; }
 		public function get minScreenRadius():LinkableNumber { return circlePlotter.minScreenRadius; }
 		public function get maxScreenRadius():LinkableNumber { return circlePlotter.maxScreenRadius; }

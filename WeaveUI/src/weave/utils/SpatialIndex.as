@@ -151,6 +151,11 @@ package weave.utils
 					{
 						var geoms:Array = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 						_keyToGeometriesMap[key] = geoms;
+//						var geomsCollectiveBounds:IBounds2D = new Bounds2D();
+//						for each (var geom:SimpleGeometry in geoms)
+//						{
+//							geomsCollectiveBounds.includeBounds(geom.bounds);
+//						}
 					}
 						
 				}
@@ -312,7 +317,7 @@ package weave.utils
 						var genGeomIsPoly:Boolean = genGeom.isPolygon();
 						var genGeomIsLine:Boolean = genGeom.isLine();
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
-						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, bounds);
+						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance);
 						
 						// for each part, build the vertices polygon and check for the overlap
 						for (var iPart:int = 0; iPart < simplifiedGeom.length; ++iPart)
@@ -502,7 +507,6 @@ package weave.utils
 							var genGeomIsLine:Boolean = genGeom.isLine();
 							var genGeomIsPoint:Boolean = genGeom.isPoint();
 							var genGeomBounds:IBounds2D = genGeom.bounds;
-							
 							var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
 							
 							for (var i:int = 0; i < simplifiedGeom.length; ++i)

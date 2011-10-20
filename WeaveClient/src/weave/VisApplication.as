@@ -154,6 +154,7 @@ package weave
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.Histogram2DTool;
+	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.HistogramTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;

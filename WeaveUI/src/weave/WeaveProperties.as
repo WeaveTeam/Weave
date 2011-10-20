@@ -24,6 +24,7 @@ package weave
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
@@ -34,6 +35,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
+	import weave.core.LinkableFunction;
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
@@ -62,16 +64,8 @@ package weave
 			// register all properties as children of this object
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
-			
-			rServiceURL.addImmediateCallback(null, handleRServiceURLChange);
 		}
 		
-		private function handleRServiceURLChange():void
-		{
-			if (rServiceURL.value == '/WeaveServices')
-				rServiceURL.value += '/RService';
-		}
-
 		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
 		public static const DEFAULT_FONT_SIZE:Number = 10;
 		public static const DEFAULT_AXIS_FONT_SIZE:Number = 11;
@@ -116,6 +110,7 @@ package weave
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu
 		public const enableAdd2DHistogram:LinkableBoolean = new LinkableBoolean(true); // Add 2D Histogram option tools menu
 		public const enableAddTimeSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Time Slider Tool option tools menu
+		public const enableAddGraphTool:LinkableBoolean = new LinkableBoolean(true); // Add Graph Tool option tools menu
 		public const enableAddPieChart:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
 		public const enableAddPieChartHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
 		public const enableAddLineChart:LinkableBoolean = new LinkableBoolean(true); // Add Line Chart option tools menu
@@ -183,6 +178,7 @@ package weave
 		public const enableSaveCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Save Current Selection option
 		public const enableClearCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Clear Current Selection option
 		public const enableManageSavedSelections:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage Saved Selections option
+		public const enableSelectionSelectorBox:LinkableBoolean = new LinkableBoolean(true); //enable/disable SelectionSelector option
 		
 		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subsets Menu
 		public const enableCreateSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Create subset from selected records option
@@ -190,7 +186,7 @@ package weave
 		public const enableShowAllRecords:LinkableBoolean = new LinkableBoolean(true);// enable/disable Show All Records option
 		public const enableSaveCurrentSubset:LinkableBoolean = new LinkableBoolean(true);// enable/disable Save current subset option
 		public const enableManageSavedSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage saved subsets option
-		
+		public const enableSubsetSelectionBox:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subset Selection Combo Box option
 		public const enableAddDataSource:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage saved subsets option
 		public const enableEditDataSource:LinkableBoolean = new LinkableBoolean(true);
 		
@@ -290,9 +286,15 @@ package weave
 		public const toolInteractions:InteractionController = new InteractionController();
 		
 		// temporary?
-		public const rServiceURL:LinkableString = new LinkableString("/WeaveServices/RService");// url of Weave R service using Rserve
+		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const jriServiceURL:LinkableString = new LinkableString("/WeaveServices/JRIService");// url of Weave R service using JRI
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
+		
+		private function handleRServiceURLChange():void
+		{
+			if (rServiceURL.value == '/WeaveServices')
+				rServiceURL.value += '/RService';
+		}
 		
 		//default URL
 		public const searchServiceURLs:LinkableString = new LinkableString(WIKIPEDIA_URL+"\n"+GOOGLE_URL+"\n"+GOOGLE_IMAGES_URL+"\n"+GOOGLE_MAPS_URL);
@@ -325,6 +327,9 @@ package weave
 				WeaveAPI.ErrorManager.reportError(e);
 			}
 		}
+		
+		public function get macroLibraries():LinkableString { return LinkableFunction.libraries; }
+		public function get macros():ILinkableHashMap { return LinkableFunction.macros; }
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY

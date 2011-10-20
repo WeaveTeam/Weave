@@ -101,6 +101,7 @@
 			import weave.api.getLinkableOwner;
 			import weave.api.getLinkableRoot;
 			import weave.api.linkBindableProperty;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
@@ -108,6 +109,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -292,7 +294,7 @@
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
 				titleBar.addEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
 				
-				minWidth  = 120;
+				minWidth = 120;
 				
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
@@ -312,32 +314,27 @@
 			// this gets called when panelTitle changes
 			protected function handlePanelTitleChange():void
 			{
-				_panelTitleFunction = null;
 				if (panelTitle.value)
 				{
-					try
-					{
-						var str:String = '`' + panelTitle.value.split('`').join('\\`') + '`';
-						_panelTitleFunction = compiler.compileToFunction(str, null, true, true);
-						evaluatePanelTitle();
-					}
-					catch (e:Error)
-					{
-						//WeaveAPI.ErrorManager.reportError(e);
-						title = panelTitle.value;
-					}
+					panelTitleFunction.value = '`' + panelTitle.value.split('`').join('\\`') + '`';
+					evaluatePanelTitle();
 				}
 			}
-			private static const compiler:Compiler = new Compiler(); // this is used in handlePanelTitleChange()
-			{ /** begin static code block **/
-				compiler.includeLibraries(WeaveAPI);
-			} /** end static code block **/
-			private var _panelTitleFunction:Function = null; // this gets set inside handlePanelTitle()
+			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(true, true)); // this is used in handlePanelTitleChange()
+
 			// this gets called as a grouped callback when Weave.root changes and whenever panelTitle can be compiled to a function
 			private function evaluatePanelTitle():void
 			{
-				if (_panelTitleFunction != null)
-					title = _panelTitleFunction.apply(this);
+				try
+				{
+					if (panelTitle.value)
+						title = panelTitleFunction.apply(this);
+				}
+				catch (e:Error)
+				{
+					//WeaveAPI.ErrorManager.reportError(e);
+					title = panelTitle.value;
+				}
 			}
 
 			private function handleTitleColorChange():void
@@ -546,6 +543,7 @@
 				
 				invalidateSize();
 				invalidateDisplayList();
+				updateBorders();
 			}
 
 			/**
@@ -666,7 +664,7 @@
 			public function updateBorders():void
 			{
     			if (!parent)
-    				return;
+    				return callLater(updateBorders);
 				
 				styleChanged("headerHeight");
 				notifyStyleChangeInChildren("headerHeight", true);

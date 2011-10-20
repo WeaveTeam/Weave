@@ -170,8 +170,8 @@ public class DataService extends GenericServlet
 			boolean hasSecondaryKey = true;
 			
 			// use config min,max or param min,max to filter the data
-			String infoMinStr = info.metadata.get(Metadata.MIN.toString());
-			String infoMaxStr = info.metadata.get(Metadata.MAX.toString());
+			String infoMinStr = info.getMetadata(Metadata.MIN.toString());
+			String infoMaxStr = info.getMetadata(Metadata.MAX.toString());
 			double minValue = Double.NEGATIVE_INFINITY;
 			double maxValue = Double.POSITIVE_INFINITY;
 			// first try parsing config min,max values
@@ -315,8 +315,8 @@ public class DataService extends GenericServlet
 		boolean hasSecondaryKey = true;
 		
 		// use config min,max or param min,max to filter the data
-		String infoMinStr = info.metadata.get(Metadata.MIN.toString());
-		String infoMaxStr = info.metadata.get(Metadata.MAX.toString());
+		String infoMinStr = info.getMetadata(Metadata.MIN.toString());
+		String infoMaxStr = info.getMetadata(Metadata.MAX.toString());
 		double minValue = Double.NEGATIVE_INFINITY;
 		double maxValue = Double.POSITIVE_INFINITY;
 		// first try parsing config min,max values
@@ -340,7 +340,10 @@ public class DataService extends GenericServlet
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
 			if (dataType.length() == 0)
+			{
 				dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
+				info.metadata.put(Metadata.DATATYPE.toString(), dataType); // fill in missing metadata for the client
+			}
 			if (dataType.equalsIgnoreCase(DataType.NUMBER.toString())) // special case: "number" => Double
 				numericData = new ArrayList<Double>();
 			else // for every other dataType, use String

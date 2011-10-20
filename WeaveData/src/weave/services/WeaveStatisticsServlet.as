@@ -21,6 +21,7 @@ package weave.services
 {
 	import mx.rpc.AsyncToken;
 	
+	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IWeaveStatisticsService;
 	import weave.utils.ByteArrayUtils;
 

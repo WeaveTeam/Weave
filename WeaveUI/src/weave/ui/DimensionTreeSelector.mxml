@@ -34,7 +34,7 @@ Displays catoegories in a tree view and the attributes in a list.
 	>
 
 	<mx:VBox width="100%" height="100%" id="categoryVBox" verticalScrollPolicy="off" horizontalScrollPolicy="off">
-		<mx:Tree width="100%" height="100%" id="categoriesView" showRoot="false" showDataTips="true" dataTipFunction="getCategoryLabel" change="handleCategoryClick(true)"/>
+		<mx:Tree width="100%" height="100%" id="categoriesView" showRoot="false" showDataTips="true" dataTipFunction="getCategoryLabel" mouseDown="handleCategoryClick(true)" change="handleCategoryClick(true)"/>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%" id="attributeVBox" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<mx:List width="100%" height="100%" id="attributesView" showDataTips="true" dataTipFunction="getLabelForNode" labelFunction="getLabelForNode" mouseDown="handleAttributeClick(event)" change="handleAttributeClick(event)"/>

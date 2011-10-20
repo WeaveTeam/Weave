@@ -49,20 +49,20 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-			import weave.api.copySessionState;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.core.Application;
 			import mx.events.CollectionEvent;
 			import mx.events.CollectionEventKind;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.data.KeySets.KeySet;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
+			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
 			import weave.ui.controlBars.WeaveMenuItem;
 			
@@ -134,6 +134,16 @@
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 
+				if(Weave.properties.enableSelectionSelectorBox.value)
+				{
+					clickFunction = function():void
+					{
+						Weave.root.requestObject("SelectionSelector", SelectionSelector, false);
+					};
+					menuItem = new WeaveMenuItem("Selection Selector Tool", clickFunction);
+					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
+				}
+				
 				var selections:Array = savedSelectionsMap.getObjects();
 				if (selections.length > 0)
 					parentMenu.addSeparatorToMenu(destinationMenu);
@@ -218,6 +228,9 @@
 						return;
 					
 					savedSelectionsMap.copyObject(e.textInput, globalSelection);
+					var _selectionSelector:SelectionSelector = Weave.root.getObject("SelectionSelector") as SelectionSelector;
+					if( _selectionSelector )
+						_selectionSelector.setSelectionsSelectorIndex(e.textInput);
 				});
 			}
 		]]>

@@ -121,6 +121,13 @@
 	public function addCallbacks():void { }
 
 	//class methods that are common to all SliderTools
+			
+	public function get sliderValue():String
+	{
+		if (dimensionSlider.value == -1)
+			return null;
+		return dimensionSlider.labels[dimensionSlider.value];
+	}
 	
 	private function initializeLabels():void
 	{

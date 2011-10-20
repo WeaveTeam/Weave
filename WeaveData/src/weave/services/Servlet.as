@@ -19,11 +19,13 @@
 
 package weave.services
 {
+	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.mx_internal;
@@ -133,10 +135,31 @@ package weave.services
 			var token:AsyncToken = new AsyncToken();
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
+			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
 			return token;
 		}
 		
+		/**
+		 * Cancel a URLLoader request from a given AsyncToken.
+		 * This function should be used with care because multiple requests for the same URL
+		 * may all be cancelled by one client.
+		 *  
+		 * @param asyncToken The corresponding AsyncToken.
+		 */		
+		public function cancelLoaderFromToken(asyncToken:AsyncToken):void
+		{
+			var loader:URLLoader = _asyncTokenToLoader[asyncToken];
+			
+			if (loader)
+				loader.close();
+		}
+		
+		/**
+		 * This is a mapping of AsyncToken objects to URLLoader objects. 
+		 * This mapping is necessary so a client with an AsyncToken can cancel the loader. 
+		 */		
+		private const _asyncTokenToLoader:Dictionary = new Dictionary();
+				
 		private function resultHandler(event:ResultEvent, token:Object = null):void
 		{
 			(token as AsyncToken).mx_internal::applyResult(event);

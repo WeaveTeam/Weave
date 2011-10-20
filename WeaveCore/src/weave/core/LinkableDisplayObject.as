@@ -244,7 +244,7 @@ package weave.core
 		 */
 		private function generateEventListener(script:String):Function
 		{
-			var compiledFunction:Function = compiler.compileToFunction("event = arguments[0]; " + script, symbolTable, false, true);
+			var compiledFunction:Function = compiler.compileToFunction(script, symbolTable, false, true, ['event']);
 			return function(event:Event):void
 			{
 				symbolTable.event = event;
