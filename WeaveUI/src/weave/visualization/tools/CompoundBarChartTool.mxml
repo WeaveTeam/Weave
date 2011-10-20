@@ -129,6 +129,7 @@
 				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
 				linkBindableProperty(_plotter.groupingMode, mode, 'selectedValue');
 				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
+				_plotter.groupRecordsByColor.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
 			}
 			
@@ -138,7 +139,7 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [colorColumn,labelColumn, _plotter.sortColumn,_plotter.heightColumns,_plotter.positiveError,_plotter.negativeError];
+				return [_plotter.colorDataColumn, labelColumn, _plotter.sortColumn,_plotter.heightColumns,_plotter.positiveError,_plotter.negativeError];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -158,14 +159,7 @@
 				if (includeToolAttributesInProbe.value)
 				{
 					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
-					if (columns.length <= 1)
-					{
-						// get all ReferencedColumn objects
-						var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(_plotter.colorColumn, ReferencedColumn);
-						for each (var col:IAttributeColumn in refCols)
-							columns.unshift(col);
-					}
-					columns.unshift(labelColumn, _plotter.sortColumn);
+					columns.unshift(_plotter.colorDataColumn, labelColumn, _plotter.sortColumn);
 					columns.push(_plotter.positiveError, _plotter.negativeError);
 					visualization.additionalProbeColumns = columns;
 				}
@@ -312,13 +306,6 @@
 				return labelColumn.getValueFromKey(sortedKeys[sortedKeyIndex], String);
 			}
 			
-			public function get colorColumn():DynamicColumn
-			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
-			}
-				
-		
 			private function alphaSliderFormatFunction(item:Number):String {
 				//return int(100 - (item * 100)) + "% Transparent";
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
@@ -328,15 +315,15 @@
 			{
 				if (!parent)
 					return callLater(updateInteractivity);
-				if (_plotter.heightColumns.getNames().length > 1)
+				var _heightColumns:Array = _plotter.heightColumns.getObjects();
+				
+				colorModeCheckBox.enabled = _heightColumns.length <= 1;
+				if (_heightColumns.length > 1 || _plotter.groupRecordsByColor.value)
 				{
 					cRampEditor.enabled = true;
 					mode.enabled = true;
-					if (groupedRadioButton.selected) 
-						showValueLabelsCheckBox.enabled = true;
-					else 
-						showValueLabelsCheckBox.enabled = false;
-					colorColumInput.enabled = false;
+					showValueLabelsCheckBox.enabled = groupedRadioButton.selected;
+					colorColumInput.enabled = true;
 				}
 				else
 				{
@@ -359,15 +346,15 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes">
-			
-			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
+			<mx:CheckBox id="colorModeCheckBox" label="Group records by color" initialize="linkBindableProperty(_plotter.groupRecordsByColor, colorModeCheckBox, 'selected');"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.colorDataColumn"
 									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
 			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" id="dimensionsList" initialize="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 		</mx:VBox>
 		
-		<mx:VBox id="cRamp" label="Bar Properties">
+		<mx:VBox label="Bar Properties">
 			<mx:Button id="Legend" label="legend" click="Legend_clickHandler(event)"/>
 			<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
 						 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
