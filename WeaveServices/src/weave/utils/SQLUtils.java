@@ -36,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -481,7 +482,7 @@ public class SQLUtils
 			Connection conn,
 			String fromSchema,
 			String fromTable,
-			Map<String,String> whereParams
+			Map<String,Object> whereParams
 		) throws SQLException
 	{
 		return getRecordsFromQuery(conn, null, fromSchema, fromTable, whereParams);
@@ -550,7 +551,7 @@ public class SQLUtils
 			List<String> selectColumns,
 			String fromSchema,
 			String fromTable,
-			Map<String,String> whereParams
+			Map<String,Object> whereParams
 		) throws SQLException
 	{
 		CallableStatement cstmt = null;
@@ -571,7 +572,7 @@ public class SQLUtils
 			
 			// build WHERE clause
 			String whereQuery;
-			whereQuery = buildWhereClause(conn, whereParams);
+			whereQuery = buildWhereClause(conn, whereParams.keySet());
 			
 			// build complete query
 			query = String.format(
@@ -584,12 +585,12 @@ public class SQLUtils
 			
 			// set query parameters
 			int i = 1;
-			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
+			Iterator<Entry<String,Object>> paramsIter = whereParams.entrySet().iterator();
 			while (paramsIter.hasNext())
 			{
-				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
-				String value = pairs.getValue();
-				cstmt.setString( i, value );
+				Map.Entry<String, Object> pairs = (Map.Entry<String,Object>)paramsIter.next();
+				Object value = pairs.getValue();
+				cstmt.setObject( i, value );
 				i++;
 			}
 			
@@ -1004,6 +1005,15 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
+        private static String buildWhereClause(Connection conn, Collection<String> columns) /* Only for prepared case */ throws IllegalArgumentException, SQLException
+        {
+                Map<String,String> whereClauses = new HashMap<String,String>();
+                for (String key : columns)
+                {
+                    whereClauses.put(key, "");
+                }
+                return buildWhereClause(conn, whereClauses);
+        }
 	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
 	{
 		return buildWhereClause(conn, whereClauses, false, true);
@@ -1043,6 +1053,15 @@ public class SQLUtils
             }
             return result.toString();
         }
+        private static String stringMult(String separator, String item, Integer repeat)
+        {
+            ArrayList<String> items = new ArrayList(repeat);
+            for (int i = 0; i < repeat; i++)
+            {
+                items.add(item);
+            }
+            return stringJoin(separator, items);
+        }
         private static String buildPredicate(Connection conn, Entry<String, String> pair) throws SQLException
         {
             return buildPredicate(conn, pair.getKey(), pair.getValue());
@@ -1077,11 +1096,38 @@ public class SQLUtils
             }
             return orderedEntries;
         }
-        public static List<String> insertOnDuplicate(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
+        public static Map<Integer,Map<String,String>> idInSelect(Connection conn, String table, String idColumn, String propColumn, String dataColumn, Collection<Integer> ids, Collection<String> props) throws SQLException
         {
-            return null; // TODO
-        }
+            //TODO: Clean this up, make it more generic.
+            Map<Integer,Map<String,String>> results = new HashMap<Integer,Map<String,String>>();
+            String idBlock = "("+stringMult(",", "?", ids.size())+")";
+            String propBlock = "("+stringMult(",","?", props.size())+")";
+            String query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s AND %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
+            quoteSymbol(conn, table), quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
+            PreparedStatement stmt = conn.prepareStatement(query);
+            int i=1;
+            for (Integer val : ids)
+            {
+                results.put(val, new HashMap<String,String>());
+                stmt.setInt(i,val);
+                i++;
+            }
+            for (String val : props)
+            {
+                stmt.setString(i,val);
+                i++;
+            }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next())
+            {
+                Integer id = rs.getInt(idColumn);
+                String prop = rs.getString(propColumn);
+                String value = rs.getString(dataColumn);
+                results.get(id).put(prop, value);
+            }
 
+            return results;
+        }
         public static List<String> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
         {
             // Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for, this will only be two entries long, but this covers the general case.
@@ -1117,6 +1163,7 @@ public class SQLUtils
             }
 
             rs = stmt.executeQuery();
+            /* Incomplete */
             return results;
         }
         public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data) throws SQLException
