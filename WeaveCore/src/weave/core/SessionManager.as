@@ -631,7 +631,7 @@ package weave.core
 		/**
 		 * This function checks if an object has been disposed of by SessionManager.
 		 * @param object An object to check.
-		 * @return true if SsessionManager.dispose() was called for the specified object.
+		 * @return true if SessionManager.dispose() was called for the specified object.
 		 * 
 		 */
 		public function objectWasDisposed(object:Object):Boolean
@@ -1002,6 +1002,13 @@ package weave.core
 			// a function that takes zero parameters and sets the bindable value.
 			var setBindableProperty:Function = function(callingLater:Boolean = false):void
 			{
+				// unlink if linkableVariable was disposed of
+				if (objectWasDisposed(linkableVariable))
+				{
+					unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
+					return;
+				}
+				
 				var uiComponent:UIComponent = bindableParent as UIComponent;
 				if (uiComponent)
 				{
