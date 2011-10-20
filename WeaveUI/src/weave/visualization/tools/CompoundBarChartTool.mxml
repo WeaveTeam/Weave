@@ -258,7 +258,7 @@
 				}
 
 				barAxisLayer.axisPlotter.setLabelFunction(sortAxisLabelFunction);
-				sizeAxisLayer.axisPlotter.setLabelFunction(null);
+				sizeAxisLayer.axisPlotter.setLabelFunction(heightAxisLabelFunction);
 				
 				
 				// size axis uses automatic min,max based on data
@@ -280,16 +280,16 @@
 				
 				xAxisLayer.axisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
 				yAxisLayer.axisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
-				yAxisLayer.axisPlotter.setLabelFunction(addPercentLabel);
 			}
 			
-			//add a percent sign to the Y-axis label if bars are stacked to 100%
-			private function addPercentLabel(value:Number):String
+			private function heightAxisLabelFunction(value:Number):String
 			{
-				if (_plotter.getActualGroupingMode() == CompoundBarChartPlotter.PERCENT_STACK && _plotter.heightColumns.getNames().length > 1)
-					return value.toString() + '%';
-				else
-					return value.toString();
+				var _heightColumns:Array = _plotter.heightColumns.getObjects();
+				if (_plotter.getActualGroupingMode() == CompoundBarChartPlotter.PERCENT_STACK && _heightColumns.length > 1)
+					return value + '%';
+				else if (_heightColumns.length == 1)
+					return ColumnUtils.deriveStringFromNumber(_heightColumns[0], value);
+				return null;
 			}
 			
 			private function sortAxisLabelFunction(value:Number):String
