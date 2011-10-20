@@ -61,10 +61,10 @@
 			{
 				if (tool)
 				{
-					linkBindableProperty(tool.visualization.xMinOverride, xMinTxt, 'text');
-					linkBindableProperty(tool.visualization.yMinOverride, yMinTxt, 'text');
-					linkBindableProperty(tool.visualization.xMaxOverride, xMaxTxt, 'text');
-					linkBindableProperty(tool.visualization.yMaxOverride, yMaxTxt, 'text');
+					linkBindableProperty(tool.visualization.overrideXMin, xMinTxt, 'text');
+					linkBindableProperty(tool.visualization.overrideYMin, yMinTxt, 'text');
+					linkBindableProperty(tool.visualization.overrideXMax, xMaxTxt, 'text');
+					linkBindableProperty(tool.visualization.overrideYMax, yMaxTxt, 'text');
 				}
 			}
 		]]>

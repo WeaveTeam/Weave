@@ -86,10 +86,10 @@ package weave.visualization.layers
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
 		public const includeNonSelectableLayersInAutoZoom:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 
-		public const xMinOverride:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
-		public const yMinOverride:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
-		public const xMaxOverride:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
-		public const yMaxOverride:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		public const overrideXMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		public const overrideYMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		public const overrideXMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		public const overrideYMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
 		
 		/**
 		 * This is the collective data bounds of all the selectable plot layers.
@@ -176,14 +176,14 @@ package weave.visualization.layers
 				if (!fullDataBounds.isEmpty())
 				{
 					tempDataBounds.copyFrom(fullDataBounds);
-					if (isFinite(xMinOverride.value))
-						tempDataBounds.setXMin(xMinOverride.value);
-					if (isFinite(xMaxOverride.value))
-						tempDataBounds.setXMax(xMaxOverride.value);
-					if (isFinite(yMinOverride.value))
-						tempDataBounds.setYMin(yMinOverride.value);
-					if (isFinite(yMaxOverride.value))
-						tempDataBounds.setYMax(yMaxOverride.value);
+					if (isFinite(overrideXMin.value))
+						tempDataBounds.setXMin(overrideXMin.value);
+					if (isFinite(overrideXMax.value))
+						tempDataBounds.setXMax(overrideXMax.value);
+					if (isFinite(overrideYMin.value))
+						tempDataBounds.setYMin(overrideYMin.value);
+					if (isFinite(overrideYMax.value))
+						tempDataBounds.setYMax(overrideYMax.value);
 					if (enableFixedAspectRatio.value)
 					{
 						var xScale:Number = tempDataBounds.getWidth() / tempScreenBounds.getXCoverage();

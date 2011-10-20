@@ -26,6 +26,7 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.charts.AxisLabel;
 			import mx.events.FlexEvent;
 			
 			import weave.Weave;
@@ -88,6 +89,16 @@
 					];
 				for each (var object:ILinkableObject in objects)
 					getCallbackCollection(object).addGroupedCallback(this, updateAxisLabels, true);
+				
+				for each (var override:ILinkableObject in [
+						visualization.overrideXMin,
+						visualization.overrideYMin,
+						visualization.overrideXMax,
+						visualization.overrideYMax])
+				{
+					for each (var axis:AxisLayer in [xAxisLayer, yAxisLayer])
+						getCallbackCollection(override).addImmediateCallback(this, axis.axisPlotter.spatialCallbacks.triggerCallbacks);
+				}
 
 				showAllLabels.value = false;
 
@@ -98,13 +109,9 @@
 				
 				visualization.enableZoomAndPan.value = false;
 
-				
-				
 				visualization.enableXAxisProbing = true;
 				visualization.enableYAxisProbing = true;
 				
-				//BEGIN TEMPORARY SOLUTION
-				// END TEMPORARY SOLUTION
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [true]);
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [false]);
 				
@@ -174,7 +181,7 @@
 			
 			private function handleAxisClick(isXAxis:Boolean):void
 			{
-				if ((isXAxis ?1:0) ^ (_plotter.horizontalMode.value ?1:0)) // xor
+				if (isXAxis != _plotter.horizontalMode.value)
 					AttributeSelectorPanel.openToolSelector(this,_plotter.sortColumn);
 				else
 					AttributeSelectorPanel.openToolSelector(this,_plotter.heightColumns);
