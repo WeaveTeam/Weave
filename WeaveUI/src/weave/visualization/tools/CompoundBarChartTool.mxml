@@ -214,22 +214,22 @@
 				
 				var heightColumns:Array = _plotter.heightColumns.getObjects();
 				
-				var barAxisTitle:String = "Sorted by " + ColumnUtils.getTitle(_plotter.sortColumn);
-				var sizeAxisTitle:String = '';
+				var sortAxisTitle:String = "Sorted by " + ColumnUtils.getTitle(_plotter.sortColumn);
+				var heightAxisTitle:String = '';
 				for (var i:int = heightColumns.length - 1; i >= 0; i--) // reverse order
 				{
-					sizeAxisTitle += ColumnUtils.getTitle(heightColumns[i] as IAttributeColumn);
+					heightAxisTitle += ColumnUtils.getTitle(heightColumns[i] as IAttributeColumn);
 					if (i > 0)
-						sizeAxisTitle += ', ';
+						heightAxisTitle += ', ';
 				}
-				if (sizeAxisTitle == '')
-					sizeAxisTitle = "Click to select...";
+				if (heightAxisTitle == '')
+					heightAxisTitle = "Click to select...";
 
-				var sizeAxisToolTipColumn:IAttributeColumn = heightColumns.length > 0 ? heightColumns[0] : null;
-				var barAxisToolTipColumn:IAttributeColumn = _plotter.sortColumn;
+				var sortAxisToolTipColumn:IAttributeColumn = _plotter.sortColumn;
+				var heightAxisToolTipColumn:IAttributeColumn = heightColumns.length > 0 ? heightColumns[0] : null;
 				
-				var barAxisLayer:AxisLayer;
-				var sizeAxisLayer:AxisLayer;
+				var sortAxisLayer:AxisLayer;
+				var heightAxisLayer:AxisLayer;
 				
 				var xAxisTitle:String; // title for x axis, whether or not horizontal mode is on
 				var yAxisTitle:String; // title for y axis, whether or not horizontal mode is on
@@ -238,43 +238,43 @@
 				
 				if (_plotter.horizontalMode.value)
 				{
-					barAxisLayer = yAxisLayer;
-					yAxisTitle = barAxisTitle;
-					visualization.setYAxisColumn(barAxisToolTipColumn);
+					yAxisTitle = sortAxisTitle;
+					sortAxisLayer = yAxisLayer;
+					visualization.setYAxisColumn(sortAxisToolTipColumn);
 					
-					sizeAxisLayer = xAxisLayer;
-					xAxisTitle = sizeAxisTitle;
-					visualization.setXAxisColumn(sizeAxisToolTipColumn);
+					heightAxisLayer = xAxisLayer;
+					xAxisTitle = heightAxisTitle;
+					visualization.setXAxisColumn(heightAxisToolTipColumn);
 				}
 				else
 				{
-					xAxisTitle = barAxisTitle;
-					barAxisLayer = xAxisLayer;
-					visualization.setXAxisColumn(barAxisToolTipColumn);
+					xAxisTitle = sortAxisTitle;
+					sortAxisLayer = xAxisLayer;
+					visualization.setXAxisColumn(sortAxisToolTipColumn);
 					
-					yAxisTitle = sizeAxisTitle;
-					sizeAxisLayer = yAxisLayer;
-					visualization.setYAxisColumn(sizeAxisToolTipColumn);
+					yAxisTitle = heightAxisTitle;
+					heightAxisLayer = yAxisLayer;
+					visualization.setYAxisColumn(heightAxisToolTipColumn);
 				}
 
-				barAxisLayer.axisPlotter.setLabelFunction(sortAxisLabelFunction);
-				sizeAxisLayer.axisPlotter.setLabelFunction(heightAxisLabelFunction);
+				sortAxisLayer.axisPlotter.setLabelFunction(sortAxisLabelFunction);
+				heightAxisLayer.axisPlotter.setLabelFunction(heightAxisLabelFunction);
 				
 				
-				// size axis uses automatic min,max based on data
-				sizeAxisLayer.axisPlotter.tickMinValue.value = NaN;
-				sizeAxisLayer.axisPlotter.tickMaxValue.value = NaN;
-				sizeAxisLayer.axisPlotter.forceTickCount.value = false;
-				sizeAxisLayer.axisPlotter.tickCountRequested.value = sizeAxisTickCountRequested.value;
+				// height axis uses automatic min,max based on data
+				heightAxisLayer.axisPlotter.tickMinValue.value = NaN;
+				heightAxisLayer.axisPlotter.tickMaxValue.value = NaN;
+				heightAxisLayer.axisPlotter.forceTickCount.value = false;
+				heightAxisLayer.axisPlotter.tickCountRequested.value = sizeAxisTickCountRequested.value;
 
-				// bar axis auto min,max would be -0.5, numBars-0.5.  we don't want that.
-				barAxisLayer.axisPlotter.tickMinValue.value = 0;
-				barAxisLayer.axisPlotter.tickMaxValue.value = _plotter.numBarsShown - 1;
-				barAxisLayer.axisPlotter.forceTickCount.value = showAllLabels.value;
+				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
+				sortAxisLayer.axisPlotter.tickMinValue.value = 0;
+				sortAxisLayer.axisPlotter.tickMaxValue.value = _plotter.numBarsShown - 1;
+				sortAxisLayer.axisPlotter.forceTickCount.value = showAllLabels.value;
 				if (showAllLabels.value)
-					barAxisLayer.axisPlotter.tickCountRequested.value = _plotter.numBarsShown;
+					sortAxisLayer.axisPlotter.tickCountRequested.value = _plotter.numBarsShown;
 				else
-					barAxisLayer.axisPlotter.tickCountRequested.value = Math.min(_plotter.numBarsShown, 11);
+					sortAxisLayer.axisPlotter.tickCountRequested.value = Math.min(_plotter.numBarsShown, 11);
 				
 				// END handling of horizontal/vertical mode --------------------------------
 				
