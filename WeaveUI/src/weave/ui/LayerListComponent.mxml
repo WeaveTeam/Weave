@@ -31,11 +31,12 @@ LayerListComponent
 		 verticalGap="0"
 		 width="100%" height="100%"
 		 borderStyle="outset"
-		 label="Layers">
+		 label="Layers (BETA)">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
+			<mx:Button label="Add layer..." click="addLayer()"/>
 			<mx:Button label="Open editor..." click="openSelector()"/>
 		</mx:HBox>
 	</mx:HBox>
@@ -53,6 +54,7 @@ LayerListComponent
 			import mx.core.UIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
+			import mx.managers.PopUpManager;
 			
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
@@ -114,7 +116,12 @@ LayerListComponent
 			}
 			[Bindable] private var _dragMoveEnabled:Boolean = false;
 
-			
+			private function addLayer():void
+			{
+				var popup:* = PopUpManager.createPopUp(this, CustomLayerWindow);
+				(popup as CustomLayerWindow).targetTool = _visTool;
+				PopUpManager.centerPopUp(popup);
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

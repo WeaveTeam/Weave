@@ -1318,7 +1318,6 @@ package weave
 
 		
 		private var _printToolMenuItem:ContextMenuItem = null;
-		private var _newLayerItem:ContextMenuItem = null;
 		
 		/**
 		 * This function creates the context menu for this application by getting context menus from each
@@ -1373,8 +1372,6 @@ package weave
 				// one tool at a time)
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
-				
-				_newLayerItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Add custom layer", this, handleNewLayerOptionClicked);
 				
 				
 				// Add context menu items for handling search queries
@@ -1435,21 +1432,6 @@ package weave
 			{
 				_panelPrintContextMenuItem.caption = "Print/Export Panel Image...";
 				_panelPrintContextMenuItem.enabled = false;	
-			}
-		}
-		
-		private var _tool:SimpleVisTool = null;
-
-		private function handleNewLayerOptionClicked(event:ContextMenuEvent):void
-		{			
-			if((event.mouseTarget is IPlotLayer) || (event.mouseTarget is PlotLayerContainer))
-			{
-				var popup:* = PopUpManager.createPopUp(this, CustomLayerWindow);
-				(popup as CustomLayerWindow).targetTool = (_panelToExport as SimpleVisTool);
-				PopUpManager.centerPopUp(popup);
-			} else
-			{
-				Alert.show("Please right-click over a tool to add custom layers.");
 			}
 		}
 		

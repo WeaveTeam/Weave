@@ -972,7 +972,7 @@ package weave.core
 		 ******************************************************/
 		
 		
-		
+		private const _linkBindablePropertyLater:Dictionary = new Dictionary(true); // used by linkBindableProperty
 		
 		/**
 		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
@@ -1000,8 +1000,28 @@ package weave.core
 			}
 			
 			// a function that takes zero parameters and sets the bindable value.
-			var setBindableProperty:Function = function():void
+			var setBindableProperty:Function = function(callingLater:Boolean = false):void
 			{
+				var uiComponent:UIComponent = bindableParent as UIComponent;
+				if (uiComponent)
+				{
+					var obj:DisplayObject = uiComponent.getFocus();
+					if (obj && uiComponent.contains(obj))
+					{
+						// prevent multiple callLater calls to be queued.
+						if (!_linkBindablePropertyLater[uiComponent] || callingLater)
+						{
+							_linkBindablePropertyLater[uiComponent] = true;
+							uiComponent.callLater(setBindableProperty, [true]);
+						}
+						return;
+					}
+					else
+					{
+						delete _linkBindablePropertyLater[uiComponent];
+					}
+				}
+				
 				var value:Object = linkableVariable.getSessionState();
 				if ((bindableParent[bindablePropertyName] is Number) != (value is Number))
 				{

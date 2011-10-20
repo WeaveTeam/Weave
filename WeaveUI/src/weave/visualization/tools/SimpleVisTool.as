@@ -142,7 +142,6 @@ package weave.visualization.tools
 			layerSettings.percentHeight = layerSettings.percentWidth = 100;
 			
 			var layersList:LayerListComponent = new LayerListComponent();
-			layersList.label = "Layers";
 			layersList.visTool = this;
 			layersList.hashMap = visualization.layers;
 			
