@@ -203,8 +203,11 @@ public interface ISQLConfig
 		 * (columns->SQL queries, and geometry collections).
 		 */
 		public String connection;
-		public String schema, geometryConfigTable, dataConfigTable;
-		public String dataCategoryTable;
+		public String schema;
+		
+		public String geometryConfigTable, dataConfigTable; // not used in new implementation
+		
+		public String dataCategoryTable; // to be used with server-side hierarchy
 	}
 
 	/**

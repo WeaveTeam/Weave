@@ -35,23 +35,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Collection;
 
-import org.geotools.resources.Arguments;
 import org.postgresql.PGConnection;
-
-import com.mysql.jdbc.ResultSetMetaData;
 
 /**
  * SQLUtils
@@ -518,11 +515,11 @@ public class SQLUtils
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static List<Map<String,String>> getRecordsFromQuery(
+	public static <VALUE_TYPE> List<Map<String,String>> getRecordsFromQuery(
 			Connection conn,
 			String fromSchema,
 			String fromTable,
-			Map<String,Object> whereParams
+			Map<String,VALUE_TYPE> whereParams
 		) throws SQLException
 	{
 		return getRecordsFromQuery(conn, null, fromSchema, fromTable, whereParams);
@@ -586,12 +583,12 @@ public class SQLUtils
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static List<Map<String,String>> getRecordsFromQuery(
+	public static <VALUE_TYPE> List<Map<String,String>> getRecordsFromQuery(
 			Connection conn,
 			List<String> selectColumns,
 			String fromSchema,
 			String fromTable,
-			Map<String,Object> whereParams
+			Map<String,VALUE_TYPE> whereParams
 		) throws SQLException
 	{
 		CallableStatement cstmt = null;
@@ -625,11 +622,9 @@ public class SQLUtils
 			
 			// set query parameters
 			int i = 1;
-			Iterator<Entry<String,Object>> paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
+			for (Entry<String,VALUE_TYPE> entry : whereParams.entrySet())
 			{
-				Map.Entry<String, Object> pairs = (Map.Entry<String,Object>)paramsIter.next();
-				Object value = pairs.getValue();
+				Object value = entry.getValue();
 				cstmt.setObject( i, value );
 				i++;
 			}
@@ -1095,7 +1090,7 @@ public class SQLUtils
         }
         private static String stringMult(String separator, String item, Integer repeat)
         {
-            ArrayList<String> items = new ArrayList(repeat);
+            ArrayList<String> items = new ArrayList<String>(repeat);
             for (int i = 0; i < repeat; i++)
             {
                 items.add(item);
@@ -1151,7 +1146,6 @@ public class SQLUtils
             }
             else
             {
-                propBlock = "("+stringMult(",","?", props.size())+")";
                 query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
                 quoteSymbol(conn, table), quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, idColumn));
                 
@@ -1183,9 +1177,19 @@ public class SQLUtils
 
             return results;
         }
+        /**
+         * Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for,
+         * this will only be two entries long, but this covers the general case.
+         * @param conn
+         * @param schemaName
+         * @param table
+         * @param column The name of the column to return.
+         * @param columns A list of where parameters specified as Map entries.
+         * @return The values from the specified column.
+         * @throws SQLException
+         */
         public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
         {
-            // Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for, this will only be two entries long, but this covers the general case.
             PreparedStatement stmt = null;
             List<Integer> results = new LinkedList<Integer>();
             List<String> values = new LinkedList<String>();
@@ -1229,7 +1233,6 @@ public class SQLUtils
             PreparedStatement stmt = null;
             List<String> columns = new LinkedList<String>();
             List<Object> values = new LinkedList<Object>();
-            StringBuilder placeholder = new StringBuilder(data.size()*2);
             for (Entry<String,Object> entry : data.entrySet())
             {
                 columns.add(quoteSymbol(conn, entry.getKey()));
