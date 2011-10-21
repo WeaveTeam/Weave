@@ -41,9 +41,10 @@
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox>
 					<mx:Button label="Apply changes" click="overwrite()" />
-					<mx:Button id="deleteSelectionButton" label="Delete Selected Line(s)" click="deleteSelectedRows()" enabled="false" />
-					<mx:Button label="Delete entire DataTable" click="deleteDataTable()" />
-					<mx:Button label="Test Query" click = "testQueryButtonHandler()"/>
+					<mx:Button id="deleteSelectionButton" label="Delete selected line(s)" click="deleteSelectedRows()" enabled="false" />
+					<mx:Button label="Delete entire data table" click="deleteDataTable()" />
+					<mx:Button id="testQueryButton" label="Test query" click="testQueryButtonHandler()" enabled="false"/>
+					<mx:Button id="testAllQueriesButton" label="Test all queries" click="testAllQueries()" enabled="false"/>
 				</mx:HBox>
 				<mx:DataGrid id="tableEditor"
 								sortableColumns="false"
@@ -247,7 +248,7 @@
 				return ObjectUtil.stringCompare(a as String, b as String, true);
 			}
 			
-			private const preferredMetadataOrder:Array = "title,keyType,dataType,number,string,min,max,year,name,geometryCollection,dataTable,connection,sqlQuery".split(',');
+			private const preferredMetadataOrder:Array = "sqlResult,title,keyType,dataType,number,string,min,max,year,name,geometryCollection,dataTable,connection,sqlQuery".split(',');
 
 			private function getActiveDataTableName():String
 			{
@@ -384,11 +385,22 @@
 				for each (var item:Object in metadataArray)
 					delete item['mx_internal_uid'];
 				
+				var fieldNames:Array = setupDataGridColumns(metadataArray, tableEditor);
 				// generate CSV String
-				var fieldNames:Array = WeaveAPI.CSVParser.getRecordFieldNames(metadataArray, true);
-				fieldNames.sort(columnSort);
 				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(metadataArray, fieldNames, true)
 				textEditor.text = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+				
+				testAllQueriesButton.enabled = (metadataArray.length > 0);
+			}
+			
+			/**
+			 * This function will set up the columns in a data grid according to preferredMetadataOrder.
+			 * @return An array of sorted field names corresponding to the data grid columns.
+			 */
+			private function setupDataGridColumns(metadataArray:Array, dataGrid:DataGrid):Array
+			{
+				var fieldNames:Array = WeaveAPI.CSVParser.getRecordFieldNames(metadataArray, true);
+				fieldNames.sort(columnSort);
 				
 				// We want to re-order the columns in the DataGrid so the 'name' column appears first.
 				// The problem is, once we set the tableEditor.columns, they will never be generated automatically again.
@@ -396,7 +408,8 @@
 				var columns:Array = [];
 				for (var i:int = 0; i < fieldNames.length; i++)
 					columns.push(new DataGridColumn(fieldNames[i]));
-				tableEditor.columns = columns;
+				dataGrid.columns = columns;
+				return fieldNames;
 			}
 			
 			private function deleteSelectedRows():void
@@ -405,7 +418,10 @@
 				for (var i:int = 0; i < metadataArray.length; i++)
 				{
 					if (itemsToDelete.indexOf(metadataArray[i]) >= 0)
+					{
 						metadataArray.splice(i--, 1);
+						metaDataChanged = true;
+					}
 				}
 				// update tableEditor
 				tableEditor.dataProvider = metadataArray;
@@ -483,10 +499,9 @@
 			
 			private function handleTableSelectionChange():void
 			{
-				if( tableEditor.selectedItems.length > 0 )
-					deleteSelectionButton.enabled = true;
-				else
-					deleteSelectionButton.enabled = false;
+				var enable:Boolean = (tableEditor.selectedItems.length > 0);
+				deleteSelectionButton.enabled = enable;
+				testQueryButton.enabled = enable;
 			}
 
 			private function tableEditorKeyDownHandler(event:KeyboardEvent):void
@@ -646,6 +661,39 @@
 				}
 			}
 			
+			protected function testAllQueries():void
+			{
+				var weaveAdminService:WeaveAdminService = AdminInterface.instance.service;
+				var connectionName:String = AdminInterface.instance.activeConnectionName;
+				var password:String = AdminInterface.instance.activePassword;
+				var dataTableName:String = getCurrentTableName();
+				
+				weaveAdminService.testAllQueries(connectionName, password, dataTableName).addAsyncResponder(handleTestAllQueries, null, dataTableName);
+			}								
+			
+			private function handleTestAllQueries(event:ResultEvent, token:Object = null):void
+			{
+				var result:Array = event.result as Array;//array of AttributeColumnInfo objects returned
+				var metadataArray:Array = new Array(); //array of metadata of the columns returned
+				var fieldLookup:Object = {};
+				var fields:Array = [];
+				for (var i:int = 0; i < result.length; i++)
+				{
+					var item:AttributeColumnInfo = new AttributeColumnInfo(result[i]);
+					item.metadata.connection = item.connection;
+					item.metadata.sqlQuery = item.sqlQuery;
+					metadataArray.push(item.metadata);
+					for (var field:String in item.metadata)
+						if (!fieldLookup[field])
+							fieldLookup[field] = 1 + fields.push(field);
+				}
+				fields.sort(columnSort);
+				
+				var metadataPopup:ColumnMetadataPopup = PopUpUtils.createDisplayObjectAsPopUp(this, ColumnMetadataPopup) as ColumnMetadataPopup;	  
+				metadataPopup.popUpDataGrid.dataProvider = metadataArray;
+				var fieldNames:Array = setupDataGridColumns(metadataArray, metadataPopup.popUpDataGrid);
+				metadataPopup.title = metadataArray.length + " queries were tested in data table "+token;
+			}
 		]]>
 	</mx:Script>
 </mx:HDividedBox>

@@ -358,7 +358,13 @@ public interface ISQLConfig
 			
 			// TODO: TEMPORARY SOLUTION -- REMOVE THIS CODE AFTER SERVER REFACTORING
 			if (getMetadata(Metadata.TITLE.toString()).length() == 0)
-				metadata.put(Metadata.TITLE.toString(), getMetadata(Metadata.NAME.toString()));
+			{
+				String name = getMetadata(Metadata.NAME.toString());
+				String year = getMetadata(Metadata.YEAR.toString());
+				if (year != null && year.length() > 0)
+					name += " (" + year + ")";
+				metadata.put(Metadata.TITLE.toString(), name);
+			}
 		}
 
 		// returns a non-null value

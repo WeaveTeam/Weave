@@ -48,7 +48,6 @@
 						<managers:DataTableManager/>
 						<managers:GeometryCollectionManager/>
 						<managers:SQLConnectionManager id="sqlConnectionManager"/>
-						<managers:AdminToolsManager id="adminToolsManager"/>
 					</mx:TabNavigator>
 					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false"/>
 				</mx:VDividedBox>
@@ -119,12 +118,10 @@
 						if (isSuperuser)
 						{
 							tabNavigator.addChild(sqlConnectionManager);
-							tabNavigator.addChild(adminToolsManager);
 						}
 						else
 						{
 							tabNavigator.removeChild(sqlConnectionManager);
-							tabNavigator.removeChild(adminToolsManager);
 						}
 					}
 				}
