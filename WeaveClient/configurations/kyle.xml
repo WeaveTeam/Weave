@@ -108,7 +108,7 @@
     <probeToolTipBackgroundAlpha>1</probeToolTipBackgroundAlpha>
     <probeToolTipBackgroundColor>NaN</probeToolTipBackgroundColor>
     <probeToolTipFontColor>0</probeToolTipFontColor>
-    <rServiceURL>/WeaveServices/RService</rServiceURL>
+    <rServiceURL>http://demo.oicweave.org:8080/WeaveServices/RService</rServiceURL>
     <searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
 Google|http://www.google.com/search?q=
 Google Images|http://images.google.com/images?q=

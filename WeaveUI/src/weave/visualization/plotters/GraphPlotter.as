@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.graphs.IGraphAlgorithm;
@@ -70,7 +71,7 @@ package weave.visualization.plotters
 			registerLinkableChild(this, Weave.properties.axisFontUnderline);
 			registerLinkableChild(this, Weave.properties.axisFontSize);
 			registerLinkableChild(this, Weave.properties.axisFontColor);
-			setKeySource(nodesColumn);
+			setKeySource(nodesColumn.internalObject as IAttributeColumn);
 
 			layoutAlgorithm.requestLocalObject(ForceDirectedLayout, true);
 
@@ -203,7 +204,7 @@ package weave.visualization.plotters
 		public function continueComputation(keys:Array):void
 		{
 			if (!keys)
-				keys = nodesColumn.keys;
+				keys = (nodesColumn.internalObject as IAttributeColumn).keys;
 			
 			algorithmRunning.value = true;
 			if (!shouldStop.value)
@@ -227,7 +228,10 @@ package weave.visualization.plotters
 			layoutAlgorithm.requestLocalObject(newAlgorithm, true);
 			(layoutAlgorithm.internalObject as IGraphAlgorithm).initRService(Weave.properties.rServiceURL.value);
 			handleColumnsChange();
-			(layoutAlgorithm.internalObject as IGraphAlgorithm).setupData(nodesColumn, edgeSourceColumn, edgeTargetColumn);
+			(layoutAlgorithm.internalObject as IGraphAlgorithm).setupData(
+				nodesColumn.internalObject as IAttributeColumn, 
+				edgeSourceColumn.internalObject as IAttributeColumn, 
+				edgeTargetColumn.internalObject as IAttributeColumn);
 			spatialCallbacks.triggerCallbacks();
 			getCallbackCollection(this).triggerCallbacks();
 		}
@@ -240,13 +244,9 @@ package weave.visualization.plotters
 		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
 
 		public const sizeColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
-		public const nodesColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
-		public const edgeSourceColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(), handleColumnsChange);
-		public const edgeTargetColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(), handleColumnsChange);
-//		public const sizeColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());		
-//		public const nodesColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), handleColumnsChange);
-//		public const edgeSourceColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), handleColumnsChange);
-//		public const edgeTargetColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), handleColumnsChange);
+		public const nodesColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn));
+		public const edgeSourceColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn), handleColumnsChange);
+		public const edgeTargetColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn), handleColumnsChange);
 		public const labelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
 		public function get edgeColorColumn():AlwaysDefinedColumn { return lineStyle.color; }
 		
@@ -428,23 +428,30 @@ package weave.visualization.plotters
 		 */		
 		private function handleColumnsChange():void
 		{
+			if (!nodesColumn.internalObject || !edgeSourceColumn.internalObject || !edgeTargetColumn.internalObject)
+				return;
 			// set the keys
-			setKeySource(nodesColumn);
+			setKeySource(nodesColumn.internalObject as IAttributeColumn);
 			
 			// if we don't have the required keys, do nothing
-			if (nodesColumn.keys.length == 0 || edgeSourceColumn.keys.length == 0 || edgeTargetColumn.keys.length == 0)
+			if ((nodesColumn.internalObject as IAttributeColumn).keys.length == 0 || 
+				(edgeSourceColumn.internalObject as IAttributeColumn).keys.length == 0 || 
+				(edgeTargetColumn.internalObject as IAttributeColumn).keys.length == 0)
 				return;
-			if (edgeSourceColumn.keys.length != edgeTargetColumn.keys.length)
+			if ((edgeSourceColumn.internalObject as IAttributeColumn).keys.length != (edgeTargetColumn.internalObject as IAttributeColumn).keys.length)
 				return;
 			
 			// verify source and target column have same keytype
-			var sourceKey:IQualifiedKey = edgeSourceColumn.keys[0];
-			var targetKey:IQualifiedKey = edgeTargetColumn.keys[0];
+			var sourceKey:IQualifiedKey = (edgeSourceColumn.internalObject as IAttributeColumn).keys[0];
+			var targetKey:IQualifiedKey = (edgeTargetColumn.internalObject as IAttributeColumn).keys[0];
 			if (sourceKey.keyType != targetKey.keyType)
 				return;
 			
 			// setup the lookups and objects
-			(layoutAlgorithm.internalObject as IGraphAlgorithm).setupData(nodesColumn, edgeSourceColumn, edgeTargetColumn);
+			(layoutAlgorithm.internalObject as IGraphAlgorithm).setupData(
+				nodesColumn.internalObject as IAttributeColumn, 
+				edgeSourceColumn.internalObject as IAttributeColumn, 
+				edgeTargetColumn.internalObject as IAttributeColumn);
 
 			_iterations = 0;
 			
