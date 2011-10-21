@@ -545,7 +545,10 @@
 			private function updateColorPicker():void
 			{
 				if (!parent)
-					callLater(updateDisplayList);
+				{
+					callLater(updateColorPicker);
+					return;
+				}
 				
 				var fill:SolidFillStyle = plotter.circlePlotter.fillStyle.requestLocalObject(SolidFillStyle, false);
 				if ( showColorPicker.value )
