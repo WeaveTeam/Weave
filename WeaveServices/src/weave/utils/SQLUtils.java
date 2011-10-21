@@ -1207,10 +1207,25 @@ public class SQLUtils
                 flattenedMap.add(pairs);
             }
             // Construct the query with placeholders.
-            String query = String.format("SELECT %s FROM (%s, count(*) c FROM %s WHERE %s group by %s) result WHERE c = %d",
-                quoteSymbol(conn, column), quoteSymbol(conn, column), quoteSchemaTable(conn, schemaName, table),
-                buildDisjunctiveNormalForm(conn, flattenedMap),
-                columns.size());
+            String query;
+            String qColumn = quoteSymbol(conn, column);
+            String qTable = quoteSchemaTable(conn, schemaName, table);
+            if (columns.size() == 0)
+            {
+            	query = String.format("SELECT %s from %s group by %s", qColumn, qTable, qColumn);
+            }
+            else
+            {
+	            query = String.format(
+	            	"SELECT %s FROM (SELECT %s, count(*) c FROM %s WHERE %s group by %s) result WHERE c = %s",
+	                qColumn,
+	                qColumn,
+	                qTable,
+	                buildDisjunctiveNormalForm(conn, flattenedMap),
+	                qColumn,
+	                columns.size()
+	            );
+            }
             System.out.println(query);
             stmt = conn.prepareStatement(query);
 
@@ -1474,7 +1489,7 @@ public class SQLUtils
 	 * @param schemaName A schema name accessible through the given connection
 	 * @param tableName A table name existing in the given schema
 	 * @param columnArg	The name of the column to grab
-	 * @return A List of the column values from given table
+	 * @return A List of string values from the column
 	 * @throws SQLException If the query fails.
 	 */
 	public static List<String> getColumn(Connection conn, String schemaName, String tableName, String columnArg)
@@ -1489,9 +1504,9 @@ public class SQLUtils
 		{
 			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
 			
-			stmt = conn.createStatement();			//prepare the SQL statement
-			rs = stmt.executeQuery(query);			//execute the SQL statement
-			while (rs.next())						//peel off results into vector
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+			while (rs.next())
 				values.add(rs.getString(1));
 		}
 		catch (SQLException e)
@@ -1507,6 +1522,44 @@ public class SQLUtils
 		return values;
 	}
 		
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param schemaName A schema name accessible through the given connection
+	 * @param tableName A table name existing in the given schema
+	 * @param columnArg	The name of the integer column to grab
+	 * @return A List of integer values from the column
+	 * @throws SQLException If the query fails.
+	 */
+	public static List<Integer> getIntColumn(Connection conn, String schemaName, String tableName, String columnArg)
+	throws SQLException
+	{
+		List<Integer> values = new Vector<Integer>(); 	//Return value
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String query = "";
+		try
+		{
+			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
+			
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+			while (rs.next())
+				values.add(rs.getInt(1));
+		}
+		catch (SQLException e)
+		{
+			System.out.println(query);
+			throw e;
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+		return values;
+	}
+	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param schemaName A schema name accessible through the given connection

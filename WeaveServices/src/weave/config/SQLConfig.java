@@ -27,43 +27,41 @@ import org.w3c.dom.Document;
 
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.SQLConfigUtils.InvalidParameterException;
+import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
 
 /**
  * DatabaseConfig This class reads from an SQL database and provides an interface to retrieve strings.
  * 
- * @author Andrew Wilkinson
- * @author Andy Dufilie
  * @author Philip Kovac
- */
-
-/**
- * @author Andy
- *
+ * @author Andy Dufilie
  */
 public class SQLConfig
 		implements ISQLConfig
 {
-	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
-	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
-	private final String SQLTYPE_INT = "INT";
+//	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
+//	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
+//	private final String SQLTYPE_INT = "INT";
 	
-	private final String DESCRIPTION_TABLE_SUFFIX = "attr_desc";
-	private final String PRIVATE_TABLE_SUFFIX = "attr_meta_private";
-	private final String PUBLIC_TABLE_SUFFIX = "attr_meta_public";
-	private final String CATEGORY_TABLE_SUFFIX = "hierarchy";
+	private final String SUFFIX_DESC = "attr_desc";
+	private final String SUFFIX_META_PRIVATE = "attr_meta_private";
+	private final String SUFFIX_META_PUBLIC = "attr_meta_public";
+	private final String SUFFIX_HIERARCHY = "hierarchy";
 	private final String WEAVE_TABLE_PREFIX = "weave_";
 	
-	private String sqltable_desc = WEAVE_TABLE_PREFIX + DESCRIPTION_TABLE_SUFFIX;
-	private String sqltable_private = WEAVE_TABLE_PREFIX + PRIVATE_TABLE_SUFFIX;
-	private String sqltable_public = WEAVE_TABLE_PREFIX + PUBLIC_TABLE_SUFFIX;
-	private String sqltable_category = WEAVE_TABLE_PREFIX + CATEGORY_TABLE_SUFFIX;
+	private final String ID = "id";
+	private final String DESCRIPTION = "description";
+	private final String PROPERTY = "property";
+	private final String VALUE = "value";
+	
+	private String table_desc = WEAVE_TABLE_PREFIX + SUFFIX_DESC;
+	private String table_meta_private = WEAVE_TABLE_PREFIX + SUFFIX_META_PRIVATE;
+	private String table_meta_public = WEAVE_TABLE_PREFIX + SUFFIX_META_PUBLIC;
+	private String table_hierarchy = WEAVE_TABLE_PREFIX + SUFFIX_HIERARCHY;
 	
 	private DatabaseConfigInfo dbInfo = null;
 	private ISQLConfig connectionConfig = null;
-	private Connection _lastConnection = null; // do not use this variable
-												// directly -- use
-												// getConnection() instead.
+	private Connection _lastConnection = null; // do not use this variable directly -- use getConnection() instead.
 
 	/**
 	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
@@ -79,8 +77,7 @@ public class SQLConfig
 	}
 
 	/**
-	 * @param connectionConfig An ISQLConfig instance that contains connection information. This is required because the connection information is not
-	 *            stored in the database.
+	 * @param connectionConfig An ISQLConfig instance that contains connection information. This is required because the connection information is not stored in the database.
 	 * @param connection The name of a connection in connectionConfig to use for storing and retrieving the data configuration.
 	 * @param schema The schema that the data configuration is stored in.
 	 * @param geometryConfigTable The table that stores the configuration for geometry collections.
@@ -95,8 +92,6 @@ public class SQLConfig
 		dbInfo = connectionConfig.getDatabaseConfigInfo();
 		if (dbInfo == null || dbInfo.schema == null || dbInfo.schema.length() == 0)
 			throw new InvalidParameterException("DatabaseConfig: Schema not specified.");
-		if (dbInfo.dataConfigTable == null || dbInfo.dataConfigTable.length() == 0)
-			throw new InvalidParameterException("DatabaseConfig: Column metadata table name not specified.");
 
 		this.connectionConfig = connectionConfig;
 		if (getConnection() == null)
@@ -120,28 +115,43 @@ public class SQLConfig
 		Connection conn = getConnection();
 		
 		// ID->Description table
-		List<String> columnNames = Arrays.asList("id", "description");
+		List<String> columnNames = Arrays.asList(ID, DESCRIPTION);
 		List<String> columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TEXT");
-		SQLUtils.createTable(conn, dbInfo.schema, sqltable_desc, columnNames, columnTypes);
+		SQLUtils.createTable(conn, dbInfo.schema, table_desc, columnNames, columnTypes);
 		
 		// Metadata tables
-		columnNames = Arrays.asList("id", "property", "value");
+		columnNames = Arrays.asList(ID, PROPERTY, VALUE);
 		columnTypes = Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT");
-		SQLUtils.createTable(conn, dbInfo.schema, sqltable_private, columnNames, columnTypes);
-		SQLUtils.createTable(conn, dbInfo.schema, sqltable_public, columnNames, columnTypes);
+		SQLUtils.createTable(conn, dbInfo.schema, table_meta_private, columnNames, columnTypes);
+		SQLUtils.createTable(conn, dbInfo.schema, table_meta_public, columnNames, columnTypes);
 		
-		SQLUtils.addForeignKey(conn, dbInfo.schema, sqltable_private, "id", sqltable_desc, "id");
-		SQLUtils.addForeignKey(conn, dbInfo.schema, sqltable_public, "id", sqltable_desc, "id");
+		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, ID, table_desc, ID);
+		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, ID, table_desc, ID);
 		
 		// Category table
-		columnNames = Arrays.asList("id", "name", "parent_id");
+		columnNames = Arrays.asList(ID, "name", "parent_id");
 		columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TEXT", "INT");
-		SQLUtils.createTable(conn, dbInfo.schema, sqltable_category, columnNames, columnTypes);
+		SQLUtils.createTable(conn, dbInfo.schema, table_hierarchy, columnNames, columnTypes);
 	}
-        public boolean isConnectedToDatabase()
-        {
-                return true;
-        }
+//	private void initCategoryIDSQLTable() throws SQLException, RemoteException
+//	{
+//		List<String> columnNames = new Vector<String>();
+//		List<String> columnTypes = new Vector<String>();
+//		/* Create a table for hierarchy (id, parent_id, title) */
+//		
+//		columnNames.clear();
+//		columnNames.add(ID);
+//		columnNames.add(PARENT_ID);
+//		columnNames.add(TITLE);
+//		columnTypes.clear();
+//		columnTypes.add(SQLTYPE_VARCHAR);
+//		SQLUtils.createTable(getConnection(), dbInfo.schema, TABLE_CATEGORY, columnNames, columnTypes);
+//		
+//	}
+    public boolean isConnectedToDatabase()
+    {
+            return true;
+    }
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();
@@ -179,7 +189,7 @@ public class SQLConfig
 /* Private methods which handle the barebones of the entity-attribute-value system. */
         private List<Integer> getFromKeyVals(Map<String,String> constraints) throws RemoteException
         {
-            return getFromKeyValsForTable(sqltable_public, constraints);
+            return getFromKeyValsForTable(table_meta_public, constraints);
         }
         private List<Integer> getFromKeyValsForTable(String table, Map<String,String> constraints) throws RemoteException
         {
@@ -191,12 +201,19 @@ public class SQLConfig
                 for (Entry<String,String> keyValPair : constraints.entrySet())
                 {
                     Map<String,String> colvalpair = new HashMap<String,String>();
-                    colvalpair.put("property", keyValPair.getKey());
-                    colvalpair.put("value", keyValPair.getValue());
+                    colvalpair.put(PROPERTY, keyValPair.getKey());
+                    colvalpair.put(VALUE, keyValPair.getValue());
                     crossRowArgs.add(colvalpair);
                 } 
 
-                ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, table, "id", crossRowArgs);
+                if (crossRowArgs.size() == 0)
+                {
+                	ids = SQLUtils.getIntColumn(conn, dbInfo.schema, table, ID);
+                }
+                else
+                {
+                	ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, table, ID, crossRowArgs);
+                }
             }
             catch (SQLException e)
             {
@@ -210,22 +227,24 @@ public class SQLConfig
          * @return A map of the requested property names to values
          * @throws RemoteException
          */
-        private Map<String,String> getProperties(Integer id, Collection<String> properties) throws RemoteException
-        {
-            List<Integer> ids = new LinkedList<Integer>();
-            Map<Integer,Map<String,String>> retval;
-            ids.add(id);
-            retval = getProperties(ids, properties);
-            return retval.get(id);
-        }
+//        private Map<String,String> getProperties(Integer id, Collection<String> properties) throws RemoteException
+//        {
+//            List<Integer> ids = new LinkedList<Integer>();
+//            Map<Integer,Map<String,String>> retval;
+//            ids.add(id);
+//            retval = getProperties(ids, properties);
+//            return retval.get(id);
+//        }
         private Map<Integer,Map<String,String>> getProperties(Collection<Integer> ids, Collection<String> properties) throws RemoteException
         {
                 Map<Integer,Map<String,String>> results;
+                Map<Integer,Map<String,String>> results2;
                 try 
                 {
                     Connection conn = getConnection();
-                    results =      SQLUtils.idInSelect(conn, sqltable_private, "id", "property", "value", ids, properties);
-                    results.putAll(SQLUtils.idInSelect(conn, sqltable_public, "id", "property", "value", ids, properties));
+                    results = SQLUtils.idInSelect(conn, table_meta_private, ID, PROPERTY, VALUE, ids, properties);
+                    results2 = SQLUtils.idInSelect(conn, table_meta_public, ID, PROPERTY, VALUE, ids, properties);
+                    results.putAll(results2);
                 }
                 catch (Exception e)
                 {
@@ -233,45 +252,40 @@ public class SQLConfig
                 }
                 return results; 
         }
-        private static boolean isPublicProperty(String property)
+        private static boolean isPrivateProperty(String property)
         {
-            return !(property.equals("connection") || property.equals("sqlQuery") || property.equals("tablePrefix") || property.equals("tablePrefix"));
-/*
-            switch (property)
-            {
-                case "connection":
-                    return false;
-                case "sqlQuery":
-                    return false;
-                case "tablePrefix":
-                    return false;
-                default:
-                    return true;
-            }
-*/
+        	String props[] = new String[]{
+        			GeometryCollectionInfo.CONNECTION,
+        			AttributeColumnInfo.SQLQUERY,
+        			GeometryCollectionInfo.SCHEMA,
+        			GeometryCollectionInfo.TABLEPREFIX
+        		};
+        	return ListUtils.findString(property, props) >= 0;
         }
         private void setProperty(Integer id, String property, String value) throws RemoteException 
         {
             try {
-            Connection conn = getConnection();
-            String table = null;
-            Map<String,Object> insert_args = new HashMap<String,Object>();
-            insert_args.put("property", property);
-            insert_args.put("value", value);
-            insert_args.put("id", id);
-            Map<String,Object> delete_args = new HashMap<String,Object>();
-            delete_args.put("property", property);
-            delete_args.put("id", id);
-            if (isPublicProperty(property)) /* TODO: Add check for private-only keys here */
-            {
-                table = sqltable_public;
-            }
-            else
-            {
-                table = sqltable_private;
-            }
-            SQLUtils.deleteRows(conn, dbInfo.schema, table, delete_args);
-            SQLUtils.insertRow(conn, dbInfo.schema, table, insert_args);
+	            Connection conn = getConnection();
+	            String table = null;
+	            if (isPrivateProperty(property))
+	            	table = table_meta_private;
+	            else
+	            	table = table_meta_public;
+	            
+	            // to overwrite metadata, first delete then insert
+	            Map<String,Object> delete_args = new HashMap<String,Object>();
+	            delete_args.put(PROPERTY, property);
+	            delete_args.put(ID, id);
+	            SQLUtils.deleteRows(conn, dbInfo.schema, table, delete_args);
+	            
+	            if (value != null && value.length() > 0)
+	            {
+	            	Map<String,Object> insert_args = new HashMap<String,Object>();
+	            	insert_args.put(PROPERTY, property);
+	            	insert_args.put(VALUE, value);
+	            	insert_args.put(ID, id);
+	            	SQLUtils.insertRow(conn, dbInfo.schema, table, insert_args);
+	            }
             }
             catch (Exception e)
             {
@@ -283,10 +297,10 @@ public class SQLConfig
             try {
                 Connection conn = getConnection();
                 Map<String,Object> whereParams = new HashMap<String,Object>();
-                whereParams.put("id", id);
-                SQLUtils.deleteRows(conn, dbInfo.schema, sqltable_public, whereParams);
-                SQLUtils.deleteRows(conn, dbInfo.schema, sqltable_private, whereParams);
-                SQLUtils.deleteRows(conn, dbInfo.schema, sqltable_desc, whereParams);
+                whereParams.put(ID, id);
+                SQLUtils.deleteRows(conn, dbInfo.schema, table_meta_public, whereParams);
+                SQLUtils.deleteRows(conn, dbInfo.schema, table_meta_private, whereParams);
+                SQLUtils.deleteRows(conn, dbInfo.schema, table_desc, whereParams);
             }
             catch (Exception e)
             {
@@ -299,8 +313,8 @@ public class SQLConfig
             try {
                 Connection conn = getConnection();
                 Map<String,Object> dummyProp = new HashMap<String,Object>();
-                dummyProp.put("description", description);
-                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, sqltable_desc, dummyProp);
+                dummyProp.put(DESCRIPTION, description);
+                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_desc, dummyProp);
                 // If we made it this far, we have a new unique ID in the description table. Now let's build the info we need to do the necessary row inserts...
                 for (Entry<String,String> keyvalpair : properties.entrySet())
                 {
@@ -325,16 +339,16 @@ public class SQLConfig
                 Set<Integer> geom_ids = null;
                 Set<Integer> conn_ids = null;
 
-                geom_constraints.put("property", "dataType");
-                geom_constraints.put("value", "geometry");
+                geom_constraints.put(PROPERTY, "dataType");
+                geom_constraints.put(VALUE, "geometry");
                 geom_ids = new HashSet<Integer>(getFromKeyVals(geom_constraints));
 
                 if (connectionName != null)
                 {
                     HashMap<String,String> conn_constraints = new HashMap<String,String>();
 
-                    conn_constraints.put("property", "connection");
-                    conn_constraints.put("value", connectionName);
+                    conn_constraints.put(PROPERTY, "connection");
+                    conn_constraints.put(VALUE, connectionName);
 
                     conn_ids = new HashSet<Integer>(getFromKeyVals(conn_constraints));
                     geom_ids.retainAll(conn_ids);
@@ -357,10 +371,10 @@ public class SQLConfig
                         Connection conn = getConnection();
                         List<String> selectColumns = new LinkedList<String>();
                         String fromSchema = dbInfo.schema;
-                        String fromTable = sqltable_public;
+                        String fromTable = table_meta_public;
                         Map<String,Object> whereParams = new HashMap<String,Object>();
-                        whereParams.put("property", "name");
-                        selectColumns.add("value");
+                        whereParams.put(PROPERTY, "name");
+                        selectColumns.add(VALUE);
                         results = SQLUtils.getRecordsFromQuery(conn, selectColumns, fromSchema, fromTable, whereParams);
                         
 		}
@@ -372,7 +386,7 @@ public class SQLConfig
                 {
                     for (Map<String,String> row : results)
                     {
-                        names.add(row.get("value"));
+                        names.add(row.get(VALUE));
                     }
                 }
                 return names; 
@@ -420,17 +434,16 @@ public class SQLConfig
 		{
 			// construct a hash map to pass to the insertRow() function
 			Map<String, String> valueMap = new HashMap<String, String>();
-			valueMap.put(GeometryCollectionInfo.NAME, info.name);
 			valueMap.put(GeometryCollectionInfo.CONNECTION, info.connection);
 			valueMap.put(GeometryCollectionInfo.SCHEMA, info.schema);
 			valueMap.put(GeometryCollectionInfo.TABLEPREFIX, info.tablePrefix);
+			
+			valueMap.put(GeometryCollectionInfo.NAME, info.name);
 			valueMap.put(GeometryCollectionInfo.KEYTYPE, info.keyType);
 			valueMap.put(GeometryCollectionInfo.PROJECTION, info.projection);
-			valueMap.put(GeometryCollectionInfo.IMPORTNOTES, info.importNotes);
-            addEntry(info.importNotes, valueMap);
-			/*
-			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, valueMap);
-			*/
+			
+			String description = info.importNotes;
+            addEntry(description, valueMap);
 		}
 		catch (Exception e)
 		{
@@ -474,15 +487,15 @@ public class SQLConfig
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
 		GeometryCollectionInfo info = new GeometryCollectionInfo();
-		params.put("id", id);
+		params.put(ID, id);
 		try
 		{
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, sqltable_public, params);
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, table_meta_public, params);
                         Map<String,String> props = new HashMap<String,String>();
 			for (Map<String,String> row : records)
 			{
-                                String property_name = row.get("property");
-                                String value = row.get("value");
+                                String property_name = row.get(PROPERTY);
+                                String value = row.get(VALUE);
                                 props.put(property_name, value);
 			}
 			info.name = props.get(GeometryCollectionInfo.NAME);
@@ -502,12 +515,19 @@ public class SQLConfig
 
 	public void addAttributeColumn(AttributeColumnInfo info) throws RemoteException
 	{
-		// make a copy of the metadata and add the sql info
+		// prepare the description of the column
+		String dataTable = info.metadata.get(Metadata.DATATABLE.toString());
+		String name = info.metadata.get(Metadata.NAME.toString());
+		String description = String.format("dataTable = \"%s\", name = \"%s\"", dataTable, name);
+		String year = info.metadata.get(Metadata.YEAR.toString());
+		if (year != null && year.length() > 0)
+			description += String.format(", year = \"%s\"", year);
+		// prepare the valueMap to be inserted
 		Map<String, String> valueMap = new HashMap<String, String>(info.metadata);
         valueMap.put(AttributeColumnInfo.SQLQUERY, info.sqlQuery);
-        String desc = valueMap.get("desc"); // TODO: Change to AttributeColumnInfo.SQLQUERY when appropriate.
-        addEntry(desc, valueMap);
-		// insert all the info into the sql table
+        valueMap.put(AttributeColumnInfo.CONNECTION, info.connection);
+        // insert all the info into the sql table
+        addEntry(description, valueMap);
 	}
 
 	// shortcut for calling the Map<String,String> version of this function

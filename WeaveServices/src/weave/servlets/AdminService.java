@@ -58,6 +58,7 @@ import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.GeometryCollectionInfo;
+import weave.config.SQLConfig;
 import weave.config.SQLConfigManager;
 import weave.config.SQLConfigUtils;
 import weave.config.SQLConfigXML;
@@ -569,7 +570,24 @@ public class AdminService extends GenericServlet
 			// save db config info to in-memory xmlConfig
 			xmlConfig.setDatabaseConfigInfo(info);
 			// migrate from in-memory xmlConfig to the db
-			count = SQLConfigUtils.migrateSQLConfig(xmlConfig, new DatabaseConfig(xmlConfig));
+			//count = SQLConfigUtils.migrateSQLConfig(xmlConfig, new DatabaseConfig(xmlConfig));
+			ISQLConfig oldImpl = new DatabaseConfig(xmlConfig);
+			ISQLConfig newImpl = new SQLConfig(xmlConfig);
+			count = SQLConfigUtils.migrateSQLConfig(oldImpl, newImpl);
+			
+			// TODO clean up this test code
+			SQLConfigXML xmlConfig2 = new SQLConfigXML(configFileName);
+			DatabaseConfigInfo info2 = new DatabaseConfigInfo();
+			info2.schema = "weave2";
+			info2.connection = connectionName;
+			info2.dataConfigTable = dataConfigTable;
+			info2.geometryConfigTable = geometryConfigTable;
+			// save db config info to in-memory xmlConfig
+			xmlConfig2.setDatabaseConfigInfo(info2);
+			ISQLConfig oldImpl2 = new DatabaseConfig(xmlConfig2);
+			
+			count = SQLConfigUtils.migrateSQLConfig(newImpl, oldImpl2);
+			
 			// save in-memory xmlConfig to disk
 			backupAndSaveConfig(xmlConfig);
 		}

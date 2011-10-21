@@ -230,9 +230,16 @@ public class SQLConfigUtils
 			int printInterval = Math.max(1, geoNames.size() / 50);
 			for (int i = 0; i < geoNames.size(); i++)
 			{
-				if (i % printInterval == 0)
-					System.out.println("Migrating geometry collection " + (i+1) + "/" + geoNames.size());
-				count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geoNames.get(i));
+				try
+				{
+					if (i % printInterval == 0)
+						System.out.println("Migrating geometry collection " + (i+1) + "/" + geoNames.size());
+					count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geoNames.get(i));
+				}
+				catch (InvalidParameterException e)
+				{
+					throw new RuntimeException("Unexpected error", e);
+				}
 			}
 			timer.report("done migrating geom collections");
 
@@ -262,7 +269,7 @@ public class SQLConfigUtils
 				}
 			}
 		}
-		catch (Exception e)
+		catch (SQLException e)
 		{
 			e.printStackTrace();
 			try
@@ -274,7 +281,7 @@ public class SQLConfigUtils
 			{
 				se.printStackTrace();
 			}
-			throw new RemoteException(e.getMessage(), e);
+			throw e;
 		}
 		return count;
 	}

@@ -54,7 +54,7 @@ public class DebugTimer
 	}
 	public void report()
 	{
-		//System.out.println(debugText);
+		System.out.println(debugText);
 		debugText = "";
 	}
 }
