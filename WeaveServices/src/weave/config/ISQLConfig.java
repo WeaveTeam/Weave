@@ -274,6 +274,7 @@ public interface ISQLConfig
 		// this information should not be made available to client programs
 		public static final String CONNECTION = "connection";
 		public static final String SQLQUERY = "sqlQuery";
+		public static final String SQLRESULT = "sqlResult"; // sqlResult is only transmitted to the client, never stored in the database
 
 		// Metadata includes everything that end-users are allowed to see.
 		// Metadata should not contain any information related to the SQL

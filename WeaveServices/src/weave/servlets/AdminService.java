@@ -626,18 +626,17 @@ public class AdminService extends GenericServlet
 		for (int i = 0; i < infolist.size(); i ++)
 		{
 			AttributeColumnInfo attributeColumnInfo = infolist.get(i);
-			final String SQLRESULT = "sqlResult";
 			try
 			{
 				String query = attributeColumnInfo.sqlQuery;
 				System.out.println(query);
 				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
-				attributeColumnInfo.metadata.put(SQLRESULT, String.format("Returned %s rows", result.rows.length));
+				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
-				attributeColumnInfo.metadata.put(SQLRESULT, e.getMessage());
+				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, e.getMessage());
 			}
 		}
 		
