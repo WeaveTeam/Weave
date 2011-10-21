@@ -160,10 +160,10 @@
 				if (tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView))
 					loadDublinCoreElements();
 				
-				if (getCurrentTableName() == null)
+				if (getSelectedTableName() == null)
 					return;
 				
-				var tableName:String = getCurrentTableName();
+				var tableName:String = getSelectedTableName();
 				AdminInterface.instance.getDataTableInfo(tableName).addAsyncResponder(handleDataTableInfo, null, tableName);
 			}
 			
@@ -485,7 +485,7 @@
 				if(event != null) 
 				{
 					var row:Number = Number(event.rowIndex);
-					var tableName:String = getCurrentTableName();
+					var tableName:String = getSelectedTableName();
 					var editedObject:Object = tableEditor.dataProvider.getItemAt(row);
 					var editedField:String = event.dataField;
 					var oldValue:String = editedObject[editedField];
@@ -548,7 +548,7 @@
 			 */
 			private function deleteSelectedElements():void
 			{
-				var tableName:String = getCurrentTableName();
+				var tableName:String = getSelectedTableName();
 				var elements:Array = dcElementsEditor.selectedItems.concat();
 				PopUpUtils.confirm(
 					this,
@@ -582,14 +582,14 @@
 			 */
 			private function elementsChangeHandler(event:Event):void
 			{
-				if (getCurrentTableName() == null)
+				if (getSelectedTableName() == null)
 					return;
 				
 				var label:String = elementsComboBox.selectedItem as String;
 				//reset to the prompt
 				elementsComboBox.selectedIndex = -1;
 				
-				var dataTableName:String = getCurrentTableName();
+				var dataTableName:String = getSelectedTableName();
 //				Alert.show("label = "+label+", data = "+data);
 				var popup:DublinCoreEntryComponent = DublinCoreEntryComponent.openDialog(this);
 				popup.setElement(label);
@@ -601,7 +601,7 @@
 
 			private function loadDublinCoreElements():void
 			{
-				var tableName:String = getCurrentTableName();
+				var tableName:String = getSelectedTableName();
 				var query:DelayedAsyncInvocation = AdminInterface.instance.listDCElements(tableName);
 				query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
 					dcElementsEditor.dataProvider = e.result;
@@ -609,7 +609,7 @@
 				deleteSelectedElementsButton.enabled = false;
 			}
 			
-			private function getCurrentTableName():String
+			private function getSelectedTableName():String
 			{
 				if (treeWithSearch.tree.selectedItem == null)
 					return null;
@@ -621,7 +621,7 @@
 			{
 				var row:Number = Number(event.rowIndex);
 				var item:Object = dcElementsEditor.dataProvider.getItemAt(row);
-				var tableName:String = getCurrentTableName();
+				var tableName:String = getSelectedTableName();
 				var element:String = item[ELEMENT];
 				var oldValue:String = item[FIELD];
 				var newValue:String = dcElementsEditor.itemEditorInstance[dcElementsEditor.columns[event.columnIndex].editorDataField];
@@ -666,7 +666,7 @@
 				var weaveAdminService:WeaveAdminService = AdminInterface.instance.service;
 				var connectionName:String = AdminInterface.instance.activeConnectionName;
 				var password:String = AdminInterface.instance.activePassword;
-				var dataTableName:String = getCurrentTableName();
+				var dataTableName:String = getActiveDataTableName();
 				
 				weaveAdminService.testAllQueries(connectionName, password, dataTableName).addAsyncResponder(handleTestAllQueries, null, dataTableName);
 			}								
