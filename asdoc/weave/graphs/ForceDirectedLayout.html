@@ -131,6 +131,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
 </tr>
 <tr class="hideInheritedProtectedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#_keys">_keys</a> : Array<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
+</tr>
+<tr class="hideInheritedProtectedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#_keyToNode">_keyToNode</a> : Dictionary<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
 </tr>
@@ -151,10 +155,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
 </tr>
 <tr class="hideInheritedProtectedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#nodeToGraphIndex">nodeToGraphIndex</a> : Dictionary<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
-</tr>
-<tr class="hideInheritedProtectedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#_numNodes">_numNodes</a> : int = 0<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
 </tr>
@@ -169,18 +169,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="hideInheritedProtectedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#rService">rService</a> : <a href="../services/WeaveStatisticsServlet.html">WeaveStatisticsServlet</a> = null<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
-</tr>
-<tr class="hideInheritedProtectedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#subGraphEdges">subGraphEdges</a> : String<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
-</tr>
-<tr class="hideInheritedProtectedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#subGraphName">subGraphName</a> : String = "weaveSubGraph"<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
-</tr>
-<tr class="hideInheritedProtectedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractGraphAlgorithm.html#subGraphNodes">subGraphNodes</a> : String<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
 </tr>
 <tr class="hideInheritedProtectedProperty">
@@ -366,7 +354,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedProtectedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="AbstractGraphAlgorithm.html#generateSubGraphString()">generateSubGraphString</a>():String</div>
+<a class="signatureLink" href="AbstractGraphAlgorithm.html#generateEdgesString()">generateEdgesString</a>(keys:Array):String</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
+</tr>
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="AbstractGraphAlgorithm.html#generateGraphString()">generateGraphString</a>(graphName:String, edges:String, vertexes:String):String</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="AbstractGraphAlgorithm.html">AbstractGraphAlgorithm</a></td>
 </tr>

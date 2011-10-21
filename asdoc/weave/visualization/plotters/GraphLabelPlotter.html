@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="GraphLabelPlotter,weave.visualization.plotters.GraphLabelPlotter,currentAlgorithm,edgeSourceColumn,edgeTargetColumn,fillStyle,labelColumn,layoutAlgorithm,lineStyle,nodesColumn,radius,sizeColumn,colorColumn,edgeColorColumn,drawPlot,getDataBoundsFromRecordKey,setBaseKeySource" name="keywords">
+<meta content="GraphLabelPlotter,weave.visualization.plotters.GraphLabelPlotter,currentAlgorithm,edgeSourceColumn,edgeTargetColumn,fillStyle,labelColumn,layoutAlgorithm,lineStyle,nodesColumn,radius,sizeColumn,drawPlot,getBackgroundDataBounds,getDataBoundsFromRecordKey,setBaseKeySource" name="keywords">
 <title>weave.visualization.plotters.GraphLabelPlotter</title>
 </head>
 <body>
@@ -60,19 +60,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a onclick="javascript:setInheritedVisible(true,'Property');" href="#propertySummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Properties</a>
 </div>
 </div>
-<table id="summaryTableProperty" class="summaryTable " cellpadding="3" cellspacing="0">
+<table id="summaryTableProperty" class="summaryTable hideInheritedProperty" cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#colorColumn">colorColumn</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
-<div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#edgeColorColumn">edgeColorColumn</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
-<div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
 <tr class="hideInheritedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="AbstractPlotter.html#keySet">keySet</a> : <a href="../../api/data/IFilteredKeySet.html">IFilteredKeySet</a>
@@ -154,14 +144,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
-<tr class="hideInheritedMethod">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="AbstractPlotter.html#getBackgroundDataBounds()">getBackgroundDataBounds</a>():<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>
+<a class="signatureLink" href="#getBackgroundDataBounds()">getBackgroundDataBounds</a>():<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>
 </div>
-<div class="summaryTableDescription">
-   This function returns a Bounds2D object set to the data bounds associated with the background.</div>
-</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -250,12 +239,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#edgeSourceColumn">edgeSourceColumn</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#edgeSourceColumn">edgeSourceColumn</a> : <a href="../../core/LinkableDynamicObject.html">LinkableDynamicObject</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#edgeTargetColumn">edgeTargetColumn</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#edgeTargetColumn">edgeTargetColumn</a> : <a href="../../core/LinkableDynamicObject.html">LinkableDynamicObject</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
@@ -280,7 +269,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#nodesColumn">nodesColumn</a> : <a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#nodesColumn">nodesColumn</a> : <a href="../../core/LinkableDynamicObject.html">LinkableDynamicObject</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">GraphLabelPlotter</td>
 </tr>
@@ -336,32 +325,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 showHideInherited();
 --></script>
 <div class="MainContent">
-<a name="propertyDetail"></a>
-<div class="detailSectionHeader">Property detail</div>
-<a name="colorColumn"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">colorColumn</td><td class="detailHeaderType">property</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>colorColumn:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get colorColumn():<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>
-<br>
-</div>
-<a name="edgeColorColumn"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">edgeColorColumn</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>edgeColorColumn:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get edgeColorColumn():<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>
-<br>
-</div>
 <a name="constructorDetail"></a>
 <div class="detailSectionHeader">Constructor detail</div>
 <a name="GraphLabelPlotter()"></a>
@@ -404,6 +367,22 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">destination</span>:BitmapData</code></td>
+</tr>
+</table>
+</div>
+<a name="getBackgroundDataBounds()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getBackgroundDataBounds</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public override function getBackgroundDataBounds():<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
 </tr>
 </table>
 </div>
@@ -460,7 +439,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public const edgeSourceColumn:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>
+<code>public const edgeSourceColumn:<a href="../../core/LinkableDynamicObject.html">LinkableDynamicObject</a></code>
 </div>
 <a name="edgeTargetColumn"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -469,7 +448,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public const edgeTargetColumn:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>
+<code>public const edgeTargetColumn:<a href="../../core/LinkableDynamicObject.html">LinkableDynamicObject</a></code>
 </div>
 <a name="fillStyle"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -514,7 +493,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public const nodesColumn:<a href="../../data/AttributeColumns/AlwaysDefinedColumn.html">AlwaysDefinedColumn</a></code>
+<code>public const nodesColumn:<a href="../../core/LinkableDynamicObject.html">LinkableDynamicObject</a></code>
 </div>
 <a name="radius"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

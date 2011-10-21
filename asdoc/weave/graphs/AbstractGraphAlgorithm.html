@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="AbstractGraphAlgorithm,weave.graphs.AbstractGraphAlgorithm,_activeLoader,_constrainedBounds,_edges,_keyToNode,_keyToPartition,_nodeKeyType,_numNodes,_partitions,graphEdges,graphName,graphNodes,lastUsedNodes,libraryCall,nodeToGraphIndex,outputBounds,rService,subGraphEdges,subGraphName,subGraphNodes,tempNode,tempPoint,weaveGraphLayout,callRServe,generateSubGraphString,generateVertexesString,getNeighboringKeys,getNodeFromKey,getOutputBounds,handleLayoutFault,handleLayoutResult,incrementLayout,initRService,resetAllNodes,setupData,updateDraggedKeys,updateOutputBounds" name="keywords">
+<meta content="AbstractGraphAlgorithm,weave.graphs.AbstractGraphAlgorithm,_activeLoader,_constrainedBounds,_edges,_keyToNode,_keyToPartition,_keys,_nodeKeyType,_numNodes,_partitions,graphEdges,graphName,graphNodes,lastUsedNodes,libraryCall,outputBounds,rService,tempNode,tempPoint,weaveGraphLayout,callRServe,generateEdgesString,generateGraphString,generateVertexesString,getNeighboringKeys,getNodeFromKey,getOutputBounds,handleLayoutFault,handleLayoutResult,incrementLayout,initRService,resetAllNodes,setupData,updateDraggedKeys,updateOutputBounds" name="keywords">
 <title>weave.graphs.AbstractGraphAlgorithm</title>
 </head>
 <body>
@@ -133,6 +133,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_keys">_keys</a> : Array<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_keyToNode">_keyToNode</a> : Dictionary<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
 </tr>
@@ -153,10 +157,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#nodeToGraphIndex">nodeToGraphIndex</a> : Dictionary<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_numNodes">_numNodes</a> : int = 0<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
 </tr>
@@ -171,18 +171,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#rService">rService</a> : <a href="../services/WeaveStatisticsServlet.html">WeaveStatisticsServlet</a> = null<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#subGraphEdges">subGraphEdges</a> : String<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#subGraphName">subGraphName</a> : String = "weaveSubGraph"<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#subGraphNodes">subGraphNodes</a> : String<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
 </tr>
 <tr class="">
@@ -368,7 +356,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#generateSubGraphString()">generateSubGraphString</a>():String</div>
+<a class="signatureLink" href="#generateEdgesString()">generateEdgesString</a>(keys:Array):String</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#generateGraphString()">generateGraphString</a>(graphName:String, edges:String, vertexes:String):String</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">AbstractGraphAlgorithm</td>
 </tr>
@@ -474,6 +469,15 @@ showHideInherited();
 <div class="detailBody">
 <code>protected var graphNodes:String</code>
 </div>
+<a name="_keys"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">_keys</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected var _keys:Array</code>
+</div>
 <a name="_keyToNode"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -519,15 +523,6 @@ showHideInherited();
 <div class="detailBody">
 <code>protected var _nodeKeyType:String = "null"</code>
 </div>
-<a name="nodeToGraphIndex"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">nodeToGraphIndex</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var nodeToGraphIndex:Dictionary</code>
-</div>
 <a name="_numNodes"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -563,33 +558,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected var rService:<a href="../services/WeaveStatisticsServlet.html">WeaveStatisticsServlet</a> = null</code>
-</div>
-<a name="subGraphEdges"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">subGraphEdges</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var subGraphEdges:String</code>
-</div>
-<a name="subGraphName"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">subGraphName</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var subGraphName:String = "weaveSubGraph"</code>
-</div>
-<a name="subGraphNodes"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">subGraphNodes</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var subGraphNodes:String</code>
 </div>
 <a name="weaveGraphLayout"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -639,14 +607,52 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="generateSubGraphString()"></a>
+<a name="generateEdgesString()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">generateSubGraphString</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">generateEdgesString</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>protected function generateSubGraphString():String</code>
+<code>protected function generateEdgesString(keys:Array):String</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">keys</span>:Array</code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>String</code></td>
+</tr>
+</table>
+</div>
+<a name="generateGraphString()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">generateGraphString</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected function generateGraphString(graphName:String, edges:String, vertexes:String):String</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">graphName</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">edges</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">vertexes</span>:String</code></td>
+</tr>
+</table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
