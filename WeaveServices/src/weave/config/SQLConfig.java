@@ -188,7 +188,6 @@ public class SQLConfig
             try
             {
                 Connection conn = getConnection();
-                List<String> raw_ids;
                 List<Map<String,String>> crossRowArgs = new LinkedList<Map<String,String>>();
                 for (Entry<String,String> keyValPair : constraints.entrySet())
                 {
@@ -198,12 +197,7 @@ public class SQLConfig
                     crossRowArgs.add(colvalpair);
                 } 
 
-                raw_ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, table, "id", crossRowArgs);
-                for (String str_id : raw_ids)
-                {
-                    Integer id = Integer.parseInt(str_id);
-                    ids.add(id);
-                }
+                ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, table, "id", crossRowArgs);
             }
             catch (SQLException e)
             {
@@ -294,7 +288,7 @@ public class SQLConfig
                 throw new RemoteException("Failed to delete entry.", e);
             }
         }
-        private Integer addEntry(String description, Map<String,String> properties) throws RemoteException
+        public Integer addEntry(String description, Map<String,String> properties) throws RemoteException
         {
             Integer uniq_id = null; 
             try {

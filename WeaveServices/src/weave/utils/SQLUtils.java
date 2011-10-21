@@ -1144,11 +1144,11 @@ public class SQLUtils
 
             return results;
         }
-        public static List<String> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
+        public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
         {
             // Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for, this will only be two entries long, but this covers the general case.
             PreparedStatement stmt = null;
-            List<String> results = new LinkedList<String>();
+            List<Integer> results = new LinkedList<Integer>();
             List<String> values = new LinkedList<String>();
             ResultSet rs;
             List<List<Entry<String,String>>> flattenedMap = new LinkedList<List<Entry<String,String>>>();
@@ -1179,7 +1179,10 @@ public class SQLUtils
             }
 
             rs = stmt.executeQuery();
-            /* Incomplete */
+            while (rs.next())
+            {
+                 results.add(rs.getInt(column));
+            }
             return results;
         }
         public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data) throws SQLException
