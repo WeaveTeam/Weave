@@ -56,7 +56,13 @@ package weave.visualization.plotters
 		public function GraphLabelPlotter()
 		{
 			super();
+			setKeySource(nodesColumn);
 			//nodesColumn.addImmediateCallback(this, setKeySource, [nodesColumn], true);
+		}
+
+		public function runCallbacks():void
+		{
+			spatialCallbacks.triggerCallbacks();
 		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -73,7 +79,7 @@ package weave.visualization.plotters
 			for (i = 0; i < recordKeys.length; ++i)
 			{
 				var recordKey:IQualifiedKey = recordKeys[i];
-				var node:IGraphNode = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNodeFromKey(recordKey);
+				var node:IGraphNode = (layoutAlgorithm as IGraphAlgorithm).getNodeFromKey(recordKey);
 				
 				// project data coordinates to screen coordinates and draw graphics onto tempShape
 				tempDataPoint.x = node.position.x;
@@ -157,10 +163,10 @@ package weave.visualization.plotters
 		{
 			var bounds:IBounds2D = getReusableBounds();
 			
-			if (!layoutAlgorithm.internalObject)
+			if (!layoutAlgorithm)
 				return [ bounds ];
 			
-			var node:IGraphNode = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNodeFromKey(recordKey);
+			var node:IGraphNode = (layoutAlgorithm as IGraphAlgorithm).getNodeFromKey(recordKey);
 			if (node)
 				bounds.includePoint(node.position);
 			
@@ -170,27 +176,29 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			var bounds:IBounds2D = getReusableBounds();
-			if (layoutAlgorithm.internalObject)
-				(layoutAlgorithm.internalObject as IGraphAlgorithm).getOutputBounds(keySet.keys, bounds);
+			if (layoutAlgorithm)
+				(layoutAlgorithm as IGraphAlgorithm).getOutputBounds(keySet.keys, bounds);
 			return bounds;
 		}				
 		
 		private function handleColumnsChange():void
 		{
-//			(layoutAlgorithm.internalObject as IGraphAlgorithm).setupData(nodesColumn, edgeSourceColumn, edgeTargetColumn);
+//			(layoutAlgorithm as IGraphAlgorithm).setupData(nodesColumn, edgeSourceColumn, edgeTargetColumn);
 		}
 		
 		// the styles
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 
-		public const sizeColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
-		public const nodesColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn));
-		public const edgeSourceColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn), handleColumnsChange);
-		public const edgeTargetColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn), handleColumnsChange);		public const labelColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
+//		public const sizeColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
+		public const labelColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);
+		public const nodesColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);
+		public const edgeSourceColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);
+		public const edgeTargetColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);		
 		public const radius:LinkableNumber = registerSpatialProperty(new LinkableNumber(2)); // radius of the circles
-		
-		public const layoutAlgorithm:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IGraphAlgorithm), handleColumnsChange);
+
+		public var layoutAlgorithm:IGraphAlgorithm = null;
+		//public const layoutAlgorithm:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IGraphAlgorithm), handleColumnsChange);
 		public const currentAlgorithm:LinkableString = registerLinkableChild(this, new LinkableString());
 
 		private const tempRectangle:Rectangle = new Rectangle();

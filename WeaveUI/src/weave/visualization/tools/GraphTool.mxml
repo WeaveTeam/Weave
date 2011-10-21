@@ -36,6 +36,8 @@
 			import weave.Weave;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.graphs.IGraphAlgorithm;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
@@ -74,14 +76,17 @@
 				_plotter.nodesColumn.addImmediateCallback(this, updateProbeColumns);
 				_plotter.algorithmRunning.addGroupedCallback(this, handleAlgorithmRunning, false);
 				
-//				linkSessionState(_plotter.lineStyle, _labelPlotter.lineStyle);
-//				linkSessionState(_plotter.fillStyle, _labelPlotter.fillStyle);
-//				linkSessionState(_plotter.colorColumn, _labelPlotter.colorColumn);
 				linkSessionState(_plotter.radius, _labelPlotter.radius);
-				linkSessionState(_plotter.layoutAlgorithm, _labelPlotter.layoutAlgorithm);
+				_plotter.layoutAlgorithm.addImmediateCallback(this, handleLayoutAlgorithmChange, null, true);
 				linkSessionState(_plotter.nodesColumn, _labelPlotter.nodesColumn);
 				linkSessionState(_plotter.edgeSourceColumn, _labelPlotter.edgeSourceColumn);
 				linkSessionState(_plotter.edgeTargetColumn, _labelPlotter.edgeTargetColumn);
+			}
+			
+			private function handleLayoutAlgorithmChange():void
+			{
+				_labelPlotter.layoutAlgorithm = _plotter.layoutAlgorithm.internalObject as IGraphAlgorithm;
+				_labelPlotter.runCallbacks(); //getCallbackCollection(_labelPlotter).triggerCallbacks();
 			}
 			
 			override protected function childrenCreated():void
@@ -96,9 +101,9 @@
 				(edgeColorComponent as DynamicColumnComponent).dynamicObject = edgeColorColumn.internalDynamicColumn;
 								
 				this.contextMenu = (Application.application as Application).contextMenu;
-				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
-				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
-				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);
+//				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
+//				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
+//				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);
 							
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
@@ -122,6 +127,7 @@
 				var dx:Number = dataPoint.x - _dragSourcePoint.x;
 				var dy:Number = dataPoint.y - _dragSourcePoint.y;
 				_plotter.updateDraggedKeys(_probedKeys, dx, dy, false);
+				getCallbackCollection(_labelPlotter).triggerCallbacks();
 				_dragSourcePoint.x = dataPoint.x;
 				_dragSourcePoint.y = dataPoint.y;
 			}
@@ -166,7 +172,8 @@
 				var dataPoint:Point = projectScreenPointToData(screenPoint);
 				var dx:Number = dataPoint.x - _dragSourcePoint.x;
 				var dy:Number = dataPoint.y - _dragSourcePoint.y;
-				_plotter.updateDraggedKeys(_probedKeys, dx, dy, true);				
+				_plotter.updateDraggedKeys(_probedKeys, dx, dy, true);
+				getCallbackCollection(_labelPlotter).triggerCallbacks();
 			}
 			private function handleLayoutGraph_click(event:ContextMenuEvent):void
 			{
@@ -193,11 +200,11 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color", "Node IDs", "Edge Source IDs", "Edge Target IDs", "Edge Color Column"];
+				return ["Color", "Node IDs", "Label", "Edge Source IDs", "Edge Target IDs", "Edge Color Column"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.colorColumn, _plotter.nodesColumn, _plotter.edgeSourceColumn, _plotter.edgeTargetColumn, _plotter.edgeColorColumn];
+				return [_plotter.colorColumn, _plotter.nodesColumn, _labelPlotter.labelColumn, _plotter.edgeSourceColumn, _plotter.edgeTargetColumn, _plotter.edgeColorColumn];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -224,11 +231,10 @@
 			}
 			
 			//public function get colorColumn():AlwaysDefinedColumn { return _plotter.colorColumn; }
-			public function get nodesColumn():LinkableDynamicObject { return _plotter.nodesColumn; }
-			
-			public function get labelColumn():DynamicColumn { return _labelPlotter.labelColumn.internalDynamicColumn; }
-			public function get edgeSourceColumn():LinkableDynamicObject { return _plotter.edgeSourceColumn; }
-			public function get edgeTargetColumn():LinkableDynamicObject { return _plotter.edgeTargetColumn; }
+			public function get nodesColumn():DynamicColumn { return _plotter.nodesColumn; }
+			public function get labelColumn():DynamicColumn { return _labelPlotter.labelColumn; }
+			public function get edgeSourceColumn():DynamicColumn { return _plotter.edgeSourceColumn; }
+			public function get edgeTargetColumn():DynamicColumn { return _plotter.edgeTargetColumn; }
 			public function get edgeColorColumn():AlwaysDefinedColumn { return _plotter.edgeColorColumn; }
 			
 			private function alphaSliderFormatFunction(item:Number):String {

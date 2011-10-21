@@ -187,7 +187,7 @@ package weave.graphs
 //			}
 			
 			_constrainedBounds.setCenteredRectangle(0, 0, 2 * _numNodes, 2 * _numNodes);
-			createRObjects();
+			incrementLayout(_keys, _constrainedBounds);
 		}
 
 		public function getNeighboringKeys(keys:Array):Array
@@ -264,7 +264,7 @@ package weave.graphs
 				node.position.y = 0;
 				outputBounds.includePoint(node.position);
 			}
-			createRObjects();
+			incrementLayout(_keys, _constrainedBounds);
 		}
 		
 		public function getNodeFromKey(key:IQualifiedKey):IGraphNode
@@ -325,38 +325,6 @@ package weave.graphs
 		{
 			rService = new WeaveStatisticsServlet(url);
 			getCallbackCollection(this).triggerCallbacks();
-		}
-		
-		private function createRObjects():void
-		{
-			if (rService == null)
-				throw new Error("Unable to create objects in R because R service is not initialized.");
-
-			if (_keys.length == 0)
-				return;
-				 
-			// load the library first
-			var libraryString:String = libraryCall;
-			
-			// build the script to store the vertices data.frame
-			var verticesString:String = generateVertexesString(_keys);
-			
-			// build the script to store the edges data.frame
-			var edgesString:String = generateEdgesString(_keys);
-			
-			// the string to store the graph
-			var graphString:String = generateGraphString(graphName, 'edges', 'vertexes'); 
-			
-			var circle:String = 
-				weaveGraphLayout + ' <- layout.circle(' + graphName + ')';
-			
-			var rScript:String = 
-				verticesString + '\n' + 
-				edgesString + '\n' + 
-				graphString + '\n' + 
-				circle + '\n';
-			
-			callRServe(rScript, [weaveGraphLayout, graphNodes], _constrainedBounds);
 		}
 
 		protected function generateGraphString(graphName:String, edges:String, vertexes:String):String
