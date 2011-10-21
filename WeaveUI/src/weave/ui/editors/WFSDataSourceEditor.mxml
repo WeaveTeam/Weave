@@ -36,13 +36,15 @@
 			import weave.data.DataSources.WFSDataSource;
 			import weave.utils.EditorManager;
 			
-			{EditorManager.registerEditor(WFSDataSource,WFSDataSourceEditor);}
+			{
+				EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
+			}
 			
 			[Bindable]
 			private var uniqueName:String = Weave.root.generateUniqueName("WFSDataSource");
 			
 			private var _wfsDataSource:WFSDataSource = null;
-			public function set linkableObject(object:ILinkableObject):void
+			public function set targetObject(object:ILinkableObject):void
 			{
 				_wfsDataSource = object as WFSDataSource;
 				var checkObj:String  = Weave.root.getName(_wfsDataSource);

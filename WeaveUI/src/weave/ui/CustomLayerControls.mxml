@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	This is an empty ControlPanel designed to contain settings components for custom layers  
+	@author kmanohar
+-->
+<ControlPanel xmlns="weave.ui.*" 
+			  xmlns:mx="http://www.adobe.com/2006/mxml" title="Control panel for new layer"
+			  creationPolicy="all"
+			  >
+	<mx:TabNavigator borderStyle="solid"
+					 id="controlsContainer"
+					 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
+					 backgroundAlpha="0.8" backgroundColor="white" cornerRadius="5"
+					 width="100%" height="100%">
+		<mx:HBox label="DataBounds Overrides" verticalAlign="middle">
+			<mx:Label text="Override data bounds:"/>
+			<TextInputWithPrompt id="xMinTxt" prompt="xMin" width="{textAreaWidth}"/>
+			<mx:VBox>
+				<TextInputWithPrompt id="yMaxTxt" prompt="yMax" width="{textAreaWidth}"/>
+				<TextInputWithPrompt id="yMinTxt" prompt="yMin" width="{textAreaWidth}"/>
+			</mx:VBox>
+			<TextInputWithPrompt id="xMaxTxt" prompt="xMax" width="{textAreaWidth}"/>
+		</mx:HBox>
+	</mx:TabNavigator>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+			import weave.visualization.tools.SimpleVisTool;
+
+			private const textAreaWidth:int = 64;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				this.panelWidth.value = "400";
+				this.panelHeight.value = "200";
+			}
+			
+			public function setTargetTool(tool:SimpleVisTool):void
+			{
+				if (tool)
+				{
+					linkBindableProperty(tool.visualization.overrideXMin, xMinTxt, 'text');
+					linkBindableProperty(tool.visualization.overrideYMin, yMinTxt, 'text');
+					linkBindableProperty(tool.visualization.overrideXMax, xMaxTxt, 'text');
+					linkBindableProperty(tool.visualization.overrideYMax, yMaxTxt, 'text');
+				}
+			}
+		]]>
+	</mx:Script>
+</ControlPanel>

@@ -108,7 +108,7 @@
 						var editorClass:Class = EditorManager.getEditorClass(sourceList.selectedItem);
 						editor = new editorClass();
 						sourceEditor.addChild(editor as DisplayObject);
-						editor.linkableObject = (sourceList.selectedItem as IDataSource);
+						editor.targetObject = (sourceList.selectedItem as IDataSource);
 					}
 				}
 				private function addSource():void

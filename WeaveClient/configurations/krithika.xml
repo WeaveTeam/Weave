@@ -186,7 +186,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       <select>drag</select>
       <selectAdd>ctrl,drag</selectAdd>
       <selectRemove>ctrl,shift,drag</selectRemove>
-      <zoom>shift,drag</zoom>
+      <zoom>shift,drag
+wheel
+      </zoom>
       <zoomIn>dclick</zoomIn>
       <zoomOut>shift,dclick</zoomOut>
       <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>

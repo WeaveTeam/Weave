@@ -36,13 +36,15 @@
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.utils.EditorManager;
 			
-			{EditorManager.registerEditor(WeaveDataSource,WeaveDataSourceEditor);}
+			{
+				EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
+			}
 			
 			[Bindable]
 			private var uniqueName:String = Weave.root.generateUniqueName("WeaveDataSource");
 			
 			private var _weaveDataSource:WeaveDataSource = null;
-			public function set linkableObject(object:ILinkableObject):void
+			public function set targetObject(object:ILinkableObject):void
 			{
 				_weaveDataSource = object as WeaveDataSource;
 				var checkObj:String  = Weave.root.getName(_weaveDataSource);

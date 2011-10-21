@@ -35,17 +35,20 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.unlinkSessionState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.SortedIndexColumn;
+	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.primitives.Range;
@@ -58,7 +61,7 @@ package weave.visualization.plotters
 	 * CompoundBarChartPlotter
 	 * 
 	 * @author adufilie
-	 * @author ckellehe
+	 * @author everyone and their uncle
 	 */
 	public class CompoundBarChartPlotter extends AbstractPlotter
 	{
@@ -68,8 +71,6 @@ package weave.visualization.plotters
 		}
 		private function init():void
 		{
-			colorColumn.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
-			
 			// get the keys from the sort column
 			setKeySource(sortColumn);
 			
@@ -77,11 +78,10 @@ package weave.visualization.plotters
 			// This is so the records will be filtered before they are sorted in the _sortColumn.
 			linkSessionState(_filteredKeySet.keyFilter, _filteredSortColumn.filter);
 			
-			heightColumns.addGroupedCallback(this, defineSortColumnIfUndefined);
+			heightColumns.addGroupedCallback(this, heightColumnsGroupCallback);
 			registerSpatialProperty(sortColumn);
 			
 			for each (var child:ILinkableObject in [
-				colorColumn,
 				Weave.properties.axisFontSize,
 				Weave.properties.axisFontColor])
 			{
@@ -93,7 +93,8 @@ package weave.visualization.plotters
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
 		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
-		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
+		public const colorDataColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		
 		// for now it is a solid fill style -- needs to be updated to be dynamic fill style later
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
 		
@@ -105,9 +106,54 @@ package weave.visualization.plotters
 		
 		public function getSortedKeys():Array { return _sortedIndexColumn.keys; }
 		
-		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
-		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const groupRecordsByColor:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), handleGroupByColorMode);
 		
+		private var _prevLinkedColorDataColumn:DynamicColumn = null;
+		private function linkColorDataColumn(newLinkedColumn:DynamicColumn, newTakesPriority:Boolean):void
+		{
+			if (_prevLinkedColorDataColumn)
+				unlinkSessionState(_prevLinkedColorDataColumn, colorDataColumn);
+			_prevLinkedColorDataColumn = newLinkedColumn;
+			if (newLinkedColumn)
+			{
+				if (newTakesPriority)
+					linkSessionState(newLinkedColumn, colorDataColumn);
+				else
+					linkSessionState(colorDataColumn, newLinkedColumn);
+			}
+		}
+		
+		private function handleGroupByColorMode():void
+		{
+			if (groupRecordsByColor.value)
+			{
+				fillStyle.color.internalDynamicColumn.copyLocalObject(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
+				var _color:ColorColumn = fillStyle.color.internalColumn as ColorColumn;
+				_color.internalDynamicColumn.globalName = null; // make it a local binned column so we don't modify the global one
+				var _bin:BinnedColumn = _color.internalColumn as BinnedColumn;
+				_bin.internalDynamicColumn.globalName = null; // make it a local binned column so we don't modify the global one
+				var _filter:FilteredColumn = _bin.internalColumn as FilteredColumn;
+				
+				_bin.binningDefinition.requestLocalObject(CategoryBinningDefinition, false);
+				linkSessionState(chartColors, _color.ramp);
+				linkColorDataColumn(_filter.internalDynamicColumn, false);
+				// keep only the first height column.
+				for each (var name:String in heightColumns.getNames().shift())
+					heightColumns.removeObject(name);
+			}
+			else
+			{
+				fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+				var filter:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				linkColorDataColumn(filter.internalDynamicColumn, true);
+			}
+		}
+		
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		public const labelBarHeightPercentage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
+		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
+		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), heightColumnsImmediateCallback);
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
@@ -120,19 +166,26 @@ package weave.visualization.plotters
 			return [GROUP, STACK, PERCENT_STACK].indexOf(mode) >= 0;
 		}
 		
-		public const showValueLabels:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		
-		private function defineSortColumnIfUndefined():void
+		private function heightColumnsImmediateCallback():void
 		{
 			var columns:Array = heightColumns.getObjects();
+			
+			if (columns.length > 1)
+				groupRecordsByColor.value = false;
+		}
+		
+		private function heightColumnsGroupCallback():void
+		{
+			var columns:Array = heightColumns.getObjects();
+			
 			if (sortColumn.internalColumn == null && columns.length > 0)
 				sortColumn.copyLocalObject(columns[0]);
 		}
 		
-		
 		// this is a way to get the number of keys (bars or groups of bars) shown
 		public function get numBarsShown():int { return _filteredKeySet.keys.length }
 		
+		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -142,11 +195,10 @@ package weave.visualization.plotters
 			var _groupingMode:String = getActualGroupingMode();
 			var _horizontalMode:Boolean = horizontalMode.value;
 			
-			_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-			_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+			_bitmapText.textFormat.color = valueLabelColor.value;
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
@@ -155,7 +207,6 @@ package weave.visualization.plotters
 			clipRectangle.height++; // avoid clipping lines
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
-			graphics.clear();
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
 			{
 				var recordKey:IQualifiedKey = recordKeys[iRecord] as IQualifiedKey;
@@ -163,6 +214,7 @@ package weave.visualization.plotters
 				//------------------------------------
 				// BEGIN code to draw one compound bar
 				//------------------------------------
+				graphics.clear();
 				
 				var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
 				
@@ -197,6 +249,9 @@ package weave.visualization.plotters
 				// loop over height columns, incrementing y coordinates
 				for (var i:int = 0; i < _heightColumns.length; i++)
 				{
+					//------------------------------------
+					// BEGIN code to draw one bar segment
+					//------------------------------------
 					var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 					// add this height to the current bar
 					var height:Number = heightColumn.getValueFromKey(recordKey, Number);
@@ -302,7 +357,11 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						tempBounds.setMaxPoint(tempPoint);
 						
-						// draw graphics
+						//////////////////////////
+						// BEGIN draw graphics
+						//////////////////////////
+						graphics.clear();
+						
 						var color:Number = chartColors.getColorFromNorm(i / (_heightColumns.length - 1));
 						
 						// if there is one column, act like a regular bar chart and color in with a chosen color
@@ -320,6 +379,10 @@ package weave.visualization.plotters
 						graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 						
 						graphics.endFill();
+						destination.draw(tempShape, null, null, null, clipRectangle);
+						//////////////////////////
+						// END draw graphics
+						//////////////////////////
 					}						
 					
 					if (_groupingMode != GROUP)
@@ -330,55 +393,56 @@ package weave.visualization.plotters
 						else
 							yNegativeMin = yNegativeMax;
 					}
+					//------------------------------------
+					// END code to draw one bar segment
+					//------------------------------------
 					
 					//------------------------------------
-					// BEGIN code to draw one bar value label
+					// BEGIN code to draw one bar value label (directly to BitmapData)
 					//------------------------------------
-					if (shouldDrawBarLabel)
+					if (shouldDrawBarLabel && !heightMissing)
 					{
-						if (height != 0)
+						_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
+						var percent:Number = isNaN(labelBarHeightPercentage.value) ? 1 : labelBarHeightPercentage.value / 100;
+						if (!_horizontalMode)
 						{
-							_bitmapText.text = heightColumn.getValueFromKey(recordKey, Number);;
-							if (!_horizontalMode)
+							tempPoint.x = (barStart + barEnd) / 2;
+							if (height >= 0)
 							{
-								tempPoint.x = (barStart + barEnd) / 2;
-								if (height >= 0)
-								{
-									tempPoint.y = yMax;
-									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-								}
-								else
-								{
-									tempPoint.y = yNegativeMax;
-									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-								}
-								_bitmapText.angle = 270;
-								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+								tempPoint.y = percent * yMax;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 							}
 							else
 							{
-								tempPoint.y = (barStart + barEnd) / 2;
-								if (height >= 0)
-								{
-									tempPoint.x = yMax;
-									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-								}
-								else
-								{
-									tempPoint.x = yNegativeMax;
-									_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-								}
-								_bitmapText.angle = 0;
-								_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+								tempPoint.y = percent * yNegativeMax;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
-							dataBounds.projectPointTo(tempPoint, screenBounds);
-							_bitmapText.x = tempPoint.x;
-							_bitmapText.y = tempPoint.y;
-							_bitmapText.draw(destination);
+							_bitmapText.angle = 270;
+							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 						}
+						else
+						{
+							tempPoint.y = (barStart + barEnd) / 2;
+							if (height >= 0)
+							{
+								tempPoint.x = percent * yMax;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+							}
+							else
+							{
+								tempPoint.x = percent * yNegativeMax;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+							}
+							_bitmapText.angle = 0;
+							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+						}
+						dataBounds.projectPointTo(tempPoint, screenBounds);
+						_bitmapText.x = tempPoint.x;
+						_bitmapText.y = tempPoint.y;
+						_bitmapText.draw(destination);
 					}
 					//------------------------------------
-					// END code to draw one bar value label
+					// END code to draw one bar value label (directly to BitmapData)
 					//------------------------------------
 					
 				}
@@ -434,6 +498,8 @@ package weave.visualization.plotters
 								coords.push(bottom, left, bottom, right);
 							}
 							
+							// BEGIN DRAW
+							graphics.clear();
 							for (i = 0; i < coords.length; i += 2) // loop over x,y coordinate pairs
 							{
 								tempPoint.x = coords[i];
@@ -444,24 +510,15 @@ package weave.visualization.plotters
 								else
 									graphics.lineTo(tempPoint.x, tempPoint.y);
 							}
+							destination.draw(tempShape, null, null, null, clipRectangle);
+							// END DRAW
 						}
 					}
 				}
 				//------------------------------------
 				// END code to draw one error bar
 				//------------------------------------
-				
-				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > AbstractPlotter.recordsPerDraw)
-				{
-					destination.draw(tempShape, null, null, null, clipRectangle);
-					graphics.clear();
-					count = 0;
-				}
 			}
-			// flush the tempShape buffer
-			if (count > 0)
-				destination.draw(tempShape, null, null, null, clipRectangle);
 			
 			//---------------------------------------------------------
 			// END template code

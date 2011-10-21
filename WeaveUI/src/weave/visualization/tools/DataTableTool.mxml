@@ -543,6 +543,7 @@
 				updateKeyTypeComboBox();
 				handleDataSourceChange();
 				handleKeyTypeChange();
+				handleGlobalSelectionChange();
 				
 				//we need to do this to set the arrow to the correct column
 				this.invalidateDisplayList();

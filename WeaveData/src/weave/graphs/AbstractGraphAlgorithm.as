@@ -61,13 +61,19 @@ package weave.graphs
 		{
 			if (outputParams.length != 2)
 				throw new Error("Invalid output parameters provided to R.");
-			
+
+			var token:RToken = new RToken(bounds, ++_rId);
 			var asyncToken:AsyncToken = rService.runScript([], [], outputParams, script, "", true, true);
-			DelayedAsyncResponder.addResponder(asyncToken, handleLayoutResult, handleLayoutFault, bounds);
+			DelayedAsyncResponder.addResponder(asyncToken, handleLayoutResult, handleLayoutFault, token);
 		}
 
 		public function setupData(nodesColumn:IAttributeColumn, edgeSources:IAttributeColumn, edgeTargets:IAttributeColumn):void
 		{
+			trace('setupData');
+			if (!nodesColumn || !edgeSources || !edgeTargets)
+				return;
+
+			_keys = nodesColumn.keys;
 			_keyToNode = new Dictionary();
 			_edges.length = 0;
 
@@ -275,6 +281,10 @@ package weave.graphs
 				node.setPosition(nextPos.x, nextPos.y);
 				outputBounds.includePoint(nextPos);				
 			}
+			outputBounds.centeredResize(
+						outputBounds.getWidth() * 1.1,
+						outputBounds.getHeight() * 1.1
+					);
 		}
 
 		public function updateDraggedKeys(keys:Array, dx:Number, dy:Number, runSpatialCallbacks:Boolean = true):void
@@ -311,16 +321,10 @@ package weave.graphs
 			return vectorVerticesString;
 		}
 		
-		protected function generateSubGraphString():String
-		{
-			return subGraphName + 				// subgraph name
-				' <- subgraph(' + graphName + 	// the original graph
-				',' + 'vertexes)';				// the vertices vector
-		}
-		
 		public function initRService(url:String):void
 		{
 			rService = new WeaveStatisticsServlet(url);
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		private function createRObjects():void
@@ -328,47 +332,20 @@ package weave.graphs
 			if (rService == null)
 				throw new Error("Unable to create objects in R because R service is not initialized.");
 
-			nodeToGraphIndex = new Dictionary();
-			
+			if (_keys.length == 0)
+				return;
+				 
 			// load the library first
 			var libraryString:String = libraryCall;
 			
 			// build the script to store the vertices data.frame
-			var verticesString:String = 
-				'vertexes <- data.frame(name=c(';
-			var vertices:Array = [];
-			var i:int = 0;
-			for (var keyObj:Object in _keyToNode)
-			{
-				var key:IQualifiedKey = keyObj as IQualifiedKey;
-				var node:IGraphNode = _keyToNode[key];
-				vertices.push("'" + key.localName + "'");
-				lastUsedNodes.push(node);
-				nodeToGraphIndex[node] = i++;
-			}
-			if (i == 0) // no nodes--don't do anything
-				return;
-			
-			verticesString += vertices.join(',') + '))';
+			var verticesString:String = generateVertexesString(_keys);
 			
 			// build the script to store the edges data.frame
-			var edgesString:String = 
-				'edges <- data.frame(from=c(';
-			var edgeSources:Array = [];
-			var edgeTargets:Array = [];
-			for each (var edge:GraphEdge in _edges)
-			{
-				var source:IGraphNode = edge.source;
-				var target:IGraphNode = edge.target;
-				
-				edgeSources.push("'" + source.key.localName + "'");
-				edgeTargets.push("'" + target.key.localName + "'");
-			}
-			edgesString += edgeSources.join(',') + '),' + 'to=c(' + edgeTargets.join(',') + '))';
+			var edgesString:String = generateEdgesString(_keys);
 			
 			// the string to store the graph
-			var graphString:String = 
-				graphName + ' <- graph.data.frame(edges, directed=FALSE, vertices=vertexes)';
+			var graphString:String = generateGraphString(graphName, 'edges', 'vertexes'); 
 			
 			var circle:String = 
 				weaveGraphLayout + ' <- layout.circle(' + graphName + ')';
@@ -380,18 +357,58 @@ package weave.graphs
 				circle + '\n';
 			
 			callRServe(rScript, [weaveGraphLayout, graphNodes], _constrainedBounds);
-//			var asyncToken:AsyncToken = rService.runScript( [], [], [weaveGraphLayout, graphNodes], rScript, "", true, true);
-//			DelayedAsyncResponder.addResponder(asyncToken, handleLayoutResult, handleLayoutFault, _constrainedBounds);
 		}
 
+		protected function generateGraphString(graphName:String, edges:String, vertexes:String):String
+		{
+			return graphName + ' <- graph.data.frame(' + edges + ', directed=FALSE, vertices=' + vertexes + ')';
+		}
+		protected function generateEdgesString(keys:Array):String
+		{
+			var key:IQualifiedKey;
+			var keyHash:Dictionary = new Dictionary();
+			for each (key in keys)
+			{
+				keyHash[key] = true;
+			}
+			
+			// build the script to store the edges data.frame
+			var edgesString:String = 
+				'edges <- data.frame(from=c(';
+			var edgeSources:Array = [];
+			var edgeTargets:Array = [];
+			for each (var edge:GraphEdge in _edges)
+			{
+				var source:IGraphNode = edge.source;
+				var target:IGraphNode = edge.target;
+				
+				if (keyHash[source.key] == undefined || keyHash[target.key] == undefined)
+					continue;
+				
+				edgeSources.push("'" + source.key.localName + "'");
+				edgeTargets.push("'" + target.key.localName + "'");
+			}
+			edgesString += edgeSources.join(',') + '),' + 'to=c(' + edgeTargets.join(',') + '))';
+			
+			return edgesString;
+		}
+		
 		protected function handleLayoutResult(event:ResultEvent, token:Object = null):void
 		{
+			// do nothing if this wasn't the last R call
+			var rId:int = (token as RToken).id;
+			if (rId != _rId)
+				return;
+			
 			var node:IGraphNode;
-			var constrainingBounds:IBounds2D = token as IBounds2D;
+			var constrainingBounds:IBounds2D = (token as RToken).bounds;
 			
 			var array:Array = event.result as Array;
 			if (!array || array.length < 3)
-				throw new Error("Invalid or insufficient results from RService.");
+			{
+				WeaveAPI.ErrorManager.reportError(new Error("Invalid or insufficient results from RService."));
+				return;
+			}
 			
 			outputBounds.reset();
 			
@@ -450,7 +467,10 @@ package weave.graphs
 		{
 			WeaveAPI.ErrorManager.reportError(new Error(event.fault));
 		}
+
+		private var _rId:int = 0;
 		
+		protected var _keys:Array = [];
 		protected var _nodeKeyType:String = null; // the key type of the nodes
 		protected var _partitions:Vector.<Vector.<IQualifiedKey>> = null; // vector of vector of keys, where each vector of keys is a partition of the graph (NOT USED)
 		protected var _edges:Array = []; // Array of GraphEdges
@@ -462,7 +482,6 @@ package weave.graphs
 
 		// the mappings used to handle R calls
 		protected var lastUsedNodes:Array = []; // the nodes of the last R call
-		protected var nodeToGraphIndex:Dictionary = new Dictionary(); // node -> int . used to update graph in R.
 		
 		protected const tempPoint:Point = new Point();
 		protected const tempNode:IGraphNode = new GraphNode();
@@ -477,9 +496,9 @@ package weave.graphs
 		protected var graphNodes:String = 'V(' + graphName + ')$name';
 		
 		// the name of the subgraph used in R
-		protected var subGraphName:String = 'weaveSubGraph';
-		protected var subGraphEdges:String = 'E(' + subGraphName + ')';
-		protected var subGraphNodes:String = 'V(' + subGraphName + ')$name';
+//		protected var subGraphName:String = 'weaveSubGraph';
+//		protected var subGraphEdges:String = 'E(' + subGraphName + ')';
+//		protected var subGraphNodes:String = 'V(' + subGraphName + ')$name';
 		
 		// the name of the layout
 		protected var weaveGraphLayout:String = 'weaveGraphLayout';
@@ -492,29 +511,16 @@ package weave.graphs
 	}
 }
 
-import weave.api.graphs.IGraphNode;
+import weave.api.primitives.IBounds2D;
 
-/**
- * A token object used for handling calls to R service.
- * 
- * @author kmonico
- */
-internal class RGraphToken
+internal class RToken
 {
-	/**
-	 * The index of <code>node</code> in rGraphNodes. This is needed to match the results
-	 * from R into the correct node. 
-	 */	
-	public var index:int = -1;
-	
-	/**
-	 * The node. 
-	 */	
-	public var node:IGraphNode = null;
-	
-	public function RGraphToken(i:int = -1, n:IGraphNode = null)
+	public var bounds:IBounds2D = null;
+	public var id:int = 0;
+	public function RToken(b:IBounds2D, uid:int)
 	{
-		index = i;
-		node = n;
+		bounds = b;
+		id = uid;
 	}
+	
 }

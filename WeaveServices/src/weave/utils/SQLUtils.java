@@ -472,6 +472,45 @@ public class SQLUtils
 	}
 	
 	/**
+	 * @param connection An SQL Connection
+	 * @param query An SQL Query with '?' place holders for parameters
+	 * @param params Parameters for the SQL query for all '?' place holders.
+	 * @return A SQLResult object containing the result of the query
+	 * @throws SQLException
+	 */
+	public static SQLResult getRowSetFromQuery(Connection connection, String query, String[] params)
+	throws SQLException
+	{
+		CallableStatement stmt = null;
+		ResultSet rs = null;
+		SQLResult result = null;
+		try
+		{
+			stmt = connection.prepareCall(query);
+			for (int i = 0; i < params.length; i++)
+				stmt.setString(i + 1, params[i]);
+			rs = stmt.executeQuery();
+			
+			// make a copy of the query result
+			result = new SQLResult(rs);
+		}
+		catch (SQLException e)
+		{
+			//e.printStackTrace();
+			throw e;
+		}
+		finally
+		{
+			// close everything in reverse order
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+		
+		// return the copy of the query result
+		return result;
+	}
+	
+	/**
 	 * @param conn An existing SQL Connection
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.

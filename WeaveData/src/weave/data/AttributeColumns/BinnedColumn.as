@@ -29,6 +29,7 @@ package weave.data.AttributeColumns
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.data.BinClassifiers.BinClassifierCollection;
+	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
 	
@@ -139,8 +140,9 @@ package weave.data.AttributeColumns
 				for (i = 0; i < keys.length; i++)
 				{
 					var key:IQualifiedKey = keys[i];
-					// assuming bin classifiers are NumberClassifiers
-					var value:Number = column.getValueFromKey(key, Number);
+					// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
+					var dataType:Class = def is CategoryBinningDefinition ? String : Number;
+					var value:* = column.getValueFromKey(key, dataType);
 					var binIndex:Number = _derivedBins.getBinIndexFromDataValue(value);
 					if (isNaN(binIndex))
 						continue;

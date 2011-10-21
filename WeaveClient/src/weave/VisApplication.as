@@ -74,6 +74,7 @@ package weave
 	import weave.Reports.WeaveReport;
 	import weave.SearchEngineUtils;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableContainer;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
@@ -86,6 +87,7 @@ package weave
 	import weave.api.newLinkableChild;
 	import weave.api.services.IURLRequestUtils;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotLayer;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.ErrorManager;
@@ -113,6 +115,7 @@ package weave
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorBinEditor;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.CustomLayerWindow;
 	import weave.ui.DatasetLoader;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
@@ -145,12 +148,14 @@ package weave
 	import weave.utils.DebugUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.NumberUtils;
+	import weave.visualization.layers.PlotLayerContainer;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
 	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
+	import weave.visualization.tools.EmptyTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.GraphTool;
@@ -163,6 +168,7 @@ package weave
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.SP2;
 	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.SimpleVisTool;
 	import weave.visualization.tools.StickFigureGlyphTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
@@ -696,6 +702,7 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
 				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
 				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
+				createToolMenuItem(Weave.properties.enableAddCustomTool, "Add Custom Tool", createGlobalObject, [EmptyTool]);
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
@@ -1311,6 +1318,7 @@ package weave
 
 		
 		private var _printToolMenuItem:ContextMenuItem = null;
+		
 		/**
 		 * This function creates the context menu for this application by getting context menus from each
 		 * class that defines them 
@@ -1364,8 +1372,6 @@ package weave
 				// one tool at a time)
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
-				
-				
 				
 				
 				// Add context menu items for handling search queries

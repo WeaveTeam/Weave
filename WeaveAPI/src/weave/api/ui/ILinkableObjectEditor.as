@@ -48,7 +48,7 @@ package weave.api.ui
 	 */
 	public interface ILinkableObjectEditor extends IUIComponent
 	{
-		function set linkableObject(object:ILinkableObject):void;
+		function set targetObject(object:ILinkableObject):void;
 		
 		function applyChanges():void;
 	}

@@ -86,6 +86,11 @@ package weave.visualization.layers
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
 		public const includeNonSelectableLayersInAutoZoom:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 
+		public const overrideXMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		public const overrideYMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		public const overrideXMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		public const overrideYMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		
 		/**
 		 * This is the collective data bounds of all the selectable plot layers.
 		 */
@@ -171,6 +176,14 @@ package weave.visualization.layers
 				if (!fullDataBounds.isEmpty())
 				{
 					tempDataBounds.copyFrom(fullDataBounds);
+					if (isFinite(overrideXMin.value))
+						tempDataBounds.setXMin(overrideXMin.value);
+					if (isFinite(overrideXMax.value))
+						tempDataBounds.setXMax(overrideXMax.value);
+					if (isFinite(overrideYMin.value))
+						tempDataBounds.setYMin(overrideYMin.value);
+					if (isFinite(overrideYMax.value))
+						tempDataBounds.setYMax(overrideYMax.value);
 					if (enableFixedAspectRatio.value)
 					{
 						var xScale:Number = tempDataBounds.getWidth() / tempScreenBounds.getXCoverage();

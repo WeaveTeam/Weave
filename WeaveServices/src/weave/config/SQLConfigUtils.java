@@ -85,6 +85,30 @@ public class SQLConfigUtils
 		return SQLUtils.getRowSetFromQuery(conn, query);
 	}
 
+	/**
+	 * @param config An ISQLConfig interface to a config file
+	 * @param connectionName The name of a connection in the config file
+	 * @param query An SQL Query with '?' place holders for parameters
+	 * @param params Parameters for all '?' place holders in the SQL query
+	 * @return A SQLResult object containing the result of the SQL query
+	 * @throws RemoteException
+	 * @throws SQLException
+	 */
+	public static SQLResult getRowSetFromQuery(ISQLConfig config, String connectionName, String query, String[] params) throws SQLException, RemoteException
+	{
+		Connection conn = getStaticReadOnlyConnection(config, connectionName);
+		return SQLUtils.getRowSetFromQuery(conn, query, params);
+	}
+	
+	/**
+	 * This function constructs a new query from two existing Weave queries and joins the results using the keys.
+	 * @param config
+	 * @param metadataQueryParams1
+	 * @param metadataQueryParams2
+	 * @return
+	 * @throws RemoteException
+	 * @throws SQLException
+	 */
 	public static String getJoinQueryForAttributeColumns(ISQLConfig config, Map<String, String> metadataQueryParams1, Map<String, String> metadataQueryParams2)
 		throws RemoteException, SQLException
 	{

@@ -39,6 +39,7 @@ import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
 import weave.reports.WeaveReport;
 import weave.servlets.GenericServlet;
+import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
@@ -282,9 +283,10 @@ public class DataService extends GenericServlet
 		String dataTableName = params.get(Metadata.DATATABLE.toString());
 		String attributeColumnName = params.get(Metadata.NAME.toString());
 
-		// remove min,max params -- do not use them to query the config
+		// remove min,max,sqlParams -- do not use them to query the config
 		String paramMinStr = params.remove(Metadata.MIN.toString());
 		String paramMaxStr = params.remove(Metadata.MAX.toString());
+		String sqlParams = params.remove(AttributeColumnInfo.SQLPARAMS);
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
@@ -335,7 +337,16 @@ public class DataService extends GenericServlet
 		try
 		{
 			timer.start();
-			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+			SQLResult result;
+			if (sqlParams != null && sqlParams.length() > 0)
+			{
+				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];
+				result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery, args);
+			}
+			else
+			{
+				result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+			}
 			timer.lap("get row set");
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.

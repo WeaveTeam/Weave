@@ -631,7 +631,7 @@ package weave.core
 		/**
 		 * This function checks if an object has been disposed of by SessionManager.
 		 * @param object An object to check.
-		 * @return true if SsessionManager.dispose() was called for the specified object.
+		 * @return true if SessionManager.dispose() was called for the specified object.
 		 * 
 		 */
 		public function objectWasDisposed(object:Object):Boolean
@@ -972,7 +972,7 @@ package weave.core
 		 ******************************************************/
 		
 		
-		
+		private const _linkBindablePropertyLater:Dictionary = new Dictionary(true); // used by linkBindableProperty
 		
 		/**
 		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
@@ -1000,14 +1000,49 @@ package weave.core
 			}
 			
 			// a function that takes zero parameters and sets the bindable value.
-			var setBindableProperty:Function = function():void
+			var setBindableProperty:Function = function(callingLater:Boolean = false):void
 			{
+				// unlink if linkableVariable was disposed of
+				if (objectWasDisposed(linkableVariable))
+				{
+					unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
+					return;
+				}
+				
+				var uiComponent:UIComponent = bindableParent as UIComponent;
+				if (uiComponent)
+				{
+					var obj:DisplayObject = uiComponent.getFocus();
+					if (obj && uiComponent.contains(obj))
+					{
+						// prevent multiple callLater calls to be queued.
+						if (!_linkBindablePropertyLater[uiComponent] || callingLater)
+						{
+							_linkBindablePropertyLater[uiComponent] = true;
+							uiComponent.callLater(setBindableProperty, [true]);
+						}
+						return;
+					}
+					else
+					{
+						delete _linkBindablePropertyLater[uiComponent];
+					}
+				}
+				
 				var value:Object = linkableVariable.getSessionState();
-				if (bindableParent[bindablePropertyName] is Number && !(value is Number))
+				if ((bindableParent[bindablePropertyName] is Number) != (value is Number))
 				{
 					try {
-						linkableVariable.setSessionState(Number(value));
-						value = linkableVariable.getSessionState();
+						if (value is Number)
+						{
+							if (isNaN(value as Number))
+								value = '';
+						}
+						else
+						{
+							linkableVariable.setSessionState(Number(value));
+							value = linkableVariable.getSessionState();
+						}
 					} catch (e:Error) { }
 				}
 				bindableParent[bindablePropertyName] = value;
@@ -1033,7 +1068,7 @@ package weave.core
 			_changeWatcherMap[linkableVariable][bindableParent][bindablePropertyName] = watcher;
 			// when session state changes, set bindable property
 			_changeWatcherToCopyFunctionMap[watcher] = setBindableProperty;
-			getCallbackCollection(linkableVariable).addImmediateCallback(bindableParent, setBindableProperty);
+			getCallbackCollection(linkableVariable).addGroupedCallback(bindableParent, setBindableProperty);
 		}
 		/**
 		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().

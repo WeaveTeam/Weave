@@ -16,28 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-package weave.utils
-{
-	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
-	
-	import weave.core.ClassUtils;
 
-	public class EditorManager
+package weave.data.BinClassifiers
+{
+	import weave.api.data.IBinClassifier;
+	import weave.api.data.IPrimitiveColumn;
+	import weave.api.newLinkableChild;
+	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
+	import weave.core.UntypedLinkableVariable;
+	import weave.data.AttributeColumns.StringColumn;
+	
+	/**
+	 * This classifies a single value.
+	 * 
+	 * @author adufilie
+	 */
+	public class SingleValueClassifier extends UntypedLinkableVariable implements IBinClassifier
 	{
-		public static function registerEditor(objType:Class, editorType:Class):void
+		/**
+		 * @param value A value to test.
+		 * @return true If this IBinClassifier contains the given value.
+		 */
+		public function contains(value:*):Boolean
 		{
-			editorLookup[objType] = editorType;
+			return sessionStateEquals(value);
 		}
-		
-		public static const editorLookup:Dictionary = new Dictionary();
-		
-		public static function getEditorClass(obj:Object):Class
-		{
-			return editorLookup[ClassUtils.getClassDefinition(getQualifiedClassName(obj))];	
-		}
-		
-		
-		
 	}
 }

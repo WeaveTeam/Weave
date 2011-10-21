@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
     Weave (Web-based Analysis and Visualization Environment)
     Copyright (C) 2008-2011 University of Massachusetts Lowell
@@ -16,28 +18,33 @@
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-package weave.utils
-{
-	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
-	
-	import weave.core.ClassUtils;
+-->
+<!---
+An empty SimpleVisTool designed for adding custom layers
+@author kmanohar
+-->
+<SimpleVisTool xmlns="weave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="weave.ui.*"
+		 xmlns:userControls="weave.ui.userControls.*"
+		 title="Custom Tool"
+	     layout="absolute" xmlns:settings="weave.ui.settings.*">
+	<mx:Script>
+		<![CDATA[
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+			}
+			override protected function handlePanelTitleChange():void
+			{
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
+					title = "Custom Tool";
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
 
-	public class EditorManager
-	{
-		public static function registerEditor(objType:Class, editorType:Class):void
-		{
-			editorLookup[objType] = editorType;
-		}
-		
-		public static const editorLookup:Dictionary = new Dictionary();
-		
-		public static function getEditorClass(obj:Object):Class
-		{
-			return editorLookup[ClassUtils.getClassDefinition(getQualifiedClassName(obj))];	
-		}
-		
-		
-		
-	}
-}
+	</ui:ControlPanel>
+</SimpleVisTool>

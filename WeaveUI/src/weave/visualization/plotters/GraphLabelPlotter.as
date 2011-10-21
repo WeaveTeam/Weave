@@ -25,6 +25,7 @@ package weave.visualization.plotters
 	import flash.text.TextFormat;
 	
 	import weave.Weave;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.graphs.IGraphAlgorithm;
@@ -55,7 +56,7 @@ package weave.visualization.plotters
 		public function GraphLabelPlotter()
 		{
 			super();
-			nodesColumn.addImmediateCallback(this, setKeySource, [nodesColumn], true);
+			//nodesColumn.addImmediateCallback(this, setKeySource, [nodesColumn], true);
 		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -165,7 +166,14 @@ package weave.visualization.plotters
 			
 			return [ bounds ];
 		}
-				
+		
+		override public function getBackgroundDataBounds():IBounds2D
+		{
+			var bounds:IBounds2D = getReusableBounds();
+			if (layoutAlgorithm.internalObject)
+				(layoutAlgorithm.internalObject as IGraphAlgorithm).getOutputBounds(keySet.keys, bounds);
+			return bounds;
+		}				
 		
 		private function handleColumnsChange():void
 		{
@@ -175,14 +183,11 @@ package weave.visualization.plotters
 		// the styles
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-		
-		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
+
 		public const sizeColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
-		public const nodesColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
-		public const edgeSourceColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(), handleColumnsChange);
-		public const edgeTargetColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(), handleColumnsChange);
-		public const labelColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
-		public function get edgeColorColumn():AlwaysDefinedColumn { return lineStyle.color; }
+		public const nodesColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn));
+		public const edgeSourceColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn), handleColumnsChange);
+		public const edgeTargetColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IAttributeColumn), handleColumnsChange);		public const labelColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
 		public const radius:LinkableNumber = registerSpatialProperty(new LinkableNumber(2)); // radius of the circles
 		
 		public const layoutAlgorithm:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IGraphAlgorithm), handleColumnsChange);

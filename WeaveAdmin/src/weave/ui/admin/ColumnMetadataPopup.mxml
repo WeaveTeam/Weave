@@ -21,6 +21,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
 		  layout="absolute"
+		  borderAlpha="1"
 		  width="640" height="480"
 		  xmlns="weave.ui.admin.*"
 		  xmlns:ui="weave.ui.*"
