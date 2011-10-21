@@ -234,6 +234,23 @@ public class SQLConfig
                 }
                 return results; 
         }
+        private static boolean isPublicProperty(String property)
+        {
+            return !(property.equals("connection") || property.equals("sqlQuery") || property.equals("tablePrefix") || property.equals("tablePrefix"));
+/*
+            switch (property)
+            {
+                case "connection":
+                    return false;
+                case "sqlQuery":
+                    return false;
+                case "tablePrefix":
+                    return false;
+                default:
+                    return true;
+            }
+*/
+        }
         private void setProperty(Integer id, String property, String value) throws RemoteException 
         {
             try {
@@ -246,7 +263,7 @@ public class SQLConfig
             Map<String,Object> delete_args = new HashMap<String,Object>();
             delete_args.put("property", property);
             delete_args.put("id", id);
-            if (true) /* TODO: Add check for private-only keys here */
+            if (isPublicProperty(property)) /* TODO: Add check for private-only keys here */
             {
                 table = sqltable_public;
             }
@@ -466,29 +483,31 @@ public class SQLConfig
 	public GeometryCollectionInfo getGeometryCollectionInfo(Integer id) throws RemoteException
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
+		GeometryCollectionInfo info = new GeometryCollectionInfo();
 		params.put("id", id);
 		try
 		{
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, sqltable_private, params);
-			if (records.size() > 0)
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, sqltable_public, params);
+                        Map<String,String> props = new HashMap<String,String>();
+			for (Map<String,String> row : records)
 			{
-				Map<String, String> record = records.get(0);
-				GeometryCollectionInfo info = new GeometryCollectionInfo();
-				info.name = record.get(GeometryCollectionInfo.NAME);
-				info.connection = record.get(GeometryCollectionInfo.CONNECTION);
-				info.schema = record.get(GeometryCollectionInfo.SCHEMA);
-				info.tablePrefix = record.get(GeometryCollectionInfo.TABLEPREFIX);
-				info.keyType = record.get(GeometryCollectionInfo.KEYTYPE);
-				info.projection = record.get(GeometryCollectionInfo.PROJECTION);
-				info.importNotes = record.get(GeometryCollectionInfo.IMPORTNOTES);
-				return info;
+                                String property_name = row.get("property");
+                                String value = row.get("value");
+                                props.put(property_name, value);
 			}
+			info.name = props.get(GeometryCollectionInfo.NAME);
+			info.connection = props.get(GeometryCollectionInfo.CONNECTION);
+			info.schema = props.get(GeometryCollectionInfo.SCHEMA);
+			info.tablePrefix = props.get(GeometryCollectionInfo.TABLEPREFIX);
+			info.keyType = props.get(GeometryCollectionInfo.KEYTYPE);
+			info.projection = props.get(GeometryCollectionInfo.PROJECTION);
+			info.importNotes = props.get(GeometryCollectionInfo.IMPORTNOTES);
 		}
 		catch (Exception e)
 		{
 			throw new RemoteException(String.format("Unable to get info for GeometryCollection \"%d\"", id), e);
 		}
-		return null;
+		return info;
 	}
 
 	public void addAttributeColumn(AttributeColumnInfo info) throws RemoteException
@@ -496,11 +515,11 @@ public class SQLConfig
 		try
 		{
 			// make a copy of the metadata and add the sql info
-			Map<String, Object> valueMap = new HashMap<String, Object>(info.metadata);
-			valueMap.put(AttributeColumnInfo.CONNECTION, info.connection);
-			valueMap.put(AttributeColumnInfo.SQLQUERY, info.sqlQuery);
+			Map<String, String> valueMap = new HashMap<String, String>(info.metadata);
+                        valueMap.put(AttributeColumnInfo.SQLQUERY, info.sqlQuery);
+                        String desc = valueMap.get("desc"); // TODO: Change to AttributeColumnInfo.SQLQUERY when appropriate.
+                        Integer id = addEntry(desc, valueMap);
 			// insert all the info into the sql table
-			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, valueMap);
 		}
 		catch (Exception e)
 		{
@@ -525,15 +544,12 @@ public class SQLConfig
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
 		try
 		{
-			DebugTimer t = new DebugTimer();
-			t.report("getAttributeColumnInfo");
-			// get rows matching given parameters
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(
-					getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryObjects);
-			t.lap(metadataQueryParams + "; got records " + records.size());
-			for (int i = 0; i < records.size(); i++)
+                        Connection conn = getConnection();
+                        Map<Integer,Map<String,String>> attr_cols;
+                        List<Integer> col_ids = getFromKeyVals(metadataQueryParams);
+                        attr_cols = getProperties(col_ids, null);
+			for (Map<String,String> metadata : attr_cols.values())
 			{
-				Map<String, String> metadata = records.get(i);
 				String connection = metadata.remove(AttributeColumnInfo.CONNECTION);
 				String sqlQuery = metadata.remove(AttributeColumnInfo.SQLQUERY);
 
@@ -541,7 +557,6 @@ public class SQLConfig
 				// keyType is missing
 				if (metadata.get(Metadata.KEYTYPE.toString()).length() == 0)
 				{
-					t.start();
 					String geomName = metadata.get(Metadata.GEOMETRYCOLLECTION.toString());
 
 					GeometryCollectionInfo geomInfo = null;
@@ -555,22 +570,11 @@ public class SQLConfig
 					{
 					}
 
-					t.lap("get geom info " + i + " " + geomName);
 					if (geomInfo != null)
 						metadata.put(Metadata.KEYTYPE.toString(), geomInfo.keyType);
 				}
-
-				// remove null values and empty values
-				// for (String key : metadata.keySet().toArray(new String[0]))
-				// {
-				// String value = metadata.get(key);
-				// if (value == null || value.length() == 0)
-				// metadata.remove(key);
-				// }
-
 				results.add(new AttributeColumnInfo(connection, sqlQuery, metadata));
 			}
-			t.report();
 		}
 		catch (SQLException e)
 		{

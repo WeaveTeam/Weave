@@ -60,6 +60,7 @@ import com.mysql.jdbc.ResultSetMetaData;
  * @author Andrew Wilkinson
  * @author Kyle Monico
  * @author Yen-Fu Luo
+ * @author Philip Kovac
  */
 /**
  * @author Administrator
@@ -1101,9 +1102,21 @@ public class SQLUtils
             //TODO: Clean this up, make it more generic.
             Map<Integer,Map<String,String>> results = new HashMap<Integer,Map<String,String>>();
             String idBlock = "("+stringMult(",", "?", ids.size())+")";
-            String propBlock = "("+stringMult(",","?", props.size())+")";
-            String query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s AND %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
-            quoteSymbol(conn, table), quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
+            String propBlock;
+            String query;
+            if (props != null)
+            {
+                propBlock = "("+stringMult(",","?", props.size())+")";
+                query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s AND %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
+                quoteSymbol(conn, table), quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
+            }
+            else
+            {
+                propBlock = "("+stringMult(",","?", props.size())+")";
+                query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
+                quoteSymbol(conn, table), quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, idColumn));
+                
+            }
             PreparedStatement stmt = conn.prepareStatement(query);
             int i=1;
             for (Integer val : ids)
@@ -1112,10 +1125,13 @@ public class SQLUtils
                 stmt.setInt(i,val);
                 i++;
             }
-            for (String val : props)
+            if (props != null)
             {
-                stmt.setString(i,val);
-                i++;
+                for (String val : props)
+                {
+                    stmt.setString(i,val);
+                    i++;
+                }
             }
             ResultSet rs = stmt.executeQuery();
             while (rs.next())
