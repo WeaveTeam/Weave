@@ -117,6 +117,7 @@
 			
 			import weave.api.linkBindableProperty;
 			import weave.core.SessionManager;
+			import weave.ui.DraggablePanel;
 			import weave.utils.EventUtils;
 			import weave.visualization.tools.SimpleVisTool;
 

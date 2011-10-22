@@ -47,7 +47,7 @@ package weave.visualization.tools
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.ui.DraggablePanel;
 	import weave.ui.LayerListComponent;
-	import weave.ui.UserWindowSettings;
+	import weave.ui.editors.WindowSettingsEditor;
 	import weave.utils.ColumnUtils;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.AxisLayer;
@@ -132,7 +132,7 @@ package weave.visualization.tools
 			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
 		}
 		
-		protected var _userWindowSettings:UserWindowSettings = new UserWindowSettings();
+		protected var _userWindowSettings:WindowSettingsEditor = new WindowSettingsEditor();
 		override protected function childrenCreated():void
 		{
 			super.childrenCreated();
