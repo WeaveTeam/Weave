@@ -870,7 +870,11 @@ package weave
 			for each (var hierarchy:XML in _configFileXML.descendants('hierarchy'))
 				for each (tag in hierarchy.descendants("attribute"))
 					if (!String(tag.@title) && tag.@name)
+					{
 						tag.@title = tag.@name;
+						if (String(tag.@year))
+							tag.@title += ' (' + tag.@year + ')';
+					}
 
 			Weave.setSessionStateXML(_configFileXML, true);
 			fixCommonSessionStateProblems();

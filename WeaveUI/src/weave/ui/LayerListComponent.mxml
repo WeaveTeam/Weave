@@ -30,7 +30,6 @@ LayerListComponent
 		 xmlns="weave.ui.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 borderStyle="outset"
 		 label="Layers (BETA)">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
@@ -49,6 +48,15 @@ LayerListComponent
 			click="internalList.removeSelectedItem()"
 			enabled="{internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
+	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
+		<mx:Label width="{_labelWidth}" text="Override zoom:"/>
+		<TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
+		<mx:VBox>
+			<TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
+			<TextInputWithPrompt id="overrideYMin" prompt="yMin" width="{boundsInputWidth}"/>
+		</mx:VBox>
+		<TextInputWithPrompt id="overrideXMax" prompt="xMax" width="{boundsInputWidth}"/>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
@@ -59,15 +67,32 @@ LayerListComponent
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.visualization.tools.SimpleVisTool;
 			
+			private static const boundsInputWidth:int = 64;
+			
+			private static const _labelWidth:int = 100;
+
 			[Bindable] private var _visTool:SimpleVisTool= null;
 			
 			[Inspectable]
 			public function set visTool(value:SimpleVisTool):void
 			{
 				_visTool = value;
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				if (_visTool)
+				{
+					linkBindableProperty(_visTool.visualization.overrideXMin, overrideXMin, 'text');
+					linkBindableProperty(_visTool.visualization.overrideYMin, overrideYMin, 'text');
+					linkBindableProperty(_visTool.visualization.overrideXMax, overrideXMax, 'text');
+					linkBindableProperty(_visTool.visualization.overrideYMax, overrideYMax, 'text');
+				}
 			}
 			
 			private function openSelector():void

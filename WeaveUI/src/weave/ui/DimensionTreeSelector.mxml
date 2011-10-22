@@ -75,15 +75,17 @@ Displays catoegories in a tree view and the attributes in a list.
 			public const attributeHierarchy:AttributeHierarchy = newLinkableChild(this, AttributeHierarchy, handleHierarchyChange);
 
 			// used to filter the hierarchy attributes
-			public const attributeFilter:LinkableString = newLinkableChild(this, LinkableString, filterAttributes);
+			public const attributeFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull), filterAttributes);
 			
 			// used to filter the hierarchy categories
-			public const categoryFilter:LinkableString = newLinkableChild(this, LinkableString, handleHierarchyChange);
+			public const categoryFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull), handleHierarchyChange);
 			
 			// the currently selected path to an attribute or category
 			public const selectedPath:LinkableXML = registerLinkableChild(this, new LinkableXML(null, StandardLib.isDefined), handleSelectedPathChange);
 
 			/*************************/
+			private function isNonNull(value:String):Boolean { return value != null; }
+			
 			private var arrColl:ArrayCollection;
 			
 			override protected function childrenCreated():void
@@ -176,8 +178,6 @@ Displays catoegories in a tree view and the attributes in a list.
 				}
 				if (result.children.length == 0)
 				{
-					if (categoryFilter.value == null)
-						categoryFilter.value = '';
 					if ((result.label as String).toLowerCase().search(categoryFilter.value.toLowerCase()) < 0)
 						return null;
 					result.children = null;
@@ -331,8 +331,6 @@ Displays catoegories in a tree view and the attributes in a list.
 			
 			private function filterAttr(item:Object):Boolean
 			{
-				if (attributeFilter.value == null)
-					attributeFilter.value = '';
 				var lowerCaseFilter:String = attributeFilter.value.toLowerCase();
 				var label:String = getLabelForNode(item);
 				if (label.toLowerCase().search(lowerCaseFilter) < 0)
@@ -357,22 +355,10 @@ Displays catoegories in a tree view and the attributes in a list.
 			
 			private function getLabelForNode(item:Object):String
 			{
-				var label:String = "Untitled";
 				var node:XML = XML(item);
+				var label:String = String(node.@title) || String(node.@dataSourceName) || 'Untitled';
 				
-				if (String(node.@dataSourceName) != '')
-					label = node.@dataSourceName.toString();
-				else if (String(node.@title) != '')
-					label = node.@title.toString();
-				else if(String(node.@name) != '')
-					label = node.@name;
-				
-				if (String(node.@year) != '')
-					label += " (" + String(node.@year) + ")";
-				
-				if (attributeFilter.value == null)
-					attributeFilter.value = '';
-				if (attributeFilter.value.length > 0)
+				if (attributeFilter.value)
 					return label;
 				
 				// append number of attributes to label

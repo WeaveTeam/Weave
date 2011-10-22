@@ -75,7 +75,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 		]]>
 	</mx:Script>
-	<mx:Label fontWeight="bold" text="Grid Line Settings"/>
+	<mx:Label fontWeight="bold" text="Grid line settings"/>
 	<mx:HBox width="100%">
 			
 		<mx:HBox width="15%">
