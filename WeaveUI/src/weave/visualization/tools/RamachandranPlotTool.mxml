@@ -623,11 +623,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 										change="handleSizeSliderChange(event)"
 										mouseDown="event.stopImmediatePropagation();"/>
 						</mx:HBox>
-						<ui:DynamicColumnComponent label="x column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
-						<ui:DynamicColumnComponent label="y column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
-						<ui:DynamicColumnComponent label="color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-						<ui:DynamicColumnComponent label="size" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
-						<ui:DynamicColumnComponent label="Histogram Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
+						<ui:DynamicColumnComponent label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
+						<ui:DynamicColumnComponent label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+						<ui:DynamicColumnComponent label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+						<ui:DynamicColumnComponent label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
+						<ui:DynamicColumnComponent label="Histogram Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
 					</mx:VBox>
 				</mx:VBox>
 				<mx:HBox width="100%">

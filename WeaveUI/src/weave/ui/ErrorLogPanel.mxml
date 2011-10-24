@@ -82,6 +82,9 @@
 							errorString += ': ' + f.faultString;
 						if (f.faultDetail)
 							errorString += ': ' + f.faultDetail;
+						if (errorString == 'Error')
+							errorString = "Communication error";
+						
 						textArea.text += errorString;
 					}
 					else if (SessionManager.runningDebugFlashPlayer)

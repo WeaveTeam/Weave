@@ -131,7 +131,7 @@ package weave.visualization.layers
 		public function linkToAxisProperties(axisLayer:AxisLayer):void
 		{
 			if (layers.getName(axisLayer) == null)
-				throw new Error("linkToAxisPlotterProperties(): given axisLayer is not owned by this visualization's layers property.");
+				throw new Error("linkToAxisProperties(): given axisLayer is not one of this visualization's layers");
 			var p:SimpleAxisPlotter = axisLayer.axisPlotter;
 			var list:Array = [
 				[axisFontFamily,     p.axisFontFamily],
@@ -161,6 +161,10 @@ package weave.visualization.layers
 		}
 
 		
+		public function get xAxisEnabled():Boolean
+		{
+			return _xAxisLayer != null;
+		}
 		public function set xAxisEnabled(value:Boolean):void
 		{
 			if (value && !_xAxisLayer)
@@ -175,6 +179,10 @@ package weave.visualization.layers
 				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
 				updateZoom();
 			}
+		}
+		public function get yAxisEnabled():Boolean
+		{
+			return _yAxisLayer != null;
 		}
 		public function set yAxisEnabled(value:Boolean):void
 		{

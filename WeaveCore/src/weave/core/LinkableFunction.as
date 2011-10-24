@@ -29,6 +29,7 @@ package weave.core
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
 	import weave.compiler.Compiler;
+	import weave.compiler.ProxyObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.weave_internal;

@@ -139,6 +139,7 @@ package weave.services
 				var fault:Fault = new Fault(msg.faultCode, msg.faultString, msg.faultDetail);
 				fault.message = msg;
 				fault.content = event;
+				fault.rootCause = this;
 				var faultEvent:FaultEvent = FaultEvent.createEvent(fault, this, msg);
 				handleFault(faultEvent, token);
 				return;

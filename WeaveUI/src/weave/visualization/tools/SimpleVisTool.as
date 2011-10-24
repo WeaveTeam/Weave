@@ -27,6 +27,7 @@ package weave.visualization.tools
 	import mx.containers.VBox;
 	import mx.controls.Label;
 	import mx.core.UIComponent;
+	import mx.skins.Border;
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
@@ -45,8 +46,10 @@ package weave.visualization.tools
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
 	import weave.ui.LayerListComponent;
+	import weave.ui.editors.SimpleAxisEditor;
 	import weave.ui.editors.WindowSettingsEditor;
 	import weave.utils.ColumnUtils;
 	import weave.utils.ProbeTextUtils;
@@ -81,15 +84,19 @@ package weave.visualization.tools
 				invalidateDisplayList();
 			}
 			Weave.properties.axisFontSize.addGroupedCallback(this, updateTitleLabel);
-			Weave.properties.axisFontColor.addGroupedCallback(this, updateTitleLabel);
+			Weave.properties.axisFontColor.addGroupedCallback(this, updateTitleLabel, true);
 		}
-		
-		/**
-		 * container for Flex components
-		 */
-		private const toolVBox:VBox = new VBox(); // simpleVisToolVBox contains titleLabel and visCanvas
-		protected const visCanvas:Canvas = new Canvas(); // For linkDisplayObjects
-		private const titleLabel:Label = new Label(); // For display of title inside the window area
+
+		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
+		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+
+		private var toolVBox:VBox; // simpleVisToolVBox contains titleLabel and visCanvas
+		private var visTitle:AutoResizingTextArea; // For display of title inside the window area
+		protected var visCanvas:Canvas; // For linkDisplayObjects
+		private var _visualization:SimpleInteractiveVisualization;
+		protected var layerListComponent:LayerListComponent;
+		protected var simpleAxisEditor:SimpleAxisEditor;
+		protected var windowSettingsEditor:WindowSettingsEditor;
 		
 		private var createdChildren:Boolean = false;
 		override protected function createChildren():void
@@ -99,14 +106,26 @@ package weave.visualization.tools
 			if (createdChildren)
 				return;
 			
+			toolVBox = new VBox()
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
+			toolVBox.setStyle("verticalGap", 0);
 			toolVBox.setStyle("horizontalAlign", "center");
+			
+			visTitle = new AutoResizingTextArea();
+			visTitle.selectable = false;
+			visTitle.editable = false;
+			visTitle.setStyle('borderStyle', 'none');
+			visTitle.setStyle('textAlign', 'center');
+			visTitle.setStyle('fontWeight', 'bold');
+			visTitle.setStyle('backgroundAlpha', 0);
+			visTitle.percentWidth = 100;
+			updateTitleLabel();
+			
+			visCanvas = new Canvas();
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
 			toolVBox.addChild(visCanvas);
-			
-			updateTitleLabel();
 			
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
@@ -118,46 +137,44 @@ package weave.visualization.tools
 			
 			this.addChild(toolVBox);
 			
-			_userWindowSettings.targetTool = this;
+			layerListComponent = new LayerListComponent();
+			layerListComponent.visTool = this;
+			layerListComponent.hashMap = visualization.layers;
+			
+			//TODO: hide axis controls when axis isn't enabled
+
+			simpleAxisEditor = new SimpleAxisEditor();
+			simpleAxisEditor.target = this;
+			
+			windowSettingsEditor = new WindowSettingsEditor();
+			windowSettingsEditor.target = this;
+			
+			if (controlPanel)
+				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
 			
 			createdChildren = true;
 		}
 		
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
+		}
+		
+		private function handleBindableTitle(value:String):void
+		{
+			visTitle.text = title;
+		}
 		private function updateTitleLabel():void
 		{
 			if (!parent)
 				return callLater(updateTitleLabel);
 			
-			titleLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
-			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
+			visTitle.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			visTitle.setStyle("color", Weave.properties.axisFontColor.value);
 		}
 		
-		protected var _userWindowSettings:WindowSettingsEditor = new WindowSettingsEditor();
-		override protected function childrenCreated():void
-		{
-			super.childrenCreated();
-			
-			var layerSettings:VBox = new VBox();
-			layerSettings.creationPolicy = "all";
-			layerSettings.percentHeight = layerSettings.percentWidth = 100;
-			
-			var layersList:LayerListComponent = new LayerListComponent();
-			layersList.visTool = this;
-			layersList.hashMap = visualization.layers;
-			
-			layerSettings.addChild(layersList);
-			
-			if (controlPanel)
-			{
-				controlPanel.children = [layersList, _userWindowSettings];
-			}
-			
-			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
-		}
-		private function handleBindableTitle(value:String):void
-		{
-			titleLabel.text = title;
-		}
 		
 		/**
 		 * This function should be defined with override by subclasses.
@@ -184,20 +201,23 @@ package weave.visualization.tools
 			verticalScrollPolicy = "off";
 		}
 		
-		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange);
 		private function handleTitleToggleChange():void
 		{
+			if (!parent)
+			{
+				callLater(handleTitleToggleChange);
+				return;
+			}
 			if (!enableTitle.value)
 			{
-				if (toolVBox == titleLabel.parent)
-					toolVBox.removeChild(titleLabel);
+				if (toolVBox == visTitle.parent)
+					toolVBox.removeChild(visTitle);
 			}
 			else
 			{
-				if (toolVBox != titleLabel.parent)
-					toolVBox.addChildAt(titleLabel,0);
+				if (toolVBox != visTitle.parent)
+					toolVBox.addChildAt(visTitle,0);
 			}
-			invalidateDisplayList();
 		}
 		
 		private const MIN_TOOL_WIDTH:int  = 250;
@@ -312,12 +332,18 @@ package weave.visualization.tools
 			}
 		}
 		
-		[Inspectable]
+		public function get xAxisEnabled():Boolean
+		{
+			return visualization.xAxisEnabled;
+		}
 		public function set xAxisEnabled(value:Boolean):void
 		{
 			visualization.xAxisEnabled = value;
 		}
-		[Inspectable]
+		public function get yAxisEnabled():Boolean
+		{
+			return visualization.yAxisEnabled;
+		}
 		public function set yAxisEnabled(value:Boolean):void
 		{
 			visualization.yAxisEnabled = value;
@@ -353,21 +379,13 @@ package weave.visualization.tools
 		{
 			return _visualization;
 		}
-		private var _visualization:SimpleInteractiveVisualization;
 		
 		// UI children
-		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		public function getLinkableChildren():ILinkableHashMap { return children; }
 		
 		override public function dispose():void
 		{
 			super.dispose();
-		}
-		
-		// backwards compatibility 0.9.6
-		[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void
-		{
-			enableBorders.value = !value;
 		}
 	}
 }

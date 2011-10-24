@@ -22,21 +22,27 @@
 <mx:HBox
     xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
+	textAlign="right"
     horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all"
     >
-    <mx:Label id="labelComponent" text="{label}" textAlign="right" width="{indent}"/>
-    <mx:TextInput id="input" text="{text}" change="text = input.text;dispatchEvent(new Event('change'));" width="{textWidth}" displayAsPassword="{displayAsPassword}"/>
+    <mx:Label id="labelComponent" text="{label}" width="{indent}"/>
+    <mx:TextInput id="input" textAlign="left" text="{text}" change="handleInputChange()" width="{inputWidth}" displayAsPassword="{displayAsPassword}"/>
 	
 	<mx:Metadata>
 		[Event(name="change", type="flash.events.Event")]
-		
 	</mx:Metadata>
     <mx:Script>
     	<![CDATA[
-    		[Bindable] public var indent:int = 200;
+    		[Bindable] public var indent:Number = NaN;
     		[Bindable] public var text:String = "";
-    		[Bindable] public var textWidth:Number = 200;
+    		[Bindable] public var inputWidth:Number = NaN;
     		[Bindable] public var displayAsPassword:Boolean = false;
+			
+			private function handleInputChange():void
+			{
+				text = input.text;
+				dispatchEvent(new Event('change'));
+			}
     	]]>
     </mx:Script>
 </mx:HBox>

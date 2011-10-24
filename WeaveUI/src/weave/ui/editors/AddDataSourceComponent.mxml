@@ -38,24 +38,33 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import mx.controls.Alert;
 			import mx.core.Application;
 			import mx.events.ItemClickEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.core.SessionManager;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
+			import weave.core.SessionManager;
 			import weave.data.DataSources.AbstractDataSource;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.DBFDataSource;
-			import weave.api.data.IDataSource;
 			import weave.data.DataSources.WFSDataSource;
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.data.DataSources.XLSDataSource;
 			import weave.ui.CustomContextMenuManager;
-			
+			import weave.utils.EditorManager;
+
+			{
+				EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
+				EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
+				EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
+				EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
+				EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
+			}
+
 			private static var _staticInstance:AddDataSourceComponent = null;
 			public static function showAsPopup():void
 			{

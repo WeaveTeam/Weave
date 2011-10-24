@@ -313,7 +313,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HSlider id="labelAngleSlider"
 			snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 			dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
-			initialize="linkBindableProperty(_anchorPlotter.labelAngleRatio, labelAngleSlider, 'value')"/>
+			creationComplete="linkBindableProperty(_anchorPlotter.labelAngleRatio, event.target, 'value')"/>
 			</userControls:ControlsSubsetBox>
 			
 			
@@ -331,7 +331,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				backgroundColor="0xFFFFFF" 
 				backgroundAlpha="0.7">
 				<mx:HBox
-					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
+					creationComplete="linkBindableProperty(_plotter.localNormalization,event.target,'selectedValue')">
 					<mx:Label text="Normalization method:"
 							  color="0x000000" fontSize="12"
 							  toolTip="Select the type of normalization used to calculate record coordinates"/>
@@ -355,7 +355,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:CheckBox id="enableWedgeColoringCkbx"
 							 label="Enable Wedge Coloring"
 							 toolTip="Enable different wedge colors for the pi-chart glyphs"
-							 creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, enableWedgeColoringCkbx, 'selected')"/>
+							 creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, event.target, 'selected')"/>
 				<mx:Label text="Color scale used in pie-chart glyphs:" enabled="{enableWedgeColoringCkbx.selected}"/>
 				<mx:DataGrid id="colormapGrid"
 							 enabled="{enableWedgeColoringCkbx.selected}"
@@ -423,11 +423,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							  toolTip="Use this control to reorder the dimensional anchors"/>					
 				</mx:HBox>
 				<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
-							 initialize="linkBindableProperty(_plotter.currentAlgorithm,algorithmComboBox,'selectedItem')"/>
+							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm,event.target,'selectedItem')"/>
 				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
 					<mx:Label text="Number of Iterations"/>
 					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
-								  initialize="linkBindableProperty(_plotter.iterations, iterationsTextInput, 'text')"/>
+								  creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>

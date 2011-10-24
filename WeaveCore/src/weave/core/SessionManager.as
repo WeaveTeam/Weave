@@ -1009,27 +1009,31 @@ package weave.core
 					return;
 				}
 				
-				var uiComponent:UIComponent = bindableParent as UIComponent;
-				if (uiComponent)
+				var value:Object = linkableVariable.getSessionState();
+
+				if (!(value is Boolean))
 				{
-					var obj:DisplayObject = uiComponent.getFocus();
-					if (obj && uiComponent.contains(obj))
+					var uiComponent:UIComponent = bindableParent as UIComponent;
+					if (uiComponent)
 					{
-						// prevent multiple callLater calls to be queued.
-						if (!_linkBindablePropertyLater[uiComponent] || callingLater)
+						var obj:DisplayObject = uiComponent.getFocus();
+						if (obj && uiComponent.contains(obj))
 						{
-							_linkBindablePropertyLater[uiComponent] = true;
-							uiComponent.callLater(setBindableProperty, [true]);
+							// prevent multiple callLater calls to be queued.
+							if (!_linkBindablePropertyLater[uiComponent] || callingLater)
+							{
+								_linkBindablePropertyLater[uiComponent] = true;
+								uiComponent.callLater(setBindableProperty, [true]);
+							}
+							return;
 						}
-						return;
-					}
-					else
-					{
-						delete _linkBindablePropertyLater[uiComponent];
+						else
+						{
+							delete _linkBindablePropertyLater[uiComponent];
+						}
 					}
 				}
 				
-				var value:Object = linkableVariable.getSessionState();
 				if ((bindableParent[bindablePropertyName] is Number) != (value is Number))
 				{
 					try {

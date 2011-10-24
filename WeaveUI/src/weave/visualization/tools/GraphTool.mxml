@@ -330,7 +330,7 @@
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
 			<!--<mx:CheckBox label="Show Labels:" id="chkShowLabels"
-						 initialize="linkBindableProperty(showLabels, chkShowLabels, 'selected');"/>-->
+			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
 			<!--<mx:HBox width="100%" 
 					 borderStyle="inset" 
 					 backgroundColor="0xFFFFFF" 
@@ -347,26 +347,26 @@
 							dataTipFormatFunction="alphaSliderFormatFunction"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"
-							initialize="linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, 'value')"/>
+			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
 			</mx:HBox>-->
 			<mx:HBox>
 				<mx:Label text="Radius Size:"
 						  color="0x0" fontSize="12"
 						  toolTip="Use this option to control the size of the each node in the graph."/>
 				<mx:NumericStepper id="numRadiusSize" minimum="1"
-								   initialize="linkBindableProperty(_plotter.radius, numRadiusSize, 'value')"/>
+								   creationComplete="linkBindableProperty(_plotter.radius, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Curved Lines:"
 						  color="0x0" fontSize="12"
 						  toolTip="Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes."/>
 				<mx:CheckBox id="drawCurvedLines"
-							 initialize="linkBindableProperty(_plotter.drawCurvedLines, drawCurvedLines, 'selected')"/>
+							 creationComplete="linkBindableProperty(_plotter.drawCurvedLines, event.target, 'selected')"/>
 			</mx:HBox>
 		</mx:VBox>
 		
 		<mx:VBox id="attributesPanel" label="Attributes for Graph">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="Nodes"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="Labels"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="Edge Sources"/>
@@ -375,12 +375,12 @@
 			<userControls:ControlsSubsetBox>
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe, probeColumnsCheckBox, 'selected')"/>
+							 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
 			</userControls:ControlsSubsetBox>
 			<mx:HBox>
 				<mx:Label text="Algorithm"/>
 				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
-							 initialize="linkBindableProperty(_plotter.currentAlgorithm, algorithmChoice, 'selectedItem')"/>
+							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm, event.target, 'selectedItem')"/>
 			</mx:HBox>
 			<mx:VBox>
 				<mx:Button id="recomputePositions" enabled="{!algorithmRunning}" label="Recalculate Node Positions" click="handleStartComputation()"/> 

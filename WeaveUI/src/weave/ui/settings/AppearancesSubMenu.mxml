@@ -27,6 +27,53 @@
 		 creationPolicy="all"
 		 creationComplete="handleCreationComplete()"
 		 >
+	<mx:VBox verticalGap="16">
+		<mx:VBox>
+			<mx:Label text="Window Title Font Properties:"/>
+			<FontControl id="windowTitleFontControl"/> 
+		</mx:VBox>
+		
+		<mx:VBox>
+			<mx:Label text="Default Tool Font Properties:"/>
+			<FontControl id="toolFontControl"/>
+		</mx:VBox>
+		
+		<mx:HBox>
+			<mx:ColorPicker id="swatches" 
+							creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
+			<mx:Label text="Background Color"/>
+		</mx:HBox>
+		
+		<mx:CheckBox label="Enable dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
+					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+		<mx:CheckBox toolTip="Check this box to enable the Attribute Selector."
+					 id="enableToolControls"
+					 label="Enable tool controls"
+					 selected="true"
+					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"
+					 />
+		
+		<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
+		id="viewsTabBar"
+		label="Show View TabBar"
+		creationComplete="linkBindableProperty(Weave.properties.showViewBar,event.target,'selected')"/>
+		
+		<mx:CheckBox toolTip="Set Active Window Border"
+		visible="{isActive}"
+		id="toggleActiveBorders"
+		label="Show Active Panel Border"
+		selected="true"
+		creationComplete="handleActiveWindowBorderCheckCreated(event)"/> 
+		
+		<mx:HBox visible="{isActive}">  
+		<mx:Label text="Tool Border:"/> 
+		
+		<ui:CustomComboBox id="list" dataProvider="{borderList}" maxWidth="96"
+		creationComplete="initCell();" labelField="{data.@name}"/>
+		
+		</mx:HBox>-->
+		
+	</mx:VBox>	
 <!--
 	<mx:Array id="borderList">
 		<mx:Object name="Solid" imageFile="@Embed(source='/weave/resources/images/borderImages/Border1.png')"/>
@@ -92,56 +139,4 @@
 			}
 		]]>
 	</mx:Script>
-	<mx:VBox verticalGap="16">
-		<mx:VBox>
-			<mx:Label text="Window Title Font Properties:"/>
-			<FontControl id="windowTitleFontControl"/> 
-		</mx:VBox>
-		
-		<mx:VBox>
-			<mx:Label text="Default Tool Font Properties:"/>
-			<FontControl id="toolFontControl"/>
-		</mx:VBox>
-		
-		<mx:HBox>
-			<mx:Label text="Background Color:"/>
-			<mx:ColorPicker id="swatches" selectedColor="0xCCCCCC" 
-							initialize="linkBindableProperty(Weave.properties.backgroundColor,swatches,'selectedColor')"
-							/>
-		</mx:HBox>
-		
-		<mx:CheckBox toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
-					 id="dashboardMode"
-					 label="Enable dashboard mode" 
-					 selected="false"
-					 initialize="linkBindableProperty(Weave.properties.dashboardMode, dashboardMode, 'selected');"
-					 />
-		<mx:CheckBox toolTip="Check this box to enable the Attribute Selector."
-					 id="enableToolControls"
-					 label="Enable tool controls"
-					 selected="true"
-					 initialize="linkBindableProperty(Weave.properties.enableToolControls, enableToolControls, 'selected');"
-					 />
-		
-		<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
-		id="viewsTabBar"
-		label="Show View TabBar"
-		initialize="linkBindableProperty(Weave.properties.showViewBar,viewsTabBar,'selected')"/>
-		
-		<mx:CheckBox toolTip="Set Active Window Border"
-		visible="{isActive}"
-		id="toggleActiveBorders"
-		label="Show Active Panel Border"
-		selected="true"
-		initialize="handleActiveWindowBorderCheckCreated(event)"/> 
-		
-		<mx:HBox visible="{isActive}">  
-		<mx:Label text="Tool Border:"/> 
-		
-		<ui:CustomComboBox id="list" dataProvider="{borderList}" maxWidth="96"
-		initialize="initCell();" labelField="{data.@name}"/>
-		
-		</mx:HBox>-->
-		
-	</mx:VBox>	
 </mx:VBox>	

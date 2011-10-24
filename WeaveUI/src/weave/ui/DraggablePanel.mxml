@@ -368,12 +368,7 @@
 					titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
 			}
 			
-			[Inspectable]
-			public function set sessionPanelCoordsAsPercentages(value:Boolean):void
-			{
-				_sessionPanelCoordsAsPercentages = value;
-			}
-			private var _sessionPanelCoordsAsPercentages:Boolean = true;
+			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
 			
 			// this allows you to specify a percentage value like x="25%" in MXML.
 		    [PercentProxy("percentX")]
@@ -562,7 +557,7 @@
 
 				var percentageMode:Boolean = true; // temporary solution
 
-				if (Weave.properties.enablePanelCoordsPercentageMode.value && _sessionPanelCoordsAsPercentages)
+				if (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages)
 					destinationLinkableString.value = StandardLib.roundSignificant(100 * coordinate / maxCoordinate, 5) + "%";
 				else
 					destinationLinkableString.value = String(coordinate);
@@ -777,7 +772,7 @@
 			 */
 			private function handleParentResize(event:Event):void
 			{
-				if (Weave.properties.enablePanelCoordsPercentageMode.value && _sessionPanelCoordsAsPercentages)
+				if (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages)
 					copyCoordinatesFromSessionedProperties();
 			}
 			
@@ -1667,7 +1662,7 @@
 						maximizeButton.visible = false;
 					}
 						
-					if (minimizable.value)
+					if (minimizable.value && Weave.properties.enableTaskbar.value)
 					{
 						if (titleBar != minimizeButton.parent)
 							titleBar.addChild(minimizeButton);
@@ -1852,25 +1847,25 @@
 				{
 					minimizeToTaskbar();
 				}	
-				else // otherwise we just make it smaller so it doesn't leave the visDesktop and can still be maximized
-				{
-					_minimized = true;
-
-					_minHeightRestore = minHeight;
-					minHeight = 0;
-
-					if (controlBar)
-					{
-						controlBar.visible = false;
-					}
-					
-					minimizedComponentVersion = null;
-					
-					// the height should be set last because setting the height will update the display list and refresh the graphics
-					// that draw the minimize button, etc
-					
-					height = titleBar.height;
-				}				
+//				else // otherwise we just make it smaller so it doesn't leave the visDesktop and can still be maximized
+//				{
+//					_minimized = true;
+//
+//					_minHeightRestore = minHeight;
+//					minHeight = 0;
+//
+//					if (controlBar)
+//					{
+//						controlBar.visible = false;
+//					}
+//					
+//					minimizedComponentVersion = null;
+//					
+//					// the height should be set last because setting the height will update the display list and refresh the graphics
+//					// that draw the minimize button, etc
+//					
+//					height = titleBar.height;
+//				}				
 			}
 			public function restorePanel():void
 			{
@@ -1888,7 +1883,7 @@
 					if (minimizedComponentVersion)		
 					{
 						restoreFromTaskbar();
-					}	
+					}
 					else // otherwise we just make it smaller so it doesn't leave the visDesktop and can still be maximized
 					{
 						_minimized = false;
@@ -1960,16 +1955,10 @@
 					titleBar.removeEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
 				}
 				
-				if(_helpPanel != null)
-				{
-					if( _helpPanel.parent )
-						_helpPanel.parent.removeChild(_helpPanel);
-				}
-				if(_controlPanel != null)
-				{
-					if( _controlPanel.parent )
-						_controlPanel.parent.removeChild(_controlPanel);
-				}
+				if (_helpPanel && _helpPanel.parent)
+					_helpPanel.parent.removeChild(_helpPanel);
+				if (_controlPanel && _controlPanel.parent)
+					_controlPanel.parent.removeChild(_controlPanel);
 			}
 			
 			private function handleDragEnter(event:DragEvent):void
@@ -1977,10 +1966,9 @@
 				restorePanel();
 			}
 			
-			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void
-			{
-				panelTitle.value = value;
-			}
+			// backwards compatibility
+			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void { panelTitle.value = value; }
+			[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void { enableBorders.value = !value; }
 		]]>
 	</mx:Script>
 </mx:TitleWindow>

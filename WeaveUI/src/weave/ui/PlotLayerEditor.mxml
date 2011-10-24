@@ -102,7 +102,6 @@
 		<mx:Component>
 			<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 					 horizontalScrollPolicy="off"
-					 initialize="fillEnableCheck()"
 					 width="100%" 
 					 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
 					 borderStyle="solid" borderThickness="1"
@@ -302,7 +301,7 @@
 							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
-								<mx:TextInput id="imageURL" initialize="EventUtils.addDelayedCallback(imageURL, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 							</mx:VBox>
 						</mx:HBox>
 					</mx:VBox>
@@ -353,11 +352,6 @@
 						use namespace weave_internal;
 						
 						private function get editor():PlotLayerEditor { return outerDocument; }
-						
-						private function fillEnableCheck():void
-						{
-							
-						}
 						
 						private function handleStyleInputChange():void
 						{

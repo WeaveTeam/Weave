@@ -410,7 +410,7 @@
 	<mx:Number id="controlsFontSize">10</mx:Number>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Line Chart">
-			<ui:DynamicColumnComponent visTool="{this}" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" id="labelComponent"/>
 			<mx:HBox width="100%">
 				<mx:Label text="Label Text Size: " fontWeight="bold"/>
@@ -429,9 +429,9 @@
 			<mx:HBox>
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			</mx:HBox>
-			<ui:ColumnListComponent visTool="{this}" label="Drag columns here" initialize="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
+			<ui:ColumnListComponent visTool="{this}" label="Drag columns here" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
 			<mx:HBox>
@@ -501,23 +501,22 @@
 						 toolTip="" change="handleSelectionAndProbeOnlyCheckBox();"/>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
-						 initialize="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
-			<settings:GridLineSettings tool="{this}"/>
+						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
-			<mx:CheckBox id="enableGroupByCheckBox" initialize="linkBindableProperty(_plotter.enableGroupBy, enableGroupByCheckBox, 'selected')"
+			<mx:CheckBox id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
 						 label="Group records by column values"
 						 toolTip="Enable/disable grouping data by category value"/>
 			<mx:VBox enabled="{enableGroupByCheckBox.selected}">
 				
 				<mx:VBox paddingLeft="20" borderStyle="solid">
-					<ui:DynamicColumnComponent visTool="{this}" label="X Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
+					<ui:DynamicColumnComponent visTool="{this}" label="X Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
 											   toolTip="Attribute to appear on the x axis. All columns must have the same keyType."/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Y Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+					<ui:DynamicColumnComponent visTool="{this}" label="Y Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
 											   toolTip="Attribute to appear on the y axis. All columns must have the same keyType."/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Group by" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
+					<ui:DynamicColumnComponent visTool="{this}" label="Group by" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
 											   toolTip="Specify column to get keys from. All columns must have the same keyType."/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
+					<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
 											   toolTip="Attribute used for record label text. All columns must have the same keyType."/>
 				</mx:VBox>
 				<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the group-by keyType"

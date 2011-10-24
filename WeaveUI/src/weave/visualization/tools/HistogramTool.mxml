@@ -196,16 +196,15 @@
 		<mx:VBox label="Visualization Controls">
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
-						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="bin data"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="Draw partial histogram bars for selection and probe"
-						 initialize="linkBindableProperty(plotter.drawPartialBins, drawPartialCheckBox, 'selected');"/>
+						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
-			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

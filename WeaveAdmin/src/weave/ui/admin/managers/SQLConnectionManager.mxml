@@ -45,16 +45,16 @@
 				<ui:Indent indent="{_indent}" label="SQL Server type">
 					<ui:CustomComboBox change="{dataChanged=true}" id="connectionDBMSCombo" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 				</ui:Indent>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" textWidth="130"/>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" textWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" inputWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" inputWidth="130"/>
 				<ui:Indent indent="{_indent}" label="SQL Database name">
 					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
 					<mx:Label text="(Optional)"/>
 					<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.\nFor SQL Server, this is an instance name.\nSimilarly in PostGreSQL, databases are different from schemas.\nMySQL does not differentiate between the two.', 'Admin Console Help')"/>
 					<!-- 'This field is required only for MS SQLServer connections. If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express. If there is no instance name for your server, you may leave this blank.' -->
 				</ui:Indent>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" inputWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" inputWidth="130"/>
 				<ui:Indent indent="{_indent}">
 					<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>					
 				</ui:Indent>

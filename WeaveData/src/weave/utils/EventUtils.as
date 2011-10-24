@@ -71,16 +71,17 @@ package weave.utils
 		
 		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
 		{
-			eventDispatcher.addEventListener(event, generateDelayedCallback(callback, delay, []));
+			eventDispatcher.addEventListener(event, generateDelayedCallback(callback, [], delay));
 		}
 		
 		/**
 		 * This function generates a delayed version of a callback.
 		 * @param callback The callback function
 		 * @param callbackParams If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
+		 * @param delay The number of milliseconds to delay before running the callback.
 		 * @return A wrapper around the callback that remembers the parameters and delays calling the original callback.
 		 */
-		public static function generateDelayedCallback(callback:Function, delay:int, callbackParams:Array = null):Function
+		public static function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function
 		{
 			var _timer:Timer = new Timer(delay, 1);
 			var _delayedThisArg:Object;
@@ -131,7 +132,7 @@ package weave.utils
 			// when the linkable variable changes, set the bindable property immediately
 			getCallbackCollection(linkableVariable).addImmediateCallback(null, setBindableProperty, null, true);
 			// when the bindable property changes, delay setting the linkable variable
-			var delayedSetLinkableVariable:Function = generateDelayedCallback(linkableVariable.setSessionState, delay);
+			var delayedSetLinkableVariable:Function = generateDelayedCallback(linkableVariable.setSessionState, null, delay);
 			var watcher:ChangeWatcher = BindingUtils.bindSetter(delayedSetLinkableVariable, bindableParent, bindablePropertyName);
 		}
 	}

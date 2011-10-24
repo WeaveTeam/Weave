@@ -24,6 +24,9 @@
 				title="Control Panel"
 				backgroundColor="0xCCCCCC"
 				addedToStage="save();"
+				width="600"
+				height="400"
+				sessionPanelCoordsAsPercentages="false"
 				layout="vertical"
 				>
 	<mx:Metadata>
@@ -50,10 +53,19 @@
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
 			
+
 			private const padding:int = 5;
 			private var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;
+			private var createdChildren:Boolean = false;
+			
+			/**
+			 * container for the Save, Revert, Cancel and Save & Close buttons 
+			 */
+			protected var controlPanelControls:ControlPanelControls;
+			
+			public function get tabNavigator():TabNavigator { return controlPanelControls ? controlPanelControls.tabNavigator : null; }
 			
 			override public function set layout(value:String):void
 			{
@@ -173,11 +185,7 @@
 					}
 				}
 			}
-			private var createdChildren:Boolean = false;
-			/**
-			 * container for the Save, Revert, Cancel and Save & Close buttons 
-			 */
-			protected const controlPanelControls:ControlPanelControls = new ControlPanelControls();
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
@@ -188,6 +196,7 @@
 				var children:Array = getChildren();
 				removeAllChildren();
 				
+				controlPanelControls = new ControlPanelControls();
 				addChild(controlPanelControls);
 				controlPanelControls.addEventListener(FlexEvent.CREATION_COMPLETE, handleControlsCreated);
 				

@@ -21,23 +21,70 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.utils.StringUtil;
+	
+	import weave.api.core.ILinkableObject;
+	import weave.api.newDisposableChild;
+	import weave.api.registerDisposableChild;
+	import weave.api.ui.ILinkableObjectEditor;
 	import weave.core.ClassUtils;
 
 	public class EditorManager
 	{
+		private static const _editorLookup:Dictionary = new Dictionary();
+		
+		/**
+		 * This function will register an ILinkableObjectEditor Class corresponding to an ILinkableObject Class.
+		 * @param objType A Class that implements ILinkableObject
+		 * @param editorType The corresponding Class implementing ILinkableObjectEditor
+		 */
 		public static function registerEditor(objType:Class, editorType:Class):void
 		{
-			editorLookup[objType] = editorType;
+			_editorLookup[objType] = editorType;
 		}
 		
-		public static const editorLookup:Dictionary = new Dictionary();
-		
-		public static function getEditorClass(obj:Object):Class
+		/**
+		 * @param obj An ILinkableObject.
+		 * @return The Class implementing ILinkableObjectEditor that was previously registered for the given type of object or one of its superclasses.
+		 */
+		public static function getEditorClass(obj:ILinkableObject):Class
 		{
-			return editorLookup[ClassUtils.getClassDefinition(getQualifiedClassName(obj))];	
+			var interfaceQName:String = getQualifiedClassName(ILinkableObjectEditor);
+			var classQName:String = getQualifiedClassName(obj);
+			var superClasses:Array = ClassUtils.getClassExtendsList(classQName);
+			superClasses.unshift(classQName);
+			for (var i:int = 0; i < superClasses.length; i++)
+			{
+				classQName = superClasses[i];
+				var classDef:Class = ClassUtils.getClassDefinition(classQName);
+				var editorClass:Class = _editorLookup[classDef] as Class
+				if (editorClass != null)
+				{
+					var editorQName:String = getQualifiedClassName(editorClass);
+					if (ClassUtils.classImplements(editorQName, interfaceQName))
+					{
+						return editorClass;
+					}
+					else
+					{
+						delete _editorLookup[classDef];
+						throw new Error(editorQName + " does not implement " + interfaceQName);
+					}
+				}
+			}
+			return null;
 		}
 		
-		
-		
+		public static function getNewEditor(obj:ILinkableObject):ILinkableObjectEditor
+		{
+			var Editor:Class = getEditorClass(obj);
+			if (Editor)
+			{
+				var editor:ILinkableObjectEditor = newDisposableChild(obj, Editor); // when the object goes away, make the editor go away
+				editor.setTarget(obj);
+				return editor;
+			}
+			return null;
+		}
 	}
 }

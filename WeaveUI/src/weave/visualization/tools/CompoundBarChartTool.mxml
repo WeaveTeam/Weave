@@ -338,12 +338,12 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes">
-			<mx:CheckBox id="colorModeCheckBox" label="Group records by color" initialize="linkBindableProperty(_plotter.groupRecordsByColor, colorModeCheckBox, 'selected');"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.colorDataColumn"
+			<mx:CheckBox id="colorModeCheckBox" label="Group records by color" creationComplete="linkBindableProperty(_plotter.groupRecordsByColor, event.target, 'selected');"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.colorDataColumn"
 									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label" initialize="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Sort" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
-			<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" id="dimensionsList" initialize="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
+			<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" id="dimensionsList" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 		</mx:VBox>
 		
 		<mx:VBox label="Bar Properties">
@@ -368,23 +368,22 @@
 			<mx:HBox>				
 				<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
 							 toolTip="This option will show a value label for each bar."/>
-				<mx:ColorPicker id="valueLabelColorPicker" initialize="linkBindableProperty(_plotter.valueLabelColor, valueLabelColorPicker, 'selectedColor');"/>
+				<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
 				<mx:Label text="Value label position"/>
 				<mx:TextInput id="valueDataCoordTxtInput" 
-							  initialize="linkBindableProperty(_plotter.labelBarHeightPercentage, valueDataCoordTxtInput, 'text')"/>
+							  creationComplete="linkBindableProperty(_plotter.labelBarHeightPercentage, event.target, 'text')"/>
 			</mx:HBox>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
-						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, zoomToSubsetCheckBox, 'selected')"/>
+						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Positive error" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Negative error" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
-			<settings:GridLineSettings tool="{this}"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Positive error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Negative error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

@@ -17,17 +17,25 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.core
+package weave.compiler
 {
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;
 	
 	/**
-	 * This class provides a convenient way for creating a Proxy object.
+	 * This class provides a convenient way for creating a Proxy object to be used as a symbol table.
+	 * @see flash.utils.proxy
+	 * 
 	 * @author adufilie
 	 */
 	public class ProxyObject extends Proxy
 	{
+		/**
+		 * This constructor allows you to specify the three most important flash_proxy functions.
+		 * @param hasProperty function hasProperty(name:*):Boolean
+		 * @param getProperty function getProperty(name:*):*
+		 * @param setProperty function setProperty(name:*, value:*):void
+		 */		
 		public function ProxyObject(hasProperty:Function, getProperty:Function, setProperty:Function)
 		{
 			super();
@@ -43,19 +51,28 @@ package weave.core
 		private var _get:Function = super.flash_proxy::getProperty as Function;
 		private var _set:Function = super.flash_proxy::setProperty as Function;
 		
+		/**
+		 * @see flash.utils.Proxy
+		 */
 		override flash_proxy function hasProperty(name:*):Boolean
 		{
-			return _has.call(this, name);
+			return _has.apply(this, arguments);
 		}
 		
+		/**
+		 * @see flash.utils.Proxy
+		 */
 		override flash_proxy function getProperty(name:*):*
 		{
-			return _get.call(this, name);
+			return _get.apply(this, arguments);
 		}
 		
+		/**
+		 * @see flash.utils.Proxy
+		 */
 		override flash_proxy function setProperty(name:*, value:*):void
 		{
-			_set.call(this, name, value);
+			_set.apply(this, arguments);
 		}
 	}
 }

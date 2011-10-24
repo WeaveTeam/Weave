@@ -19,30 +19,60 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="Grid Line Settings"
-		 creationPolicy="all" width="100%" borderStyle="solid" cornerRadius="5">
-	
-
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 implements="weave.api.ui.ILinkableObjectEditor"
+		 label="Grid Line Settings" xmlns:ui="weave.ui.*">
+	<mx:CheckBox id="horizontalCheckBox"
+				 label="Horizontal lines"
+				 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
+	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Start:"
+				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
+	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="End:"
+				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
+	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Interval:"
+				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
+	<mx:Spacer/>
+	<ui:Indent indent="{indent}" label="Thickness:">
+		<mx:NumericStepper id="gridLineThicknessStepper" minimum="1" maximum="10"
+						   creationComplete="linkBindableProperty(_plotter.lineStyle.weight.defaultValue, event.target, 'value')"/>
+	</ui:Indent>
+	<ui:Indent indent="{indent}" label="Color:">
+		<mx:ColorPicker toolTip="Select a color for the grid lines of this visualization" id="gridColorPicker" 
+						creationComplete="linkBindableProperty(_plotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"/>
+	</ui:Indent>
+	<ui:Indent indent="{indent}" label="Opacity:">
+		<mx:HSlider id="gridLineAlphaSlider" 
+					snapInterval="0.1"
+					tickInterval="0.5" labels="{['0%','50%','100%']}" 
+					dataTipFormatFunction="alphaSliderFormatFunction"
+					minimum="0.0" maximum="1.0" 
+					liveDragging="true"
+					creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
+	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.utils.EditorManager;
 			import weave.visualization.plotters.GridLinePlotter;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			private var _tool:SimpleVisTool = null;
-			private var _plotter:GridLinePlotter= null;
-
-			[Inspectable]
-			public function set plotter(value:GridLinePlotter):void
-			{
-				_plotter = value;
-			}
+			[Bindable] private var indent:int = 80;
+			[Bindable] private var inputWidth:int = 64;
 			
-			[Inspectable]
-			public function set tool(value:SimpleVisTool):void
+			public function setTarget(object:ILinkableObject):void
 			{
-				_tool = value;
+				_plotter = object as GridLinePlotter;
 			}
+			public function applyChanges():void
+			{
+				
+			}
+
+			private var _plotter:GridLinePlotter = null;
+		
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -55,53 +85,4 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 		]]>
 	</mx:Script>
-	<mx:Label fontWeight="bold" text="Grid Line Settings"/>
-	<mx:VBox width="100%">
-		<mx:CheckBox id="horizontalCheckBox"
-					 label="Horizontal lines"
-					 creationComplete="linkBindableProperty(_plotter.horizontal, horizontalCheckBox, 'selected')"/>
-		<mx:VBox>				
-			<mx:HBox>
-				<mx:Label fontWeight="bold" text="Start"/>
-				<mx:TextInput id="startInput"
-							  creationComplete="linkBindableProperty(_plotter.start, startInput, 'text')"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label fontWeight="bold" text="End"/>
-				<mx:TextInput id="endInput"
-							  creationComplete="linkBindableProperty(_plotter.end, endInput, 'text')"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label fontWeight="bold" text="Interval"/>
-				<mx:TextInput id="intervalInput"
-							  creationComplete="linkBindableProperty(_plotter.interval, intervalInput, 'text')"/>
-			</mx:HBox>
-		</mx:VBox>
-		<mx:HBox>
-			<mx:HBox width="15%">
-				<mx:Label text="Color:" fontWeight="bold" />
-				<mx:ColorPicker toolTip="Select a color for the grid lines of this visualization" id="gridColorPicker" 
-								creationComplete="linkBindableProperty(_plotter.lineStyle.color.defaultValue, gridColorPicker, 'selectedColor')"/>
-			</mx:HBox>
-			
-			<mx:HBox width="25%">
-				<mx:Label text="Thickness:" fontWeight="bold" />
-				<mx:NumericStepper id="gridLineThicknessStepper" minimum="1" maximum="10"
-								   creationComplete="linkBindableProperty(_plotter.lineStyle.weight.defaultValue, gridLineThicknessStepper, 'value')"/>
-			</mx:HBox>
-		</mx:HBox>
-		
-		<mx:HBox width="60%">
-			<mx:Label text="Opacity:" fontWeight="bold" />
-			<mx:HSlider id="gridLineAlphaSlider" 
-						width="100%" 
-						snapInterval="0.1"
-						tickInterval="0.5" labels="{['0%','50%','100%']}" 
-						dataTipFormatFunction="alphaSliderFormatFunction"
-						minimum="0.0" maximum="1.0" 
-						liveDragging="true"
-						creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, gridLineAlphaSlider, 'value')"/>
-		</mx:HBox>
-	
-	</mx:VBox>
 </mx:VBox>

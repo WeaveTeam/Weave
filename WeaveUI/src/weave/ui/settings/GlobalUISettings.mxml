@@ -26,7 +26,7 @@
 			  height="315"
 			  backgroundColor="#EFF4BC"
 			  title="User Interface Preferences"
-			  initialize="this.targets = [Weave.properties];"
+			  targets="{[Weave.properties]}"
 			  >
 	
 	<!-- 

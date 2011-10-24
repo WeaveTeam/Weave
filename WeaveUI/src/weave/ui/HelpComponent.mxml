@@ -102,7 +102,7 @@
 					_helpWindow = null;
 					return;
 				}
-				_helpWindow = PopUpManager.createPopUp(this,TitleWindow) as TitleWindow;
+				_helpWindow = PopUpManager.createPopUp(this, TitleWindow) as TitleWindow;
 				
 				_helpWindow.title = "Help";
 				
@@ -126,28 +126,19 @@
 				_helpWindow.width = 400;
 				_helpWindow.setStyle("borderAlpha", 0.7);
 				
-				_helpWindow.addEventListener(CloseEvent.CLOSE,function():void{PopUpManager.removePopUp(_helpWindow);});
+				_helpWindow.addEventListener(CloseEvent.CLOSE, function(..._):void { PopUpManager.removePopUp(_helpWindow); });
 			
 				PopUpManager.centerPopUp(_helpWindow);
 				
-				var helpWindowCoord:Point = _helpWindow.localToGlobal(new Point(width,height));
-				
-				
+				// align upper-left corner of popup with lower-right corner of HelpComponent
+				var point:Point = localToGlobal(new Point(this.width, this.height));
 				//adjust positon if help panel goes beyond the browser borders
-				var moveX:Number = helpWindowCoord.x;
-				var moveY:Number = helpWindowCoord.y;
-				
-				if((stage.width - helpWindowCoord.x)< 410)
-				{
-					moveX = stage.width - 800;
-				}
-				
-				if((helpWindowCoord.y + 500 )> stage.height)
-				{
-					moveY = stage.height - 800;
-				}
+				if (point.x + _helpWindow.width > stage.stageWidth)
+					point.x = Math.max(0, point.x - this.width - _helpWindow.width);
+				if (point.y + _helpWindow.height > stage.stageHeight)
+					point.y = Math.max(0, point.y - this.height - _helpWindow.height);
 
-				_helpWindow.move(moveX,moveY);
+				_helpWindow.move(point.x, point.y);
 				_helpWindow.addEventListener(CloseEvent.CLOSE, handleHelpPanelClose);
 			}
 			private function handleHelpPanelClose(e:Event):void

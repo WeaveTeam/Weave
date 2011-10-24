@@ -24,7 +24,6 @@
     resize="resetHeight()"
     change="resetHeight()"
     initialize="init()" 
-    creationComplete="init()" 
     >
 
     <mx:Script>

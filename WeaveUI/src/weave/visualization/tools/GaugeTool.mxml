@@ -162,7 +162,7 @@
 				 toolTip="{marginLabelText} &#13;&#09;Click here to select a different attribute."/>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Gauge" >
-			<ui:DynamicColumnComponent visTool="{this}" label="Gauge column:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Gauge column:" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">
 			<mx:CheckBox id="marginLabelCheckBox" label="Show attribute name" change="visualization.marginBottom.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="Click to hide the title."/>

@@ -54,7 +54,7 @@
 	<mx:VBox id="gridBox" width="100%" height="100%">
 		<mx:HBox width="100%">
 		<mx:Text text="Check your data!"/>
-		<ui:HelpComponent horizontalAlign="right" id="checkDataHelp" initialize="checkDataHelp.helpText = NewUserWizardHelpFile;"/>			
+		<ui:HelpComponent horizontalAlign="right" id="checkDataHelp" helpText="{NewUserWizardHelpFile}"/>			
 		</mx:HBox>
 		<mx:HBox visible="{uniqueColumns.length != 0}">
 		<mx:Label text="Unique Identifier Column" />

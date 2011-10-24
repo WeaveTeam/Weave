@@ -27,71 +27,50 @@
 				xmlns:mx="http://www.adobe.com/2006/mxml" title="Add a new layer"
 				creationPolicy="all"
 				backgroundColor="0xcccccc"
+				percentWidth="NaN" percentHeight="NaN"
+				sessionPanelCoordsAsPercentages="false"
 				layout="vertical">
 	<mx:VBox borderStyle="solid"
 			 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
-			 backgroundAlpha="0.8" backgroundColor="white" cornerRadius="5"
-			 width="100%" height="100%">	
-	<!--<mx:HBox width="100%">
-		<mx:TextInput id="searchInput" 
-					  width="90%"					  
-					  toolTip="Search for plotters available"/>
-	</mx:HBox>-->
-	<mx:List id="layerSelector">
-		<mx:Object label="Horizontal custom bars" 
-				   plotter="weave.visualization.plotters.CompoundBarChartPlotter" 
-				   editor="weave.ui.customLayerSettings.CompoundBarChartSettings" 
-				   plotlayer="weave.visualization.layers.SelectablePlotLayer"/>
-		<mx:Object label="Vertical custom bars" 
-				   plotter="weave.visualization.plotters.CompoundBarChartPlotter" 
-				   editor="weave.ui.customLayerSettings.CompoundBarChartSettings" 
-				   plotlayer="weave.visualization.layers.SelectablePlotLayer"/>
+			 backgroundAlpha="0.8" backgroundColor="white"
+			 width="100%" height="100%">
 		
-	<!--	<mx:Object label="X axis labels" 
-				   plotter=""
-				   plotlayer="weave.visualization.layers.PlotLayer"/>
-		
-		<mx:Object label="Y axis labels" 
-				   plotter=""
-				   plotlayer="weave.visualization.layers.PlotLayer"/>
--->
-		<mx:Object label="Vertical grid lines" 
-				   plotter="weave.visualization.plotters.GridLinePlotter" 
-				   editor="weave.ui.customLayerSettings.GridLineLayerControls"
-				   plotlayer="weave.visualization.layers.PlotLayer"/>
-		
-		<mx:Object label="Horizontal grid lines" 
-				   plotter="weave.visualization.plotters.GridLinePlotter" 
-				   editor="weave.ui.customLayerSettings.GridLineLayerControls"
-				   plotlayer="weave.visualization.layers.PlotLayer"/>
-	</mx:List>
-
-	<mx:Button label="Add new layer" right="0"
-			   click="openControls()"/>
+		<mx:List id="layerSelector" width="100%" height="100%" minWidth="250">
+			<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{SelectablePlotLayer}"/>
+		</mx:List>
+	
+		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
+			import weave.api.disposeObjects;
+			import weave.api.registerDisposableChild;
+			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IPlotLayer;
 			import weave.api.ui.IPlotter;
+			import weave.ui.customLayerSettings.CompoundBarChartSettings;
+			import weave.ui.customLayerSettings.GridLineLayerControls;
+			import weave.utils.EditorManager;
+			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
 			import weave.visualization.tools.SimpleVisTool;
-
-			[Bindable]
-			private var _labelWidth:int = 100;
 			
+			{
+				EditorManager.registerEditor(GridLinePlotter, GridLineLayerControls);
+				EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
+			}
+
 			[Bindable]
 			private var _tool:SimpleVisTool = null;
 			
 			override protected function constructor():void
 			{
 				super.constructor();
-				
-				this.panelHeight.value = "300";
-				this.panelWidth.value = "200";
 			}
 			
 			public function set targetTool(value:SimpleVisTool):void
@@ -104,49 +83,39 @@
 			
 			private function openControls():void
 			{
-				var _class:String = (layerSelector.selectedItem.plotter as String);
-				var _editor:String = (layerSelector.selectedItem.editor as String);
-				var _layer:String = (layerSelector.selectedItem.plotlayer as String);
-				if(!_class) 
-					return;
-				var PLOTTER:Class = getDefinitionByName(_class) as Class;
-				if(!PLOTTER)
-					return;
+				var label:String = layerSelector.selectedItem.label;
+				var Plotter:Class = layerSelector.selectedItem.plotterClass;
+				var Layer:Class = layerSelector.selectedItem.layerClass;
 				
-				
-				var controls:* = PopUpManager.createPopUp(this, CustomLayerControls);
+				var controls:ControlPanel = new ControlPanel();
+				PopUpManager.addPopUp(controls, this);
 				PopUpManager.centerPopUp(controls);
+				controls.targets = [_tool];
 
-				var LAYER:Class = getDefinitionByName(_layer) as Class;
-				
-				var newlayer:IPlotLayer = _tool.visualization.layers.requestObject(_tool.visualization.layers.generateUniqueName("layer"), LAYER, false) as IPlotLayer;
-				var plotter:IPlotter = ((newlayer as LAYER).getDynamicPlotter() as DynamicPlotter).requestLocalObject(PLOTTER, true) as IPlotter;
-				
-				var controls2:CustomLayerControls = controls as CustomLayerControls ;
-				controls2.targets = [plotter];
-				controls2.setTargetTool(_tool);
+				var layer:IPlotLayer = _tool.visualization.layers.requestObject(label, Layer, false) as IPlotLayer;
+				var plotter:IPlotter = null;
+				if (layer)
+					plotter = (layer.plotter as DynamicPlotter).requestLocalObject(Plotter, true) as IPlotter;
+				if (!plotter)
+				{
+					controls.revert();
+					disposeObjects(controls);
+					return;
+				}
+				registerDisposableChild(plotter, controls); // when the plotter goes away, make the control panel go away
 				
 				// add editor component to layercontrols
-				if(_editor)
+				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
+				if (editor)
 				{
-					var EDITOR:Class = getDefinitionByName(_editor) as Class;
-					if(!EDITOR)
-						return;
-					var layercontrols:* = new EDITOR();
-					
-					controls2.controlsContainer.addChildAt(layercontrols, 0);
-					
-					layercontrols.plotter = plotter as PLOTTER;
-					layercontrols.tool = _tool;
+					controls.tabNavigator.addChild(editor as DisplayObject);
+				}
+				else
+				{
+					controls.revert();
 				}
 				
-				// special case code below
-				if(layerSelector.selectedIndex == 5)
-				{
-					(plotter as GridLinePlotter).horizontal.value = true;
-				}
-				if(layerSelector.selectedIndex == 0)
-					(plotter as CompoundBarChartPlotter).horizontalMode.value = true;
+				removePanel();
 			}
 			
 			

@@ -30,7 +30,7 @@ LayerListComponent
 		 xmlns="weave.ui.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 label="Layers (BETA)">
+		 label="Layers (Beta)">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -48,8 +48,14 @@ LayerListComponent
 			click="internalList.removeSelectedItem()"
 			enabled="{internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
+	<!--
+	<mx:CheckBox id="enableAutoZoom" label="Enable auto zoom to extent"
+				 creationComplete="linkBindableProperty(_visTool.visualization.enableAutoZoomToExtent, event.target, 'selected');"/>
+	<mx:CheckBox label="Enable zoom and pan"
+				 creationComplete="linkBindableProperty(_visTool.visualization.enableZoomAndPan, event.target, 'selected');"/>
+	-->
 	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
-		<mx:Label width="{_labelWidth}" text="Override zoom:"/>
+		<mx:Label text="Override auto zoom:"/>
 		<TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
 		<mx:VBox>
 			<TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
@@ -73,8 +79,6 @@ LayerListComponent
 			
 			private static const boundsInputWidth:int = 64;
 			
-			private static const _labelWidth:int = 100;
-
 			[Bindable] private var _visTool:SimpleVisTool= null;
 			
 			[Inspectable]
@@ -92,7 +96,15 @@ LayerListComponent
 					linkBindableProperty(_visTool.visualization.overrideYMin, overrideYMin, 'text');
 					linkBindableProperty(_visTool.visualization.overrideXMax, overrideXMax, 'text');
 					linkBindableProperty(_visTool.visualization.overrideYMax, overrideYMax, 'text');
+					_visTool.visualization.enableAutoZoomToExtent.addGroupedCallback(this, handleAutoZoomToggle, true);
 				}
+			}
+			
+			private function handleAutoZoomToggle():void
+			{
+				var enabled:Boolean = _visTool.visualization.enableAutoZoomToExtent.value;
+				boundsProperties.height = enabled ? NaN : 0;
+				boundsProperties.enabled = enabled;
 			}
 			
 			private function openSelector():void
