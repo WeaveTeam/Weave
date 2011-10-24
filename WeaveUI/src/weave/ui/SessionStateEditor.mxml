@@ -556,7 +556,7 @@
 				}
 
 				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
-				{				
+				{
 					changeView(TEXT_EDITOR);
 					
 					if (editorBox == sessionStateDataGrid.parent)
@@ -575,9 +575,17 @@
 					var vsp:Number = sessionStateTextArea.verticalScrollPosition;
 					var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
 
-					_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"Tag");
-					var cleanString:String = _currentSessionStateXML.children().toXMLString();
-					sessionStateTextArea.text = cleanString; 
+					if (_currentSelectedObject is LinkableString)
+					{
+						sessionStateTextArea.text = sessionState as String;
+						_currentSessionStateXML = null;
+					}
+					else
+					{
+						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"Tag");
+						var cleanString:String = _currentSessionStateXML.children().toXMLString();
+						sessionStateTextArea.text = cleanString;
+					}
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.validateNow();
 					sessionStateTextArea.verticalScrollPosition = vsp;
@@ -667,15 +675,19 @@
 				{
 					if (_currentSelectedObject != null)
 					{
-						if (_editor == TEXT_EDITOR && _currentSessionStateXML != null)
+						if (_editor == TEXT_EDITOR)
 						{
-							var xmlList:XMLList;
-							// The following may fail if an element is malformed. (This has apparently been a bug forever?)
-							xmlList = XMLList(sessionStateTextArea.text);
-							_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
-							
-							var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
-							setSessionState(_currentSelectedObject, decodedStateObject, true);
+							if (_currentSelectedObject is LinkableString || _currentSessionStateXML == null)
+							{
+								setSessionState(_currentSelectedObject, sessionStateTextArea.text);
+							}
+							else
+							{
+								var xmlList:XMLList = XMLList(sessionStateTextArea.text); // will throw error if xml is invalid
+								_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
+								var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
+								setSessionState(_currentSelectedObject, decodedStateObject, true);
+							}
 						}
 						else if (_editor == DATA_GRID && _currentSessionStateDataProvider != null)
 						{
