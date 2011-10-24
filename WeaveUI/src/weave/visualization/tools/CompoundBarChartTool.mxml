@@ -309,7 +309,7 @@
 					return callLater(updateInteractivity);
 				var _heightColumns:Array = _plotter.heightColumns.getObjects();
 				
-				colorModeCheckBox.enabled = _heightColumns.length <= 1;
+				//colorModeCheckBox.enabled = _heightColumns.length <= 1;
 				if (_heightColumns.length > 1 || _plotter.groupRecordsByColor.value)
 				{
 					cRampEditor.enabled = true;
@@ -338,7 +338,9 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes">
+			<!--
 			<mx:CheckBox id="colorModeCheckBox" label="Group records by color" creationComplete="linkBindableProperty(_plotter.groupRecordsByColor, event.target, 'selected');"/>
+			-->
 			<ui:DynamicColumnComponent visTool="{this}" id="colorColumInput" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.colorDataColumn"
 									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
 			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelColumn"/>

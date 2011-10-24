@@ -28,7 +28,6 @@
 		<mx:CheckBox toolTip="This option toggles access to the main toolbar" 
 							id="enable"
 							label="Show menu bar"
-							valueCommit="if (enable.contains(enable.getFocus())) handleMenuToggled();"
 							creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
 							/>
 	
@@ -393,9 +392,16 @@
 			import weave.api.linkBindableProperty;
 			import weave.core.SessionManager;
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				Weave.properties.enableMenuBar.addGroupedCallback(this, handleMenuToggled);
+			}
+			
 			private function handleMenuToggled():void
 			{
-				if (!Weave.properties.enableMenuBar.value)
+				var focus:InteractiveObject = getFocus();
+				if (focus && enable.contains(focus) && !Weave.properties.enableMenuBar.value)
 				{
 					// put up an alert box so the user has to confirm removing the menu bar
 					Alert.show("Are you sure you want to remove the menu bar?  \nOnce removed, the functions that are accessed through the menu will no longer be accessible.",

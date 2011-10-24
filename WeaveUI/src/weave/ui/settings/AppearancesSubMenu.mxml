@@ -52,6 +52,10 @@
 					 selected="true"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"
 					 />
+		<mx:CheckBox label="Show copyright"
+					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+		<mx:CheckBox label="Show task bar"
+					 creationComplete="linkBindableProperty(Weave.properties.enableTaskbar, event.target, 'selected');"/>
 		
 		<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
 		id="viewsTabBar"
