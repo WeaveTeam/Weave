@@ -20,6 +20,7 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
+	import flash.display.CapsStyle;
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
@@ -39,6 +40,11 @@ package weave.visualization.plotters
 	 */
 	public class GridLinePlotter extends AbstractPlotter
 	{
+		public function GridLinePlotter()
+		{
+			lineStyle.caps.defaultValue.value = CapsStyle.NONE;
+		}
+		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const horizontal:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
@@ -68,14 +74,14 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(null, graphics);
 			
 			var i:int;
-			var numLines:Number = Math.floor(Math.abs((_end - _start) / _interval));
+			var numLines:Number = Math.abs((_end - _start) / _interval);
 			if (horizontal.value)
 			{
 				// if there will be more grid lines than pixels, don't bother drawing anything
 				if (numLines > screenBounds.getYCoverage())
 					return;
 				
-				for (i = 0; i < numLines; i++)
+				for (i = 0; i <= numLines; i++)
 				{
 					tempPoint.x = dataBounds.getXMin();
 					tempPoint.y = _start + _interval * i;
@@ -93,7 +99,7 @@ package weave.visualization.plotters
 				// if there will be more grid lines than pixels, don't bother drawing anything
 				if (numLines > screenBounds.getXCoverage())
 					return;
-				for (i = 0; i < numLines; i++)
+				for (i = 0; i <= numLines; i++)
 				{
 					tempPoint.x = _start + _interval * i;
 					tempPoint.y = dataBounds.getYMin();

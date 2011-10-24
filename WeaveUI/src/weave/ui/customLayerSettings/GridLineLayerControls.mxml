@@ -22,9 +22,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 implements="weave.api.ui.ILinkableObjectEditor"
 		 label="Grid Line Settings" xmlns:ui="weave.ui.*">
-	<mx:CheckBox id="horizontalCheckBox"
-				 label="Horizontal lines"
-				 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
+	<mx:HBox>
+		<mx:RadioButtonGroup id="hv"/>
+		<mx:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
+		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
+					 label="Horizontal lines"
+					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
+	</mx:HBox>
+	
 	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Start:"
 				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
 	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="End:"

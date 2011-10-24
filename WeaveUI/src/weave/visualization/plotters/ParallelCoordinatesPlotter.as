@@ -69,6 +69,7 @@ package weave.visualization.plotters
 			setKeySource(_combinedKeySet);
 			
 			zoomToSubset.value = true;
+			clipDrawing = false;
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
