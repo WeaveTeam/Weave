@@ -208,7 +208,11 @@ public class SQLConfigUtils
 	public synchronized static int migrateSQLConfig( ISQLConfig source, ISQLConfig destination) throws RemoteException, SQLException
 	{
 		DebugTimer timer = new DebugTimer();
-		Connection conn = (destination instanceof DatabaseConfig) ? ((DatabaseConfig)destination).getConnection() : null;
+		Connection conn = null;
+		if (destination instanceof DatabaseConfig)
+			conn = ((DatabaseConfig)destination).getConnection();
+		if (destination instanceof SQLConfig)
+			conn = ((SQLConfig)destination).getConnection();
 		Savepoint savePoint = null;
 		int count = 0;
 		try
