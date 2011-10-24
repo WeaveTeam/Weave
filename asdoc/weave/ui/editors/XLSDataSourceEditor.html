@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="XLSDataSourceEditor,weave.ui.editors.XLSDataSourceEditor,xlsDataArray,xlsFile,targetObject,applyChanges" name="keywords">
+<meta content="XLSDataSourceEditor,weave.ui.editors.XLSDataSourceEditor,xlsDataArray,xlsFile,applyChanges,setTarget" name="keywords">
 <title>weave.ui.editors.XLSDataSourceEditor</title>
 </head>
 <body>
@@ -57,11 +57,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#targetObject">targetObject</a> : <a href="../../api/core/ILinkableObject.html">ILinkableObject</a>
-<div class="summaryTableDescription">[write-only]</div>
-</td><td class="summaryTableOwnerCol">XLSDataSourceEditor</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xlsDataArray">xlsDataArray</a> : Array<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">XLSDataSourceEditor</td>
 </tr>
@@ -85,6 +80,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">XLSDataSourceEditor</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#setTarget()">setTarget</a>(object:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a>):void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">XLSDataSourceEditor</td>
+</tr>
 </table>
 </div>
 <script type="text/javascript" language="javascript">
@@ -94,22 +96,10 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
-<a name="targetObject"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">targetObject</td><td class="detailHeaderType">property</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>targetObject:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a></code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set targetObject(value:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a>):void</code>
-<br>
-</div>
 <a name="xlsDataArray"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">xlsDataArray</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">xlsDataArray</td><td class="detailHeaderType">property</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -134,6 +124,20 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function applyChanges():void</code>
+</div>
+<a name="setTarget()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">setTarget</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function setTarget(object:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a>):void</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">object</span>:<a href="../../api/core/ILinkableObject.html">ILinkableObject</a></code></td>
+</tr>
+</table>
 </div>
 <br>
 <br>

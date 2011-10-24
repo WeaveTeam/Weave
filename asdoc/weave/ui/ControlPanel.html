@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="ControlPanel,weave.ui.ControlPanel,controlPanelControls,children,layout,targets,constructor,createChildren,revert,save" name="keywords">
+<meta content="ControlPanel,weave.ui.ControlPanel,controlPanelControls,tabNavigator,children,layout,targets,constructor,createChildren,revert,save" name="keywords">
 <title>weave.ui.ControlPanel</title>
 </head>
 <body>
@@ -41,7 +41,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">ControlPanel <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../images/inherit-arrow.gif"> <a href="DraggablePanel.html">DraggablePanel</a> <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../images/inherit-arrow.gif"> mx.containers.TitleWindow</td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Subclasses</td><td><a href="../ui/AttributeSelectorPanel.html">AttributeSelectorPanel</a>, <a href="../ui/CirclePlotterSettings.html">CirclePlotterSettings</a>, <a href="../ui/ColorBinEditor.html">ColorBinEditor</a>, <a href="../ui/CustomLayerControls.html">CustomLayerControls</a>, <a href="../ui/EquationEditor.html">EquationEditor</a>, <a href="settings/GlobalUISettings.html">GlobalUISettings</a>, <a href="../ui/MarkerSettingsComponent.html">MarkerSettingsComponent</a>, <a href="../ui/ProbeToolTipEditor.html">ProbeToolTipEditor</a></td>
+<td class="classHeaderTableLabel">Subclasses</td><td><a href="../ui/AttributeSelectorPanel.html">AttributeSelectorPanel</a>, <a href="../ui/CirclePlotterSettings.html">CirclePlotterSettings</a>, <a href="../ui/ColorBinEditor.html">ColorBinEditor</a>, <a href="../ui/EquationEditor.html">EquationEditor</a>, <a href="settings/GlobalUISettings.html">GlobalUISettings</a>, <a href="../ui/MarkerSettingsComponent.html">MarkerSettingsComponent</a>, <a href="../ui/ProbeToolTipEditor.html">ProbeToolTipEditor</a></td>
 </tr>
 </table>
 <p></p>
@@ -114,12 +114,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="DraggablePanel.html">DraggablePanel</a></td>
 </tr>
 <tr class="hideInheritedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="DraggablePanel.html#sessionPanelCoordsAsPercentages">sessionPanelCoordsAsPercentages</a> : Boolean<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="DraggablePanel.html">DraggablePanel</a></td>
-</tr>
-<tr class="hideInheritedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="DraggablePanel.html#showRollOverBorders">showRollOverBorders</a> : Boolean = false<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol"><a href="DraggablePanel.html">DraggablePanel</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#tabNavigator">tabNavigator</a> : TabNavigator<div class="summaryTableDescription">[read-only]</div>
+</td><td class="summaryTableOwnerCol">ControlPanel</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#targets">targets</a> : Array<div class="summaryTableDescription">[write-only]
@@ -148,13 +148,20 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a onclick="javascript:setInheritedVisible(true,'ProtectedProperty');" href="#protectedPropertySummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Properties</a>
 </div>
 </div>
-<table id="summaryTableProtectedProperty" class="summaryTable hideInheritedProtectedProperty" cellpadding="3" cellspacing="0">
+<table id="summaryTableProtectedProperty" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="hideInheritedProtectedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="DraggablePanel.html#controlBarWidthBeforeScale">controlBarWidthBeforeScale</a> : int = -1<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="DraggablePanel.html">DraggablePanel</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#controlPanelControls">controlPanelControls</a> : <a href="../ui/ControlPanelControls.html">ControlPanelControls</a>
+<div class="summaryTableDescription">
+    container for the Save, Revert, Cancel and Save & Close buttons 
+    </div>
+</td><td class="summaryTableOwnerCol">ControlPanel</td>
 </tr>
 </table>
 </div>
@@ -590,20 +597,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a onclick="javascript:setInheritedVisible(true,'ProtectedConstant');" href="#protectedConstantSummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Constants</a>
 </div>
 </div>
-<table id="summaryTableProtectedConstant" class="summaryTable " cellpadding="3" cellspacing="0">
+<table id="summaryTableProtectedConstant" class="summaryTable hideInheritedProtectedConstant" cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="hideInheritedProtectedConstant">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="DraggablePanel.html#closePanelButton">closePanelButton</a> : Button<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="DraggablePanel.html">DraggablePanel</a></td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#controlPanelControls">controlPanelControls</a> : <a href="../ui/ControlPanelControls.html">ControlPanelControls</a>
-<div class="summaryTableDescription">
-    container for the Save, Revert, Cancel and Save & Close buttons 
-    </div>
-</td><td class="summaryTableOwnerCol">ControlPanel</td>
 </tr>
 <tr class="hideInheritedProtectedConstant">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="DraggablePanel.html#forceEnableBorders">forceEnableBorders</a> : <a href="../core/LinkableBoolean.html">LinkableBoolean</a>
@@ -655,6 +655,16 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set children(value:Array):void</code>
 <br>
 </div>
+<a name="controlPanelControls"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">controlPanelControls</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected var controlPanelControls:<a href="../ui/ControlPanelControls.html">ControlPanelControls</a></code><p>
+    container for the Save, Revert, Cancel and Save & Close buttons 
+    </p></div>
 <a name="layout"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -665,6 +675,18 @@ showHideInherited();
 <code>layout:String</code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set layout(value:String):void</code>
+<br>
+</div>
+<a name="tabNavigator"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">tabNavigator</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>tabNavigator:TabNavigator</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get tabNavigator():TabNavigator</code>
 <br>
 </div>
 <a name="targets"></a>
@@ -723,18 +745,6 @@ showHideInherited();
     to a local Array <br/>
     If _targetObjects is null and a parent ILinkableObject exists, 
     the parent ILinkableObject's session state will be saved
-    </p></div>
-<a name="constantDetail"></a>
-<div class="detailSectionHeader">Constant detail</div>
-<a name="controlPanelControls"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">controlPanelControls</td><td class="detailHeaderType">constant</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected const controlPanelControls:<a href="../ui/ControlPanelControls.html">ControlPanelControls</a></code><p>
-    container for the Save, Revert, Cancel and Save & Close buttons 
     </p></div>
 <br>
 <br>

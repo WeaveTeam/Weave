@@ -76,7 +76,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#generateDelayedCallback()">generateDelayedCallback</a>(callback:Function, delay:int, callbackParams:Array = null):Function</div>
+<a class="signatureLink" href="#generateDelayedCallback()">generateDelayedCallback</a>(callback:Function, callbackParams:Array = null, delay:int = 500):Function</div>
 <div class="summaryTableDescription">[static]
    This function generates a delayed version of a callback.</div>
 </td><td class="summaryTableOwnerCol">EventUtils</td>
@@ -208,7 +208,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function generateDelayedCallback(callback:Function, delay:int, callbackParams:Array = null):Function</code><p>
+<code>public static function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function</code><p>
    This function generates a delayed version of a callback.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -220,14 +220,15 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">delay</span>:int</code> &mdash; If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
+<td width="20px"></td><td><code><span class="label">callbackParams</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
    </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">callbackParams</span>:Array</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">delay</span>:int</code> (default = <code>500</code>)<code></code> &mdash; The number of milliseconds to delay before running the callback.
+   </td>
 </tr>
 </table>
 <p></p>

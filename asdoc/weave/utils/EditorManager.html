@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="EditorManager,weave.utils.EditorManager,editorLookup,getEditorClass,registerEditor" name="keywords">
+<meta content="EditorManager,weave.utils.EditorManager,getEditorClass,getNewEditor,registerEditor" name="keywords">
 <title>weave.utils.EditorManager</title>
 </head>
 <body>
@@ -19,7 +19,7 @@
 <td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/utils/EditorManager.html&amp;weave/utils/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
 </tr>
 <tr class="titleTableRow2">
-<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;EditorManager</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;EditorManager</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a></td>
 </tr>
 <tr class="titleTableRow3">
 <td colspan="2">&nbsp;</td>
@@ -27,7 +27,7 @@
 </table>
 <script type="text/javascript" language="javascript">
 <!--
-if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class EditorManager"); titleBar_setSubNav(true,false,false,false,false,false,true,false,false,false,false,false,false,false);}
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class EditorManager"); titleBar_setSubNav(false,false,false,false,false,false,true,false,false,false,false,false,false,false);}
 --></script>
 <div class="MainContent">
 <table cellspacing="0" cellpadding="0" class="classHeaderTable">
@@ -53,7 +53,16 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getEditorClass()">getEditorClass</a>(obj:Object):Class</div>
+<a class="signatureLink" href="#getEditorClass()">getEditorClass</a>(obj:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):Class</div>
+<div class="summaryTableDescription">[static]
+   </div>
+</td><td class="summaryTableOwnerCol">EditorManager</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getNewEditor()">getNewEditor</a>(obj:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):<a href="../api/ui/ILinkableObjectEditor.html">ILinkableObjectEditor</a>
+</div>
 <div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">EditorManager</td>
 </tr>
@@ -61,20 +70,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#registerEditor()">registerEditor</a>(objType:Class, editorType:Class):void</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">EditorManager</td>
-</tr>
-</table>
-</div>
-<a name="constantSummary"></a>
-<div class="summarySection">
-<div class="summaryTableTitle">Public Constants</div>
-<table id="summaryTableConstant" class="summaryTable " cellpadding="3" cellspacing="0">
-<tr>
-<th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#editorLookup">editorLookup</a> : Dictionary<div class="summaryTableDescription">[static]</div>
+<div class="summaryTableDescription">[static]
+   This function will register an ILinkableObjectEditor Class corresponding to an ILinkableObject Class.</div>
 </td><td class="summaryTableOwnerCol">EditorManager</td>
 </tr>
 </table>
@@ -93,17 +90,41 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getEditorClass(obj:Object):Class</code><span class="label">Parameters</span>
+<code>public static function getEditorClass(obj:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):Class</code><p>
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">obj</span>:Object</code></td>
+<td width="20px"></td><td><code><span class="label">obj</span>:<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code> &mdash; An ILinkableObject.
+   </td>
 </tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Class</code></td>
+<td width="20"></td><td><code>Class</code> &mdash; The Class implementing ILinkableObjectEditor that was previously registered for the given type of object or one of its superclasses.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getNewEditor()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getNewEditor</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getNewEditor(obj:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):<a href="../api/ui/ILinkableObjectEditor.html">ILinkableObjectEditor</a></code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">obj</span>:<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../api/ui/ILinkableObjectEditor.html">ILinkableObjectEditor</a></code></td>
 </tr>
 </table>
 </div>
@@ -114,29 +135,22 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function registerEditor(objType:Class, editorType:Class):void</code><span class="label">Parameters</span>
+<code>public static function registerEditor(objType:Class, editorType:Class):void</code><p>
+   This function will register an ILinkableObjectEditor Class corresponding to an ILinkableObject Class.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">objType</span>:Class</code></td>
+<td width="20px"></td><td><code><span class="label">objType</span>:Class</code> &mdash; A Class that implements ILinkableObject
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">editorType</span>:Class</code></td>
+<td width="20px"></td><td><code><span class="label">editorType</span>:Class</code> &mdash; The corresponding Class implementing ILinkableObjectEditor
+   </td>
 </tr>
 </table>
-</div>
-<a name="constantDetail"></a>
-<div class="detailSectionHeader">Constant detail</div>
-<a name="editorLookup"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">editorLookup</td><td class="detailHeaderType">constant</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static const editorLookup:Dictionary</code>
 </div>
 <br>
 <br>

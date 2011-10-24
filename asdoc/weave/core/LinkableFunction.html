@@ -150,7 +150,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#LinkableFunction()">LinkableFunction</a>(ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false)</div>
+<a class="signatureLink" href="#LinkableFunction()">LinkableFunction</a>(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">LinkableFunction</td>
 </tr>
@@ -331,8 +331,14 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function LinkableFunction(ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false)</code><span class="label">Parameters</span>
+<code>public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">defaultValue</span>:String</code> (default = <code>null</code>)<code></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">ignoreRuntimeErrors</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
 </tr>
@@ -341,6 +347,12 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">useThisScope</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">paramNames</span>:Array</code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 </div>

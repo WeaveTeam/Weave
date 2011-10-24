@@ -108,7 +108,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    </td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EventUtils.html#generateDelayedCallback()">generateDelayedCallback</a>(callback, delay, callbackParams) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EventUtils.html">EventUtils</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EventUtils.html#generateDelayedCallback()">generateDelayedCallback</a>(callback, callbackParams, delay) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EventUtils.html">EventUtils</a></td>
 </tr>
 <tr>
 <td width="20"></td><td>
@@ -1018,6 +1018,20 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    defaultPackages Array if the specified packageName returns no result.</td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ClassUtils.html#getClassExtendsList()">getClassExtendsList</a>(classQName) &mdash; Static method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ClassUtils.html">ClassUtils</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function gets a list of all the superclasses that a class extends.</td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ClassUtils.html#getClassImplementsList()">getClassImplementsList</a>(classQName) &mdash; Static method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ClassUtils.html">ClassUtils</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function gets a list of all the interfaces implemented by a class.</td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/SpatialIndex.html#getClosestOverlappingKeys()">getClosestOverlappingKeys</a>(bounds:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>, xPrecision, yPrecision) &mdash; Method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/SpatialIndex.html">SpatialIndex</a></td>
 </tr>
 <tr>
@@ -1334,12 +1348,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    This function returns a Bounds2D object set to the data bounds associated with the given record key.</td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GridLinePlotter.html#getDataBoundsFromRecordKey()">getDataBoundsFromRecordKey</a>(recordKey:<a href="weave/api/data/IQualifiedKey.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IQualifiedKey</a>) &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GridLinePlotter.html">GridLinePlotter</a></td>
-</tr>
-<tr>
-<td width="20"></td><td></td>
-</tr>
-<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/Histogram2DPlotter.html#getDataBoundsFromRecordKey()">getDataBoundsFromRecordKey</a>(recordKey:<a href="weave/api/data/IQualifiedKey.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IQualifiedKey</a>) &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/Histogram2DPlotter.html">Histogram2DPlotter</a></td>
 </tr>
 <tr>
@@ -1577,10 +1585,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <td width="20"></td><td></td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EditorManager.html#getEditorClass()">getEditorClass</a>(obj) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EditorManager.html">EditorManager</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EditorManager.html#getEditorClass()">getEditorClass</a>(obj:<a href="weave/api/core/ILinkableObject.html" onclick="javascript:loadClassListFrame('weave/api/core./class-list.html');">weave.api.core:ILinkableObject</a>) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EditorManager.html">EditorManager</a></td>
 </tr>
 <tr>
-<td width="20"></td><td></td>
+<td width="20"></td><td>
+   </td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/primitives/class-list.html');" href="weave/api/primitives/IMatrix.html#getEntry()">getEntry</a>(row, column) &mdash; Method in interface weave.api.primitives.<a onclick="javascript:loadClassListFrame('weave/api/primitives/class-list.html');" href="weave/api/primitives/IMatrix.html">IMatrix</a></td>
@@ -2266,6 +2275,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <td width="20"></td><td></td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EditorManager.html#getNewEditor()">getNewEditor</a>(obj:<a href="weave/api/core/ILinkableObject.html" onclick="javascript:loadClassListFrame('weave/api/core./class-list.html');">weave.api.core:ILinkableObject</a>) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/EditorManager.html">EditorManager</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/TickMarkUtils.html#getNextSmallerInterval()">getNextSmallerInterval</a>(interval) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/TickMarkUtils.html">TickMarkUtils</a></td>
 </tr>
 <tr>
@@ -2597,10 +2612,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
    This function will return an IProjector object that can be used to reproject points.</td>
 </tr>
 <tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ProxyObject.html#getProperty()">getProperty</a>(name) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/ProxyObject.html">ProxyObject</a></td>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/compiler/class-list.html');" href="weave/compiler/ProxyObject.html#getProperty()">getProperty</a>(name) &mdash; Method in class weave.compiler.<a onclick="javascript:loadClassListFrame('weave/compiler/class-list.html');" href="weave/compiler/ProxyObject.html">ProxyObject</a></td>
 </tr>
 <tr>
-<td width="20"></td><td></td>
+<td width="20"></td><td>
+   </td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/services/class-list.html');" href="weave/api/services/IWMSService.html#getProvider()">getProvider</a>() &mdash; Method in interface weave.api.services.<a onclick="javascript:loadClassListFrame('weave/api/services/class-list.html');" href="weave/api/services/IWMSService.html">IWMSService</a></td>
@@ -4230,18 +4246,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
   This plotter displays externally specified grid lines
   
   </td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GridLinePlotter.html#GridLinePlotter()">GridLinePlotter</a>() &mdash; Constructor in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GridLinePlotter.html">GridLinePlotter</a></td>
-</tr>
-<tr>
-<td width="20"></td><td></td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/ui/settings/class-list.html');" href="weave/ui/settings/GridLineSettings.html">GridLineSettings</a> &mdash; Class in package <a onclick="javascript:loadClassListFrame('weave/ui/settings/class-list.html');" href="weave/ui/settings/package-detail.html">weave.ui.settings</a></td>
-</tr>
-<tr>
-<td width="20"></td><td></td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/SimpleInteractiveVisualization.html#gridLineThickness">gridLineThickness</a> &mdash; Constant property in class weave.visualization.layers.<a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/SimpleInteractiveVisualization.html">SimpleInteractiveVisualization</a></td>
