@@ -41,18 +41,20 @@ package weave.core
 	 */
 	public class LinkableFunction extends LinkableString
 	{
-		public function LinkableFunction(ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false)
+		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
-			super();
+			super(defaultValue);
 			_allLinkableFunctions[this] = true; // register this instance so the callbacks will trigger when the libraries change
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
+			_paramNames = paramNames && paramNames.concat();
 			getCallbackCollection(this).addImmediateCallback(this, handleChange);
 		}
 		
 		private var _ignoreRuntimeErrors:Boolean = false;
 		private var _useThisScope:Boolean = false;
 		private var _compiledMethod:Function = null;
+		private var _paramNames:Array = null;
 
 		private function handleChange():void
 		{
@@ -65,7 +67,7 @@ package weave.core
 			{
 				if (_macroProxy == null)
 					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null); // allows evaluating macros but not setting them
-				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors, _useThisScope);
+				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors, _useThisScope, _paramNames);
 			}
 			return _compiledMethod.apply(thisArg, argArray);
 		}

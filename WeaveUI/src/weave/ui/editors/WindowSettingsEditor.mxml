@@ -40,8 +40,6 @@
 						 creationComplete="linkBindableProperty(_panel.draggable, event.target, 'selected')"/>
 			<mx:CheckBox label="Allow resizing" toolTip="Selecting will enable the user to resize this tool" 
 						 creationComplete="linkBindableProperty(_panel.resizeable, event.target, 'selected')"/>
-			<mx:CheckBox label="Allow closing" toolTip="Selecting or deselecting this option will enable or disable the user to close this tool"
-						 creationComplete="linkBindableProperty(_panel.closeable, event.target, 'selected')"/>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
 			<mx:CheckBox label="Allow pinning to back" toolTip="Selecting this option will enable the user to pin this tool to the back of the stage"
@@ -52,6 +50,8 @@
 						 creationComplete="linkBindableProperty(_panel.minimizable, event.target, 'selected')"/>
 			<mx:CheckBox label="Allow maximization" toolTip="Selecting this option will enable the user to maximize this tool"
 						 creationComplete="linkBindableProperty(_panel.maximizable, event.target,'selected');"/>
+			<mx:CheckBox label="Allow closing" toolTip="Selecting or deselecting this option will enable or disable the user to close this tool"
+						 creationComplete="linkBindableProperty(_panel.closeable, event.target, 'selected')"/>
 		</mx:VBox>
 	</mx:HBox>
 

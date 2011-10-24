@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.KeySets.KeySet;
@@ -112,6 +113,7 @@ package weave.visualization.plotters
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
 		public const labelDistanceIsVertical:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const labelWordWrapSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
+		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));
 		
 		private const _keySet:KeySet = newSpatialProperty(KeySet); // stores tick mark keys
 		private const _axisDescription:LooseAxisDescription = new LooseAxisDescription(); // calculates tick marks
@@ -320,6 +322,15 @@ package weave.visualization.plotters
 					_bitmapText.text = labelNumberFormatter.format(tickValue);
 				}
 				
+				try
+				{
+					if (labelFunction.value)
+						_bitmapText.text = labelFunction.apply(null, [tickValue, _bitmapText.text]);
+				}
+				catch (e:Error)
+				{
+					
+				}
 
 				_bitmapText.x = xTick + xLabelOffset;
 				_bitmapText.y = yTick + yLabelOffset;

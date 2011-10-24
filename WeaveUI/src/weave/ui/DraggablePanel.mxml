@@ -320,7 +320,7 @@
 					evaluatePanelTitle();
 				}
 			}
-			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(true, true)); // this is used in handlePanelTitleChange()
+			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()
 
 			// this gets called as a grouped callback when Weave.root changes and whenever panelTitle can be compiled to a function
 			private function evaluatePanelTitle():void

@@ -150,7 +150,7 @@ package weave.visualization.plotters
 		}
 		
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
-		public const labelBarHeightPercentage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
+		public const labelBarHeightPercentage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), heightColumnsImmediateCallback);
