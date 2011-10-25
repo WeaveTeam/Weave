@@ -376,7 +376,7 @@ package weave.visualization.plotters
 					}
 					++edgesCount;
 				} // end connections for loop
-				if (edgesCount > AbstractPlotter.recordsPerDraw)
+				if (edgesCount > recordsPerDraw)
 				{
 					destination.draw(edgesShape, null, null, null, null, true);
 					edgesGraphics.clear();

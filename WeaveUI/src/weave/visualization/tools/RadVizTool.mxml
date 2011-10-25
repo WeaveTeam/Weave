@@ -327,7 +327,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				backgroundColor="0xFFFFFF" 
 				backgroundAlpha="0.7">
 				<mx:HBox
-					creationComplete="linkBindableProperty(_plotter.localNormalization,event.target,'selectedValue')">
+					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
 					<mx:Label text="Normalization method:"
 							  color="0x000000" fontSize="12"
 							  toolTip="Select the type of normalization used to calculate record coordinates"/>
