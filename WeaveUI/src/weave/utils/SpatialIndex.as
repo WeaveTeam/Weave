@@ -656,12 +656,8 @@ package weave.utils
 		{
 			// first filter by bounds
 			var point:Object;
-			var geomVertices:Array = geometry.getVertices();
-			for each (point in geomVertices)
-			{
-				_tempSimpleGeomBounds.includeCoords(point.x, point.y);
-			}
-			var keys:Array = getKeysBoundingBoxOverlap( _tempSimpleGeomBounds, 0);
+			var queryGeomVertices:Array = geometry.getVertices();
+			var keys:Array = getKeysBoundingBoxOverlap((geometry as SimpleGeometry).bounds, 0);
 			
 			if (!Weave.properties.enableGeometryProbing.value || _keyToGeometriesMap == null)
 				return keys;
@@ -685,7 +681,8 @@ package weave.utils
 						var genGeomIsPoly:Boolean = genGeom.isPolygon();
 						var genGeomIsLine:Boolean = genGeom.isLine();
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
-						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, bounds);
+						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, _tempSimpleGeomBounds);
+						
 						
 						// for each part, build the vertices polygon and check for the overlap
 						for (var iPart:int = 0; iPart < simplifiedGeom.length; ++iPart)
@@ -698,7 +695,7 @@ package weave.utils
 							// if a polygon, check for polygon overlap
 							if (genGeomIsPoly)
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, part))
+								if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices, part))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -706,7 +703,7 @@ package weave.utils
 							}
 							else if (genGeomIsLine)
 							{
-								if (polygonOverlapsPolyLine(_tempBoundsPolygon, part))
+								if (polygonOverlapsPolyLine(queryGeomVertices, part))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -714,7 +711,7 @@ package weave.utils
 							}
 							else // point
 							{
-								if (polygonOverlapsPolyPoint(_tempBoundsPolygon, part))
+								if (polygonOverlapsPolyPoint(queryGeomVertices, part))
 								{
 									result.push(key);
 									continue keyLoop;
@@ -733,7 +730,7 @@ package weave.utils
 						
 						if (simpleGeomIsPoly)// a polygon, check for polygon overlap
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, vertices))
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices, vertices))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -741,7 +738,7 @@ package weave.utils
 						}
 						else if (simpleGeomIsLine) // if a line, check for bounds intersect line
 						{
-							if (polygonOverlapsPolyLine(_tempBoundsPolygon, vertices))
+							if (polygonOverlapsPolyLine(queryGeomVertices, vertices))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -749,7 +746,7 @@ package weave.utils
 						}
 						else
 						{
-							if (polygonOverlapsPolyPoint(_tempBoundsPolygon, vertices))
+							if (polygonOverlapsPolyPoint(queryGeomVertices, vertices))
 							{
 								result.push(key);
 								continue keyLoop;

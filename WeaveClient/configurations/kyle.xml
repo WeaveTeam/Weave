@@ -30,7 +30,7 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="visualization" name="Red Scale" source="OIC" singlehue="true">
+      <colorRamp singlehue="true" name="Red Scale" category="visualization" source="OIC">
         <node color="0x000000" position="0"/>
         <node color="0xff0000" position="0.5"/>
         <node color="0xffcccc" position="1"/>
@@ -57,12 +57,14 @@
     <enableAddColorLegend>true</enableAddColorLegend>
     <enableAddColormapHistogram>true</enableAddColormapHistogram>
     <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
+    <enableAddCustomTool>true</enableAddCustomTool>
     <enableAddDataFilter>true</enableAddDataFilter>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddDataTable>true</enableAddDataTable>
     <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
     <enableAddGaugeTool>true</enableAddGaugeTool>
     <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+    <enableAddGraphTool>true</enableAddGraphTool>
     <enableAddHistogram>true</enableAddHistogram>
     <enableAddLineChart>true</enableAddLineChart>
     <enableAddMap>true</enableAddMap>
@@ -82,13 +84,14 @@
     <enableCreateSubsets>true</enableCreateSubsets>
     <enableDataMenu>true</enableDataMenu>
     <enableDebugAlert>false</enableDebugAlert>
+    <enableDrawCircle>true</enableDrawCircle>
     <enableDynamicTools>true</enableDynamicTools>
     <enableEditDataSource>true</enableEditDataSource>
     <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
     <enableExportDataTable>true</enableExportDataTable>
     <enableExportToolImage>true</enableExportToolImage>
     <enableFullscreen>true</enableFullscreen>
-    <enableGeometryProbing>false</enableGeometryProbing>
+    <enableGeometryProbing>true</enableGeometryProbing>
     <enableGoFullscreen>true</enableGoFullscreen>
     <enableManageSavedSelections>true</enableManageSavedSelections>
     <enableManageSavedSubsets>true</enableManageSavedSubsets>
@@ -108,12 +111,14 @@
     <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
     <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
     <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
     <enableSelectionsMenu>true</enableSelectionsMenu>
     <enableSessionBookmarks>true</enableSessionBookmarks>
     <enableSessionEdit>true</enableSessionEdit>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
     <enableSubsetsMenu>true</enableSubsetsMenu>
     <enableTaskbar>true</enableTaskbar>
     <enableTileAllWindows>true</enableTileAllWindows>
@@ -124,6 +129,8 @@
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
+    <macroLibraries>weave.api::WeaveAPI</macroLibraries>
+    <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Sample Weave Configuration</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
@@ -186,7 +193,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute keyType="Country Code" name="Country Name" csvColumn="Country Name" title="Country Name"/>
+              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -198,7 +205,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute keyType="Country Code" name="Population, female (% of total)" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
+              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -210,7 +217,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute keyType="Country Code" name="Rural population (% of total population)" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
+              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -222,7 +229,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute keyType="Country Code" name="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
+              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -234,7 +241,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute keyType="Country Code" name="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
+              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -246,7 +253,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute keyType="Country Code" name="Urban population (% of total)" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
+              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -258,7 +265,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute keyType="Country Code" name="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
+              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -280,11 +287,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="nhpn" title="nhpn"/>
           <category name="obesity" title="obesity"/>
           <category name="obesity-cube" title="obesity-cube">
-            <attribute number=" " name="ID" dataTable="obesity-cube" string="&quot;ID&quot; + asString(number)" keyType="obesity-cube" dataType="number" title="ID"/>
-            <attribute number=" " name="FIPS2" dataTable="obesity-cube" string=" " keyType="obesity-cube" dataType="string" title="FIPS2"/>
-            <attribute number="string.length" name="State" dataTable="obesity-cube" string="&quot;# num characters &quot; + asString(number)" keyType="obesity-cube" dataType="string" title="State"/>
-            <attribute number=" " name="Year" dataTable="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" keyType="obesity-cube" dataType="number" title="Year"/>
-            <attribute name="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" dataType="number" title="PercentObese"/>
+            <attribute number=" " name="ID" keyType="obesity-cube" dataTable="obesity-cube" string="&quot;ID&quot; + asString(number)" dataType="number" title="ID"/>
+            <attribute number=" " name="FIPS2" keyType="obesity-cube" dataTable="obesity-cube" string=" " dataType="string" title="FIPS2"/>
+            <attribute number="string.length" name="State" keyType="obesity-cube" dataTable="obesity-cube" string="&quot;# num characters &quot; + asString(number)" dataType="string" title="State"/>
+            <attribute number=" " name="Year" keyType="obesity-cube" dataTable="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" dataType="number" title="Year"/>
+            <attribute dataTable="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" keyType="obesity-cube" dataType="number" title="PercentObese"/>
           </category>
           <category name="obesity-cube2" title="obesity-cube2"/>
           <category name="obesity-cube3" title="obesity-cube3"/>
@@ -322,6 +329,187 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
+  <MapTool name="MapTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>0</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <GeometryPlotter>
+                <fill>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
+                </fill>
+                <geometryColumn>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WeaveDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category name="Geometry Collections" title="Geometry Collections">
+                                <attribute name="States_geom" keyType="US State FIPS Code" dataType="geometry" title="States_geom"/>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                  <projectionSRS/>
+                </geometryColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <line>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>none</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </line>
+                <pixellation>1</pixellation>
+                <pointDataImageColumn encoding="dynamic"/>
+                <pointShapeSize>5</pointShapeSize>
+              </GeometryPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>0</marginBottom>
+        <marginLeft>0</marginLeft>
+        <marginRight>0</marginRight>
+        <marginTop>0</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <area>21996.218516341</area>
+          <xCenter>-114.04250064669</xCenter>
+          <yCenter>52.544493351968</yCenter>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+      <PenTool name="penTool">
+        <coords>-125.16386825076336,74.5020652882154,-125.73419479456199,74.5020652882154,-160.52411396627863,15.188104733157495,-154.25052198449367,10.055165838969788,-100.63982686742212,7.203533119976621,-95.50688797323441,25.4539825215329,-84.67068364106038,75.07239183201403,-128.01550096975654,85.33826962038944,-162.23509359767453,88.76022888318124,-162.23509359767453,78.49435109480584,-159.95378742248,63.09553441224273,-157.10215470348683,58.532922061853654,-93.22558179803988,23.743002890137,-93.22558179803988,23.743002890137,-147.40660345891007,83.62728998899352,-166.7977059480636,79.6350041824031,-187.89978806861305,48.26704427347825,-187.89978806861305,42.56377883549192,-185.6184818934185,38.57149302890148,-185.6184818934185,38.57149302890148,-185.6184818934185,38.57149302890148,-185.6184818934185,38.57149302890148,-125.16386825076336,74.5020652882154
+-181.05586954302944,20.321043627345198,-181.05586954302944,20.321043627345198,-156.5318281596882,39.14181957270011,-161.6647670538759,38.00116648510284,-175.3526041050431,28.875941784324702,-179.9152164554322,24.883655977734264,-193.6030535065994,9.484839295171156,-193.6030535065994,9.484839295171156,-193.6030535065994,9.484839295171156,-193.6030535065994,9.484839295171156,-181.05586954302944,20.321043627345198</coords>
+        <lineColor>0</lineColor>
+        <lineWidth>2</lineWidth>
+      </PenTool>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBackground>false</enableBackground>
+    <enableBorders>true</enableBorders>
+    <enableOverview>false</enableOverview>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>49.507%</panelHeight>
+    <panelStyleList/>
+    <panelTitle/>
+    <panelWidth>49.843%</panelWidth>
+    <panelX>44.201%</panelX>
+    <panelY>9.6386%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <projectionSRS/>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <showMouseModeControls>true</showMouseModeControls>
+    <showZoomControls>true</showZoomControls>
+  </MapTool>
   <CompoundBarChartTool name="CompoundBarChartTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -367,6 +555,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -410,6 +599,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -441,7 +631,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp category="aesthetic" name="Doppler Radar" source="OIC" dataFormat="qualitative">
+                  <colorRamp name="Doppler Radar" category="aesthetic" dataFormat="qualitative" source="OIC">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -457,13 +647,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <node color="0x9854C6" position="1.0"/>
                   </colorRamp>
                 </chartColors>
-                <colorColumn>
-                  <defaultValue>NaN</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <GlobalObjectReference name="defaultColorColumn"/>
-                  </internalDynamicColumn>
-                </colorColumn>
-                <groupMode>false</groupMode>
+                <colorDataColumn encoding="dynamic"/>
+                <groupingMode>stack</groupingMode>
+                <groupRecordsByColor>false</groupRecordsByColor>
                 <heightColumns encoding="dynamic">
                   <ReferencedColumn name="ReferencedColumn2">
                     <dynamicColumnReference encoding="dynamic">
@@ -473,7 +659,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string=" " dataTable="obesity-cube" name="FIPS2" keyType="obesity-cube" dataType="string" title="FIPS2"/>
+                                <attribute number=" " year="" string=" " name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="string" title="FIPS2"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -489,7 +675,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" dataTable="obesity-cube" name="State" keyType="obesity-cube" dataType="string" title="State"/>
+                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="string" title="State"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -505,7 +691,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute year="" name="PercentObese" dataTable="obesity-cube" string="asString(number) + &quot;%&quot;" keyType="obesity-cube" dataType="number" title="PercentObese"/>
+                                <attribute dataTable="obesity-cube" year="" string="asString(number) + &quot;%&quot;" keyType="obesity-cube" name="PercentObese" dataType="number" title="PercentObese"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -520,6 +706,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
+                <labelBarHeightPercentage>100</labelBarHeightPercentage>
                 <lineStyle encoding="dynamic">
                   <SolidLineStyle>
                     <alpha>
@@ -572,7 +759,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" dataTable="obesity-cube" name="ID" keyType="obesity-cube" dataType="number" title="ID"/>
+                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" name="ID" dataTable="obesity-cube" keyType="obesity-cube" dataType="number" title="ID"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -581,6 +768,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
+                <valueLabelColor>0</valueLabelColor>
                 <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
             </plotter>
@@ -655,6 +843,10 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
           <xMax>285.9371772805508</xMax>
@@ -663,6 +855,22 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <yMin>-0.9933949801849522</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
+      <PenTool name="penTool">
+        <coords>91.50231138016767,18.099439910780777,91.50231138016767,17.865171998008194,90.48698570966957,17.63090408523561,90.48698570966957,17.16236825969044,90.48698570966957,16.693832434145268,89.4716600391715,15.756760783054922,89.4716600391715,14.81968913196458,88.4563343686734,13.882617480874238,86.42568302767724,11.539938353148381,86.42568302767724,10.368598789285452,85.41035735717915,9.197259225422524,85.41035735717915,8.025919661559596,85.41035735717915,6.6203121849240825,87.44100869817532,4.511900969970811,88.4563343686734,3.574829318880469,90.48698570966957,2.6377576677901255,97.59426540315617,1.2321501911546116,99.62491674415233,0.997882278382026,103.68621942614467,0.7636143656094403,107.747522108137,0.7636143656094403,111.80882479012935,0.7636143656094403,120.94675582461211,0.997882278382026,127.03870984760061,1.466418103927197,133.13066387058913,1.9349539294723686,146.32989758706424,3.106293493335297,153.43717728055083,3.8090972316530536,160.54445697403742,4.980436795515982,166.6364109970259,6.1517763593789105,172.7283650200144,7.32311592324184,177.80499337250484,9.43152713819511,178.82031904300294,10.368598789285452,179.83564471350098,11.305670440375795,178.82031904300294,13.882617480874238,177.80499337250484,14.585421219191995,174.7590163610106,15.522492870282338,172.7283650200144,16.225296608600097,162.57510831503356,18.099439910780777,157.49847996254317,18.802243649098536,152.42185161005273,19.505047387416294,140.23794356407572,21.144922776824394,132.11533820009103,22.081994427914736,123.99273283610637,23.01906607900508,113.83947613112552,23.95613773009542,103.68621942614467,24.65894146841318,81.3490546751868,26.064548945048692,71.19579797020597,26.29881685782128,62.05786693572321,26.533084770593863,41.751353525761516,26.29881685782128,36.67472517327109,25.83028103227611,32.613422491278754,25.361745206730934,29.567445479784503,24.893209381185763,20.42951444530174,22.550530253459907,17.38353743380749,21.613458602369565,10.276257740320897,19.036511561871123,8.245606399324728,18.333707823553365,7.230280728826644,17.63090408523561,
+9.260932069822813,11.774206265920967,13.32223475181515,9.43152713819511,14.337560422313235,8.962991312649939,17.38353743380749,7.791651748787011,17.38353743380749,7.32311592324184,22.46016578629791,6.1517763593789105,25.506142797792165,5.6832405338337395,28.552119809286417,5.448972621061154,31.598096820780672,4.980436795515982,46.82798187825194,4.2776330571982255,54.950587242236615,4.2776330571982255,62.05786693572321,4.2776330571982255,79.31840333419063,4.043365144425639,88.4563343686734,4.043365144425639,97.59426540315617,4.2776330571982255,107.747522108137,4.511900969970811,115.8701274721217,4.7461688827433965,132.11533820009103,5.448972621061154,138.20729222307955,5.917508446606325,144.29924624606804,6.1517763593789105,157.49847996254317,7.088848010469254,158.51380563304127,7.088848010469254,158.51380563304127,7.557383836014425,
+140.23794356407572,8.025919661559596,133.13066387058913,7.791651748787011,112.82415046062742,7.088848010469254,106.73219643763893,6.854580097696668,88.4563343686734,6.1517763593789105,83.37970601618298,5.917508446606325,72.21112364070405,4.511900969970811,69.1651466292098,4.043365144425639,67.13449528821363,3.574829318880469,66.11916961771554,3.3405614061078825,64.08851827671937,3.106293493335297,63.07319260622129,2.6377576677901255,61.042541265225125,2.40348975501754,
+57.99656425373087,1.466418103927197,57.99656425373087,0.997882278382026,57.99656425373087,0.7636143656094403,57.99656425373087,-0.17345728548090233,57.99656425373087,-0.6419931110260737,56.98123858323279,-0.6419931110260737,53.93526157173853,-1.5790647621164164,51.904610230742364,-1.5790647621164164,49.87395888974619,-1.813332674889002,42.7666791962596,-2.516136413206759,41.751353525761516,-2.516136413206759,39.720702184765344,-2.7504043259793445,38.70537651426726,-2.7504043259793445,
+38.70537651426726,-2.9846722387519304,42.7666791962596,-2.9846722387519304,53.93526157173853,-3.218940151524516,59.01188992422895,-3.218940151524516,72.21112364070405,-2.7504043259793445,79.31840333419063,-2.2818685004341734,86.42568302767724,-1.5790647621164164,108.7628477786351,0.5293464528368546,116.88545314261977,1.700686016699783,123.99273283610637,2.6377576677901255,131.10001252959296,4.043365144425639,149.37587459855848,9.197259225422524,153.43717728055083,10.602866702058039,156.48315429204507,15.522492870282338,156.48315429204507,17.16236825969044,153.43717728055083,18.802243649098536,149.37587459855848,20.20785112573405,119.93143015411403,24.893209381185763,109.77817344913318,25.59601311950352,90.48698570966957,26.533084770593863,81.3490546751868,26.76735268336645,72.21112364070405,26.76735268336645,65.10384394721746,27.001620596139034,57.99656425373087,27.001620596139034,45.812656207753854,26.29881685782128,43.78200486675769,26.064548945048692,41.751353525761516,25.361745206730934,40.73602785526343,24.893209381185763,40.73602785526343,24.190405642868008,39.720702184765344,23.48760190455025,38.70537651426726,21.613458602369565,
+42.7666791962596,15.053957044737167,46.82798187825194,13.648349568101652,53.93526157173853,12.008474178693552,63.07319260622129,10.837134614830624,67.13449528821363,10.602866702058039,72.21112364070405,10.368598789285452,77.28775199319446,10.134330876512866,83.37970601618298,10.134330876512866,
+122.97740716560827,8.494455487104767,120.94675582461211,8.494455487104767,118.91610448361594,8.494455487104767,114.8548018016236,8.728723399877353,109.77817344913318,9.197259225422524,
+14.337560422313235,12.711277917011309,17.38353743380749,12.711277917011309,20.42951444530174,12.945545829783896,24.49081712729408,12.945545829783896,
+88.4563343686734,13.648349568101652,90.48698570966957,13.648349568101652,91.50231138016767,13.648349568101652,93.53296272116383,14.351153306419409,
+119.93143015411403,18.099439910780777,123.99273283610637,18.56797573632595,121.9620814951102,18.802243649098536,118.91610448361594,19.036511561871123,114.8548018016236,19.036511561871123,111.80882479012935,19.270779474643707,
+73.22644931120215,18.802243649098536,64.08851827671937,18.56797573632595,64.08851827671937,18.333707823553365,64.08851827671937,18.099439910780777,64.08851827671937,17.865171998008194,66.11916961771554,17.16236825969044,68.14982095871171,17.16236825969044,76.27242632269639,16.693832434145268,79.31840333419063,16.693832434145268,82.3643803456849,16.45956452137268,86.42568302767724,16.45956452137268,95.56361406216,16.693832434145268,99.62491674415233,16.92810034691785,104.70154509664276,17.396636172463023,106.73219643763893,17.63090408523561,108.7628477786351,17.63090408523561,109.77817344913318,17.865171998008194,112.82415046062742,18.099439910780777,123.99273283610637,19.036511561871123,128.05403551809871,19.270779474643707,156.48315429204507,21.613458602369565,168.6670623380221,23.721869817322837,
+185.92759873648953,29.578567636637477,184.91227306599143,29.578567636637477,</coords>
+        <lineColor>0</lineColor>
+        <lineWidth>2</lineWidth>
+      </PenTool>
     </children>
     <closeable>true</closeable>
     <draggable>true</draggable>
@@ -671,7 +879,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
     <labelColumn encoding="dynamic"/>
     <maximizable>true</maximizable>
-    <maximized>true</maximized>
+    <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
