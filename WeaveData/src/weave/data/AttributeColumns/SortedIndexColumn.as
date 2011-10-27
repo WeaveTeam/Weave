@@ -133,7 +133,7 @@ package weave.data.AttributeColumns
 			}
 			// cast to other types
 			if (dataType == String)
-				result = isNaN(result) ? '' : key.keyType + '#' + key.localName; // returns the key itself or empty string if the key doesn't exist
+				result = internalColumn ? internalColumn.getValueFromKey(key, String) : '';
 			else if (dataType == Boolean)
 				result = !isNaN(result); // true if key exists in lookup table
 			
@@ -154,7 +154,7 @@ package weave.data.AttributeColumns
 			// return '' if there is no key at the given index value
 			if (index < 0 || index >= _keys.length)
 				return '';
-			return _keys[index];
+			return internalColumn ? internalColumn.getValueFromKey(_keys[index], String) : '';
 		}
 	}
 }

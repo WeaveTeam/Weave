@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.unlinkSessionState;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -71,6 +72,8 @@ package weave.visualization.plotters
 		}
 		private function init():void
 		{
+			colorColumn.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+
 			// get the keys from the sort column
 			setKeySource(sortColumn);
 			
@@ -78,82 +81,68 @@ package weave.visualization.plotters
 			// This is so the records will be filtered before they are sorted in the _sortColumn.
 			linkSessionState(_filteredKeySet.keyFilter, _filteredSortColumn.filter);
 			
+//			_groupByBins = newDisposableChild(this, BinnedColumn);
+//			_groupByBins.binningDefinition.requestLocalObject(CategoryBinningDefinition, true);
+//			registerSpatialProperty(groupBy, handleGroupBy);//todo: this won't work
 			heightColumns.addGroupedCallback(this, heightColumnsGroupCallback);
 			registerSpatialProperty(sortColumn);
 			
 			for each (var child:ILinkableObject in [
+				colorColumn,
 				Weave.properties.axisFontSize,
 				Weave.properties.axisFontColor])
 			{
 				registerLinkableChild(this, child);
 			}
+			
+			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
 		}
 		
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
 		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
-		public const colorDataColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		
+		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
 		// for now it is a solid fill style -- needs to be updated to be dynamic fill style later
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
 		
-		private var _sortedIndexColumn:SortedIndexColumn = newDisposableChild(this, SortedIndexColumn); // this sorts the records
+		public const groupBySortColumn:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
+		private var _binnedSortColumn:BinnedColumn = newDisposableChild(this, BinnedColumn); // only used when groupBySortColumn is true
+		private var _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
 		private var _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
 		public const positiveError:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const negativeError:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
+		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
-		public function getSortedKeys():Array { return _sortedIndexColumn.keys; }
-		
-		public const groupRecordsByColor:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), handleGroupByColorMode);
-		
-		private var _prevLinkedColorDataColumn:DynamicColumn = null;
-		private function linkColorDataColumn(newLinkedColumn:DynamicColumn, newTakesPriority:Boolean):void
+		public function sortAxisLabelFunction(value:Number):String
 		{
-			if (_prevLinkedColorDataColumn)
-				unlinkSessionState(_prevLinkedColorDataColumn, colorDataColumn);
-			_prevLinkedColorDataColumn = newLinkedColumn;
-			if (newLinkedColumn)
-			{
-				if (newTakesPriority)
-					linkSessionState(newLinkedColumn, colorDataColumn);
-				else
-					linkSessionState(colorDataColumn, newLinkedColumn);
-			}
-		}
-		
-		private function handleGroupByColorMode():void
-		{
-			if (groupRecordsByColor.value)
-			{
-				fillStyle.color.internalDynamicColumn.copyLocalObject(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
-				var _color:ColorColumn = fillStyle.color.internalColumn as ColorColumn;
-				_color.internalDynamicColumn.globalName = null; // make it a local binned column so we don't modify the global one
-				var _bin:BinnedColumn = _color.internalColumn as BinnedColumn;
-				_bin.internalDynamicColumn.globalName = null; // make it a local binned column so we don't modify the global one
-				var _filter:FilteredColumn = _bin.internalColumn as FilteredColumn;
-				
-				_bin.binningDefinition.requestLocalObject(CategoryBinningDefinition, false);
-				linkSessionState(chartColors, _color.ramp);
-				linkColorDataColumn(_filter.internalDynamicColumn, false);
-				// keep only the first height column.
-				for each (var name:String in heightColumns.getNames().shift())
-					heightColumns.removeObject(name);
-			}
-			else
-			{
-				fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-				var filter:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				linkColorDataColumn(filter.internalDynamicColumn, true);
-			}
+			if (groupBySortColumn.value)
+				return _binnedSortColumn.deriveStringFromNumber(value);
+			
+			// get the sorted keys
+			var sortedKeys:Array = _sortedIndexColumn.keys;
+			
+			// cast the input value from the axis to an int (not ideal at all, need to make this more robust)
+			var sortedKeyIndex:int = int(value);
+			
+			// if this key is out of range, we have a problem
+			if (sortedKeyIndex < 0 || sortedKeyIndex > sortedKeys.length-1)
+				return "Invalid tick mark value: "+value.toString();
+			
+			// if the labelColumn doesn't have any data, use default label
+			if (labelColumn.internalColumn == null)
+				return null;
+			
+			// otherwise return the value from the labelColumn
+			return labelColumn.getValueFromKey(sortedKeys[sortedKeyIndex], String);
 		}
 		
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 		public const labelBarHeightPercentage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), heightColumnsImmediateCallback);
+		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
@@ -164,14 +153,6 @@ package weave.visualization.plotters
 		private function verifyGroupingMode(mode:String):Boolean
 		{
 			return [GROUP, STACK, PERCENT_STACK].indexOf(mode) >= 0;
-		}
-		
-		private function heightColumnsImmediateCallback():void
-		{
-			var columns:Array = heightColumns.getObjects();
-			
-			if (columns.length > 1)
-				groupRecordsByColor.value = false;
 		}
 		
 		private function heightColumnsGroupCallback():void
@@ -194,6 +175,7 @@ package weave.visualization.plotters
 			var _heightColumns:Array = heightColumns.getObjects().reverse();
 			var _groupingMode:String = getActualGroupingMode();
 			var _horizontalMode:Boolean = horizontalMode.value;
+			var _groupBySortColumn:Boolean = groupBySortColumn.value;
 			
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
@@ -216,23 +198,37 @@ package weave.visualization.plotters
 				//------------------------------------
 				graphics.clear();
 				
-				var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
-				
-				// x coordinates depend on sorted index
-				var xMin:Number = sortedIndex;
-				var xMax:Number = xMin + 1;
+				var numHeightColumns:int = _heightColumns.length;
+				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
 				
 				// y coordinates depend on height columns
 				var yMin:Number = 0; // start first bar at zero
 				var yMax:Number = 0;
 				var yNegativeMin:Number = 0;
 				var yNegativeMax:Number = 0;
-				// constrain the spacing to be between 0 and 0.5
-				var spacing:Number = 0.5 * Math.min(1.0, Math.max(0.0, _barSpacing) );
-				var halfSpacing:Number = spacing/2;
-				var numHeightColumns:int = _heightColumns.length;
-				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
-				var groupedBarWidth:Number = (xMax - xMin - spacing)/(numHeightColumns);
+				
+				// x coordinates depend on sorted index
+				var sortedIndex:int;
+				if (_groupBySortColumn)
+					sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
+				else
+					sortedIndex = _sortedIndexColumn.getValueFromKey(recordKey, Number);
+				
+				var spacing:Number = StandardLib.constrain(_barSpacing, 0, 1) / 2; // max distance between bar groups is 0.5 in data coordinates
+				var xMin:Number = sortedIndex - 0.5 + spacing / 2;
+				var xMax:Number = sortedIndex + 0.5 - spacing / 2;
+				
+				var recordWidth:Number = xMax - xMin;
+				var groupSegmentWidth:Number = recordWidth / numHeightColumns;
+				if (_groupBySortColumn)
+				{
+					// shrink down bars to fit in one groupSegmentWidth
+					var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
+					xMin = xMin + keysInBin.indexOf(recordKey) / keysInBin.length * groupSegmentWidth;
+					xMax = xMin + 1 / keysInBin.length * groupSegmentWidth;
+					recordWidth /= keysInBin.length;
+					groupSegmentWidth /= keysInBin.length;
+				}
 				
 				var totalHeight:Number = 0;
 				for (var hCount:int = 0; hCount < _heightColumns.length; hCount++)
@@ -272,26 +268,24 @@ package weave.visualization.plotters
 					{
 						//normalizing to 100% stack
 						if (_groupingMode == PERCENT_STACK)
-							yMax = yMin + (100/totalHeight *height);
+							yMax = yMin + (100 / totalHeight * height);
 						else
 							yMax = yMin + height;
 					}
 					else
 					{
 						if (_groupingMode == PERCENT_STACK)
-							yNegativeMax = yNegativeMin + (100/totalHeight *height);
+							yNegativeMax = yNegativeMin + (100 / totalHeight * height);
 						else
 							yNegativeMax = yNegativeMin + height;
 					}
-					var halfXRange:Number = (xMax - xMin) / 2;
-					var halfColumnWidth:Number = (_heightColumns.length - 1) / 2;
 					
 					if (!heightMissing)
 					{
 						// bar starts at bar center - half width of the bar, plus the spacing between this and previous bar
-						var barStart:Number = xMin + halfSpacing - halfXRange;
+						var barStart:Number = xMin;
 						if (_groupingMode == GROUP)
-							barStart = xMin + (i - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
+							barStart += i / _heightColumns.length * groupSegmentWidth;
 						
 						if ( height >= 0)
 						{
@@ -321,9 +315,9 @@ package weave.visualization.plotters
 							}
 						}
 						// bar ends at bar center + half width of the bar, less the spacing between this and next bar
-						var barEnd:Number = xMin - halfSpacing + halfXRange;
+						var barEnd:Number = xMax;
 						if (_groupingMode == GROUP)
-							barEnd = xMin + (i+1 - halfColumnWidth) * groupedBarWidth - groupedBarWidth / 2;
+							barEnd = barStart + groupSegmentWidth;
 						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						tempBounds.setMinPoint(tempPoint);
@@ -540,19 +534,34 @@ package weave.visualization.plotters
 			var errorBounds:IBounds2D = getReusableBounds(); // the bounds of key + error bars
 			var keyBounds:IBounds2D = getReusableBounds(); // the bounds of just the key
 			var _groupingMode:String = getActualGroupingMode();
-			var errorColumnsIncluded:Boolean = false; // are error columns the i = 1 and i=2 columns in height columns?
+			var errorColumnsIncluded:Boolean = false; // this value is true when the i = 1 and i=2 columns are error columns
+			var _groupBySortColumn:Boolean = groupBySortColumn.value;
+			var _heightColumns:Array = heightColumns.getObjects();
 			
 			// bar position depends on sorted index
-			var sortedIndex:int = _sortedIndexColumn.getValueFromKey(recordKey, Number);
+			var sortedIndex:int;
+			if (_groupBySortColumn)
+				sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
+			else
+				sortedIndex = _sortedIndexColumn.getValueFromKey(recordKey, Number);
 			var minPos:Number = sortedIndex - 0.5;
-			var maxPos:Number = minPos + 1;
+			var maxPos:Number = sortedIndex + 0.5;
+			var recordWidth:Number = maxPos - minPos;
+			if (_groupBySortColumn)
+			{
+				// shrink down bars to fit in one groupSegmentWidth
+				var groupSegmentWidth:Number = recordWidth / _heightColumns.length;
+				var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
+				minPos = minPos + keysInBin.indexOf(recordKey) / keysInBin.length * groupSegmentWidth;
+				maxPos = minPos + 1 / keysInBin.length * groupSegmentWidth;
+				recordWidth /= keysInBin.length;
+			}
 			// this bar is between minPos and maxPos in the x or y range
 			if (horizontalMode.value)
 				keyBounds.setYRange(minPos, maxPos);
 			else
 				keyBounds.setXRange(minPos, maxPos);
 			
-			var _heightColumns:Array = heightColumns.getObjects();
 			if (_heightColumns.length == 1)
 			{
 				_heightColumns.push(positiveError);

@@ -425,5 +425,28 @@ package weave.compiler
 				sum += value;
 			return sum;
 		}
+		
+		/**
+		 * This function compares each of the elements in two arrays in order.
+		 * @param a The first Array for comparison
+		 * @param b The second Array for comparison
+		 * @return The first nonzero compare value, or zero if the arrays are equal.
+		 */
+		public static function arrayCompare(a:Array, b:Array):int
+		{
+			var an:int = a.length;
+			var bn:int = b.length;
+			if (an < bn)
+				return -1;
+			if (an > bn)
+				return 1;
+			for (var i:int = 0; i < an; i++)
+			{
+				var result:int = ObjectUtil.compare(a[i], b[i]);
+				if (result != 0)
+					return result;
+			}
+			return 0;
+		}
 	}
 }

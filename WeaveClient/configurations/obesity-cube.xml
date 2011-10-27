@@ -390,22 +390,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </ReferencedColumn>
   </LinkableHashMap>
   <LinkableHashMap encoding="dynamic" name="Probed Columns">
-    <ReferencedColumn name="ReferencedColumn">
-      <dynamicColumnReference encoding="dynamic">
-        <HierarchyColumnReference>
-          <dataSourceName>WeaveDataSource</dataSourceName>
-          <hierarchyPath encoding="xml">
-            <hierarchy>
-              <category name="Data Tables">
-                <category name="obesity-cube">
-                  <attribute dataType="obesity-cube" dataTable="obesity-cube" id="165078" name="ID" keyType="obesity-cube"/>
-                </category>
-              </category>
-            </hierarchy>
-          </hierarchyPath>
-        </HierarchyColumnReference>
-      </dynamicColumnReference>
-    </ReferencedColumn>
     <ReferencedColumn name="ReferencedColumn2">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>

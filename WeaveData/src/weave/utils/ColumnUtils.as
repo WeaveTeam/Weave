@@ -208,6 +208,10 @@ package weave.utils
 				result.push(values);
 			}
 			return result;
-		}	
+		}
+		
+		//todo: (cached) get sorted index from a key and a column
+		
+		//todo: (cached) get bins from a column with a filter applied
 	}
 }
