@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="PenTool,weave.ui.PenTool,coords,lineColor,lineWidth,editMode,createContextMenuItems,dispose,updateDisplayList" name="keywords">
+<meta content="PenTool,weave.ui.PenTool,FREE_DRAW_MODE,POLYGON_DRAW_MODE,coords,drawingMode,lineColor,lineWidth,editMode,createContextMenuItems,dispose,selectRecords,updateDisplayList" name="keywords">
 <title>weave.ui.PenTool</title>
 </head>
 <body>
@@ -45,9 +45,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  PenTool
   This is a class that controls the graphical annotations within Weave.
-    <p></p>
+  
+  <p></p>
 <br>
 <hr>
 </div>
@@ -92,6 +92,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PenTool</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#selectRecords()">selectRecords</a>():void</div>
+<div class="summaryTableDescription">
+   This function will check for records overlapping each drawn polygon.</div>
+</td><td class="summaryTableOwnerCol">PenTool</td>
+</tr>
 </table>
 </div>
 <a name="protectedMethodSummary"></a>
@@ -120,7 +128,16 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#coords">coords</a> : <a href="../core/LinkableString.html">LinkableString</a>
 <div class="summaryTableDescription">
-   This is used for sessiong all of the coordinates.</div>
+   This is used for sessioning all of the coordinates.</div>
+</td><td class="summaryTableOwnerCol">PenTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#drawingMode">drawingMode</a> : <a href="../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">PenTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#FREE_DRAW_MODE">FREE_DRAW_MODE</a> : String = "Free Draw Mode"<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">PenTool</td>
 </tr>
 <tr class="">
@@ -133,6 +150,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lineWidth">lineWidth</a> : <a href="../core/LinkableNumber.html">LinkableNumber</a>
 <div class="summaryTableDescription">
    Allows user to change the size of the line.</div>
+</td><td class="summaryTableOwnerCol">PenTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#POLYGON_DRAW_MODE">POLYGON_DRAW_MODE</a> : String = "Polygon Draw Mode"<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">PenTool</td>
 </tr>
 </table>
@@ -201,6 +222,17 @@ showHideInherited();
 <div class="detailBody">
 <code>public function dispose():void</code>
 </div>
+<a name="selectRecords()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">selectRecords</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function selectRecords():void</code><p>
+   This function will check for records overlapping each drawn polygon. The keys
+   will then be set to the defaultSelectionFilter.
+   </p></div>
 <a name="updateDisplayList()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -231,8 +263,26 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const coords:<a href="../core/LinkableString.html">LinkableString</a></code><p>
-   This is used for sessiong all of the coordinates.
+   This is used for sessioning all of the coordinates.
    </p></div>
+<a name="drawingMode"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">drawingMode</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const drawingMode:<a href="../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="FREE_DRAW_MODE"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">FREE_DRAW_MODE</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const FREE_DRAW_MODE:String = "Free Draw Mode"</code>
+</div>
 <a name="lineColor"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -253,6 +303,15 @@ showHideInherited();
 <code>public const lineWidth:<a href="../core/LinkableNumber.html">LinkableNumber</a></code><p>
    Allows user to change the size of the line.
    </p></div>
+<a name="POLYGON_DRAW_MODE"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">POLYGON_DRAW_MODE</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const POLYGON_DRAW_MODE:String = "Polygon Draw Mode"</code>
+</div>
 <br>
 <br>
 <hr>
