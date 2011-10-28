@@ -27,7 +27,7 @@
 				width="600"
 				height="400"
 				sessionPanelCoordsAsPercentages="false"
-				layout="vertical"
+				layout="vertical" creationPolicy="all"
 				>
 	<mx:Metadata>
 		[DefaultProperty("children")]
@@ -98,9 +98,12 @@
 			 */
 			public function set targets(array:Array):void
 			{
+				if (!controlPanelControls)
+					initialize();
+				
 				// make sure controls are initialized before attempting to manipulate its children.
-				controlPanelControls.initialize();
-				controlPanelControls.validateNow();
+//				controlPanelControls.initialize();
+//				controlPanelControls.validateNow();
 				
 				// show buttons if there are targets, hide them if not
 				if (array == null || array.length == 0)

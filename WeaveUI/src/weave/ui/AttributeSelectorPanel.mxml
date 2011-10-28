@@ -209,9 +209,9 @@
 			
 			private function showOrHideParamSelector(show:Boolean):void
 			{
-				if (show && outerVBox != paramSelector.parent)
+				if (show && !paramSelector.parent)
 					outerVBox.addChildAt(paramSelector,0);
-				if (!show && outerVBox == paramSelector.parent)
+				if (!show && paramSelector.parent)
 					outerVBox.removeChild(paramSelector);
 			}
 			
@@ -285,7 +285,13 @@
 					targets = selectableAttributes = [];
 			}
 			
-			private static var defaultSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
+			public static function get defaultSelector():AttributeSelectorPanel
+			{
+				if (!_defaultSelector)
+					_defaultSelector = new AttributeSelectorPanel();
+				return _defaultSelector;
+			}
+			public static var _defaultSelector:AttributeSelectorPanel;
 			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
 			{
 				if (!Weave.properties.enableToolControls.value)
