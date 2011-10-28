@@ -405,8 +405,8 @@ package weave
 			super.createChildren();
 			
 			_applicationVBox.addChild(visDesktop);
-			visDesktop.percentWidth = 100;
-			visDesktop.percentHeight = 100;
+			Weave.properties.workspaceWidth.addImmediateCallback(this, updateVisDesktop);
+			Weave.properties.workspaceHeight.addImmediateCallback(this, updateVisDesktop, null, true);
 
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
@@ -434,6 +434,19 @@ package weave
 			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
 			
 			visDesktop.addEventListener(ChildExistenceChangedEvent.CHILD_REMOVE, function(e:Event):void { setupWindowMenu() } );
+		}
+		private function updateVisDesktop():void
+		{
+			var w:Number = Weave.properties.workspaceWidth.value;
+			var h:Number = Weave.properties.workspaceHeight.value;
+			if (isFinite(w))
+				visDesktop.width = w;
+			else
+				visDesktop.percentWidth = 100;
+			if (isFinite(h))
+				visDesktop.height = h;
+			else
+				visDesktop.percentHeight = 100;
 		}
 
 		private var adminService:LocalAsyncService = null;

@@ -27,16 +27,16 @@
 		 creationPolicy="all"
 		 creationComplete="handleCreationComplete()"
 		 >
-	<mx:VBox verticalGap="16">
-		<mx:VBox>
-			<mx:Label text="Window Title Font Properties:"/>
+	<mx:VBox verticalGap="8">
+		<mx:HBox>
+			<mx:Label text="Window title font:"/>
 			<FontControl id="windowTitleFontControl"/> 
-		</mx:VBox>
+		</mx:HBox>
 		
-		<mx:VBox>
-			<mx:Label text="Default Tool Font Properties:"/>
+		<mx:HBox>
+			<mx:Label text="Visualization font:"/>
 			<FontControl id="toolFontControl"/>
-		</mx:VBox>
+		</mx:HBox>
 		
 		<mx:HBox>
 			<mx:ColorPicker id="swatches" 
@@ -56,6 +56,12 @@
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
 		<mx:CheckBox label="Show task bar"
 					 creationComplete="linkBindableProperty(Weave.properties.enableTaskbar, event.target, 'selected');"/>
+
+		<mx:HBox>
+			<mx:Label text="Fixed workspace size:"/>
+			<ui:TextInputWithPrompt prompt="width" width="64" creationComplete="EventUtils.delayedLinkBindableProperty(Weave.properties.workspaceWidth, event.target, 'text');"/>
+			<ui:TextInputWithPrompt prompt="height" width="64" creationComplete="EventUtils.delayedLinkBindableProperty(Weave.properties.workspaceHeight, event.target, 'text');"/>
+		</mx:HBox>
 		
 		<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
 		id="viewsTabBar"

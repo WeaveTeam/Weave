@@ -29,13 +29,13 @@ package weave
 	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
-	import weave.core.LinkableFunction;
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
@@ -329,6 +329,10 @@ package weave
 		
 		public function get macroLibraries():LinkableString { return LinkableFunction.libraries; }
 		public function get macros():ILinkableHashMap { return LinkableFunction.macros; }
+		
+		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
+		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);
+
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY

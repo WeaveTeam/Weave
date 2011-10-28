@@ -117,14 +117,23 @@ package weave.utils
 		 */
 		public static function delayedLinkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:int = 500):void
 		{
-			var setBindableProperty:Function = function():void
+			var setBindableProperty:Function = function(callingLater:Boolean = false):void
 			{
 				var value:Object = linkableVariable.getSessionState();
-				if (bindableParent[bindablePropertyName] is Number && !(value is Number))
+				
+				if ((bindableParent[bindablePropertyName] is Number) != (value is Number))
 				{
 					try {
-						linkableVariable.setSessionState(Number(value));
-						value = linkableVariable.getSessionState();
+						if (value is Number)
+						{
+							if (isNaN(value as Number))
+								value = '';
+						}
+						else
+						{
+							linkableVariable.setSessionState(Number(value));
+							value = linkableVariable.getSessionState();
+						}
 					} catch (e:Error) { }
 				}
 				bindableParent[bindablePropertyName] = value;
