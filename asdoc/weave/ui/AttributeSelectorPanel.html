@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="AttributeSelectorPanel,weave.ui.AttributeSelectorPanel,constructor,createChildren,dispose,linkToObject,openDefaultSelector,openToolSelector" name="keywords">
+<meta content="AttributeSelectorPanel,weave.ui.AttributeSelectorPanel,_defaultSelector,defaultSelector,constructor,createChildren,dispose,linkToObject,openDefaultSelector,openToolSelector" name="keywords">
 <title>weave.ui.AttributeSelectorPanel</title>
 </head>
 <body>
@@ -60,7 +60,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a onclick="javascript:setInheritedVisible(true,'Property');" href="#propertySummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Properties</a>
 </div>
 </div>
-<table id="summaryTableProperty" class="summaryTable hideInheritedProperty" cellpadding="3" cellspacing="0">
+<table id="summaryTableProperty" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
@@ -76,6 +76,16 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="DraggablePanel.html#controlPanel">controlPanel</a> : <a href="../ui/ControlPanel.html">ControlPanel</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="DraggablePanel.html">DraggablePanel</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_defaultSelector">_defaultSelector</a> : <a href="../ui/AttributeSelectorPanel.html">AttributeSelectorPanel</a>
+<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">AttributeSelectorPanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#defaultSelector">defaultSelector</a> : <a href="../ui/AttributeSelectorPanel.html">AttributeSelectorPanel</a>
+<div class="summaryTableDescription">[static][read-only]</div>
+</td><td class="summaryTableOwnerCol">AttributeSelectorPanel</td>
 </tr>
 <tr class="hideInheritedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="DraggablePanel.html#effectInProgress">effectInProgress</a> : Boolean = false<div class="summaryTableDescription"></div>
@@ -657,6 +667,29 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 showHideInherited();
 --></script>
 <div class="MainContent">
+<a name="propertyDetail"></a>
+<div class="detailSectionHeader">Property detail</div>
+<a name="_defaultSelector"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">_defaultSelector</td><td class="detailHeaderType">property</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static var _defaultSelector:<a href="../ui/AttributeSelectorPanel.html">AttributeSelectorPanel</a></code>
+</div>
+<a name="defaultSelector"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">defaultSelector</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>defaultSelector:<a href="../ui/AttributeSelectorPanel.html">AttributeSelectorPanel</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get defaultSelector():<a href="../ui/AttributeSelectorPanel.html">AttributeSelectorPanel</a></code>
+<br>
+</div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
 <a name="constructor()"></a>
