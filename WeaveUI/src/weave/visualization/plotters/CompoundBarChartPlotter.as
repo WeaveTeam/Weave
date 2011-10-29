@@ -552,9 +552,12 @@ package weave.visualization.plotters
 				// shrink down bars to fit in one groupSegmentWidth
 				var groupSegmentWidth:Number = recordWidth / _heightColumns.length;
 				var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
-				minPos = minPos + keysInBin.indexOf(recordKey) / keysInBin.length * groupSegmentWidth;
-				maxPos = minPos + 1 / keysInBin.length * groupSegmentWidth;
-				recordWidth /= keysInBin.length;
+				if (keysInBin)
+				{
+					minPos = minPos + keysInBin.indexOf(recordKey) / keysInBin.length * groupSegmentWidth;
+					maxPos = minPos + 1 / keysInBin.length * groupSegmentWidth;
+					recordWidth /= keysInBin.length;
+				}
 			}
 			// this bar is between minPos and maxPos in the x or y range
 			if (horizontalMode.value)

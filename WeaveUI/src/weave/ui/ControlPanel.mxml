@@ -27,7 +27,7 @@
 				width="600"
 				height="400"
 				sessionPanelCoordsAsPercentages="false"
-				layout="vertical" creationPolicy="all"
+				layout="vertical"
 				>
 	<mx:Metadata>
 		[DefaultProperty("children")]
@@ -63,7 +63,7 @@
 			/**
 			 * container for the Save, Revert, Cancel and Save & Close buttons 
 			 */
-			protected var controlPanelControls:ControlPanelControls;
+			protected var controlPanelControls:ControlPanelControls = new ControlPanelControls();
 			
 			public function get tabNavigator():TabNavigator { return controlPanelControls ? controlPanelControls.tabNavigator : null; }
 			
@@ -98,15 +98,26 @@
 			 */
 			public function set targets(array:Array):void
 			{
-				if (!controlPanelControls)
-					initialize();
+				_targetObjects = array;
+				save();
+				
+				adjustControls();
+			}
+			
+			private function adjustControls():void
+			{
+				if (!parent)
+				{
+					callLater(adjustControls);
+					return;
+				}
 				
 				// make sure controls are initialized before attempting to manipulate its children.
-//				controlPanelControls.initialize();
-//				controlPanelControls.validateNow();
+				controlPanelControls.initialize();
+				controlPanelControls.validateNow();
 				
 				// show buttons if there are targets, hide them if not
-				if (array == null || array.length == 0)
+				if (_targetObjects == null || _targetObjects.length == 0)
 				{
 					closeable.value = true;
 					if (controlPanelControls == controlPanelControls.buttons.parent)
@@ -118,9 +129,6 @@
 					if (controlPanelControls != controlPanelControls.buttons.parent)
 						controlPanelControls.addChild(controlPanelControls.buttons);
 				}
-				
-				_targetObjects = array;
-				save();
 			}
 			
 			/**
@@ -199,7 +207,6 @@
 				var children:Array = getChildren();
 				removeAllChildren();
 				
-				controlPanelControls = new ControlPanelControls();
 				addChild(controlPanelControls);
 				controlPanelControls.addEventListener(FlexEvent.CREATION_COMPLETE, handleControlsCreated);
 				

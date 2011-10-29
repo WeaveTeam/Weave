@@ -170,13 +170,7 @@ package weave
 			visDesktop = new VisDesktop();
 			
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
-			addEventListener(Event.ENTER_FRAME, function(..._):*{
-				if (!parent)
-					return;
-				
-				width = parent.width;
-				height = parent.height;
-			}, true);
+			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
 			
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
 			
@@ -345,7 +339,7 @@ package weave
 		}
 		public const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 
-		private function get _applicationVBox():Application { return application as Application; }
+		private function get _application():Application { return application as Application; }
 		
 		private var _maxProgressBarValue:int = 0;
 		private var _progressBar:ProgressBar = new ProgressBar;
@@ -404,9 +398,11 @@ package weave
 		{
 			super.createChildren();
 			
-			_applicationVBox.addChild(visDesktop);
-			Weave.properties.workspaceWidth.addImmediateCallback(this, updateVisDesktop);
-			Weave.properties.workspaceHeight.addImmediateCallback(this, updateVisDesktop, null, true);
+			_application.addChild(visDesktop);
+			visDesktop.percentWidth = 100;
+			visDesktop.percentHeight = 100;
+			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
+			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize, null, true);
 
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
@@ -435,18 +431,21 @@ package weave
 			
 			visDesktop.addEventListener(ChildExistenceChangedEvent.CHILD_REMOVE, function(e:Event):void { setupWindowMenu() } );
 		}
-		private function updateVisDesktop():void
+		private function updateWorkspaceSize(..._):void
 		{
+			var visDesktop:Application = _application;
+			if (!visDesktop.parent)
+				return;
 			var w:Number = Weave.properties.workspaceWidth.value;
 			var h:Number = Weave.properties.workspaceHeight.value;
 			if (isFinite(w))
 				visDesktop.width = w;
 			else
-				visDesktop.percentWidth = 100;
+				visDesktop.width = visDesktop.parent.width;
 			if (isFinite(h))
 				visDesktop.height = h;
 			else
-				visDesktop.percentHeight = 100;
+				visDesktop.height = visDesktop.parent.height;
 		}
 
 		private var adminService:LocalAsyncService = null;
@@ -544,10 +543,10 @@ package weave
 					_weaveMenu.percentWidth = 100;
 					StageUtils.callLater(this,setupVisMenuItems,null,false);
 					
-					_applicationVBox.addChildAt(_weaveMenu, 0);
+					_application.addChildAt(_weaveMenu, 0);
 					
-					if (_applicationVBox == _oicLogoPane.parent)
-						_applicationVBox.removeChild(_oicLogoPane);
+					if (_application == _oicLogoPane.parent)
+						_application.removeChild(_oicLogoPane);
 				}
 				
 				// always show menu bar when admin service is present
@@ -558,18 +557,18 @@ package weave
 			{
 				try
 				{
-		   			if (_weaveMenu && _applicationVBox == _weaveMenu.parent)
-						_applicationVBox.removeChild(_weaveMenu);
+		   			if (_weaveMenu && _application == _weaveMenu.parent)
+						_application.removeChild(_weaveMenu);
 
 		   			_weaveMenu = null;
 					
 					if (Weave.properties.showCopyright.value)
 					{
-						_applicationVBox.addChildAt(_oicLogoPane, _applicationVBox.numChildren);
-						_applicationVBox.setStyle("horizontalAlign", "right");
+						_application.addChildAt(_oicLogoPane, _application.numChildren);
+						_application.setStyle("horizontalAlign", "right");
 					}
-					else if (_applicationVBox == _oicLogoPane.parent)
-						_applicationVBox.removeChild(_oicLogoPane);
+					else if (_application == _oicLogoPane.parent)
+						_application.removeChild(_oicLogoPane);
 				}
 				catch(error:Error)
 				{
