@@ -107,7 +107,7 @@ package weave.visualization.plotters
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
 		
 		public const groupBySortColumn:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
-		private var _binnedSortColumn:BinnedColumn = newDisposableChild(this, BinnedColumn); // only used when groupBySortColumn is true
+		private var _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
 		private var _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
 		private var _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
 		public const positiveError:DynamicColumn = newSpatialProperty(DynamicColumn);
