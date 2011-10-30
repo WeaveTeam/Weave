@@ -116,7 +116,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#linkBindableProperty()">linkBindableProperty</a>(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String):void</div>
+<a class="signatureLink" href="#linkBindableProperty()">linkBindableProperty</a>(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void</div>
 <div class="summaryTableDescription">
    This function will link the session state of an ILinkableVariable to a bindable property of an object.</div>
 </td><td class="summaryTableOwnerCol">ISessionManager</td>
@@ -398,7 +398,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function linkBindableProperty(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String):void</code><p>
+<code>public function linkBindableProperty(linkableVariable:<a href="ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void</code><p>
    This function will link the session state of an ILinkableVariable to a bindable property of an object.
    Prior to linking, the value of the ILinkableVariable will be copied over to the bindable property.
    </p><span class="label">Parameters</span>
@@ -419,6 +419,13 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">bindablePropertyName</span>:String</code> &mdash; The variable name of the bindable property.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">delay</span>:uint</code> (default = <code>0</code>)<code></code> &mdash; The delay to use before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
    </td>
 </tr>
 </table>
