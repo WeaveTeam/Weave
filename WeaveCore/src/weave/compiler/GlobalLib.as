@@ -39,10 +39,17 @@ package weave.compiler
 	import flash.sampler.startSampling;
 	import flash.sampler.stopSampling;
 	import flash.system.fscommand;
+	import flash.utils.clearInterval;
+	import flash.utils.clearTimeout;
 	import flash.utils.describeType;
+	import flash.utils.escapeMultiByte;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.getQualifiedSuperclassName;
 	import flash.utils.getTimer;
+	import flash.utils.setInterval;
+	import flash.utils.setTimeout;
+	import flash.utils.unescapeMultiByte;
 
 	/**
 	 * This provides a set of static functions for use with the Weave Compiler.
@@ -52,11 +59,6 @@ package weave.compiler
 	 */
 	public class GlobalLib
 	{
-		public static const getDefinitionByName:Function = flash.utils.getDefinitionByName;
-		public static const getQualifiedClassName:Function = flash.utils.getQualifiedClassName;
-		public static const describeType:Function = flash.utils.describeType;
-		public static const getTimer:Function = flash.utils.getTimer;
-		
 		public static const enterDebugger:Function = flash.debugger.enterDebugger;
 		
 		public static const getClassByAlias:Function = flash.net.getClassByAlias;
@@ -81,5 +83,17 @@ package weave.compiler
 		public static const stopSampling:Function = flash.sampler.stopSampling;
 
 		public static const fscommand:Function = flash.system.fscommand;
+		
+		public static const clearInterval:Function = flash.utils.clearInterval;
+		public static const clearTimeout:Function = flash.utils.clearTimeout;
+		public static const describeType:Function = flash.utils.describeType;
+		public static const escapeMultiByte:Function = flash.utils.escapeMultiByte;
+		public static const getDefinitionByName:Function = flash.utils.getDefinitionByName;
+		public static const getQualifiedClassName:Function = flash.utils.getQualifiedClassName;
+		public static const getQualifiedSuperclassName:Function = flash.utils.getQualifiedSuperclassName;
+		public static const getTimer:Function = flash.utils.getTimer;
+		public static const setInterval:Function = flash.utils.setInterval;
+		public static const setTimeout:Function = flash.utils.setTimeout;
+		public static const unescapeMultiByte:Function = flash.utils.unescapeMultiByte;
 	}
 }

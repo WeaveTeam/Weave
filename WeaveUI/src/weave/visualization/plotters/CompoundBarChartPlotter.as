@@ -42,6 +42,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -160,7 +161,7 @@ package weave.visualization.plotters
 			var columns:Array = heightColumns.getObjects();
 			
 			if (sortColumn.internalColumn == null && columns.length > 0)
-				sortColumn.copyLocalObject(columns[0]);
+				sortColumn.weave_internal::requestLocalObjectCopy(columns[0]);
 		}
 		
 		// this is a way to get the number of keys (bars or groups of bars) shown

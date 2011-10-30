@@ -59,8 +59,12 @@
 
 		<mx:HBox>
 			<mx:Label text="Fixed workspace size:"/>
-			<ui:TextInputWithPrompt prompt="width" width="64" creationComplete="EventUtils.delayedLinkBindableProperty(Weave.properties.workspaceWidth, event.target, 'text');"/>
-			<ui:TextInputWithPrompt prompt="height" width="64" creationComplete="EventUtils.delayedLinkBindableProperty(Weave.properties.workspaceHeight, event.target, 'text');"/>
+			<ui:TextInputWithPrompt prompt="width" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceWidth, event.target, 'text', 500);"/>
+			<ui:TextInputWithPrompt prompt="height" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceHeight, event.target, 'text', 500);"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Grid snapping:"/>
+			<ui:TextInputWithPrompt prompt="pixel or percent" width="100" creationComplete="linkBindableProperty(Weave.properties.windowSnapGridSize, event.target, 'text', 500);"/>
 		</mx:HBox>
 		
 		<!--<mx:CheckBox toolTip="Show or Hide View TabBar"

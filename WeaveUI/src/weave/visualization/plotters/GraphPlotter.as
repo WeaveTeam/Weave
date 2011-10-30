@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -63,7 +64,7 @@ package weave.visualization.plotters
 	{
 		public function GraphPlotter()
 		{
-			lineStyle.color.internalDynamicColumn.copyLocalObject(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
+			lineStyle.color.internalDynamicColumn.weave_internal::requestLocalObjectCopy(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
 			lineStyle.scaleMode.defaultValue.value = LineScaleMode.NORMAL;
 			lineStyle.weight.defaultValue.value = 1.5;
 

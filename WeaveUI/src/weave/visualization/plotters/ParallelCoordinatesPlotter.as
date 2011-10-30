@@ -41,6 +41,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -188,9 +189,9 @@ package weave.visualization.plotters
 				var value:String = values[i];
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
-				col.variables.copyObject("keyCol", groupBy);
-				col.variables.copyObject("filterCol", xData);
-				col.variables.copyObject("dataCol", yData);
+				col.variables.weave_internal::requestObjectCopy("keyCol", groupBy);
+				col.variables.weave_internal::requestObjectCopy("filterCol", xData);
+				col.variables.weave_internal::requestObjectCopy("dataCol", yData);
 				
 				col.setMetadata(AttributeColumnMetadata.TITLE, value);
 				col.setMetadata(AttributeColumnMetadata.MIN, '{ getMin(dataCol) }');

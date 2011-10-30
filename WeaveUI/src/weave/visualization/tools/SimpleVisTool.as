@@ -44,6 +44,7 @@ package weave.visualization.tools
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.UIUtils;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.ui.AutoResizingTextArea;
@@ -327,7 +328,7 @@ package weave.visualization.tools
 					if (selectedColumn is DynamicColumn)
 						copySessionState(selectedColumn, columnToInit);
 					else
-						columnToInit.copyLocalObject(selectedColumn);
+						columnToInit.weave_internal::requestLocalObjectCopy(selectedColumn);
 				}
 			}
 		}

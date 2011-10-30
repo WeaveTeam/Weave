@@ -69,6 +69,7 @@
 			import weave.api.data.IKeyFilter;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
+			import weave.core.weave_internal;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
@@ -279,7 +280,7 @@
 					var nameOrder:Array = savedSubsetsMap.getNames();
 					nameOrder[nameOrder.indexOf(oldName)] = newName;
 					
-					savedSubsetsMap.copyObject(newName, oldSubset);
+					savedSubsetsMap.weave_internal::requestLocalObjectCopy(newName, oldSubset);
 					savedSubsetsMap.removeObject(oldName);
 					savedSubsetsMap.setNameOrder(nameOrder);
 
@@ -301,7 +302,7 @@
 						// if the user clicked cancel, then we will just return from here and save nothing
 						if( !e.confirm ) return;
 						
-						savedSubsetsMap.copyObject(e.textInput, globalSubset);
+						savedSubsetsMap.weave_internal::requestObjectCopy(e.textInput, globalSubset);
 						var _subsetSelector:SubsetSelector = Weave.root.getObject("SubsetSelector") as SubsetSelector;
 						if( _subsetSelector )
 							_subsetSelector.setSubsetSelectorIndex(e.textInput); // once saved, auto select the subset in the tool

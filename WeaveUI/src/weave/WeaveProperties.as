@@ -28,6 +28,7 @@ package weave
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -82,14 +83,19 @@ package weave
 		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
-		private function verifyWindowSnapGridSize(value:Number):Boolean { return value >= 1; }
+		private function verifyWindowSnapGridSize(value:String):Boolean
+		{
+			if (value.substr(-1) == '%')
+				return StandardLib.asNumber(value.substr(0, -1)) > 0;
+			return StandardLib.asNumber(value) >= 1;
+		}
 		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
 		private function verifyMaxTooltipRecordsShown(value:Number):Boolean { return 0 <= value && value <= 20; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
 //		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Views TabBar
-		public const windowSnapGridSize:LinkableNumber = new LinkableNumber(5, verifyWindowSnapGridSize); // window snap grid size in pixels
+		public const windowSnapGridSize:LinkableString = new LinkableString("1%", verifyWindowSnapGridSize); // window snap grid size in pixels
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);

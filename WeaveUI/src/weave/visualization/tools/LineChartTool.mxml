@@ -40,6 +40,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -141,12 +142,12 @@
 					return;
 				
 				var labelColumn:DynamicColumn = new DynamicColumn();
-				labelColumn.copyLocalObject(labelPlotter.text);
+				labelColumn.weave_internal::requestLocalObjectCopy(labelPlotter.text);
 				
 				var labelEquation:EquationColumn = labelPlotter.text.requestLocalObject(EquationColumn, false) as EquationColumn;
 				labelEquation.delayCallbacks();
-				labelEquation.variables.copyObject("labelColumn",labelColumn);
-				labelEquation.variables.copyObject("keyColumn", _plotter.groupBy);
+				labelEquation.variables.weave_internal::requestObjectCopy("labelColumn",labelColumn);
+				labelEquation.variables.weave_internal::requestObjectCopy("keyColumn", _plotter.groupBy);
 				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + "Equation");
 				labelEquation.equation.value = 'key = getAssociatedKeys(keyColumn, getKey())[0], getValueFromKey(labelColumn, key, String)';
 				labelEquation.resumeCallbacks();
@@ -389,7 +390,7 @@
 				}
 			
 				var lastColumn:IAttributeColumn = _columns.pop();
-				labelPlotter.dataY.copyLocalObject(lastColumn as ILinkableObject);
+				labelPlotter.dataY.weave_internal::requestLocalObjectCopy(lastColumn as ILinkableObject);
 
 				if (labelPlotter.text.internalColumn == null)
 				{
@@ -398,7 +399,7 @@
 					{
 						if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(lastColumn))
 						{
-							labelPlotter.text.copyLocalObject(headers[i]);
+							labelPlotter.text.weave_internal::requestLocalObjectCopy(headers[i]);
 							break;
 						}
 					}

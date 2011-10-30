@@ -47,6 +47,7 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
@@ -386,7 +387,7 @@
 						{
 							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
 							{
-								plotter.text.copyLocalObject(headers[i]);
+								plotter.text.weave_internal::requestLocalObjectCopy(headers[i]);
 								break;
 							}
 						}

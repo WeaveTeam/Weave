@@ -90,7 +90,7 @@ package weave.core
 		 * This function will copy the session state of an ILinkableObject to the local internalObject.
 		 * @param objectToCopy An object to copy the session state from.
 		 */
-		public function copyLocalObject(objectToCopy:ILinkableObject):void
+		weave_internal function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
 			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
 			var object:ILinkableObject = requestLocalObject(classDef, false);
@@ -121,13 +121,13 @@ package weave.core
 			if (newGlobalName == null)
 			{
 				// unlink from global object and copy session state into a local object
-				copyLocalObject(internalObject);
+				requestLocalObjectCopy(internalObject);
 			}
 			else if (getLinkableOwner(this) != globalHashMap) // don't allow globalName on global objects
 			{
 				// if there is no global object of this name, create it now
 				if (globalHashMap.getObject(newGlobalName) == null)
-					globalHashMap.copyObject(newGlobalName, internalObject);
+					globalHashMap.requestObjectCopy(newGlobalName, internalObject);
 				// link to new global name
 				initInternalObject(newGlobalName, null);
 			}
@@ -465,7 +465,7 @@ package weave.core
 		/**
 		 * This is the mapping from global names to objects.
 		 */
-		public static function get globalHashMap():ILinkableHashMap
+		public static function get globalHashMap():LinkableHashMap
 		{
 			if (!_globalHashMap)
 				_globalHashMap = new LinkableHashMap();

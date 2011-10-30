@@ -36,6 +36,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;
@@ -65,7 +66,7 @@
 				{
 					if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(_plotter.data))
 					{
-						_plotter.label.copyLocalObject(headers[i]);
+						_plotter.label.weave_internal::requestLocalObjectCopy(headers[i]);
 						break;
 					}
 				}

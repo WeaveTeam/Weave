@@ -98,14 +98,6 @@ package weave.api.core
 		function requestObject(name:String, classDef:Class, lockObject:Boolean):*;
 
 		/**
-		 * This function will copy the session state of an ILinkableObject to an object under the given name in this LinkableHashMap.
-		 * @param newName A name for the object to be initialized in this LinkableHashMap.
-		 * @param objectToCopy An object to copy the session state from.
-		 * @return The new copy of the specified object, or null if an error occurred.
-		 */
-		function copyObject(name:String, objectToCopy:ILinkableObject):ILinkableObject;
-
-		/**
 		 * This function will call lockObject() on all objects in this LinkableHashMap.
 		 * The LinkableHashMap will also be locked so that no new objects can be initialized.
 		 */

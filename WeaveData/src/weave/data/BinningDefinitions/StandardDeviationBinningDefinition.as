@@ -26,6 +26,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
+	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
@@ -75,7 +76,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
 				name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.copyObject(name, tempNumberClassifier);
+				output.weave_internal::requestLocalObjectCopy(name, tempNumberClassifier);
 			}	
 						
 			for (iBin = 0 ; iBin < sdNumber.value ; iBin++)
@@ -93,7 +94,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
 				name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.copyObject(name, tempNumberClassifier);
+				output.weave_internal::requestObjectCopy(name, tempNumberClassifier);
 			}
 		}
 		// reusable temporary object
