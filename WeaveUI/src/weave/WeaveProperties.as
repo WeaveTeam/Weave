@@ -324,6 +324,7 @@ package weave
 			var script:String = 'function(id){ var weave = document.getElementById(id); ' + startupJavaScript.value + ' }';
 			try
 			{
+				ExternalInterface.marshallExceptions = true;
 				ExternalInterface.call(script, ExternalInterface.objectID);
 			}
 			catch (e:Error)

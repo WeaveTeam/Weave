@@ -304,6 +304,7 @@ package weave.core
 			{
 				_callbackFunctionCache[callback] = function():void
 				{
+					ExternalInterface.marshallExceptions = true;
 					ExternalInterface.call(callback);
 				}
 			}

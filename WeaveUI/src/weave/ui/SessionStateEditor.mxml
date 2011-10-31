@@ -837,7 +837,7 @@
 			}
 			
 			private const symbolTable:Object = {
-				'javaScript': ExternalInterface.call,
+				'javaScript': function(...args):* { ExternalInterface.marshallExceptions = true; ExternalInterface.call.apply(this, args); },
 				'application': Application.application,
 				'print': ObjectUtil.toString as Function,
 				'getObject': getObject,

@@ -56,7 +56,7 @@ package weave.visualization.plotters
 		/**
 		 * This is the limb length.
 		 */
-		public const limbLength:AlwaysDefinedColumn = registerLinkableChild(this, AlwaysDefinedColumn(10));
+		public const limbLength:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(10));
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */

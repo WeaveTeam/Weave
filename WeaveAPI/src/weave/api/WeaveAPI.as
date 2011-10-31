@@ -143,6 +143,7 @@ package weave.api
 		 */
 		public static function initializeExternalInterface():void
 		{
+			ExternalInterface.marshallExceptions = true;
 			var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
 			for each (var theInterface:Class in interfaces)
 			{
