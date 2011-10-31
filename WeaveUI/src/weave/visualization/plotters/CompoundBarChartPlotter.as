@@ -24,6 +24,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.net.getClassByAlias;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -116,6 +118,14 @@ package weave.visualization.plotters
 		public const negativeError:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		
+		private function _sortByColor(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			return ObjectUtil.numericCompare(
+				colorColumn.getValueFromKey(key1, Number),
+				colorColumn.getValueFromKey(key2, Number)
+			);
+		}
 		
 		public function sortAxisLabelFunction(value:Number):String
 		{
@@ -228,6 +238,7 @@ package weave.visualization.plotters
 				{
 					// shrink down bars to fit in one groupSegmentWidth
 					var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
+					keysInBin.sort(_sortByColor);
 					xMin = xMin + keysInBin.indexOf(recordKey) / keysInBin.length * groupSegmentWidth;
 					xMax = xMin + 1 / keysInBin.length * groupSegmentWidth;
 					recordWidth /= keysInBin.length;
