@@ -37,6 +37,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.unlinkSessionState;
 	import weave.compiler.StandardLib;
+	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -144,6 +145,8 @@ package weave.visualization.plotters
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+//		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+//		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
@@ -495,6 +498,7 @@ package weave.visualization.plotters
 							
 							// BEGIN DRAW
 							graphics.clear();
+							lineStyle.beginLineStyle(recordKey, graphics);
 							for (i = 0; i < coords.length; i += 2) // loop over x,y coordinate pairs
 							{
 								tempPoint.x = coords[i];
@@ -705,5 +709,25 @@ package weave.visualization.plotters
 		
 		// backwards compatibility
 		[Deprecated(replacement='groupingMode')] public function set groupMode(value:Boolean):void { groupingMode.value = value ? GROUP : STACK; }
+/*
+		[Deprecated(replacement="positiveErrorColumns")] public function set positiveError(value:Object):void
+		{
+			var dynamicState:DynamicState = DynamicState.cast(value);
+			if (dynamicState)
+			{
+				dynamicState.objectName = positiveErrorColumns.generateUniqueName(dynamicState.className);
+				positiveErrorColumns.setSessionState([dynamicState], false);
+			}
+		}
+		[Deprecated(replacement="negativeErrorColumns")] public function set negativeError(value:Object):void
+		{
+			var dynamicState:DynamicState = DynamicState.cast(value);
+			if (dynamicState)
+			{
+				dynamicState.objectName = negativeErrorColumns.generateUniqueName(dynamicState.className);
+				negativeErrorColumns.setSessionState([dynamicState], false);
+			}
+		}
+*/
 	}
 }

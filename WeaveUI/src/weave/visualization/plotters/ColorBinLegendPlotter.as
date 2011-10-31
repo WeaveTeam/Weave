@@ -85,10 +85,10 @@ package weave.visualization.plotters
 		public const dynamicColorColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(ColorColumn), createHashMaps);
 		
 		/**
-		 * This accessor function provides convenient access to the internal ColorColumn.
+		 * This accessor function provides convenient access to the internal ColorColumn, which may be null.
 		 * The public session state is defined by dynamicColorColumn.
 		 */
-		public function get internalColorColumn():ColorColumn
+		public function getInternalColorColumn():ColorColumn
 		{
 			return dynamicColorColumn.internalColumn as ColorColumn;
 		}
@@ -116,7 +116,7 @@ package weave.visualization.plotters
 			_binToBounds = new Dictionary();
 			
 			var keys:Array = keySet.keys;
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = getInternalColorColumn().internalColumn as BinnedColumn;
 			if (binnedColumn == null)
 			{
 				numBins = 0;
@@ -160,9 +160,9 @@ package weave.visualization.plotters
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (internalColorColumn == null)
+			if (getInternalColorColumn() == null)
 				return; // draw nothing
-			if (internalColorColumn.internalColumn is BinnedColumn)
+			if (getInternalColorColumn().internalColumn is BinnedColumn)
 				drawBinnedPlot(recordKeys, dataBounds, screenBounds, destination);
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);
@@ -175,10 +175,10 @@ package weave.visualization.plotters
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (internalColorColumn == null)
+			if (getInternalColorColumn() == null)
 				return;
 			
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = getInternalColorColumn().internalColumn as BinnedColumn;
 			if (binnedColumn == null)
 				return;
 			
@@ -198,9 +198,9 @@ package weave.visualization.plotters
 			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value, height - margin));
 			var iconGap:Number = actualShapeSize + margin * 2;
 			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
-			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalDynamicColumn);
-			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(internalColorColumn.internalDynamicColumn);
-			var internalColorRamp:ColorRamp = internalColorColumn.ramp;
+			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(getInternalColorColumn().internalDynamicColumn);
+			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(getInternalColorColumn().internalDynamicColumn);
+			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
 			var binCount:int = binnedColumn.derivedBins.getObjects().length;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
@@ -247,7 +247,7 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = getInternalColorColumn().internalColumn as BinnedColumn;
 			if (binnedColumn)
 			{
 				var index:Number = binnedColumn.getValueFromKey(recordKey, Number);

@@ -171,7 +171,6 @@ package weave
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
 		public const enableNewDataset:LinkableBoolean = new LinkableBoolean(true); // enable/disable New Dataset option
 		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
-		public const enableAddGrailsDataSource:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableWindowMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Window Menu
 		public const enableGoFullscreen:LinkableBoolean = new LinkableBoolean(true); // enable/disable Fullscreen

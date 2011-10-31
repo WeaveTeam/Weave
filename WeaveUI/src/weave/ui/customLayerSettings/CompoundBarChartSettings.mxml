@@ -19,7 +19,8 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:TabNavigator xmlns:mx="http://www.adobe.com/2006/mxml" 
+<mx:TabNavigator xmlns:mx="http://www.adobe.com/2006/mxml"> 
+<!--
 				 xmlns:ui="weave.ui.*" 
 				 xmlns:userControls="weave.ui.userControls.*"
 				 xmlns:settings="weave.ui.settings.*"
@@ -133,5 +134,5 @@
 			private const groupCheckEnabledToolTip:String = 'Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.';
 			
 		]]>
-	</mx:Script>
+	</mx:Script>-->
 </mx:TabNavigator>

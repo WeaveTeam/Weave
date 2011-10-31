@@ -130,11 +130,25 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color","Label", "Sort","Height","Positive Error", "Negative Error"];
+				return [
+					"Color",
+					"Label",
+					"Sort",
+					"Height",
+					"Positive Error",
+					"Negative Error"
+				];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [colorColumn, _plotter.labelColumn, _plotter.sortColumn,_plotter.heightColumns,_plotter.positiveError,_plotter.negativeError];
+				return [
+					colorColumn,
+					_plotter.labelColumn,
+					_plotter.sortColumn,
+					_plotter.heightColumns,
+					_plotter.positiveError,
+					_plotter.negativeError
+				];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -153,16 +167,19 @@
 			{
 				if (includeToolAttributesInProbe.value)
 				{
+					var col:IAttributeColumn;
 					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
 					if (columns.length <= 1)
 					{
 						// get all ReferencedColumn objects
 						var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(_plotter.colorColumn, ReferencedColumn);
-						for each (var col:IAttributeColumn in refCols)
-						columns.unshift(col);
+						for each (col in refCols)
+							columns.unshift(col);
 					}
 					columns.unshift(_plotter.labelColumn, _plotter.sortColumn);
 					columns.push(_plotter.positiveError, _plotter.negativeError);
+//					columns.concat(_plotter.positiveErrorColumns.getObjects());
+//					columns.concat(_plotter.negativeErrorColumns.getObjects());
 					visualization.additionalProbeColumns = columns;
 				}
 				else
@@ -345,7 +362,12 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="labelColumnInput" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
-			<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" id="dimensionsList" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+			<!-- <mx:TabNavigator> -->
+				<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+<!--
+				<ui:ColumnListComponent visTool="{this}" label="Positive error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Negative error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
+			</mx:TabNavigator> -->
 		</mx:VBox>
 		
 		<mx:VBox label="Bar Properties">

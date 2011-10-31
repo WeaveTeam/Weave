@@ -58,12 +58,6 @@
 									 label="Add WeaveDataSource"
 									 visible="false"
 									 creationComplete="linkBindableProperty(Weave.properties.enableAddWeaveDataSource,event.target,'selected')"/> 
-						<mx:CheckBox toolTip="Checking this box will allow the user to add a new Grails data source"
-									 enabled="{dataMenu.selected == true}"
-									 id="newGrailsDataSource"
-									 label="Add GrailsDataSource"
-									 visible="false"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddGrailsDataSource,event.target,'selected')"/> 
 					</mx:VBox>
 				</mx:HBox>			
 			</mx:VBox>

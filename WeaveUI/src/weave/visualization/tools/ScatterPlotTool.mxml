@@ -132,9 +132,9 @@
 				
 				plotter.enabledSizeBy.value = true;
 				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 50;
+				visualization.marginTop.value    = 30;
 				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 50;
+				visualization.marginRight.value  = 30;
 				
 				initializeUndefinedLayers();				
 			}
@@ -296,7 +296,7 @@
 				graphics.lineTo(right, top-topOffset);
 				_tempBounds.setBounds(left, top, right, 0);
 				_undefinedYLayer.setScreenBounds(_tempBounds);								
-								
+				
 				_tempBounds.setBounds(right, top, width, 0);				
 				_undefinedXYLayer.setScreenBounds(_tempBounds);							
 			}
@@ -411,6 +411,8 @@
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
 				plotter.minScreenRadius.addGroupedCallback(this, updateSizeSlider);
 				plotter.maxScreenRadius.addGroupedCallback(this, updateSizeSlider, true);
+				visualization.marginLeft.addGroupedCallback(this, updateEquation);
+				visualization.marginBottom.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				
 				Weave.properties.axisFontFamily.addGroupedCallback(this,updateEquationStyle);
@@ -436,18 +438,22 @@
 			{
 				if ( _regressionPlotter.drawLine.value )
 				{
+					if (equationText.parent != visCanvas)
+						visCanvas.addChild(equationText);
 					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
 					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
 					lineEquation.text = "Equation: y = " + slope + "x"+ " + " + intercept;
 					equationText.text = "slope = " + slope + "\nintercept = " + intercept;
-					if (equationText.parent != this)
-						addChild(equationText);
+					equationText.validateNow();
+					// severely hacked
+					equationText.width = visualization.marginLeft.value * 2;
+					equationText.height = Math.min(equationText.textHeight + 10, visualization.marginBottom.value);
 				}
 				else
 				{ 
+					if (equationText.parent)
+						equationText.parent.removeChild(equationText);
 					lineEquation.text = "Equation: y = mx + b";
-					if (equationText.parent == this)
-						removeChild(equationText);
 				}
 			}
 			private function updateAxisLabels():void
@@ -455,11 +461,6 @@
 				visualization.setXAxisColumn(plotter.xColumn);
 				visualization.setYAxisColumn(plotter.yColumn);
 				
-				if (plotter == null)
-					title = "Scatter Plot";
-				/*				else
-				title = "Scatter Plot of " + _plotter.xColumn.title + " -vs- " + _plotter.yColumn.title;
-				*/					
 				xAxisLayer.axisPlotter.setSideAxisName(
 					ColumnUtils.getTitle(plotter.xColumn), 
 					0,   
@@ -568,11 +569,13 @@
 			
 		]]>
 	</mx:Script>
-	<ui:AutoResizingTextArea id="equationText"
+	<mx:TextArea id="equationText"
 		editable="false"
+		verticalScrollPolicy="off"
+		horizontalScrollPolicy="off"
+		wordWrap="false"
 		backgroundAlpha="0"
 		borderThickness="0"
-		width="0"
 		bottom="0"
 		left="0"/>
 	<ui:ControlPanel>

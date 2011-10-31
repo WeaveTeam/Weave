@@ -802,13 +802,28 @@
 					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
 				return ILinkableObject(target);
 			}
-			private function consoleWatch(target:Object, name:String):void
+			private function consoleWatch(target:Object, debugString:String):void
 			{
-				getCallbackCollection(getObject(target)).addImmediateCallback(null, consoleTrace, [name]);
+				var linkableTarget:ILinkableObject = getObject(target);
+				getCallbackCollection(linkableTarget).addImmediateCallback(null, consoleTraceEval, [linkableTarget, debugString]);
 			}
 			private function consoleUnwatch(target:Object):void
 			{
-				getCallbackCollection(getObject(target)).removeCallback(consoleTrace);
+				var linkableTarget:ILinkableObject = getObject(target);
+				getCallbackCollection(linkableTarget).removeCallback(consoleTraceEval);
+			}
+			private function consoleTraceEval(thisArg:Object, script:String):void
+			{
+				try
+				{
+					var script:String = '`' + script.split('`').join('\\`') + '`';
+					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
+					consoleTrace(result);
+				}
+				catch (e:Error)
+				{
+					consoleTrace(script, e);
+				}
 			}
 			private function consoleTrace(...args):void
 			{

@@ -108,20 +108,20 @@
 						linkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
 				}
 				
-				if (_plotter.internalColorColumn == null)
+				if (_plotter.getInternalColorColumn() == null)
 				{
 					cRampEditor.colorRamp = null;
 					trace(this, "WARNING: ColorBinLegendPlotter.internalColorColumn is null");
 				}
 				else
 				{
-					cRampEditor.colorRamp = _plotter.internalColorColumn.ramp;
+					cRampEditor.colorRamp = _plotter.getInternalColorColumn().ramp;
 				}
 			}
 			
 			private function get internalBinnedColumn():BinnedColumn
 			{
-				var cc:ColorColumn = _plotter.internalColorColumn;
+				var cc:ColorColumn = _plotter.getInternalColorColumn();
 				if (cc)
 					return cc.internalColumn as BinnedColumn
 				return null;
