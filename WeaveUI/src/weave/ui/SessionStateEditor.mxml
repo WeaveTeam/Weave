@@ -19,10 +19,10 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<!--	Session State Editor
-   	*  @author skolman
-    *  @author kmonico
- 	*  A text editor to change the Session State on the fly.
+<!---	
+A text editor to change the Session State on the fly.
+@author skolman
+@author kmonico
 -->
 <ui:DraggablePanel
     xmlns:ui ="weave.ui.*"
