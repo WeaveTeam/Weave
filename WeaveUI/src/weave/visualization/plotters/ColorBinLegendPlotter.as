@@ -1,3 +1,4 @@
+
 /*
     Weave (Web-based Analysis and Visualization Environment)
     Copyright (C) 2008-2011 University of Massachusetts Lowell
@@ -116,7 +117,11 @@ package weave.visualization.plotters
 			_binToBounds = new Dictionary();
 			
 			var keys:Array = keySet.keys;
-			var binnedColumn:BinnedColumn = getInternalColorColumn().internalColumn as BinnedColumn;
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
+			if (!internalColorColumn)
+				return;
+			
+			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
 			if (binnedColumn == null)
 			{
 				numBins = 0;
@@ -160,9 +165,10 @@ package weave.visualization.plotters
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (getInternalColorColumn() == null)
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
+			if (internalColorColumn == null)
 				return; // draw nothing
-			if (getInternalColorColumn().internalColumn is BinnedColumn)
+			if (internalColorColumn.internalColumn is BinnedColumn)
 				drawBinnedPlot(recordKeys, dataBounds, screenBounds, destination);
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);
@@ -175,10 +181,11 @@ package weave.visualization.plotters
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (getInternalColorColumn() == null)
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
+			if (!internalColorColumn)
 				return;
 			
-			var binnedColumn:BinnedColumn = getInternalColorColumn().internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
 			if (binnedColumn == null)
 				return;
 			
@@ -247,7 +254,11 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var binnedColumn:BinnedColumn = getInternalColorColumn().internalColumn as BinnedColumn;
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
+			if (!internalColorColumn)
+				return [ getReusableBounds() ];
+			
+			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
 			if (binnedColumn)
 			{
 				var index:Number = binnedColumn.getValueFromKey(recordKey, Number);
