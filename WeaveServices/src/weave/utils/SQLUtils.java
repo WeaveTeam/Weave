@@ -1131,23 +1131,24 @@ public class SQLUtils
             }
             return orderedEntries;
         }
-        public static Map<Integer,Map<String,String>> idInSelect(Connection conn, String table, String idColumn, String propColumn, String dataColumn, Collection<Integer> ids, Collection<String> props) throws SQLException
+        public static Map<Integer,Map<String,String>> idInSelect(Connection conn, String schemaName, String table, String idColumn, String propColumn, String dataColumn, Collection<Integer> ids, Collection<String> props) throws SQLException
         {
             //TODO: Clean this up, make it more generic.
             Map<Integer,Map<String,String>> results = new HashMap<Integer,Map<String,String>>();
             String idBlock = "("+stringMult(",", "?", ids.size())+")";
             String propBlock;
             String query;
+            String quotedSchema = quoteSchemaTable(conn, schemaName, table);
             if (props != null)
             {
                 propBlock = "("+stringMult(",","?", props.size())+")";
                 query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s AND %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
-                quoteSymbol(conn, table), quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
+                quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
             }
             else
             {
                 query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
-                quoteSymbol(conn, table), quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, idColumn));
+                quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, idColumn));
                 
             }
             PreparedStatement stmt = conn.prepareStatement(query);

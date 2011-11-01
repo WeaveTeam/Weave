@@ -242,8 +242,8 @@ public class SQLConfig
                 try 
                 {
                     Connection conn = getConnection();
-                    results = SQLUtils.idInSelect(conn, table_meta_private, ID, PROPERTY, VALUE, ids, properties);
-                    results2 = SQLUtils.idInSelect(conn, table_meta_public, ID, PROPERTY, VALUE, ids, properties);
+                    results = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_private, ID, PROPERTY, VALUE, ids, properties);
+                    results2 = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_public, ID, PROPERTY, VALUE, ids, properties);
                     results.putAll(results2);
                 }
                 catch (Exception e)
@@ -577,3 +577,6 @@ public class SQLConfig
 		return results;
 	}
 }
+
+
+
