@@ -93,7 +93,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("RÂ
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html#radius">radius</a> &mdash; Constant property in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html">CirclePlotter</a></td>
 </tr>
 <tr>
-<td width="20"></td><td></td>
+<td width="20"></td><td>
+   The radius of the circle.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GraphLabelPlotter.html#radius">radius</a> &mdash; Constant property in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GraphLabelPlotter.html">GraphLabelPlotter</a></td>
@@ -546,6 +547,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("RÂ
 </tr>
 <tr>
 <td width="20"></td><td></td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/ui/class-list.html');" href="weave/ui/PenTool.html#removeAllDrawings()">removeAllDrawings</a>() &mdash; Method in class weave.ui.<a onclick="javascript:loadClassListFrame('weave/ui/class-list.html');" href="weave/ui/PenTool.html">PenTool</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   Remove all the drawings and set the pentool to currently not drawing.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/ui/controlBars/class-list.html');" href="weave/ui/controlBars/WeaveMenuBar.html#removeAllMenus()">removeAllMenus</a>() &mdash; Method in class weave.ui.controlBars.<a onclick="javascript:loadClassListFrame('weave/ui/controlBars/class-list.html');" href="weave/ui/controlBars/WeaveMenuBar.html">WeaveMenuBar</a></td>
@@ -1079,11 +1087,18 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("RÂ
    This function creates a local object using the given Class definition if it doesn't already exist.</td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/ILinkableDynamicObject.html#requestLocalObjectCopy()">requestLocalObjectCopy</a>(objectToCopy:<a href="weave/api/core/ILinkableObject.html" onclick="javascript:loadClassListFrame('weave/api/core./class-list.html');">weave.api.core:ILinkableObject</a>) &mdash; Method in interface weave.api.core.<a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/ILinkableDynamicObject.html">ILinkableDynamicObject</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.</td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableDynamicObject.html#requestLocalObjectCopy()">requestLocalObjectCopy</a>(objectToCopy:<a href="weave/api/core/ILinkableObject.html" onclick="javascript:loadClassListFrame('weave/api/core./class-list.html');">weave.api.core:ILinkableObject</a>) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableDynamicObject.html">LinkableDynamicObject</a></td>
 </tr>
 <tr>
 <td width="20"></td><td>
-   This function will copy the session state of an ILinkableObject to the local internalObject.</td>
+   This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/IExternalSessionStateInterface.html#requestObject()">requestObject</a>(objectPath, objectType) &mdash; Method in interface weave.api.core.<a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/IExternalSessionStateInterface.html">IExternalSessionStateInterface</a></td>
@@ -1116,11 +1131,18 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("RÂ
    This function creates an object in the hash map if it doesn't already exist.</td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/ILinkableHashMap.html#requestObjectCopy()">requestObjectCopy</a>(name, objectToCopy:<a href="weave/api/core/ILinkableObject.html" onclick="javascript:loadClassListFrame('weave/api/core./class-list.html');">weave.api.core:ILinkableObject</a>) &mdash; Method in interface weave.api.core.<a onclick="javascript:loadClassListFrame('weave/api/core/class-list.html');" href="weave/api/core/ILinkableHashMap.html">ILinkableHashMap</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.</td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableHashMap.html#requestObjectCopy()">requestObjectCopy</a>(name, objectToCopy:<a href="weave/api/core/ILinkableObject.html" onclick="javascript:loadClassListFrame('weave/api/core./class-list.html');">weave.api.core:ILinkableObject</a>) &mdash; Method in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/LinkableHashMap.html">LinkableHashMap</a></td>
 </tr>
 <tr>
 <td width="20"></td><td>
-   This function will copy the session state of an ILinkableObject to an object under the given name in this LinkableHashMap.</td>
+   This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/Reports/class-list.html');" href="weave/Reports/WeaveReport.html#requestReport()">requestReport</a>(report:<a href="weave/Reports/WeaveReport.html" onclick="javascript:loadClassListFrame('weave/Reports./class-list.html');">weave.Reports:WeaveReport</a>) &mdash; Static method in class weave.Reports.<a onclick="javascript:loadClassListFrame('weave/Reports/class-list.html');" href="weave/Reports/WeaveReport.html">WeaveReport</a></td>
@@ -1496,13 +1518,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("RÂ
 </tr>
 <tr>
 <td width="20"></td><td></td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/SessionManager.html#runningDebugFlashPlayer">runningDebugFlashPlayer</a> &mdash; Constant static property in class weave.core.<a onclick="javascript:loadClassListFrame('weave/core/class-list.html');" href="weave/core/SessionManager.html">SessionManager</a></td>
-</tr>
-<tr>
-<td width="20"></td><td>
-   This value is true if the user is running the debug version of the flash player.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/RunningTotalColumn.html">RunningTotalColumn</a> &mdash; Class in package <a onclick="javascript:loadClassListFrame('weave/data/AttributeColumns/class-list.html');" href="weave/data/AttributeColumns/package-detail.html">weave.data.AttributeColumns</a></td>

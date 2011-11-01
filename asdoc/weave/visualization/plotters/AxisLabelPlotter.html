@@ -4,22 +4,22 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="CirclePlotter,weave.visualization.plotters.CirclePlotter,color,dataX,dataY,polygonVertexCount,radius,thickness,drawBackground,getSelectableGeometries" name="keywords">
-<title>weave.visualization.plotters.CirclePlotter</title>
+<meta content="AxisLabelPlotter,weave.visualization.plotters.AxisLabelPlotter,angle,bold,color,end,font,hAlign,hideOverlappingText,horizontal,interval,italic,labelFunction,maxWidth,size,start,text,underline,vAlign,xScreenOffset,yScreenOffset,drawBackground,getBackgroundDataBounds" name="keywords">
+<title>weave.visualization.plotters.AxisLabelPlotter</title>
 </head>
 <body>
 <script type="text/javascript" language="javascript" src="../../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../../cookies.js"></script><script type="text/javascript" language="javascript">
 <!--
-				asdocTitle = 'CirclePlotter - Weave AS3 documentation';
+				asdocTitle = 'AxisLabelPlotter - Weave AS3 documentation';
 				var baseRef = '../../../';
 				window.onload = configPage;
 			--></script>
 <table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
 <tr>
-<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../index-list.html')" href="../../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../../index.html?weave/visualization/plotters/CirclePlotter.html&amp;weave/visualization/plotters/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../../images/logo.jpg"></td>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../all-classes.html')" href="../../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../../index-list.html')" href="../../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../../index.html?weave/visualization/plotters/AxisLabelPlotter.html&amp;weave/visualization/plotters/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../../images/logo.jpg"></td>
 </tr>
 <tr class="titleTableRow2">
-<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;CirclePlotter</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;AxisLabelPlotter</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
 </tr>
 <tr class="titleTableRow3">
 <td colspan="2">&nbsp;</td>
@@ -27,7 +27,7 @@
 </table>
 <script type="text/javascript" language="javascript">
 <!--
-if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class CirclePlotter"); titleBar_setSubNav(true,true,false,false,false,false,true,false,false,false,false,false,false,false);}
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class AxisLabelPlotter"); titleBar_setSubNav(true,true,false,false,false,false,true,false,false,false,false,false,false,false);}
 --></script>
 <div class="MainContent">
 <table cellspacing="0" cellpadding="0" class="classHeaderTable">
@@ -35,16 +35,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.visualization.plotters</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class CirclePlotter</td>
+<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class AxisLabelPlotter</td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">CirclePlotter <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> <a href="AbstractPlotter.html">AbstractPlotter</a></td>
-</tr>
-<tr>
-<td class="classHeaderTableLabel">Implements</td><td><a href="../../api/ui/IPlotterWithGeometrySelection.html">IPlotterWithGeometrySelection</a></td>
+<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">AxisLabelPlotter <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> <a href="AbstractPlotter.html">AbstractPlotter</a></td>
 </tr>
 </table>
 <p></p>
+  AxisLabelPlotter
   
   <p></p>
 <br>
@@ -122,9 +120,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#CirclePlotter()">CirclePlotter</a>()</div>
+<a class="signatureLink" href="#AxisLabelPlotter()">AxisLabelPlotter</a>()</div>
 <div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -138,8 +136,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#drawBackground()">drawBackground</a>(dataBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, destination:BitmapData):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+<div class="summaryTableDescription">
+   Draws the graphics onto BitmapData.</div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -149,14 +148,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This function must be defined with override by classes that extend AbstractPlotter.</div>
 </td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
 </tr>
-<tr class="hideInheritedMethod">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="AbstractPlotter.html#getBackgroundDataBounds()">getBackgroundDataBounds</a>():<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>
+<a class="signatureLink" href="#getBackgroundDataBounds()">getBackgroundDataBounds</a>():<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>
 </div>
-<div class="summaryTableDescription">
-   This function returns a Bounds2D object set to the data bounds associated with the background.</div>
-</td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -165,14 +163,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">
    This function must be implemented by classes that extend AbstractPlotter.</div>
 </td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#getSelectableGeometries()">getSelectableGeometries</a>():Vector</div>
-<div class="summaryTableDescription">
-   This function will get a vector of ISimpleGeometry objects.</div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
 </tr>
 </table>
 </div>
@@ -242,40 +232,99 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#angle">angle</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#bold">bold</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#color">color</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription">
-   The color of the circle.</div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataX">dataX</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription">
-   The x position of the circle.</div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#end">end</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataY">dataY</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription">
-   The y position of the circle.</div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#font">font</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#polygonVertexCount">polygonVertexCount</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription">
-   The number of vertices to use inside the polygon when selecting records.</div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#hAlign">hAlign</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#radius">radius</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription">
-   The radius of the circle.</div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#hideOverlappingText">hideOverlappingText</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#thickness">thickness</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription">
-   The thickness of the edge of the circle.</div>
-</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#horizontal">horizontal</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#interval">interval</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#italic">italic</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelFunction">labelFunction</a> : <a href="../../core/LinkableFunction.html">LinkableFunction</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxWidth">maxWidth</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#size">size</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#start">start</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#text">text</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#underline">underline</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#vAlign">vAlign</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#xScreenOffset">xScreenOffset</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#yScreenOffset">yScreenOffset</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">AxisLabelPlotter</td>
 </tr>
 </table>
 </div>
@@ -317,14 +366,14 @@ showHideInherited();
 <div class="MainContent">
 <a name="constructorDetail"></a>
 <div class="detailSectionHeader">Constructor detail</div>
-<a name="CirclePlotter()"></a>
+<a name="AxisLabelPlotter()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">CirclePlotter</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">constructor</td>
+<td class="detailHeaderName">AxisLabelPlotter</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">constructor</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function CirclePlotter()</code>
+<code>public function AxisLabelPlotter()</code>
 </div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
@@ -335,7 +384,9 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public override function drawBackground(dataBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, destination:BitmapData):void</code><span class="label">Parameters</span>
+<code>public override function drawBackground(dataBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>, destination:BitmapData):void</code><p>
+   Draws the graphics onto BitmapData.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">dataBounds</span>:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
@@ -354,89 +405,195 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="getSelectableGeometries()"></a>
+<a name="getBackgroundDataBounds()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">getSelectableGeometries</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">getBackgroundDataBounds</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getSelectableGeometries():Vector</code><p>
-   This function will get a vector of ISimpleGeometry objects.
-   
-   </p><p></p>
+<code>public override function getBackgroundDataBounds():<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code>
+<p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Vector</code> &mdash; An array of ISimpleGeometry objects which can be used for spatial querying. 
-   </td>
+<td width="20"></td><td><code><a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
 </tr>
 </table>
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
+<a name="angle"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">angle</td><td class="detailHeaderType">constant</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const angle:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="bold"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">bold</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const bold:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
 <a name="color"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">color</td><td class="detailHeaderType">constant</td>
+<td class="detailHeaderName">color</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public const color:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
-   The color of the circle. 
-   </p></div>
-<a name="dataX"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">dataX</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const dataX:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
-   The x position of the circle. 
-   </p></div>
-<a name="dataY"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">dataY</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const dataY:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
-   The y position of the circle. 
-   </p></div>
-<a name="polygonVertexCount"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">polygonVertexCount</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const polygonVertexCount:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
-   The number of vertices to use inside the polygon when selecting records. This must be at
-   least <code>3</code>. <br>
-   </p><p>The default value is <code>25</code>.</p>
+<code>public const color:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
 </div>
-<a name="radius"></a>
+<a name="end"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">radius</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">end</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public const radius:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
-   The radius of the circle. 
-   </p></div>
-<a name="thickness"></a>
+<code>public const end:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="font"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">thickness</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">font</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public const thickness:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
-   The thickness of the edge of the circle. 
-   </p></div>
+<code>public const font:<a href="../../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="hAlign"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">hAlign</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const hAlign:<a href="../../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="hideOverlappingText"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">hideOverlappingText</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const hideOverlappingText:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
+<a name="horizontal"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">horizontal</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const horizontal:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
+<a name="interval"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">interval</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const interval:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="italic"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">italic</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const italic:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
+<a name="labelFunction"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">labelFunction</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const labelFunction:<a href="../../core/LinkableFunction.html">LinkableFunction</a></code>
+</div>
+<a name="maxWidth"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">maxWidth</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const maxWidth:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="size"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">size</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const size:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="start"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">start</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const start:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="text"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">text</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const text:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
+</div>
+<a name="underline"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">underline</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const underline:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
+<a name="vAlign"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">vAlign</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const vAlign:<a href="../../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="xScreenOffset"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">xScreenOffset</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const xScreenOffset:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="yScreenOffset"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">yScreenOffset</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const yScreenOffset:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
 <br>
 <br>
 <hr>

@@ -260,6 +260,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This function creates an object in the hash map if it doesn't already exist.</div>
 </td><td class="summaryTableOwnerCol">LinkableHashMap</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#requestObjectCopy()">requestObjectCopy</a>(name:String, objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):<a href="../api/core/ILinkableObject.html">ILinkableObject</a>
+</div>
+<div class="summaryTableDescription">
+   This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.</div>
+</td><td class="summaryTableOwnerCol">LinkableHashMap</td>
+</tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
@@ -601,8 +610,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>weave_internal function requestObjectCopy(name:String, objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code><p>
-   This function will copy the session state of an ILinkableObject to an object under the given name in this LinkableHashMap.
+<code>public function requestObjectCopy(name:String, objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code><p>
+   This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -622,7 +631,7 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code><a href="../api/core/ILinkableObject.html">ILinkableObject</a></code> &mdash; 
-                        The new copy of the specified object, or null if an error occurred.
+                        The new object of the same type, or null if an error occurred.
    
                         
                      </td>

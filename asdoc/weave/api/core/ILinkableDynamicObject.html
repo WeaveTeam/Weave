@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="ILinkableDynamicObject,weave.api.core.ILinkableDynamicObject,globalName,internalObject,lock,removeObject,requestGlobalObject,requestLocalObject" name="keywords">
+<meta content="ILinkableDynamicObject,weave.api.core.ILinkableDynamicObject,globalName,internalObject,lock,removeObject,requestGlobalObject,requestLocalObject,requestLocalObjectCopy" name="keywords">
 <title>weave.api.core.ILinkableDynamicObject</title>
 </head>
 <body>
@@ -124,6 +124,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <a class="signatureLink" href="#requestLocalObject()">requestLocalObject</a>(objectType:Class, lockObject:Boolean):*</div>
 <div class="summaryTableDescription">
    This function creates a local object using the given Class definition if it doesn't already exist.</div>
+</td><td class="summaryTableOwnerCol">ILinkableDynamicObject</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#requestLocalObjectCopy()">requestLocalObjectCopy</a>(objectToCopy:<a href="ILinkableObject.html">ILinkableObject</a>):void</div>
+<div class="summaryTableDescription">
+   This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.</div>
 </td><td class="summaryTableOwnerCol">ILinkableDynamicObject</td>
 </tr>
 <tr class="hideInheritedMethod">
@@ -266,6 +274,23 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>*</code> &mdash; The local object of the requested type, or null if the object could not be created.
+   </td>
+</tr>
+</table>
+</div>
+<a name="requestLocalObjectCopy()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">requestLocalObjectCopy</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function requestLocalObjectCopy(objectToCopy:<a href="ILinkableObject.html">ILinkableObject</a>):void</code><p>
+   This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">objectToCopy</span>:<a href="ILinkableObject.html">ILinkableObject</a></code> &mdash; An object to copy the session state from.
    </td>
 </tr>
 </table>

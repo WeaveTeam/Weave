@@ -237,6 +237,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This function creates a local object using the given Class definition if it doesn't already exist.</div>
 </td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#requestLocalObjectCopy()">requestLocalObjectCopy</a>(objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</div>
+<div class="summaryTableDescription">
+   This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.</div>
+</td><td class="summaryTableOwnerCol">LinkableDynamicObject</td>
+</tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
@@ -506,8 +514,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>weave_internal function requestLocalObjectCopy(objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</code><p>
-   This function will copy the session state of an ILinkableObject to the local internalObject.
+<code>public function requestLocalObjectCopy(objectToCopy:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):void</code><p>
+   This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
