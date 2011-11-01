@@ -23,14 +23,14 @@
     <includeMissingKeys>false</includeMissingKeys>
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
-  <KeySet name="defaultSelectionKeySet"/>
+  <KeySet name="defaultSelectionKeySet">US State FIPS Code,15,55,26</KeySet>
   <KeySet name="defaultProbeKeySet"/>
   <ColorColumn name="defaultColorColumn">
     <internalDynamicColumn encoding="dynamic">
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp singlehue="true" name="Red Scale" category="visualization" source="OIC">
+      <colorRamp name="Red Scale" category="visualization" singlehue="true" source="OIC">
         <node color="0x000000" position="0"/>
         <node color="0xff0000" position="0.5"/>
         <node color="0xffcccc" position="1"/>
@@ -193,7 +193,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Country Name" name="Country Name" keyType="Country Code" title="Country Name"/>
+              <attribute name="Country Name" keyType="Country Code" csvColumn="Country Name" title="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -205,7 +205,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" title="Population, female (% of total)"/>
+              <attribute name="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -217,7 +217,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" title="Rural population (% of total population)"/>
+              <attribute name="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -229,7 +229,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" title="Population ages 65 and above (% of total)"/>
+              <attribute name="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -241,7 +241,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" title="Population ages 15-64 (% of total)"/>
+              <attribute name="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -253,7 +253,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" title="Urban population (% of total)"/>
+              <attribute name="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -265,7 +265,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute csvColumn="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" title="Population ages 0-14 (% of total)"/>
+              <attribute name="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -287,11 +287,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="nhpn" title="nhpn"/>
           <category name="obesity" title="obesity"/>
           <category name="obesity-cube" title="obesity-cube">
-            <attribute number=" " name="ID" keyType="obesity-cube" dataTable="obesity-cube" string="&quot;ID&quot; + asString(number)" dataType="number" title="ID"/>
-            <attribute number=" " name="FIPS2" keyType="obesity-cube" dataTable="obesity-cube" string=" " dataType="string" title="FIPS2"/>
-            <attribute number="string.length" name="State" keyType="obesity-cube" dataTable="obesity-cube" string="&quot;# num characters &quot; + asString(number)" dataType="string" title="State"/>
-            <attribute number=" " name="Year" keyType="obesity-cube" dataTable="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" dataType="number" title="Year"/>
-            <attribute dataTable="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" keyType="obesity-cube" dataType="number" title="PercentObese"/>
+            <attribute number=" " name="ID" keyType="obesity-cube" string="&quot;ID&quot; + asString(number)" dataType="number" dataTable="obesity-cube" title="ID"/>
+            <attribute number=" " name="FIPS2" keyType="obesity-cube" string=" " dataType="string" dataTable="obesity-cube" title="FIPS2"/>
+            <attribute number="string.length" name="State" keyType="obesity-cube" string="&quot;# num characters &quot; + asString(number)" dataType="string" dataTable="obesity-cube" title="State"/>
+            <attribute number=" " name="Year" keyType="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" dataType="number" dataTable="obesity-cube" title="Year"/>
+            <attribute name="PercentObese" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" dataType="number" dataTable="obesity-cube" title="PercentObese"/>
           </category>
           <category name="obesity-cube2" title="obesity-cube2"/>
           <category name="obesity-cube3" title="obesity-cube3"/>
@@ -329,6 +329,410 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
+  <CompoundBarChartTool name="CompoundBarChartTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <AxisLayer name="yAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>85.66418877480366</xMax>
+                  <xMin>85.66418877480366</xMin>
+                  <yMax>28.257536696833682</yMax>
+                  <yMin>9.45753669683368</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>28.257536696833682</axisLineMaxValue>
+                <axisLineMinValue>9.45753669683368</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>bottom</labelVerticalAlign>
+                <labelWordWrapSize>80</labelWordWrapSize>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <AxisLayer name="xAxis">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SimpleAxisPlotter>
+                <axisLabelDistance>-10</axisLabelDistance>
+                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLineDataBounds>
+                  <xMax>218.1641887748037</xMax>
+                  <xMin>85.66418877480366</xMin>
+                  <yMax>9.45753669683368</yMax>
+                  <yMin>9.45753669683368</yMin>
+                </axisLineDataBounds>
+                <axisLineMaxValue>218.1641887748037</axisLineMaxValue>
+                <axisLineMinValue>85.66418877480366</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelNumberFormatter>
+                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                  <decimalSeparatorTo>.</decimalSeparatorTo>
+                  <precision>0</precision>
+                  <rounding>none</rounding>
+                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                  <useNegativeSign>true</useNegativeSign>
+                  <useThousandsSeparator>true</useThousandsSeparator>
+                </labelNumberFormatter>
+                <labelTextAlignment>left</labelTextAlignment>
+                <labelVerticalAlign>top</labelVerticalAlign>
+                <labelWordWrapSize>80</labelWordWrapSize>
+                <overrideAxisName/>
+                <showAxisName>true</showAxisName>
+                <tickCountRequested>11</tickCountRequested>
+                <tickMaxValue>264</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
+              </SimpleAxisPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </AxisLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CompoundBarChartPlotter>
+                <barSpacing>0</barSpacing>
+                <chartColors encoding="xml">
+                  <colorRamp name="Doppler Radar" category="aesthetic" dataFormat="qualitative" source="OIC">
+                    <node color="0x04E9E7" position="0"/>
+                    <node color="0x009DF4" position="0.08"/>
+                    <node color="0x0201F4" position="0.16"/>
+                    <node color="0x01FC01" position="0.24"/>
+                    <node color="0x00C400" position="0.32"/>
+                    <node color="0x008C00" position="0.4"/>
+                    <node color="0x0FDF801" position="0.48"/>
+                    <node color="0xF99200" position="0.56"/>
+                    <node color="0xFD0000" position="0.64"/>
+                    <node color="0xBC0000" position="0.72"/>
+                    <node color="0xBC0000" position="0.8"/>
+                    <node color="0xF800FD" position="0.88"/>
+                    <node color="0x9854C6" position="1.0"/>
+                  </colorRamp>
+                </chartColors>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <groupBySortColumn>false</groupBySortColumn>
+                <groupingMode>stack</groupingMode>
+                <heightColumns encoding="dynamic">
+                  <ReferencedColumn name="ReferencedColumn2">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute number=" " year="" string=" " dataTable="obesity-cube" title="FIPS2" name="FIPS2" dataType="string" keyType="obesity-cube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn3">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" dataTable="obesity-cube" title="State" name="State" dataType="string" keyType="obesity-cube"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn5">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute year="" string="asString(number) + &quot;%&quot;" dataTable="obesity-cube" title="PercentObese" keyType="obesity-cube" dataType="number" name="PercentObese"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </heightColumns>
+                <horizontalMode>false</horizontalMode>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <labelBarHeightPercentage>100</labelBarHeightPercentage>
+                <labelColumn encoding="dynamic"/>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+                <negativeError encoding="dynamic"/>
+                <positiveError encoding="dynamic"/>
+                <showValueLabels>false</showValueLabels>
+                <sortColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" dataTable="obesity-cube" keyType="obesity-cube" name="ID" dataType="number" title="ID"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </sortColumn>
+                <valueLabelColor>0</valueLabelColor>
+                <zoomToSubset>true</zoomToSubset>
+              </CompoundBarChartPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <PlotLayer name="probeLine">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ProbeLinePlotter>
+                <keySet>
+                  <keyFilter encoding="dynamic"/>
+                </keySet>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
+                </lineStyle>
+              </ProbeLinePlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
+        </layers>
+        <marginBottom>80</marginBottom>
+        <marginLeft>80</marginLeft>
+        <marginRight>30</marginRight>
+        <marginTop>30</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <xMax>218.1641887748037</xMax>
+          <xMin>85.66418877480366</xMin>
+          <yMax>28.257536696833682</yMax>
+          <yMin>9.45753669683368</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+      <PenTool name="penTool">
+        <coords>123.23123858323282,26.09728824962872,123.23123858323282,25.86374787695791,123.23123858323282,25.6302075042871,123.73890141848186,25.396667131616294,124.75422708897995,25.046356572610083,125.261889924229,24.69604601360387,126.27721559472708,24.228965268262257,127.8002041004742,23.761884522920642,129.3231926062213,23.294803777579027,130.3385182767194,22.82772303223741,132.36916961771558,22.360642286895796,134.39982095871176,21.89356154155418,136.43047229970793,21.426480796212566,140.49177498170025,20.725859678200145,
+195.31936118859682,21.426480796212566,194.8116983533478,21.54325098254797,193.79637268284972,21.776791355218776,192.78104701235162,21.89356154155418,191.2580585066045,22.127101914224987,189.73507000085738,22.360642286895796,187.7044186598612,22.4774124732312,185.16610448361598,22.710952845902007,
+147.0913918399378,24.228965268262257,146.07606616943974,24.11219508192685,145.5684033341907,24.11219508192685,142.0147634874474,23.878654709256047,139.98411214645122,23.645114336585237,138.96878647595315,23.528344150249836,137.445797970206,23.411573963914428,135.92280946445888,23.294803777579027,134.9074837939608,23.061263404908217,132.87683245296463,22.944493218572816,131.86150678246653,22.594182659566606,130.3385182767194,22.360642286895796,128.8155297709723,22.010331727889586,125.76955275947803,21.192940423541756,124.75422708897995,20.842629864535546,123.23123858323282,20.492319305529335,122.21591291273474,20.025238560187724,121.7082500774857,19.67492800118151,119.67759873648953,18.974306883169085,118.66227306599144,18.507226137827473,118.1546102307424,18.156915578821263,117.1392845602443,17.573064647144243,116.63162172499527,17.222754088138032,116.12395888974623,16.989213715467223,115.61629605449718,16.755673342796417,115.10863321924815,16.52213297012561,114.6009703839991,16.2885925974548,114.6009703839991,16.055052224783992,114.09330754875006,15.938282038448591,
+115.61629605449718,14.303499429752938,116.12395888974623,14.06995905708213,119.16993590124048,13.369337939069707,120.18526157173856,13.369337939069707,121.20058724223665,13.252567752734304,122.72357574798377,13.252567752734304,124.24656425373091,13.252567752734304,126.78487842997612,13.1357975663989,128.8155297709723,13.1357975663989,137.95346080545505,13.1357975663989,141.50710065219835,13.1357975663989,145.06074049894164,13.252567752734304,148.61438034568494,13.369337939069707,
+163.33660256790716,14.42026961608834,163.33660256790716,14.770580175094553,162.8289397326581,16.171822411119397,162.8289397326581,16.52213297012561,161.81361406216004,17.456294460808838,161.30595122691102,17.923375206150453,160.79828839166197,18.507226137827473,159.78296272116387,19.091077069504493,158.25997421541675,19.791698187516914,154.1986715334244,21.076170237206355,151.66035735717918,21.89356154155418,149.12204318093399,22.4774124732312,145.06074049894164,23.294803777579027,144.04541482844354,23.411573963914428,143.03008915794547,23.528344150249836,142.0147634874474,23.528344150249836,141.50710065219835,23.645114336585237,140.49177498170025,23.645114336585237,139.47644931120217,23.411573963914428,137.445797970206,23.294803777579027,136.43047229970793,23.178033591243622,134.9074837939608,23.061263404908217,
+123.23123858323282,21.660021168883375,122.72357574798377,21.54325098254797,121.20058724223665,20.95940005087095,120.18526157173856,20.725859678200145,120.18526157173856,20.492319305529335,119.16993590124048,19.908468373852315,118.66227306599144,19.558157814846105,118.66227306599144,19.207847255839894,118.1546102307424,18.857536696833684,118.1546102307424,18.507226137827473,118.1546102307424,17.689834833479647,118.1546102307424,17.456294460808838,118.1546102307424,17.222754088138032,118.1546102307424,16.755673342796417,118.66227306599144,16.52213297012561,118.66227306599144,16.2885925974548,119.67759873648953,15.938282038448591,120.18526157173856,15.587971479442379,123.23123858323282,14.770580175094553,124.24656425373091,14.537039802423745,127.29254126522517,14.06995905708213,128.30786693572324,13.953188870746725,129.3231926062213,13.953188870746725,130.84618111196846,13.953188870746725,132.36916961771558,13.836418684411322,134.9074837939608,13.71964849807592,136.43047229970793,13.71964849807592,137.95346080545505,13.71964849807592,143.53775199319452,13.602878311740515,145.5684033341907,13.602878311740515,148.10671751043589,13.71964849807592,150.13736885143206,13.836418684411322,
+162.8289397326581,14.303499429752938,163.84426540315621,14.42026961608834,165.36725390890334,15.120890734100763,168.92089375564663,16.638903156461012,169.9362194261447,17.339524274473433,171.45920793189185,18.040145392485858,175.01284777863515,19.908468373852315,175.5205106138842,20.492319305529335,177.04349911963132,22.127101914224987,177.55116195488034,22.594182659566606,177.55116195488034,23.061263404908217,177.55116195488034,23.411573963914428,175.5205106138842,24.34573545459766,174.5051849433861,24.579275827268468,172.98219643763898,24.812816199939277,168.92089375564663,25.27989694528089,166.3825795794014,25.5134373179517,164.35192823840526,25.6302075042871,162.32127689740906,25.746977690622508,160.29062555641292,25.746977690622508,156.73698570966963,25.86374787695791,154.70633436867345,25.86374787695791,152.67568302767728,25.86374787695791,147.0913918399378,25.746977690622508,145.06074049894164,25.6302075042871,143.03008915794547,25.5134373179517,140.9994378169493,25.396667131616294,135.92280946445888,25.046356572610083,
+110.53966770200677,22.594182659566606,109.01667919625963,22.24387210056039,106.98602785526347,20.95940005087095,106.47836502001442,20.60908949186474,106.47836502001442,20.25877893285853,106.47836502001442,19.908468373852315,106.47836502001442,19.441387628510704,106.47836502001442,19.091077069504493,106.47836502001442,18.623996324162874,106.47836502001442,17.456294460808838,106.47836502001442,17.105983901802627,106.98602785526347,16.87244352913182,106.98602785526347,16.52213297012561,107.49369069051251,16.2885925974548,109.52434203150868,15.471201293106976,110.03200486675772,15.354431106771571,111.55499337250484,15.00412054776536,113.58564471350101,14.65380998875915,114.6009703839991,14.65380998875915,116.12395888974623,14.42026961608834,116.63162172499527,14.42026961608834,117.64694739549336,14.42026961608834,118.66227306599144,14.42026961608834,
+131.86150678246653,13.71964849807592,134.9074837939608,13.602878311740515,136.93813513495695,13.48610812540511,137.95346080545505,13.48610812540511,139.47644931120217,13.369337939069707,140.49177498170025,13.369337939069707,141.50710065219835,13.369337939069707,142.52242632269645,13.252567752734304,143.03008915794547,13.252567752734304,144.04541482844354,13.252567752734304,145.06074049894164,13.252567752734304,146.07606616943974,13.252567752734304,147.0913918399378,13.252567752734304,148.10671751043589,13.369337939069707,149.12204318093399,13.48610812540511,150.13736885143206,13.602878311740515,151.66035735717918,13.71964849807592,153.18334586292633,13.953188870746725,154.70633436867345,14.06995905708213,156.22932287442057,14.42026961608834,157.7523113801677,14.65380998875915,159.27529988591482,15.00412054776536,160.29062555641292,15.354431106771571,161.30595122691102,15.821511852113186,162.32127689740906,16.171822411119397,162.8289397326581,16.52213297012561,163.33660256790716,16.989213715467223,163.84426540315621,17.339524274473433,163.84426540315621,17.806605019815052,164.35192823840526,18.273685765156664,164.35192823840526,18.740766510498283,164.35192823840526,19.091077069504493,164.35192823840526,19.558157814846105,164.35192823840526,20.025238560187724,164.35192823840526,20.492319305529335,164.35192823840526,20.95940005087095,164.35192823840526,21.426480796212566,163.84426540315621,21.776791355218776,163.84426540315621,22.010331727889586,163.33660256790716,22.24387210056039,162.8289397326581,22.4774124732312,162.32127689740906,22.710952845902007,161.81361406216004,22.944493218572816,160.79828839166197,23.061263404908217,160.29062555641292,23.178033591243622,159.27529988591482,23.294803777579027,158.76763705066577,23.411573963914428,157.7523113801677,23.528344150249836,157.24464854491868,23.645114336585237,156.22932287442057,23.761884522920642,155.21399720392247,23.761884522920642,
+143.03008915794547,23.761884522920642,140.9994378169493,23.645114336585237,140.49177498170025,23.528344150249836,139.98411214645122,23.411573963914428,138.96878647595315,23.294803777579027,137.95346080545505,23.061263404908217,136.93813513495695,22.944493218572816,136.43047229970793,22.82772303223741,135.41514662920983,22.710952845902007,134.9074837939608,22.594182659566606,133.8921581234627,22.360642286895796,133.38449528821366,22.24387210056039,132.36916961771558,22.127101914224987,131.3538439472175,22.010331727889586,130.3385182767194,21.776791355218776,129.83085544147036,21.776791355218776,129.3231926062213,21.660021168883375,128.8155297709723,21.54325098254797,127.8002041004742,21.426480796212566,127.29254126522517,21.426480796212566,126.27721559472708,21.309710609877165,125.76955275947803,21.192940423541756,124.75422708897995,21.192940423541756,124.24656425373091,21.076170237206355,123.23123858323282,20.95940005087095,122.21591291273474,20.842629864535546,121.7082500774857,20.725859678200145,120.69292440698761,20.60908949186474,119.67759873648953,20.492319305529335,119.16993590124048,20.375549119193934,118.1546102307424,20.25877893285853,117.64694739549336,20.025238560187724,117.1392845602443,19.908468373852315,116.63162172499527,19.67492800118151,116.12395888974623,19.558157814846105,116.12395888974623,19.3246174421753,115.61629605449718,19.207847255839894,115.61629605449718,18.974306883169085,115.61629605449718,18.740766510498283,115.61629605449718,18.507226137827473,115.61629605449718,18.273685765156664,115.61629605449718,18.156915578821263,115.61629605449718,17.923375206150453,115.61629605449718,17.689834833479647,116.12395888974623,17.573064647144243,116.12395888974623,17.339524274473433,116.63162172499527,17.222754088138032,117.64694739549336,16.989213715467223,118.1546102307424,16.87244352913182,118.1546102307424,16.755673342796417,118.66227306599144,16.638903156461012,119.67759873648953,16.52213297012561,120.18526157173856,16.2885925974548,120.69292440698761,16.171822411119397,121.7082500774857,16.055052224783992,122.72357574798377,15.938282038448591,124.24656425373091,15.704741665777782,124.75422708897995,15.587971479442379,125.76955275947803,15.471201293106976,126.78487842997612,15.354431106771571,127.8002041004742,15.237660920436166,128.30786693572324,15.120890734100763,128.8155297709723,15.120890734100763,130.3385182767194,15.00412054776536,130.84618111196846,15.00412054776536,131.3538439472175,15.00412054776536,131.86150678246653,15.00412054776536,132.36916961771558,15.237660920436166,132.36916961771558,15.471201293106976,132.36916961771558,16.638903156461012,132.36916961771558,17.689834833479647,132.36916961771558,17.923375206150453,132.36916961771558,18.156915578821263,131.86150678246653,18.39045595149207,131.86150678246653,18.623996324162874,130.84618111196846,18.974306883169085,130.84618111196846,19.091077069504493,129.83085544147036,19.441387628510704,128.8155297709723,19.558157814846105,127.8002041004742,19.791698187516914,126.78487842997612,19.791698187516914,125.76955275947803,19.908468373852315,
+120.69292440698761,20.025238560187724,120.18526157173856,20.025238560187724,119.16993590124048,20.025238560187724,117.64694739549336,19.791698187516914,117.1392845602443,19.558157814846105,116.63162172499527,19.091077069504493,116.63162172499527,18.857536696833684,116.63162172499527,18.156915578821263,117.1392845602443,17.923375206150453,117.64694739549336,17.689834833479647,117.64694739549336,17.573064647144243,119.16993590124048,16.989213715467223,120.18526157173856,16.87244352913182,122.21591291273474,16.638903156461012,123.73890141848186,16.638903156461012,124.75422708897995,16.638903156461012,126.27721559472708,16.52213297012561,132.36916961771558,16.405362783790206,136.43047229970793,16.405362783790206,137.95346080545505,16.405362783790206,138.96878647595315,16.405362783790206,139.47644931120217,16.405362783790206,140.49177498170025,16.405362783790206,142.0147634874474,16.52213297012561,143.03008915794547,16.638903156461012,143.53775199319452,16.87244352913182,143.53775199319452,17.105983901802627,
+141.50710065219835,18.857536696833684,139.47644931120217,18.974306883169085,134.9074837939608,18.974306883169085,130.84618111196846,18.857536696833684,129.3231926062213,18.740766510498283,125.76955275947803,18.39045595149207,124.75422708897995,18.273685765156664,124.24656425373091,18.156915578821263,123.73890141848186,18.040145392485858,122.72357574798377,17.806605019815052,122.72357574798377,17.689834833479647,122.72357574798377,17.339524274473433,122.72357574798377,17.222754088138032,122.72357574798377,17.105983901802627,123.23123858323282,16.989213715467223,123.73890141848186,16.755673342796417,124.24656425373091,16.638903156461012,125.261889924229,16.52213297012561,125.76955275947803,16.405362783790206,126.27721559472708,16.2885925974548,126.78487842997612,16.171822411119397,
+134.39982095871176,15.354431106771571,135.92280946445888,15.237660920436166,136.93813513495695,15.120890734100763,137.95346080545505,15.00412054776536,138.4611236407041,15.00412054776536,139.47644931120217,15.00412054776536,139.98411214645122,15.00412054776536,140.49177498170025,15.120890734100763,140.9994378169493,15.120890734100763,141.50710065219835,15.237660920436166,142.52242632269645,15.471201293106976,143.03008915794547,15.587971479442379,144.04541482844354,15.821511852113186,144.5530776636926,16.171822411119397,145.06074049894164,16.52213297012561,145.5684033341907,16.989213715467223,146.07606616943974,17.339524274473433,146.07606616943974,17.806605019815052,146.07606616943974,18.156915578821263,146.58372900468876,18.623996324162874,146.58372900468876,18.974306883169085,146.58372900468876,19.3246174421753,146.58372900468876,19.67492800118151,146.58372900468876,20.025238560187724,146.07606616943974,20.25877893285853,146.07606616943974,20.492319305529335,145.5684033341907,20.725859678200145,145.5684033341907,20.95940005087095,145.5684033341907,21.192940423541756,145.06074049894164,21.426480796212566,145.06074049894164,21.54325098254797,144.5530776636926,21.776791355218776,144.04541482844354,21.89356154155418,144.04541482844354,22.010331727889586,143.53775199319452,22.127101914224987,143.03008915794547,22.24387210056039,143.03008915794547,22.360642286895796,142.52242632269645,22.4774124732312,142.0147634874474,22.594182659566606,
+137.95346080545505,22.82772303223741,137.445797970206,22.82772303223741,136.93813513495695,22.82772303223741,136.43047229970793,22.710952845902007,135.41514662920983,22.594182659566606,134.9074837939608,22.4774124732312,134.39982095871176,22.360642286895796,133.8921581234627,22.24387210056039,133.38449528821366,22.127101914224987,132.87683245296463,22.010331727889586,132.36916961771558,21.89356154155418,131.86150678246653,21.776791355218776,131.3538439472175,21.660021168883375,130.84618111196846,21.426480796212566,129.83085544147036,21.192940423541756,129.83085544147036,20.95940005087095,129.3231926062213,20.842629864535546,128.8155297709723,20.725859678200145,128.30786693572324,20.492319305529335,127.8002041004742,20.375549119193934,127.29254126522517,20.142008746523125,127.29254126522517,19.908468373852315,126.78487842997612,19.791698187516914,126.27721559472708,19.558157814846105,126.27721559472708,19.3246174421753,126.27721559472708,19.091077069504493,125.76955275947803,18.740766510498283,125.76955275947803,18.507226137827473,125.76955275947803,18.273685765156664,125.76955275947803,17.923375206150453,125.76955275947803,17.689834833479647,126.27721559472708,17.573064647144243,126.27721559472708,17.339524274473433,126.78487842997612,17.105983901802627,126.78487842997612,16.87244352913182,127.29254126522517,16.755673342796417,127.8002041004742,16.52213297012561,128.30786693572324,16.2885925974548,128.8155297709723,16.171822411119397,129.3231926062213,16.055052224783992,129.83085544147036,15.938282038448591,130.3385182767194,15.821511852113186,130.84618111196846,15.704741665777782,132.87683245296463,15.354431106771571,134.39982095871176,15.120890734100763,134.9074837939608,15.120890734100763,135.92280946445888,15.00412054776536,136.43047229970793,15.00412054776536,136.93813513495695,14.887350361429956,137.445797970206,14.887350361429956,
+141.50710065219835,15.938282038448591,142.52242632269645,16.52213297012561,143.53775199319452,17.573064647144243,143.53775199319452,18.156915578821263,144.04541482844354,18.507226137827473,144.04541482844354,18.740766510498283,144.04541482844354,19.67492800118151,144.04541482844354,19.908468373852315,144.04541482844354,20.725859678200145,144.04541482844354,20.95940005087095,144.04541482844354,21.076170237206355,144.04541482844354,21.309710609877165,144.04541482844354,21.660021168883375,143.53775199319452,21.89356154155418,143.53775199319452,22.010331727889586,143.53775199319452,22.24387210056039,143.03008915794547,22.4774124732312,142.52242632269645,22.594182659566606,142.52242632269645,22.710952845902007,142.0147634874474,22.82772303223741,140.9994378169493,23.061263404908217,139.98411214645122,23.294803777579027,137.95346080545505,23.411573963914428,137.445797970206,23.528344150249836,136.43047229970793,23.528344150249836,135.41514662920983,23.645114336585237,133.8921581234627,23.645114336585237,
+126.78487842997612,23.645114336585237,125.76955275947803,23.528344150249836,124.75422708897995,23.411573963914428,123.73890141848186,23.178033591243622,123.73890141848186,22.944493218572816,123.23123858323282,22.594182659566606,122.72357574798377,21.89356154155418,122.72357574798377,21.54325098254797,122.72357574798377,21.192940423541756,123.23123858323282,20.025238560187724,123.73890141848186,19.67492800118151,124.24656425373091,19.3246174421753,124.75422708897995,18.974306883169085,127.29254126522517,18.040145392485858,127.8002041004742,17.806605019815052,130.84618111196846,17.105983901802627,131.86150678246653,16.989213715467223,132.36916961771558,16.755673342796417,133.38449528821366,16.638903156461012,135.92280946445888,16.2885925974548,136.43047229970793,16.171822411119397,139.47644931120217,15.938282038448591,140.49177498170025,15.821511852113186,141.50710065219835,15.821511852113186,143.03008915794547,15.704741665777782,144.5530776636926,15.704741665777782,147.59905467518686,15.587971479442379,149.62970601618304,15.587971479442379,151.66035735717918,15.471201293106976,157.7523113801677,15.471201293106976,159.78296272116387,15.354431106771571,161.30595122691102,15.354431106771571,163.33660256790716,15.354431106771571,166.89024241465046,15.471201293106976,167.3979052498995,15.587971479442379,167.3979052498995,15.821511852113186,
+164.85959107365431,19.441387628510704,162.8289397326581,20.375549119193934,160.79828839166197,21.54325098254797,159.78296272116387,21.89356154155418,158.76763705066577,22.24387210056039,154.70633436867345,23.061263404908217,153.69100869817535,23.294803777579027,152.16802019242823,23.528344150249836,148.10671751043589,23.878654709256047,146.58372900468876,23.878654709256047,145.06074049894164,23.995424895591448,143.53775199319452,24.11219508192685,139.98411214645122,24.228965268262257,137.95346080545505,24.228965268262257,135.92280946445888,24.34573545459766,128.8155297709723,24.34573545459766,126.78487842997612,24.462505640933063,124.24656425373091,24.462505640933063,122.21591291273474,24.462505640933063,116.63162172499527,24.579275827268468,115.10863321924815,24.579275827268468,111.0473305372558,24.579275827268468,109.52434203150868,24.579275827268468,108.5090163610106,24.579275827268468,106.98602785526347,24.579275827268468,105.97070218476539,24.579275827268468,103.94005084376921,24.69604601360387,102.92472517327113,24.69604601360387,102.41706233802208,24.69604601360387,100.89407383227496,24.812816199939277,
+96.32510831503357,24.92958638627468,96.32510831503357,24.812816199939277,97.8480968207807,24.462505640933063,98.86342249127878,24.228965268262257,100.38641099702592,24.11219508192685,105.46303934951634,23.645114336585237,108.00135352576154,23.411573963914428,120.69292440698761,22.82772303223741,124.24656425373091,22.82772303223741,127.8002041004742,22.710952845902007,141.50710065219835,22.594182659566606,153.18334586292633,22.594182659566606,155.72166003917152,22.594182659566606,157.24464854491868,22.710952845902007,159.78296272116387,22.710952845902007,164.85959107365431,23.061263404908217,166.3825795794014,23.294803777579027,172.47453360238993,23.878654709256047,173.99752210813705,24.11219508192685,175.5205106138842,24.34573545459766,180.59713896637462,24.92958638627468,183.64311597786886,25.27989694528089,184.1507788131179,25.396667131616294,184.65844164836693,25.396667131616294,185.16610448361598,25.5134373179517,185.67376731886503,25.6302075042871,185.67376731886503,25.746977690622508,185.67376731886503,25.86374787695791,
+183.13545314261984,26.09728824962872,180.59713896637462,26.09728824962872,172.98219643763898,25.86374787695791,170.9515450966428,25.746977690622508,166.89024241465046,25.396667131616294,164.85959107365431,25.27989694528089,162.8289397326581,25.046356572610083,161.30595122691102,24.812816199939277,159.27529988591482,24.579275827268468,146.58372900468876,22.82772303223741,137.95346080545505,21.076170237206355,133.8921581234627,19.791698187516914,130.3385182767194,18.623996324162874,126.78487842997612,17.923375206150453,125.76955275947803,17.806605019815052,121.7082500774857,17.222754088138032,119.67759873648953,16.989213715467223,112.06265620775389,16.87244352913182,103.94005084376921,16.989213715467223,
+94.2944569740374,17.222754088138032,94.2944569740374,17.573064647144243,100.38641099702592,20.025238560187724,113.07798187825198,22.360642286895796,127.8002041004742,24.228965268262257,140.49177498170025,25.046356572610083,150.13736885143206,25.163126758945488,158.25997421541675,25.163126758945488,160.29062555641292,25.27989694528089,161.30595122691102,25.396667131616294,161.81361406216004,25.5134373179517,161.81361406216004,25.6302075042871,161.81361406216004,25.746977690622508,
+145.5684033341907,27.14821992664735,136.93813513495695,26.56436899497033,135.41514662920983,26.44759880863493,126.78487842997612,25.163126758945488,119.67759873648953,23.878654709256047,118.66227306599144,23.645114336585237,113.07798187825198,22.360642286895796,110.03200486675772,21.426480796212566,109.52434203150868,21.192940423541756,106.98602785526347,20.25877893285853,106.47836502001442,19.558157814846105,105.97070218476539,19.091077069504493,105.97070218476539,18.623996324162874,105.97070218476539,18.507226137827473,106.47836502001442,18.39045595149207,106.47836502001442,18.273685765156664,106.47836502001442,18.156915578821263,110.53966770200677,18.040145392485858,112.06265620775389,17.923375206150453,113.07798187825198,17.923375206150453,122.21591291273474,17.806605019815052,131.86150678246653,17.689834833479647,139.47644931120217,17.806605019815052,140.9994378169493,18.040145392485858,142.52242632269645,18.156915578821263,143.53775199319452,18.623996324162874,144.5530776636926,19.091077069504493,145.06074049894164,19.207847255839894,145.06074049894164,19.3246174421753,145.06074049894164,19.441387628510704,145.5684033341907,19.558157814846105,</coords>
+        <drawingMode>Free Draw Mode</drawingMode>
+        <lineColor>0</lineColor>
+        <lineWidth>2</lineWidth>
+      </PenTool>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>49.945%</panelHeight>
+    <panelStyleList/>
+    <panelTitle/>
+    <panelWidth>49.843%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>49.945%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showAllLabels>false</showAllLabels>
+    <showCloseDialog>false</showCloseDialog>
+    <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
+  </CompoundBarChartTool>
   <MapTool name="MapTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -475,8 +879,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         </zoomBounds>
       </SimpleInteractiveVisualization>
       <PenTool name="penTool">
-        <coords>-125.16386825076336,74.5020652882154,-125.73419479456199,74.5020652882154,-160.52411396627863,15.188104733157495,-154.25052198449367,10.055165838969788,-100.63982686742212,7.203533119976621,-95.50688797323441,25.4539825215329,-84.67068364106038,75.07239183201403,-128.01550096975654,85.33826962038944,-162.23509359767453,88.76022888318124,-162.23509359767453,78.49435109480584,-159.95378742248,63.09553441224273,-157.10215470348683,58.532922061853654,-93.22558179803988,23.743002890137,-93.22558179803988,23.743002890137,-147.40660345891007,83.62728998899352,-166.7977059480636,79.6350041824031,-187.89978806861305,48.26704427347825,-187.89978806861305,42.56377883549192,-185.6184818934185,38.57149302890148,-185.6184818934185,38.57149302890148,-185.6184818934185,38.57149302890148,-185.6184818934185,38.57149302890148,-125.16386825076336,74.5020652882154
--181.05586954302944,20.321043627345198,-181.05586954302944,20.321043627345198,-156.5318281596882,39.14181957270011,-161.6647670538759,38.00116648510284,-175.3526041050431,28.875941784324702,-179.9152164554322,24.883655977734264,-193.6030535065994,9.484839295171156,-193.6030535065994,9.484839295171156,-193.6030535065994,9.484839295171156,-193.6030535065994,9.484839295171156,-181.05586954302944,20.321043627345198</coords>
+        <coords>-175.64588921685817,11.667478506342395,-100.80065076712113,67.5135410419154,-199.82665856215783,24.90932838591125,-199.82665856215783,24.90932838591125,-175.64588921685817,11.667478506342395
+-68.55962497338828,55.423156369265584,-88.13453349101181,45.63570211045381,-86.40733568063325,43.33277169661575,-86.40733568063325,43.33277169661575,-68.55962497338828,55.423156369265584</coords>
+        <drawingMode>Polygon Draw Mode</drawingMode>
         <lineColor>0</lineColor>
         <lineWidth>2</lineWidth>
       </PenTool>
@@ -494,12 +899,12 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.507%</panelHeight>
+    <panelHeight>48.631%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
     <panelWidth>49.843%</panelWidth>
-    <panelX>44.201%</panelX>
-    <panelY>9.6386%</panelY>
+    <panelX>50.157%</panelX>
+    <panelY>0%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
@@ -510,393 +915,4 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showMouseModeControls>true</showMouseModeControls>
     <showZoomControls>true</showZoomControls>
   </MapTool>
-  <CompoundBarChartTool name="CompoundBarChartTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>1</axesAlpha>
-        <axesColor>11579568</axesColor>
-        <axesThickness>10</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>1</gridLineAlpha>
-        <gridLineColor>14540253</gridLineColor>
-        <gridLineThickness>1</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <AxisLayer name="yAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>20.937177280550785</xMax>
-                  <xMin>20.937177280550785</xMin>
-                  <yMax>36.60660501981505</yMax>
-                  <yMin>-0.9933949801849522</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>36.60660501981505</axisLineMaxValue>
-                <axisLineMinValue>-0.9933949801849522</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelFunction>string</labelFunction>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>bottom</labelVerticalAlign>
-                <labelWordWrapSize>80</labelWordWrapSize>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <tickCountRequested>5</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <AxisLayer name="xAxis">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
-                <axisLineDataBounds>
-                  <xMax>285.9371772805508</xMax>
-                  <xMin>20.937177280550785</xMin>
-                  <yMax>-0.9933949801849522</yMax>
-                  <yMin>-0.9933949801849522</yMin>
-                </axisLineDataBounds>
-                <axisLineMaxValue>285.9371772805508</axisLineMaxValue>
-                <axisLineMinValue>20.937177280550785</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <labelDistanceIsVertical>false</labelDistanceIsVertical>
-                <labelFunction>string</labelFunction>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
-                <labelNumberFormatter>
-                  <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                  <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
-                  <rounding>none</rounding>
-                  <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                  <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                  <useNegativeSign>true</useNegativeSign>
-                  <useThousandsSeparator>true</useThousandsSeparator>
-                </labelNumberFormatter>
-                <labelTextAlignment>left</labelTextAlignment>
-                <labelVerticalAlign>top</labelVerticalAlign>
-                <labelWordWrapSize>80</labelWordWrapSize>
-                <overrideAxisName/>
-                <showAxisName>true</showAxisName>
-                <tickCountRequested>11</tickCountRequested>
-                <tickMaxValue>264</tickMaxValue>
-                <tickMinValue>0</tickMinValue>
-              </SimpleAxisPlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </AxisLayer>
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <CompoundBarChartPlotter>
-                <barSpacing>0</barSpacing>
-                <chartColors encoding="xml">
-                  <colorRamp name="Doppler Radar" category="aesthetic" dataFormat="qualitative" source="OIC">
-                    <node color="0x04E9E7" position="0"/>
-                    <node color="0x009DF4" position="0.08"/>
-                    <node color="0x0201F4" position="0.16"/>
-                    <node color="0x01FC01" position="0.24"/>
-                    <node color="0x00C400" position="0.32"/>
-                    <node color="0x008C00" position="0.4"/>
-                    <node color="0x0FDF801" position="0.48"/>
-                    <node color="0xF99200" position="0.56"/>
-                    <node color="0xFD0000" position="0.64"/>
-                    <node color="0xBC0000" position="0.72"/>
-                    <node color="0xBC0000" position="0.8"/>
-                    <node color="0xF800FD" position="0.88"/>
-                    <node color="0x9854C6" position="1.0"/>
-                  </colorRamp>
-                </chartColors>
-                <colorDataColumn encoding="dynamic"/>
-                <groupingMode>stack</groupingMode>
-                <groupRecordsByColor>false</groupRecordsByColor>
-                <heightColumns encoding="dynamic">
-                  <ReferencedColumn name="ReferencedColumn2">
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WeaveDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables" title="Data Tables">
-                              <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string=" " name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" dataType="string" title="FIPS2"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                  <ReferencedColumn name="ReferencedColumn3">
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WeaveDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables" title="Data Tables">
-                              <category name="obesity-cube" title="obesity-cube">
-                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" name="State" dataTable="obesity-cube" keyType="obesity-cube" dataType="string" title="State"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                  <ReferencedColumn name="ReferencedColumn5">
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WeaveDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables" title="Data Tables">
-                              <category name="obesity-cube" title="obesity-cube">
-                                <attribute dataTable="obesity-cube" year="" string="asString(number) + &quot;%&quot;" keyType="obesity-cube" name="PercentObese" dataType="number" title="PercentObese"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </heightColumns>
-                <horizontalMode>false</horizontalMode>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <labelBarHeightPercentage>100</labelBarHeightPercentage>
-                <lineStyle encoding="dynamic">
-                  <SolidLineStyle>
-                    <alpha>
-                      <defaultValue>0.5</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </alpha>
-                    <caps>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </caps>
-                    <color>
-                      <defaultValue>0</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </color>
-                    <enabled>
-                      <defaultValue>true</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </enabled>
-                    <joints>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </joints>
-                    <miterLimit>
-                      <defaultValue>3</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </miterLimit>
-                    <pixelHinting>
-                      <defaultValue>false</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </pixelHinting>
-                    <scaleMode>
-                      <defaultValue>normal</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </scaleMode>
-                    <weight>
-                      <defaultValue>1</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </weight>
-                  </SolidLineStyle>
-                </lineStyle>
-                <negativeError encoding="dynamic"/>
-                <positiveError encoding="dynamic"/>
-                <showValueLabels>false</showValueLabels>
-                <sortColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WeaveDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="Data Tables" title="Data Tables">
-                              <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" name="ID" dataTable="obesity-cube" keyType="obesity-cube" dataType="number" title="ID"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </sortColumn>
-                <valueLabelColor>0</valueLabelColor>
-                <zoomToSubset>true</zoomToSubset>
-              </CompoundBarChartPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <PlotLayer name="probeLine">
-            <isOverlay>false</isOverlay>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ProbeLinePlotter>
-                <keySet>
-                  <keyFilter encoding="dynamic"/>
-                </keySet>
-                <lineStyle encoding="dynamic">
-                  <SolidLineStyle>
-                    <alpha>
-                      <defaultValue>0.5</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </alpha>
-                    <caps>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </caps>
-                    <color>
-                      <defaultValue>0</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </color>
-                    <enabled>
-                      <defaultValue>true</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </enabled>
-                    <joints>
-                      <defaultValue/>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </joints>
-                    <miterLimit>
-                      <defaultValue>3</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </miterLimit>
-                    <pixelHinting>
-                      <defaultValue>false</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </pixelHinting>
-                    <scaleMode>
-                      <defaultValue>normal</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </scaleMode>
-                    <weight>
-                      <defaultValue>1</defaultValue>
-                      <internalDynamicColumn encoding="dynamic"/>
-                    </weight>
-                  </SolidLineStyle>
-                </lineStyle>
-              </ProbeLinePlotter>
-            </plotter>
-            <selectionFilter encoding="dynamic"/>
-          </PlotLayer>
-        </layers>
-        <marginBottom>80</marginBottom>
-        <marginLeft>80</marginLeft>
-        <marginRight>30</marginRight>
-        <marginTop>30</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <overrideXMax>NaN</overrideXMax>
-        <overrideXMin>NaN</overrideXMin>
-        <overrideYMax>NaN</overrideYMax>
-        <overrideYMin>NaN</overrideYMin>
-        <shadowAmount>0</shadowAmount>
-        <zoomBounds>
-          <xMax>285.9371772805508</xMax>
-          <xMin>20.937177280550785</xMin>
-          <yMax>36.60660501981505</yMax>
-          <yMin>-0.9933949801849522</yMin>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-      <PenTool name="penTool">
-        <coords>91.50231138016767,18.099439910780777,91.50231138016767,17.865171998008194,90.48698570966957,17.63090408523561,90.48698570966957,17.16236825969044,90.48698570966957,16.693832434145268,89.4716600391715,15.756760783054922,89.4716600391715,14.81968913196458,88.4563343686734,13.882617480874238,86.42568302767724,11.539938353148381,86.42568302767724,10.368598789285452,85.41035735717915,9.197259225422524,85.41035735717915,8.025919661559596,85.41035735717915,6.6203121849240825,87.44100869817532,4.511900969970811,88.4563343686734,3.574829318880469,90.48698570966957,2.6377576677901255,97.59426540315617,1.2321501911546116,99.62491674415233,0.997882278382026,103.68621942614467,0.7636143656094403,107.747522108137,0.7636143656094403,111.80882479012935,0.7636143656094403,120.94675582461211,0.997882278382026,127.03870984760061,1.466418103927197,133.13066387058913,1.9349539294723686,146.32989758706424,3.106293493335297,153.43717728055083,3.8090972316530536,160.54445697403742,4.980436795515982,166.6364109970259,6.1517763593789105,172.7283650200144,7.32311592324184,177.80499337250484,9.43152713819511,178.82031904300294,10.368598789285452,179.83564471350098,11.305670440375795,178.82031904300294,13.882617480874238,177.80499337250484,14.585421219191995,174.7590163610106,15.522492870282338,172.7283650200144,16.225296608600097,162.57510831503356,18.099439910780777,157.49847996254317,18.802243649098536,152.42185161005273,19.505047387416294,140.23794356407572,21.144922776824394,132.11533820009103,22.081994427914736,123.99273283610637,23.01906607900508,113.83947613112552,23.95613773009542,103.68621942614467,24.65894146841318,81.3490546751868,26.064548945048692,71.19579797020597,26.29881685782128,62.05786693572321,26.533084770593863,41.751353525761516,26.29881685782128,36.67472517327109,25.83028103227611,32.613422491278754,25.361745206730934,29.567445479784503,24.893209381185763,20.42951444530174,22.550530253459907,17.38353743380749,21.613458602369565,10.276257740320897,19.036511561871123,8.245606399324728,18.333707823553365,7.230280728826644,17.63090408523561,
-9.260932069822813,11.774206265920967,13.32223475181515,9.43152713819511,14.337560422313235,8.962991312649939,17.38353743380749,7.791651748787011,17.38353743380749,7.32311592324184,22.46016578629791,6.1517763593789105,25.506142797792165,5.6832405338337395,28.552119809286417,5.448972621061154,31.598096820780672,4.980436795515982,46.82798187825194,4.2776330571982255,54.950587242236615,4.2776330571982255,62.05786693572321,4.2776330571982255,79.31840333419063,4.043365144425639,88.4563343686734,4.043365144425639,97.59426540315617,4.2776330571982255,107.747522108137,4.511900969970811,115.8701274721217,4.7461688827433965,132.11533820009103,5.448972621061154,138.20729222307955,5.917508446606325,144.29924624606804,6.1517763593789105,157.49847996254317,7.088848010469254,158.51380563304127,7.088848010469254,158.51380563304127,7.557383836014425,
-140.23794356407572,8.025919661559596,133.13066387058913,7.791651748787011,112.82415046062742,7.088848010469254,106.73219643763893,6.854580097696668,88.4563343686734,6.1517763593789105,83.37970601618298,5.917508446606325,72.21112364070405,4.511900969970811,69.1651466292098,4.043365144425639,67.13449528821363,3.574829318880469,66.11916961771554,3.3405614061078825,64.08851827671937,3.106293493335297,63.07319260622129,2.6377576677901255,61.042541265225125,2.40348975501754,
-57.99656425373087,1.466418103927197,57.99656425373087,0.997882278382026,57.99656425373087,0.7636143656094403,57.99656425373087,-0.17345728548090233,57.99656425373087,-0.6419931110260737,56.98123858323279,-0.6419931110260737,53.93526157173853,-1.5790647621164164,51.904610230742364,-1.5790647621164164,49.87395888974619,-1.813332674889002,42.7666791962596,-2.516136413206759,41.751353525761516,-2.516136413206759,39.720702184765344,-2.7504043259793445,38.70537651426726,-2.7504043259793445,
-38.70537651426726,-2.9846722387519304,42.7666791962596,-2.9846722387519304,53.93526157173853,-3.218940151524516,59.01188992422895,-3.218940151524516,72.21112364070405,-2.7504043259793445,79.31840333419063,-2.2818685004341734,86.42568302767724,-1.5790647621164164,108.7628477786351,0.5293464528368546,116.88545314261977,1.700686016699783,123.99273283610637,2.6377576677901255,131.10001252959296,4.043365144425639,149.37587459855848,9.197259225422524,153.43717728055083,10.602866702058039,156.48315429204507,15.522492870282338,156.48315429204507,17.16236825969044,153.43717728055083,18.802243649098536,149.37587459855848,20.20785112573405,119.93143015411403,24.893209381185763,109.77817344913318,25.59601311950352,90.48698570966957,26.533084770593863,81.3490546751868,26.76735268336645,72.21112364070405,26.76735268336645,65.10384394721746,27.001620596139034,57.99656425373087,27.001620596139034,45.812656207753854,26.29881685782128,43.78200486675769,26.064548945048692,41.751353525761516,25.361745206730934,40.73602785526343,24.893209381185763,40.73602785526343,24.190405642868008,39.720702184765344,23.48760190455025,38.70537651426726,21.613458602369565,
-42.7666791962596,15.053957044737167,46.82798187825194,13.648349568101652,53.93526157173853,12.008474178693552,63.07319260622129,10.837134614830624,67.13449528821363,10.602866702058039,72.21112364070405,10.368598789285452,77.28775199319446,10.134330876512866,83.37970601618298,10.134330876512866,
-122.97740716560827,8.494455487104767,120.94675582461211,8.494455487104767,118.91610448361594,8.494455487104767,114.8548018016236,8.728723399877353,109.77817344913318,9.197259225422524,
-14.337560422313235,12.711277917011309,17.38353743380749,12.711277917011309,20.42951444530174,12.945545829783896,24.49081712729408,12.945545829783896,
-88.4563343686734,13.648349568101652,90.48698570966957,13.648349568101652,91.50231138016767,13.648349568101652,93.53296272116383,14.351153306419409,
-119.93143015411403,18.099439910780777,123.99273283610637,18.56797573632595,121.9620814951102,18.802243649098536,118.91610448361594,19.036511561871123,114.8548018016236,19.036511561871123,111.80882479012935,19.270779474643707,
-73.22644931120215,18.802243649098536,64.08851827671937,18.56797573632595,64.08851827671937,18.333707823553365,64.08851827671937,18.099439910780777,64.08851827671937,17.865171998008194,66.11916961771554,17.16236825969044,68.14982095871171,17.16236825969044,76.27242632269639,16.693832434145268,79.31840333419063,16.693832434145268,82.3643803456849,16.45956452137268,86.42568302767724,16.45956452137268,95.56361406216,16.693832434145268,99.62491674415233,16.92810034691785,104.70154509664276,17.396636172463023,106.73219643763893,17.63090408523561,108.7628477786351,17.63090408523561,109.77817344913318,17.865171998008194,112.82415046062742,18.099439910780777,123.99273283610637,19.036511561871123,128.05403551809871,19.270779474643707,156.48315429204507,21.613458602369565,168.6670623380221,23.721869817322837,
-185.92759873648953,29.578567636637477,184.91227306599143,29.578567636637477,</coords>
-        <lineColor>0</lineColor>
-        <lineWidth>2</lineWidth>
-      </PenTool>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <labelColumn encoding="dynamic"/>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.832%</panelHeight>
-    <panelStyleList/>
-    <panelTitle/>
-    <panelWidth>49.843%</panelWidth>
-    <panelX>12.539%</panelX>
-    <panelY>21.549%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showAllLabels>false</showAllLabels>
-    <showCloseDialog>false</showCloseDialog>
-    <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
-  </CompoundBarChartTool>
 </Weave>

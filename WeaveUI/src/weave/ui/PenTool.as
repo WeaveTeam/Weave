@@ -142,14 +142,18 @@ package weave.ui
 				getCallbackCollection(visualization).addGroupedCallback(this, handleContainerChange);
 			}
 			
-			// when the drawingMode changes, remove all the points from coords
-			var removeDrawings:Function = function ():void
-			{
-				coords.value = ""; 
-			}
-			drawingMode.addGroupedCallback(this, removeDrawings, false);
+			drawingMode.addGroupedCallback(this, removeAllDrawings);
 		}
 
+		/**
+		 * Remove all the drawings and set the pentool to currently not drawing. 
+		 */		
+		public function removeAllDrawings():void
+		{
+			_drawing = false;
+			coords.value = "";
+		}
+		
 		public function dispose():void
 		{
 			editMode = false; // public setter cleans up event listeners and cursor
@@ -159,7 +163,7 @@ package weave.ui
 		private var _editMode:Boolean = false; // true when editing
 		private var _drawing:Boolean = false; // true when editing and mouse is down
 		private var _coordsArrays:Array = []; // parsed from coords LinkableString
-		public const drawingMode:LinkableString = new LinkableString(FREE_DRAW_MODE, verifyDrawingMode);
+		public const drawingMode:LinkableString = registerLinkableChild(this, new LinkableString(FREE_DRAW_MODE, verifyDrawingMode));
 		
 		/**
 		 * This is used for sessioning all of the coordinates.
@@ -267,7 +271,7 @@ package weave.ui
 		{
 			var line:Array;
 
-			if (!_editMode || mouseOffscreen())
+			if (!_editMode)// || mouseOffscreen())
 				return;
 			
 			// project the point to data coordinates
@@ -335,24 +339,24 @@ package weave.ui
 		 */		
 		private function handleMouseUp():void
 		{
-			if (!_editMode || mouseOffscreen())
+			
+			if (!_editMode)// || mouseOffscreen())
 				return;
 
 			if (drawingMode.value == FREE_DRAW_MODE)
 			{
 				_drawing = false;
 			}
-			else if (drawingMode.value == POLYGON_DRAW_MODE)
-			{
-				// when in polygon draw mode, we are still drawing after letting go of mouse1
-				var line:Array = _coordsArrays[_coordsArrays.length - 1];
-				var x:Number = StandardLib.constrain(mouseX, 0, unscaledWidth);
-				var y:Number = StandardLib.constrain(mouseY, 0, unscaledHeight);
-
-				handleScreenCoordinate(x, y, _tempPoint);
-				line.push(_tempPoint.x, _tempPoint.y);
-				coords.value += _tempPoint.x + "," + _tempPoint.y + ",";
-			}
+			// this code is just appending to the last line
+//			if (drawingMode.value == POLYGON_DRAW_MODE)
+//			{
+//				// when in polygon draw mode, we are still drawing after letting go of mouse1
+//				var line:Array = _coordsArrays[_coordsArrays.length - 1];
+//
+//				handleScreenCoordinate(mouseX, mouseY, _tempPoint);
+//				line.push(_tempPoint.x, _tempPoint.y);
+//				coords.value += _tempPoint.x + "," + _tempPoint.y + ",";
+//			}
 
 			// redraw
 			invalidateDisplayList();
@@ -363,12 +367,8 @@ package weave.ui
 		 */		
 		private function handleMouseMove():void
 		{
-			if (_drawing && editMode && !mouseOffscreen())
+			if (_drawing && editMode)// && !mouseOffscreen())
 			{
-				// we're drawing and on the screen, so get the value for the point
-				var x:Number = StandardLib.constrain(mouseX, 0, unscaledWidth);
-				var y:Number = StandardLib.constrain(mouseY, 0, unscaledHeight);
-				
 				// get the current line
 				var line:Array = _coordsArrays[_coordsArrays.length - 1];
 				// only save new coords if they are different from previous coordinates
@@ -376,7 +376,7 @@ package weave.ui
 				if (drawingMode.value == FREE_DRAW_MODE &&  
 					(line.length < 2 || line[line.length - 2] != x || line[line.length - 1] != y))
 				{
-					handleScreenCoordinate(x, y, _tempPoint);
+					handleScreenCoordinate(mouseX, mouseY, _tempPoint);
 					line.push(_tempPoint.x, _tempPoint.y);
 					coords.value += _tempPoint.x + "," + _tempPoint.y + ",";
 				}
@@ -399,8 +399,8 @@ package weave.ui
 		}
 		
 		/**
-		 * Remove the mouse cursor if we are in edit mode.
-		 * @param e The mosue event.
+		 * Turn off edit mode.
+		 * @param e The mouse event.
 		 */		
 		private function handleRollOut( e:MouseEvent ):void
 		{
@@ -408,6 +408,32 @@ package weave.ui
 				return;
 			
 			CustomCursorManager.removeAllCursors();
+//			completeDrawing();
+//			editMode = false;
+//			_drawing = false;
+		}
+		
+		private function completeDrawing():void
+		{
+			if (!_drawing)
+				return;
+			
+			if (drawingMode.value == FREE_DRAW_MODE)
+			{
+				
+			}
+			else if (drawingMode.value == POLYGON_DRAW_MODE)
+			{
+				var line:Array = _coordsArrays[_coordsArrays.length - 1];
+				if (line && line.length > 2)
+				{
+					handleScreenCoordinate(mouseX, mouseY, _tempPoint);
+					line.push(_tempPoint.x, _tempPoint.y);
+					line.push(line[0], line[1]);
+					coords.value += line[0] + "," + line[1]; // this ends the line
+				}
+				_drawing = false;
+			}
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -417,6 +443,7 @@ package weave.ui
 			var visualization:PlotLayerContainer = getPlotLayerContainer(parent); 
 			if (visualization) 
 			{
+				var lastShape:Array;
 				var g:Graphics = graphics;
 				g.clear();
 				
@@ -435,21 +462,43 @@ package weave.ui
 					var points:Array = _coordsArrays[line];
 					for (var i:int = 0; i < points.length - 1 ; i += 2 )
 					{
-						var x:Number = points[i];
-						var y:Number = points[i+1];
-
-						projectCoordToScreenBounds(x, y, _tempPoint);
+						projectCoordToScreenBounds(points[i], points[i+1], _tempPoint);
 						
 						if (i == 0)
 							g.moveTo(_tempPoint.x, _tempPoint.y);
 						else
 							g.lineTo(_tempPoint.x, _tempPoint.y);
 					}
+				
+					// If we are not drawing, always connect back to first point in the shape.
+					// The effect of this is either completing the polygon by drawing a line or
+					// drawing to the current position of the graphics object. This is only used to
+					// draw complete polygons without affecting the polygon's internal representation.					
+					if (points && points.length >= 2 && !_drawing && drawingMode.value == POLYGON_DRAW_MODE)
+					{
+						projectCoordToScreenBounds(points[0], points[1], _tempPoint);
+						
+						g.lineTo(_tempPoint.x, _tempPoint.y);
+					}
 				}
 				
+				// If we are drawing, show what the last polygon would look like if we add the current mouse position
+				// If the user drew two of three points for a triangle, this would show what the completed triangle
+				// would look like if the final point was placed under the cursor. Note that if the PenTool is disabled,
+				// the final point is not put into coords.
 				if (_drawing && drawingMode.value == POLYGON_DRAW_MODE)
 				{
 					g.lineTo(mouseX, mouseY);
+					
+					lastShape = _coordsArrays[_coordsArrays.length - 1];
+					if (lastShape && lastShape.length >= 2)
+					{
+						projectCoordToScreenBounds(lastShape[0], lastShape[1], _tempPoint);
+						
+						g.lineStyle(lineWidth.value, lineColor.value, 0.35);
+						g.lineTo(_tempPoint.x, _tempPoint.y);
+					}
+					
 				}
 			}
 		}
@@ -565,9 +614,12 @@ package weave.ui
 			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget) as ILinkableContainer;
 			if (linkableContainer)
 			{
-				var penObject:PenTool = linkableContainer.getLinkableChildren().getObject( PEN_OBJECT_NAME ) as PenTool;
+				var penObject:PenTool = linkableContainer.getLinkableChildren().getObject(PEN_OBJECT_NAME) as PenTool;
 				if (penObject)
 				{
+					// remove all the drawings and set _drawing = false
+					penObject.removeAllDrawings();
+					
 					if (penObject.drawingMode.value == PenTool.FREE_DRAW_MODE)
 					{
 						penObject.drawingMode.value = PenTool.POLYGON_DRAW_MODE;
@@ -614,10 +666,12 @@ package weave.ui
 					if (penObject.editMode)
 					{
 						_penToolMenuItem.caption = DISABLE_PEN;
+						_changeDrawingMode.enabled = true;
 					}
 					else
 					{
 						_penToolMenuItem.caption = ENABLE_PEN;
+						_changeDrawingMode.enabled = false;
 					}
 					_removeDrawingsMenuItem.enabled = true;
 				}
@@ -641,7 +695,6 @@ package weave.ui
 			if(_penToolMenuItem.caption == ENABLE_PEN)
 			{
 				// enable pen
-				
 				penTool.editMode = true;
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
