@@ -29,9 +29,9 @@ Editor for custom layers using AxisLabelPlotters
 
 	<mx:HBox>
 		<mx:RadioButtonGroup id="hv"/>
-		<mx:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
+		<mx:RadioButton group="{hv}" label="Vertical" selected="{!horizontalCheckBox.selected}"/>
 		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
-					 label="Horizontal lines"
+					 label="Horizontal"
 					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
 	</mx:HBox>
 	
@@ -45,17 +45,24 @@ Editor for custom layers using AxisLabelPlotters
 				creationComplete="linkBindableProperty(_plotter.angle, event.target, 'text')"/>
 	<mx:Spacer/>
 	
-	<ui:Indent indent="{indent}" label="Color:">
+	<ui:Indent indent="{indent}" label="Color:">		
 		<mx:ColorPicker toolTip="Select a font color" id="labelColorPicker" 
 						creationComplete="linkBindableProperty(_plotter.color, event.target, 'selectedColor')"/>
-		<mx:ComboBox toolTip="Select the vertical align mode"
+	</ui:Indent>
+	<ui:Indent indent="{indent}" label="Vertical Align">
+		
+		<mx:ComboBox toolTip="Select the vertical align mode" 
 					 creationComplete="linkBindableProperty(_plotter.vAlign, event.target, 'selectedItem')">
 			<mx:ArrayCollection>
 				<mx:String>top</mx:String>
 				<mx:String>middle</mx:String>
 				<mx:String>bottom</mx:String>
 			</mx:ArrayCollection>
-		</mx:ComboBox>					 
+		</mx:ComboBox>					 			
+	</ui:Indent>
+	
+	
+	<ui:Indent indent="{indent}" label="Horizontal Align">			
 		<mx:ComboBox toolTip="Select the horizontal align mode" 
 					 creationComplete="linkBindableProperty(_plotter.hAlign, event.target, 'selectedItem')">
 			<mx:ArrayCollection>
@@ -64,9 +71,12 @@ Editor for custom layers using AxisLabelPlotters
 				<mx:String>right</mx:String>
 			</mx:ArrayCollection>			
 		</mx:ComboBox>
-		<mx:CheckBox label="Italic" creationComplete="linkBindableProperty(_plotter.italic, event.target, 'selected')"/>
-		<mx:CheckBox label="Bold" creationComplete="linkBindableProperty(_plotter.bold, event.target, 'selected')"/>
-		<mx:CheckBox label="Underline" creationComplete="linkBindableProperty(_plotter.underline, event.target, 'selected')"/>
+	</ui:Indent>
+	
+		<!--<mx:CheckBox label="Italic" creationComplete="linkBindableProperty(_plotter.italic, event.target, 'selected')"/>
+		<mx:CheckBox label="Bold" creationComplete="linkBindableProperty(_plotter.bold, event.target, 'selected')"/>-->
+	<ui:Indent indent="{indent}" label="Underline">
+		<mx:CheckBox creationComplete="linkBindableProperty(_plotter.underline, event.target, 'selected')"/>		
 	</ui:Indent>
 
 	<mx:Script>

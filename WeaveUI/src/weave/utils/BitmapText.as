@@ -61,7 +61,7 @@ package weave.utils
 		public static const HORIZONTAL_ALIGN_CENTER:String = "center";
 		public static const HORIZONTAL_ALIGN_RIGHT:String = "right";
 		public static const VERTICAL_ALIGN_TOP:String = "top";
-		public static const VERTICAL_ALIGN_CENTER:String = "center";
+		public static const VERTICAL_ALIGN_CENTER:String = "middle";
 		public static const VERTICAL_ALIGN_BOTTOM:String = "bottom";
 		public static const ELLIPSIS_LOCATION_LEFT:String = "left";
 		public static const ELLIPSIS_LOCATION_CENTER:String = "center";
