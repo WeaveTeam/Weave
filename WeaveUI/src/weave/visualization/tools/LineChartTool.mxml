@@ -270,26 +270,25 @@
 				yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
 				
+				var xAxisName:String = '';
+				var yAxisName:String = '';
 				if (_plotter.enableGroupBy.value)
 				{
-					xAxisLayer.axisPlotter.setSideAxisName(
-						ColumnUtils.getTitle(_plotter.xData), 
-						0,
-						0, visualization.marginBottom.value - 3, 
-						BitmapText.VERTICAL_ALIGN_BOTTOM
-					);
-					yAxisLayer.axisPlotter.setSideAxisName(
-						ColumnUtils.getTitle(_plotter.yData), 
-						-90, 
-						-visualization.marginLeft.value, 0, 
-						BitmapText.VERTICAL_ALIGN_TOP
-					);
+					xAxisName = ColumnUtils.getTitle(_plotter.xData);
+					yAxisName = ColumnUtils.getTitle(_plotter.yData);
 				}
-				else
-				{
-					xAxisLayer.axisPlotter.setSideAxisName('', 0, 0, 0, '');
-					yAxisLayer.axisPlotter.setSideAxisName('', 0, 0, 0, '');
-				}
+				xAxisLayer.axisPlotter.setSideAxisName(
+					xAxisName,
+					0,
+					0, visualization.marginBottom.value - 3,
+					BitmapText.VERTICAL_ALIGN_BOTTOM
+				);
+				yAxisLayer.axisPlotter.setSideAxisName(
+					yAxisName,
+					-90,
+					-visualization.marginLeft.value, 0,
+					BitmapText.VERTICAL_ALIGN_TOP
+				);
 
 				yAxisLayer.axisPlotter.updateLabels();			
 			}
