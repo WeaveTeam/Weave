@@ -30,6 +30,11 @@
 				percentWidth="NaN" percentHeight="NaN"
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical">
+	<mx:Script>
+		<![CDATA[
+			import weave.visualization.plotters.AxisLabelPlotter;
+		]]>
+	</mx:Script>
 	<mx:VBox borderStyle="solid"
 			 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
 			 backgroundAlpha="0.8" backgroundColor="white"
@@ -38,12 +43,14 @@
 		<mx:List id="layerSelector" width="100%" height="100%" minWidth="250">
 			<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>
 			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{SelectablePlotLayer}"/>
 		</mx:List>
 	
 		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.ui.customLayerSettings.AxisLabelLayerControls;
 			import mx.managers.PopUpManager;
 			
 			import weave.api.disposeObjects;
@@ -63,6 +70,7 @@
 			{
 				EditorManager.registerEditor(GridLinePlotter, GridLineLayerControls);
 				EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
+				EditorManager.registerEditor(AxisLabelPlotter, AxisLabelLayerControls);
 			}
 
 			[Bindable]
