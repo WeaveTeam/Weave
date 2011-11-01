@@ -53,7 +53,6 @@
 				if(!destination.hasOwnProperty("contextMenu") )
 					return false;
 				
-				
 				// Add a listener to this destination context menu for when it is opened
 				var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
@@ -66,7 +65,7 @@
 			
 			private static function handleAddCircle(e:ContextMenuEvent):void
 			{
-				if(panel)
+				if (panel)
 				{
 					var name:String = (panel as MapTool).visualization.layers.generateUniqueName("circle");
 					var plotLayer:SelectablePlotLayer = (panel as MapTool).visualization.layers.requestObject(name,SelectablePlotLayer,false);
@@ -117,21 +116,21 @@
 			
 			public static function openInstance(plotter:CirclePlotter,circleName:String):void
 			{
-				var settingsPanel:CirclePlotterSettings = PopUpManager.createPopUp(Application.application as Application,CirclePlotterSettings) as CirclePlotterSettings;
+				var settingsPanel:CirclePlotterSettings = PopUpManager.createPopUp(Application.application as Application, CirclePlotterSettings) as CirclePlotterSettings;
 				PopUpManager.centerPopUp(settingsPanel);
 				
 				settingsPanel.plotter = plotter;
-				settingsPanel.targets = [plotter.radius,plotter.dataX,plotter.dataY,plotter.color,plotter.thickness];
+				settingsPanel.targets = [plotter.radius, plotter.dataX, plotter.dataY, plotter.color, plotter.thickness];
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 				
 				settingsPanel.title = "Edit " + circleName;
 				
-				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText,"text");
-				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText,"text");
-				linkBindableProperty(settingsPanel.plotter.radius, settingsPanel.radiusText,"text");
-				linkBindableProperty(settingsPanel.plotter.color,settingsPanel.colorPicker,"selectedColor");
-				linkBindableProperty(settingsPanel.plotter.thickness,settingsPanel.thicknessText,"text");
+				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText, "text");
+				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText, "text");
+				linkBindableProperty(settingsPanel.plotter.radius, settingsPanel.radiusText, "text");
+				linkBindableProperty(settingsPanel.plotter.color, settingsPanel.colorPicker, "selectedColor");
+				linkBindableProperty(settingsPanel.plotter.thickness,settingsPanel.thicknessText, "text");
 			}
 			
 			
