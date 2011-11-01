@@ -20,12 +20,12 @@ public class GenerateThumbnail extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	//private String wkPath = "C:\\Program Files\\wkhtmltopdf\\wkhtmltoimage.exe";
-	private String wkPath = "/home/skonecni/programs/atlassian-jira-enterprise-4.0-standalone/atlassian-jira/infomap/apps/wkhtmltoimage-i386";
+	private String wkPath = "/var/lib/tomcat6/webapps/ROOT/infomap/apps/wkhtmltoimage-i386";
 	
 	//private String thumbnailPath = "C:\\temp\\";
-	private String thumbnailPath = "/home/skonecni/programs/atlassian-jira-enterprise-4.0-standalone/atlassian-jira/infomap/thumbnails/";
+	private String thumbnailPath = "/var/lib/tomcat6/webapps/ROOT/infomap/thumbnails/";
 	
-	private String pdf2ImgPath = "/home/skonecni/programs/atlassian-jira-enterprise-4.0-standalone/atlassian-jira/infomap/apps/pdfbox-app-1.6.0.jar";
+	private String pdf2ImgPath = "/var/lib/tomcat6/webapps/ROOT/infomap/apps/pdfbox-app-1.6.0.jar";
 	
 	
 	public void doGet(HttpServletRequest request,
@@ -84,7 +84,7 @@ public class GenerateThumbnail extends HttpServlet {
 			runCommand(command);
 		}
 		
-		
+		System.out.println("FINISHED GENERATING THUMBNAIL " + imgName);
 		out.close();
   }
 	

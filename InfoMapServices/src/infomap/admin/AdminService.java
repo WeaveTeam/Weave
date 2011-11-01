@@ -66,16 +66,20 @@ public class AdminService extends GenericServlet{
     {
     	String query = "SELECT title,url FROM rss_feeds";
     	SQLResult result = null;
+    	Connection connection = null;
 		try
 		{
 			String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-			Connection connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+			connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
 			result = SQLUtils.getRowSetFromQuery(connection, query);
+			
 		}
 		catch (Exception e)
 		{
 			System.out.println(query);
 			e.printStackTrace();
+		}finally{
+			SQLUtils.cleanup(connection);
 		}
 		return  result.rows;	
     }

@@ -35,4 +35,12 @@
     <servlet-name>AdminService</servlet-name>
     <url-pattern>/AdminService</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <servlet-name>SaveThumbnailFromURL</servlet-name>
+    <servlet-class>infomap.thumbnailr.SaveThumbnailFromURL</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SaveThumbnailFromURL</servlet-name>
+    <url-pattern>/SaveThumbnailFromURL</url-pattern>
+  </servlet-mapping>
 </web-app>

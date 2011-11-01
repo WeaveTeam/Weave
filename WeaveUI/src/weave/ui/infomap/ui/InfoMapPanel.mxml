@@ -61,6 +61,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
+			import weave.data.DataSources.CSVDataSource;
 			import weave.data.KeySets.KeySet;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.jquery.JQueryCaller;
@@ -116,6 +117,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 //				globalDateFilter.endDate.addImmediateCallback(this,handleEndDateChange);
 //				globalDateFilter.startDate.addImmediateCallback(this,handleStartDateChange);
 				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text");
+				
+				/*	we will create a CSVDataSource named docs which will hold all the doucments
+				 	if it alreadt exists we will use the existing data source 
+				*/
+				
+				var docsDataSource:CSVDataSource = Weave.root.requestObject("docs",CSVDataSource, false);
+				docsDataSource.csvDataString.value = "title,url,summary, image url, date";
+				docsDataSource.keyColName.value = "url";
+				docsDataSource.keyType.value = "url";
 			}
 			
 			private function handlePanelResize():void
