@@ -44,6 +44,7 @@ package weave
 	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
+	import mx.core.UIComponentGlobals;
 	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
@@ -397,7 +398,10 @@ package weave
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			
+
+			UIComponentGlobals.catchCallLaterExceptions = true;
+			systemManager.addEventListener("callLaterError", function(event:*):void{ WeaveAPI.ErrorManager.reportError(event.error); });
+
 			_application.addChild(visDesktop);
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;

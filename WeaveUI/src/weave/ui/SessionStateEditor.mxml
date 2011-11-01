@@ -837,7 +837,13 @@
 			}
 			
 			private const symbolTable:Object = {
-				'javaScript': function(...args):* { ExternalInterface.marshallExceptions = true; ExternalInterface.call.apply(this, args); },
+				'javaScript': function(...args):*
+				{
+					var prev:Boolean = ExternalInterface.marshallExceptions;
+					ExternalInterface.marshallExceptions = true;
+					ExternalInterface.call.apply(this, args);
+					ExternalInterface.marshallExceptions = prev;
+				},
 				'application': Application.application,
 				'print': ObjectUtil.toString as Function,
 				'getObject': getObject,
@@ -852,11 +858,9 @@
 				var decompiled:String;
 				try
 				{
-					compiler.debug = false;
 					var obj:ICompiledObject = compiler.compileToObject(console.text);
 					//decompiled = compiler.decompileObject(obj);
 					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
-					compiler.debug = true;
 					result = func.apply(sessionNav.getSelectedSessionedObject());
 					try
 					{

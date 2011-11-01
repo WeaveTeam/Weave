@@ -178,7 +178,12 @@ package weave.visualization.plotters
 		}
 		
 		// this is a way to get the number of keys (bars or groups of bars) shown
-		public function get numBarsShown():int { return _filteredKeySet.keys.length }
+		public function get maxTickMarks():int
+		{
+			if (groupBySortColumn.value)
+				return _binnedSortColumn.numberOfBins;
+			return _filteredKeySet.keys.length;
+		}
 		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
@@ -240,7 +245,7 @@ package weave.visualization.plotters
 					var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
 					keysInBin.sort(_sortByColor);
 					xMin = xMin + keysInBin.indexOf(recordKey) / keysInBin.length * groupSegmentWidth;
-					xMax = xMin + 1 / keysInBin.length * groupSegmentWidth;
+					xMax = xMin + recordWidth / keysInBin.length;
 					recordWidth /= keysInBin.length;
 					groupSegmentWidth /= keysInBin.length;
 				}
@@ -300,7 +305,7 @@ package weave.visualization.plotters
 						// bar starts at bar center - half width of the bar, plus the spacing between this and previous bar
 						var barStart:Number = xMin;
 						if (_groupingMode == GROUP)
-							barStart += i / _heightColumns.length * groupSegmentWidth;
+							barStart += i * groupSegmentWidth;
 						
 						if ( height >= 0)
 						{
@@ -560,18 +565,19 @@ package weave.visualization.plotters
 				sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 			else
 				sortedIndex = _sortedIndexColumn.getValueFromKey(recordKey, Number);
-			var minPos:Number = sortedIndex - 0.5;
-			var maxPos:Number = sortedIndex + 0.5;
+			var spacing:Number = StandardLib.constrain(barSpacing.value, 0, 1) / 2; // max distance between bar groups is 0.5 in data coordinates
+			var minPos:Number = sortedIndex - 0.5 + spacing / 2;
+			var maxPos:Number = sortedIndex + 0.5 - spacing / 2;
 			var recordWidth:Number = maxPos - minPos;
 			if (_groupBySortColumn)
 			{
 				// shrink down bars to fit in one groupSegmentWidth
-				var groupSegmentWidth:Number = recordWidth / _heightColumns.length;
+				var groupSegmentWidth:Number = _groupingMode == GROUP ? recordWidth / _heightColumns.length : recordWidth;
 				var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
 				if (keysInBin)
 				{
 					minPos = minPos + keysInBin.indexOf(recordKey) / keysInBin.length * groupSegmentWidth;
-					maxPos = minPos + 1 / keysInBin.length * groupSegmentWidth;
+					maxPos = minPos + recordWidth / keysInBin.length;
 					recordWidth /= keysInBin.length;
 				}
 			}

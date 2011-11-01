@@ -286,12 +286,12 @@
 
 				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
 				sortAxisLayer.axisPlotter.tickMinValue.value = 0;
-				sortAxisLayer.axisPlotter.tickMaxValue.value = _plotter.numBarsShown - 1;
+				sortAxisLayer.axisPlotter.tickMaxValue.value = _plotter.maxTickMarks - 1;
 				sortAxisLayer.axisPlotter.forceTickCount.value = showAllLabels.value;
 				if (showAllLabels.value)
-					sortAxisLayer.axisPlotter.tickCountRequested.value = _plotter.numBarsShown;
+					sortAxisLayer.axisPlotter.tickCountRequested.value = _plotter.maxTickMarks;
 				else
-					sortAxisLayer.axisPlotter.tickCountRequested.value = Math.min(_plotter.numBarsShown, 11);
+					sortAxisLayer.axisPlotter.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
 				
 				// END handling of horizontal/vertical mode --------------------------------
 				
@@ -327,7 +327,6 @@
 					groupMode.enabled = true;
 					showValueLabelsCheckBox.enabled = groupedRadioButton.selected;
 					colorColumnInput.enabled = false;
-					groupBySortColumnCheckBox.enabled = false;
 				}
 				else
 				{
@@ -335,7 +334,6 @@
 					groupMode.enabled = false;
 					showValueLabelsCheckBox.enabled = true;
 					colorColumnInput.enabled = true;
-					groupBySortColumnCheckBox.enabled = true;
 				}
 				labelColumnInput.enabled = !_plotter.groupBySortColumn.value;
 			}

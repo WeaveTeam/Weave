@@ -21,24 +21,19 @@ package weave
 {
 	import flash.external.ExternalInterface;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
-	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
-	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
 	import weave.visualization.layers.InteractionController;
 
@@ -324,8 +319,10 @@ package weave
 			var script:String = 'function(id){ var weave = document.getElementById(id); ' + startupJavaScript.value + ' }';
 			try
 			{
+				var prev:Boolean = ExternalInterface.marshallExceptions;
 				ExternalInterface.marshallExceptions = true;
 				ExternalInterface.call(script, ExternalInterface.objectID);
+				ExternalInterface.marshallExceptions = prev;
 			}
 			catch (e:Error)
 			{
