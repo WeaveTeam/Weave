@@ -291,6 +291,7 @@ package weave
 		
 		private function handleRServiceURLChange():void
 		{
+			rServiceURL.value = rServiceURL.value.replace('OpenIndicatorsRServices', 'WeaveServices');
 			if (rServiceURL.value == '/WeaveServices')
 				rServiceURL.value += '/RService';
 		}
@@ -369,7 +370,7 @@ package weave
 		}
 		[Deprecated(replacement="rServiceURL")] public function set rServicesURL(value:String):void
 		{
-			if (value != '/OpenIndicatorsDataServices')
+			if (value != '/OpenIndicatorsRServices')
 				rServiceURL.value = value + '/RService';
 		}
 		//--------------------------------------------
