@@ -71,6 +71,7 @@ LinkableObjectList
 			import weave.api.getCallbackCollection;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
@@ -221,7 +222,7 @@ LinkableObjectList
 							object = items[i] as ILinkableObject;
 							if (hashMap.getName(object) == null)
 							{
-								var newObject:ILinkableObject = hashMap.copyObject(null, object);
+								var newObject:ILinkableObject = hashMap.weave_internal::requestObjectCopy(null, object);
 								newNames.push(hashMap.getName(newObject));
 							}
 						}
@@ -235,7 +236,7 @@ LinkableObjectList
 					else if (dynamicObject && items.length > 0)
 					{
 						// only copy the first item in the list
-						dynamicObject.copyLocalObject(items[0]);
+						dynamicObject.weave_internal::requestLocalObjectCopy(items[0]);
 					}
 				}
 			}

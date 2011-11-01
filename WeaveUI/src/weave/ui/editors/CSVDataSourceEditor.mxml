@@ -39,14 +39,12 @@
 			import weave.data.DataSources.CSVDataSource;
 			import weave.utils.EditorManager;
 			
-			{EditorManager.registerEditor(CSVDataSource,CSVDataSourceEditor);}
-			
 			private var _csvDataSource:CSVDataSource= null;
-			public function set linkableObject(object:ILinkableObject):void
+			public function setTarget(object:ILinkableObject):void
 			{
 				_csvDataSource = object as CSVDataSource;
 				var checkObj:String  = Weave.root.getName(_csvDataSource);
-				if(checkObj !=null)
+				if(checkObj != null)
 				{
 					editorTitle.text = "Edit";
 					uniqueName = Weave.root.getName(_csvDataSource);

@@ -21,23 +21,19 @@ package weave
 {
 	import flash.external.ExternalInterface;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableHashMap;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
-	import weave.core.LinkableFunction;
 	import weave.resources.fonts.EmbeddedFonts;
-	import weave.ui.SessionStateEditor;
 	import weave.utils.DebugUtils;
 	import weave.visualization.layers.InteractionController;
 
@@ -82,14 +78,19 @@ package weave
 		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
-		private function verifyWindowSnapGridSize(value:Number):Boolean { return value >= 1; }
+		private function verifyWindowSnapGridSize(value:String):Boolean
+		{
+			if (value.substr(-1) == '%')
+				return StandardLib.asNumber(value.substr(0, -1)) > 0;
+			return StandardLib.asNumber(value) >= 1;
+		}
 		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
 		private function verifyMaxTooltipRecordsShown(value:Number):Boolean { return 0 <= value && value <= 20; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
 //		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Views TabBar
-		public const windowSnapGridSize:LinkableNumber = new LinkableNumber(5, verifyWindowSnapGridSize); // window snap grid size in pixels
+		public const windowSnapGridSize:LinkableString = new LinkableString("1%", verifyWindowSnapGridSize); // window snap grid size in pixels
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
@@ -122,6 +123,7 @@ package weave
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
+		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
 		
 //		public const enableAddStickFigurePlot:LinkableBoolean = new LinkableBoolean(true); // Add Stick Figure Plot option tools menu
 		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu		
@@ -164,7 +166,6 @@ package weave
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
 		public const enableNewDataset:LinkableBoolean = new LinkableBoolean(true); // enable/disable New Dataset option
 		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
-		public const enableAddGrailsDataSource:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableWindowMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Window Menu
 		public const enableGoFullscreen:LinkableBoolean = new LinkableBoolean(true); // enable/disable Fullscreen
@@ -292,6 +293,7 @@ package weave
 		
 		private function handleRServiceURLChange():void
 		{
+			rServiceURL.value = rServiceURL.value.replace('OpenIndicatorsRServices', 'WeaveServices');
 			if (rServiceURL.value == '/WeaveServices')
 				rServiceURL.value += '/RService';
 		}
@@ -320,7 +322,10 @@ package weave
 			var script:String = 'function(id){ var weave = document.getElementById(id); ' + startupJavaScript.value + ' }';
 			try
 			{
+				var prev:Boolean = ExternalInterface.marshallExceptions;
+				ExternalInterface.marshallExceptions = true;
 				ExternalInterface.call(script, ExternalInterface.objectID);
+				ExternalInterface.marshallExceptions = prev;
 			}
 			catch (e:Error)
 			{
@@ -330,6 +335,10 @@ package weave
 		
 		public function get macroLibraries():LinkableString { return LinkableFunction.libraries; }
 		public function get macros():ILinkableHashMap { return LinkableFunction.macros; }
+		
+		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
+		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);
+
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
@@ -363,7 +372,7 @@ package weave
 		}
 		[Deprecated(replacement="rServiceURL")] public function set rServicesURL(value:String):void
 		{
-			if (value != '/OpenIndicatorsDataServices')
+			if (value != '/OpenIndicatorsRServices')
 				rServiceURL.value = value + '/RService';
 		}
 		//--------------------------------------------

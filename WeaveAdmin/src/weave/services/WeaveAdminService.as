@@ -159,9 +159,9 @@ package weave.services
 		{
 			return generateQueryAndAddToQueue("getGeometryCollectionInfo", arguments);
 		}
-		public function getInvalidQueryInfo(connectionName:String, password:String):DelayedAsyncInvocation
+		public function testAllQueries(connectionName:String, password:String, dataTableName:String):DelayedAsyncInvocation
 		{
-			return generateQueryAndAddToQueue("getInvalidQueryInfo", arguments);
+			return generateQueryAndAddToQueue("testAllQueries", arguments);
 		}
 		
 		// save info

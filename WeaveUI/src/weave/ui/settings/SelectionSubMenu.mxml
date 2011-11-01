@@ -30,58 +30,48 @@
 			import weave.core.SessionManager;
 		]]>
 	</mx:Script>
-	<mx:ViewStack id="selection"
-				  height="100%" width="100%"
-				  >
-		<mx:Canvas id="admin">
-			<mx:VBox>					
-				<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
-							 id="enableBitmapFilters"
-							 label="Enable Bitmap Filters"
-							 selected="true"
-							 initialize="linkBindableProperty(Weave.properties.enableBitmapFilters, enableBitmapFilters, 'selected')"
-							 />
-				<mx:VBox enabled="{enableBitmapFilters.selected}">			
-					<mx:HBox>
-						<mx:Label text="Shadow Color" 
-								  width="200"	
-								  textAlign="right"
-								  toolTip="Set the shadow color of selected points"/>
-						<mx:ColorPicker id="shadowColor"
-										creationComplete="linkBindableProperty(Weave.properties.shadowColor, shadowColor, 'selectedColor' );"
-										/>
-					</mx:HBox>
-					<mx:HBox>
-						<mx:Label text="Shadow Alpha" 
-								  width="200"	
-								  textAlign="right"
-								  toolTip="Set the opacity of selected points"/>
-						<mx:NumericStepper id="shadowAlpha"
-										   maximum="1"
-										   stepSize="0.1"
-										   creationComplete="linkBindableProperty(Weave.properties.shadowAlpha, shadowAlpha, 'value' );"
-										   />
-					</mx:HBox>
-					<mx:HBox>
-						<mx:Label text="Dashed Lines Parameters"
-								  width="200"
-								  textAlign="right"
-								  toolTip="Set the values the gaps and lines of the dashed lines"
-								  id="dashedLabel"/>
-						<mx:TextInput id="dashedLinesString"
-									  creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, dashedLinesString, 'text' );"
-									  />
-						<mx:Canvas id="dashedCanvas"
-								   width="200"
-								   height="{dashedLinesString.height}"
-								   />
-					</mx:HBox>
-				</mx:VBox>
-			</mx:VBox>
-	</mx:Canvas>	
-	<mx:Canvas id="notadmin">
-	</mx:Canvas>
-	</mx:ViewStack>
+	<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
+				 id="enableBitmapFilters"
+				 label="Enable Bitmap Filters"
+				 selected="true"
+				 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
+				 />
+	<mx:VBox enabled="{enableBitmapFilters.selected}">			
+		<mx:HBox>
+			<mx:Label text="Shadow Color" 
+					  width="200"	
+					  textAlign="right"
+					  toolTip="Set the shadow color of selected points"/>
+			<mx:ColorPicker id="shadowColor"
+							creationComplete="linkBindableProperty(Weave.properties.shadowColor, event.target, 'selectedColor' );"
+							/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Shadow Alpha" 
+					  width="200"	
+					  textAlign="right"
+					  toolTip="Set the opacity of selected points"/>
+			<mx:NumericStepper id="shadowAlpha"
+							   maximum="1"
+							   stepSize="0.1"
+							   creationComplete="linkBindableProperty(Weave.properties.shadowAlpha, event.target, 'value' );"
+							   />
+		</mx:HBox>
+	</mx:VBox>
+	<mx:HBox>
+		<mx:Label text="Dashed Lines Parameters"
+				  width="200"
+				  textAlign="right"
+				  toolTip="Set the values the gaps and lines of the dashed lines"
+				  id="dashedLabel"/>
+		<mx:TextInput id="dashedLinesString"
+					  creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, event.target, 'text' );"
+					  />
+		<mx:Canvas id="dashedCanvas"
+				   width="200"
+				   height="{dashedLinesString.height}"
+				   />
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import weave.utils.DashedLine;

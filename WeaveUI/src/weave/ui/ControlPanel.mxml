@@ -24,6 +24,9 @@
 				title="Control Panel"
 				backgroundColor="0xCCCCCC"
 				addedToStage="save();"
+				width="600"
+				height="400"
+				sessionPanelCoordsAsPercentages="false"
 				layout="vertical"
 				>
 	<mx:Metadata>
@@ -50,10 +53,19 @@
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
 			
+
 			private const padding:int = 5;
 			private var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;
+			private var createdChildren:Boolean = false;
+			
+			/**
+			 * container for the Save, Revert, Cancel and Save & Close buttons 
+			 */
+			protected var controlPanelControls:ControlPanelControls = new ControlPanelControls();
+			
+			public function get tabNavigator():TabNavigator { return controlPanelControls ? controlPanelControls.tabNavigator : null; }
 			
 			override public function set layout(value:String):void
 			{
@@ -86,12 +98,26 @@
 			 */
 			public function set targets(array:Array):void
 			{
+				_targetObjects = array;
+				save();
+				
+				adjustControls();
+			}
+			
+			private function adjustControls():void
+			{
+				if (!parent)
+				{
+					callLater(adjustControls);
+					return;
+				}
+				
 				// make sure controls are initialized before attempting to manipulate its children.
 				controlPanelControls.initialize();
 				controlPanelControls.validateNow();
 				
 				// show buttons if there are targets, hide them if not
-				if (array == null || array.length == 0)
+				if (_targetObjects == null || _targetObjects.length == 0)
 				{
 					closeable.value = true;
 					if (controlPanelControls == controlPanelControls.buttons.parent)
@@ -103,9 +129,6 @@
 					if (controlPanelControls != controlPanelControls.buttons.parent)
 						controlPanelControls.addChild(controlPanelControls.buttons);
 				}
-				
-				_targetObjects = array;
-				save();
 			}
 			
 			/**
@@ -173,11 +196,7 @@
 					}
 				}
 			}
-			private var createdChildren:Boolean = false;
-			/**
-			 * container for the Save, Revert, Cancel and Save & Close buttons 
-			 */
-			protected const controlPanelControls:ControlPanelControls = new ControlPanelControls();
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();

@@ -44,10 +44,8 @@
 			import weave.data.DataSources.XLSDataSource;
 			import weave.utils.EditorManager;
 			
-			{EditorManager.registerEditor(XLSDataSource,XLSDataSourceEditor);}
-			
 			private var _xlsDataSource:XLSDataSource= null;
-			public function set linkableObject(object:ILinkableObject):void
+			public function setTarget(object:ILinkableObject):void
 			{
 				_xlsDataSource = object as XLSDataSource;
 				var checkObj:String  = Weave.root.getName(_xlsDataSource);

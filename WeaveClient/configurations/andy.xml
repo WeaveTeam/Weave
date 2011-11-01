@@ -136,22 +136,25 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <startupJavaScript>var d = document.getElementById('weavePopup') || document.createElement('v');
 d.id = 'weavePopup';
 var style = {
- position: 'absolute',
- left: '200px',
- top: '100px',
- width: '200px',
- height: '50px',
- color: "#ffffff",
- fontWeight: 'bold',
- backgroundColor: '#800080',
- textAlign: 'center',
- lineHeight: '50px',
- fontSize: '25px'
+  position: 'absolute',
+  left: '400px',
+  top: '300px',
+  width: '200px',
+  height: '50px',
+  color: "#ffffff",
+  fontWeight: 'bold',
+  backgroundColor: '#800080',
+  textAlign: 'center',
+  lineHeight: '50px',
+  fontSize: '25px'
 };
 for (var key in style)
- d.style[key] = style[key];
-d.innerHTML = 'Hello, world.';
-document.body.appendChild(d);</startupJavaScript>
+  d.style[key] = style[key];
+var value = document.getElementById('scriptInput').value;
+d.innerHTML = value;
+document.body.appendChild(d);
+weave.setSessionState(['custom panel','properties'],{title: value}, false);
+</startupJavaScript>
     <toolInteractions>
       <defaultDragMode>select</defaultDragMode>
       <pan>alt,drag</pan>

@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -70,6 +69,7 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
 import weave.beans.AdminServiceResponse;
@@ -615,33 +615,32 @@ public class AdminService extends GenericServlet
 	}
 	
 	/**
-	 * Returns metadata about columns with invalid queries.
+	 * Returns the results of testing attribute column sql queries.
 	 */
-	synchronized public AttributeColumnInfo[] getInvalidQueryInfo(String connectionName, String password) throws RemoteException
+	synchronized public AttributeColumnInfo[] testAllQueries(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		List<AttributeColumnInfo> infolist = config.getAttributeColumnInfo(new HashMap<String, String>());
-		List<AttributeColumnInfo> invalidQueryinfoList = new LinkedList<AttributeColumnInfo>();
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put(Metadata.DATATABLE.toString(), dataTableName);
+		List<AttributeColumnInfo> infolist = config.getAttributeColumnInfo(params);
 		for (int i = 0; i < infolist.size(); i ++)
 		{
 			AttributeColumnInfo attributeColumnInfo = infolist.get(i);
 			try
 			{
-				
 				String query = attributeColumnInfo.sqlQuery;
-				SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
-//				System.out.println(query);
+				System.out.println(query);
+				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
+				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
-			
-			catch(Exception e)
+			catch (Exception e)
 			{
 				e.printStackTrace();
-				invalidQueryinfoList.add(attributeColumnInfo);
+				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, e.getMessage());
 			}
-			
 		}
 		
-		return invalidQueryinfoList.toArray(new AttributeColumnInfo[invalidQueryinfoList.size()]);
+		return infolist.toArray(new AttributeColumnInfo[0]);
 	}
 
 	@SuppressWarnings("unchecked")

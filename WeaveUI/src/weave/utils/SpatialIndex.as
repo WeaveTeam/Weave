@@ -1,20 +1,20 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.utils
@@ -64,7 +64,7 @@ package weave.utils
 		{
 			addImmediateCallback(this, callback, callbackParameters);
 		}
-
+		
 		private var _kdTree:KDTree = new KDTree(5);
 		private var _keyToBoundsMap:Dictionary = new Dictionary();
 		
@@ -73,7 +73,7 @@ package weave.utils
 		 * This bounds represents the full extent of the shape index.
 		 */
 		public const collectiveBounds:IBounds2D = new Bounds2D();
-
+		
 		/**
 		 * This function gets a list of Bounds2D objects associated with a key.
 		 * @param key A record key.
@@ -105,7 +105,7 @@ package weave.utils
 		{
 			return _kdTree.nodeCount;
 		}
-
+		
 		private var _keyToGeometriesMap:Dictionary = new Dictionary();
 		
 		/**
@@ -116,7 +116,7 @@ package weave.utils
 		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
 			delayCallbacks();
-						
+			
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
@@ -130,7 +130,7 @@ package weave.utils
 			}
 			
 			_tempBounds.copyFrom(collectiveBounds);
-
+			
 			clear();
 			
 			if (plotter != null)
@@ -139,7 +139,7 @@ package weave.utils
 				
 				// make a copy of the keys vector
 				VectorUtils.copy(plotter.keySet.keys, _keysArray);
-				trace("Checking **************");
+				
 				// save dataBounds for each key
 				i = _keysArray.length;
 				while (--i > -1)
@@ -157,9 +157,9 @@ package weave.utils
 //							geomsCollectiveBounds.includeBounds(geom.bounds);
 //						}
 					}
-						
+					
 				}
-
+				
 				// if auto-balance is disabled, randomize insertion order
 				if (!_kdTree.autoBalance)
 				{
@@ -192,7 +192,7 @@ package weave.utils
 			
 			resumeCallbacks();
 		}
-
+		
 		/**
 		 * This function empties the spatial index.
 		 */
@@ -206,10 +206,10 @@ package weave.utils
 			_keysArray.length = 0;
 			_kdTree.clear();
 			collectiveBounds.reset();
-
+			
 			resumeCallbacks();
 		}
-
+		
 		private function polygonOverlapsPolyLine(polygon:Array, line:Object):Boolean
 		{
 			for (var i:int = 0; i < line.length - 1; ++i)
@@ -297,20 +297,20 @@ package weave.utils
 			
 			// define the bounds as a polygon
 			setTempBounds(bounds);
-
+			
 			var result:Array = [];
-
+			
 			// for each key, look up its geometries 
 			keyLoop: for (var i:int = keys.length - 1; i >= 0; --i)
 			{
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];
-
+				
 				// for each geometry, get vertices, check type, and do proper geometric overlap
 				for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
 				{
 					var geom:Object = geoms[iGeom];
-
+					
 					if (geom is GeneralizedGeometry)
 					{
 						var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
@@ -387,14 +387,14 @@ package weave.utils
 								continue keyLoop;
 							}
 						}
-							
+						
 					}
 				} // end for each (var geom...
 			} // end for each (var key...
-
+			
 			return result; 
 		} // end function
-			
+		
 		private var _keyToDistance:Dictionary = null;
 		private function setTempBounds(bounds:IBounds2D):void
 		{
@@ -409,7 +409,7 @@ package weave.utils
 			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
 			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
 		}
-				
+		
 		/**
 		 * This function will get the keys closest the center of the bounds object. Generally this function will
 		 * return an array of at most one key. Sometimes, it may return more than one key if there are multiple keys
@@ -448,7 +448,7 @@ package weave.utils
 				// if the plotter wasn't an IPlotterWithGeometries or if the user wants the old probing
 				if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
 				{
- 					for each (recordBounds in _keyToBoundsMap[key])
+					for each (recordBounds in _keyToBoundsMap[key])
 					{
 						// find the distance squared from the query point to the center of the shape
 						xDistance = recordBounds.getXCenter() - xQueryCenter;
@@ -458,7 +458,7 @@ package weave.utils
 						if (!isNaN(yPrecision) && yPrecision != 0)
 							yDistance = int(yDistance / yPrecision);
 						distanceSq = xDistance * xDistance + yDistance * yDistance;
-
+						
 						overlapsQueryCenter = recordBounds.contains(xQueryCenter, yQueryCenter);
 						
 						// Consider all keys until we have found one that overlaps the query center.
@@ -643,6 +643,122 @@ package weave.utils
 			result.length = resultCount;
 			return result;
 		}
+
+		/**
+		 * This function will get the keys whose geometries intersect with the given geometry.
+		 * 
+		 * @param geometry An ISimpleGeometry object used to query the spatial index.
+		 * @param minImportance The minimum importance value to use when determining geometry overlap.
+		 * @param filterBoundingBoxesByImportance If true, bounding boxes will be pre-filtered by importance before checking geometry overlap.
+		 * @return An array of keys.
+		 */		
+		public function getKeysGeometryOverlapGeometry(geometry:ISimpleGeometry, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array
+		{
+			// first filter by bounds
+			var point:Object;
+			var queryGeomVertices:Array = geometry.getVertices();
+			var keys:Array = getKeysBoundingBoxOverlap((geometry as SimpleGeometry).bounds, 0);
+			
+			if (!Weave.properties.enableGeometryProbing.value || _keyToGeometriesMap == null)
+				return keys;
+			
+			var result:Array = [];
+			
+			// for each key, look up its geometries 
+			keyLoop: for (var i:int = keys.length - 1; i >= 0; --i)
+			{
+				var key:IQualifiedKey = keys[i];
+				var geoms:Array = _keyToGeometriesMap[key];
+				
+				// for each geometry, get vertices, check type, and do proper geometric overlap
+				for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
+				{
+					var geom:Object = geoms[iGeom];
+					
+					if (geom is GeneralizedGeometry)
+					{
+						var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
+						var genGeomIsPoly:Boolean = genGeom.isPolygon();
+						var genGeomIsLine:Boolean = genGeom.isLine();
+						var genGeomIsPoint:Boolean = genGeom.isPoint();
+						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, _tempSimpleGeomBounds);
+						
+						
+						// for each part, build the vertices polygon and check for the overlap
+						for (var iPart:int = 0; iPart < simplifiedGeom.length; ++iPart)
+						{
+							// get the part
+							var part:Vector.<BLGNode> = simplifiedGeom[iPart];
+							if (part.length == 0) // if no points, continue
+								continue;
+							
+							// if a polygon, check for polygon overlap
+							if (genGeomIsPoly)
+							{
+								if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices, part))
+								{
+									result.push(key);
+									continue keyLoop;
+								}
+							}
+							else if (genGeomIsLine)
+							{
+								if (polygonOverlapsPolyLine(queryGeomVertices, part))
+								{
+									result.push(key);
+									continue keyLoop;
+								}
+							}
+							else // point
+							{
+								if (polygonOverlapsPolyPoint(queryGeomVertices, part))
+								{
+									result.push(key);
+									continue keyLoop;
+								}
+							}
+						}
+					}
+					else // NOT a generalized geometry
+					{
+						var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
+						var simpleGeomIsPoly:Boolean = simpleGeom.isPolygon();
+						var simpleGeomIsLine:Boolean = simpleGeom.isLine();
+						var simpleGeomIsPoint:Boolean = simpleGeom.isPoint();
+						// get its vertices
+						var vertices:Array = simpleGeom.getVertices();
+						
+						if (simpleGeomIsPoly)// a polygon, check for polygon overlap
+						{
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices, vertices))
+							{
+								result.push(key);
+								continue keyLoop;
+							}
+						}
+						else if (simpleGeomIsLine) // if a line, check for bounds intersect line
+						{
+							if (polygonOverlapsPolyLine(queryGeomVertices, vertices))
+							{
+								result.push(key);
+								continue keyLoop;
+							}
+						}
+						else
+						{
+							if (polygonOverlapsPolyPoint(queryGeomVertices, vertices))
+							{
+								result.push(key);
+								continue keyLoop;
+							}
+						}
+						
+					}
+				} // end for each (var geom...
+			} // end for each (var key...
+			
+			return result; 
+		}
 		
 		/**
 		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
@@ -661,6 +777,7 @@ package weave.utils
 		
 		// reusable temporary objects
 		private const _tempBounds:IBounds2D = new Bounds2D();
+		private const _tempSimpleGeomBounds:IBounds2D = new Bounds2D();			
 		private const _tempArray:Array = [];
 		private const _tempBoundsPolygon:Array = [new Point(), new Point(), new Point(), new Point(), new Point()];
 		private const _tempGeometryPolygon:Array = [];

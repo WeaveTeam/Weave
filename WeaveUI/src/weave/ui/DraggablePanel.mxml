@@ -320,7 +320,7 @@
 					evaluatePanelTitle();
 				}
 			}
-			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(true, true)); // this is used in handlePanelTitleChange()
+			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()
 
 			// this gets called as a grouped callback when Weave.root changes and whenever panelTitle can be compiled to a function
 			private function evaluatePanelTitle():void
@@ -368,12 +368,7 @@
 					titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
 			}
 			
-			[Inspectable]
-			public function set sessionPanelCoordsAsPercentages(value:Boolean):void
-			{
-				_sessionPanelCoordsAsPercentages = value;
-			}
-			private var _sessionPanelCoordsAsPercentages:Boolean = true;
+			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
 			
 			// this allows you to specify a percentage value like x="25%" in MXML.
 		    [PercentProxy("percentX")]
@@ -475,10 +470,12 @@
 				if (!singleProperty || singleProperty == panelY)
 					copyCoordinateFromLinkableString(panelY, parent.height, "y");
 				if (!singleProperty || singleProperty == panelWidth)
-					copyCoordinateFromLinkableString(panelWidth, parent.width, "width");
+					copyCoordinateFromLinkableString(panelWidth, parent.width, "width", minWidth);
 				if (!singleProperty || singleProperty == panelHeight)
-					copyCoordinateFromLinkableString(panelHeight, parent.height, "height");
+					copyCoordinateFromLinkableString(panelHeight, parent.height, "height", minHeight);
 			}
+			
+			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
 
 			/**
 			 * This function will copy a sessioned string like "75%" as a Number using the calculation "part = whole * percent / 100".
@@ -487,23 +484,26 @@
 			 * @param whole The "whole" value in the calculation (parent width or height).
 			 * @param destinationPropertyName The name of a property to set on this object (x, y, width, or height) which is the "part" value.
 			 */
-			private function copyCoordinateFromLinkableString(part:LinkableString, whole:Number, destinationPropertyName:String):void
+			private function copyCoordinateFromLinkableString(part:LinkableString, whole:Number, destinationPropertyName:String, minValue:Number = NaN):void
 			{
 				if (parent == null || _minimized)
 					return;
 				
 				var numberOrPercent:String = part.value;
 				
-				// if maximized, use 0%,0%,100%,100% as coordinates
+				// if maximized, use maximized coordinates
 				if (maximized.value)
-					numberOrPercent = {x: "0%", y: "0%", width: "100%", height: "100%"}[destinationPropertyName];
+					numberOrPercent = _maximizedCoordinates[destinationPropertyName];
 				
 				var result:Number = NumberUtils.getNumberFromNumberOrPercent(numberOrPercent, whole);
 				
 				//trace("handleAbsoluteAndPercentageValues",arguments,numberOrPercent,whole,result);
-				
-				if (!isNaN(result))
+				if (isFinite(result))
+				{
+					if (isFinite(minValue))
+						result = Math.max(minValue, result);
 					this[destinationPropertyName] = result;
+				}
 			}
 
 			protected function updateForceEnableBorders():void
@@ -545,52 +545,10 @@
 				invalidateDisplayList();
 				updateBorders();
 			}
-
-			/**
-			 * If percentage mode is enabled, this function will save a coordinate as a
-			 * sessioned string like "75%" using the calculation "percent = 100 * part / whole".
-			 * Otherwise, this function will save the value as an absolute coordinate.
-			 * @param destinationLinkableString The LinkableString to store the resulting value in.
-			 * @param coordinate The coordinate (x, y, width, or height) which is the "part" value.
-			 * @param maxCoordinate The max coordinate value (parent.width or parent.height) to use as the "whole" value.
-			 */
-			private function copyCoordinateToLinkableString(destinationLinkableString:LinkableString, coordinate:Number, maxCoordinate:Number):void
-			{
-				// don't copy coordinates while tool is minimized or maximized or playing a resize animation
-				if (_minimized || maximized.value || effectInProgress)
-					return;
-
-				var percentageMode:Boolean = true; // temporary solution
-
-				if (Weave.properties.enablePanelCoordsPercentageMode.value && _sessionPanelCoordsAsPercentages)
-					destinationLinkableString.value = StandardLib.roundSignificant(100 * coordinate / maxCoordinate, 5) + "%";
-				else
-					destinationLinkableString.value = String(coordinate);
-			}
 			
 			override public function move(x:Number, y:Number):void
 			{
 				super.move(Math.round(x), Math.round(y));
-			}
-			
-			private function get snapGridSize():Number
-			{
-				var snap:Number = Weave.properties.windowSnapGridSize.value;
-				if (isNaN(snap) || snap < 1)
-					snap = 1;
-				return snap;
-			}
-			
-			private function get snappedParentWidth():Number
-			{
-				var snap:Number = snapGridSize;
-				return Math.floor(parent.width / snap) * snap;
-			}
-			
-			private function get snappedParentHeight():Number
-			{
-				var snap:Number = snapGridSize;
-				return Math.floor(parent.height / snap) * snap;
 			}
 			
 			/**
@@ -599,45 +557,67 @@
 			 */
 			private function constrainAndSaveCoordinates():void
 			{
-				if (parent == null || effectInProgress)
+				// don't copy coordinates while tool is minimized or maximized or playing a resize animation
+				if (!parent || effectInProgress || _minimized || maximized.value)
 					return;
-
-				var _width:Number = width;
-				var _height:Number = height;
+				
+				// init local vars
+				var _x:Number = x;
+				var _y:Number = y;
+				var _right:Number = x + width;
+				var _bottom:Number = y + height;
+				var _parentWidth:Number = parent.width;
+				var _parentHeight:Number = parent.height;
+				
+				// calculate snap size
+				var snapStr:String = Weave.properties.windowSnapGridSize.value;
+				var usePercent:Boolean = (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages);
+				var snapNum:Number = StandardLib.asNumber(snapStr.replace('%', ''));
+				
+				// adjust snap to match panel coordinate mode
+				if (usePercent != (snapStr.indexOf('%') >= 0))
+				{
+					if (usePercent)
+						snapNum = 100 * snapNum / Math.max(_parentWidth, _parentHeight);
+					else
+						snapNum = Math.round(Math.max(_parentWidth, _parentHeight) * snapNum / 100)
+				}
+				if ((usePercent && snapNum <= 0) || (!usePercent && snapNum < 1))
+					snapNum = 1;
+				
+				// convert numbers to percentages if necessary
+				if (usePercent)
+				{
+					_x = 100 * _x / _parentWidth;
+					_y = 100 * _y / _parentHeight;
+					_right = 100 * _right / _parentWidth;
+					_bottom = 100 * _bottom / _parentHeight;
+					_parentWidth = 100;
+					_parentHeight = 100;
+				}
+				// truncate width,height
+				_parentWidth = Math.floor(_parentWidth / snapNum) * snapNum;
+				_parentHeight = Math.floor(_parentHeight / snapNum) * snapNum;
 				
 				// snap coordinates to grid
-				var snap:Number = snapGridSize;
-				
-				var right:Number = x + _width;
-				var bottom:Number = y + _height;
-
-				x = Math.round(x / snap) * snap;
-				y = Math.round(y / snap) * snap;
-				_width = Math.round(right / snap) * snap - x;
-				_height = Math.round(bottom / snap) * snap - y;
+				_x = Math.round(_x / snapNum) * snapNum;
+				_y = Math.round(_y / snapNum) * snapNum;
+				var _width:Number = Math.round(_right / snapNum) * snapNum - _x;
+				var _height:Number = Math.round(_bottom / snapNum) * snapNum - _y;
 				
 				// constrain width,height before x,y because the x,y constrain code depends on width,height
-				width = Math.round(StandardLib.constrain(_width, minWidth, snappedParentWidth));
-				height = Math.round(StandardLib.constrain(_height, minHeight, snappedParentHeight));
-				x = Math.round(StandardLib.constrain(x, 0, snappedParentWidth - width));
-				y = Math.round(StandardLib.constrain(y, 0, snappedParentHeight - height));
+				_width = Math.round(StandardLib.constrain(_width, 0, _parentWidth));
+				_height = Math.round(StandardLib.constrain(_height, 0, _parentHeight));
+				_x = Math.round(StandardLib.constrain(_x, 0, _parentWidth - _width));
+				_y = Math.round(StandardLib.constrain(_y, 0, _parentHeight - _height));
 				
 				// copy the x,y,width,height coordinates to the corresponding sessioned properties.
-				copyCoordinateToLinkableString(panelWidth, width, parent.width);
-				copyCoordinateToLinkableString(panelHeight, height, parent.height);
-				copyCoordinateToLinkableString(panelX, x, parent.width);
-				copyCoordinateToLinkableString(panelY, y, parent.height);
-			}
-			
-			private function snap(value:Number, towardsThisNumber:Number, gridSize:Number):Number
-			{
-				var round:Function = Math.round;
-				
-				if (towardsThisNumber < value)
-					round = Math.floor;
-				if (towardsThisNumber > value)
-					round = Math.ceil;
-				return round(value / gridSize) * gridSize;
+				var str:String = usePercent ? '%' : '';
+				panelWidth.value = _width + str;
+				panelHeight.value = _height + str;
+				panelX.value = _x + str;
+				panelY.value = _y + str;
+				copyCoordinatesFromSessionedProperties();
 			}
 			
 			[Inspectable] protected var controlBarWidthBeforeScale:int = -1;
@@ -777,7 +757,7 @@
 			 */
 			private function handleParentResize(event:Event):void
 			{
-				if (Weave.properties.enablePanelCoordsPercentageMode.value && _sessionPanelCoordsAsPercentages)
+				if (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages)
 					copyCoordinatesFromSessionedProperties();
 			}
 			
@@ -1438,7 +1418,7 @@
 				{
 					if (_rightSideResize)
 					{
-						this.width  = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (snappedParentWidth - this.x) );
+						this.width  = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (parent.width - this.x) );
 					}
 					else if (_leftSideResize)
 					{
@@ -1447,7 +1427,7 @@
 					}
 					if (_bottomResize)
 					{
-						this.height = StandardLib.constrain( (parentMousePoint.y - this.y), minHeight, (snappedParentHeight - this.y) );
+						this.height = StandardLib.constrain( (parentMousePoint.y - this.y), minHeight, (parent.height - this.y) );
 					}
 					else if (_topSideResize)
 					{
@@ -1667,7 +1647,7 @@
 						maximizeButton.visible = false;
 					}
 						
-					if (minimizable.value)
+					if (minimizable.value && Weave.properties.enableTaskbar.value)
 					{
 						if (titleBar != minimizeButton.parent)
 							titleBar.addChild(minimizeButton);
@@ -1852,25 +1832,25 @@
 				{
 					minimizeToTaskbar();
 				}	
-				else // otherwise we just make it smaller so it doesn't leave the visDesktop and can still be maximized
-				{
-					_minimized = true;
-
-					_minHeightRestore = minHeight;
-					minHeight = 0;
-
-					if (controlBar)
-					{
-						controlBar.visible = false;
-					}
-					
-					minimizedComponentVersion = null;
-					
-					// the height should be set last because setting the height will update the display list and refresh the graphics
-					// that draw the minimize button, etc
-					
-					height = titleBar.height;
-				}				
+//				else // otherwise we just make it smaller so it doesn't leave the visDesktop and can still be maximized
+//				{
+//					_minimized = true;
+//
+//					_minHeightRestore = minHeight;
+//					minHeight = 0;
+//
+//					if (controlBar)
+//					{
+//						controlBar.visible = false;
+//					}
+//					
+//					minimizedComponentVersion = null;
+//					
+//					// the height should be set last because setting the height will update the display list and refresh the graphics
+//					// that draw the minimize button, etc
+//					
+//					height = titleBar.height;
+//				}				
 			}
 			public function restorePanel():void
 			{
@@ -1888,7 +1868,7 @@
 					if (minimizedComponentVersion)		
 					{
 						restoreFromTaskbar();
-					}	
+					}
 					else // otherwise we just make it smaller so it doesn't leave the visDesktop and can still be maximized
 					{
 						_minimized = false;
@@ -1960,16 +1940,10 @@
 					titleBar.removeEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
 				}
 				
-				if(_helpPanel != null)
-				{
-					if( _helpPanel.parent )
-						_helpPanel.parent.removeChild(_helpPanel);
-				}
-				if(_controlPanel != null)
-				{
-					if( _controlPanel.parent )
-						_controlPanel.parent.removeChild(_controlPanel);
-				}
+				if (_helpPanel && _helpPanel.parent)
+					_helpPanel.parent.removeChild(_helpPanel);
+				if (_controlPanel && _controlPanel.parent)
+					_controlPanel.parent.removeChild(_controlPanel);
 			}
 			
 			private function handleDragEnter(event:DragEvent):void
@@ -1977,10 +1951,9 @@
 				restorePanel();
 			}
 			
-			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void
-			{
-				panelTitle.value = value;
-			}
+			// backwards compatibility
+			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void { panelTitle.value = value; }
+			[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void { enableBorders.value = !value; }
 		]]>
 	</mx:Script>
 </mx:TitleWindow>

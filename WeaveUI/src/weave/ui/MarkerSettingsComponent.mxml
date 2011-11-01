@@ -151,7 +151,7 @@
 			
 				settingsPanel.title = "Edit " + markerName;
 				
-				EventUtils.delayedLinkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText,"text",1000);
+				linkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText, "text", 1000);
 				
 				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText,"text");
 				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText,"text");

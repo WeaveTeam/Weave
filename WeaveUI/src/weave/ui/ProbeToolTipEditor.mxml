@@ -44,12 +44,12 @@
 	
 	<mx:VBox label="Header Columns">
 		<mx:TextArea text="The values from these columns will be listed in a single line, separated by commas." editable="false" width="100%" backgroundAlpha="0" wordWrap="true" borderThickness="0"/>	
-		<ColumnListComponent label="Header Columns" id="headerList" preinitialize="headerList.hashMap = ProbeTextUtils.probeHeaderColumns;" width="100%" height="100%" />		
+		<ColumnListComponent label="Header Columns" id="headerList" hashMap="{ProbeTextUtils.probeHeaderColumns}" width="100%" height="100%" />		
 	</mx:VBox>
 	
 	<mx:VBox label="Probed Columns">
 		<mx:TextArea text="The values from these columns will be displayed under the header line along with the column names." editable="false" width="100%" backgroundAlpha="0" wordWrap="true" borderThickness="0"/>
-		<ColumnListComponent label="Probed columns" id="columnList" preinitialize="columnList.hashMap = ProbeTextUtils.probedColumns;" width="100%" height="100%" />
+		<ColumnListComponent label="Probed columns" id="columnList" hashMap="{ProbeTextUtils.probedColumns}" width="100%" height="100%" />
 	</mx:VBox>
 	<mx:Style>
 		.exampleStyle {

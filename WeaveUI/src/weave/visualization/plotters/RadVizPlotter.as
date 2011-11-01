@@ -64,7 +64,7 @@ package weave.visualization.plotters
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			setNewRandomJitterColumn();		
 			iterations.value = 50;
-			
+			recordsPerDraw = 1;
 			init()
 		}		
 		

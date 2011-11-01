@@ -209,7 +209,7 @@ package weave.data
 				var count:Number = 0;
 				var sum:Number = 0;
 				var squareSum:Number = 0;
-				var runningTotals:Dictionary = new Dictionary();
+				var runningTotals:Dictionary = new Dictionary(true);
 				var value:Number;
 				
 				// loop through the keys for the key type associated with the column, and calculate statistics

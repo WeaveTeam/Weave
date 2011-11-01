@@ -48,14 +48,15 @@
 						<managers:DataTableManager/>
 						<managers:GeometryCollectionManager/>
 						<managers:SQLConnectionManager id="sqlConnectionManager"/>
-						<managers:AdminToolsManager id="adminToolsManager"/>
 					</mx:TabNavigator>
 					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false"/>
 				</mx:VDividedBox>
 			</mx:VBox>
+			
 			<mx:Box horizontalAlign="center" verticalAlign="middle" show="login.connectionInput.setFocus()">
 				<admin:LoginPopup id="login"/>
 			</mx:Box>
+			
 			<mx:VBox show="Alert.show(firstTimeTextArea.text, 'First time setup'); AdminInterface.instance.getConnectionNames();">
 				<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
 				<managers:SQLConnectionManager/>
@@ -119,12 +120,10 @@
 						if (isSuperuser)
 						{
 							tabNavigator.addChild(sqlConnectionManager);
-							tabNavigator.addChild(adminToolsManager);
 						}
 						else
 						{
 							tabNavigator.removeChild(sqlConnectionManager);
-							tabNavigator.removeChild(adminToolsManager);
 						}
 					}
 				}

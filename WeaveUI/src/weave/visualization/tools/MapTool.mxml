@@ -47,6 +47,7 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
@@ -213,9 +214,9 @@
 				var backgroundImageCheck:CheckBox = new CheckBox();
 				backgroundImageCheck.label = "Enable ocean background image";
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				_userWindowSettings.initialize();
-				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
-				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
+				simpleAxisEditor.initialize();
+				simpleAxisEditor.addChild(backgroundImageCheck);
+				simpleAxisEditor.marginProperties.parent.removeChild(simpleAxisEditor.marginProperties);
 				
 				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
 				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
@@ -340,22 +341,12 @@
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
+				visualization.graphics.clear();
 				if (enableBackground.value)
 				{
-					if (_userWindowSettings && _userWindowSettings.backgroundColorPicker)
-						_userWindowSettings.backgroundColorPicker.enabled = false;
-					
 					visualization.graphics.lineStyle(0,0,0);
-					visualization.graphics.clear();
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
-				}
-				else
-				{
-					if (_userWindowSettings && _userWindowSettings.backgroundColorPicker)
-						_userWindowSettings.backgroundColorPicker.enabled = true;
-					
-					visualization.graphics.clear();
 				}
 			}
 			
@@ -396,7 +387,7 @@
 						{
 							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
 							{
-								plotter.text.copyLocalObject(headers[i]);
+								plotter.text.weave_internal::requestLocalObjectCopy(headers[i]);
 								break;
 							}
 						}
@@ -638,15 +629,15 @@
 			</mx:columns>
 			</mx:DataGrid>-->
 			
-			<ui:PlotLayerEditor id="layerEditor" initialize="layerEditor.visualization = visualization"/>
+			<ui:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<ui:DynamicColumnComponent label="color" visTool="{this}" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Advanced" verticalGap="10">
 			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
-						 creationComplete="linkBindableProperty(enableOverview,overviewCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(enableOverview,event.target,'selected')"/>
 			<mx:HBox verticalAlign="bottom">
 				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
 				<mx:VBox verticalGap="1">
@@ -666,14 +657,14 @@
 				<mx:Label text="Projection"/> 
 				<ui:CustomComboBox id="projComboBox"
 								   dataProvider="{_projComboBoxData}"
-								   initialize="linkBindableProperty(projectionSRS, projComboBox, 'text');"
+								   creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
 								   change="projValidLabel.text = projectionVerifier(projComboBox.text) ? 'Valid' : 'Invalid';"
 								   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
 								   editable="true"
 								   width="120"
 								   />
 				<!--<mx:TextInput id="projTextInput"
-					initialize="linkBindableProperty(projectionSRS, projTextInput, 'text');"
+				creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
 					change="projValidLabel.text = projectionVerifier(projTextInput.text) ? 'Valid' : 'Invalid';"
 					focusOut="projTextInput.text = projectionSRS.value; projValidLabel.text = '';"
 					/>-->
@@ -681,13 +672,13 @@
 			</mx:HBox>
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
-						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<mx:CheckBox id="zoomControlsToggle" label="Show zoom and pan controls"
 						 toolTip="This option enables the zoom slider and pan buttons"
-						 initialize="linkBindableProperty(showZoomControls,zoomControlsToggle,'selected')"/>
+						 creationComplete="linkBindableProperty(showZoomControls,event.target,'selected')"/>
 			<mx:CheckBox id="mouseModeControlsToggle" label="Show mouse mode controls"
 						 toolTip="This option enables the mouse mode buttons"
-						 initialize="linkBindableProperty(showMouseModeControls,mouseModeControlsToggle,'selected')"/>
+						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

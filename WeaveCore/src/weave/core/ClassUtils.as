@@ -80,7 +80,7 @@ package weave.core
 			try {
 				if (!cacheClassInfo(classQName))
 					return false;
-				return classImplementsMap[classQName][implementsQName] != undefined;
+				return classImplementsMap[classQName][implementsQName] !== undefined;
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
@@ -96,7 +96,7 @@ package weave.core
 			try {
 				if (!cacheClassInfo(classQName))
 						return false;
-				return classExtendsMap[classQName][extendsQName] != undefined;
+				return classExtendsMap[classQName][extendsQName] !== undefined;
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
@@ -111,15 +111,45 @@ package weave.core
 		}
 		
 		/**
+		 * This function gets a list of all the interfaces implemented by a class.
+		 * @param classQName A qualified class name.
+		 * @return A list of qualified class names of interfaces that the given class implements.
+		 */
+		public static function getClassImplementsList(classQName:String):Array
+		{
+			cacheClassInfo(classQName);
+			var result:Array = [];
+			for (var name:String in classImplementsMap[classQName])
+				result.push(name);
+			return result;
+		}
+		
+		/**
+		 * This function gets a list of all the superclasses that a class extends.
+		 * @param classQName A qualified class name.
+		 * @return A list of qualified class names of interfaces that the given class extends.
+		 */
+		public static function getClassExtendsList(classQName:String):Array
+		{
+			cacheClassInfo(classQName);
+			var result:Array = [];
+			for (var name:String in classExtendsMap[classQName])
+				result.push(name);
+			return result;
+		}
+		
+		/**
 		 * This maps a qualified class name to an object.
 		 * For each interface the class implements, the object maps the qualified class name of the interface to a value of true.
 		 */
 		private static const classImplementsMap:Object = new Object();
+
 		/**
 		 * This maps a qualified class name to an object.
 		 * For each interface the class extends, the object maps the qualified class name of the interface to a value of true.
 		 */
 		private static const classExtendsMap:Object = new Object();
+		
 		/**
 		 * This function will populate the classImplementsMap and classExtendsMap for the given qualified class name.
 		 * @param classQName A qualified class name.

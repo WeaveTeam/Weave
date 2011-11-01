@@ -94,6 +94,7 @@
 			import weave.core.LinkableXML;
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLEncoder;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.data.AttributeColumns.ProxyColumn;
@@ -172,7 +173,7 @@
 					linkToObject(null);
 					return;
 				}
-				columnList.hashMap.copyObject(null, hierarchySelector.dynamicColumn.internalObject);
+				columnList.hashMap.weave_internal::requestObjectCopy(null, hierarchySelector.dynamicColumn.internalObject);
 			}
 			
 			private var _prevLinkedColumn:DynamicColumn = null;
@@ -209,9 +210,9 @@
 			
 			private function showOrHideParamSelector(show:Boolean):void
 			{
-				if (show && outerVBox != paramSelector.parent)
+				if (show && !paramSelector.parent)
 					outerVBox.addChildAt(paramSelector,0);
-				if (!show && outerVBox == paramSelector.parent)
+				if (!show && paramSelector.parent)
 					outerVBox.removeChild(paramSelector);
 			}
 			
@@ -265,7 +266,7 @@
 					{
 						columns = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
 						if (columns.length > 0)
-							hierarchySelector.dynamicColumn.copyLocalObject(columns[0]);
+							hierarchySelector.dynamicColumn.weave_internal::requestLocalObjectCopy(columns[0]);
 					}
 					
 					var child:DisplayObject = columnList.selectorControls;
@@ -285,7 +286,13 @@
 					targets = selectableAttributes = [];
 			}
 			
-			private static var defaultSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
+			public static function get defaultSelector():AttributeSelectorPanel
+			{
+				if (!_defaultSelector)
+					_defaultSelector = new AttributeSelectorPanel();
+				return _defaultSelector;
+			}
+			public static var _defaultSelector:AttributeSelectorPanel;
 			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
 			{
 				if (!Weave.properties.enableToolControls.value)

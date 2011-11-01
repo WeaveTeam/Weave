@@ -188,7 +188,7 @@ package weave.visualization.plotters
 			return [];
 		}
 		
-		protected static const recordsPerDraw:int = 200; // for use with the template drawPlot code
+		protected var recordsPerDraw:int = 100; // for use with the template drawPlot code
 		
 		/**
 		 * This function must be defined with override by classes that extend AbstractPlotter.
@@ -218,7 +218,7 @@ package weave.visualization.plotters
 				addRecordGraphicsToTempShape(recordKey, dataBounds, screenBounds, tempShape);
 				
 				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > AbstractPlotter.recordsPerDraw)
+				if (++count > recordsPerDraw)
 				{
 					destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
 					graphics.clear();

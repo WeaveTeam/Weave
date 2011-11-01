@@ -25,9 +25,12 @@ package weave.utils
 	import flash.utils.ByteArray;
 	
 	import mx.core.UIComponent;
+	import mx.graphics.ImageSnapshot;
 	import mx.graphics.codec.JPEGEncoder;
 	import mx.graphics.codec.PNGEncoder;
 	import mx.utils.Base64Encoder;
+	
+	import weave.api.copySessionState;
 	
 	/**
 	 * BitmapUtils
@@ -142,10 +145,12 @@ package weave.utils
 		 */		
 		public static function getBase64Image(component:UIComponent):String
 		{
-			var data:BitmapData = getBitmapDataFromComponent(component);
-			var byteArray:ByteArray = new ByteArray();
-			byteArray.writeObject(data.getPixels(data.rect));
+			// getBitmapDataFromComponent doesn't give a valid image that can be saved to disk
+//			var data:BitmapData = getBitmapDataFromComponent(component);
+//			var byteArray:ByteArray = new ByteArray();
+//			byteArray.writeObject(data.getPixels(data.rect));
 			
+			var byteArray:ByteArray = ImageSnapshot.captureImage(component).data; 
 			var encoder:Base64Encoder = new Base64Encoder();
 			encoder.encodeBytes(byteArray);
 			

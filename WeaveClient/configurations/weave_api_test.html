@@ -57,13 +57,36 @@ var requiredRevision = 0;
 	<button id="b2" onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button><br>
 	<button id="b3" onclick="testSwap()">Swap x,y on ScatterPlot</button><br>
 	<button id="b4" onclick="showLegend()">Bring legend to foreground</button><br>
-	<button id="b5" onclick="document.getElementById('weave').runStartupJavaScript()">Run sessioned startup script again</button><br>
+	<button id="b6" onclick="getImage()">Get Image</button><br>
+	<input id="scriptInput" type="text" value="Hello, world."/></input>
+	<button id="b5" onclick="runStartupScript()">Run sessioned startup script again</button><br>
 </td><td width="100%" height="100%">
+	<img id="img_tag"/>
 	<textarea id="resultTextArea" cols="80" rows="10"></textarea>
 </td></tr></table>
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
+function getImage()
+{
+	var image = document.getElementById('weave').evaluateExpression(['MapTool'], 
+	  	            'getBase64Image(this)', 
+	  	             null, 
+	  	             ['weave.utils.BitmapUtils']);
+	 $.ajax({
+	  	data: image,
+		url: "/ImageService/Base64ImageService",
+		type: "POST",
+		dataType: "text",
+		success: function( data, textStatus, jqXHR ) {
+		imgName = data;
+		imgTag.src = "/ImageService/Base64ImageService?file="+ imgName;
+	 },
+	  error: function (qXHR, textStatus, errorThrown) {
+					
+	 }
+    });
+}
 // this function gets called when the weave instance is ready.
 function weaveReady(weave)
 {
@@ -79,6 +102,11 @@ function disableButtons(disabled)
 		document.getElementById(buttons[i]).disabled = disabled;
 }
 disableButtons(true);
+
+function runStartupScript()
+{
+	document.getElementById('weave').runStartupJavaScript();
+}
 
 // brings a color legend to the foreground
 function showLegend()

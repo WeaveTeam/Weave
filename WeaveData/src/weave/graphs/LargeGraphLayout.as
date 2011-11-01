@@ -55,35 +55,32 @@ package weave.graphs
 		{
 			lastUsedNodes = [];
 
-			// load the igraph library 
+			// create the graph because Weave clears out R data objects
 			var libraryString:String = libraryCall;
-			
-			// create the vector of vertices
 			var vectorVerticesString:String = generateVertexesString(keys);
-			
-			// create the subgraph
-			var subGraphString:String = generateSubGraphString();
-
+			var edgesString:String = generateEdgesString(keys); 
+			var graphString:String = generateGraphString(graphName, edgesString, vectorVerticesString);
+							
 			// the string to store the graph layout
 			var layoutString:String = 
 				weaveGraphLayout + ' <- layout.lgl(' + 
-				subGraphName + 												// graph name
+				graphName + 												// graph name
 				',' + _numNodes +											// num iterations 
 				',' + _numNodes + 											// max delta
 				',' + outputBounds.getArea() +								// area
 				',' + 3 +													// cooling exp
 				',' + outputBounds.getArea() * _numNodes + 					// repulsion cancellation radius
 				',' + Math.sqrt(Math.sqrt(outputBounds.getArea())) + ')'; 	// cell size
-
 				
 			var rScript:String = 
 				libraryString + '\n' +
 				vectorVerticesString + '\n' +
-				subGraphString + '\n' +
+				edgesString + '\n' + 
+				graphString + '\n' +
 				layoutString + '\n';
 
 			var constrainingBounds:IBounds2D = (keys.length == _numNodes) ? null : bounds;
-			callRServe(rScript, [weaveGraphLayout, subGraphNodes], constrainingBounds);
+			callRServe(rScript, [weaveGraphLayout, graphNodes], constrainingBounds);
 		}
 	}
 }

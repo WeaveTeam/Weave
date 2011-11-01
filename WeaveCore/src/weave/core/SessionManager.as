@@ -21,15 +21,18 @@ package weave.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.events.TimerEvent;
+	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
+	import flash.utils.Timer;
 	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.getTimer;
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
-	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -631,7 +634,7 @@ package weave.core
 		/**
 		 * This function checks if an object has been disposed of by SessionManager.
 		 * @param object An object to check.
-		 * @return true if SsessionManager.dispose() was called for the specified object.
+		 * @return true if SessionManager.dispose() was called for the specified object.
 		 * 
 		 */
 		public function objectWasDisposed(object:Object):Boolean
@@ -644,7 +647,7 @@ package weave.core
 				if (cc)
 					return cc.wasDisposed;
 			}
-			return _disposedObjectsMap[object] != undefined;
+			return _disposedObjectsMap[object] !== undefined;
 		}
 		
 		private const _disposedObjectsMap:Dictionary = new Dictionary(true); // weak keys to be gc-friendly
@@ -709,8 +712,8 @@ package weave.core
 		
 					// if the object is an ILinkableVariable, unlink it from all bindable properties that were previously linked
 					if (linkableObject is ILinkableVariable)
-						for (var bindableParent:* in _changeWatcherMap[linkableObject])
-							for (var bindablePropertyName:String in _changeWatcherMap[linkableObject][bindableParent])
+						for (var bindableParent:* in _watcherMap[linkableObject])
+							for (var bindablePropertyName:String in _watcherMap[linkableObject][bindableParent])
 								unlinkBindableProperty(linkableObject as ILinkableVariable, bindableParent, bindablePropertyName);
 					
 					// unlink this object from all other linkable objects
@@ -731,7 +734,7 @@ package weave.core
 					}
 					
 					// FOR DEBUGGING PURPOSES
-					if (runningDebugFlashPlayer)
+					if (Capabilities.isDebugger)
 						objectCC.addImmediateCallback(null, debugDisposedObject, [linkableObject, new Error("Object was disposed")]);
 				}
 				
@@ -972,22 +975,21 @@ package weave.core
 		 ******************************************************/
 		
 		
-		
-		
 		/**
 		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
 		 * Prior to linking, the value of the ILinkableVariable will be copied over to the bindable property.
 		 * @param linkableVariable An ILinkableVariable to link to a bindable property.
 		 * @param bindableParent An object with a bindable property.
 		 * @param bindablePropertyName The variable name of the bindable property.
+		 * @param delay The delay to use before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
 		 */
-		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String):void
+		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void
 		{
 			var error:Error;
 			
 			if (linkableVariable == null || bindableParent == null || bindablePropertyName == null)
 			{
-				error = new Error("SessionManager.linkBindableProperty(): Parameters to this function cannot be null.");
+				error = new Error("linkBindableProperty(): Parameters to this function cannot be null.");
 				WeaveAPI.ErrorManager.reportError(error);
 				return;
 			}
@@ -999,41 +1001,119 @@ package weave.core
 				return;
 			}
 			
+			// unlink in case previously linked
+			unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
+			
+			// initialize dictionaries
+			if (_watcherMap[linkableVariable] === undefined)
+				_watcherMap[linkableVariable] = new Dictionary(true);
+			if (_watcherMap[linkableVariable][bindableParent] === undefined)
+				_watcherMap[linkableVariable][bindableParent] = new Object();
+			
+			var callbackCollection:ICallbackCollection = getCallbackCollection(linkableVariable);
+			var watcher:ChangeWatcher = null;
+			var useLinkableValue:Boolean = true;
+			var callLaterTime:int = 0;
 			// a function that takes zero parameters and sets the bindable value.
-			var setBindableProperty:Function = function():void
-			{
-				var value:Object = linkableVariable.getSessionState();
-				if (bindableParent[bindablePropertyName] is Number && !(value is Number))
-				{
-					try {
-						linkableVariable.setSessionState(Number(value));
-						value = linkableVariable.getSessionState();
-					} catch (e:Error) { }
-				}
-				bindableParent[bindablePropertyName] = value;
-			};
-			// copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
-			// because that will copy from the bindable property to the sessioned property.
-			setBindableProperty();
-			// when the bindable value changes, set the session state using setLinkableVariable, which takes one parameter.
-			var setLinkableVariable:Function = function(value:Object):void
+			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
 				// unlink if linkableVariable was disposed of
 				if (objectWasDisposed(linkableVariable))
+				{
 					unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
+					return;
+				}
+				
+				// If bindableParent has focus:
+				// When linkableVariable changes, update bindable value only when focus is lost.
+				// When bindable value changes, update linkableVariable after a delay.
+				
+				if (!callingLater)
+				{
+					// remember which value changed last -- the linkable one or the bindable one
+					useLinkableValue = firstParam === undefined; // true when called from linkable variable grouped callback
+					// if we're not calling later and there is already a timestamp, just wait for the callLater to trigger
+					if (callLaterTime)
+					{
+						// if there is a callLater waiting to trigger, update the target time
+						callLaterTime = useLinkableValue ? int.MAX_VALUE : getTimer() + delay;
+						return;
+					}
+				}
+				
+				// if the bindable value is not a boolean and the bindable parent has focus, delay synchronization
+				if (!(bindableParent[bindablePropertyName] is Boolean))
+				{
+					var uiComponent:UIComponent = bindableParent as UIComponent;
+					if (uiComponent && watcher)
+					{
+						var obj:DisplayObject = uiComponent.getFocus();
+						if (obj && uiComponent.contains(obj))
+						{
+							var currentTime:int = getTimer();
+							
+							// if we're not calling later, set the target time
+							if (!callingLater)
+								callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
+							
+							// if we haven't reached the target time yet, call later
+							if (currentTime < callLaterTime)
+							{
+								uiComponent.callLater(synchronize, [firstParam, true]);
+								return;
+							}
+							
+							// otherwise, synchronize now
+						}
+						
+						// clear saved time stamp when we are about to synchronize
+						callLaterTime = 0;
+					}
+				}
+				
+				// synchronize
+				if (useLinkableValue)
+				{
+					var linkableValue:Object = linkableVariable.getSessionState();
+					if ((bindableParent[bindablePropertyName] is Number) != (linkableValue is Number))
+					{
+						try {
+							if (linkableValue is Number)
+							{
+								if (isNaN(linkableValue as Number))
+									linkableValue = '';
+							}
+							else
+							{
+								linkableVariable.setSessionState(Number(linkableValue));
+								linkableValue = linkableVariable.getSessionState();
+							}
+						} catch (e:Error) { }
+					}
+					bindableParent[bindablePropertyName] = linkableValue;
+				}
 				else
-					linkableVariable.setSessionState(value);
+				{
+					var bindableValue:Object = bindableParent[bindablePropertyName];
+					callbackCollection.delayCallbacks();
+					linkableVariable.setSessionState(bindableValue);
+					// Always synchronize after setting the linkableVariable because there may
+					// be constraints on the session state that will prevent the callbacks
+					// from triggering if the bindable value does not match those constraints.
+					// This makes UIComponents update to the real value after they lose focus.
+					callbackCollection.triggerCallbacks();
+					callbackCollection.resumeCallbacks();
+				}
 			};
-			var watcher:ChangeWatcher = BindingUtils.bindSetter(setLinkableVariable, bindableParent, bindablePropertyName);
+			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
+			// because that will copy from the bindable property to the sessioned property.
+			synchronize();
+			watcher = BindingUtils.bindSetter(synchronize, bindableParent, bindablePropertyName);
 			// save a mapping from the linkableVariable,bindableParent,bindablePropertyName parameters to the watcher for the property
-			if (_changeWatcherMap[linkableVariable] === undefined)
-				_changeWatcherMap[linkableVariable] = new Dictionary(true);
-			if (_changeWatcherMap[linkableVariable][bindableParent] === undefined)
-				_changeWatcherMap[linkableVariable][bindableParent] = new Object();
-			_changeWatcherMap[linkableVariable][bindableParent][bindablePropertyName] = watcher;
+			_watcherMap[linkableVariable][bindableParent][bindablePropertyName] = watcher;
 			// when session state changes, set bindable property
-			_changeWatcherToCopyFunctionMap[watcher] = setBindableProperty;
-			getCallbackCollection(linkableVariable).addImmediateCallback(bindableParent, setBindableProperty);
+			_watcherToSynchronizeFunctionMap[watcher] = synchronize;
+			callbackCollection.addGroupedCallback(bindableParent, synchronize);
 		}
 		/**
 		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().
@@ -1045,18 +1125,18 @@ package weave.core
 		{
 			if (linkableVariable == null || bindableParent == null || bindablePropertyName == null)
 			{
-				var error:Error = new Error("SessionManager.linkBindableProperty(): Parameters to this function cannot be null.");
+				var error:Error = new Error("unlinkBindableProperty(): Parameters to this function cannot be null.");
 				WeaveAPI.ErrorManager.reportError(error);
 				return;
 			}
 			
 			try
 			{
-				var watcher:ChangeWatcher = _changeWatcherMap[linkableVariable][bindableParent][bindablePropertyName];
+				var watcher:ChangeWatcher = _watcherMap[linkableVariable][bindableParent][bindablePropertyName];
 				var cc:ICallbackCollection = getCallbackCollection(linkableVariable);
-				cc.removeCallback(_changeWatcherToCopyFunctionMap[watcher]);
+				cc.removeCallback(_watcherToSynchronizeFunctionMap[watcher]);
 				watcher.unwatch();
-				delete _changeWatcherMap[linkableVariable][bindableParent][bindablePropertyName];
+				delete _watcherMap[linkableVariable][bindableParent][bindablePropertyName];
 			}
 			catch (e:Error)
 			{
@@ -1065,19 +1145,46 @@ package weave.core
 		}
 		/**
 		 * This is a multidimensional mapping, such that
-		 *     _changeWatcherMap[linkableVariable][bindableParent][bindablePropertyName]
+		 *     _watcherMap[linkableVariable][bindableParent][bindablePropertyName]
 		 * maps to a ChangeWatcher object.
 		 */
-		private const _changeWatcherMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
+		private const _watcherMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
 		/**
 		 * This maps a ChangeWatcher object to a function that was added as a callback to the corresponding ILinkableVariable.
 		 */
-		private const _changeWatcherToCopyFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
+		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
 
 		/**
-		 * This value is true if the user is running the debug version of the flash player.
-		 */		
-		public static const runningDebugFlashPlayer:Boolean = (new Error()).getStackTrace() != null;
+		 * This function generates a delayed version of a callback.
+		 * @param callback The callback function
+		 * @param callbackParams If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
+		 * @param delay The number of milliseconds to delay before running the callback.
+		 * @return A wrapper around the callback that remembers the parameters and delays calling the original callback.
+		 */
+		public function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function
+		{
+			var _timer:Timer = new Timer(delay, 1);
+			var _delayedThisArg:Object;
+			var _delayedParams:Array;
+			// this function gets called immediately and delays calling the original callback
+			var delayedCallback:Function = function(...params):void
+			{
+				_timer.stop();
+				_timer.start();
+				// remember the params passed to this delayedCallback
+				_delayedThisArg = this;
+				_delayedParams = params;
+			};
+			// this function gets called when the timer completes
+			var callback_apply:Function = function(..._):void
+			{
+				// call the original callback with the params passed to delayedCallback
+				callback.apply(_delayedThisArg, callbackParams || _delayedParams);
+			};
+			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
+			
+			return delayedCallback;
+		}
 		
 		/**
 		 * This function computes the diff of two session states.

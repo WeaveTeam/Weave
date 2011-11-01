@@ -29,7 +29,7 @@
 			color="#000000" 
 			useHandCursor="true"			
 	       	
-	       	click="handleLogoClicked(event)"  
+	       	click="navigateToURL(new URLRequest('http://www.oicweave.org/'), '_blank');"
 	       	fillAlphas="[0.8, 1.0, 1.0, 1.0]" 
 	       	paddingLeft="1" paddingRight="1" paddingTop="0" 
 	       	repeatDelay="0" 
@@ -43,17 +43,6 @@
 
    <mx:Script>
    	<![CDATA[
-   		import mx.events.ChildExistenceChangedEvent;
-   		import mx.events.IndexChangedEvent;
-   		import flash.net.navigateToURL;
-   		
-   		[Bindable]
-   		private var linkText:String = "<a href='http://www.openindicators.org/'>(C) 2010 Open Indicators Consortium Weave</a>";
-   		private var oicRequest:URLRequest = new URLRequest("http://www.openindicators.org/");
-   		private function handleLogoClicked(event:Event):void
-   		{
-   			navigateToURL(oicRequest, "_blank");
-   		}
    	]]>
    </mx:Script>
 </mx:Button>

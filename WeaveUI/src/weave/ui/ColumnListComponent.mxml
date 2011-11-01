@@ -30,7 +30,6 @@ ColumnListComponent
 		 xmlns="weave.ui.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 borderStyle="outset"
 		 label="Attributes">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>

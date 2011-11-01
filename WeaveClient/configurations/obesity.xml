@@ -19,12 +19,14 @@
     <enableAddColorLegend>true</enableAddColorLegend>
     <enableAddColormapHistogram>true</enableAddColormapHistogram>
     <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
+    <enableAddCustomTool>true</enableAddCustomTool>
     <enableAddDataFilter>true</enableAddDataFilter>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddDataTable>true</enableAddDataTable>
     <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
     <enableAddGaugeTool>true</enableAddGaugeTool>
     <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+    <enableAddGraphTool>true</enableAddGraphTool>
     <enableAddHistogram>true</enableAddHistogram>
     <enableAddLineChart>true</enableAddLineChart>
     <enableAddMap>true</enableAddMap>
@@ -71,12 +73,14 @@
     <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
     <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
     <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
     <enableSelectionsMenu>true</enableSelectionsMenu>
     <enableSessionBookmarks>true</enableSessionBookmarks>
     <enableSessionEdit>true</enableSessionEdit>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
     <enableSubsetsMenu>true</enableSubsetsMenu>
     <enableTaskbar>true</enableTaskbar>
     <enableTileAllWindows>true</enableTileAllWindows>
@@ -87,11 +91,13 @@
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
+    <macroLibraries>weave.api::WeaveAPI</macroLibraries>
+    <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
     <panelTitleFontColor>16777215</panelTitleFontColor>
-    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
+    <panelTitleFontFamily/>
     <panelTitleFontItalic>false</panelTitleFontItalic>
     <panelTitleFontSize>10</panelTitleFontSize>
     <panelTitleFontUnderline>false</panelTitleFontUnderline>
@@ -141,7 +147,9 @@ wheel</zoom>
       <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
     </toolInteractions>
     <version>1.0 Beta Nightly Build</version>
-    <windowSnapGridSize>5</windowSnapGridSize>
+    <windowSnapGridSize>1%</windowSnapGridSize>
+    <workspaceHeight>NaN</workspaceHeight>
+    <workspaceWidth>NaN</workspaceWidth>
   </WeaveProperties>
   <LinkableHashMap name="savedSelections" encoding="dynamic"/>
   <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
@@ -156,7 +164,7 @@ wheel</zoom>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="aesthetic" source="OIC" name="Van Gogh" reverse="false">
+      <colorRamp source="OIC" name="Van Gogh" category="aesthetic" reverse="false">
         <node color="0x31415A" position="0"/>
         <node color="0x609DCD" position="0.15"/>
         <node color="0xE9B400" position="0.3"/>
@@ -189,7 +197,7 @@ wheel</zoom>
               <hierarchy>
                 <category name="DataTables" title="DataTables">
                   <category name="Obesity" title="Obesity">
-                    <attribute dataType="number" dataTable="Obesity" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" number=" " max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="174805" title="Percent Obese 1995"/>
+                    <attribute dataType="number" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" keyType="US State FIPS Code" number=" " max="40" min="0" geometryCollection="States" id="5684" dataTable="Obesity" title="Percent Obese 1995"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1173,37 +1181,37 @@ wheel</zoom>
           <category name="number of farms by state" title="number of farms by state"/>
           <category name="number of nonprofits by state" title="number of nonprofits by state"/>
           <category name="obesity" title="obesity">
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53566" name="US State FIPS Code" title="US State FIPS Code"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53567" name="State" title="State"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53568" name="Percent Obese 1995" title="Percent Obese 1995"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53569" name="Percent Obese 1996" title="Percent Obese 1996"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53570" name="Percent Obese 1997" title="Percent Obese 1997"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53571" name="Percent Obese 1998" title="Percent Obese 1998"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53572" name="Percent Obese 1999" title="Percent Obese 1999"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53573" name="Percent Obese 2000" title="Percent Obese 2000"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53574" name="Percent Obese 2001" title="Percent Obese 2001"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53575" name="Percent Obese 2002" title="Percent Obese 2002"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53576" name="Percent Obese 2003" title="Percent Obese 2003"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53577" name="Percent Obese 2004" title="Percent Obese 2004"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53578" name="Percent Obese 2005" title="Percent Obese 2005"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53579" name="Percent Obese 2006" title="Percent Obese 2006"/>
-            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53580" name="Percent Obese 2007" title="Percent Obese 2007"/>
+            <attribute dataTable="obesity" name="US State FIPS Code" id="53566" keyType="US State FIPS Code" title="US State FIPS Code"/>
+            <attribute dataTable="obesity" name="State" id="53567" keyType="US State FIPS Code" title="State"/>
+            <attribute dataTable="obesity" name="Percent Obese 1995" id="53568" keyType="US State FIPS Code" title="Percent Obese 1995"/>
+            <attribute dataTable="obesity" name="Percent Obese 1996" id="53569" keyType="US State FIPS Code" title="Percent Obese 1996"/>
+            <attribute dataTable="obesity" name="Percent Obese 1997" id="53570" keyType="US State FIPS Code" title="Percent Obese 1997"/>
+            <attribute dataTable="obesity" name="Percent Obese 1998" id="53571" keyType="US State FIPS Code" title="Percent Obese 1998"/>
+            <attribute dataTable="obesity" name="Percent Obese 1999" id="53572" keyType="US State FIPS Code" title="Percent Obese 1999"/>
+            <attribute dataTable="obesity" name="Percent Obese 2000" id="53573" keyType="US State FIPS Code" title="Percent Obese 2000"/>
+            <attribute dataTable="obesity" name="Percent Obese 2001" id="53574" keyType="US State FIPS Code" title="Percent Obese 2001"/>
+            <attribute dataTable="obesity" name="Percent Obese 2002" id="53575" keyType="US State FIPS Code" title="Percent Obese 2002"/>
+            <attribute dataTable="obesity" name="Percent Obese 2003" id="53576" keyType="US State FIPS Code" title="Percent Obese 2003"/>
+            <attribute dataTable="obesity" name="Percent Obese 2004" id="53577" keyType="US State FIPS Code" title="Percent Obese 2004"/>
+            <attribute dataTable="obesity" name="Percent Obese 2005" id="53578" keyType="US State FIPS Code" title="Percent Obese 2005"/>
+            <attribute dataTable="obesity" name="Percent Obese 2006" id="53579" keyType="US State FIPS Code" title="Percent Obese 2006"/>
+            <attribute dataTable="obesity" name="Percent Obese 2007" id="53580" keyType="US State FIPS Code" title="Percent Obese 2007"/>
           </category>
           <category name="Obesity" title="Obesity">
-            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" id="68866" name="State" title="State"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68867" title="Percent Obese 1995"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1996" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68868" title="Percent Obese 1996"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1997" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68869" title="Percent Obese 1997"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1998" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68870" title="Percent Obese 1998"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1999" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68871" title="Percent Obese 1999"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2000" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68872" title="Percent Obese 2000"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2001" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68873" title="Percent Obese 2001"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2002" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68874" title="Percent Obese 2002"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2003" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68875" title="Percent Obese 2003"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2004" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68876" title="Percent Obese 2004"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2005" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68877" title="Percent Obese 2005"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2006" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68878" title="Percent Obese 2006"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2007" max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="68879" title="Percent Obese 2007"/>
+            <attribute name="State" geometryCollection="States" id="68866" keyType="US State FIPS Code" dataTable="Obesity" title="State"/>
+            <attribute id="68867" name="Percent Obese 1995" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 1995"/>
+            <attribute id="68868" name="Percent Obese 1996" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 1996"/>
+            <attribute id="68869" name="Percent Obese 1997" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 1997"/>
+            <attribute id="68870" name="Percent Obese 1998" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 1998"/>
+            <attribute id="68871" name="Percent Obese 1999" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 1999"/>
+            <attribute id="68872" name="Percent Obese 2000" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2000"/>
+            <attribute id="68873" name="Percent Obese 2001" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2001"/>
+            <attribute id="68874" name="Percent Obese 2002" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2002"/>
+            <attribute id="68875" name="Percent Obese 2003" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2003"/>
+            <attribute id="68876" name="Percent Obese 2004" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2004"/>
+            <attribute id="68877" name="Percent Obese 2005" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2005"/>
+            <attribute id="68878" name="Percent Obese 2006" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2006"/>
+            <attribute id="68879" name="Percent Obese 2007" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" title="Percent Obese 2007"/>
           </category>
           <category name="obesity by state" title="obesity by state"/>
           <category name="Obesity Years" title="Obesity Years"/>
@@ -1551,7 +1559,7 @@ wheel</zoom>
             <hierarchy>
               <category name="DataTables" title="DataTables">
                 <category name="Obesity" title="Obesity">
-                  <attribute dataType="number" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" number=" " max="40" keyType="US State FIPS Code" dataTable="Obesity" min="0" geometryCollection="States" id="174805" title="Percent Obese 1995"/>
+                  <attribute title="Percent Obese 1995" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" keyType="US State FIPS Code" number=" " max="40" min="0" geometryCollection="States" id="5684" dataTable="Obesity" dataType="number"/>
                 </category>
               </category>
             </hierarchy>
@@ -1567,7 +1575,7 @@ wheel</zoom>
             <hierarchy>
               <category name="DataTables" title="DataTables">
                 <category name="Obesity" title="Obesity">
-                  <attribute dataType="number" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 2007" max="40" keyType="US State FIPS Code" dataTable="Obesity" min="0" geometryCollection="States" id="174817" title="Percent Obese 2007"/>
+                  <attribute title="Percent Obese 2007" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 2007" dataTable="Obesity" max="40" min="0" geometryCollection="States" keyType="US State FIPS Code" id="5672" dataType="number"/>
                 </category>
               </category>
             </hierarchy>
@@ -1585,7 +1593,7 @@ wheel</zoom>
             <hierarchy>
               <category name="DataTables" title="DataTables">
                 <category name="Obesity" title="Obesity">
-                  <attribute dataType="string" year="" name="State" keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" id="174804" title="State"/>
+                  <attribute title="State" year="" name="State" dataTable="Obesity" id="5671" geometryCollection="States" keyType="US State FIPS Code" dataType="string"/>
                 </category>
               </category>
             </hierarchy>
@@ -1639,6 +1647,7 @@ wheel</zoom>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -1682,6 +1691,7 @@ wheel</zoom>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -1713,7 +1723,7 @@ wheel</zoom>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
+                  <colorRamp name="Doppler Radar" dataFormat="qualitative" category="aesthetic" source="OIC">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -1735,6 +1745,7 @@ wheel</zoom>
                     <GlobalObjectReference name="defaultColorColumn"/>
                   </internalDynamicColumn>
                 </colorColumn>
+                <groupBySortColumn>false</groupBySortColumn>
                 <groupingMode>stack</groupingMode>
                 <heightColumns encoding="dynamic">
                   <ReferencedColumn name="ReferencedColumn">
@@ -1745,7 +1756,7 @@ wheel</zoom>
                           <hierarchy>
                             <category name="DataTables" title="DataTables">
                               <category name="Obesity" title="Obesity">
-                                <attribute dataType="number" min="0" string="`{number}%`" name="Percent Obese 1995" number=" " max="40" keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" id="174791" title="Percent Obese 1995"/>
+                                <attribute title="Percent Obese 1995" geometryCollection="States" string="`{number}%`" name="Percent Obese 1995" number=" " max="40" min="0" id="5684" keyType="US State FIPS Code" dataTable="Obesity" dataType="number"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1760,6 +1771,25 @@ wheel</zoom>
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
+                <labelBarHeightPercentage>100</labelBarHeightPercentage>
+                <labelColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="DataTables" title="DataTables">
+                              <category name="Obesity" title="Obesity">
+                                <attribute id="5671" name="State" dataTable="Obesity" dataType="string" geometryCollection="States" keyType="US State FIPS Code" title="State"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </labelColumn>
                 <lineStyle encoding="dynamic">
                   <SolidLineStyle>
                     <alpha>
@@ -1812,7 +1842,7 @@ wheel</zoom>
                           <hierarchy>
                             <category name="DataTables" title="DataTables">
                               <category name="Obesity" title="Obesity">
-                                <attribute dataType="number" dataTable="Obesity" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" number=" " max="40" keyType="US State FIPS Code" min="0" geometryCollection="States" id="174805" title="Percent Obese 1995"/>
+                                <attribute dataType="number" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" keyType="US State FIPS Code" number=" " max="40" min="0" id="174805" geometryCollection="States" dataTable="Obesity" title="Percent Obese 1995"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1821,6 +1851,7 @@ wheel</zoom>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
+                <valueLabelColor>0</valueLabelColor>
                 <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
             </plotter>
@@ -1895,6 +1926,10 @@ wheel</zoom>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
           <xMax>47.5</xMax>
@@ -1909,36 +1944,18 @@ wheel</zoom>
     <enableBorders>true</enableBorders>
     <enableTitle>false</enableTitle>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <labelColumn encoding="dynamic">
-      <ReferencedColumn>
-        <dynamicColumnReference encoding="dynamic">
-          <HierarchyColumnReference>
-            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-            <hierarchyPath encoding="xml">
-              <hierarchy>
-                <category name="DataTables" title="DataTables">
-                  <category name="Obesity" title="Obesity">
-                    <attribute dataType="string" name="State" keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" id="174804" title="State"/>
-                  </category>
-                </category>
-              </hierarchy>
-            </hierarchyPath>
-          </HierarchyColumnReference>
-        </dynamicColumnReference>
-      </ReferencedColumn>
-    </labelColumn>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.491%</panelHeight>
+    <panelHeight>50%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>65.907%</panelWidth>
-    <panelX>34.093%</panelX>
-    <panelY>50.509%</panelY>
+    <panelWidth>66%</panelWidth>
+    <panelX>34%</panelX>
+    <panelY>50%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
@@ -1993,6 +2010,7 @@ wheel</zoom>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -2036,6 +2054,7 @@ wheel</zoom>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -2198,6 +2217,10 @@ wheel</zoom>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
           <xMax>9.5</xMax>
@@ -2218,12 +2241,12 @@ wheel</zoom>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.491%</panelHeight>
+    <panelHeight>50%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>33.99%</panelWidth>
+    <panelWidth>34%</panelWidth>
     <panelX>0%</panelX>
-    <panelY>50.509%</panelY>
+    <panelY>50%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
@@ -2231,139 +2254,6 @@ wheel</zoom>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
   </HistogramTool>
-  <ColorBinLegendTool name="ColorBinLegendTool2">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>false</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <ColorBinLegendPlotter>
-                <dynamicColorColumn encoding="dynamic">
-                  <GlobalObjectReference name="defaultColorColumn"/>
-                </dynamicColorColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <maxColumns>1</maxColumns>
-                <reverseOrder>false</reverseOrder>
-                <shapeSize>20</shapeSize>
-              </ColorBinLegendPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>true</useTextBitmapFilters>
-          </SelectablePlotLayer>
-        </layers>
-        <marginBottom>5</marginBottom>
-        <marginLeft>5</marginLeft>
-        <marginRight>5</marginRight>
-        <marginTop>25</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <shadowAmount>0</shadowAmount>
-        <zoomBounds>
-          <xMax>1</xMax>
-          <xMin>0</xMin>
-          <yMax>1</yMax>
-          <yMin>0</yMin>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBorders>true</enableBorders>
-    <enableTitle>false</enableTitle>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.784%</panelHeight>
-    <panelStyleList/>
-    <panelTitle/>
-    <panelWidth>15.448%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>0%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-  </ColorBinLegendTool>
   <MapTool name="MapTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -2385,7 +2275,7 @@ wheel</zoom>
         <enableSelection>true</enableSelection>
         <enableZoomAndPan>true</enableZoomAndPan>
         <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
+        <gridLineColor>0</gridLineColor>
         <gridLineThickness>NaN</gridLineThickness>
         <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
         <layers encoding="dynamic">
@@ -2659,9 +2549,9 @@ wheel</zoom>
                         <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <category name="DataTables">
-                              <category name="Obesity">
-                                <attribute keyType="US State FIPS Code" dataTable="Obesity" year="" name="State" title="State"/>
+                            <category name="DataTables" title="DataTables">
+                              <category name="Obesity" title="Obesity">
+                                <attribute year="" name="State" dataTable="Obesity" dataType="string" id="5671" keyType="US State FIPS Code" title="State"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2702,6 +2592,10 @@ wheel</zoom>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
         <shadowAmount>20</shadowAmount>
         <zoomBounds>
           <area>8687.1219635911</area>
@@ -2723,11 +2617,11 @@ wheel</zoom>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.784%</panelHeight>
+    <panelHeight>50%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>46.859%</panelWidth>
-    <panelX>15.448%</panelX>
+    <panelWidth>47%</panelWidth>
+    <panelX>15%</panelX>
     <panelY>0%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
@@ -2736,8 +2630,100 @@ wheel</zoom>
     <projectionSRS/>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
+    <showMouseModeControls>true</showMouseModeControls>
+    <showZoomControls>true</showZoomControls>
   </MapTool>
   <DataTableTool name="DataTableTool">
+    <buttonRadius>3</buttonRadius>
+    <closeable>true</closeable>
+    <columns encoding="dynamic">
+      <DynamicColumn name="DynamicColumn" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category name="DataTables" title="DataTables">
+                    <category name="Obesity" title="Obesity">
+                      <attribute title="State" year="" name="State" dataTable="Obesity" geometryCollection="States" id="174804" keyType="US State FIPS Code" dataType="string"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category name="DataTables" title="DataTables">
+                    <category name="Obesity" title="Obesity">
+                      <attribute title="Percent Obese 1995" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" keyType="US State FIPS Code" number=" " max="40" min="0" id="174805" geometryCollection="States" dataTable="Obesity" dataType="number"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+      <DynamicColumn name="DynamicColumn3" encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category name="DataTables" title="DataTables">
+                    <category name="Obesity" title="Obesity">
+                      <attribute title="Percent Obese 2007" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 2007" dataTable="Obesity" max="40" min="0" id="174817" keyType="US State FIPS Code" geometryCollection="States" dataType="number"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </DynamicColumn>
+    </columns>
+    <columnWidths encoding="dynamic">
+      <LinkableString name="DynamicColumn"/>
+      <LinkableString name="DynamicColumn2"/>
+      <LinkableString name="DynamicColumn3"/>
+    </columnWidths>
+    <draggable>true</draggable>
+    <enableBorders>true</enableBorders>
+    <filterByKeyType/>
+    <lockedColumns>0</lockedColumns>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>50%</panelHeight>
+    <panelStyleList/>
+    <panelTitle/>
+    <panelWidth>38%</panelWidth>
+    <panelX>62%</panelX>
+    <panelY>0%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <showControls>false</showControls>
+    <sortFieldIndex>NaN</sortFieldIndex>
+    <sortInDescendingOrder>false</sortInDescendingOrder>
+  </DataTableTool>
+  <ColorBinLegendTool name="ColorBinLegendTool2">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -2756,106 +2742,116 @@ wheel</zoom>
         <enableFixedAspectRatio>false</enableFixedAspectRatio>
         <enableProbe>true</enableProbe>
         <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
+        <enableZoomAndPan>false</enableZoomAndPan>
         <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>NaN</gridLineColor>
+        <gridLineColor>0</gridLineColor>
         <gridLineThickness>NaN</gridLineThickness>
         <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic"/>
-        <marginBottom>0</marginBottom>
-        <marginLeft>0</marginLeft>
-        <marginRight>0</marginRight>
-        <marginTop>0</marginTop>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ColorBinLegendPlotter>
+                <dynamicColorColumn encoding="dynamic">
+                  <GlobalObjectReference name="defaultColorColumn"/>
+                </dynamicColorColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>false</reverseOrder>
+                <shapeSize>20</shapeSize>
+              </ColorBinLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>true</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>5</marginBottom>
+        <marginLeft>5</marginLeft>
+        <marginRight>5</marginRight>
+        <marginTop>25</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <xMax>NaN</xMax>
-          <xMin>NaN</xMin>
-          <yMax>NaN</yMax>
-          <yMin>NaN</yMin>
+          <xMax>1</xMax>
+          <xMin>0</xMin>
+          <yMax>1</yMax>
+          <yMin>0</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
     <closeable>true</closeable>
-    <columns encoding="dynamic">
-      <DynamicColumn name="DynamicColumn" encoding="dynamic">
-        <ReferencedColumn>
-          <dynamicColumnReference encoding="dynamic">
-            <HierarchyColumnReference>
-              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-              <hierarchyPath encoding="xml">
-                <hierarchy>
-                  <category name="DataTables" title="DataTables">
-                    <category name="Obesity" title="Obesity">
-                      <attribute dataType="string" year="" name="State" keyType="US State FIPS Code" dataTable="Obesity" id="174804" geometryCollection="States" title="State"/>
-                    </category>
-                  </category>
-                </hierarchy>
-              </hierarchyPath>
-            </HierarchyColumnReference>
-          </dynamicColumnReference>
-        </ReferencedColumn>
-      </DynamicColumn>
-      <DynamicColumn name="DynamicColumn2" encoding="dynamic">
-        <ReferencedColumn>
-          <dynamicColumnReference encoding="dynamic">
-            <HierarchyColumnReference>
-              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-              <hierarchyPath encoding="xml">
-                <hierarchy>
-                  <category name="DataTables" title="DataTables">
-                    <category name="Obesity" title="Obesity">
-                      <attribute dataType="number" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" number=" " max="40" keyType="US State FIPS Code" dataTable="Obesity" min="0" id="174805" geometryCollection="States" title="Percent Obese 1995"/>
-                    </category>
-                  </category>
-                </hierarchy>
-              </hierarchyPath>
-            </HierarchyColumnReference>
-          </dynamicColumnReference>
-        </ReferencedColumn>
-      </DynamicColumn>
-      <DynamicColumn name="DynamicColumn3" encoding="dynamic">
-        <ReferencedColumn>
-          <dynamicColumnReference encoding="dynamic">
-            <HierarchyColumnReference>
-              <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-              <hierarchyPath encoding="xml">
-                <hierarchy>
-                  <category name="DataTables" title="DataTables">
-                    <category name="Obesity" title="Obesity">
-                      <attribute dataType="number" year="" string="formatNumber(number, 1) + '%'" name="Percent Obese 2007" max="40" keyType="US State FIPS Code" dataTable="Obesity" min="0" id="174817" geometryCollection="States" title="Percent Obese 2007"/>
-                    </category>
-                  </category>
-                </hierarchy>
-              </hierarchyPath>
-            </HierarchyColumnReference>
-          </dynamicColumnReference>
-        </ReferencedColumn>
-      </DynamicColumn>
-    </columns>
-    <columnWidths encoding="dynamic">
-      <LinkableString name="DynamicColumn"/>
-      <LinkableString name="DynamicColumn2"/>
-      <LinkableString name="DynamicColumn3"/>
-    </columnWidths>
     <draggable>true</draggable>
     <enableBorders>true</enableBorders>
     <enableTitle>false</enableTitle>
-    <filterByKeyType/>
-    <lockedColumns>0</lockedColumns>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>50.073%</panelHeight>
+    <panelHeight>50%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>37.72%</panelWidth>
-    <panelX>62.28%</panelX>
+    <panelWidth>15%</panelWidth>
+    <panelX>0%</panelX>
     <panelY>0%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
@@ -2863,8 +2859,5 @@ wheel</zoom>
     <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
-    <showControls>false</showControls>
-    <sortFieldIndex>NaN</sortFieldIndex>
-    <sortInDescendingOrder>false</sortInDescendingOrder>
-  </DataTableTool>
+  </ColorBinLegendTool>
 </Weave>

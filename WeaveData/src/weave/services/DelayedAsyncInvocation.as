@@ -137,7 +137,10 @@ package weave.services
 				// When an ErrorMessage is returned by the AsyncToken, treat it as a fault.
 				var msg:ErrorMessage = event.result as ErrorMessage;
 				var fault:Fault = new Fault(msg.faultCode, msg.faultString, msg.faultDetail);
-				var faultEvent:FaultEvent = new FaultEvent(msg.faultCode, false, true, fault, this, msg);
+				fault.message = msg;
+				fault.content = event;
+				fault.rootCause = this;
+				var faultEvent:FaultEvent = FaultEvent.createEvent(fault, this, msg);
 				handleFault(faultEvent, token);
 				return;
 			}

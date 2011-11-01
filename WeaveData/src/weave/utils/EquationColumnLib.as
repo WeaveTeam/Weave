@@ -131,9 +131,6 @@ package weave.utils
 			return value;
 		}
 		
-		private static var key:IQualifiedKey;
-		private static var cubekeys:Array;
-		
 		/**
 		 * This function gets a value from a data column, using a filter column and a key column to filter the data
 		 * @param keyColumn An IAttributeColumn to get keys from
@@ -147,16 +144,14 @@ package weave.utils
 		 */		
 		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:String, dataType:* = null):Object
 		{
-			var val:Object;
-			
-			key = getKey();
-			cubekeys = getAssociatedKeys(keyColumn, key);
+			var key:IQualifiedKey = getKey();
+			var cubekeys:Array = getAssociatedKeys(keyColumn, key);
 			
 			for each (var cubekey:IQualifiedKey in cubekeys)
 			{
 				if (filter.getValueFromKey(cubekey, String) == filterValue)
 				{
-					val = getValueFromKey(data, cubekey, dataType);
+					var val:Object = getValueFromKey(data, cubekey, dataType);
 					return val;
 				}
 			}			

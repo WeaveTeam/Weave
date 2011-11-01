@@ -44,12 +44,6 @@ package weave.api.core
 	public interface ILinkableDynamicObject extends ILinkableCompositeObject
 	{
 		/**
-		 * This function will copy the session state of an ILinkableObject to the local internalObject.
-		 * @param objectToCopy An object to copy the session state from.
-		 */
-		function copyLocalObject(objectToCopy:ILinkableObject):void;
-
-		/**
 		 * This function gets the internal object, whether local or global.
 		 * @return The internal, dynamically created object.
 		 */

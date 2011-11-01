@@ -41,6 +41,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -69,6 +70,7 @@ package weave.visualization.plotters
 			setKeySource(_combinedKeySet);
 			
 			zoomToSubset.value = true;
+			clipDrawing = false;
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
@@ -187,9 +189,9 @@ package weave.visualization.plotters
 				var value:String = values[i];
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
-				col.variables.copyObject("keyCol", groupBy);
-				col.variables.copyObject("filterCol", xData);
-				col.variables.copyObject("dataCol", yData);
+				col.variables.weave_internal::requestObjectCopy("keyCol", groupBy);
+				col.variables.weave_internal::requestObjectCopy("filterCol", xData);
+				col.variables.weave_internal::requestObjectCopy("dataCol", yData);
 				
 				col.setMetadata(AttributeColumnMetadata.TITLE, value);
 				col.setMetadata(AttributeColumnMetadata.MIN, '{ getMin(dataCol) }');
@@ -201,13 +203,17 @@ package weave.visualization.plotters
 			
 			columns.resumeCallbacks();
 			
-		}		
+		}
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const curveType:LinkableString = registerLinkableChild(this, new LinkableString(CURVE_NONE, curveTypeVerifier));
-		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
+		public const shapeBorderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
+		public const shapeBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
+		
 		public static const CURVE_NONE:String = 'none';
 		public static const CURVE_TOWARDS:String = 'towards';
 		public static const CURVE_AWAY:String = 'away';
@@ -240,10 +246,6 @@ package weave.visualization.plotters
 		{
 			return shapesAvailable.indexOf(type) >= 0;
 		}
-		
-		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
-		public const shapeBorderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const shapeBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{

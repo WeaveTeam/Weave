@@ -30,6 +30,9 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.core.weave_internal;
+	
+	use namespace weave_internal;
 	
 	/**
 	 * This contains an ordered list of name-to-object mappings.
@@ -189,7 +192,7 @@ package weave.core
 		 * @param objectToCopy An object to copy the session state from.
 		 * @return The new copy of the specified object, or null if an error occurred.
 		 */
-		public function copyObject(name:String, objectToCopy:ILinkableObject):ILinkableObject
+		weave_internal function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject
 		{
 			if (objectToCopy == null)
 				return null;

@@ -36,12 +36,15 @@
 			import weave.Weave;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.graphs.IGraphAlgorithm;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableDynamicObject;
 			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -73,14 +76,17 @@
 				_plotter.nodesColumn.addImmediateCallback(this, updateProbeColumns);
 				_plotter.algorithmRunning.addGroupedCallback(this, handleAlgorithmRunning, false);
 				
-				linkSessionState(_plotter.lineStyle, _labelPlotter.lineStyle);
-				linkSessionState(_plotter.fillStyle, _labelPlotter.fillStyle);
-				linkSessionState(_plotter.colorColumn, _labelPlotter.colorColumn);
 				linkSessionState(_plotter.radius, _labelPlotter.radius);
-				linkSessionState(_plotter.layoutAlgorithm, _labelPlotter.layoutAlgorithm);
+				_plotter.layoutAlgorithm.addImmediateCallback(this, handleLayoutAlgorithmChange, null, true);
 				linkSessionState(_plotter.nodesColumn, _labelPlotter.nodesColumn);
 				linkSessionState(_plotter.edgeSourceColumn, _labelPlotter.edgeSourceColumn);
 				linkSessionState(_plotter.edgeTargetColumn, _labelPlotter.edgeTargetColumn);
+			}
+			
+			private function handleLayoutAlgorithmChange():void
+			{
+				_labelPlotter.layoutAlgorithm = _plotter.layoutAlgorithm.internalObject as IGraphAlgorithm;
+				_labelPlotter.runCallbacks(); //getCallbackCollection(_labelPlotter).triggerCallbacks();
 			}
 			
 			override protected function childrenCreated():void
@@ -95,9 +101,9 @@
 				(edgeColorComponent as DynamicColumnComponent).dynamicObject = edgeColorColumn.internalDynamicColumn;
 								
 				this.contextMenu = (Application.application as Application).contextMenu;
-				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
-				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
-				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);
+//				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
+//				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
+//				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);
 							
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
@@ -121,6 +127,7 @@
 				var dx:Number = dataPoint.x - _dragSourcePoint.x;
 				var dy:Number = dataPoint.y - _dragSourcePoint.y;
 				_plotter.updateDraggedKeys(_probedKeys, dx, dy, false);
+				getCallbackCollection(_labelPlotter).triggerCallbacks();
 				_dragSourcePoint.x = dataPoint.x;
 				_dragSourcePoint.y = dataPoint.y;
 			}
@@ -165,7 +172,8 @@
 				var dataPoint:Point = projectScreenPointToData(screenPoint);
 				var dx:Number = dataPoint.x - _dragSourcePoint.x;
 				var dy:Number = dataPoint.y - _dragSourcePoint.y;
-				_plotter.updateDraggedKeys(_probedKeys, dx, dy, true);				
+				_plotter.updateDraggedKeys(_probedKeys, dx, dy, true);
+				getCallbackCollection(_labelPlotter).triggerCallbacks();
 			}
 			private function handleLayoutGraph_click(event:ContextMenuEvent):void
 			{
@@ -192,11 +200,11 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color", "Node IDs", "Edge Source IDs", "Edge Target IDs", "Edge Color Column"];
+				return ["Color", "Node IDs", "Label", "Edge Source IDs", "Edge Target IDs", "Edge Color Column"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.colorColumn, _plotter.nodesColumn, _plotter.edgeSourceColumn, _plotter.edgeTargetColumn, _plotter.edgeColorColumn];
+				return [_plotter.colorColumn, _plotter.nodesColumn, _labelPlotter.labelColumn, _plotter.edgeSourceColumn, _plotter.edgeTargetColumn, _plotter.edgeColorColumn];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -223,11 +231,10 @@
 			}
 			
 			//public function get colorColumn():AlwaysDefinedColumn { return _plotter.colorColumn; }
-			public function get nodesColumn():DynamicColumn { return _plotter.nodesColumn.internalDynamicColumn; }
-			
-			public function get labelColumn():DynamicColumn { return _labelPlotter.labelColumn.internalDynamicColumn; }
-			public function get edgeSourceColumn():DynamicColumn { return _plotter.edgeSourceColumn.internalDynamicColumn; }
-			public function get edgeTargetColumn():DynamicColumn { return _plotter.edgeTargetColumn.internalDynamicColumn; }
+			public function get nodesColumn():DynamicColumn { return _plotter.nodesColumn; }
+			public function get labelColumn():DynamicColumn { return _labelPlotter.labelColumn; }
+			public function get edgeSourceColumn():DynamicColumn { return _plotter.edgeSourceColumn; }
+			public function get edgeTargetColumn():DynamicColumn { return _plotter.edgeTargetColumn; }
 			public function get edgeColorColumn():AlwaysDefinedColumn { return _plotter.edgeColorColumn; }
 			
 			private function alphaSliderFormatFunction(item:Number):String {
@@ -244,24 +251,24 @@
 				_plotter.shouldStop.value = false;
 				_plotter.recomputePositions();
 			}
-			private function handleStopComputation(event:ContextMenuEvent = null):void
-			{
-				if (!algorithmRunning)
-					return;
-				
-				shouldStop = true;
-				algorithmRunning = false;
-				_plotter.algorithmRunning.value = false;
-				_plotter.shouldStop.value = true;
-			}
-			private function handleContinueComputation():void
-			{
-				algorithmRunning = true;
-				shouldStop = false;
-				_plotter.algorithmRunning.value = true;
-				_plotter.shouldStop.value = false;
-				_plotter.continueComputation(null);
-			}
+//			private function handleStopComputation(event:ContextMenuEvent = null):void
+//			{
+//				if (!algorithmRunning)
+//					return;
+//				
+//				shouldStop = true;
+//				algorithmRunning = false;
+//				_plotter.algorithmRunning.value = false;
+//				_plotter.shouldStop.value = true;
+//			}
+//			private function handleContinueComputation():void
+//			{
+//				algorithmRunning = true;
+//				shouldStop = false;
+//				_plotter.algorithmRunning.value = true;
+//				_plotter.shouldStop.value = false;
+//				_plotter.continueComputation(null);
+//			}
 			private function handleAlgorithmRunning():void
 			{
 				algorithmRunning = _plotter.algorithmRunning.value;
@@ -329,8 +336,8 @@
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
 			<!--<mx:CheckBox label="Show Labels:" id="chkShowLabels"
-						 initialize="linkBindableProperty(showLabels, chkShowLabels, 'selected');"/>-->
-			<mx:HBox width="100%" 
+			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
+			<!--<mx:HBox width="100%" 
 					 borderStyle="inset" 
 					 backgroundColor="0xFFFFFF" 
 					 backgroundAlpha="0.7">
@@ -346,19 +353,26 @@
 							dataTipFormatFunction="alphaSliderFormatFunction"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"
-							initialize="linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, 'value')"/>
+			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
+			</mx:HBox>-->
+			<mx:HBox>
+				<mx:Label text="Radius Size:"
+						  color="0x0" fontSize="12"
+						  toolTip="Use this option to control the size of the each node in the graph."/>
+				<mx:NumericStepper id="numRadiusSize" minimum="1"
+								   creationComplete="linkBindableProperty(_plotter.radius, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Curved Lines:"
 						  color="0x0" fontSize="12"
 						  toolTip="Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes."/>
 				<mx:CheckBox id="drawCurvedLines"
-							 initialize="linkBindableProperty(_plotter.drawCurvedLines, drawCurvedLines, 'selected')"/>
+							 creationComplete="linkBindableProperty(_plotter.drawCurvedLines, event.target, 'selected')"/>
 			</mx:HBox>
 		</mx:VBox>
 		
 		<mx:VBox id="attributesPanel" label="Attributes for Graph">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="Nodes"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="Labels"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="Edge Sources"/>
@@ -367,17 +381,15 @@
 			<userControls:ControlsSubsetBox>
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe, probeColumnsCheckBox, 'selected')"/>
+							 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
 			</userControls:ControlsSubsetBox>
 			<mx:HBox>
 				<mx:Label text="Algorithm"/>
 				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
-							 initialize="linkBindableProperty(_plotter.currentAlgorithm, algorithmChoice, 'selectedItem')"/>
+							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm, event.target, 'selectedItem')"/>
 			</mx:HBox>
 			<mx:VBox>
 				<mx:Button id="recomputePositions" enabled="{!algorithmRunning}" label="Recalculate Node Positions" click="handleStartComputation()"/> 
-				<mx:Button id="stopComputation" enabled="{algorithmRunning}" label="Stop Calculations" click="handleStopComputation()"/> 
-				<mx:Button id="continueComputation" enabled="{!algorithmRunning}" label="Continue Calculations" click="handleContinueComputation()"/>
 			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>

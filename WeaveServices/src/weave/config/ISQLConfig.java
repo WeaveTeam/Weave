@@ -274,6 +274,8 @@ public interface ISQLConfig
 		// this information should not be made available to client programs
 		public static final String CONNECTION = "connection";
 		public static final String SQLQUERY = "sqlQuery";
+		public static final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
+		public static final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
 
 		// Metadata includes everything that end-users are allowed to see.
 		// Metadata should not contain any information related to the SQL
@@ -355,10 +357,6 @@ public interface ISQLConfig
 			this.connection = connection;
 			this.sqlQuery = sqlQuery;
 			this.metadata = metadata;
-			
-			// TODO: TEMPORARY SOLUTION -- REMOVE THIS CODE AFTER SERVER REFACTORING
-			if (getMetadata(Metadata.TITLE.toString()).length() == 0)
-				metadata.put(Metadata.TITLE.toString(), getMetadata(Metadata.NAME.toString()));
 		}
 
 		// returns a non-null value

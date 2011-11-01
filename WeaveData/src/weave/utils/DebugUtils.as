@@ -19,13 +19,17 @@
 
 package weave.utils
 {
+	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
+	import flash.system.Capabilities;
 	import flash.utils.*;
 	
 	import mx.controls.Alert;
+	import mx.utils.StringUtil;
 	
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.SessionManager;
 	
 	/**
 	 * DebugUtils
@@ -35,10 +39,26 @@ package weave.utils
 	 */
 	public class DebugUtils
 	{
+		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, currentDepth:int = 0):String
+		{
+			var str:String = StringUtil.substitute(
+				'{0}{1} ({2})\n',
+				StandardLib.lpad('', currentDepth * 2, '| '),
+				root.name,
+				getQualifiedClassName(root)
+			);
+			var container:DisplayObjectContainer = root as DisplayObjectContainer;
+			if (container && currentDepth != maxDepth)
+				for (var i:int = 0; i < container.numChildren; i++)
+					str += debugDisplayList(container.getChildAt(i), maxDepth, currentDepth + 1);
+			if (currentDepth == 0)
+				trace(str);
+			return str;
+		}
 		// format debug info from stack trace
 		public static function getCompactStackTrace(e:Error):Array
 		{
-			if (!SessionManager.runningDebugFlashPlayer)
+			if (!Capabilities.isDebugger)
 				return null;
 			var lines:Array = e.getStackTrace().split('\n\tat ');
 			lines.shift(); // remove the first line which is not part of the stack trace

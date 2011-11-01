@@ -39,11 +39,11 @@
 		expression="^\-?[1-9][0-9]*(\.[0-9]+)?(,\s*\-?[1-9][0-9]*(\.[0-9]+)?)*$"
 		trigger="{splitsInput}" triggerEvent="keyUp"
 		noMatchError="Please be sure the input is in the form 'number, number' etc."/>-->
-		<utils:CommaSeparatedNumbersValidator 
+	<!--	<utils:CommaSeparatedNumbersValidator 
 			id="splitValuesValidator"
 			minNumberAllowed="{dataMin}" maxNumberAllowed="{dataMax}"
 			source="{splitsInput}" property="text"
-			trigger="{splitsInput}" triggerEvent="keyUp"/>
+			trigger="{splitsInput}" triggerEvent="keyUp"/>-->
 			
 						
 		<mx:HBox id="valuesModule">

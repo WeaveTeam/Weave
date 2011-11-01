@@ -287,8 +287,8 @@
 				  width="100%" 
 				  borderAlpha="0.2" 
 				  borderStyle="none">
-			<ui:DynamicColumnComponent label="Color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-			<ui:ColumnListComponent label="Drag columns here" initialize="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
+			<ui:DynamicColumnComponent label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:ColumnListComponent label="Drag columns here" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 		</mx:Panel>
 		<mx:Panel id="VizControlsPanel" 
 				  label="Visualization Controls" 
