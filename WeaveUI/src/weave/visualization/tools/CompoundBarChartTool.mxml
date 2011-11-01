@@ -229,15 +229,14 @@
 			{
 				handlePanelTitleChange();
 				
-				var heightColumns:Array = _plotter.heightColumns.getObjects();
-				
 				var sortAxisTitle:String = "Sorted by " + ColumnUtils.getTitle(_plotter.sortColumn);
 				var heightAxisTitle:String = '';
-				for (var i:int = heightColumns.length - 1; i >= 0; i--) // reverse order
+				var heightColumns:Array = _plotter.heightColumns.getObjects();
+				for (var i:int = 0; i < heightColumns.length; i++)
 				{
-					heightAxisTitle += ColumnUtils.getTitle(heightColumns[i] as IAttributeColumn);
 					if (i > 0)
 						heightAxisTitle += ', ';
+					heightAxisTitle += ColumnUtils.getTitle(heightColumns[i] as IAttributeColumn);
 				}
 				if (heightAxisTitle == '')
 					heightAxisTitle = "Click to select...";

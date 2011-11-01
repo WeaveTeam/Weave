@@ -191,10 +191,12 @@ package weave.visualization.plotters
 		{
 			// save local copies of these values to speed up calculations
 			var _barSpacing:Number = barSpacing.value;
-			var _heightColumns:Array = heightColumns.getObjects().reverse();
+			var _heightColumns:Array = heightColumns.getObjects();
 			var _groupingMode:String = getActualGroupingMode();
 			var _horizontalMode:Boolean = horizontalMode.value;
 			var _groupBySortColumn:Boolean = groupBySortColumn.value;
+			if (_horizontalMode && _groupingMode == GROUP)
+				_heightColumns = _heightColumns.reverse();
 			
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
@@ -376,7 +378,10 @@ package weave.visualization.plotters
 						//////////////////////////
 						graphics.clear();
 						
-						var color:Number = chartColors.getColorFromNorm(i / (_heightColumns.length - 1));
+						var colorNorm:Number = i / (_heightColumns.length - 1);
+						if (_horizontalMode && _groupingMode == GROUP)
+							colorNorm = 1 - colorNorm;
+						var color:Number = chartColors.getColorFromNorm(colorNorm);
 						
 						// if there is one column, act like a regular bar chart and color in with a chosen color
 						if (_heightColumns.length == 1)
