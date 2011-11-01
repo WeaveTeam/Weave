@@ -87,10 +87,10 @@ package weave.core
 		}
 		
 		/**
-		 * This function will copy the session state of an ILinkableObject to the local internalObject.
+		 * This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.
 		 * @param objectToCopy An object to copy the session state from.
 		 */
-		weave_internal function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
+		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
 			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
 			var object:ILinkableObject = requestLocalObject(classDef, false);

@@ -81,6 +81,12 @@ package weave.api.core
 		function requestLocalObject(objectType:Class, lockObject:Boolean):*;
 
 		/**
+		 * This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.
+		 * @param objectToCopy An object to copy the session state from.
+		 */
+		function requestLocalObjectCopy(objectToCopy:ILinkableObject):void;
+
+		/**
 		 * This function will lock the internal object in place so it will not be removed.
 		 */
 		function lock():void;

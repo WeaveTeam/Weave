@@ -391,7 +391,7 @@
 						{
 							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
 							{
-								plotter.text.weave_internal::requestLocalObjectCopy(headers[i]);
+								plotter.text.requestLocalObjectCopy(headers[i]);
 								break;
 							}
 						}

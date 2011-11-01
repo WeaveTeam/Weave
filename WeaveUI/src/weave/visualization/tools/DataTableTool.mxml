@@ -131,7 +131,7 @@
 					if (probedColumn is DynamicColumn)
 						copySessionState(probedColumn, dynamicColumn);
 					else
-						dynamicColumn.weave_internal::requestLocalObjectCopy(probedColumn);
+						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
 			}
 			

@@ -328,7 +328,7 @@ package weave.visualization.tools
 					if (selectedColumn is DynamicColumn)
 						copySessionState(selectedColumn, columnToInit);
 					else
-						columnToInit.weave_internal::requestLocalObjectCopy(selectedColumn);
+						columnToInit.requestLocalObjectCopy(selectedColumn);
 				}
 			}
 		}

@@ -280,7 +280,7 @@
 					var nameOrder:Array = savedSubsetsMap.getNames();
 					nameOrder[nameOrder.indexOf(oldName)] = newName;
 					
-					savedSubsetsMap.weave_internal::requestLocalObjectCopy(newName, oldSubset);
+					savedSubsetsMap.requestObjectCopy(newName, oldSubset);
 					savedSubsetsMap.removeObject(oldName);
 					savedSubsetsMap.setNameOrder(nameOrder);
 
@@ -302,7 +302,7 @@
 						// if the user clicked cancel, then we will just return from here and save nothing
 						if( !e.confirm ) return;
 						
-						savedSubsetsMap.weave_internal::requestObjectCopy(e.textInput, globalSubset);
+						savedSubsetsMap.requestObjectCopy(e.textInput, globalSubset);
 						var _subsetSelector:SubsetSelector = Weave.root.getObject("SubsetSelector") as SubsetSelector;
 						if( _subsetSelector )
 							_subsetSelector.setSubsetSelectorIndex(e.textInput); // once saved, auto select the subset in the tool

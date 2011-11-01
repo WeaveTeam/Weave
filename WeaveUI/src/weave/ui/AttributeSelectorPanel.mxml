@@ -173,7 +173,7 @@
 					linkToObject(null);
 					return;
 				}
-				columnList.hashMap.weave_internal::requestObjectCopy(null, hierarchySelector.dynamicColumn.internalObject);
+				columnList.hashMap.requestObjectCopy(null, hierarchySelector.dynamicColumn.internalObject);
 			}
 			
 			private var _prevLinkedColumn:DynamicColumn = null;
@@ -266,7 +266,7 @@
 					{
 						columns = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
 						if (columns.length > 0)
-							hierarchySelector.dynamicColumn.weave_internal::requestLocalObjectCopy(columns[0]);
+							hierarchySelector.dynamicColumn.requestLocalObjectCopy(columns[0]);
 					}
 					
 					var child:DisplayObject = columnList.selectorControls;

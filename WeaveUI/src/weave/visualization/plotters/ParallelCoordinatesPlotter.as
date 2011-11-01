@@ -189,9 +189,9 @@ package weave.visualization.plotters
 				var value:String = values[i];
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
-				col.variables.weave_internal::requestObjectCopy("keyCol", groupBy);
-				col.variables.weave_internal::requestObjectCopy("filterCol", xData);
-				col.variables.weave_internal::requestObjectCopy("dataCol", yData);
+				col.variables.requestObjectCopy("keyCol", groupBy);
+				col.variables.requestObjectCopy("filterCol", xData);
+				col.variables.requestObjectCopy("dataCol", yData);
 				
 				col.setMetadata(AttributeColumnMetadata.TITLE, value);
 				col.setMetadata(AttributeColumnMetadata.MIN, '{ getMin(dataCol) }');

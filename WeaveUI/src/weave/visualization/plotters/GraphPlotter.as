@@ -64,7 +64,7 @@ package weave.visualization.plotters
 	{
 		public function GraphPlotter()
 		{
-			lineStyle.color.internalDynamicColumn.weave_internal::requestLocalObjectCopy(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
+			lineStyle.color.internalDynamicColumn.requestLocalObjectCopy(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
 			lineStyle.scaleMode.defaultValue.value = LineScaleMode.NORMAL;
 			lineStyle.weight.defaultValue.value = 1.5;
 

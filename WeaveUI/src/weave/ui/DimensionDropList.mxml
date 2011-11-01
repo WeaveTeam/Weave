@@ -73,7 +73,7 @@ DragDropDimensions
 			{
 				var items:Array = event.dragSource.dataForFormat("items") as Array;
 				for each (var object:ILinkableObject in items)
-					hashMap.weave_internal::requestObjectCopy(null, object);
+					hashMap.requestObjectCopy(null, object);
 			}
 			
 			override protected function dragEnterHandler(event:DragEvent):void

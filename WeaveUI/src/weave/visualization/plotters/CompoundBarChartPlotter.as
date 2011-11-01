@@ -174,7 +174,7 @@ package weave.visualization.plotters
 			var columns:Array = heightColumns.getObjects();
 			
 			if (sortColumn.internalColumn == null && columns.length > 0)
-				sortColumn.weave_internal::requestLocalObjectCopy(columns[0]);
+				sortColumn.requestLocalObjectCopy(columns[0]);
 		}
 		
 		// this is a way to get the number of keys (bars or groups of bars) shown
