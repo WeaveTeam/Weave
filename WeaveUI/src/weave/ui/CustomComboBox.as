@@ -19,6 +19,8 @@
 
 package weave.ui
 {
+	import flash.system.Capabilities;
+	
 	import mx.collections.CursorBookmark;
 	import mx.controls.Alert;
 	import mx.controls.ComboBox;
@@ -50,7 +52,7 @@ package weave.ui
 		{
 			// The dropdown will not be properly reset unless it is currently shown.
 			
-			if (SessionManager.runningDebugFlashPlayer)
+			if (Capabilities.isDebugger)
 			{
 				// when running debug player, allow the code to crash so developers take notice.
 				// If this ever crashes, please send the stack trace to andy.dufilie@gmail.com

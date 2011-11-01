@@ -22,6 +22,7 @@ package weave.utils
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
+	import flash.system.Capabilities;
 	import flash.utils.*;
 	
 	import mx.controls.Alert;
@@ -29,7 +30,6 @@ package weave.utils
 	
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.SessionManager;
 	
 	/**
 	 * DebugUtils
@@ -58,7 +58,7 @@ package weave.utils
 		// format debug info from stack trace
 		public static function getCompactStackTrace(e:Error):Array
 		{
-			if (!SessionManager.runningDebugFlashPlayer)
+			if (!Capabilities.isDebugger)
 				return null;
 			var lines:Array = e.getStackTrace().split('\n\tat ');
 			lines.shift(); // remove the first line which is not part of the stack trace

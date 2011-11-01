@@ -22,6 +22,7 @@ package weave.core
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
+	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	import flash.utils.describeType;
@@ -733,7 +734,7 @@ package weave.core
 					}
 					
 					// FOR DEBUGGING PURPOSES
-					if (runningDebugFlashPlayer)
+					if (Capabilities.isDebugger)
 						objectCC.addImmediateCallback(null, debugDisposedObject, [linkableObject, new Error("Object was disposed")]);
 				}
 				
@@ -1184,11 +1185,6 @@ package weave.core
 			
 			return delayedCallback;
 		}
-		
-		/**
-		 * This value is true if the user is running the debug version of the flash player.
-		 */		
-		public static const runningDebugFlashPlayer:Boolean = (new Error()).getStackTrace() != null;
 		
 		/**
 		 * This function computes the diff of two session states.
