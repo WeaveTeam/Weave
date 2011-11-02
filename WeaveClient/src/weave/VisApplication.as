@@ -501,11 +501,6 @@ package weave
 				return;
 			}
 			
-			// temporarily disable sessioning so config saved to server has sessioning disabled.
-			_disableSetupVisMenuItems = true; // stop the session settings from changing the vis menu
-			Weave.properties.enableSessionMenu.value = false;
-			Weave.properties.enableSessionEdit.value = false;
-			
 			var token:AsyncToken = adminService.invokeAsyncMethod(
 					'saveWeaveFile',
 					[Weave.getSessionStateXML().toXMLString(), fileName, true]
@@ -522,9 +517,6 @@ package weave
 					null
 				));
 			
-			Weave.properties.enableSessionMenu.value = true;
-			Weave.properties.enableSessionEdit.value = true;
-			_disableSetupVisMenuItems = false;
 			setupVisMenuItems();
 		}
 		
@@ -590,27 +582,12 @@ package weave
 		private var _subsetsMenu:WeaveMenuItem = null;
 		private var _aboutMenu:WeaveMenuItem   = null;
 
-		private var _disableSetupVisMenuItems:Boolean = false; // this flag disables the setupVisMenuItems() function temporarily while true
-		
 		private function setupVisMenuItems():void
 		{
-			if (_disableSetupVisMenuItems)
-				return;
-			
 			if (!_weaveMenu)
 				return;
 			
 			_weaveMenu.validateNow();
-			
-			//TEMPORARY SOLUTION -- enable sessioning if loaded through admin console
-			if (!Weave.properties.enableSessionMenu.value || !Weave.properties.enableSessionEdit.value)
-			{
-				if (adminService != null)
-				{
-					Weave.properties.enableSessionMenu.value = true;
-					Weave.properties.enableSessionEdit.value = true;
-				}
-			}
 			
 			_weaveMenu.removeAllMenus();
 			
@@ -697,7 +674,7 @@ package weave
 			}
 			
 			
-			if (Weave.properties.enableSessionMenu.value)
+			if (Weave.properties.enableSessionMenu.value || adminService)
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar("Session", false);
 				
@@ -709,14 +686,14 @@ package weave
 				
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				
-				if (Weave.properties.enableSessionEdit.value)
+				if (Weave.properties.enableSessionEdit.value || adminService)
 				{
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
 					
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state ...", handleImportSessionState));
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
 				}
 
@@ -727,7 +704,7 @@ package weave
 				
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				
-				if (Weave.properties.enableUserPreferences.value)
+				if (Weave.properties.enableUserPreferences.value || adminService)
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("User interface preferences", GlobalUISettings.openGlobalEditor));
 			}
 			
