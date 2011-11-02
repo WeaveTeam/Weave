@@ -187,11 +187,11 @@ public class SQLConfig
 		return connectionConfig.getConnectionNames();
 	}
 /* Private methods which handle the barebones of the entity-attribute-value system. */
-        private List<Integer> getFromKeyVals(Map<String,String> constraints) throws RemoteException
+        private List<Integer> getIdsFromPublicMetadata(Map<String,String> constraints) throws RemoteException
         {
-            return getFromKeyValsForTable(table_meta_public, constraints);
+            return getIdsFromMetadata(table_meta_public, constraints);
         }
-        private List<Integer> getFromKeyValsForTable(String table, Map<String,String> constraints) throws RemoteException
+        private List<Integer> getIdsFromMetadata(String sqlTable, Map<String,String> constraints) throws RemoteException
         {
             List<Integer> ids = new LinkedList<Integer>();
             try
@@ -208,11 +208,11 @@ public class SQLConfig
 
                 if (crossRowArgs.size() == 0)
                 {
-                	ids = SQLUtils.getIntColumn(conn, dbInfo.schema, table, ID);
+                	ids = SQLUtils.getIntColumn(conn, dbInfo.schema, table_desc, ID);
                 }
                 else
                 {
-                	ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, table, ID, crossRowArgs);
+                	ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, sqlTable, ID, crossRowArgs);
                 }
             }
             catch (SQLException e)
@@ -341,19 +341,18 @@ public class SQLConfig
 
                 geom_constraints.put(PROPERTY, "dataType");
                 geom_constraints.put(VALUE, "geometry");
-                geom_ids = new HashSet<Integer>(getFromKeyVals(geom_constraints));
+                geom_ids = new HashSet<Integer>(getIdsFromPublicMetadata(geom_constraints));
+
+                HashMap<String,String> conn_constraints = new HashMap<String,String>();
 
                 if (connectionName != null)
                 {
-                    HashMap<String,String> conn_constraints = new HashMap<String,String>();
-
-                    conn_constraints.put(PROPERTY, "connection");
-                    conn_constraints.put(VALUE, connectionName);
-
-                    conn_ids = new HashSet<Integer>(getFromKeyVals(conn_constraints));
-                    geom_ids.retainAll(conn_ids);
+                	conn_constraints.put(PROPERTY, "connection");
+                	conn_constraints.put(VALUE, connectionName);
                 }
-                // TODO 
+
+                conn_ids = new HashSet<Integer>(getIdsFromPublicMetadata(conn_constraints));
+                geom_ids.retainAll(conn_ids);
             }
             catch (Exception e)
             {
@@ -456,7 +455,7 @@ public class SQLConfig
         List<Integer> ids;
 		Map<String,String> whereParams = new HashMap<String,String>();
 		whereParams.put("name", name);
-        ids = getFromKeyVals(whereParams);
+        ids = getIdsFromPublicMetadata(whereParams);
         for (Integer id : ids)
         {
             delEntry(id);
@@ -480,7 +479,7 @@ public class SQLConfig
                 Map<String,String> attribParams =  new HashMap<String,String>();
                 attribParams.put("name", geometryCollectionName);
                 attribParams.put("dataType", "geometry");
-                List<Integer> idlist = getFromKeyVals(attribParams);
+                List<Integer> idlist = getIdsFromPublicMetadata(attribParams);
                 return getGeometryCollectionInfo(idlist.get(0));
         }
 	public GeometryCollectionInfo getGeometryCollectionInfo(Integer id) throws RemoteException
@@ -545,7 +544,7 @@ public class SQLConfig
 	{
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
         Map<Integer,Map<String,String>> attr_cols;
-        List<Integer> col_ids = getFromKeyVals(metadataQueryParams);
+        List<Integer> col_ids = getIdsFromPublicMetadata(metadataQueryParams);
         attr_cols = getProperties(col_ids, null);
 		for (Map<String,String> metadata : attr_cols.values())
 		{

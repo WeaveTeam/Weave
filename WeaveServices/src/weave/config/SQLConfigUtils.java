@@ -207,6 +207,8 @@ public class SQLConfigUtils
 	 */
 	public synchronized static int migrateSQLConfig( ISQLConfig source, ISQLConfig destination) throws RemoteException, SQLException
 	{
+		System.out.println(String.format("Migrating from %s to %s", source.getClass().getCanonicalName(), destination.getClass().getCanonicalName()));
+		
 		DebugTimer timer = new DebugTimer();
 		Connection conn = null;
 		if (destination instanceof DatabaseConfig)
@@ -249,13 +251,14 @@ public class SQLConfigUtils
 
 			// add columns
 			Map<String,String> queryParams = new HashMap<String,String>();
-			if (!(destination instanceof SQLConfig))
-				queryParams.put(Metadata.DATATYPE.toString(), "geometry"); // for old implementations, filter out geom collections
 			List<AttributeColumnInfo> columnInfo = source.getAttributeColumnInfo(queryParams);
 			timer.report("begin "+columnInfo.size()+" columns");
 			printInterval = Math.max(1, columnInfo.size() / 50);
 			for( int i = 0; i < columnInfo.size(); i++)
 			{
+				// for old implementations, filter out geom collections
+				if (!(destination instanceof SQLConfig) && "geometry".equalsIgnoreCase(columnInfo.get(i).metadata.get(Metadata.DATATYPE.toString())))
+					continue;
 				if (i % printInterval == 0)
 					System.out.println("Migrating column " + (i+1) + "/" + columnInfo.size());
 				destination.addAttributeColumn(columnInfo.get(i));

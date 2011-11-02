@@ -1133,50 +1133,59 @@ public class SQLUtils
         }
         public static Map<Integer,Map<String,String>> idInSelect(Connection conn, String schemaName, String table, String idColumn, String propColumn, String dataColumn, Collection<Integer> ids, Collection<String> props) throws SQLException
         {
-            //TODO: Clean this up, make it more generic.
-            Map<Integer,Map<String,String>> results = new HashMap<Integer,Map<String,String>>();
-            String idBlock = "("+stringMult(",", "?", ids.size())+")";
-            String propBlock;
-            String query;
-            String quotedSchema = quoteSchemaTable(conn, schemaName, table);
-            if (props != null)
-            {
-                propBlock = "("+stringMult(",","?", props.size())+")";
-                query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s AND %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
-                quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
-            }
-            else
-            {
-                query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
-                quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, idColumn));
-                
-            }
-            PreparedStatement stmt = conn.prepareStatement(query);
-            int i=1;
-            for (Integer val : ids)
-            {
-                results.put(val, new HashMap<String,String>());
-                stmt.setInt(i,val);
-                i++;
-            }
-            if (props != null)
-            {
-                for (String val : props)
-                {
-                    stmt.setString(i,val);
-                    i++;
-                }
-            }
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next())
-            {
-                Integer id = rs.getInt(idColumn);
-                String prop = rs.getString(propColumn);
-                String value = rs.getString(dataColumn);
-                results.get(id).put(prop, value);
-            }
-
-            return results;
+        	String query = "";
+        	try
+        	{
+	            //TODO: Clean this up, make it more generic.
+	            Map<Integer,Map<String,String>> results = new HashMap<Integer,Map<String,String>>();
+	            if (ids.size() == 0)
+	            	return results;
+	            String idBlock = "("+stringMult(",", "?", ids.size())+")";
+	            String propBlock;
+	            String quotedSchema = quoteSchemaTable(conn, schemaName, table);
+	            if (props == null || props.isEmpty())
+	            {
+	            	query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
+	            			quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, idColumn));
+	            }
+	            else
+	            {
+	            	propBlock = "("+stringMult(",","?", props.size())+")";
+	            	query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s AND %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
+	            			quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
+	            }
+	            PreparedStatement stmt = conn.prepareStatement(query);
+	            int i = 1;
+	            for (Integer val : ids)
+	            {
+	                results.put(val, new HashMap<String,String>());
+	                stmt.setInt(i,val);
+	                i++;
+	            }
+	            if (props != null)
+	            {
+	                for (String val : props)
+	                {
+	                    stmt.setString(i,val);
+	                    i++;
+	                }
+	            }
+	            ResultSet rs = stmt.executeQuery();
+	            while (rs.next())
+	            {
+	                Integer id = rs.getInt(idColumn);
+	                String prop = rs.getString(propColumn);
+	                String value = rs.getString(dataColumn);
+	                results.get(id).put(prop, value);
+	            }
+	
+	            return results;
+        	}
+        	catch (SQLException e)
+        	{
+        		System.out.println(query);
+        		throw e;
+        	}
         }
         /**
          * Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for,
@@ -1185,11 +1194,11 @@ public class SQLUtils
          * @param schemaName
          * @param table
          * @param column The name of the column to return.
-         * @param columns A list of where parameters specified as Map entries.
+         * @param queryParams A list of where parameters specified as Map entries.
          * @return The values from the specified column.
          * @throws SQLException
          */
-        public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> columns) throws SQLException
+        public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> queryParams) throws SQLException
         {
             PreparedStatement stmt = null;
             List<Integer> results = new LinkedList<Integer>();
@@ -1197,7 +1206,7 @@ public class SQLUtils
             ResultSet rs;
             List<List<Entry<String,String>>> flattenedMap = new LinkedList<List<Entry<String,String>>>();
             // Flatten the list of maps to a list of entries; this ensures that value ordering is preserved when we go to make the query. Replace the entry element values with the placeholder character.
-            for (Map<String,String> columnData : columns)
+            for (Map<String,String> columnData : queryParams)
             {
                 List<Entry<String,String>> pairs = imposeMapOrdering(columnData);
                 for (Entry<String,String> keyValPair : pairs)
@@ -1211,7 +1220,7 @@ public class SQLUtils
             String query;
             String qColumn = quoteSymbol(conn, column);
             String qTable = quoteSchemaTable(conn, schemaName, table);
-            if (columns.size() == 0)
+            if (queryParams.size() == 0)
             {
             	query = String.format("SELECT %s from %s group by %s", qColumn, qTable, qColumn);
             }
@@ -1224,7 +1233,7 @@ public class SQLUtils
 	                qTable,
 	                buildDisjunctiveNormalForm(conn, flattenedMap),
 	                qColumn,
-	                columns.size()
+	                queryParams.size()
 	            );
             }
             System.out.println(query);
