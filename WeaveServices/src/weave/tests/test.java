@@ -18,11 +18,8 @@
 */
 package weave.tests;
 
-import java.sql.*;
-
 import weave.config.SQLConfig;
 import weave.config.SQLConfigXML;
-import weave.utils.SQLUtils;
 
 
 //import weave.beans.WeaveRecordList;
@@ -52,7 +49,7 @@ public class test {
 //	}
 	
 	public static void main(String[] args) throws Exception {
-		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
+//		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
 //		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 6.0\\webapps\\weave-config\\sqlconfig.xml"));
 		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("sqlconfig.xml"));
 		System.out.println(sqlcfg.addEntry("Hello", null));
