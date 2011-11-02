@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+\<?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
     Weave (Web-based Analysis and Visualization Environment)
@@ -23,9 +23,12 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
+		 creationComplete="creationComplete();"
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.events.FlexEvent;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
@@ -37,6 +40,7 @@
 			import weave.api.setSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
+			import weave.core.SessionManager;
 			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
@@ -109,20 +113,19 @@
 				{
 					columnsToInit.push(_plotter.heightColumns.requestObject(null, DynamicColumn, false));
 				}
-				if(columnsToInit.length > 0)
+				if (columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
 				_plotter.heightColumns.addGroupedCallback(this,updateProbeColumns);
 			}
 			
-			override protected function childrenCreated():void
+			protected function creationComplete():void
 			{
-				super.childrenCreated();
 				cRampEditor.colorRamp = _plotter.chartColors;
 				linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
 				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
 				linkBindableProperty(showAllLabels, showAllLabelsCheckBox, "selected");
 				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
-				linkBindableProperty(_plotter.groupingMode, groupMode, 'selectedValue');
+				linkBindableProperty(_plotter.groupingMode, groupMode, 'selectedValue', 0); // this must be done after creationComplete because the RadioButtonGroup hasn't been initialized until then.
 				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
 				_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
@@ -155,12 +158,12 @@
 			
 			private function updateProbeLines():void
 			{
-				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP) 
+				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP)
 					visualization.disableProbelines();
-				else if( _plotter.horizontalMode.value) 
+				else if ( _plotter.horizontalMode.value)
 					visualization.enableProbeLine(true, false);
 				else
-					visualization.enableProbeLine(false, true ) ;
+					visualization.enableProbeLine(false, true);
 			}
 			
 			private function updateProbeColumns():void
