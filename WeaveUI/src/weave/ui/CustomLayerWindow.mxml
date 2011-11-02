@@ -41,7 +41,7 @@
 			 width="100%" height="100%">
 		
 		<mx:List id="layerSelector" width="100%" height="100%" minWidth="250">
-			<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<!--<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>-->
 			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{SelectablePlotLayer}"/>
 			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{SelectablePlotLayer}"/>
 		</mx:List>

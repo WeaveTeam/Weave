@@ -81,7 +81,21 @@ package weave.utils
 		public var roundCoords:Boolean = true; // round x,y values to integers
 		public var trim:Boolean = true; // trim leading/trailing whitespace
 		public var horizontalAlign:String = HORIZONTAL_ALIGN_LEFT; // default: align x to left side of text
-		public var verticalAlign:String = VERTICAL_ALIGN_TOP; // default: align y to top of text
+		
+		private var _verticalAlign:String = VERTICAL_ALIGN_TOP; // default: align y to top of text
+		public function set verticalAlign(value:String):void
+		{
+			_verticalAlign = value;
+			// BACKWARDS COMPATIBILITY
+			if( value == "center" )
+				_verticalAlign = VERTICAL_ALIGN_CENTER;
+		}
+		
+		public function get verticalAlign():String
+		{
+			return _verticalAlign;
+		}
+		
 		public var ellipsisLocation:String = ELLIPSIS_LOCATION_CENTER; // location of '...' when text gets truncated
 		public var textFormat:TextFormat = new TextFormat(); // This is the TextFormat that will be used when rendering text.
 

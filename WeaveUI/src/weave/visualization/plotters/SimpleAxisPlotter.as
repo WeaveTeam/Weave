@@ -107,6 +107,7 @@ package weave.visualization.plotters
 		public const forceTickCount:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		// formatter to use when generating tick mark labels
+		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const labelNumberFormatter:LinkableNumberFormatter = newLinkableChild(this, LinkableNumberFormatter);
 		public const labelTextAlignment:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
@@ -301,40 +302,43 @@ package weave.visualization.plotters
 				destination.draw(tempShape);
 				
 				// draw tick mark label
-				_bitmapText.text = null;
-				// attempt to use label function
-				var labelFunctionResult:String = _labelFunction == null ? null : _labelFunction(tickValue);
-				if (_labelFunction != null && labelFunctionResult != null)
+				if(showLabels.value)
 				{
-					_bitmapText.text = labelFunctionResult;
-				}
-				else if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY )
-				{
-					if (tickValue == int(tickValue))
-						_numberFormatter.precision = -1;
+					_bitmapText.text = null;
+					// attempt to use label function
+					var labelFunctionResult:String = _labelFunction == null ? null : _labelFunction(tickValue);
+					if (_labelFunction != null && labelFunctionResult != null)
+					{
+						_bitmapText.text = labelFunctionResult;
+					}
+					else if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY )
+					{
+						if (tickValue == int(tickValue))
+							_numberFormatter.precision = -1;
+						else
+							_numberFormatter.precision = 2;
+						
+						_bitmapText.text = _numberFormatter.format(tickValue);
+					}
 					else
-						_numberFormatter.precision = 2;
+					{
+						_bitmapText.text = labelNumberFormatter.format(tickValue);
+					}
 					
-					_bitmapText.text = _numberFormatter.format(tickValue);
-				}
-				else
-				{
-					_bitmapText.text = labelNumberFormatter.format(tickValue);
-				}
-				
-				try
-				{
-					if (labelFunction.value)
-						_bitmapText.text = labelFunction.apply(null, [tickValue, _bitmapText.text]);
-				}
-				catch (e:Error)
-				{
+					try
+					{
+						if (labelFunction.value)
+							_bitmapText.text = labelFunction.apply(null, [tickValue, _bitmapText.text]);
+					}
+					catch (e:Error)
+					{
+						
+					}
 					
+					_bitmapText.x = xTick + xLabelOffset;
+					_bitmapText.y = yTick + yLabelOffset;
+					_bitmapText.draw(destination);					
 				}
-
-				_bitmapText.x = xTick + xLabelOffset;
-				_bitmapText.y = yTick + yLabelOffset;
-				_bitmapText.draw(destination);
 			}
 		}
 		

@@ -22,7 +22,6 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.geom.Point;
-	import flash.net.getClassByAlias;
 	
 	import mx.utils.ObjectUtil;
 	
@@ -31,27 +30,22 @@ package weave.visualization.plotters
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.unlinkSessionState;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.SortedIndexColumn;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.primitives.Bounds2D;
@@ -66,6 +60,7 @@ package weave.visualization.plotters
 	 * CompoundBarChartPlotter
 	 * 
 	 * @author adufilie
+	 * @author kmanohar
 	 * @author everyone and their uncle
 	 */
 	public class CompoundBarChartPlotter extends AbstractPlotter
@@ -151,8 +146,20 @@ package weave.visualization.plotters
 		}
 		
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
-		public const labelBarHeightPercentage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
+
+		public const valueLabelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const valueLabelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
+		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const valueLabelAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
+		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		
+		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
+		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
+		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
+		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const labelAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
+		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 //		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -184,9 +191,7 @@ package weave.visualization.plotters
 				return _binnedSortColumn.numberOfBins;
 			return _filteredKeySet.keys.length;
 		}
-		
-		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		
+				
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			// save local copies of these values to speed up calculations
@@ -210,6 +215,10 @@ package weave.visualization.plotters
 			clipRectangle.height++; // avoid clipping lines
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
+			var numHeightColumns:int = _heightColumns.length;
+			var shouldDrawValueLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
+			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn != null);
+			
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
 			{
 				var recordKey:IQualifiedKey = recordKeys[iRecord] as IQualifiedKey;
@@ -218,9 +227,6 @@ package weave.visualization.plotters
 				// BEGIN code to draw one compound bar
 				//------------------------------------
 				graphics.clear();
-				
-				var numHeightColumns:int = _heightColumns.length;
-				var shouldDrawBarLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
 				
 				// y coordinates depend on height columns
 				var yMin:Number = 0; // start first bar at zero
@@ -417,23 +423,27 @@ package weave.visualization.plotters
 					//------------------------------------
 					
 					//------------------------------------
-					// BEGIN code to draw one bar value label (directly to BitmapData)
+					// BEGIN code to draw one bar value label (directly to BitmapData) 
 					//------------------------------------
-					if (shouldDrawBarLabel && !heightMissing)
+					if (shouldDrawValueLabel && !heightMissing)
 					{
 						_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
-						var percent:Number = isNaN(labelBarHeightPercentage.value) ? 1 : labelBarHeightPercentage.value / 100;
+						var valueLabelPos:Number = valueLabelDataCoordinate.value;
+						if(isNaN(valueLabelPos))
+						{
+							valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
+						}
 						if (!_horizontalMode)
 						{
 							tempPoint.x = (barStart + barEnd) / 2;
 							if (height >= 0)
 							{
-								tempPoint.y = percent * yMax;
+								tempPoint.y = valueLabelPos;
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 							}
 							else
 							{
-								tempPoint.y = percent * yNegativeMax;
+								tempPoint.y = valueLabelPos;
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
 							_bitmapText.angle = 270;
@@ -444,12 +454,12 @@ package weave.visualization.plotters
 							tempPoint.y = (barStart + barEnd) / 2;
 							if (height >= 0)
 							{
-								tempPoint.x = percent * yMax;
+								tempPoint.x = valueLabelPos;
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
 							}
 							else
 							{
-								tempPoint.x = percent * yNegativeMax;
+								tempPoint.x = valueLabelPos;
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
 							_bitmapText.angle = 0;
@@ -458,12 +468,72 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
+						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
+						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
+						_bitmapText.angle = isNaN(valueLabelAngle.value) ? _bitmapText.angle : valueLabelAngle.value;
+						_bitmapText.textFormat.color = valueLabelColor.value;
 						_bitmapText.draw(destination);
 					}
 					//------------------------------------
 					// END code to draw one bar value label (directly to BitmapData)
 					//------------------------------------
 					
+					//------------------------------------
+					// BEGIN code to draw one label using labelColumn
+					//------------------------------------
+					if (shouldDrawLabel && !heightMissing)
+					{
+						_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
+						_bitmapText.horizontalAlign = "right";
+						var labelPos:Number = labelDataCoordinate.value;
+						if(isNaN(labelPos))
+						{
+							labelPos = (height >= 0) ? dataBounds.getYMin(): dataBounds.getYMax();
+						}
+						if (!_horizontalMode)
+						{
+							tempPoint.x = (barStart + barEnd) / 2;
+							if (height >= 0)
+							{
+								tempPoint.y = labelPos;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+							}
+							else
+							{
+								tempPoint.y = labelPos;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+							}
+							_bitmapText.angle = 270;
+							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+						}
+						else
+						{
+							tempPoint.y = (barStart + barEnd) / 2;
+							if (height >= 0)
+							{
+								tempPoint.x = labelPos;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+							}
+							else
+							{
+								tempPoint.x = labelPos;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+							}
+							_bitmapText.angle = 0;
+							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+						}
+						dataBounds.projectPointTo(tempPoint, screenBounds);
+						_bitmapText.x = tempPoint.x;
+						_bitmapText.y = tempPoint.y;
+						_bitmapText.angle = isNaN(labelAngle.value) ? _bitmapText.angle : labelAngle.value;
+						_bitmapText.verticalAlign = labelVerticalAlign.value;
+						_bitmapText.horizontalAlign = labelHorizontalAlign.value;
+						_bitmapText.textFormat.color = labelColor.value ;
+						_bitmapText.draw(destination);
+					}
+					//------------------------------------
+					// END code to draw one label using labelColumn
+					//------------------------------------
 				}
 				//------------------------------------
 				// END code to draw one compound bar
@@ -544,7 +614,7 @@ package weave.visualization.plotters
 			// END template code
 		}
 		
-		private const _bitmapText:BitmapText = new BitmapText();
+		private const _bitmapText:BitmapText = new BitmapText();		
 		
 		/**
 		 * This function takes into account whether or not there is only a single height column specified.
