@@ -21,6 +21,8 @@ package weave.utils
 {
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
@@ -208,6 +210,36 @@ package weave.utils
 				result.push(values);
 			}
 			return result;
+		}
+		
+		/**
+		 * This funciton generates an Array sort function that will sort IQualifiedKeys.
+		 * @param columns An Array of IAttributeColumns to use for sorting IQualifiedKeys.
+		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
+		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns. 
+		 */		
+		public static function generateSortFunction(columns:Array, descendingFlags:Array = null):Function
+		{
+			var i:int;
+			var column:IAttributeColumn;
+			var result:int;
+			var n:int = columns.length;
+			descendingFlags.length = n;
+			return function arrayCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+			{
+				for (i = 0; i < n; i++)
+				{
+					column = columns[i] as IAttributeColumn;
+					result = ObjectUtil.compare(column.getValueFromKey(key1, Number), column.getValueFromKey(key2, Number));
+					if (result != 0)
+					{
+						if (descendingFlags && descendingFlags[i])
+							return -result;
+						return result;
+					}
+				}
+				return 0;
+			}
 		}
 		
 		//todo: (cached) get sorted index from a key and a column
