@@ -23,11 +23,12 @@ import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import weave.config.ISQLConfig.AttributeColumnInfo;
+import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.GeometryCollectionInfo;
 import weave.utils.DebugTimer;
@@ -204,7 +205,6 @@ public class SQLConfigUtils
 	 * @author Andrew Wilkinson
 	 * @author Andy Dufilie
 	 */
-	@SuppressWarnings("unchecked")
 	public synchronized static int migrateSQLConfig( ISQLConfig source, ISQLConfig destination) throws RemoteException, SQLException
 	{
 		DebugTimer timer = new DebugTimer();
@@ -248,7 +248,10 @@ public class SQLConfigUtils
 			timer.report("done migrating geom collections");
 
 			// add columns
-			List<AttributeColumnInfo> columnInfo = source.getAttributeColumnInfo(Collections.EMPTY_MAP);
+			Map<String,String> queryParams = new HashMap<String,String>();
+			if (!(destination instanceof SQLConfig))
+				queryParams.put(Metadata.DATATYPE.toString(), "geometry"); // for old implementations, filter out geom collections
+			List<AttributeColumnInfo> columnInfo = source.getAttributeColumnInfo(queryParams);
 			timer.report("begin "+columnInfo.size()+" columns");
 			printInterval = Math.max(1, columnInfo.size() / 50);
 			for( int i = 0; i < columnInfo.size(); i++)
