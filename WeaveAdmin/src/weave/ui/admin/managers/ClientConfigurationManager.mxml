@@ -81,7 +81,6 @@
 				var item:Object = treeWithSearch.tree.selectedItem;
 				if (item)
 					AdminInterface.instance.openWeavePreview(item.label);
-					AdminInterface.instance.initWeaveFileAndOpenWeave(item.label);
 			}
 			
 			private function createFile():void
