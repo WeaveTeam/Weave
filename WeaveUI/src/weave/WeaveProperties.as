@@ -318,16 +318,19 @@ package weave
 				return;
 			
 			var script:String = 'function(id){ var weave = document.getElementById(id); ' + startupJavaScript.value + ' }';
+			var prev:Boolean = ExternalInterface.marshallExceptions;
 			try
 			{
-				var prev:Boolean = ExternalInterface.marshallExceptions;
 				ExternalInterface.marshallExceptions = true;
 				ExternalInterface.call(script, ExternalInterface.objectID);
-				ExternalInterface.marshallExceptions = prev;
 			}
 			catch (e:Error)
 			{
 				WeaveAPI.ErrorManager.reportError(e);
+			}
+			finally
+			{
+				ExternalInterface.marshallExceptions = prev;
 			}
 		}
 		

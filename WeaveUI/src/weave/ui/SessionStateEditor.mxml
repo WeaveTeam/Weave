@@ -840,9 +840,15 @@ A text editor to change the Session State on the fly.
 				'javaScript': function(...args):*
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
-					ExternalInterface.marshallExceptions = true;
-					ExternalInterface.call.apply(this, args);
-					ExternalInterface.marshallExceptions = prev;
+					try
+					{
+						ExternalInterface.marshallExceptions = true;
+						ExternalInterface.call.apply(this, args);
+					}
+					finally
+					{
+						ExternalInterface.marshallExceptions = prev;
+					}
 				},
 				'application': Application.application,
 				'print': ObjectUtil.toString as Function,

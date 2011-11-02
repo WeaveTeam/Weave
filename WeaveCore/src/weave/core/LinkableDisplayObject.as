@@ -275,9 +275,15 @@ package weave.core
 					eventObj[propertyName] = String(ObjectUtil.copy(event[propertyName]));
 				
 				var prev:Boolean = ExternalInterface.marshallExceptions;
-				ExternalInterface.marshallExceptions = true;
-				ExternalInterface.call(script, eventObj);
-				ExternalInterface.marshallExceptions = prev;
+				try
+				{
+					ExternalInterface.marshallExceptions = true;
+					ExternalInterface.call(script, eventObj);
+				}
+				finally
+				{
+					ExternalInterface.marshallExceptions = prev;
+				}
 			};
 			*/
 		}

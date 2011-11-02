@@ -305,9 +305,15 @@ package weave.core
 				_callbackFunctionCache[callback] = function():void
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
-					ExternalInterface.marshallExceptions = true;
-					ExternalInterface.call(callback);
-					ExternalInterface.marshallExceptions = prev;
+					try
+					{
+						ExternalInterface.marshallExceptions = true;
+						ExternalInterface.call(callback);
+					}
+					finally
+					{
+						ExternalInterface.marshallExceptions = prev;
+					}
 				}
 			}
 			return _callbackFunctionCache[callback];
