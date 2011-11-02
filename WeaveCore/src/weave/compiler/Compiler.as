@@ -337,6 +337,8 @@ package weave.compiler
 		private function getTokens(expression:String):Array
 		{
 			var tokens:Array = [];
+			if (!expression)
+				return tokens;
 			var n:int = expression.length;
 			// get a flat list of tokens
 			var i:int = 0;
