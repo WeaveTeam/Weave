@@ -61,8 +61,7 @@
 				super.constructor();
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(ImageGlyphPlotter) as ImageGlyphPlotter;
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				showAxes = true;
 
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeft.addImmediateCallback(this, updateAxisLabels);

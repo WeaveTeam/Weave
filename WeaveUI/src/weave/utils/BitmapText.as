@@ -87,7 +87,7 @@ package weave.utils
 		{
 			_verticalAlign = value;
 			// BACKWARDS COMPATIBILITY
-			if( value == "center" )
+			if (value == "center")
 				_verticalAlign = VERTICAL_ALIGN_CENTER;
 		}
 		

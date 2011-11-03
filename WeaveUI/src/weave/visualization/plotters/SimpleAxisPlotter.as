@@ -106,9 +106,8 @@ package weave.visualization.plotters
 		// This option forces the axis to generate the exact number of requested tick marks between tick min and max values (inclusive)
 		public const forceTickCount:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
-		// formatter to use when generating tick mark labels
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const labelNumberFormatter:LinkableNumberFormatter = newLinkableChild(this, LinkableNumberFormatter);
+		public const labelNumberFormatter:LinkableNumberFormatter = newLinkableChild(this, LinkableNumberFormatter); // formatter to use when generating tick mark labels
 		public const labelTextAlignment:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));

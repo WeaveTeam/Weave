@@ -55,7 +55,8 @@
 				super.constructor();
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(ThermometerPlotter) as ThermometerPlotter;
-				yAxisEnabled = true;
+				showAxes = true;
+				visualization.getXAxisLayer().layerIsVisible.value = false;
 				
 				// by default this tool only displays the probed records.
 				plotLayer.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;

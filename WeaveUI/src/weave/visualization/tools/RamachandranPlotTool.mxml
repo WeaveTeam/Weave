@@ -99,8 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(ScatterPlotPlotter) as ScatterPlotPlotter;
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				showAxes = true;
 				
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;

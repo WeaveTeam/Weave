@@ -486,28 +486,10 @@ package weave.visualization.plotters
 						_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
 						_bitmapText.horizontalAlign = "right";
 						var labelPos:Number = labelDataCoordinate.value;
-						if(isNaN(labelPos))
+						if (_horizontalMode)
 						{
-							labelPos = (height >= 0) ? dataBounds.getYMin(): dataBounds.getYMax();
-						}
-						if (!_horizontalMode)
-						{
-							tempPoint.x = (barStart + barEnd) / 2;
-							if (height >= 0)
-							{
-								tempPoint.y = labelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-							}
-							else
-							{
-								tempPoint.y = labelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-							}
-							_bitmapText.angle = 270;
-							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
-						}
-						else
-						{
+							if (isNaN(labelPos))
+								labelPos = (height >= 0) ? dataBounds.getXMin(): dataBounds.getXMax();
 							tempPoint.y = (barStart + barEnd) / 2;
 							if (height >= 0)
 							{
@@ -520,6 +502,24 @@ package weave.visualization.plotters
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
 							_bitmapText.angle = 0;
+							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+						}
+						else
+						{
+							if (isNaN(labelPos))
+								labelPos = (height >= 0) ? dataBounds.getYMin(): dataBounds.getYMax();
+							tempPoint.x = (barStart + barEnd) / 2;
+							if (height >= 0)
+							{
+								tempPoint.y = labelPos;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+							}
+							else
+							{
+								tempPoint.y = labelPos;
+								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+							}
+							_bitmapText.angle = 270;
 							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 						}
 						dataBounds.projectPointTo(tempPoint, screenBounds);

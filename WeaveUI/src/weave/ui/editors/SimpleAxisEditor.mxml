@@ -127,7 +127,7 @@
 				_tool.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
 				_tool.addEventListener(FlexEvent.UPDATE_COMPLETE, function(..._):void { backgroundColorCallback(); });
 				
-				if (_tool.xAxisEnabled || _tool.yAxisEnabled)
+				if (_tool.showAxes)
 				{
 					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.overrideAxisName, xAxisTitle, 'text');
 					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.labelFunction, xAxisLabelFunction, 'text');

@@ -71,8 +71,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				plotter = initDefaultPlotter(Histogram2DPlotter) as Histogram2DPlotter;
 				visualization.enableProbeLine(false, true);
 				
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				showAxes = true;
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;

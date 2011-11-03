@@ -66,11 +66,9 @@
 				_plotter.groupingMode.addGroupedCallback(this, updateProbeLines);
 				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines);
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
-				_plotter.showLabels.addImmediateCallback(this, updateLabels);
-				_plotter.horizontalMode.addImmediateCallback(this, updateLabels);
+				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
 				
-				yAxisEnabled = true;
-				xAxisEnabled = true;
+				showAxes = true;
 				
 				var objects:Array = [
 						xAxisLayer.axisPlotter,
@@ -162,7 +160,7 @@
 			{
 				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP)
 					visualization.disableProbelines();
-				else if ( _plotter.horizontalMode.value)
+				else if (_plotter.horizontalMode.value)
 					visualization.enableProbeLine(true, false);
 				else
 					visualization.enableProbeLine(false, true);
@@ -234,19 +232,6 @@
 			private var _showYAxisLabels:Boolean = false;
 			private var _showXAxisLabels:Boolean = false;
 			
-			private function updateLabels():void
-			{
-				var sortAxisLayer:AxisLayer = (_plotter.horizontalMode.value) ? yAxisLayer : xAxisLayer;
-				if(_plotter.showLabels.value)
-				{
-					sortAxisLayer.axisPlotter.showLabels.value = false;
-				} else
-				{
-					yAxisLayer.axisPlotter.showLabels.value = true;
-					xAxisLayer.axisPlotter.showLabels.value = true;
-				}
-			}
-			
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
@@ -304,6 +289,7 @@
 				heightAxisLayer.axisPlotter.tickMaxValue.value = NaN;
 				heightAxisLayer.axisPlotter.forceTickCount.value = false;
 				heightAxisLayer.axisPlotter.tickCountRequested.value = sizeAxisTickCountRequested.value;
+				heightAxisLayer.axisPlotter.showLabels.value = true;
 
 				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
 				sortAxisLayer.axisPlotter.tickMinValue.value = 0;
@@ -313,6 +299,7 @@
 					sortAxisLayer.axisPlotter.tickCountRequested.value = _plotter.maxTickMarks;
 				else
 					sortAxisLayer.axisPlotter.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
+				sortAxisLayer.axisPlotter.showLabels.value = !_plotter.showLabels.value;
 				
 				// END handling of horizontal/vertical mode --------------------------------
 				
@@ -402,12 +389,11 @@
 				<mx:RadioButton id="groupedRadioButton" groupName="groupMode" label="Grouped bars" value="{CompoundBarChartPlotter.GROUP}"/>
 			</mx:HBox>
 			
-			<userControls:ControlsSubsetBox>
-				<mx:Label text="Bar spacing:"/>
+			<ui:Indent label="Bar spacing:">
 				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No gap', '1:4', '1:1']" tickInterval="0.25"
 							toolTip="Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width." showDataTip="false"
 							liveDragging="true"/>
-			</userControls:ControlsSubsetBox>
+			</ui:Indent>
 			
 			
 			<mx:HBox borderStyle="inset" borderThickness="1">

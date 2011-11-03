@@ -333,21 +333,13 @@ package weave.visualization.tools
 			}
 		}
 		
-		public function get xAxisEnabled():Boolean
+		public function get showAxes():Boolean
 		{
-			return visualization.xAxisEnabled;
+			return visualization.showAxes;
 		}
-		public function set xAxisEnabled(value:Boolean):void
+		public function set showAxes(value:Boolean):void
 		{
-			visualization.xAxisEnabled = value;
-		}
-		public function get yAxisEnabled():Boolean
-		{
-			return visualization.yAxisEnabled;
-		}
-		public function set yAxisEnabled(value:Boolean):void
-		{
-			visualization.yAxisEnabled = value;
+			visualization.showAxes = value;
 		}
 		
 		[Inspectable]
