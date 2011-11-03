@@ -59,6 +59,7 @@
 			import weave.services.wms.WMSProviders;
 			import weave.ui.ColorBinEditor;
 			import weave.ui.DynamicColumnComponent;
+			import weave.ui.PenTool;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.SpatialIndex;
@@ -474,41 +475,8 @@
 				marker.dataHeight.value = height;
 			}
 
-			
-			public function selectRecords():void
-			{
-				var key:IQualifiedKey;
-				var simpleGeometries:Array = [];
-				var simpleGeometry:ISimpleGeometry;
-				var layer:IPlotLayer;
-				
-				// First we need to go through the layers and get all the ISimpleGeometry objects
-				// from the IPlotterWithGeometrySelection plotters.
-				for each (layer in visualization.layers.getObjects())
-				{
-					var polygonPlotter:IPlotterWithGeometries = layer.plotter as IPlotterWithGeometries;
 
-					if (!polygonPlotter && layer.plotter is DynamicPlotter)
-					{
-						polygonPlotter = (layer.plotter as DynamicPlotter).internalObject as IPlotterWithGeometries;
-					}
-					
-					if (!polygonPlotter)
-						continue;
-					
-					for each (simpleGeometry in polygonPlotter.getBackgroundGeometries())
-					{
-						simpleGeometries.push(simpleGeometry);
-					}
-				}
-				
-				var keys:Array = visualization.getKeysOverlappingGeometry(simpleGeometries);
-				
-				// set the selection keyset
-				var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-				selectionKeySet.replaceKeys(keys);
-			}
-			
+
 			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			

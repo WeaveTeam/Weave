@@ -55,6 +55,7 @@ package weave.ui
 	import weave.utils.CustomCursorManager;
 	import weave.utils.SpatialIndex;
 	import weave.visualization.layers.PlotLayerContainer;
+	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.tools.SimpleVisTool;
 
 	use namespace mx_internal;
@@ -163,21 +164,64 @@ package weave.ui
 		private var _editMode:Boolean = false; // true when editing
 		private var _drawing:Boolean = false; // true when editing and mouse is down
 		private var _coordsArrays:Array = []; // parsed from coords LinkableString
+		
+		/**
+		 * The current mode of the drawing.
+		 * @default FREE_DRAW_MODE 
+		 */		
 		public const drawingMode:LinkableString = registerLinkableChild(this, new LinkableString(FREE_DRAW_MODE, verifyDrawingMode));
 		
 		/**
 		 * This is used for sessioning all of the coordinates.
 		 */
 		public const coords:LinkableString = registerLinkableChild(this, new LinkableString(''), handleCoordsChange);
+		
 		/**
-		 * Allows user to change the size of the line.
+		 * The width of the line.
+		 * @default 2
 		 */
 		public const lineWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), invalidateDisplayList);
-		/**
-		 * Allows the user to change the color of the line.
-		 */
-		public const lineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000), invalidateDisplayList);
 		
+		/**
+		 * The color of the line.
+		 * @default 0x0
+		 */
+		public const lineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x0), invalidateDisplayList);
+		
+		/**
+		 * The alpha of the line.
+		 * @default 1 
+		 */		
+		public const lineAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifyAlpha), invalidateDisplayList);
+		
+		/**
+		 * The fill color of the polygon drawn in POLYGON_DRAW_MODE.
+		 * @default 0x000000 
+		 */		
+		public const polygonFillColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000), invalidateDisplayList);
+		
+		/**
+		 * The fill alpha of the polygon drawn in POLYGON_DRAW_MODE.
+		 * @default 1 
+		 */		
+		public const polygonFillAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyAlpha), invalidateDisplayList);
+		
+		/**
+		 * Verification function for the alpha properties.
+		 */		
+		private function verifyAlpha(value:Number):Boolean
+		{
+			return value >= 0 && value <= 1;
+		}
+
+		/**
+		 * Verification function for the drawing mode property.
+		 */		
+		private function verifyDrawingMode(value:String):Boolean
+		{
+			return value == FREE_DRAW_MODE || value == POLYGON_DRAW_MODE;
+		}
+
 		public function get editMode():Boolean
 		{
 			return _editMode;
@@ -196,11 +240,6 @@ package weave.ui
 			else
 				CustomCursorManager.removeAllCursors();
 			invalidateDisplayList();
-		}
-
-		private function verifyDrawingMode(value:String):Boolean
-		{
-			return value == FREE_DRAW_MODE || value == POLYGON_DRAW_MODE;
 		}
 
 		/**
@@ -408,32 +447,6 @@ package weave.ui
 				return;
 			
 			CustomCursorManager.removeAllCursors();
-//			completeDrawing();
-//			editMode = false;
-//			_drawing = false;
-		}
-		
-		private function completeDrawing():void
-		{
-			if (!_drawing)
-				return;
-			
-			if (drawingMode.value == FREE_DRAW_MODE)
-			{
-				
-			}
-			else if (drawingMode.value == POLYGON_DRAW_MODE)
-			{
-				var line:Array = _coordsArrays[_coordsArrays.length - 1];
-				if (line && line.length > 2)
-				{
-					handleScreenCoordinate(mouseX, mouseY, _tempPoint);
-					line.push(_tempPoint.x, _tempPoint.y);
-					line.push(line[0], line[1]);
-					coords.value += line[0] + "," + line[1]; // this ends the line
-				}
-				_drawing = false;
-			}
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -446,7 +459,7 @@ package weave.ui
 				var lastShape:Array;
 				var g:Graphics = graphics;
 				g.clear();
-				
+
 				if (_editMode)
 				{
 					// draw invisible rectangle to capture mouse events
@@ -456,7 +469,10 @@ package weave.ui
 					g.endFill();
 				}
 				
-				g.lineStyle(lineWidth.value, lineColor.value);
+				if (drawingMode.value == POLYGON_DRAW_MODE && polygonFillAlpha.value > 0)
+					g.beginFill(polygonFillColor.value, polygonFillAlpha.value);					
+
+				g.lineStyle(lineWidth.value, lineColor.value, lineAlpha.value);
 				for (var line:int = 0; line < _coordsArrays.length; line++)
 				{
 					var points:Array = _coordsArrays[line];
@@ -498,9 +514,11 @@ package weave.ui
 						g.lineStyle(lineWidth.value, lineColor.value, 0.35);
 						g.lineTo(_tempPoint.x, _tempPoint.y);
 					}
-					
 				}
-			}
+				
+				if (drawingMode.value == POLYGON_DRAW_MODE && polygonFillAlpha.value > 0)
+					g.endFill();
+			} // if (visualization)
 		}
 
 		/**
@@ -512,55 +530,76 @@ package weave.ui
 			return mouseX < parent.x || mouseX >= parent.x + parent.width
 				|| mouseY < parent.y || mouseY >= parent.y + parent.height;
 		}
-				
+		
 		/**
-		 * This function will check for records overlapping each drawn polygon. The keys
-		 * will then be set to the defaultSelectionFilter.
+		 * Get all the keys which overlap the drawn polygons. 
+		 * @return An array of IQualifiedKey objects.
 		 */		
-		public function selectRecords():void
+		public function getOverlappingKeys():Array
 		{
 			if (drawingMode.value == FREE_DRAW_MODE)
-				return;
+				return [];
 			
 			var visualization:PlotLayerContainer = getPlotLayerContainer(parent);
 			if (!visualization)
-				return;
+				return [];
 			
 			var key:IQualifiedKey;
 			var keys:Dictionary = new Dictionary();
 			var layers:Array = visualization.layers.getObjects();
-			for each (var layer:IPlotLayer in layers)
+			var shapes:Array = WeaveAPI.CSVParser.parseCSV(coords.value);
+			for each (var shape:Array in shapes)
 			{
-				var spatialIndex:SpatialIndex = layer.spatialIndex as SpatialIndex;
-				var shapes:Array = WeaveAPI.CSVParser.parseCSV(coords.value);
-				for each (var shape:Array in shapes)
+				_tempArray.length = 0;
+				for (var i:int = 0; i < shape.length - 1; i += 2)
 				{
-					_tempArray.length = 0;
-					for (var i:int = 0; i < shape.length - 1; i += 2)
-					{
-						var newPoint:Point = new Point();
-						newPoint.x = shape[i];
-						newPoint.y = shape[i + 1];
-						_tempArray.push(newPoint);
-					}
-					_simpleGeom.setVertices(_tempArray);
+					var newPoint:Point = new Point();
+					newPoint.x = shape[i];
+					newPoint.y = shape[i + 1];
+					_tempArray.push(newPoint);
+				}
+				_simpleGeom.setVertices(_tempArray);
+				
+				for each (var layer:IPlotLayer in layers)
+				{
+					var spatialIndex:SpatialIndex = layer.spatialIndex as SpatialIndex;
 					var overlappingKeys:Array = spatialIndex.getKeysGeometryOverlapGeometry(_simpleGeom);
 					for each (key in overlappingKeys)
 					{
 						keys[key] = true;
-					}				
+					}
 				}
 			}
+//			for each (var layer:IPlotLayer in layers)
+//			{
+//				var spatialIndex:SpatialIndex = layer.spatialIndex as SpatialIndex;
+//				var shapes:Array = WeaveAPI.CSVParser.parseCSV(coords.value);
+//				for each (var shape:Array in shapes)
+//				{
+//					_tempArray.length = 0;
+//					for (var i:int = 0; i < shape.length - 1; i += 2)
+//					{
+//						var newPoint:Point = new Point();
+//						newPoint.x = shape[i];
+//						newPoint.y = shape[i + 1];
+//						_tempArray.push(newPoint);
+//					}
+//					_simpleGeom.setVertices(_tempArray);
+//					var overlappingKeys:Array = spatialIndex.getKeysGeometryOverlapGeometry(_simpleGeom);
+//					for each (key in overlappingKeys)
+//					{
+//						keys[key] = true;
+//					}				
+//				}
 
-			// set the selection keyset
-			var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			_tempArray.length = 0;
+			var result:Array = [];
 			for (var keyObj:* in keys)
 			{
-				_tempArray.push(keyObj as IQualifiedKey);
+				result.push(keyObj as IQualifiedKey);
 			}
-			selectionKeySet.replaceKeys(_tempArray);
+			return result;
 		}
+				
 		private const _tempArray:Array = [];
 		private const _simpleGeom:SimpleGeometry = new SimpleGeometry(SimpleGeometry.CLOSED_POLYGON);
 		private const _tempScreenBounds:IBounds2D = new Bounds2D();
@@ -687,12 +726,15 @@ package weave.ui
 		private static function handlePenToolToggleMenuItem(e:ContextMenuEvent):void
 		{
 			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
-			
 			if (!linkableContainer)
+				return;
+
+			var visualization:PlotLayerContainer = getPlotLayerContainer(e.mouseTarget);
+			if (!visualization)
 				return;
 			
 			var penTool:PenTool = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenTool, false);
-			if(_penToolMenuItem.caption == ENABLE_PEN)
+			if (_penToolMenuItem.caption == ENABLE_PEN)
 			{
 				// enable pen
 				penTool.editMode = true;
@@ -757,21 +799,21 @@ package weave.ui
 			_removeDrawingsMenuItem.enabled = false;
 		}
 		
-		/**
-		 * This function is called when the select records context menu item is clicked. 
-		 * @param e The event.
-		 */		
-		private static function handleSelectRecords(e:ContextMenuEvent):void
-		{
-			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
-			if (!linkableContainer)
-				return;
-			var visualization:PlotLayerContainer = getPlotLayerContainer(e.mouseTarget) as PlotLayerContainer;
-			if (!visualization)
-				return;
-			
-			var penTool:PenTool = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenTool, false);
-			penTool.selectRecords();
-		}		
+//		/**
+//		 * This function is called when the select records context menu item is clicked. 
+//		 * @param e The event.
+//		 */		
+//		private static function handleSelectRecords(e:ContextMenuEvent):void
+//		{
+//			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
+//			if (!linkableContainer)
+//				return;
+//			var visualization:PlotLayerContainer = getPlotLayerContainer(e.mouseTarget) as PlotLayerContainer;
+//			if (!visualization)
+//				return;
+//			
+//			var penTool:PenTool = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenTool, false);
+//			penTool.selectRecords();
+//		}		
 	}
 }

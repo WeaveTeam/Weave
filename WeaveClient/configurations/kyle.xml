@@ -23,14 +23,14 @@
     <includeMissingKeys>false</includeMissingKeys>
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
-  <KeySet name="defaultSelectionKeySet">US State FIPS Code,15,55,26</KeySet>
+  <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
   <ColorColumn name="defaultColorColumn">
     <internalDynamicColumn encoding="dynamic">
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="Red Scale" category="visualization" singlehue="true" source="OIC">
+      <colorRamp category="visualization" name="Red Scale" singlehue="true" source="OIC">
         <node color="0x000000" position="0"/>
         <node color="0xff0000" position="0.5"/>
         <node color="0xffcccc" position="1"/>
@@ -63,7 +63,6 @@
     <enableAddDataTable>true</enableAddDataTable>
     <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
     <enableAddGaugeTool>true</enableAddGaugeTool>
-    <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
     <enableAddGraphTool>true</enableAddGraphTool>
     <enableAddHistogram>true</enableAddHistogram>
     <enableAddLineChart>true</enableAddLineChart>
@@ -77,7 +76,7 @@
     <enableAddThermometerTool>true</enableAddThermometerTool>
     <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
     <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
-    <enableBitmapFilters>false</enableBitmapFilters>
+    <enableBitmapFilters>true</enableBitmapFilters>
     <enableCascadeAllWindows>true</enableCascadeAllWindows>
     <enableClearCurrentSelection>true</enableClearCurrentSelection>
     <enableCloseAllWindows>true</enableCloseAllWindows>
@@ -102,7 +101,7 @@
     <enableNewDataset>true</enableNewDataset>
     <enableNewUserWizard>true</enableNewUserWizard>
     <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
-    <enableProbeAnimation>false</enableProbeAnimation>
+    <enableProbeAnimation>true</enableProbeAnimation>
     <enableProbeLines>true</enableProbeLines>
     <enableRefreshHierarchies>true</enableRefreshHierarchies>
     <enableRemoveSubsets>true</enableRemoveSubsets>
@@ -185,6 +184,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     </toolInteractions>
     <version>1.0 Beta Nightly Build</version>
     <windowSnapGridSize>4</windowSnapGridSize>
+    <workspaceHeight>NaN</workspaceHeight>
+    <workspaceWidth>NaN</workspaceWidth>
   </WeaveProperties>
   <LinkableHashMap name="Probed Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn">
@@ -193,7 +194,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Country Name" keyType="Country Code" csvColumn="Country Name" title="Country Name"/>
+              <attribute title="Country Name" name="Country Name" keyType="Country Code" csvColumn="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -205,7 +206,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
+              <attribute title="Population, female (% of total)" name="Population, female (% of total)" keyType="Country Code" csvColumn="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -217,7 +218,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
+              <attribute title="Rural population (% of total population)" name="Rural population (% of total population)" keyType="Country Code" csvColumn="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -229,7 +230,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
+              <attribute title="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" keyType="Country Code" csvColumn="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -241,7 +242,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
+              <attribute title="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" keyType="Country Code" csvColumn="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -253,7 +254,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
+              <attribute title="Urban population (% of total)" name="Urban population (% of total)" keyType="Country Code" csvColumn="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -265,7 +266,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute name="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
+              <attribute title="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" keyType="Country Code" csvColumn="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -287,11 +288,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="nhpn" title="nhpn"/>
           <category name="obesity" title="obesity"/>
           <category name="obesity-cube" title="obesity-cube">
-            <attribute number=" " name="ID" keyType="obesity-cube" string="&quot;ID&quot; + asString(number)" dataType="number" dataTable="obesity-cube" title="ID"/>
-            <attribute number=" " name="FIPS2" keyType="obesity-cube" string=" " dataType="string" dataTable="obesity-cube" title="FIPS2"/>
-            <attribute number="string.length" name="State" keyType="obesity-cube" string="&quot;# num characters &quot; + asString(number)" dataType="string" dataTable="obesity-cube" title="State"/>
-            <attribute number=" " name="Year" keyType="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" dataType="number" dataTable="obesity-cube" title="Year"/>
-            <attribute name="PercentObese" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" dataType="number" dataTable="obesity-cube" title="PercentObese"/>
+            <attribute number=" " dataTable="obesity-cube" name="ID" string="&quot;ID&quot; + asString(number)" keyType="obesity-cube" dataType="number" title="ID"/>
+            <attribute number=" " dataTable="obesity-cube" name="FIPS2" string=" " keyType="obesity-cube" dataType="string" title="FIPS2"/>
+            <attribute number="string.length" dataTable="obesity-cube" name="State" string="&quot;# num characters &quot; + asString(number)" keyType="obesity-cube" dataType="string" title="State"/>
+            <attribute number=" " dataTable="obesity-cube" name="Year" string="&quot;01/01/&quot; + asString(number) % 100" keyType="obesity-cube" dataType="number" title="Year"/>
+            <attribute dataTable="obesity-cube" string="asString(number) + &quot;%&quot;" keyType="obesity-cube" name="PercentObese" dataType="number" title="PercentObese"/>
           </category>
           <category name="obesity-cube2" title="obesity-cube2"/>
           <category name="obesity-cube3" title="obesity-cube3"/>
@@ -364,11 +365,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLineDataBounds>
                   <xMax>85.66418877480366</xMax>
                   <xMin>85.66418877480366</xMin>
-                  <yMax>28.257536696833682</yMax>
-                  <yMin>9.45753669683368</yMin>
+                  <yMax>9.4</yMax>
+                  <yMin>-9.4</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>28.257536696833682</axisLineMaxValue>
-                <axisLineMinValue>9.45753669683368</axisLineMinValue>
+                <axisLineMaxValue>9.4</axisLineMaxValue>
+                <axisLineMinValue>-9.4</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -408,8 +409,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLineDataBounds>
                   <xMax>218.1641887748037</xMax>
                   <xMin>85.66418877480366</xMin>
-                  <yMax>9.45753669683368</yMax>
-                  <yMin>9.45753669683368</yMin>
+                  <yMax>-9.4</yMax>
+                  <yMin>-9.4</yMin>
                 </axisLineDataBounds>
                 <axisLineMaxValue>218.1641887748037</axisLineMaxValue>
                 <axisLineMinValue>85.66418877480366</axisLineMinValue>
@@ -450,7 +451,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp name="Doppler Radar" category="aesthetic" dataFormat="qualitative" source="OIC">
+                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -483,7 +484,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string=" " dataTable="obesity-cube" title="FIPS2" name="FIPS2" dataType="string" keyType="obesity-cube"/>
+                                <attribute number=" " year="" string=" " dataTable="obesity-cube" name="FIPS2" keyType="obesity-cube" dataType="string" title="FIPS2"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -499,7 +500,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" dataTable="obesity-cube" title="State" name="State" dataType="string" keyType="obesity-cube"/>
+                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" dataTable="obesity-cube" name="State" keyType="obesity-cube" dataType="string" title="State"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -515,7 +516,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute year="" string="asString(number) + &quot;%&quot;" dataTable="obesity-cube" title="PercentObese" keyType="obesity-cube" dataType="number" name="PercentObese"/>
+                                <attribute year="" string="asString(number) + &quot;%&quot;" dataTable="obesity-cube" name="PercentObese" keyType="obesity-cube" dataType="number" title="PercentObese"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -584,7 +585,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" dataTable="obesity-cube" keyType="obesity-cube" name="ID" dataType="number" title="ID"/>
+                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" dataTable="obesity-cube" name="ID" keyType="obesity-cube" dataType="number" title="ID"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -676,8 +677,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <zoomBounds>
           <xMax>218.1641887748037</xMax>
           <xMin>85.66418877480366</xMin>
-          <yMax>28.257536696833682</yMax>
-          <yMin>9.45753669683368</yMin>
+          <yMax>9.4</yMax>
+          <yMin>-9.4</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
       <PenTool name="penTool">
@@ -859,6 +860,156 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             </subsetFilter>
             <useTextBitmapFilters>false</useTextBitmapFilters>
           </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>3355443</color>
+                <dataX>-145.50760874213296</dataX>
+                <dataY>60.42497907961211</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <radius>14</radius>
+                <thickness>10</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle2">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>0</color>
+                <dataX>-96.85904720730898</dataX>
+                <dataY>61.565806407643045</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <radius>1</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle3">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>0</color>
+                <dataX>-76.23890308005173</dataX>
+                <dataY>35.79062624857149</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <radius>1</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle4">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>0</color>
+                <dataX>-100.29573789518518</dataX>
+                <dataY>36.363408029884184</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <radius>1</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle5">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>0</color>
+                <dataX>-70.51108526692474</dataX>
+                <dataY>44.955134749574704</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <radius>4</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
         </layers>
         <marginBottom>0</marginBottom>
         <marginLeft>0</marginLeft>
@@ -878,13 +1029,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <yCenter>52.544493351968</yCenter>
         </zoomBounds>
       </SimpleInteractiveVisualization>
-      <PenTool name="penTool">
-        <coords>-175.64588921685817,11.667478506342395,-100.80065076712113,67.5135410419154,-199.82665856215783,24.90932838591125,-199.82665856215783,24.90932838591125,-175.64588921685817,11.667478506342395
--68.55962497338828,55.423156369265584,-88.13453349101181,45.63570211045381,-86.40733568063325,43.33277169661575,-86.40733568063325,43.33277169661575,-68.55962497338828,55.423156369265584</coords>
-        <drawingMode>Polygon Draw Mode</drawingMode>
-        <lineColor>0</lineColor>
-        <lineWidth>2</lineWidth>
-      </PenTool>
     </children>
     <closeable>true</closeable>
     <draggable>true</draggable>
@@ -899,11 +1043,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>48.631%</panelHeight>
+    <panelHeight>49%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>49.843%</panelWidth>
-    <panelX>50.157%</panelX>
+    <panelWidth>50%</panelWidth>
+    <panelX>0%</panelX>
     <panelY>0%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
