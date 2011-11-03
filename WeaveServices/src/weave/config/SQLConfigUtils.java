@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import weave.config.ISQLConfig.AttributeColumnInfo;
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.GeometryCollectionInfo;
 import weave.utils.DebugTimer;
@@ -127,20 +126,20 @@ public class SQLConfigUtils
 		
 		AttributeColumnInfo info1 = infoList1.get(0);
 		AttributeColumnInfo info2 = infoList2.get(0);
-		ConnectionInfo connInfo = config.getConnectionInfo(info1.connection);
-		if (info1.connection != info2.connection)
+		ConnectionInfo connInfo = config.getConnectionInfo(info1.getConnectionName());
+		if (info1.getConnectionName() != info2.getConnectionName())
 			throw new RemoteException("SQL connection for two columns must be the same to join them.");
 		if (connInfo == null)
-			throw new RemoteException(String.format("The SQL connection for the columns does not exist.", info1.connection));
+			throw new RemoteException(String.format("The SQL connection for the columns does not exist.", info1.getConnectionName()));
 		if (connInfo.dbms != SQLUtils.MYSQL)
 			throw new RemoteException("getJoinQueryForAttributeColumns() only supports MySQL.");
-		Connection conn = getStaticReadOnlyConnection(config, info1.connection);
+		Connection conn = getStaticReadOnlyConnection(config, info1.getConnectionName());
 		
 		SQLResult crs1, crs2;
 		String keyCol1, dataCol1, query1;
 		String keyCol2, dataCol2, query2;
 		
-		query1 = info1.sqlQuery;
+		query1 = info1.getSqlQuery();
 		query1 = query1.trim();
 		if (query1.endsWith(";"))
 			query1 = query1.substring(0, query1.length() - 1);
@@ -148,7 +147,7 @@ public class SQLConfigUtils
 		keyCol1 = crs1.columnNames[0];
 		dataCol1 = crs1.columnNames[1];
 
-		query2 = info2.sqlQuery;
+		query2 = info2.getSqlQuery();
 		query2 = query2.trim();
 		if (query2.endsWith(";"))
 			query2 = query2.substring(0, query2.length() - 1);
@@ -174,7 +173,7 @@ public class SQLConfigUtils
 
 		List<AttributeColumnInfo> infoList1 = config.getAttributeColumnInfo(metadataQueryParams1);
 		
-		SQLResult result = getRowSetFromQuery(config, infoList1.get(0).connection, combinedQuery);
+		SQLResult result = getRowSetFromQuery(config, infoList1.get(0).getConnectionName(), combinedQuery);
 		
 		/*
 		//for debugging
@@ -240,7 +239,7 @@ public class SQLConfigUtils
 				{
 					if (i % printInterval == 0)
 						System.out.println("Migrating geometry collection " + (i+1) + "/" + geoNames.size());
-					count += migrateSQLConfigEntry(source, destination, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geoNames.get(i));
+					count += migrateSQLConfigEntry(source, destination, SQLConfigXML.ENTRYTYPE_GEOMETRYCOLLECTION, geoNames.get(i));
 				}
 				catch (InvalidParameterException e)
 				{
@@ -251,32 +250,24 @@ public class SQLConfigUtils
 
 			// add columns
 			Map<String,String> queryParams = new HashMap<String,String>();
-			List<AttributeColumnInfo> columnInfo = source.getAttributeColumnInfo(queryParams);
-			timer.report("begin "+columnInfo.size()+" columns");
-			printInterval = Math.max(1, columnInfo.size() / 50);
-			for( int i = 0; i < columnInfo.size(); i++)
+			List<AttributeColumnInfo> infoList = source.getAttributeColumnInfo(queryParams);
+			timer.report("begin "+infoList.size()+" columns");
+			printInterval = Math.max(1, infoList.size() / 50);
+			for( int i = 0; i < infoList.size(); i++)
 			{
-				// for old implementations, filter out geom collections
-				if (!(destination instanceof SQLConfig) && "geometry".equalsIgnoreCase(columnInfo.get(i).metadata.get(Metadata.DATATYPE.toString())))
-					continue;
+				AttributeColumnInfo info = infoList.get(i);
 				if (i % printInterval == 0)
-					System.out.println("Migrating column " + (i+1) + "/" + columnInfo.size());
-				destination.addAttributeColumn(columnInfo.get(i));
+					System.out.println("Migrating column " + (i+1) + "/" + infoList.size() + ": " + info.getAllMetadata());
+				destination.addAttributeColumn(info);
 			}
-			count += columnInfo.size();
+			count += infoList.size();
 			timer.report("done migrating columns");
 			
 			if (conn != null)
 			{
-				if (SQLUtils.isOracleServer(conn))
-				{
-					conn.setAutoCommit(true);
-				}
-				else
-				{
+				if (!SQLUtils.isOracleServer(conn))
 					conn.releaseSavepoint(savePoint);
-					conn.setAutoCommit(true);					
-				}
+				conn.setAutoCommit(true);
 			}
 		}
 		catch (SQLException e)
@@ -297,7 +288,7 @@ public class SQLConfigUtils
 	}
 	public synchronized static int migrateSQLConfigEntry( ISQLConfig source, ISQLConfig destination, String entryType, String entryName) throws InvalidParameterException, RemoteException
 	{
-		if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_CONNECTION))
+		if (entryType.equalsIgnoreCase(SQLConfigXML.ENTRYTYPE_CONNECTION))
 		{
 			// do nothing if entry doesn't exist in source
 			if (ListUtils.findString(entryName, source.getConnectionNames()) < 0)
@@ -308,7 +299,7 @@ public class SQLConfigUtils
 			destination.addConnection(info);
 			return 1;
 		}
-		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION))
+		else if (entryType.equalsIgnoreCase(SQLConfigXML.ENTRYTYPE_GEOMETRYCOLLECTION))
 		{
 			// do nothing if entry doesn't exist in source
 			if (ListUtils.findString(entryName, source.getGeometryCollectionNames(null)) < 0)
@@ -323,7 +314,7 @@ public class SQLConfigUtils
 			timer.report("addGeometryCollection "+entryName);
 			return 1;
 		}
-		else if (entryType.equalsIgnoreCase(ISQLConfig.ENTRYTYPE_DATATABLE))
+		else if (entryType.equalsIgnoreCase(SQLConfigXML.ENTRYTYPE_DATATABLE))
 		{
 			// do nothing if entry doesn't exist in source
 			if (ListUtils.findString(entryName, source.getDataTableNames(null)) < 0)

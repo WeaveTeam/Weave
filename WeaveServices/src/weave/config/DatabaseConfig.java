@@ -22,7 +22,6 @@ import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
@@ -114,14 +113,14 @@ public class DatabaseConfig
 	{
 		// list column names
 		List<String> columnNames = Arrays.asList(
-				GeometryCollectionInfo.NAME, GeometryCollectionInfo.CONNECTION, GeometryCollectionInfo.SCHEMA, GeometryCollectionInfo.TABLEPREFIX,
-				GeometryCollectionInfo.KEYTYPE, GeometryCollectionInfo.PROJECTION, GeometryCollectionInfo.IMPORTNOTES);
+				PublicMetadata.NAME, PrivateMetadata.CONNECTION, PrivateMetadata.SCHEMA, PrivateMetadata.TABLEPREFIX,
+				PublicMetadata.KEYTYPE, PublicMetadata.PROJECTION, PrivateMetadata.IMPORTNOTES);
 
 		// list corresponding column types
 		List<String> columnTypes = new Vector<String>();
 		for (int i = 0; i < columnNames.size(); i++)
 		{
-			if (columnNames.get(i).equals(GeometryCollectionInfo.IMPORTNOTES))
+			if (columnNames.get(i).equals(PrivateMetadata.IMPORTNOTES))
 				columnTypes.add(SQLTYPE_LONG_VARCHAR);
 			else
 				columnTypes.add(SQLTYPE_VARCHAR);
@@ -133,7 +132,7 @@ public class DatabaseConfig
 			try
 			{
 				// add column to existing table
-				SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.PROJECTION, SQLTYPE_VARCHAR);
+				SQLUtils.addColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, PublicMetadata.PROJECTION, SQLTYPE_VARCHAR);
 			}
 			catch (SQLException e)
 			{
@@ -148,7 +147,7 @@ public class DatabaseConfig
 		// add index on name
 		try
 		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.geometryConfigTable, new String[]{GeometryCollectionInfo.NAME});
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.geometryConfigTable, new String[]{PublicMetadata.NAME});
 		}
 		catch (SQLException e)
 		{
@@ -159,23 +158,21 @@ public class DatabaseConfig
 	{
 		// list column names
 		List<String> columnNames = new Vector<String>();
-		for (Metadata metadata : Metadata.values())
-			columnNames.add(metadata.toString());
-		columnNames.add(AttributeColumnInfo.CONNECTION);
+		for (String value : PublicMetadata.names)
+			columnNames.add(value);
+		columnNames.add(PrivateMetadata.CONNECTION);
 		// list corresponding column types
 		List<String> columnTypes = new Vector<String>();
 		for (int i = 0; i < columnNames.size(); i++)
 			columnTypes.add(SQLTYPE_VARCHAR);
 		// add column with special type for sqlQuery
-		columnNames.add(AttributeColumnInfo.SQLQUERY);
+		columnNames.add(PrivateMetadata.SQLQUERY);
 		columnTypes.add(SQLTYPE_LONG_VARCHAR);
 		// create table
 		Connection conn = getConnection();
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		// add (possibly) missing columns
-		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString(), 
-											  AttributeColumnInfo.Metadata.NUMBER.toString(),
-											  AttributeColumnInfo.Metadata.STRING.toString()})
+		for (String columnName : new String[]{PublicMetadata.TITLE, PublicMetadata.NUMBER, PublicMetadata.STRING})
 		{
 			try
 			{
@@ -193,8 +190,8 @@ public class DatabaseConfig
 		
 		try
 		{
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.NAME.toString()});
-			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{AttributeColumnInfo.Metadata.DATATABLE.toString()});
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{PublicMetadata.NAME});
+			SQLUtils.createIndex(conn, dbInfo.schema, dbInfo.dataConfigTable, new String[]{PublicMetadata.DATATABLE});
 		}
 		catch (SQLException e)
 		{
@@ -245,21 +242,22 @@ public class DatabaseConfig
 		{
 			if (connectionName == null)
 			{
-				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.NAME);
+				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, PublicMetadata.NAME);
 			}
 			else
 			{
 				Map<String, String> whereParams = new HashMap<String, String>();
-				whereParams.put(GeometryCollectionInfo.CONNECTION, connectionName);
+				whereParams.put(PrivateMetadata.CONNECTION, connectionName);
 
-				List<String> selectColumns = Arrays.asList(GeometryCollectionInfo.NAME.toString());
+				List<String> selectColumns = Arrays.asList(PublicMetadata.NAME);
 				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(
-						getConnection(), selectColumns, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
+					getConnection(), selectColumns, dbInfo.schema, dbInfo.geometryConfigTable, whereParams
+				);
 
 				HashSet<String> hashSet = new HashSet<String>();
 				for (Map<String, String> mapping : columnRecords)
 				{
-					String geomName = mapping.get(GeometryCollectionInfo.NAME.toString());
+					String geomName = mapping.get(PublicMetadata.NAME);
 					hashSet.add(geomName);
 				}
 				names = new Vector<String>(hashSet);
@@ -280,7 +278,7 @@ public class DatabaseConfig
 		{
 			if (connectionName == null)
 			{
-				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, Metadata.DATATABLE.toString());
+				names = SQLUtils.getColumn(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, PublicMetadata.DATATABLE);
 				// return unique names
 				names = new Vector<String>(new HashSet<String>(names));
 			}
@@ -288,17 +286,18 @@ public class DatabaseConfig
 			{
 
 				Map<String, String> whereParams = new HashMap<String, String>();
-				whereParams.put(AttributeColumnInfo.CONNECTION, connectionName);
+				whereParams.put(PrivateMetadata.CONNECTION, connectionName);
 
 				List<String> selectColumns = new LinkedList<String>();
-				selectColumns.add(Metadata.DATATABLE.toString());
+				selectColumns.add(PublicMetadata.DATATABLE);
 				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(
-						getConnection(), selectColumns, dbInfo.schema, dbInfo.dataConfigTable, whereParams);
+					getConnection(), selectColumns, dbInfo.schema, dbInfo.dataConfigTable, whereParams
+				);
 
 				HashSet<String> hashSet = new HashSet<String>();
 				for (Map<String, String> mapping : columnRecords)
 				{
-					String tableName = mapping.get(Metadata.DATATABLE.toString());
+					String tableName = mapping.get(PublicMetadata.DATATABLE);
 					hashSet.add(tableName);
 				}
 				names = new Vector<String>(hashSet);
@@ -317,8 +316,8 @@ public class DatabaseConfig
 		try
 		{
 			Connection conn = getConnection();
-			List<String> dtKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, Metadata.KEYTYPE.toString());
-			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.KEYTYPE);
+			List<String> dtKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, PublicMetadata.KEYTYPE);
+			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, PublicMetadata.KEYTYPE);
 
 			Set<String> uniqueValues = new HashSet<String>();
 			uniqueValues.addAll(dtKeyTypes);
@@ -354,13 +353,13 @@ public class DatabaseConfig
 		{
 			// construct a hash map to pass to the insertRow() function
 			Map<String, Object> valueMap = new HashMap<String, Object>();
-			valueMap.put(GeometryCollectionInfo.NAME, info.name);
-			valueMap.put(GeometryCollectionInfo.CONNECTION, info.connection);
-			valueMap.put(GeometryCollectionInfo.SCHEMA, info.schema);
-			valueMap.put(GeometryCollectionInfo.TABLEPREFIX, info.tablePrefix);
-			valueMap.put(GeometryCollectionInfo.KEYTYPE, info.keyType);
-			valueMap.put(GeometryCollectionInfo.PROJECTION, info.projection);
-			valueMap.put(GeometryCollectionInfo.IMPORTNOTES, info.importNotes);
+			valueMap.put(PublicMetadata.NAME, info.name);
+			valueMap.put(PrivateMetadata.CONNECTION, info.connection);
+			valueMap.put(PrivateMetadata.SCHEMA, info.schema);
+			valueMap.put(PrivateMetadata.TABLEPREFIX, info.tablePrefix);
+			valueMap.put(PublicMetadata.KEYTYPE, info.keyType);
+			valueMap.put(PublicMetadata.PROJECTION, info.projection);
+			valueMap.put(PrivateMetadata.IMPORTNOTES, info.importNotes);
 
 			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, valueMap);
 		}
@@ -403,7 +402,7 @@ public class DatabaseConfig
 	public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException
 	{
 		Map<String, String> params = new HashMap<String, String>();
-		params.put(GeometryCollectionInfo.NAME, geometryCollectionName);
+		params.put(PublicMetadata.NAME, geometryCollectionName);
 		try
 		{
 			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, params);
@@ -411,13 +410,13 @@ public class DatabaseConfig
 			{
 				Map<String, String> record = records.get(0);
 				GeometryCollectionInfo info = new GeometryCollectionInfo();
-				info.name = record.get(GeometryCollectionInfo.NAME);
-				info.connection = record.get(GeometryCollectionInfo.CONNECTION);
-				info.schema = record.get(GeometryCollectionInfo.SCHEMA);
-				info.tablePrefix = record.get(GeometryCollectionInfo.TABLEPREFIX);
-				info.keyType = record.get(GeometryCollectionInfo.KEYTYPE);
-				info.projection = record.get(GeometryCollectionInfo.PROJECTION);
-				info.importNotes = record.get(GeometryCollectionInfo.IMPORTNOTES);
+				info.name = record.get(PublicMetadata.NAME);
+				info.connection = record.get(PrivateMetadata.CONNECTION);
+				info.schema = record.get(PrivateMetadata.SCHEMA);
+				info.tablePrefix = record.get(PrivateMetadata.TABLEPREFIX);
+				info.keyType = record.get(PublicMetadata.KEYTYPE);
+				info.projection = record.get(PublicMetadata.PROJECTION);
+				info.importNotes = record.get(PrivateMetadata.IMPORTNOTES);
 				return info;
 			}
 		}
@@ -432,12 +431,11 @@ public class DatabaseConfig
 	{
 		try
 		{
-			// make a copy of the metadata and add the sql info
-			Map<String, Object> valueMap = new HashMap<String, Object>(info.metadata);
-			valueMap.put(AttributeColumnInfo.CONNECTION, info.connection);
-			valueMap.put(AttributeColumnInfo.SQLQUERY, info.sqlQuery);
+			// forwards compatibility: filter out geometry columns
+			if (DataType.GEOMETRY.equalsIgnoreCase(info.publicMetadata.get(PublicMetadata.DATATYPE)))
+				return;
 			// insert all the info into the sql table
-			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, valueMap);
+			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, new HashMap<String, Object>(info.getAllMetadata()));
 		}
 		catch (Exception e)
 		{
@@ -449,7 +447,7 @@ public class DatabaseConfig
 	public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
-		metadataQueryParams.put(Metadata.DATATABLE.toString(), dataTableName);
+		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
 		return getAttributeColumnInfo(metadataQueryParams);
 	}
 
@@ -469,15 +467,11 @@ public class DatabaseConfig
 			for (int i = 0; i < records.size(); i++)
 			{
 				Map<String, String> metadata = records.get(i);
-				String connection = metadata.remove(AttributeColumnInfo.CONNECTION);
-				String sqlQuery = metadata.remove(AttributeColumnInfo.SQLQUERY);
-
-				// special case -- derive keyType from geometryCollection if
-				// keyType is missing
-				if (metadata.get(Metadata.KEYTYPE.toString()).length() == 0)
+				String geomName = metadata.remove(PublicMetadata.GEOMETRYCOLLECTION); // remove deprecated property from metadata
+				// special case -- derive keyType from geometryCollection if keyType is missing
+				if (metadata.get(PublicMetadata.KEYTYPE).length() == 0)
 				{
 					t.start();
-					String geomName = metadata.get(Metadata.GEOMETRYCOLLECTION.toString());
 
 					GeometryCollectionInfo geomInfo = null;
 					// we don't care if the following line fails because we
@@ -492,24 +486,15 @@ public class DatabaseConfig
 
 					t.lap("get geom info " + i + " " + geomName);
 					if (geomInfo != null)
-						metadata.put(Metadata.KEYTYPE.toString(), geomInfo.keyType);
+						metadata.put(PublicMetadata.KEYTYPE, geomInfo.keyType);
 				}
 
-				// remove null values and empty values
-				// for (String key : metadata.keySet().toArray(new String[0]))
-				// {
-				// String value = metadata.get(key);
-				// if (value == null || value.length() == 0)
-				// metadata.remove(key);
-				// }
-
-				results.add(new AttributeColumnInfo(connection, sqlQuery, metadata));
+				results.add(new AttributeColumnInfo(-1, null, metadata));
 			}
 			t.report();
 		}
 		catch (SQLException e)
 		{
-			
 			throw new RemoteException("Unable to get AttributeColumn info", e);
 		}
 		return results;

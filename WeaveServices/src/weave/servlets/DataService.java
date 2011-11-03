@@ -37,20 +37,20 @@ import weave.beans.DataServiceMetadata;
 import weave.beans.DataTableMetadata;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
+import weave.config.ISQLConfig;
+import weave.config.ISQLConfig.AttributeColumnInfo;
+import weave.config.ISQLConfig.DataType;
+import weave.config.ISQLConfig.GeometryCollectionInfo;
+import weave.config.ISQLConfig.PrivateMetadata;
+import weave.config.ISQLConfig.PublicMetadata;
+import weave.config.SQLConfigManager;
+import weave.config.SQLConfigUtils;
+import weave.geometrystream.SQLGeometryStreamReader;
 import weave.reports.WeaveReport;
-import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
-import weave.config.ISQLConfig;
-import weave.config.SQLConfigManager;
-import weave.config.SQLConfigUtils;
-import weave.config.ISQLConfig.AttributeColumnInfo;
-import weave.config.ISQLConfig.GeometryCollectionInfo;
-import weave.config.ISQLConfig.AttributeColumnInfo.DataType;
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
-import weave.geometrystream.SQLGeometryStreamReader;
 
 /**
  * This class connects to a database and gets data
@@ -113,7 +113,7 @@ public class DataService extends GenericServlet
 		
 		Map<String,String>[] metadata = new Map[infoList.size()];
 		for (int i = 0; i < infoList.size(); i++)
-			metadata[i] = infoList.get(i).metadata; // everything in metadata is public (no SQL info)
+			metadata[i] = infoList.get(i).getAllMetadata(); // everything in metadata is public (no SQL info)
 		
 		// prepare result object
 		DataTableMetadata result = new DataTableMetadata();
@@ -137,7 +137,7 @@ public class DataService extends GenericServlet
 		List<String> keys = new ArrayList<String>();
 		keys = ListUtils.copyArrayToList(keysArray, keys);
 		HashMap<String,String> params = new HashMap<String,String>();
-		params.put(AttributeColumnInfo.Metadata.KEYTYPE.toString(),keyType);
+		params.put(PublicMetadata.KEYTYPE,keyType);
 		
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		for(int keyIndex =0; keyIndex < keysArray.length; keyIndex ++ ){
@@ -156,10 +156,11 @@ public class DataService extends GenericServlet
 		Object recordData[][] =  new Object[keys.size()][infoList.size()];
 		
 		Map<String,String> metadataList[] = new Map[infoList.size()];
-		for (int colIndex = 0; colIndex < infoList.size(); colIndex++){
+		for (int colIndex = 0; colIndex < infoList.size(); colIndex++)
+		{
 			AttributeColumnInfo info = infoList.get(colIndex);
-			String dataWithKeysQuery = info.sqlQuery;
-			metadataList[colIndex] = info.metadata;
+			String dataWithKeysQuery = info.getMetadata(PrivateMetadata.SQLQUERY);
+			metadataList[colIndex] = info.getAllMetadata();
 
 			//if (dataWithKeysQuery.length() == 0)
 			//	throw new RemoteException(String.format("No SQL query is associated with column \"%s\" in dataTable \"%s\"", attributeColumnName, dataTableName));
@@ -167,12 +168,12 @@ public class DataService extends GenericServlet
 			List<Double> numericData = null;
 			List<String> stringData = null;
 			List<String> secKeys = new ArrayList<String>();
-			String dataType = info.getMetadata(Metadata.DATATYPE.toString());
+			String dataType = info.getMetadata(PublicMetadata.DATATYPE);
 			boolean hasSecondaryKey = true;
 			
 			// use config min,max or param min,max to filter the data
-			String infoMinStr = info.getMetadata(Metadata.MIN.toString());
-			String infoMaxStr = info.getMetadata(Metadata.MAX.toString());
+			String infoMinStr = info.getMetadata(PublicMetadata.MIN);
+			String infoMaxStr = info.getMetadata(PublicMetadata.MAX);
 			double minValue = Double.NEGATIVE_INFINITY;
 			double maxValue = Double.POSITIVE_INFINITY;
 			// first try parsing config min,max values
@@ -193,13 +194,13 @@ public class DataService extends GenericServlet
 			try
 			{
 				//timer.start();
-				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.getConnectionName(), dataWithKeysQuery);
 				//timer.lap("get row set");
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.
 				if (dataType.length() == 0)
-					dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
-				if (dataType.equalsIgnoreCase(DataType.NUMBER.toString())) // special case: "number" => Double
+					dataType = DataType.fromSQLType(result.columnTypes[1]);
+				if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
 					numericData = new ArrayList<Double>();
 				else // for every other dataType, use String
 					stringData = new ArrayList<String>();
@@ -280,13 +281,13 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		DebugTimer timer = new DebugTimer();
-		String dataTableName = params.get(Metadata.DATATABLE.toString());
-		String attributeColumnName = params.get(Metadata.NAME.toString());
+		String dataTableName = params.get(PublicMetadata.DATATABLE);
+		String attributeColumnName = params.get(PublicMetadata.NAME);
 
 		// remove min,max,sqlParams -- do not use them to query the config
-		String paramMinStr = params.remove(Metadata.MIN.toString());
-		String paramMaxStr = params.remove(Metadata.MAX.toString());
-		String sqlParams = params.remove(AttributeColumnInfo.SQLPARAMS);
+		String paramMinStr = params.remove(PublicMetadata.MIN);
+		String paramMaxStr = params.remove(PublicMetadata.MAX);
+		String sqlParams = params.remove(PrivateMetadata.SQLPARAMS);
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
@@ -304,7 +305,7 @@ public class DataService extends GenericServlet
 			throw new RemoteException("More than one matching column found. "+params+debug);
 		
 		AttributeColumnInfo info = infoList.get(0);
-		String dataWithKeysQuery = info.sqlQuery;
+		String dataWithKeysQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 
 		if (dataWithKeysQuery.length() == 0)
 			throw new RemoteException(String.format("No SQL query is associated with column \"%s\" in dataTable \"%s\"", attributeColumnName, dataTableName));
@@ -313,12 +314,12 @@ public class DataService extends GenericServlet
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<String> secKeys = new ArrayList<String>();
-		String dataType = info.getMetadata(Metadata.DATATYPE.toString());
+		String dataType = info.getMetadata(PublicMetadata.DATATYPE);
 		boolean hasSecondaryKey = true;
 		
 		// use config min,max or param min,max to filter the data
-		String infoMinStr = info.getMetadata(Metadata.MIN.toString());
-		String infoMaxStr = info.getMetadata(Metadata.MAX.toString());
+		String infoMinStr = info.getMetadata(PublicMetadata.MIN);
+		String infoMaxStr = info.getMetadata(PublicMetadata.MAX);
 		double minValue = Double.NEGATIVE_INFINITY;
 		double maxValue = Double.POSITIVE_INFINITY;
 		// first try parsing config min,max values
@@ -341,21 +342,21 @@ public class DataService extends GenericServlet
 			if (sqlParams != null && sqlParams.length() > 0)
 			{
 				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];
-				result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery, args);
+				result = SQLConfigUtils.getRowSetFromQuery(config, info.getConnectionName(), dataWithKeysQuery, args);
 			}
 			else
 			{
-				result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+				result = SQLConfigUtils.getRowSetFromQuery(config, info.getConnectionName(), dataWithKeysQuery);
 			}
 			timer.lap("get row set");
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
 			if (dataType.length() == 0)
 			{
-				dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
-				info.metadata.put(Metadata.DATATYPE.toString(), dataType); // fill in missing metadata for the client
+				dataType = DataType.fromSQLType(result.columnTypes[1]);
+				info.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
 			}
-			if (dataType.equalsIgnoreCase(DataType.NUMBER.toString())) // special case: "number" => Double
+			if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
 				numericData = new ArrayList<Double>();
 			else // for every other dataType, use String
 				stringData = new ArrayList<String>();
@@ -416,7 +417,7 @@ public class DataService extends GenericServlet
 		}
 
 		AttributeColumnDataWithKeys result = new AttributeColumnDataWithKeys(
-				info.metadata,
+				info.getAllMetadata(),
 				keys.toArray(new String[0]),
 				numericData != null ? numericData.toArray(new Double[0]) : stringData.toArray(new String[0]),
 				hasSecondaryKey ? secKeys.toArray(new String[0]) : null
@@ -458,7 +459,9 @@ public class DataService extends GenericServlet
 		AttributeColumnInfo info = infoList.get(0);
 		try
 		{
-			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, info.sqlQuery);
+			String connectionName = info.getConnectionName();
+			String query = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
+			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, query);
 			timer.report("get row set");
 			return result;
 		}

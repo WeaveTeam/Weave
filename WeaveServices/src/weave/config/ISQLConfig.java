@@ -22,25 +22,21 @@ package weave.config;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import weave.utils.SQLUtils;
 import org.w3c.dom.Document;
+
+import weave.utils.ListUtils;
+import weave.utils.SQLUtils;
 
 /**
  * ISQLConfig An interface to retrieve strings from a configuration file. TODO:
  * needs documentation
  * 
  * @author Andy Dufilie
- */
-/**
- * @author Administrator
- *
- */
-/**
- * @author Andy
- *
  */
 public interface ISQLConfig
 {
@@ -56,31 +52,31 @@ public interface ISQLConfig
 	 * Gets the display name of for the server in which this configuration
 	 * lives.
 	 */
+	@Deprecated
 	String getServerName() throws RemoteException;
 
 	/**
 	 * Returns the name of the SQL table which stores the access log.
 	 */
+	@Deprecated
 	String getAccessLogConnectionName() throws RemoteException;
 
 	/**
 	 * Returns the name of the SQL table which stores the access log.
 	 */
+	@Deprecated
 	String getAccessLogSchema() throws RemoteException;
 
 	/**
 	 * Returns the name of the SQL table which stores the access log.
 	 */
+	@Deprecated
 	String getAccessLogTable() throws RemoteException;
 
 	/**
 	 * Lists all keyTypes stored in this configuration
 	 */
 	List<String> getKeyTypes() throws RemoteException;
-
-	public final String ENTRYTYPE_CONNECTION = "connection";
-	public final String ENTRYTYPE_DATATABLE = "dataTable";
-	public final String ENTRYTYPE_GEOMETRYCOLLECTION = "geometryCollection";
 
 	/**
 	 * Gets the names of all connections in this configuration
@@ -91,6 +87,7 @@ public interface ISQLConfig
 	 * Gets the names of all geometry collections in this configuration
 	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
+	@Deprecated
 	List<String> getGeometryCollectionNames(String connectionName) throws RemoteException;
 
 	/**
@@ -108,6 +105,7 @@ public interface ISQLConfig
 	 * Removes the geometry collection with the given name from this
 	 * configuration
 	 */
+	@Deprecated
 	void removeGeometryCollection(String name) throws RemoteException;
 
 	/**
@@ -141,6 +139,7 @@ public interface ISQLConfig
 	 * @param geometryCollectionInfo
 	 *            The definition of the geometryCollection entry.
 	 */
+	@Deprecated
 	void addGeometryCollection(GeometryCollectionInfo geometryCollectionInfo) throws RemoteException;
 
 	/**
@@ -174,6 +173,7 @@ public interface ISQLConfig
 	 * This is a shortcut for calling getAttributeColumnInfo(Map<String,String>)
 	 * with a dataTable name specified.
 	 */
+	@Deprecated
 	List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException;
 
 	
@@ -191,7 +191,7 @@ public interface ISQLConfig
 	 * This class contains all the information related to where the
 	 * configuration should be stored in a database.
 	 */
-	public static class DatabaseConfigInfo
+	static public class DatabaseConfigInfo
 	{
 		public DatabaseConfigInfo()
 		{
@@ -214,16 +214,17 @@ public interface ISQLConfig
 	 * This class contains all the information needed to connect to a SQL
 	 * database.
 	 */
-	public static class ConnectionInfo
+	static public class ConnectionInfo
 	{
-		public static final String NAME = "name";
-		public static final String DBMS = "dbms";
-		public static final String IP = "ip";
-		public static final String PORT = "port";
-		public static final String DATABASE = "database";
-		public static final String USER = "user";
-		public static final String PASS = "pass";
-		public static final String IS_SUPERUSER = "is_superuser";
+		static public final String NAME = "name";
+		static public final String DBMS = "dbms";
+		static public final String IP = "ip";
+		static public final String PORT = "port";
+		static public final String DATABASE = "database";
+		static public final String USER = "user";
+		static public final String PASS = "pass";
+		static public final String IS_SUPERUSER = "is_superuser";
+		
 		public ConnectionInfo()
 		{
 		}
@@ -246,133 +247,151 @@ public interface ISQLConfig
 			return SQLUtils.getConnection(SQLUtils.getDriver(dbms), getConnectString());
 		}
 	}
-
-	/**
-	 * This class contains metadata for a geometryCollection entry.
-	 */
-	public static class GeometryCollectionInfo
+	
+	static public class PrivateMetadata
 	{
-		public static final String NAME = "name";
-		public static final String CONNECTION = "connection";
-		public static final String SCHEMA = "schema";
-		public static final String TABLEPREFIX = "tablePrefix";
-		public static final String KEYTYPE = "keyType";
-		public static final String PROJECTION = "projection";
-		public static final String IMPORTNOTES = "importNotes";
-
-		public GeometryCollectionInfo()
+		static public final String CONNECTION = "connection"; // required to retrieve data from sql, not visible to client
+		static public final String SQLQUERY = "sqlQuery"; // required to retrieve data from sql, not visible to client
+		static public final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
+		static public final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
+		static public final String SCHEMA = "schema"; // used for geometry column
+		static public final String TABLEPREFIX = "tablePrefix"; // used for geometry column
+		@Deprecated static public final String IMPORTNOTES = "importNotes"; // used for geometry column
+		
+		static public boolean isPrivate(String propertyName)
 		{
+			String[] names = {CONNECTION, SQLQUERY, SQLPARAMS, SQLRESULT, SCHEMA, TABLEPREFIX, IMPORTNOTES};
+			return ListUtils.findString(propertyName, names) >= 0;
 		}
+	}
 
-		public String name = "", connection = "", schema = "", tablePrefix = "", keyType = "", projection = "",
-				importNotes = "";
+	static public class PublicMetadata
+	{
+		static public final String NAME = "name";
+		static public final String KEYTYPE = "keyType";
+		static public final String DATATYPE = "dataType";
+		static public final String DATATABLE = "dataTable";
+		@Deprecated static public final String GEOMETRYCOLLECTION = "geometryCollection";
+		static public final String PROJECTION = "projection";
+		static public final String YEAR = "year";
+		static public final String CATEGORY_ID = "category_id";
+		static public final String MIN = "min";
+		static public final String MAX = "max";
+		static public final String TITLE = "title";
+		static public final String NUMBER = "number";
+		static public final String STRING = "string";
+		
+		/**
+		 * This is a list of metadata property names used in the old implementation of ISQLConfig
+		 */
+		static public final String[] names = {
+			NAME, KEYTYPE, DATATYPE, DATATABLE, GEOMETRYCOLLECTION, YEAR, CATEGORY_ID, MIN, MAX, TITLE, NUMBER, STRING
+		};
+	}
+	
+	@Deprecated
+	static public class GeometryCollectionInfo
+	{
+		public String name = "", connection = "", schema = "", tablePrefix = "", keyType = "", projection = "", importNotes = "";
+	}
+	
+	static public class DataType
+	{
+		static public final String NUMBER = "number";
+		static public final String STRING = "string";
+		static public final String GEOMETRY = "geometry";
+		
+		/**
+		 * This function determines the corresponding DataType constant for a SQL type defined in java.sql.Types.
+		 * @param sqlType A SQL data type defined in java.sql.Types.
+		 * @return The corresponding constant NUMBER or STRING.
+		 */
+		static public String fromSQLType(int sqlType)
+		{
+			switch (sqlType)
+			{
+			case Types.TINYINT:
+			case Types.SMALLINT:
+			case Types.BIGINT:
+			case Types.DECIMAL:
+			case Types.INTEGER:
+			case Types.FLOAT:
+			case Types.DOUBLE:
+			case Types.REAL:
+			case Types.NUMERIC:
+				/* case Types.ROWID: // produces compiler error in some environments */
+				return NUMBER;
+			default:
+				return STRING;
+			}
+		}
 	}
 
 	/**
 	 * This class contains metadata for an attributeColumn entry.
 	 */
-	public static class AttributeColumnInfo
+	static public class AttributeColumnInfo
 	{
-		// connection name and query are required to retrieve the data
-		// this information should not be made available to client programs
-		public static final String CONNECTION = "connection";
-		public static final String SQLQUERY = "sqlQuery";
-		public static final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
-		public static final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
-
-		// Metadata includes everything that end-users are allowed to see.
-		// Metadata should not contain any information related to the SQL
-		// database.
-		public static enum Metadata
+		public int id;
+		public String description;
+		public Map<String,String> privateMetadata;
+		public Map<String,String> publicMetadata;
+		
+		public AttributeColumnInfo(int id, String description, Map<String, String> privateMetadata, Map<String, String> publicMetadata)
 		{
-			NAME("name"),
-			KEYTYPE("keyType"),
-			DATATYPE("dataType"),
-			DATATABLE("dataTable"),
-			GEOMETRYCOLLECTION("geometryCollection"),
-			YEAR("year"),
-			CATEGORY_ID("category_id"),
-			MIN("min"),
-			MAX("max"),
-			TITLE("title"),
-			NUMBER("number"),
-			STRING("string");
-
-			Metadata(String name)
-			{
-				this.name = name;
-			}
-
-			private String name;
-
-			public String toString()
-			{
-				return name;
-			}
+			this.id = id;
+			this.description = description;
+			this.privateMetadata = privateMetadata;
+			this.publicMetadata = publicMetadata;
+		}
+		
+		public String getConnectionName()
+		{
+			return privateMetadata.get(PrivateMetadata.CONNECTION);
 		}
 
-		public static enum DataType
+		public String getSqlQuery()
 		{
-			NUMBER("number"), STRING("string");
-
-			DataType(String type)
-			{
-				this.type = type;
-			}
-
-			private String type;
-
-			public String toString()
-			{
-				return type;
-			}
-
-			/**
-			 * This function determines the corresponding DataType for a SQL
-			 * type defined in java.sql.Types.
-			 * 
-			 * @param sqlType
-			 *            A SQL data type defined in java.sql.Types.
-			 * @return The corresponding DataType enum value.
-			 */
-			public static DataType fromSQLType(int sqlType)
-			{
-				switch (sqlType)
-				{
-					case Types.TINYINT:
-					case Types.SMALLINT:
-					case Types.BIGINT:
-					case Types.DECIMAL:
-					case Types.INTEGER:
-					case Types.FLOAT:
-					case Types.DOUBLE:
-					case Types.REAL:
-					case Types.NUMERIC:
-					/* case Types.ROWID: // produces compiler error in some environments */
-						return DataType.NUMBER;
-					default:
-						return DataType.STRING;
-				}
-			}
+			return privateMetadata.get(PrivateMetadata.SQLQUERY);
 		}
-
-		public AttributeColumnInfo(String connection, String sqlQuery, Map<String, String> metadata)
+		
+		@Deprecated
+		public AttributeColumnInfo(int id, String description, Map<String, String> metadata)
 		{
-			this.connection = connection;
-			this.sqlQuery = sqlQuery;
-			this.metadata = metadata;
+			this.id = id;
+			this.description = description;
+			this.privateMetadata = new HashMap<String,String>();
+			this.publicMetadata = new HashMap<String,String>();
+			for (Entry<String, String> entry : metadata.entrySet())
+			{
+				if (PrivateMetadata.isPrivate(entry.getKey()))
+					privateMetadata.put(entry.getKey(), entry.getValue());
+				else
+					publicMetadata.put(entry.getKey(), entry.getValue());
+			}
 		}
 
 		// returns a non-null value
+		@Deprecated
 		public String getMetadata(String propertyName)
 		{
-			String value = metadata.get(propertyName);
+			String value;
+			if (PrivateMetadata.isPrivate(propertyName))
+				value = privateMetadata.get(propertyName);
+			else
+				value = publicMetadata.get(propertyName);
 			if (value == null)
 				return "";
 			return value;
 		}
-
-		public String connection, sqlQuery;
-		public Map<String, String> metadata;
+		
+		@Deprecated
+		public Map<String,String> getAllMetadata()
+		{
+			Map<String,String> result = new HashMap<String, String>();
+			result.putAll(privateMetadata);
+			result.putAll(publicMetadata);
+			return result;
+		}
 	}
 }

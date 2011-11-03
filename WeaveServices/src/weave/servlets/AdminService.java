@@ -42,22 +42,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 import java.util.Vector;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import weave.beans.AdminServiceResponse;
+import weave.beans.UploadFileFilter;
+import weave.beans.UploadedFile;
 import weave.config.DatabaseConfig;
 import weave.config.DublinCoreElement;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.AttributeColumnInfo;
-import weave.config.ISQLConfig.AttributeColumnInfo.DataType;
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.ISQLConfig.ConnectionInfo;
+import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.GeometryCollectionInfo;
+import weave.config.ISQLConfig.PrivateMetadata;
+import weave.config.ISQLConfig.PublicMetadata;
 import weave.config.SQLConfig;
 import weave.config.SQLConfigManager;
 import weave.config.SQLConfigUtils;
@@ -65,7 +68,6 @@ import weave.config.SQLConfigXML;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
 import weave.geometrystream.SQLGeometryStreamDestination;
-import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
@@ -73,9 +75,6 @@ import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
-import weave.beans.AdminServiceResponse;
-import weave.beans.UploadFileFilter;
-import weave.beans.UploadedFile;
 
 public class AdminService extends GenericServlet
 {
@@ -172,58 +171,6 @@ public class AdminService extends GenericServlet
 		return config;
 	}
 
-	synchronized private void backupAndSaveConfig(ISQLConfig config) throws RemoteException
-	{
-		try
-		{
-			String fileName = configManager.getConfigFileName();
-			File configFile = new File(fileName);
-			File backupFile = new File(tempPath, "sqlconfig_backup.txt");
-			// make a backup
-			FileUtils.copy(configFile, backupFile);
-			// save the new config to the file
-			XMLUtils.getStringFromXML(config.getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Backup failed", e);
-		}
-	}
-
-	/**
-	 * This creates a backup of a single config entry.
-	 * 
-	 * @throws Exception
-	 */
-	synchronized private void createConfigEntryBackup(ISQLConfig config, String entryType, String entryName) throws RemoteException
-	{
-		// copy the config entry to a temp SQLConfigXML
-		String entryXMLString = null;
-		// create a block of code so tempConfig won't stay in memory
-		try
-		{
-			SQLConfigXML tempConfig = new SQLConfigXML();
-			SQLConfigUtils.migrateSQLConfigEntry(config, tempConfig, entryType, entryName);
-			entryXMLString = tempConfig.getConfigEntryXML(entryType, entryName);
-			
-			// stop if xml entry is blank
-			if (entryXMLString == null || !entryXMLString.contains("/"))
-				return;
-	
-			// write the config entry to a temp file
-			File newFile = new File(tempPath, "backup_" + entryType + "_" + entryName.replaceAll("[^a-zA-Z0-9]", "") + "_"
-					+ UUID.randomUUID() + ".txt");
-			BufferedWriter out = new BufferedWriter(new FileWriter(newFile));
-			out.write(entryXMLString);
-			out.flush();
-			out.close();
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Backup failed", e);
-		}
-	}
-
 	// /////////////////////////////////////////////////
 	// functions for managing Weave client XML files
 	// /////////////////////////////////////////////////
@@ -257,7 +204,7 @@ public class AdminService extends GenericServlet
 				if (file.isFile())
 				{
 					// System.out.println(file.getName());
-					listOfFiles.add(file.getName().toString());
+					listOfFiles.add(file.getName());
 				}
 			}
 		}
@@ -463,8 +410,6 @@ public class AdminService extends GenericServlet
 		// generate config connection entry
 		try
 		{
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, newConnectionInfo.name);
-
 			// do not delete if this is the last user (which must be a superuser)
 			List<String> connectionNames = config.getConnectionNames();
 			
@@ -483,8 +428,6 @@ public class AdminService extends GenericServlet
 			
 			config.removeConnection(newConnectionInfo.name);
 			config.addConnection(newConnectionInfo);
-
-			backupAndSaveConfig(config);
 		}
 		catch (Exception e)
 		{
@@ -510,7 +453,6 @@ public class AdminService extends GenericServlet
 		{
 			if (ListUtils.findString(connectionNameToRemove, config.getConnectionNames()) < 0)
 				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_CONNECTION, connectionNameToRemove);
 			
 			// check for number of superusers
 			List<String> connectionNames = config.getConnectionNames();
@@ -523,7 +465,6 @@ public class AdminService extends GenericServlet
 				throw new RemoteException("Cannot remove the only superuser.");
 			
 			config.removeConnection(connectionNameToRemove);
-			backupAndSaveConfig(config);
 			return "Connection \"" + connectionNameToRemove + "\" was deleted.";
 		}
 		catch (Exception e)
@@ -587,9 +528,6 @@ public class AdminService extends GenericServlet
 			ISQLConfig oldImpl2 = new DatabaseConfig(xmlConfig2);
 			
 			count = SQLConfigUtils.migrateSQLConfig(newImpl, oldImpl2);
-			
-			// save in-memory xmlConfig to disk
-			backupAndSaveConfig(xmlConfig);
 		}
 		catch (Exception e)
 		{
@@ -639,22 +577,22 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		HashMap<String, String> params = new HashMap<String, String>();
-		params.put(Metadata.DATATABLE.toString(), dataTableName);
+		params.put(PublicMetadata.DATATABLE, dataTableName);
 		List<AttributeColumnInfo> infolist = config.getAttributeColumnInfo(params);
 		for (int i = 0; i < infolist.size(); i ++)
 		{
 			AttributeColumnInfo attributeColumnInfo = infolist.get(i);
 			try
 			{
-				String query = attributeColumnInfo.sqlQuery;
+				String query = attributeColumnInfo.getSqlQuery();
 				System.out.println(query);
-				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
-				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, String.format("Returned %s rows", result.rows.length));
+				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.getConnectionName(), query);
+				attributeColumnInfo.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
-				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, e.getMessage());
+				attributeColumnInfo.privateMetadata.put(PrivateMetadata.SQLRESULT, e.getMessage());
 			}
 		}
 		
@@ -671,51 +609,29 @@ public class AdminService extends GenericServlet
 		for (Object object : columnMetadata)
 		{
 			Map<String, Object> metadata = (Map<String, Object>) object;
-			String _dataTableName = (String) metadata.get(Metadata.DATATABLE.toString());
+			String _dataTableName = (String) metadata.get(PublicMetadata.DATATABLE);
 			if (dataTableName == null)
 				dataTableName = _dataTableName;
 			else if (dataTableName != _dataTableName)
 				throw new RemoteException("overwriteDataTableEntry(): dataTable property not consistent among column entries.");
-			
-//			String _dataTableConnection = (String) metadata.get(Metadata.CONNECTION.toString());
-//			if (dataTableConnection == null)
-//				dataTableConnection = _dataTableConnection;
-//			else if (dataTableConnection != _dataTableConnection)
-//				throw new RemoteException("overwriteDataTableEntry(): " + Metadata.CONNECTION.toString() + " property not consistent among column entries.");
 		}
 		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 		
 		try
 		{
-			// start a block of code so tempConfig will not stay in memory
+			// add all the columns to the new blank config
+			for (int i = 0; i < columnMetadata.length; i++)
 			{
-				// make a new SQLConfig object and add the entry
-				SQLConfigXML tempConfig = new SQLConfigXML();
-				// add all the columns to the new blank config
-				for (int i = 0; i < columnMetadata.length; i++)
-				{
-					// create metadata map that AttributeColumnInfo wants
-					Map<String, String> metadata = new HashMap<String, String>();
-					for (Entry<String, Object> entry : ((Map<String, Object>) columnMetadata[i]).entrySet())
-					{
-						//System.out.println(entry.getKey() + ':' + (String) entry.getValue());
-						metadata.put(entry.getKey(), (String) entry.getValue());
-					}
-					// Exclude connection & sqlQuery properties from metadata
-					// object
-					// because they are separate parameters to the constructor.
-					AttributeColumnInfo columnInfo = new AttributeColumnInfo(metadata.remove(AttributeColumnInfo.CONNECTION),
-							metadata.remove(AttributeColumnInfo.SQLQUERY), metadata);
-					// add the column info to the temp blank config
-					tempConfig.addAttributeColumn(columnInfo);
-				}
-				// backup any existing dataTable entry, then copy over the new
-				// entry
-				createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, dataTableName);
-				SQLConfigUtils.migrateSQLConfigEntry(tempConfig, config, ISQLConfig.ENTRYTYPE_DATATABLE, dataTableName);
+				// create a String-String map
+				Map<String, String> metadata = new HashMap<String, String>();
+				for (Entry<String, Object> entry : ((Map<String, Object>) columnMetadata[i]).entrySet())
+					metadata.put(entry.getKey(), (String) entry.getValue());
+				// Exclude connection & sqlQuery properties from metadata object because they are separate parameters to the constructor.
+				AttributeColumnInfo columnInfo = new AttributeColumnInfo(-1, null, metadata);
+				// add the column info to the temp blank config
+				config.addAttributeColumn(columnInfo);
 			}
-			backupAndSaveConfig(config);
 
 			return String.format("The dataTable entry \"%s\" was saved.", dataTableName);
 		}
@@ -740,9 +656,7 @@ public class AdminService extends GenericServlet
 		{
 			if (ListUtils.findString(dataTableName, config.getDataTableNames(null)) < 0)
 				throw new RemoteException("DataTable \"" + dataTableName + "\" does not exist.");
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, dataTableName);
 			config.removeDataTable(dataTableName);
-			backupAndSaveConfig(config);
 			return "DataTable \"" + dataTableName + "\" was deleted.";
 		}
 		catch (Exception e)
@@ -795,27 +709,17 @@ public class AdminService extends GenericServlet
 
 		try
 		{
-			// start a block of code so tempConfig will not stay in memory
-			{
-				// make a new SQLConfig object and add the entry
-				SQLConfigXML tempConfig = new SQLConfigXML();
-				// add all the columns to the new blank config
-				GeometryCollectionInfo info = new GeometryCollectionInfo();
-				info.name = geomName;
-				info.connection = geomConnection;
-				info.schema = geomSchema;
-				info.tablePrefix = geomTablePrefix;
-				info.keyType = geomKeyType;
-				info.importNotes = geomImportNotes;
-				info.projection = geomProjection;
-				// add the info to the temp blank config
-				tempConfig.addGeometryCollection(info);
-				// backup any existing dataTable entry, then copy over the new
-				// entry
-				createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geomName);
-				SQLConfigUtils.migrateSQLConfigEntry(tempConfig, config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geomName);
-			}
-			backupAndSaveConfig(config);
+			// add all the columns to the new blank config
+			GeometryCollectionInfo info = new GeometryCollectionInfo();
+			info.name = geomName;
+			info.connection = geomConnection;
+			info.schema = geomSchema;
+			info.tablePrefix = geomTablePrefix;
+			info.keyType = geomKeyType;
+			info.importNotes = geomImportNotes;
+			info.projection = geomProjection;
+			// add the info to the temp blank config
+			config.addGeometryCollection(info);
 
 			return String.format("The geometryCollection entry \"%s\" was saved.", geomName);
 		}
@@ -835,9 +739,7 @@ public class AdminService extends GenericServlet
 		{
 			if (ListUtils.findString(geometryCollectionName, config.getGeometryCollectionNames(null)) < 0)
 				throw new RemoteException("Geometry Collection \"" + geometryCollectionName + "\" does not exist.");
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, geometryCollectionName);
 			config.removeGeometryCollection(geometryCollectionName);
-			backupAndSaveConfig(config);
 			return "Geometry Collection \"" + geometryCollectionName + "\" was deleted.";
 		}
 		catch (Exception e)
@@ -1143,7 +1045,7 @@ public class AdminService extends GenericServlet
 				if (file.isFile())
 				{
 					// System.out.println(file.getName());
-					listOfFiles.add(file.getName().toString());
+					listOfFiles.add(file.getName());
 				}
 			}
 		}
@@ -1561,9 +1463,9 @@ public class AdminService extends GenericServlet
 				stmt = conn.prepareStatement(testQuery);
 				rs = stmt.executeQuery();
 				
-				DataType dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
+				String dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
 				queries.add(query);
-				dataTypes.add(dataType.toString());
+				dataTypes.add(dataType);
 				
 				SQLUtils.cleanup(rs);
 				SQLUtils.cleanup(stmt);
@@ -1584,27 +1486,32 @@ public class AdminService extends GenericServlet
 		// generate config DataTable entry
 		try
 		{
-			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, configDataTableName);
-
 			config.removeDataTable(configDataTableName);
 
+			if (keyType == null || keyType.length() == 0)
+			{
+				// get the key type of the geometry collection now instead of storing the relationship from the data table to the geom collection
+				GeometryCollectionInfo geomInfo = config.getGeometryCollectionInfo(geometryCollectionName);
+				if (geomInfo != null)
+					keyType = geomInfo.keyType;
+			}
+			
 			Map<String, String> metadata = new HashMap<String, String>();
-			metadata.put(Metadata.DATATABLE.toString(), configDataTableName);
-			metadata.put(Metadata.KEYTYPE.toString(), keyType);
-			metadata.put(Metadata.GEOMETRYCOLLECTION.toString(), geometryCollectionName);
+			metadata.put(PublicMetadata.DATATABLE, configDataTableName);
+			metadata.put(PublicMetadata.KEYTYPE, keyType);
 			
 			int numberSqlColumns = sqlColumnNames.size();
 			if (ignoreKeyColumnQueries)
 				--numberSqlColumns;
 			for (i = 0; i < numberSqlColumns; i++)
 			{
-				metadata.put(Metadata.NAME.toString(), configColumnNames.get(i));
-				metadata.put(Metadata.DATATYPE.toString(), dataTypes.get(i));
-				AttributeColumnInfo attrInfo = new AttributeColumnInfo(connectionName, queries.get(i), metadata);
+				metadata.put(PrivateMetadata.CONNECTION, connectionName);
+				metadata.put(PrivateMetadata.SQLQUERY, queries.get(i));
+				metadata.put(PublicMetadata.NAME, configColumnNames.get(i));
+				metadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
+				AttributeColumnInfo attrInfo = new AttributeColumnInfo(-1, null, metadata);
 				config.addAttributeColumn(attrInfo);
 			}
-
-			backupAndSaveConfig(config);
 		}
 		catch (RemoteException e)
 		{
@@ -1739,7 +1646,7 @@ public class AdminService extends GenericServlet
 		return "DBF Data stored successfully";
 	}
 
-	synchronized public String addConfigGeometryCollection(boolean configOverwrite, String configConnectionName, String password, String configGeometryCollectionName, String configKeyType, String sqlSchema, String sqlTablePrefix, String projectionSRS, String importNotes) throws RemoteException
+	synchronized public String addConfigGeometryCollection(boolean configOverwrite, String configConnectionName, String password, String configGeometryCollectionName, String configKeyType, String sqlSchema, String sqlTablePrefix, String projection, String importNotes) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
 
@@ -1763,12 +1670,10 @@ public class AdminService extends GenericServlet
 		info.tablePrefix = sqlTablePrefix;
 		info.keyType = configKeyType;
 		info.importNotes = importNotes;
-		info.projection = projectionSRS;
+		info.projection = projection;
 
-		createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_GEOMETRYCOLLECTION, info.name);
 		config.removeGeometryCollection(info.name);
 		config.addGeometryCollection(info);
-		backupAndSaveConfig(config);
 
 		return String.format("GeometryCollection \"%s\" was added to the configuration", configGeometryCollectionName);
 	}

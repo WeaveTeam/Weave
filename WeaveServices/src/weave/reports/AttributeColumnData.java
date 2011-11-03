@@ -30,7 +30,7 @@ import java.util.Map;
 import weave.config.ISQLConfig;
 import weave.config.SQLConfigUtils;
 import weave.config.ISQLConfig.AttributeColumnInfo;
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
+import weave.config.ISQLConfig.PublicMetadata;
 import weave.utils.SQLResult;
 
 public class AttributeColumnData
@@ -65,15 +65,15 @@ public class AttributeColumnData
 		
 		//get query
 		Map<String, String>params = new HashMap<String, String>();
-		params.put(Metadata.DATATABLE.toString(), dataTableName);
-		params.put(Metadata.NAME.toString(), attributeColumnName);
+		params.put(PublicMetadata.DATATABLE, dataTableName);
+		params.put(PublicMetadata.NAME, attributeColumnName);
 		if ((year != null) && (year.length() > 0))
-			params.put(Metadata.YEAR.toString(), year);
+			params.put(PublicMetadata.YEAR, year);
 //		Assert.assertTrue(config != null);
 		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(params);
 		AttributeColumnInfo info = infoList.get(0);
-		String connection = info.connection;
-		String dataWithKeysQuery = info.sqlQuery;
+		String connection = info.getConnectionName();
+		String dataWithKeysQuery = info.getSqlQuery();
 		
 		//run query to get resulting rowset
 		SQLResult result;

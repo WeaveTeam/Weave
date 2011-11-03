@@ -25,9 +25,7 @@ import java.util.Vector;
 
 import org.w3c.dom.Document;
 
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.config.SQLConfigUtils.InvalidParameterException;
-import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
 
 /**
@@ -235,7 +233,8 @@ public class SQLConfig
 //            retval = getProperties(ids, properties);
 //            return retval.get(id);
 //        }
-        private Map<Integer,Map<String,String>> getProperties(Collection<Integer> ids, Collection<String> properties) throws RemoteException
+        @Deprecated
+        private Map<Integer,Map<String,String>> getAllMetadata(Collection<Integer> ids, Collection<String> properties) throws RemoteException
         {
                 Map<Integer,Map<String,String>> results;
                 Map<Integer,Map<String,String>> results2;
@@ -252,22 +251,26 @@ public class SQLConfig
                 }
                 return results; 
         }
-        private static boolean isPrivateProperty(String property)
+        private Map<Integer,Map<String,String>> getMetadataFromIds(String sqlTable, Collection<Integer> ids, Collection<String> properties) throws RemoteException
         {
-        	String props[] = new String[]{
-        			GeometryCollectionInfo.CONNECTION,
-        			AttributeColumnInfo.SQLQUERY,
-        			GeometryCollectionInfo.SCHEMA,
-        			GeometryCollectionInfo.TABLEPREFIX
-        		};
-        	return ListUtils.findString(property, props) >= 0;
+        	Map<Integer,Map<String,String>> results;
+        	try 
+        	{
+        		Connection conn = getConnection();
+        		results = SQLUtils.idInSelect(conn, dbInfo.schema, sqlTable, ID, PROPERTY, VALUE, ids, properties);
+        	}
+        	catch (Exception e)
+        	{
+        		throw new RemoteException("Failed to get properties.", e);
+        	}
+        	return results; 
         }
         private void setProperty(Integer id, String property, String value) throws RemoteException 
         {
             try {
 	            Connection conn = getConnection();
 	            String table = null;
-	            if (isPrivateProperty(property))
+	            if (PrivateMetadata.isPrivate(property))
 	            	table = table_meta_private;
 	            else
 	            	table = table_meta_public;
@@ -396,8 +399,8 @@ public class SQLConfig
 		try
 		{
 			Connection conn = getConnection();
-			List<String> dtKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, Metadata.KEYTYPE.toString());
-			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, GeometryCollectionInfo.KEYTYPE);
+			List<String> dtKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, PublicMetadata.KEYTYPE);
+			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, PublicMetadata.KEYTYPE);
 
 			Set<String> uniqueValues = new HashSet<String>();
 			uniqueValues.addAll(dtKeyTypes);
@@ -433,13 +436,17 @@ public class SQLConfig
 		{
 			// construct a hash map to pass to the insertRow() function
 			Map<String, String> valueMap = new HashMap<String, String>();
-			valueMap.put(GeometryCollectionInfo.CONNECTION, info.connection);
-			valueMap.put(GeometryCollectionInfo.SCHEMA, info.schema);
-			valueMap.put(GeometryCollectionInfo.TABLEPREFIX, info.tablePrefix);
 			
-			valueMap.put(GeometryCollectionInfo.NAME, info.name);
-			valueMap.put(GeometryCollectionInfo.KEYTYPE, info.keyType);
-			valueMap.put(GeometryCollectionInfo.PROJECTION, info.projection);
+			// private metadata
+			valueMap.put(PrivateMetadata.CONNECTION, info.connection);
+			valueMap.put(PrivateMetadata.SCHEMA, info.schema);
+			valueMap.put(PrivateMetadata.TABLEPREFIX, info.tablePrefix);
+			
+			// public metadata
+			valueMap.put(PublicMetadata.NAME, info.name);
+			valueMap.put(PublicMetadata.KEYTYPE, info.keyType);
+			valueMap.put(PublicMetadata.PROJECTION, info.projection);
+			valueMap.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
 			
 			String description = info.importNotes;
             addEntry(description, valueMap);
@@ -497,13 +504,16 @@ public class SQLConfig
                                 String value = row.get(VALUE);
                                 props.put(property_name, value);
 			}
-			info.name = props.get(GeometryCollectionInfo.NAME);
-			info.connection = props.get(GeometryCollectionInfo.CONNECTION);
-			info.schema = props.get(GeometryCollectionInfo.SCHEMA);
-			info.tablePrefix = props.get(GeometryCollectionInfo.TABLEPREFIX);
-			info.keyType = props.get(GeometryCollectionInfo.KEYTYPE);
-			info.projection = props.get(GeometryCollectionInfo.PROJECTION);
-			info.importNotes = props.get(GeometryCollectionInfo.IMPORTNOTES);
+			// public meta
+			info.name = props.get(PublicMetadata.NAME);
+			info.keyType = props.get(PublicMetadata.KEYTYPE);
+			info.projection = props.get(PublicMetadata.PROJECTION);
+			
+			// private meta
+			info.connection = props.get(PrivateMetadata.CONNECTION);
+			info.schema = props.get(PrivateMetadata.SCHEMA);
+			info.tablePrefix = props.get(PrivateMetadata.TABLEPREFIX);
+			info.importNotes = props.get(PrivateMetadata.IMPORTNOTES);
 		}
 		catch (Exception e)
 		{
@@ -512,28 +522,27 @@ public class SQLConfig
 		return info;
 	}
 
+	/**
+	 * This is a legacy interface for adding an attribute column. The id and description fields of the info object are not used.
+	 */
 	public void addAttributeColumn(AttributeColumnInfo info) throws RemoteException
 	{
 		// prepare the description of the column
-		String dataTable = info.metadata.get(Metadata.DATATABLE.toString());
-		String name = info.metadata.get(Metadata.NAME.toString());
+		String dataTable = info.publicMetadata.get(PublicMetadata.DATATABLE);
+		String name = info.publicMetadata.get(PublicMetadata.NAME);
 		String description = String.format("dataTable = \"%s\", name = \"%s\"", dataTable, name);
-		String year = info.metadata.get(Metadata.YEAR.toString());
+		String year = info.publicMetadata.get(PublicMetadata.YEAR);
 		if (year != null && year.length() > 0)
 			description += String.format(", year = \"%s\"", year);
-		// prepare the valueMap to be inserted
-		Map<String, String> valueMap = new HashMap<String, String>(info.metadata);
-        valueMap.put(AttributeColumnInfo.SQLQUERY, info.sqlQuery);
-        valueMap.put(AttributeColumnInfo.CONNECTION, info.connection);
         // insert all the info into the sql table
-        addEntry(description, valueMap);
+        addEntry(description, info.getAllMetadata());
 	}
 
 	// shortcut for calling the Map<String,String> version of this function
 	public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
-		metadataQueryParams.put(Metadata.DATATABLE.toString(), dataTableName);
+		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
 		return getAttributeColumnInfo(metadataQueryParams);
 	}
 
@@ -545,34 +554,10 @@ public class SQLConfig
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
         Map<Integer,Map<String,String>> attr_cols;
         List<Integer> col_ids = getIdsFromPublicMetadata(metadataQueryParams);
-        attr_cols = getProperties(col_ids, null);
-		for (Map<String,String> metadata : attr_cols.values())
-		{
-			String connection = metadata.remove(AttributeColumnInfo.CONNECTION);
-			String sqlQuery = metadata.remove(AttributeColumnInfo.SQLQUERY);
-
-			// special case -- derive keyType from geometryCollection if
-			// keyType is missing
-			if (metadata.get(Metadata.KEYTYPE.toString()).length() == 0)
-			{
-				String geomName = metadata.get(Metadata.GEOMETRYCOLLECTION.toString());
-
-				GeometryCollectionInfo geomInfo = null;
-				// we don't care if the following line fails because we
-				// still want to return as much information as possible
-				try
-				{
-					geomInfo = getGeometryCollectionInfo(geomName);
-				}
-				catch (Exception e)
-				{
-				}
-
-				if (geomInfo != null)
-					metadata.put(Metadata.KEYTYPE.toString(), geomInfo.keyType);
-			}
-			results.add(new AttributeColumnInfo(connection, sqlQuery, metadata));
-		}
+        
+        attr_cols = getAllMetadata(col_ids, null);
+		for (Entry<Integer,Map<String,String>> entry : attr_cols.entrySet())
+			results.add(new AttributeColumnInfo(entry.getKey(), null, entry.getValue()));
 		return results;
 	}
 }

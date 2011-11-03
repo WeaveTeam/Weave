@@ -21,17 +21,26 @@ package weave.services.beans
 {
 	public class AttributeColumnInfo
 	{
-		public var connection:String;
-		public var sqlQuery:String;
-		public var metadata:Object;
-		
+		public var id:int;
+		public var description:String;
+		public var privateMetadata:Object;
+		public var publicMetadata:Object;
 		
 		public function AttributeColumnInfo(o:Object)
 		{
-			connection = o.connection;
-			sqlQuery = o.sqlQuery;
-			metadata = o.metadata;
-			
+			this.id = o.id;
+			this.description = o.description;
+			this.privateMetadata = o.privateMetadata;
+			this.publicMetadata = o.publicMetadata;
+		}
+		
+		[Deprecated] public function getAllMetadata():Object
+		{
+			var result:Object = {};
+			for each (var metadata:Object in [publicMetadata, privateMetadata])
+				for (var name:String in metadata)
+					result[name] = metadata[name];
+			return result;
 		}
 	}
 }

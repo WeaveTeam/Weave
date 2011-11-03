@@ -40,7 +40,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
 import weave.utils.XMLUtils;
@@ -76,6 +75,10 @@ public class SQLConfigXML implements ISQLConfig
 	public static final String XML_FILENAME = "sqlconfig.xml";
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
 	public static final URL DTD_EMBEDDED = SQLConfigXML.class.getResource("/weave/config/" + DTD_FILENAME);
+
+	public static final String ENTRYTYPE_CONNECTION = "connection";
+	public static final String ENTRYTYPE_DATATABLE = "dataTable";
+	public static final String ENTRYTYPE_GEOMETRYCOLLECTION = "geometryCollection";
 
 	private Document doc = null;
 	private XPath xpath = null;
@@ -427,13 +430,16 @@ public class SQLConfigXML implements ISQLConfig
 
 			// System.out.println("geometryCollection "+geometryCollectionName+map);
 			GeometryCollectionInfo info = new GeometryCollectionInfo();
+			
 			info.name = geometryCollectionName;
-			info.connection = getNonNullValue(map, GeometryCollectionInfo.CONNECTION);
-			info.schema = getNonNullValue(map, GeometryCollectionInfo.SCHEMA);
-			info.tablePrefix = getNonNullValue(map, GeometryCollectionInfo.TABLEPREFIX);
-			info.keyType = getNonNullValue(map, GeometryCollectionInfo.KEYTYPE);
-			info.projection = getNonNullValue(map, GeometryCollectionInfo.PROJECTION);
-			info.importNotes = getNonNullValue(map, GeometryCollectionInfo.IMPORTNOTES);
+			info.keyType = getNonNullValue(map, PublicMetadata.KEYTYPE);
+			info.projection = getNonNullValue(map, PublicMetadata.PROJECTION);
+			
+			info.connection = getNonNullValue(map, PrivateMetadata.CONNECTION);
+			info.schema = getNonNullValue(map, PrivateMetadata.SCHEMA);
+			info.tablePrefix = getNonNullValue(map, PrivateMetadata.TABLEPREFIX);
+			info.importNotes = getNonNullValue(map, PrivateMetadata.IMPORTNOTES);
+			
 			return info;
 		}
 		catch (Exception e)
@@ -456,20 +462,22 @@ public class SQLConfigXML implements ISQLConfig
 	synchronized public void addGeometryCollection(GeometryCollectionInfo info)
 	{
 		Element tag = doc.createElement(ENTRYTYPE_GEOMETRYCOLLECTION);
-		if (info.name != null)
-			tag.setAttribute(GeometryCollectionInfo.NAME, info.name);
+		
 		if (info.connection != null)
-			tag.setAttribute(GeometryCollectionInfo.CONNECTION, info.connection);
+			tag.setAttribute(PrivateMetadata.CONNECTION, info.connection);
 		if (info.schema != null)
-			tag.setAttribute(GeometryCollectionInfo.SCHEMA, info.schema);
+			tag.setAttribute(PrivateMetadata.SCHEMA, info.schema);
 		if (info.tablePrefix != null)
-			tag.setAttribute(GeometryCollectionInfo.TABLEPREFIX, info.tablePrefix);
-		if (info.keyType != null)
-			tag.setAttribute(GeometryCollectionInfo.KEYTYPE, info.keyType);
-		if (info.projection != null)
-			tag.setAttribute(GeometryCollectionInfo.PROJECTION, info.projection);
+			tag.setAttribute(PrivateMetadata.TABLEPREFIX, info.tablePrefix);
 		if (info.importNotes != null)
-			tag.setAttribute(GeometryCollectionInfo.IMPORTNOTES, info.importNotes);
+			tag.setAttribute(PrivateMetadata.IMPORTNOTES, info.importNotes);
+		
+		if (info.name != null)
+			tag.setAttribute(PublicMetadata.NAME, info.name);
+		if (info.keyType != null)
+			tag.setAttribute(PublicMetadata.KEYTYPE, info.keyType);
+		if (info.projection != null)
+			tag.setAttribute(PublicMetadata.PROJECTION, info.projection);
 
 		// add to document with formatting
 		Node parent = doc.getDocumentElement();
@@ -484,8 +492,8 @@ public class SQLConfigXML implements ISQLConfig
 		try
 		{
 			// make a copy of the metadata
-			Map<String, String> metadata = new HashMap<String, String>(info.metadata);
-			String dataTableName = metadata.remove(Metadata.DATATABLE.toString());
+			Map<String, String> metadata = info.getAllMetadata();
+			String dataTableName = metadata.remove(PublicMetadata.DATATABLE);
 			if (dataTableName == null)
 				return;
 			// create dataTable tag if it doesn't exist
@@ -515,12 +523,12 @@ public class SQLConfigXML implements ISQLConfig
 			Element tag = doc.createElement("attributeColumn");
 
 			// set sql properties
-			tag.setAttribute("connection", info.connection);
-			tag.setAttribute("dataWithKeysQuery", info.sqlQuery);
+			tag.setAttribute("connection", info.privateMetadata.get(PrivateMetadata.CONNECTION));
+			tag.setAttribute("dataWithKeysQuery", info.privateMetadata.get(PrivateMetadata.SQLQUERY));
 			// set metadata properties
-			for (Metadata property : Metadata.values())
-				if (metadata.containsKey(property.toString()))
-					tag.setAttribute(property.toString(), metadata.get(property.toString()));
+			for (String property : PublicMetadata.names)
+				if (metadata.containsKey(property))
+					tag.setAttribute(property, metadata.get(property));
 
 			// add to dataTable node with formatting
 			XMLUtils.appendTextNode(dataTableNode, "\t");
@@ -538,7 +546,7 @@ public class SQLConfigXML implements ISQLConfig
 	synchronized public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName)
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>();
-		metadataQueryParams.put(Metadata.DATATABLE.toString(), dataTableName);
+		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
 		return getAttributeColumnInfo(metadataQueryParams);
 	}
 
@@ -549,7 +557,7 @@ public class SQLConfigXML implements ISQLConfig
 			// make a copy of the metadata
 			Map<String, String> metadata = new HashMap<String, String>(metadataQueryParams);
 			// pull out dataTableName
-			String dataTableName = metadata.remove(Metadata.DATATABLE.toString());
+			String dataTableName = metadata.remove(PublicMetadata.DATATABLE);
 
 			// generate table params
 			String tableParams = "";
@@ -596,7 +604,7 @@ public class SQLConfigXML implements ISQLConfig
 			NamedNodeMap columnNodeProperties = columnNode.getAttributes();
 
 			// get dataTable name
-			Node tableNameProperty = columnNodeProperties.getNamedItem(Metadata.DATATABLE.toString());
+			Node tableNameProperty = columnNodeProperties.getNamedItem(PublicMetadata.DATATABLE);
 			String tableName = "";
 			if (tableNameProperty == null || tableNameProperty.getTextContent().length() == 0)
 				tableNameProperty = columnNode.getParentNode().getAttributes().getNamedItem("name");
@@ -612,32 +620,32 @@ public class SQLConfigXML implements ISQLConfig
 			String sqlQuery = columnNodeProperties.getNamedItem("dataWithKeysQuery").getTextContent();
 			// get attributeColumn metadata properties
 			Map<String, String> columnMetadataResult = new HashMap<String, String>();
-			columnMetadataResult.put(Metadata.DATATABLE.toString(), tableName);
-			for (Metadata property : Metadata.values())
+			columnMetadataResult.put(PublicMetadata.DATATABLE, tableName);
+			for (String property : PublicMetadata.names)
 			{
-				if (property == Metadata.DATATABLE)
+				if (property == PublicMetadata.DATATABLE)
 					continue;
-				String propertyName = property.toString();
+				String propertyName = property;
 				String parentPropertyName = propertyName;
 				String value = getCascadedAttribute(columnNodeProperties, propertyName, tableProperties, parentPropertyName);
 				// if keyType missing, get it from geometryCollection
-				if (property == Metadata.KEYTYPE && value.length() == 0)
+				if (property == PublicMetadata.KEYTYPE && value.length() == 0)
 				{
-					// if keyType still missing, grab keyType from the
-					// geometryCollection.
+					// if keyType still missing, grab keyType from the geometryCollection.
 					if (value.length() == 0)
 					{
-						String geomAttr = Metadata.GEOMETRYCOLLECTION.toString();
+						String geomAttr = PublicMetadata.GEOMETRYCOLLECTION;
 						String geomName = getCascadedAttribute(columnNodeProperties, geomAttr, tableProperties, geomAttr);
 						if (geometryCollectionCache.containsKey(geomName))
-							value = geometryCollectionCache.get(geomName).get(GeometryCollectionInfo.KEYTYPE);
+							value = geometryCollectionCache.get(geomName).get(PublicMetadata.KEYTYPE);
 					}
 				}
 				// save metadata value in result
-				columnMetadataResult.put(property.toString(), value);
+				columnMetadataResult.put(property, value);
 			}
-			// System.out.println(resultMetadata);
-			columnInfoList.add(new AttributeColumnInfo(connection, sqlQuery, columnMetadataResult));
+			columnMetadataResult.put(PrivateMetadata.CONNECTION, connection);
+			columnMetadataResult.put(PrivateMetadata.SQLQUERY, sqlQuery);
+			columnInfoList.add(new AttributeColumnInfo(i, columnMetadataResult.toString(), columnMetadataResult));
 		}
 		return columnInfoList;
 	}
