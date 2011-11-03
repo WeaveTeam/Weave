@@ -224,7 +224,8 @@ package weave.utils
 			var column:IAttributeColumn;
 			var result:int;
 			var n:int = columns.length;
-			descendingFlags.length = n;
+			if (descendingFlags)
+				descendingFlags.length = n;
 			return function arrayCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 			{
 				for (i = 0; i < n; i++)

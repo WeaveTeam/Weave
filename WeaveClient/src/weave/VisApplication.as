@@ -120,6 +120,7 @@ package weave
 	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
+	import weave.visualization.tools.TransposedTableTool;
 
 	use namespace weave_internal;
 
@@ -643,6 +644,7 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
 				createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
 				createToolMenuItem(Weave.properties.enableAddDataTable, "Add Data Table", createGlobalObject, [DataTableTool]);
+				createToolMenuItem(Weave.properties.enableAddDataTable, "Add Transposed Data Table", createGlobalObject, [TransposedTableTool]);
 				createToolMenuItem(Weave.properties.enableAddDimensionSliderTool, "Add Dimension Slider Tool", createGlobalObject, [DimensionSliderTool]);
 				createToolMenuItem(Weave.properties.enableAddGaugeTool, "Add Gauge Tool", createGlobalObject, [GaugeTool]);
 				createToolMenuItem(Weave.properties.enableAddHistogram, "Add Histogram", createGlobalObject, [HistogramTool]);

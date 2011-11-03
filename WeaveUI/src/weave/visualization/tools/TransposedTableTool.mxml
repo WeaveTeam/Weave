@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<ui:DraggablePanel xmlns="weave.visualization.tools.*"
+				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*" 
+				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
+				   layout="absolute"
+				   title="Transposed Data Table" xmlns:editors="weave.ui.editors.*"
+				   >
+	
+	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
+		
+		
+		<mx:DataGrid id="table"  
+						   horizontalScrollPolicy="auto" verticalScrollPolicy="auto"
+						   width="100%" height="100%"
+						   allowMultipleSelection="true"
+						   dataProvider="{sourceArrayCollection}"
+						   minWidth="0"
+						   paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
+						   fontWeight="normal"
+						   alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
+						   rollOverColor="0xDADAFF"
+						   selectionColor="0xFFAAAA"
+						   lockedColumnCount="1"
+						   />
+		
+	</mx:VBox>
+	
+	<mx:Number id="columnWidthScale">1</mx:Number>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableHashMap;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.utils.ColumnUtils;
+			
+			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
+			
+			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,handleHeaderColumnChange);
+			
+			override protected function childrenCreated():void
+			{
+				columnsList.hashMap = columns;
+			}
+			
+			//TODO: called more than once
+			private function handleHeaderColumnChange():void
+			{
+				if(headerAttributeColumn.internalColumn)
+					createHeaderColumns(headerAttributeColumn,false);
+				else
+					createHeaderColumns(columns.getObjects()[0]);
+			}
+			[Bindable]
+			private var sourceArrayCollection:ArrayCollection = new ArrayCollection();
+ 			private function handleColumnsListChange():void
+			{
+				var columnObjects:Array = columns.getObjects();
+				sourceArrayCollection.removeAll();
+				if(table.columns.length ==0 && columnObjects.length !=0)
+					createHeaderColumns(columnObjects[0]);
+				for (var i:int = 0; i<columnObjects.length; i++)
+				{
+					var rowObject:Object = new Object();
+					
+					var keys:Array = columnObjects[i].keys;
+
+					rowObject["_name_"] =ColumnUtils.getTitle(columnObjects[i]);
+					for(var k:int=0; k<keys.length; k++ )
+					{
+						var keyName:String = (keys[k] as IQualifiedKey).localName;
+						rowObject[keyName] = columnObjects[i].getValueFromKey((keys[k] as IQualifiedKey));
+					}
+					
+					sourceArrayCollection.addItem(rowObject);
+				}
+			}
+			
+			private function createHeaderColumns(col:IAttributeColumn,emtpyHeader:Boolean=true):void
+			{
+				
+				if(col)
+				{
+					var sortFn:Function = ColumnUtils.generateSortFunction([col]);
+					
+					var keys:Array = col.keys;
+					keys.sort(sortFn);
+					var columnsToAdd:Array = [];
+					table.columns = [];
+					for(var i:int=0; i<keys.length; i++ )
+					{
+						var colName:String = " ";
+						if(!emtpyHeader)
+							colName = col.getValueFromKey((keys[i] as IQualifiedKey));							
+						var gridColumn:DataGridColumn = new DataGridColumn(colName);
+						
+						gridColumn.dataField = (keys[i] as IQualifiedKey).localName;
+						columnsToAdd.push(gridColumn);
+					}
+					
+					var nameGridColumn:DataGridColumn = new DataGridColumn(" ");
+					nameGridColumn.dataField = "_name_";
+					
+					columnsToAdd.unshift(nameGridColumn);
+					
+					//if you need to add header columns you need to add all the columns to an Array and then 
+					//assign the array to grid.columns. You cannot do grid.columns.push
+					//more here: http://flexoop.com/2008/07/using-actionscript-to-set-datagrid-columns/
+					table.columns = columnsToAdd;
+					if(table.columns.length != 0)
+						table.lockedColumnCount= 1;
+					
+					
+					
+				}
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox id="attributesPanel" label="Attributes for Data Table">
+			<ui:DynamicColumnComponent id="headerColumn" label="Header Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
+			<ui:ColumnListComponent id="columnsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
+		</mx:VBox>
+		<editors:WindowSettingsEditor target="{this}"/>
+	</ui:ControlPanel>
+</ui:DraggablePanel>
