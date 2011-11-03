@@ -185,10 +185,6 @@ public class SQLConfig
 		return connectionConfig.getConnectionNames();
 	}
 /* Private methods which handle the barebones of the entity-attribute-value system. */
-        private List<Integer> getIdsFromPublicMetadata(Map<String,String> constraints) throws RemoteException
-        {
-            return getIdsFromMetadata(table_meta_public, constraints);
-        }
         private List<Integer> getIdsFromMetadata(String sqlTable, Map<String,String> constraints) throws RemoteException
         {
             List<Integer> ids = new LinkedList<Integer>();
@@ -338,24 +334,23 @@ public class SQLConfig
             List<String> names = new LinkedList<String>();
             try
             {
-                HashMap<String,String> geom_constraints = new HashMap<String,String>();
                 Set<Integer> geom_ids = null;
                 Set<Integer> conn_ids = null;
 
-                geom_constraints.put(PROPERTY, "dataType");
-                geom_constraints.put(VALUE, "geometry");
-                geom_ids = new HashSet<Integer>(getIdsFromPublicMetadata(geom_constraints));
+                HashMap<String,String> geom_constraints = new HashMap<String,String>();
+                geom_constraints.put(PROPERTY, PublicMetadata.DATATYPE);
+                geom_constraints.put(VALUE, DataType.GEOMETRY);
+                geom_ids = new HashSet<Integer>(getIdsFromMetadata(table_meta_public, geom_constraints));
 
-                HashMap<String,String> conn_constraints = new HashMap<String,String>();
-
+                // we only want to filter by connection name if it's non-null
                 if (connectionName != null)
                 {
-                	conn_constraints.put(PROPERTY, "connection");
+                	HashMap<String,String> conn_constraints = new HashMap<String,String>();
+                	conn_constraints.put(PROPERTY, PrivateMetadata.CONNECTION);
                 	conn_constraints.put(VALUE, connectionName);
+                	conn_ids = new HashSet<Integer>(getIdsFromMetadata(table_meta_private, conn_constraints));
+                	geom_ids.retainAll(conn_ids);
                 }
-
-                conn_ids = new HashSet<Integer>(getIdsFromPublicMetadata(conn_constraints));
-                geom_ids.retainAll(conn_ids);
             }
             catch (Exception e)
             {
@@ -462,7 +457,7 @@ public class SQLConfig
         List<Integer> ids;
 		Map<String,String> whereParams = new HashMap<String,String>();
 		whereParams.put("name", name);
-        ids = getIdsFromPublicMetadata(whereParams);
+        ids = getIdsFromMetadata(table_meta_public, whereParams);
         for (Integer id : ids)
         {
             delEntry(id);
@@ -484,9 +479,9 @@ public class SQLConfig
         public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException
         {
                 Map<String,String> attribParams =  new HashMap<String,String>();
-                attribParams.put("name", geometryCollectionName);
-                attribParams.put("dataType", "geometry");
-                List<Integer> idlist = getIdsFromPublicMetadata(attribParams);
+                attribParams.put(PublicMetadata.NAME, geometryCollectionName);
+                attribParams.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
+                List<Integer> idlist = getIdsFromMetadata(table_meta_public, attribParams);
                 return getGeometryCollectionInfo(idlist.get(0));
         }
 	public GeometryCollectionInfo getGeometryCollectionInfo(Integer id) throws RemoteException
@@ -497,12 +492,12 @@ public class SQLConfig
 		try
 		{
 			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, table_meta_public, params);
-                        Map<String,String> props = new HashMap<String,String>();
+			Map<String,String> props = new HashMap<String,String>();
 			for (Map<String,String> row : records)
 			{
-                                String property_name = row.get(PROPERTY);
-                                String value = row.get(VALUE);
-                                props.put(property_name, value);
+                String property_name = row.get(PROPERTY);
+                String value = row.get(VALUE);
+                props.put(property_name, value);
 			}
 			// public meta
 			info.name = props.get(PublicMetadata.NAME);
@@ -553,7 +548,7 @@ public class SQLConfig
 	{
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
         Map<Integer,Map<String,String>> attr_cols;
-        List<Integer> col_ids = getIdsFromPublicMetadata(metadataQueryParams);
+        List<Integer> col_ids = getIdsFromMetadata(table_meta_public, metadataQueryParams);
         
         attr_cols = getAllMetadata(col_ids, null);
 		for (Entry<Integer,Map<String,String>> entry : attr_cols.entrySet())
