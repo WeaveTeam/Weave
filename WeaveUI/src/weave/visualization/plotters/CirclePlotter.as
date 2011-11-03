@@ -23,11 +23,14 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IPlotterWithGeometrySelection;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.primitives.SimpleGeometry;
 
 	/**
@@ -35,7 +38,7 @@ package weave.visualization.plotters
 	 * @author skolman
 	 * @author kmonico
 	 */	
-	public class CirclePlotter extends AbstractPlotter implements IPlotterWithGeometrySelection
+	public class CirclePlotter extends AbstractPlotter implements IPlotterWithGeometries
 	{
 		public function CirclePlotter()
 		{
@@ -67,9 +70,14 @@ package weave.visualization.plotters
 		public const thickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2));
 		
 		/**
+		 * The projection of the map when this circle was created. 
+		 */		
+		public const projectionSRS:LinkableString = registerLinkableChild(this, new LinkableString('', WeaveAPI.ProjectionManager.projectionExists));
+		
+		/**
 		 * The number of vertices to use inside the polygon when selecting records. This must be at
 		 * least <code>3</code>. <br>
-		 * @default 25
+		 * @default <code>25</code>
 		 */		
 		public const polygonVertexCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, verifyPolygonVertexCount));
 		private function verifyPolygonVertexCount(value:Number):Boolean
@@ -77,41 +85,6 @@ package weave.visualization.plotters
 			return value >= 3; 
 		}
 
-		/**
-		 * This function will get a vector of ISimpleGeometry objects.
-		 * 
-		 * @return An array of ISimpleGeometry objects which can be used for spatial querying. 
-		 */		
-		public function getSelectableGeometries():Vector.<ISimpleGeometry>
-		{
-			_tempArray.length = 0;
-			
-			var geometryVector:Vector.<ISimpleGeometry> = new Vector.<ISimpleGeometry>();
-			var simpleGeom:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.CLOSED_POLYGON);
-			var numVertices:int = polygonVertexCount.value;
-			var radiusValue:Number = radius.value;
-			var angle:Number = 0;
-			var dAngle:Number = 2 * Math.PI / numVertices;
-			for (var i:int = 0; i < numVertices; ++i)
-			{
-				// get origin-centered X,Y of the point
-				var x:Number = radiusValue * Math.cos(angle);
-				var y:Number = radiusValue * Math.sin(angle);
-				var p:Point = new Point(x, y);
-				
-				// offset to the X,Y provided
-				p.x += dataX.value;
-				p.y += dataY.value;
-				
-				_tempArray.push(p);
-				angle += dAngle;
-			}
-
-			(simpleGeom as SimpleGeometry).setVertices(_tempArray);
-			geometryVector.push(simpleGeom);
-			
-			return geometryVector;
-		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -142,6 +115,43 @@ package weave.visualization.plotters
 			destination.draw(tempShape);
 		}
 
+		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
+		{
+			// no keys in this plotter
+			return [];
+		}
+		
+		public function getBackgroundGeometries():Array
+		{
+			_tempArray.length = 0;
+			
+			var geometryVector:Array = [];
+			var simpleGeom:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.CLOSED_POLYGON);
+			var numVertices:int = polygonVertexCount.value;
+			var radiusValue:Number = radius.value;
+			var angle:Number = 0;
+			var dAngle:Number = 2 * Math.PI / numVertices;
+			for (var i:int = 0; i < numVertices; ++i)
+			{
+				// get origin-centered X,Y of the point
+				var x:Number = radiusValue * Math.cos(angle);
+				var y:Number = radiusValue * Math.sin(angle);
+				var p:Point = new Point(x, y);
+				
+				// offset to the X,Y provided
+				p.x += dataX.value;
+				p.y += dataY.value;
+				
+				_tempArray.push(p);
+				angle += dAngle;
+			}
+
+			(simpleGeom as SimpleGeometry).setVertices(_tempArray);
+			geometryVector.push(simpleGeom);
+			
+			return geometryVector;
+		}
+		
 		// reusable objects
 		
 		private var _tempDataBounds:IBounds2D;

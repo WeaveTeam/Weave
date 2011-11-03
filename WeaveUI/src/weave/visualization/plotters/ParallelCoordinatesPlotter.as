@@ -320,6 +320,11 @@ package weave.visualization.plotters
 			return results;
 		}
 		
+		public function getBackgroundGeometries():Array
+		{
+			return [];
+		}
+		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */

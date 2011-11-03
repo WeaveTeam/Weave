@@ -45,7 +45,7 @@
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IPlotLayer;
-			import weave.api.ui.IPlotterWithGeometrySelection;
+			import weave.api.ui.IPlotterWithGeometries;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -474,58 +474,39 @@
 				marker.dataHeight.value = height;
 			}
 
+			
 			public function selectRecords():void
 			{
 				var key:IQualifiedKey;
-				var keys:Dictionary = new Dictionary();
-				var layers:Array = visualization.layers.getObjects();
-				var simpleGeometries:Vector.<ISimpleGeometry> = new Vector.<ISimpleGeometry>();
+				var simpleGeometries:Array = [];
 				var simpleGeometry:ISimpleGeometry;
 				var layer:IPlotLayer;
 				
 				// First we need to go through the layers and get all the ISimpleGeometry objects
 				// from the IPlotterWithGeometrySelection plotters.
-				for each (layer in layers)
+				for each (layer in visualization.layers.getObjects())
 				{
-					var polygonPlotter:IPlotterWithGeometrySelection = layer.plotter as IPlotterWithGeometrySelection;
+					var polygonPlotter:IPlotterWithGeometries = layer.plotter as IPlotterWithGeometries;
 
 					if (!polygonPlotter && layer.plotter is DynamicPlotter)
 					{
-						polygonPlotter = (layer.plotter as DynamicPlotter).internalObject as IPlotterWithGeometrySelection;
+						polygonPlotter = (layer.plotter as DynamicPlotter).internalObject as IPlotterWithGeometries;
 					}
 					
 					if (!polygonPlotter)
 						continue;
 					
-					for each (simpleGeometry in polygonPlotter.getSelectableGeometries())
+					for each (simpleGeometry in polygonPlotter.getBackgroundGeometries())
 					{
 						simpleGeometries.push(simpleGeometry);
 					}
 				}
-
-				// Now go through the layers again and make a query for each layer
-				// TODO : This would allow an IPlotterWithGeometrySelection to query its own records. Is this bad?
-				for each (layer in layers)
-				{
-					var spatialIndex:SpatialIndex = layer.spatialIndex as SpatialIndex; 
-					for each (simpleGeometry in simpleGeometries)
-					{
-						var queriedKeys:Array = spatialIndex.getKeysGeometryOverlapGeometry(simpleGeometry);
-						for each (key in queriedKeys)
-						{
-							keys[key] = true;
-						}
-					}
-				}
+				
+				var keys:Array = visualization.getKeysOverlappingGeometry(simpleGeometries);
 				
 				// set the selection keyset
 				var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-				_tempArray.length = 0;
-				for (var keyObj:* in keys)
-				{
-					_tempArray.push(keyObj as IQualifiedKey);
-				}
-				selectionKeySet.replaceKeys(_tempArray);
+				selectionKeySet.replaceKeys(keys);
 			}
 			
 			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
