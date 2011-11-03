@@ -45,7 +45,7 @@
 								id="selecton"
 								label="On"
 								width="50"
-								creationComplete="linkBindableProperty(Weave.properties.enableToolSelection,selecton,'selected')"/>
+								creationComplete="linkBindableProperty(Weave.properties.enableToolSelection,event.target,'selected')"/>
 				<mx:RadioButton groupName="selection"
 								buttonMode="true"
 								id="selectoff"
@@ -64,7 +64,7 @@
 								id="probingon"
 								label="On"
 								width="50"
-								creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,probingon,'selected')"/>
+								creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,event.target,'selected')"/>
 				<mx:RadioButton groupName="probing"
 								buttonMode="true"
 								id="probingoff"
@@ -82,7 +82,7 @@
 								id="rclickon"
 								label="On"
 								width="50"
-								creationComplete="linkBindableProperty(Weave.properties.enableRightClick,rclickon,'selected')"/>
+								creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
 				<mx:RadioButton groupName="rightclick"
 								buttonMode="true"
 								id="rclickoff"

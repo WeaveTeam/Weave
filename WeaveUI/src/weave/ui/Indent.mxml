@@ -22,21 +22,34 @@
 <mx:HBox
     xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
-    horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all"
+	verticalAlign="middle"
+    horizontalScrollPolicy="off"
+	verticalScrollPolicy="off"
+	creationPolicy="all"
     >
-    <mx:Label id="labelComponent" text="{label}" textAlign="right" width="{indent}"/>
-    <mx:TextInput id="input" text="{text}" change="text = input.text;dispatchEvent(new Event('change'));" width="{textWidth}" displayAsPassword="{displayAsPassword}"/>
-	
-	<mx:Metadata>
-		[Event(name="change", type="flash.events.Event")]
-		
-	</mx:Metadata>
     <mx:Script>
     	<![CDATA[
-    		[Bindable] public var indent:int = 200;
-    		[Bindable] public var text:String = "";
-    		[Bindable] public var textWidth:Number = 200;
-    		[Bindable] public var displayAsPassword:Boolean = false;
+    		import mx.controls.Label;
+    		public function get labelComponent():Label
+			{
+				return _labelComponent;
+			}
+			private const _labelComponent:Label = new Label();
+    	
+    		override protected function createChildren():void
+    		{
+    			super.createChildren();
+				
+    			addChildAt(labelComponent, 0);
+    			labelComponent.setStyle("textAlign", "right");
+    		}
+			
+    		[Bindable]
+    		public function get indent():int { return labelComponent.width; }
+    		public function set indent(value:int):void { labelComponent.width = value; }
+    		
+    		override public function get label():String { return labelComponent.text; }
+    		override public function set label(value:String):void { labelComponent.text = value; }
     	]]>
     </mx:Script>
 </mx:HBox>

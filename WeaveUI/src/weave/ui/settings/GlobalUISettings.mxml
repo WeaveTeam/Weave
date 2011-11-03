@@ -26,35 +26,21 @@
 			  height="315"
 			  backgroundColor="#EFF4BC"
 			  title="User Interface Preferences"
-			  initialize="this.targets = [Weave.properties];"
+			  targets="{[Weave.properties]}"
 			  >
 	
 	<!-- 
 	<mx:Tree id="myTree" 
-	width="30%" 
-	height="100%" 
-	labelField="@label"
-	showRoot="false" 
-	dataProvider="{treeData}" 
-	change="treeChanged(event)"
-	allowMultipleSelection="false" 
-	allowDragSelection="false" 
-	backgroundColor="0xCCCCCC"
-	backgroundAlpha="0.5"/>-->
-	
-	<settings:AppearancesSubMenu id="Appearances" 
-								 label="Appearance"/>
-	
-	<settings:Main_ToolbarSubMenu id="Main_Toolbar"
-								  label="Menus"/>
-	
-	<settings:InteractivitySubMenu id="Interactivity"
-								   label="Interactivity"/>
-	
-	<settings:ProbingSubMenu id="Probing"
-							 label="Probing"/>
-	<settings:SelectionSubMenu id="Selection"
-							   label="Selection"/>
+		width="30%" 
+		height="100%" 
+		labelField="@label"
+		showRoot="false" 
+		dataProvider="{treeData}" 
+		change="treeChanged(event)"
+		allowMultipleSelection="false" 
+		allowDragSelection="false" 
+		backgroundColor="0xCCCCCC"
+		backgroundAlpha="0.5"/>
 	<mx:XMLList id="treeData">
 		<node label="User Preferences">
 			<node label="Application Settings">
@@ -65,6 +51,14 @@
 			</node>
 		</node>    
 	</mx:XMLList>
+	-->
+	
+	<settings:AppearancesSubMenu label="Appearance"/>
+	<settings:Main_ToolbarSubMenu label="Menus"/>
+	<settings:InteractivitySubMenu label="Interactivity"/>
+	<settings:ProbingSubMenu label="Probing"/>
+	<settings:SelectionSubMenu label="Selection"/>
+	
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.Panel;

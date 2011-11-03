@@ -27,6 +27,7 @@ package weave.visualization.tools
 	import mx.containers.VBox;
 	import mx.controls.Label;
 	import mx.core.UIComponent;
+	import mx.skins.Border;
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
@@ -34,25 +35,35 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotLayer;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.UIUtils;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.KeySets.KeySet;
+	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
 	import weave.ui.LayerListComponent;
-	import weave.ui.UserWindowSettings;
+	import weave.ui.PenTool;
+	import weave.ui.editors.SimpleAxisEditor;
+	import weave.ui.editors.WindowSettingsEditor;
 	import weave.utils.ColumnUtils;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.AxisLayer;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
+	import weave.visualization.plotters.DynamicPlotter;
 
 	/**
 	 * A simple visualization is one with a single SelectablePlotLayer
@@ -81,15 +92,19 @@ package weave.visualization.tools
 				invalidateDisplayList();
 			}
 			Weave.properties.axisFontSize.addGroupedCallback(this, updateTitleLabel);
-			Weave.properties.axisFontColor.addGroupedCallback(this, updateTitleLabel);
+			Weave.properties.axisFontColor.addGroupedCallback(this, updateTitleLabel, true);
 		}
-		
-		/**
-		 * container for Flex components
-		 */
-		private const toolVBox:VBox = new VBox(); // simpleVisToolVBox contains titleLabel and visCanvas
-		protected const visCanvas:Canvas = new Canvas(); // For linkDisplayObjects
-		private const titleLabel:Label = new Label(); // For display of title inside the window area
+
+		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
+		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+
+		private var toolVBox:VBox; // simpleVisToolVBox contains titleLabel and visCanvas
+		private var visTitle:AutoResizingTextArea; // For display of title inside the window area
+		protected var visCanvas:Canvas; // For linkDisplayObjects
+		private var _visualization:SimpleInteractiveVisualization;
+		protected var layerListComponent:LayerListComponent;
+		protected var simpleAxisEditor:SimpleAxisEditor;
+		protected var windowSettingsEditor:WindowSettingsEditor;
 		
 		private var createdChildren:Boolean = false;
 		override protected function createChildren():void
@@ -99,14 +114,26 @@ package weave.visualization.tools
 			if (createdChildren)
 				return;
 			
+			toolVBox = new VBox()
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
+			toolVBox.setStyle("verticalGap", 0);
 			toolVBox.setStyle("horizontalAlign", "center");
+			
+			visTitle = new AutoResizingTextArea();
+			visTitle.selectable = false;
+			visTitle.editable = false;
+			visTitle.setStyle('borderStyle', 'none');
+			visTitle.setStyle('textAlign', 'center');
+			visTitle.setStyle('fontWeight', 'bold');
+			visTitle.setStyle('backgroundAlpha', 0);
+			visTitle.percentWidth = 100;
+			updateTitleLabel();
+			
+			visCanvas = new Canvas();
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
 			toolVBox.addChild(visCanvas);
-			
-			updateTitleLabel();
 			
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
@@ -118,46 +145,44 @@ package weave.visualization.tools
 			
 			this.addChild(toolVBox);
 			
-			_userWindowSettings.targetTool = this;
+			layerListComponent = new LayerListComponent();
+			layerListComponent.visTool = this;
+			layerListComponent.hashMap = visualization.layers;
+			
+			//TODO: hide axis controls when axis isn't enabled
+
+			simpleAxisEditor = new SimpleAxisEditor();
+			simpleAxisEditor.target = this;
+			
+			windowSettingsEditor = new WindowSettingsEditor();
+			windowSettingsEditor.target = this;
+			
+			if (controlPanel)
+				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
 			
 			createdChildren = true;
 		}
 		
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
+		}
+		
+		private function handleBindableTitle(value:String):void
+		{
+			visTitle.text = title;
+		}
 		private function updateTitleLabel():void
 		{
 			if (!parent)
 				return callLater(updateTitleLabel);
 			
-			titleLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
-			titleLabel.setStyle("color", Weave.properties.axisFontColor.value);
+			visTitle.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			visTitle.setStyle("color", Weave.properties.axisFontColor.value);
 		}
 		
-		protected var _userWindowSettings:UserWindowSettings = new UserWindowSettings();
-		override protected function childrenCreated():void
-		{
-			super.childrenCreated();
-			
-			var layerSettings:VBox = new VBox();
-			layerSettings.creationPolicy = "all";
-			layerSettings.percentHeight = layerSettings.percentWidth = 100;
-			
-			var layersList:LayerListComponent = new LayerListComponent();
-			layersList.visTool = this;
-			layersList.hashMap = visualization.layers;
-			
-			layerSettings.addChild(layersList);
-			
-			if (controlPanel)
-			{
-				controlPanel.children = [layersList, _userWindowSettings];
-			}
-			
-			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
-		}
-		private function handleBindableTitle(value:String):void
-		{
-			titleLabel.text = title;
-		}
 		
 		/**
 		 * This function should be defined with override by subclasses.
@@ -184,20 +209,23 @@ package weave.visualization.tools
 			verticalScrollPolicy = "off";
 		}
 		
-		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange);
 		private function handleTitleToggleChange():void
 		{
+			if (!parent)
+			{
+				callLater(handleTitleToggleChange);
+				return;
+			}
 			if (!enableTitle.value)
 			{
-				if (toolVBox == titleLabel.parent)
-					toolVBox.removeChild(titleLabel);
+				if (toolVBox == visTitle.parent)
+					toolVBox.removeChild(visTitle);
 			}
 			else
 			{
-				if (toolVBox != titleLabel.parent)
-					toolVBox.addChildAt(titleLabel,0);
+				if (toolVBox != visTitle.parent)
+					toolVBox.addChildAt(visTitle,0);
 			}
-			invalidateDisplayList();
 		}
 		
 		private const MIN_TOOL_WIDTH:int  = 250;
@@ -290,6 +318,57 @@ package weave.visualization.tools
 		}
 		
 		/**
+		 * This function will return an array of IQualifiedKey objects which overlap
+		 * the geometries of the layer specified by <code>layerName</code>.
+		 * 
+		 * @param layerName The name of the layer with the geometries used for the query.
+		 */		
+		public function getOverlappingQKeys(layerName:String):Array
+		{
+			var key:IQualifiedKey;
+			var simpleGeometries:Array = [];
+			var simpleGeometry:ISimpleGeometry;
+			
+			// First check the children to see if the specified layer is a penTool
+			var penTool:PenTool = children.getObject(layerName) as PenTool;
+			if (penTool)
+			{
+				return penTool.getOverlappingKeys();
+			}
+			
+			// Otherwise, it's an IPlotLayer and go through it
+			var layer:IPlotLayer = visualization.layers.getObject(layerName) as IPlotLayer;
+			if (!layer)
+				return [];
+			
+			var polygonPlotter:IPlotterWithGeometries = layer.plotter as IPlotterWithGeometries;
+			if (!polygonPlotter && layer.plotter is DynamicPlotter)
+			{
+				polygonPlotter = (layer.plotter as DynamicPlotter).internalObject as IPlotterWithGeometries;
+			}
+			if (!polygonPlotter)
+				return [];
+			
+			return visualization.getKeysOverlappingGeometry( polygonPlotter.getBackgroundGeometries() || [] );
+		}
+		
+		/**
+		 * This function will set the defaultSelectionKeySet to contain the keys
+		 * which overlap the geometries specified by the layer called <code>layerName</code>.
+		 * 
+		 * @param layerName The name of the layer with the geometries used for the query.
+		 */
+		public function selectRecords(layerName:String):void
+		{
+			var keys:Array = getOverlappingQKeys(layerName);
+			
+			// set the selection keyset
+			var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			selectionKeySet.replaceKeys(keys);
+		}
+		
+		
+		/**
 		 * This function takes a list of dynamic column objects and
 		 * initializes the internal columns to default ones.
 		 */
@@ -307,20 +386,18 @@ package weave.visualization.tools
 					if (selectedColumn is DynamicColumn)
 						copySessionState(selectedColumn, columnToInit);
 					else
-						columnToInit.copyLocalObject(selectedColumn);
+						columnToInit.requestLocalObjectCopy(selectedColumn);
 				}
 			}
 		}
 		
-		[Inspectable]
-		public function set xAxisEnabled(value:Boolean):void
+		public function get showAxes():Boolean
 		{
-			visualization.xAxisEnabled = value;
+			return visualization.showAxes;
 		}
-		[Inspectable]
-		public function set yAxisEnabled(value:Boolean):void
+		public function set showAxes(value:Boolean):void
 		{
-			visualization.yAxisEnabled = value;
+			visualization.showAxes = value;
 		}
 		
 		[Inspectable]
@@ -353,21 +430,13 @@ package weave.visualization.tools
 		{
 			return _visualization;
 		}
-		private var _visualization:SimpleInteractiveVisualization;
 		
 		// UI children
-		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		public function getLinkableChildren():ILinkableHashMap { return children; }
 		
 		override public function dispose():void
 		{
 			super.dispose();
-		}
-		
-		// backwards compatibility 0.9.6
-		[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void
-		{
-			enableBorders.value = !value;
 		}
 	}
 }

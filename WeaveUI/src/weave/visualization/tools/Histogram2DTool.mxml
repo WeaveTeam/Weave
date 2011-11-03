@@ -71,8 +71,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				plotter = initDefaultPlotter(Histogram2DPlotter) as Histogram2DPlotter;
 				visualization.enableProbeLine(false, true);
 				
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				showAxes = true;
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
@@ -209,7 +208,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox label="Visualization Controls">
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
-						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="X Column"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="Y Column"/>
 		</mx:VBox>
@@ -224,7 +223,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<ui:ColorRampEditor id="cRampEditor"/>
-			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

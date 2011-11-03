@@ -132,7 +132,7 @@ package weave.visualization.plotters
 				// draw the rectangle
 				// if we have reversed the order of the columns, iColumn should match the colors (this has always been backwards?)
 				// otherwise, we reverse the iColorIndex
-				var iColorIndex:int = reverseOrder.value ? iColumn : (numColumns - 1 - iColumn);
+				var iColorIndex:int = reverseOrder.value ? (numColumns - 1 - iColumn) : iColumn;
 				var color:Number = chartColors.getColorFromNorm(iColorIndex / (numColumns - 1));
 				if (color <= Infinity) // alternative to !isNaN()
 					g.beginFill(color, 1.0);

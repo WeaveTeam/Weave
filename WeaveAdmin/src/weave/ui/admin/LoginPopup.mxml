@@ -28,15 +28,15 @@ Author: skolman
 		  xmlns:ui="weave.ui.*"
 		  xmlns="weave.ui.admin.*"
 		  backgroundAlpha="1"
-		  creationComplete="onCreationComplete()">
+		  creationComplete="onCreationComplete()" horizontalAlign="right">
 	
 	<mx:HBox>
-		<mx:Label text="Connection Name:" width="110" textAlign="right"/>
-		<mx:TextInput id="connectionInput" enter="login()" minWidth="150"/>
+		<mx:Label text="Connection Name:" textAlign="right"/>
+		<mx:TextInput id="connectionInput" enter="login()"/>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="SQL Password:" width="110" textAlign="right"/>
-		<mx:TextInput id="passwordInput" displayAsPassword="true" width="100" enter="login()"/>
+		<mx:Label text="SQL Password:" textAlign="right"/>
+		<mx:TextInput id="passwordInput" displayAsPassword="true" enter="login()"/>
 	</mx:HBox>
 	<ui:Center>
 		<mx:Button label="Sign in" click="login()"/>

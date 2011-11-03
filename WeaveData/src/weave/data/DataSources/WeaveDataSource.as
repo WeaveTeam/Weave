@@ -121,7 +121,11 @@ package weave.data.DataSources
 			for each (var node:XML in root.descendants())
 			{
 				if (!String(node.@title))
+				{
 					node.@title = node.@name;
+					if (String(node.@year))
+						node.@title += ' (' + node.@year + ')';
+				}
 			}
 		}
 		
@@ -309,7 +313,11 @@ package weave.data.DataSources
 					var metadata:Object = result.columnMetadata[i];
 					// fill in title if missing
 					if (!metadata['title'])
+					{
 						metadata['title'] = metadata['name'];
+						if (metadata['year'])
+							metadata['title'] += ' (' + metadata['year'] + ')';
+					}
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
 						if (metadata[property])

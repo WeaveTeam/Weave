@@ -29,6 +29,7 @@ package weave.data.BinningDefinitions
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.ColumnUtils;
@@ -128,7 +129,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 
 				name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
-				output.copyObject(name, tempNumberClassifier);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 		}
 		

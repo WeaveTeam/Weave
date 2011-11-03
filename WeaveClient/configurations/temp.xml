@@ -19,12 +19,13 @@
     <enableAddColorLegend>true</enableAddColorLegend>
     <enableAddColormapHistogram>true</enableAddColormapHistogram>
     <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
+    <enableAddCustomTool>true</enableAddCustomTool>
     <enableAddDataFilter>true</enableAddDataFilter>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddDataTable>true</enableAddDataTable>
     <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
     <enableAddGaugeTool>true</enableAddGaugeTool>
-    <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
+    <enableAddGraphTool>true</enableAddGraphTool>
     <enableAddHistogram>true</enableAddHistogram>
     <enableAddLineChart>true</enableAddLineChart>
     <enableAddMap>true</enableAddMap>
@@ -71,12 +72,14 @@
     <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
     <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
     <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
     <enableSelectionsMenu>true</enableSelectionsMenu>
     <enableSessionBookmarks>true</enableSessionBookmarks>
     <enableSessionEdit>true</enableSessionEdit>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
     <enableSubsetsMenu>true</enableSubsetsMenu>
     <enableTaskbar>true</enableTaskbar>
     <enableTileAllWindows>true</enableTileAllWindows>
@@ -87,11 +90,13 @@
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
+    <macroLibraries>weave.api::WeaveAPI</macroLibraries>
+    <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
     <panelTitleFontBold>false</panelTitleFontBold>
     <panelTitleFontColor>16777215</panelTitleFontColor>
-    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
+    <panelTitleFontFamily/>
     <panelTitleFontItalic>false</panelTitleFontItalic>
     <panelTitleFontSize>10</panelTitleFontSize>
     <panelTitleFontUnderline>false</panelTitleFontUnderline>
@@ -141,10 +146,12 @@ wheel</zoom>
       <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
     </toolInteractions>
     <version>1.0 Beta Nightly Build</version>
-    <windowSnapGridSize>5</windowSnapGridSize>
+    <windowSnapGridSize>1%</windowSnapGridSize>
+    <workspaceHeight>NaN</workspaceHeight>
+    <workspaceWidth>NaN</workspaceWidth>
   </WeaveProperties>
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
     <included/>
@@ -156,7 +163,7 @@ wheel</zoom>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="aesthetic" name="Van Gogh" reverse="false" source="OIC">
+      <colorRamp category="aesthetic" source="OIC" name="Van Gogh" reverse="false">
         <node color="0x31415A" position="0"/>
         <node color="0x609DCD" position="0.15"/>
         <node color="0xE9B400" position="0.3"/>
@@ -189,7 +196,7 @@ wheel</zoom>
               <hierarchy>
                 <category name="DataTables" title="DataTables">
                   <category name="Obesity" title="Obesity">
-                    <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="5684" dataType="number" title="Percent Obese 1995"/>
+                    <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" string="formatNumber(number, 1) + '%'" name="Percent Obese 1995" number=" " max="40" dataType="number" min="0" id="5684" title="Percent Obese 1995"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1173,37 +1180,37 @@ wheel</zoom>
           <category name="number of farms by state" title="number of farms by state"/>
           <category name="number of nonprofits by state" title="number of nonprofits by state"/>
           <category name="obesity" title="obesity">
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53566" name="US State FIPS Code" title="US State FIPS Code"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53567" name="State" title="State"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53568" name="Percent Obese 1995" title="Percent Obese 1995"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53569" name="Percent Obese 1996" title="Percent Obese 1996"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53570" name="Percent Obese 1997" title="Percent Obese 1997"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53571" name="Percent Obese 1998" title="Percent Obese 1998"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53572" name="Percent Obese 1999" title="Percent Obese 1999"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53573" name="Percent Obese 2000" title="Percent Obese 2000"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53574" name="Percent Obese 2001" title="Percent Obese 2001"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53575" name="Percent Obese 2002" title="Percent Obese 2002"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53576" name="Percent Obese 2003" title="Percent Obese 2003"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53577" name="Percent Obese 2004" title="Percent Obese 2004"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53578" name="Percent Obese 2005" title="Percent Obese 2005"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53579" name="Percent Obese 2006" title="Percent Obese 2006"/>
-            <attribute dataTable="obesity" keyType="US State FIPS Code" id="53580" name="Percent Obese 2007" title="Percent Obese 2007"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53566" name="US State FIPS Code" title="US State FIPS Code"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53567" name="State" title="State"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53568" name="Percent Obese 1995" title="Percent Obese 1995"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53569" name="Percent Obese 1996" title="Percent Obese 1996"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53570" name="Percent Obese 1997" title="Percent Obese 1997"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53571" name="Percent Obese 1998" title="Percent Obese 1998"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53572" name="Percent Obese 1999" title="Percent Obese 1999"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53573" name="Percent Obese 2000" title="Percent Obese 2000"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53574" name="Percent Obese 2001" title="Percent Obese 2001"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53575" name="Percent Obese 2002" title="Percent Obese 2002"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53576" name="Percent Obese 2003" title="Percent Obese 2003"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53577" name="Percent Obese 2004" title="Percent Obese 2004"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53578" name="Percent Obese 2005" title="Percent Obese 2005"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53579" name="Percent Obese 2006" title="Percent Obese 2006"/>
+            <attribute keyType="US State FIPS Code" dataTable="obesity" id="53580" name="Percent Obese 2007" title="Percent Obese 2007"/>
           </category>
           <category name="Obesity" title="Obesity">
-            <attribute geometryCollection="States" dataTable="Obesity" keyType="US State FIPS Code" id="68866" name="State" title="State"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68867" title="Percent Obese 1995"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1996" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68868" title="Percent Obese 1996"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1997" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68869" title="Percent Obese 1997"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1998" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68870" title="Percent Obese 1998"/>
-            <attribute dataTable="Obesity" name="Percent Obese 1999" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68871" title="Percent Obese 1999"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2000" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68872" title="Percent Obese 2000"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2001" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68873" title="Percent Obese 2001"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2002" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68874" title="Percent Obese 2002"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2003" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68875" title="Percent Obese 2003"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2004" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68876" title="Percent Obese 2004"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2005" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68877" title="Percent Obese 2005"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2006" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68878" title="Percent Obese 2006"/>
-            <attribute dataTable="Obesity" name="Percent Obese 2007" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="68879" title="Percent Obese 2007"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" id="68866" name="State" title="State"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 1995" max="40" min="0" id="68867" title="Percent Obese 1995"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 1996" max="40" min="0" id="68868" title="Percent Obese 1996"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 1997" max="40" min="0" id="68869" title="Percent Obese 1997"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 1998" max="40" min="0" id="68870" title="Percent Obese 1998"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 1999" max="40" min="0" id="68871" title="Percent Obese 1999"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2000" max="40" min="0" id="68872" title="Percent Obese 2000"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2001" max="40" min="0" id="68873" title="Percent Obese 2001"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2002" max="40" min="0" id="68874" title="Percent Obese 2002"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2003" max="40" min="0" id="68875" title="Percent Obese 2003"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2004" max="40" min="0" id="68876" title="Percent Obese 2004"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2005" max="40" min="0" id="68877" title="Percent Obese 2005"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2006" max="40" min="0" id="68878" title="Percent Obese 2006"/>
+            <attribute keyType="US State FIPS Code" dataTable="Obesity" geometryCollection="States" name="Percent Obese 2007" max="40" min="0" id="68879" title="Percent Obese 2007"/>
           </category>
           <category name="obesity by state" title="obesity by state"/>
           <category name="Obesity Years" title="Obesity Years"/>
@@ -1542,59 +1549,48 @@ wheel</zoom>
     <hierarchyURL/>
     <url>/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns">
-    <ReferencedColumn name="ReferencedColumn">
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+    <ReferencedColumn name="ReferencedColumn3">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
-          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <dataSourceName>CSVDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <category name="DataTables" title="DataTables">
-                <category name="Obesity" title="Obesity">
-                  <attribute dataTable="Obesity" year="" name="Percent Obese 1995" max="40" min="0" keyType="US State FIPS Code" id="5684" dataType="number" title="Percent Obese 1995"/>
-                </category>
-              </category>
+              <attribute keyType="CSVDataSource" csvColumn="a" title="a"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
-    <ReferencedColumn name="ReferencedColumn2">
+    <ReferencedColumn name="ReferencedColumn4">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
-          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+          <dataSourceName>CSVDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <category name="DataTables" title="DataTables">
-                <category name="Obesity" title="Obesity">
-                  <attribute dataTable="Obesity" year="" name="Percent Obese 2007" max="40" min="0" keyType="US State FIPS Code" id="5672" dataType="number" title="Percent Obese 2007"/>
-                </category>
-              </category>
+              <attribute keyType="CSVDataSource" csvColumn="b" title="b"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
-    <ReferencedColumn name="ReferencedColumn">
-      <dynamicColumnReference encoding="dynamic">
-        <HierarchyColumnReference>
-          <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-          <hierarchyPath encoding="xml">
-            <hierarchy>
-              <category name="DataTables" title="DataTables">
-                <category name="Obesity" title="Obesity">
-                  <attribute dataTable="Obesity" year="" name="State" keyType="US State FIPS Code" id="5671" dataType="string" title="State"/>
-                </category>
-              </category>
-            </hierarchy>
-          </hierarchyPath>
-        </HierarchyColumnReference>
-      </dynamicColumnReference>
-    </ReferencedColumn>
-  </LinkableHashMap>
-  <CompoundBarChartTool name="CompoundBarChartTool">
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
+  <CSVDataSource name="CSVDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource" csvColumn="a" title="a"/>
+        <attribute keyType="CSVDataSource" csvColumn="b" title="b"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>a,b
+12345,.123
+10000,.424</csvDataString>
+    <keyColName/>
+    <keyType>CSVDataSource</keyType>
+    <url/>
+  </CSVDataSource>
+  <CompoundBarChartTool name="CompoundBarChartTool3">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -1627,18 +1623,19 @@ wheel</zoom>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>-0.5</xMax>
-                  <xMin>-0.5</xMin>
-                  <yMax>20.1</yMax>
-                  <yMin>0</yMin>
+                  <xMax>0</xMax>
+                  <xMin>0</xMin>
+                  <yMax>1.5</yMax>
+                  <yMin>-0.5</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>20.1</axisLineMaxValue>
-                <axisLineMinValue>0</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
+                <axisLineMaxValue>1.5</axisLineMaxValue>
+                <axisLineMinValue>-0.5</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -1655,9 +1652,9 @@ wheel</zoom>
                 <labelWordWrapSize>80</labelWordWrapSize>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
-                <tickCountRequested>5</tickCountRequested>
-                <tickMaxValue>NaN</tickMaxValue>
-                <tickMinValue>NaN</tickMinValue>
+                <tickCountRequested>2</tickCountRequested>
+                <tickMaxValue>1</tickMaxValue>
+                <tickMinValue>0</tickMinValue>
               </SimpleAxisPlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
@@ -1670,18 +1667,19 @@ wheel</zoom>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>47.5</xMax>
-                  <xMin>-0.5</xMin>
-                  <yMax>0</yMax>
-                  <yMin>0</yMin>
+                  <xMax>12345</xMax>
+                  <xMin>0</xMin>
+                  <yMax>-0.5</yMax>
+                  <yMin>-0.5</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>47.5</axisLineMaxValue>
-                <axisLineMinValue>-0.5</axisLineMinValue>
-                <forceTickCount>true</forceTickCount>
+                <axisLineMaxValue>12345</axisLineMaxValue>
+                <axisLineMinValue>0</axisLineMinValue>
+                <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
+                <labelFunction>string</labelFunction>
                 <labelHorizontalAlign>right</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
@@ -1698,9 +1696,9 @@ wheel</zoom>
                 <labelWordWrapSize>80</labelWordWrapSize>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
-                <tickCountRequested>48</tickCountRequested>
-                <tickMaxValue>47</tickMaxValue>
-                <tickMinValue>0</tickMinValue>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>NaN</tickMaxValue>
+                <tickMinValue>NaN</tickMinValue>
               </SimpleAxisPlotter>
             </plotter>
             <selectionFilter encoding="dynamic"/>
@@ -1735,31 +1733,46 @@ wheel</zoom>
                     <GlobalObjectReference name="defaultColorColumn"/>
                   </internalDynamicColumn>
                 </colorColumn>
-                <groupingMode>stack</groupingMode>
+                <groupBySortColumn>false</groupBySortColumn>
+                <groupingMode>group</groupingMode>
                 <heightColumns encoding="dynamic">
-                  <ReferencedColumn name="ReferencedColumn">
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category name="DataTables" title="DataTables">
-                              <category name="Obesity" title="Obesity">
-                                <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" id="5684" dataType="number" title="Percent Obese 1995"/>
-                              </category>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
+                  <DynamicColumn name="DynamicColumn" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>CSVDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute keyType="CSVDataSource" csvColumn="b" title="b"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
+                  <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>CSVDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <attribute keyType="CSVDataSource" csvColumn="a" title="a"/>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
                 </heightColumns>
-                <horizontalMode>false</horizontalMode>
+                <horizontalMode>true</horizontalMode>
                 <keySet>
                   <keyFilter encoding="dynamic">
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
+                <labelBarHeightPercentage>100</labelBarHeightPercentage>
+                <labelColumn encoding="dynamic"/>
                 <lineStyle encoding="dynamic">
                   <SolidLineStyle>
                     <alpha>
@@ -1802,25 +1815,22 @@ wheel</zoom>
                 </lineStyle>
                 <negativeError encoding="dynamic"/>
                 <positiveError encoding="dynamic"/>
-                <showValueLabels>false</showValueLabels>
+                <showValueLabels>true</showValueLabels>
                 <sortColumn encoding="dynamic">
                   <ReferencedColumn>
                     <dynamicColumnReference encoding="dynamic">
                       <HierarchyColumnReference>
-                        <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
+                        <dataSourceName>CSVDataSource</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <category name="DataTables">
-                              <category name="Obesity">
-                                <attribute dataTable="Obesity" name="Percent Obese 1995" max="40" geometryCollection="States" min="0" keyType="US State FIPS Code" title="Percent Obese 1995"/>
-                              </category>
-                            </category>
+                            <attribute keyType="CSVDataSource" csvColumn="a" title="a"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
                     </dynamicColumnReference>
                   </ReferencedColumn>
                 </sortColumn>
+                <valueLabelColor>0</valueLabelColor>
                 <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
             </plotter>
@@ -1890,17 +1900,21 @@ wheel</zoom>
         </layers>
         <marginBottom>80</marginBottom>
         <marginLeft>80</marginLeft>
-        <marginRight>30</marginRight>
-        <marginTop>30</marginTop>
+        <marginRight>80</marginRight>
+        <marginTop>80</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <xMax>47.5</xMax>
-          <xMin>-0.5</xMin>
-          <yMax>20.1</yMax>
-          <yMin>0</yMin>
+          <xMax>12345</xMax>
+          <xMin>0</xMin>
+          <yMax>1.5</yMax>
+          <yMin>-0.5</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -1909,36 +1923,18 @@ wheel</zoom>
     <enableBorders>true</enableBorders>
     <enableTitle>false</enableTitle>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <labelColumn encoding="dynamic">
-      <ReferencedColumn>
-        <dynamicColumnReference encoding="dynamic">
-          <HierarchyColumnReference>
-            <dataSourceName>OpenIndicatorsDataSource</dataSourceName>
-            <hierarchyPath encoding="xml">
-              <hierarchy>
-                <category name="DataTables" title="DataTables">
-                  <category name="Obesity" title="Obesity">
-                    <attribute dataTable="Obesity" name="State" geometryCollection="States" keyType="US State FIPS Code" id="5671" dataType="string" title="State"/>
-                  </category>
-                </category>
-              </hierarchy>
-            </hierarchyPath>
-          </HierarchyColumnReference>
-        </dynamicColumnReference>
-      </ReferencedColumn>
-    </labelColumn>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49.528%</panelHeight>
+    <panelHeight>50%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>66.016%</panelWidth>
-    <panelX>33.984%</panelX>
-    <panelY>50.118%</panelY>
+    <panelWidth>50%</panelWidth>
+    <panelX>21%</panelX>
+    <panelY>36%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>

@@ -55,6 +55,11 @@
 		SecondaryKeyNumColumn.secondaryKeyFilter.value = null;
 	}
 	
+	public static function get dimensionSliderValue():String
+	{
+		return SecondaryKeyNumColumn.secondaryKeyFilter.value;
+	}
+			
 	//class data
 
 	private var values:Array = [];

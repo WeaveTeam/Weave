@@ -51,8 +51,7 @@
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(BarChartPlotter) as BarChartPlotter;
 				
-				yAxisEnabled = true;
-				xAxisEnabled = true;
+				showAxes = true;
 				visualization.marginBottom.value = 50;
 				visualization.marginTop.value    = 10;
 				visualization.marginLeft.value   = 80;
@@ -146,9 +145,9 @@
 								<mx:CheckBox id="linkSortingToHeightCheck" fontSize="12" label="Sort"
 											 toolTip="Link the column used for sorting the bar order to the column used to set the height of the bars.  Checking this will make it so that if you change the bar height attribute, the bars will be sorted to match this column.  Unchecking this unlink these columns so the sorting can be set separately, but will still be sorted by the previous height column until set otherwise."/>
 						</userControls:ControlsSubsetBox>
-						<ui:DynamicColumnComponent visTool="{this}" label="height" initialize="event.target.dynamicObject = _plotter.yBarEnd"/>
-						<ui:DynamicColumnComponent visTool="{this}" label="sort" initialize="event.target.dynamicObject = _plotter.sortColumn"/>
-						<ui:DynamicColumnComponent visTool="{this}" label="color" initialize="event.target.dynamicObject = colorColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="height" creationComplete="event.target.dynamicObject = _plotter.yBarEnd"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="sort" creationComplete="event.target.dynamicObject = _plotter.sortColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="event.target.dynamicObject = colorColumn"/>
 						
 						<!--<mx:HBox width="100%" 
 								borderStyle="inset" 

@@ -62,6 +62,7 @@
 			import weave.api.core.ILinkableObject;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
+			import weave.core.weave_internal;
 			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
 			import weave.ui.controlBars.WeaveMenuItem;
@@ -205,7 +206,7 @@
 					var nameOrder:Array = savedSelectionsMap.getNames();
 					nameOrder[nameOrder.indexOf(oldName)] = newName;
 					
-					savedSelectionsMap.copyObject(newName, oldSubset);
+					savedSelectionsMap.requestObjectCopy(newName, oldSubset);
 					savedSelectionsMap.removeObject(oldName);
 					savedSelectionsMap.setNameOrder(nameOrder);
 
@@ -227,7 +228,7 @@
 					if( !e.confirm )
 						return;
 					
-					savedSelectionsMap.copyObject(e.textInput, globalSelection);
+					savedSelectionsMap.requestObjectCopy(e.textInput, globalSelection);
 					var _selectionSelector:SelectionSelector = Weave.root.getObject("SelectionSelector") as SelectionSelector;
 					if( _selectionSelector )
 						_selectionSelector.setSelectionsSelectorIndex(e.textInput);

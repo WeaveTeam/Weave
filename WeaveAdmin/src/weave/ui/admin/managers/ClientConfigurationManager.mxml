@@ -47,7 +47,7 @@
 					<mx:HBox width="100%" height="100%">
 						<mx:Label text="Create new file:" textAlign="right"/>
 						<mx:TextInput id="weaveFileNameInput" text="newClientConfig.xml" width="200"/>
-						<mx:Button label="Create" click="AdminInterface.instance.initWeaveFileAndOpenWeave(weaveFileNameInput.text)"/>
+						<mx:Button label="Create" click="createFile()"/>
 					</mx:HBox>
 				</mx:VBox>
 			</mx:VBox>
@@ -80,7 +80,15 @@
 			{
 				var item:Object = treeWithSearch.tree.selectedItem;
 				if (item)
-					AdminInterface.instance.initWeaveFileAndOpenWeave(item.label);
+					AdminInterface.instance.openWeavePreview(item.label);
+			}
+			
+			private function createFile():void
+			{
+				if (AdminInterface.instance.weaveFileNames.indexOf(weaveFileNameInput.text) >= 0)
+					AdminInterface.instance.openWeavePreview(weaveFileNameInput.text);
+				else
+					AdminInterface.instance.initWeaveFileAndOpenWeave(weaveFileNameInput.text);
 			}
 			
 			private function removeClientConfigFile():void

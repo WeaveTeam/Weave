@@ -108,20 +108,20 @@
 						linkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
 				}
 				
-				if (_plotter.internalColorColumn == null)
+				if (_plotter.getInternalColorColumn() == null)
 				{
 					cRampEditor.colorRamp = null;
 					trace(this, "WARNING: ColorBinLegendPlotter.internalColorColumn is null");
 				}
 				else
 				{
-					cRampEditor.colorRamp = _plotter.internalColorColumn.ramp;
+					cRampEditor.colorRamp = _plotter.getInternalColorColumn().ramp;
 				}
 			}
 			
 			private function get internalBinnedColumn():BinnedColumn
 			{
-				var cc:ColorColumn = _plotter.internalColorColumn;
+				var cc:ColorColumn = _plotter.getInternalColorColumn();
 				if (cc)
 					return cc.internalColumn as BinnedColumn
 				return null;
@@ -205,7 +205,7 @@
 			<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTop.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
 			<mx:HBox>
 				<mx:Label text="Max bubble size"/>
-				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" initialize="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
+				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:Spacer/>
 			<ui:ColorRampEditor id="cRampEditor"/>

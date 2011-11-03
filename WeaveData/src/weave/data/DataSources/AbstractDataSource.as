@@ -95,25 +95,27 @@ package weave.data.DataSources
 			var nodes:XMLList;
 			var nameMap:Object;
 			var newName:String;
-			var convertValue:Function;
-			
+			var valueConverter:Function;
+
 			nodes = root.descendants(tagName);
 			for each (node in nodes)
 			{
 				for (oldName in nameMapping)
 				{
+					newName = nameMapping[oldName] as String;
+					valueConverter = nameMapping[oldName] as Function;
+					
 					value = node.attribute(oldName);
-					if (value != '')
+					if (value) // if there's an old value
 					{
-						convertValue = nameMapping[oldName] as Function;
-						if (convertValue != null)
+						if (valueConverter != null) // if there's a converter
 						{
-							node['@' + oldName] = convertValue(value);
+							node['@' + oldName] = valueConverter(value); // convert the old value
 						}
-						else
+						else if (!String(node.attribute(newName))) // if there's no value under the newName
 						{
+							// rename the attribute from oldName to newName
 							delete node['@' + oldName];
-							newName = nameMapping[oldName];
 							node['@' + newName] = value;
 						}
 					}

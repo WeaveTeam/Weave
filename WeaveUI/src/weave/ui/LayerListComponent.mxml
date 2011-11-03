@@ -30,8 +30,7 @@ LayerListComponent
 		 xmlns="weave.ui.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 borderStyle="outset"
-		 label="Layers (BETA)">
+		 label="Layers (Beta)">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -49,6 +48,21 @@ LayerListComponent
 			click="internalList.removeSelectedItem()"
 			enabled="{internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
+	<!--
+	<mx:CheckBox id="enableAutoZoom" label="Enable auto zoom to extent"
+				 creationComplete="linkBindableProperty(_visTool.visualization.enableAutoZoomToExtent, event.target, 'selected');"/>
+	<mx:CheckBox label="Enable zoom and pan"
+				 creationComplete="linkBindableProperty(_visTool.visualization.enableZoomAndPan, event.target, 'selected');"/>
+	-->
+	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
+		<mx:Label text="Override auto zoom:"/>
+		<TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
+		<mx:VBox>
+			<TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
+			<TextInputWithPrompt id="overrideYMin" prompt="yMin" width="{boundsInputWidth}"/>
+		</mx:VBox>
+		<TextInputWithPrompt id="overrideXMax" prompt="xMax" width="{boundsInputWidth}"/>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
@@ -59,8 +73,11 @@ LayerListComponent
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.visualization.tools.SimpleVisTool;
+			
+			private static const boundsInputWidth:int = 64;
 			
 			[Bindable] private var _visTool:SimpleVisTool= null;
 			
@@ -68,6 +85,26 @@ LayerListComponent
 			public function set visTool(value:SimpleVisTool):void
 			{
 				_visTool = value;
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				if (_visTool)
+				{
+					linkBindableProperty(_visTool.visualization.overrideXMin, overrideXMin, 'text');
+					linkBindableProperty(_visTool.visualization.overrideYMin, overrideYMin, 'text');
+					linkBindableProperty(_visTool.visualization.overrideXMax, overrideXMax, 'text');
+					linkBindableProperty(_visTool.visualization.overrideYMax, overrideYMax, 'text');
+					_visTool.visualization.enableAutoZoomToExtent.addGroupedCallback(this, handleAutoZoomToggle, true);
+				}
+			}
+			
+			private function handleAutoZoomToggle():void
+			{
+				var enabled:Boolean = _visTool.visualization.enableAutoZoomToExtent.value;
+				boundsProperties.height = enabled ? NaN : 0;
+				boundsProperties.enabled = enabled;
 			}
 			
 			private function openSelector():void

@@ -82,9 +82,12 @@
 							errorString += ': ' + f.faultString;
 						if (f.faultDetail)
 							errorString += ': ' + f.faultDetail;
+						if (errorString == 'Error')
+							errorString = "Communication error";
+						
 						textArea.text += errorString;
 					}
-					else if (SessionManager.runningDebugFlashPlayer)
+					else if (Capabilities.isDebugger)
 					{
 						// get partial stack trace
 						textArea.text += error.message + '\nStack trace: ' + DebugUtils.getCompactStackTrace(error).join('; ');

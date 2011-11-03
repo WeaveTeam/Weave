@@ -19,6 +19,8 @@
 
 package weave.core
 {
+	import flash.system.Capabilities;
+	
 	import weave.api.core.IErrorManager;
 	import weave.api.getCallbackCollection;
 	import weave.core.SessionManager;
@@ -46,7 +48,7 @@ package weave.core
 		 */
 		public function reportError(error:Error):void
 		{
-			if (SessionManager.runningDebugFlashPlayer)
+			if (Capabilities.isDebugger)
 			{
 				//throw error; // COMMENT THIS OUT WHEN NOT DEVELOPING
 				trace(error.getStackTrace() + "\n");

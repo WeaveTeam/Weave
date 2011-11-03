@@ -19,10 +19,10 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<!--	Session State Editor
-   	*  @author skolman
-    *  @author kmonico
- 	*  A text editor to change the Session State on the fly.
+<!---	
+A text editor to change the Session State on the fly.
+@author skolman
+@author kmonico
 -->
 <ui:DraggablePanel
     xmlns:ui ="weave.ui.*"
@@ -556,7 +556,7 @@
 				}
 
 				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
-				{				
+				{
 					changeView(TEXT_EDITOR);
 					
 					if (editorBox == sessionStateDataGrid.parent)
@@ -575,9 +575,17 @@
 					var vsp:Number = sessionStateTextArea.verticalScrollPosition;
 					var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
 
-					_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"Tag");
-					var cleanString:String = _currentSessionStateXML.children().toXMLString();
-					sessionStateTextArea.text = cleanString; 
+					if (_currentSelectedObject is LinkableString)
+					{
+						sessionStateTextArea.text = sessionState as String;
+						_currentSessionStateXML = null;
+					}
+					else
+					{
+						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"Tag");
+						var cleanString:String = _currentSessionStateXML.children().toXMLString();
+						sessionStateTextArea.text = cleanString;
+					}
 					sessionStateTextArea.enabled = true;
 					sessionStateTextArea.validateNow();
 					sessionStateTextArea.verticalScrollPosition = vsp;
@@ -667,15 +675,19 @@
 				{
 					if (_currentSelectedObject != null)
 					{
-						if (_editor == TEXT_EDITOR && _currentSessionStateXML != null)
+						if (_editor == TEXT_EDITOR)
 						{
-							var xmlList:XMLList;
-							// The following may fail if an element is malformed. (This has apparently been a bug forever?)
-							xmlList = XMLList(sessionStateTextArea.text);
-							_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
-							
-							var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
-							setSessionState(_currentSelectedObject, decodedStateObject, true);
+							if (_currentSelectedObject is LinkableString || _currentSessionStateXML == null)
+							{
+								setSessionState(_currentSelectedObject, sessionStateTextArea.text);
+							}
+							else
+							{
+								var xmlList:XMLList = XMLList(sessionStateTextArea.text); // will throw error if xml is invalid
+								_currentSessionStateXML.setChildren(XMLList(sessionStateTextArea.text));
+								var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
+								setSessionState(_currentSelectedObject, decodedStateObject, true);
+							}
 						}
 						else if (_editor == DATA_GRID && _currentSessionStateDataProvider != null)
 						{
@@ -790,13 +802,28 @@
 					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
 				return ILinkableObject(target);
 			}
-			private function consoleWatch(target:Object, name:String):void
+			private function consoleWatch(target:Object, debugString:String):void
 			{
-				getCallbackCollection(getObject(target)).addImmediateCallback(null, consoleTrace, [name]);
+				var linkableTarget:ILinkableObject = getObject(target);
+				getCallbackCollection(linkableTarget).addImmediateCallback(null, consoleTraceEval, [linkableTarget, debugString]);
 			}
 			private function consoleUnwatch(target:Object):void
 			{
-				getCallbackCollection(getObject(target)).removeCallback(consoleTrace);
+				var linkableTarget:ILinkableObject = getObject(target);
+				getCallbackCollection(linkableTarget).removeCallback(consoleTraceEval);
+			}
+			private function consoleTraceEval(thisArg:Object, script:String):void
+			{
+				try
+				{
+					var script:String = '`' + script.split('`').join('\\`') + '`';
+					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
+					consoleTrace(result);
+				}
+				catch (e:Error)
+				{
+					consoleTrace(script, e);
+				}
 			}
 			private function consoleTrace(...args):void
 			{
@@ -810,7 +837,19 @@
 			}
 			
 			private const symbolTable:Object = {
-				'javaScript': ExternalInterface.call,
+				'javaScript': function(...args):*
+				{
+					var prev:Boolean = ExternalInterface.marshallExceptions;
+					try
+					{
+						ExternalInterface.marshallExceptions = true;
+						ExternalInterface.call.apply(this, args);
+					}
+					finally
+					{
+						ExternalInterface.marshallExceptions = prev;
+					}
+				},
 				'application': Application.application,
 				'print': ObjectUtil.toString as Function,
 				'getObject': getObject,
@@ -825,11 +864,9 @@
 				var decompiled:String;
 				try
 				{
-					compiler.debug = false;
 					var obj:ICompiledObject = compiler.compileToObject(console.text);
 					//decompiled = compiler.decompileObject(obj);
 					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
-					compiler.debug = true;
 					result = func.apply(sessionNav.getSelectedSessionedObject());
 					try
 					{

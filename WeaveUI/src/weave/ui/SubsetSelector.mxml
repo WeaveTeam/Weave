@@ -22,7 +22,7 @@
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 					 title="Saved Subsets"
 					 width="25%" height="10%"
-					 layout="vertical" xmlns:tools="weave.visualization.tools.*">
+					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.ui.editors.*">
 	
 	<mx:Canvas width="100%" height="100%">
 		
@@ -155,4 +155,7 @@
 			
 		]]>
 	</mx:Script>
+	<ControlPanel>
+		<editors:WindowSettingsEditor target="{this}"/>
+	</ControlPanel>
 </DraggablePanel>

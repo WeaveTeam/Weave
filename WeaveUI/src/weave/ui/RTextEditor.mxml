@@ -178,7 +178,7 @@ RTextEditor
 				super.constructor();				
 				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
-					variables.copyObject(null, columns[i]);
+					variables.requestObjectCopy(null, columns[i]);
 			}
 			
 			override protected function childrenCreated():void

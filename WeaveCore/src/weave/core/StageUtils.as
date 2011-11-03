@@ -30,13 +30,9 @@ package weave.core
 	import flash.utils.getTimer;
 	
 	import mx.core.Application;
-	import mx.core.UIComponent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableObject;
-	import weave.core.CallbackCollection;
-	import weave.core.SessionManager;
 	
 	/**
 	 * This is an all-static class that allows you to add callbacks that will be called when an event occurs on the stage.

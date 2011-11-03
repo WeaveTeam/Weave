@@ -30,12 +30,14 @@ package weave.visualization.plotters
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	
 	/**
@@ -50,7 +52,7 @@ package weave.visualization.plotters
 			super(CircleGlyphPlotter);
 			//circlePlotter.fillStyle.lock();
 			setKeySource(_keySet);
-			getCallbackCollection(this).addImmediateCallback(this, updateKeys);						
+			getCallbackCollection(this).addImmediateCallback(this, updateKeys);
 			for each (var spatialProperty:ILinkableObject in [xColumn, yColumn, zoomToSubset])
 				registerSpatialProperty(spatialProperty);
 			for each (var child:ILinkableObject in [colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy])
@@ -69,9 +71,11 @@ package weave.visualization.plotters
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			// sort by size, then color
-			recordKeys.sort(sortKeys, Array.DESCENDING);
-			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
+			if (sortKeys == null)
+				sortKeys = ColumnUtils.generateSortFunction([radiusColumn, colorColumn, xColumn, yColumn], [true, false, false, false]);
+			recordKeys.sort(sortKeys);
+			
+			super.drawPlot(recordKeys, dataBounds, screenBounds, destination);
 		}
 		
 		/**
@@ -79,32 +83,13 @@ package weave.visualization.plotters
 		 * @param key1 First record key (a)
 		 * @param key2 Second record key (b)
 		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
-		 * 
 		 */			
-		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			// compare size
-			var a:Number = radiusColumn.getValueFromKey(key1, Number);
-			var b:Number = radiusColumn.getValueFromKey(key2, Number);
-			// sort descending (high radius values and missing radius values drawn first)
-			if(isNaN(a)) return -1;
-			if(isNaN(b)) return 1;
-			if( a < b )
-				return -1;
-			else if( a > b )
-				return 1;
-			
-			// size equal.. compare color
-			a = colorColumn.getValueFromKey(key1, Number);
-			b = colorColumn.getValueFromKey(key2, Number);
-			// sort ascending (high values drawn last)
-			if( a < b ) return 1; 
-			else if( a > b ) return -1 ;
-			else return 0 ;
-		}
+		private var sortKeys:Function = null;
+		
 		// the private plotter being simplified
-		public function get defaultScreenRadius():LinkableNumber {return circlePlotter.defaultScreenRadius;}
 		public function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
+		
+		public function get defaultScreenRadius():LinkableNumber {return circlePlotter.defaultScreenRadius;}
 		public function get enabledSizeBy():LinkableBoolean {return circlePlotter.enabledSizeBy; }
 		public function get minScreenRadius():LinkableNumber { return circlePlotter.minScreenRadius; }
 		public function get maxScreenRadius():LinkableNumber { return circlePlotter.maxScreenRadius; }

@@ -131,7 +131,7 @@ package weave.visualization.layers
 		public function linkToAxisProperties(axisLayer:AxisLayer):void
 		{
 			if (layers.getName(axisLayer) == null)
-				throw new Error("linkToAxisPlotterProperties(): given axisLayer is not owned by this visualization's layers property.");
+				throw new Error("linkToAxisProperties(): given axisLayer is not one of this visualization's layers");
 			var p:SimpleAxisPlotter = axisLayer.axisPlotter;
 			var list:Array = [
 				[axisFontFamily,     p.axisFontFamily],
@@ -161,10 +161,15 @@ package weave.visualization.layers
 		}
 
 		
-		public function set xAxisEnabled(value:Boolean):void
+		public function get showAxes():Boolean
+		{
+			return _xAxisLayer != null;
+		}
+		public function set showAxes(value:Boolean):void
 		{
 			if (value && !_xAxisLayer)
 			{
+				// x
 				_xAxisLayer = layers.requestObject(X_AXIS_LAYER_NAME, AxisLayer, true);
 				_xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
 				_xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
@@ -174,12 +179,8 @@ package weave.visualization.layers
 				
 				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
 				updateZoom();
-			}
-		}
-		public function set yAxisEnabled(value:Boolean):void
-		{
-			if (value && !_yAxisLayer)
-			{
+				
+				// y
 				_yAxisLayer = layers.requestObject(Y_AXIS_LAYER_NAME, AxisLayer, true);
 				_yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				_yAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;

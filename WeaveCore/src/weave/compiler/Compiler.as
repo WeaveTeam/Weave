@@ -75,7 +75,7 @@ package weave.compiler
 		 * Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
 		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
-		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
+		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
@@ -337,6 +337,8 @@ package weave.compiler
 		private function getTokens(expression:String):Array
 		{
 			var tokens:Array = [];
+			if (!expression)
+				return tokens;
 			var n:int = expression.length;
 			// get a flat list of tokens
 			var i:int = 0;
@@ -1113,7 +1115,7 @@ package weave.compiler
 		/**
 		 * This function is for internal use only.
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
-		 * @param symbolTable This is either a function that returns a variable by name or a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
+		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
 		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
@@ -1161,7 +1163,7 @@ package weave.compiler
 			// set up Array of symbol tables in the correct scope order: local, params, function, this, global
 			const allSymbolTables:Array = [
 				localSymbolTable,
-				(symbolTable is Function ? null : symbolTable),
+				symbolTable,
 				builtInSymbolTable,
 				null/*this*/,
 				constants
@@ -1258,18 +1260,11 @@ package weave.compiler
 						{
 							// call.compiledMethod is a constant and call.evaluatedMethod is the method name
 							symbolName = call.evaluatedMethod as String;
-							if (symbolTable is Function)
-							{
-								result = symbolTable(symbolName);
-							}
-							else
-							{
-								// find the variable
-								for (i = 0; i < allSymbolTables.length - 1; i++) // don't bother checking the last one
-									if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
-										break;
-								result = allSymbolTables[i][symbolName];
-							}
+							// find the variable
+							for (i = 0; i < allSymbolTables.length - 1; i++) // don't bother checking the last one
+								if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
+									break;
+							result = allSymbolTables[i][symbolName];
 						}
 					}
 					catch (e:Error)

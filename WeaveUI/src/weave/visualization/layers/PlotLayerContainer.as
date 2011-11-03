@@ -21,12 +21,15 @@ package weave.visualization.layers
 {
 	import flash.events.Event;
 	import flash.geom.Point;
+	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
@@ -34,6 +37,7 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -45,6 +49,7 @@ package weave.visualization.layers
 	import weave.primitives.ZoomBounds;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
+	import weave.visualization.plotters.DynamicPlotter;
 
 	/**
 	 * This is a container for a list of PlotLayers
@@ -280,6 +285,37 @@ package weave.visualization.layers
 				updateZoom();
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
+		}
+		
+		public function getKeysOverlappingGeometry(simpleGeometries:Array):Array
+		{
+			var container:PlotLayerContainer = owner as PlotLayerContainer;
+			var key:IQualifiedKey;
+			var keys:Dictionary = new Dictionary();
+			var _layers:Array = layers.getObjects();
+			var simpleGeometry:ISimpleGeometry;
+			var layer:IPlotLayer;
+			
+			// Go through the layers and make a query for each layer
+			for each (layer in _layers)
+			{
+				var spatialIndex:SpatialIndex = layer.spatialIndex as SpatialIndex; 
+				for each (simpleGeometry in simpleGeometries)
+				{
+					var queriedKeys:Array = spatialIndex.getKeysGeometryOverlapGeometry(simpleGeometry);
+					// use the dictionary to handle duplicates
+					for each (key in queriedKeys)
+					{
+						keys[key] = true;
+					}
+				}
+			}
+			
+			var result:Array = [];
+			for (var keyObj:* in keys)
+				result.push(keyObj as IQualifiedKey);
+			
+			return result;
 		}
 		
 		// these variables are used to detect a change in size

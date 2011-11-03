@@ -163,9 +163,15 @@ package weave.compiler
 			
 			var precision:Number = asNumber(formatterOrPrecision);
 			if (isFinite(precision))
+			{
 				_defaultNumberFormatter.precision = uint(precision);
+			}
 			else
+			{
+				if (Math.abs(number) < 1)
+					return String(number); // this fixes the bug where "0.1" gets converted to ".1" (we don't want the "0" to be lost)
 				_defaultNumberFormatter.precision = -1;
+			}
 			
 			return _defaultNumberFormatter.format(number);
 		}
@@ -424,6 +430,29 @@ package weave.compiler
 			for each (var value:Number in args)
 				sum += value;
 			return sum;
+		}
+		
+		/**
+		 * This function compares each of the elements in two arrays in order.
+		 * @param a The first Array for comparison
+		 * @param b The second Array for comparison
+		 * @return The first nonzero compare value, or zero if the arrays are equal.
+		 */
+		public static function arrayCompare(a:Array, b:Array):int
+		{
+			var an:int = a.length;
+			var bn:int = b.length;
+			if (an < bn)
+				return -1;
+			if (an > bn)
+				return 1;
+			for (var i:int = 0; i < an; i++)
+			{
+				var result:int = ObjectUtil.compare(a[i], b[i]);
+				if (result != 0)
+					return result;
+			}
+			return 0;
 		}
 	}
 }

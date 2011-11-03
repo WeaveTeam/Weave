@@ -55,7 +55,8 @@
 				super.constructor();
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(ThermometerPlotter) as ThermometerPlotter;
-				yAxisEnabled = true;
+				showAxes = true;
+				visualization.getXAxisLayer().layerIsVisible.value = false;
 				
 				// by default this tool only displays the probed records.
 				plotLayer.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
@@ -132,9 +133,8 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<ui:DynamicColumnComponent visTool="{this}" label="Meter column:" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="Meter column:" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
 				<tools:MeterToolInputSelector/>
-				<settings:GridLineSettings tool="{this}"/>
 				
 			</mx:Panel>
 	</ui:ControlPanel>

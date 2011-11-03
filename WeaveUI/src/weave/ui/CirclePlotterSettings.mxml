@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+@author skolman
+-->
 <ui:ControlPanel xmlns="weave.ui.annotation.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				 xmlns:ui="weave.ui.*"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
@@ -6,27 +29,17 @@
 				 title="Circle Settings"
 				 width="40%"
 				 height="40%"
-				 
 				 >
 	
-	<mx:VBox id="circlePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="Marker Settings">
-		<mx:HBox>
-			<mx:Label width="90" fontWeight="bold" text="Enter Radius:"/>
-			<mx:TextInput id="radiusText" borderStyle="solid" cornerRadius="5" width="50"/>
-			<mx:Label width="80" text="Thicknesss: " fontWeight="bold" />
-			<mx:TextInput id="thicknessText" borderStyle="solid" cornerRadius="5" width="50"/>
-			<mx:Label width="50" text="Color: " fontWeight="bold" />
-			<mx:ColorPicker id="colorPicker" />
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label width="90" fontWeight="bold" text="X Coordinate: "/>
-			<mx:TextInput id="dataXText" borderStyle="solid" cornerRadius="5" width="100"/>
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label width="90" fontWeight="bold" text="Y Coordinate: "/>
-			<mx:TextInput id="dataYText" borderStyle="solid" cornerRadius="5"  width="100"/>
-		</mx:HBox>
-		
+	<mx:VBox id="circlePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
+		<ui:TextBox indent="100" label="X coordinate:" id="dataXText"/>
+		<ui:TextBox indent="100" label="Y coordinate:" id="dataYText"/>
+		<ui:TextBox indent="100" label="Radius:" id="radiusText"/>
+		<mx:Spacer/>
+		<ui:TextBox indent="100" label="Thickness:" id="thicknessText"/>
+		<ui:Indent indent="100" label="Color:">
+			<mx:ColorPicker id="colorPicker"/>
+		</ui:Indent>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
@@ -63,7 +76,6 @@
 				if(!destination.hasOwnProperty("contextMenu") )
 					return false;
 				
-				
 				// Add a listener to this destination context menu for when it is opened
 				var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
@@ -76,7 +88,7 @@
 			
 			private static function handleAddCircle(e:ContextMenuEvent):void
 			{
-				if(panel)
+				if (panel)
 				{
 					var name:String = (panel as MapTool).visualization.layers.generateUniqueName("circle");
 					var plotLayer:SelectablePlotLayer = (panel as MapTool).visualization.layers.requestObject(name,SelectablePlotLayer,false);
@@ -127,21 +139,21 @@
 			
 			public static function openInstance(plotter:CirclePlotter,circleName:String):void
 			{
-				var settingsPanel:CirclePlotterSettings = PopUpManager.createPopUp(Application.application as Application,CirclePlotterSettings) as CirclePlotterSettings;
+				var settingsPanel:CirclePlotterSettings = PopUpManager.createPopUp(Application.application as Application, CirclePlotterSettings) as CirclePlotterSettings;
 				PopUpManager.centerPopUp(settingsPanel);
 				
 				settingsPanel.plotter = plotter;
-				settingsPanel.targets = [plotter.radius,plotter.dataX,plotter.dataY,plotter.color,plotter.thickness];
+				settingsPanel.targets = [plotter.radius, plotter.dataX, plotter.dataY, plotter.color, plotter.thickness];
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 				
 				settingsPanel.title = "Edit " + circleName;
 				
-				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText,"text");
-				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText,"text");
-				linkBindableProperty(settingsPanel.plotter.radius, settingsPanel.radiusText,"text");
-				linkBindableProperty(settingsPanel.plotter.color,settingsPanel.colorPicker,"selectedColor");
-				linkBindableProperty(settingsPanel.plotter.thickness,settingsPanel.thicknessText,"text");
+				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText, "text");
+				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText, "text");
+				linkBindableProperty(settingsPanel.plotter.radius, settingsPanel.radiusText, "text");
+				linkBindableProperty(settingsPanel.plotter.color, settingsPanel.colorPicker, "selectedColor");
+				linkBindableProperty(settingsPanel.plotter.thickness,settingsPanel.thicknessText, "text");
 			}
 			
 			

@@ -102,7 +102,6 @@
 		<mx:Component>
 			<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 					 horizontalScrollPolicy="off"
-					 initialize="fillEnableCheck()"
 					 width="100%" 
 					 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
 					 borderStyle="solid" borderThickness="1"
@@ -302,7 +301,7 @@
 							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
-								<mx:TextInput id="imageURL" initialize="EventUtils.addDelayedCallback(imageURL, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 							</mx:VBox>
 						</mx:HBox>
 					</mx:VBox>
@@ -353,11 +352,6 @@
 						use namespace weave_internal;
 						
 						private function get editor():PlotLayerEditor { return outerDocument; }
-						
-						private function fillEnableCheck():void
-						{
-							
-						}
 						
 						private function handleStyleInputChange():void
 						{
@@ -410,11 +404,11 @@
 						private function handleLinkButtonCreated():void 
 						{
 							var plotter:IPlotter = getPlotter(data as IPlotLayer);
-							if(plotter is GeometryLabelPlotter)
+							if (plotter is GeometryLabelPlotter)
 								layerName.toolTip = "Click here to set the label attribute" ;
-							if(plotter is GeometryPlotter)
+							if (plotter is GeometryPlotter)
 								layerName.toolTip = "Click here to set the geometry" ;
-							if(plotter is WMSPlotter)
+							if (plotter is WMSPlotter)
 								layerName.toolTip = "Click here to set the WMS service" ;
 						}
 						
@@ -500,11 +494,12 @@
 								linkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
 								linkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
 								linkBindableProperty(wmsPlotter.serviceName,wmsLayerService,"selectedItem");
-							}else if(plotter is SingleImagePlotter)
+							}
+							else if (plotter is SingleImagePlotter)
 							{
 								settingsButton.visible = true;
 							}
-							else if(plotter is CirclePlotter)
+							else if (plotter is CirclePlotter)
 							{
 								settingsButton.visible = true;
 							}

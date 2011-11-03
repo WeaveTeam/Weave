@@ -30,6 +30,9 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.core.weave_internal;
+	
+	use namespace weave_internal;
 	
 	/**
 	 * This contains an ordered list of name-to-object mappings.
@@ -184,12 +187,12 @@ package weave.core
 		}
 		
 		/**
-		 * This function will copy the session state of an ILinkableObject to an object under the given name in this LinkableHashMap.
+		 * This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.
 		 * @param newName A name for the object to be initialized in this LinkableHashMap.
 		 * @param objectToCopy An object to copy the session state from.
-		 * @return The new copy of the specified object, or null if an error occurred.
+		 * @return The new object of the same type, or null if an error occurred.
 		 */
-		public function copyObject(name:String, objectToCopy:ILinkableObject):ILinkableObject
+		public function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject
 		{
 			if (objectToCopy == null)
 				return null;

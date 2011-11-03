@@ -103,12 +103,13 @@
 				{
 					sourceEditor.removeAllChildren();
 					editor = null;
-					if (sourceList.selectedItem is IDataSource)
+					var dataSource:IDataSource = sourceList.selectedItem as IDataSource;
+					if (dataSource)
 					{
-						var editorClass:Class = EditorManager.getEditorClass(sourceList.selectedItem);
+						var editorClass:Class = EditorManager.getEditorClass(dataSource);
 						editor = new editorClass();
 						sourceEditor.addChild(editor as DisplayObject);
-						editor.targetObject = (sourceList.selectedItem as IDataSource);
+						editor.setTarget(dataSource);
 					}
 				}
 				private function addSource():void
