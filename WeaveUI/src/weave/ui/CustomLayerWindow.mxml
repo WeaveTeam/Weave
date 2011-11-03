@@ -32,6 +32,7 @@
 				layout="vertical">
 	<mx:Script>
 		<![CDATA[
+			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.AxisLabelPlotter;
 		]]>
 	</mx:Script>
@@ -42,8 +43,8 @@
 		
 		<mx:List id="layerSelector" width="100%" height="100%" minWidth="250">
 			<!--<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>-->
-			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
+			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
 		</mx:List>
 	
 		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
@@ -68,12 +69,11 @@
 			import weave.visualization.tools.SimpleVisTool;
 			
 			{
+				//EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
 				EditorManager.registerEditor(GridLinePlotter, GridLineLayerControls);
-				EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
 				EditorManager.registerEditor(AxisLabelPlotter, AxisLabelLayerControls);
 			}
 
-			[Bindable]
 			private var _tool:SimpleVisTool = null;
 			
 			override protected function constructor():void
@@ -120,7 +120,7 @@
 				}
 				else
 				{
-					controls.revert();
+					controls.removePanel();
 				}
 				
 				removePanel();

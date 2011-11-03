@@ -221,7 +221,6 @@
 				simpleAxisEditor.initialize();
 				simpleAxisEditor.addChild(backgroundImageCheck);
 				simpleAxisEditor.marginProperties.parent.removeChild(simpleAxisEditor.marginProperties);
-				simpleAxisEditor.labelAngles.parent.removeChild(simpleAxisEditor.labelAngles);
 				
 				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
 				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");

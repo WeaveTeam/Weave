@@ -41,7 +41,7 @@
 		<mx:Button label="Reset" click="_tool.panelBackgroundColor.value = NaN;"/>
 	</mx:HBox>
 	<mx:HBox width="100%" id="marginProperties" verticalAlign="middle">
-		<mx:Label  text="Axis margins:"/>
+		<mx:Label  text="Margins:"/>
 		
 		<mx:NumericStepper id="marginLeft" toolTip="Enter a number of pixels to use for the left margin"
 						   minimum="0" maximum="200" stepSize="5"
@@ -58,19 +58,9 @@
 						   minimum="0" maximum="200" stepSize="5"
 						   creationComplete="linkBindableProperty(_tool.visualization.marginRight, event.target, 'value');"/>
 	</mx:HBox>
-	<mx:HBox width="100%" id="labelAngles" verticalAlign="middle">
-		<mx:Label text="X Axis Angle:"/>
-		<mx:NumericStepper id="xLabelAngle"
-						   minimum="0" maximum="360" stepSize="5"
-						   creationComplete="xLabelAngle_creationCompleteHandler(event)"/>
-		<mx:Label text="Y Axis Angle:"/>
-		<mx:NumericStepper id="yLabelAngle"
-						   minimum="0" maximum="360" stepSize="5"
-						   creationComplete="yLabelAngle_creationCompleteHandler(event)"/>
-	</mx:HBox>
-	<mx:VBox id="gridSettings" verticalGap="{verticalGap}">
+	<mx:VBox id="axisSettings" verticalGap="{verticalGap}">
 		<mx:HBox width="100%" verticalAlign="middle">
-			<mx:Label text="Grid line color:" />
+			<mx:Label text="Grid color:" />
 			<mx:ColorPicker id="gridColorPicker" toolTip="Select a color for the grid lines of this visualization"
 							creationComplete="linkBindableProperty(_tool.visualization.gridLineColor, event.target, 'selectedColor');"/>
 			
@@ -88,13 +78,21 @@
 						liveDragging="true"
 						creationComplete="linkBindableProperty(_tool.visualization.gridLineAlpha, event.target, 'value');"/>
 		</mx:HBox>
-		<mx:VBox horizontalAlign="right">
-			<ui:TextBox label="Y axis name:" id="yAxisName"/>
-			<ui:TextBox label="Y axis label function:" id="yAxisLabelFunction"/>
+		<mx:VBox>
+			<ui:TextBox label="Y axis title:" id="yAxisTitle" indent="{yAxisLabelFunction.labelComponent.width}"/>
+			<mx:HBox verticalAlign="middle">
+				<ui:TextBox label="Y axis label function:" id="yAxisLabelFunction"/>
+				<mx:Label text="Angle:"/>
+				<mx:NumericStepper id="yLabelAngle" minimum="-180" maximum="180" stepSize="15"/>
+			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox horizontalAlign="right">
-			<ui:TextBox label="X axis name:" id="xAxisName"/>
-			<ui:TextBox label="X axis label function:" id="xAxisLabelFunction"/>
+		<mx:VBox>
+			<ui:TextBox label="X axis title:" id="xAxisTitle" indent="{xAxisLabelFunction.labelComponent.width}"/>
+			<mx:HBox verticalAlign="middle">
+				<ui:TextBox label="X axis label function:" id="xAxisLabelFunction"/>
+				<mx:Label text="Angle:"/>
+				<mx:NumericStepper id="xLabelAngle" minimum="-180" maximum="180" stepSize="15"/>
+			</mx:HBox>
 		</mx:VBox>
 	</mx:VBox>
 
@@ -126,19 +124,22 @@
 			{
 				super.childrenCreated();
 				
-				if (!_tool.xAxisEnabled && !_tool.yAxisEnabled)
-					gridSettings.parent.removeChild(gridSettings);
 				_tool.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
 				_tool.addEventListener(FlexEvent.UPDATE_COMPLETE, function(..._):void { backgroundColorCallback(); });
-				if (_tool.visualization.xAxisEnabled)
+				
+				if (_tool.xAxisEnabled || _tool.yAxisEnabled)
 				{
-					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.overrideAxisName, xAxisName, 'text');
+					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.overrideAxisName, xAxisTitle, 'text');
 					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.labelFunction, xAxisLabelFunction, 'text');
-				}
-				if (_tool.visualization.yAxisEnabled)
-				{
-					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.overrideAxisName, yAxisName, 'text');
+					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.axisLabelRelativeAngle, xLabelAngle, 'value');
+					
+					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.overrideAxisName, yAxisTitle, 'text');
 					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.labelFunction, yAxisLabelFunction, 'text');
+					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.axisLabelRelativeAngle, yLabelAngle, 'value');
+				}
+				else
+				{
+					axisSettings.parent.removeChild(axisSettings);
 				}
 			}
 			
@@ -153,20 +154,6 @@
 			private function alphaSliderFormatFunction(value:Number):String
 			{
 				return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
-			}
-			
-			protected function xLabelAngle_creationCompleteHandler(event:FlexEvent):void
-			{
-				if( _tool.visualization.getXAxisLayer() )
-					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.axisLabelRelativeAngle, event.target, 'value');
-				
-			}
-			
-			protected function yLabelAngle_creationCompleteHandler(event:FlexEvent):void
-			{
-				if( _tool.visualization.getYAxisLayer() )
-					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.axisLabelRelativeAngle, event.target, 'value');
-				
 			}
 		]]>
 	</mx:Script>

@@ -81,7 +81,7 @@ package weave.visualization.plotters
 		public const yScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
 		
-		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string',false,false, ['number', 'string']));
+		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));
 
 		/**
 		 * Draws the graphics onto BitmapData.
@@ -118,59 +118,49 @@ package weave.visualization.plotters
 			f.italic = italic.value;
 			f.underline = underline.value;
 			
-			dataBounds.projectPointTo(tempPoint, screenBounds);			
-			if (!horizontal.value)
+			dataBounds.projectPointTo(tempPoint, screenBounds);
+			
+			// if there will be more grid lines than pixels, don't bother drawing anything
+			if (numLines > (horizontal.value ? screenBounds.getXCoverage() : screenBounds.getYCoverage()))
+				return;
+			
+			for (i = 0; i <= numLines; i++)
 			{
-				// if there will be more grid lines than pixels, don't bother drawing anything
-				if (numLines > screenBounds.getYCoverage())
-					return;
-				
-				for (i = 0; i <= numLines; i++)
+				bitmapText.text = array[i].toString();
+				try
 				{
-					tempPoint.x = dataBounds.getXMin();
-					tempPoint.y = _start + _interval * i;
-					
-					bitmapText.text = array[i].toString();
-					if(labelFunction.value)
+					if (labelFunction.value)
 						bitmapText.text = labelFunction.apply(null, [array[i], bitmapText.text]);
-					
-					dataBounds.projectPointTo(tempPoint, screenBounds);
-					bitmapText.x = tempPoint.x;
-					bitmapText.y = tempPoint.y;
-										
-					bitmapText.draw(destination);
 				}
-			}
-			else
-			{										
-				// if there will be more grid lines than pixels, don't bother drawing anything
-				if (numLines > screenBounds.getXCoverage())
-					return;
-				for (i = 0; i <= numLines; i++)
+				catch (e:Error)
+				{
+					continue;
+				}
+				
+				if (horizontal.value)
 				{
 					tempPoint.x = _start + _interval * i;
 					tempPoint.y = dataBounds.getYMin();
-					bitmapText.text = array[i].toString();
-					if(labelFunction.value)
-						bitmapText.text = labelFunction.apply(null, [array[i], bitmapText.text]);
-					
-					dataBounds.projectPointTo(tempPoint, screenBounds);
-					bitmapText.x = tempPoint.x;
-					bitmapText.y = tempPoint.y;
-					
-					bitmapText.draw(destination);
 				}
+				else
+				{
+					tempPoint.x = dataBounds.getXMin();
+					tempPoint.y = _start + _interval * i;
+				}
+				dataBounds.projectPointTo(tempPoint, screenBounds);
+				bitmapText.x = tempPoint.x;
+				bitmapText.y = tempPoint.y;
+									
+				bitmapText.draw(destination);
 			}
 			
-			
-				if (bitmapText.angle == 0)
-				{
-					// draw almost-invisible rectangle behind text
-					bitmapText.getUnrotatedBounds(tempBounds);
-					tempBounds.getRectangle(tempRectangle);
-					destination.fillRect(tempRectangle, 0x02808080);
-				}
-				
+			if (bitmapText.angle == 0)
+			{
+				// draw almost-invisible rectangle behind text
+				bitmapText.getUnrotatedBounds(tempBounds);
+				tempBounds.getRectangle(tempRectangle);
+				destination.fillRect(tempRectangle, 0x02808080);
+			}
 		}
 		
 		override public function getBackgroundDataBounds():IBounds2D

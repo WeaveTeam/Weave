@@ -277,12 +277,12 @@ package weave.visualization.plotters
 				graphics.clear();
 				graphics.lineStyle(axisGridLineThickness.value, axisGridLineColor.value, axisGridLineAlpha.value, false, LineScaleMode.NORMAL, CapsStyle.NONE);
 				
-				if ( key == MIN_LABEL_KEY || key == MAX_LABEL_KEY )
+				if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY)
 				{
 					graphics.moveTo(xTick - xTickOffset*2, yTick - yTickOffset*2);
 					graphics.lineTo(xTick + xTickOffset*2, yTick + yTickOffset*2);
 				}
-				else if( axisAngle != 0 ) 
+				else if (axisAngle != 0)
 				{
 					graphics.moveTo(xTick-axesThickness.value, yTick);
 					graphics.lineTo(xTick, yTick);
@@ -290,7 +290,7 @@ package weave.visualization.plotters
 					graphics.lineTo(screenBounds.getXMax(), yTick);
 					
 				}
-				else if( axisAngle == 0 )
+				else if (axisAngle == 0)
 				{
 					var offset:Number = 1 ;
 					graphics.moveTo(xTick, yTick + offset);
@@ -302,7 +302,7 @@ package weave.visualization.plotters
 				destination.draw(tempShape);
 				
 				// draw tick mark label
-				if(showLabels.value)
+				if (showLabels.value)
 				{
 					_bitmapText.text = null;
 					// attempt to use label function
@@ -332,7 +332,7 @@ package weave.visualization.plotters
 					}
 					catch (e:Error)
 					{
-						
+						_bitmapText.text = '';
 					}
 					
 					_bitmapText.x = xTick + xLabelOffset;
