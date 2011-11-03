@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="CompoundBarChartPlotter,weave.visualization.plotters.CompoundBarChartPlotter,GROUP,PERCENT_STACK,STACK,barSpacing,chartColors,groupBySortColumn,groupingMode,heightColumns,horizontalMode,labelBarHeightPercentage,labelColumn,lineStyle,negativeError,positiveError,showValueLabels,valueLabelColor,zoomToSubset,colorColumn,maxTickMarks,sortColumn,drawPlot,getActualGroupingMode,getBackgroundDataBounds,getDataBoundsFromRecordKey,sortAxisLabelFunction" name="keywords">
+<meta content="CompoundBarChartPlotter,weave.visualization.plotters.CompoundBarChartPlotter,GROUP,PERCENT_STACK,STACK,barSpacing,chartColors,groupBySortColumn,groupingMode,heightColumns,horizontalMode,labelAngle,labelColor,labelColumn,labelDataCoordinate,labelHorizontalAlign,labelVerticalAlign,lineStyle,negativeError,positiveError,showLabels,showValueLabels,valueLabelAngle,valueLabelColor,valueLabelDataCoordinate,valueLabelHorizontalAlign,valueLabelVerticalAlign,zoomToSubset,colorColumn,maxTickMarks,sortColumn,drawPlot,getActualGroupingMode,getBackgroundDataBounds,getDataBoundsFromRecordKey,sortAxisLabelFunction" name="keywords">
 <title>weave.visualization.plotters.CompoundBarChartPlotter</title>
 </head>
 <body>
@@ -293,12 +293,32 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelBarHeightPercentage">labelBarHeightPercentage</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelAngle">labelAngle</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelColor">labelColor</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelColumn">labelColumn</a> : <a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelDataCoordinate">labelDataCoordinate</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelHorizontalAlign">labelHorizontalAlign</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelVerticalAlign">labelVerticalAlign</a> : <a href="../../core/LinkableString.html">LinkableString</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
 </tr>
@@ -323,6 +343,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#showLabels">showLabels</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#showValueLabels">showValueLabels</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
@@ -332,7 +357,27 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#valueLabelAngle">valueLabelAngle</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#valueLabelColor">valueLabelColor</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#valueLabelDataCoordinate">valueLabelDataCoordinate</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#valueLabelHorizontalAlign">valueLabelHorizontalAlign</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#valueLabelVerticalAlign">valueLabelVerticalAlign</a> : <a href="../../core/LinkableString.html">LinkableString</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CompoundBarChartPlotter</td>
 </tr>
@@ -603,14 +648,23 @@ showHideInherited();
 <div class="detailBody">
 <code>public const horizontalMode:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
 </div>
-<a name="labelBarHeightPercentage"></a>
+<a name="labelAngle"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">labelBarHeightPercentage</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">labelAngle</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public const labelBarHeightPercentage:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+<code>public const labelAngle:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="labelColor"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">labelColor</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const labelColor:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
 </div>
 <a name="labelColumn"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -620,6 +674,33 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const labelColumn:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
+</div>
+<a name="labelDataCoordinate"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">labelDataCoordinate</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const labelDataCoordinate:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="labelHorizontalAlign"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">labelHorizontalAlign</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const labelHorizontalAlign:<a href="../../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="labelVerticalAlign"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">labelVerticalAlign</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const labelVerticalAlign:<a href="../../core/LinkableString.html">LinkableString</a></code>
 </div>
 <a name="lineStyle"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -658,6 +739,15 @@ showHideInherited();
 <div class="detailBody">
 <code>public const positiveError:<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
 </div>
+<a name="showLabels"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">showLabels</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const showLabels:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
 <a name="showValueLabels"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -676,6 +766,15 @@ showHideInherited();
 <div class="detailBody">
 <code>public static const STACK:String = "stack"</code>
 </div>
+<a name="valueLabelAngle"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">valueLabelAngle</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const valueLabelAngle:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
 <a name="valueLabelColor"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -684,6 +783,33 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const valueLabelColor:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="valueLabelDataCoordinate"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">valueLabelDataCoordinate</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const valueLabelDataCoordinate:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="valueLabelHorizontalAlign"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">valueLabelHorizontalAlign</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const valueLabelHorizontalAlign:<a href="../../core/LinkableString.html">LinkableString</a></code>
+</div>
+<a name="valueLabelVerticalAlign"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">valueLabelVerticalAlign</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const valueLabelVerticalAlign:<a href="../../core/LinkableString.html">LinkableString</a></code>
 </div>
 <a name="zoomToSubset"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
