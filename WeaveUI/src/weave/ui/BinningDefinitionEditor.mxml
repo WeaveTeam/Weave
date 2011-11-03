@@ -33,20 +33,11 @@ BinningDefinitionEditor
 		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
 	<!-- NOTE: setting the panel's width and height to NaN will force it to resize to the children... -->
 	
-	<mx:Style>
-		.group-hbox-style {
-			border-style: inset;
-			vertical-align: middle;
-			background-color: #FEFFC2;
-			padding-left: 3;
-		}
-	</mx:Style>
-	
 		<mx:Label text="Binning Type:"/>
 		<mx:RadioButtonGroup id="typeGroup"/>
 		
-		<mx:HBox id="simpleBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{simpleRadio.selected ? 1.0 : 0.0}">
-			<mx:RadioButton  id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="140"/>
+		<mx:HBox styleName="group-hbox-style" width="100%">
+			<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="200"/>
 			<mx:HBox enabled="{simpleRadio.selected}">
 				<mx:Label text="Number of Bins:" width="120"/>
 				<mx:NumericStepper minimum="2" maximum="20" stepSize="1" id="numOfBins"/>
@@ -59,15 +50,15 @@ BinningDefinitionEditor
 		
 		<mx:HRule width="100%"/>
 		
-		<mx:HBox id="ncBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{ncRadio.selected ? 1.0 : 0.0}">
-			<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="140"/>
+		<mx:HBox styleName="group-hbox-style" width="100%">
+			<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="200"/>
 			<ui:CustomSplitBinningEditor id="csEditor" enabled="{ncRadio.selected}"/>
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>
 		
-		<mx:HBox id="quantileBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{quantileRadio.selected ? 1.0 : 0.0}">
-			<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="140"/>
+		<mx:HBox styleName="group-hbox-style" width="100%">
+			<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="200"/>
 			<mx:HBox enabled="{quantileRadio.selected}">
 				<mx:Label text="Reference Quantile:" width="120"/>
 				<mx:TextInput id="refQuantile" width="40"/>	
@@ -77,8 +68,8 @@ BinningDefinitionEditor
 		
 		<mx:HRule width="100%"/>
 		
-		<mx:HBox id="equalIntervalBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{equalIntervalRadio.selected ? 1.0 : 0.0}">
-			<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="140"/>
+		<mx:HBox styleName="group-hbox-style" width="100%">
+			<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="200"/>
 			<mx:HBox enabled="{equalIntervalRadio.selected}">
 				<mx:Label text="Data Interval:" width="120"/>				 
 				<mx:TextInput id="dataInterval" width="40"/>				
@@ -88,13 +79,20 @@ BinningDefinitionEditor
 		
 		<mx:HRule width="100%"/>
 		
-		<mx:HBox id="sdBox" styleName="group-hbox-style" width="100%" backgroundAlpha="{sdRadio.selected ? 1.0 : 0.0}">	
-			<mx:RadioButton  id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="140"/>
+		<mx:HBox styleName="group-hbox-style" width="100%">	
+			<mx:RadioButton id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="200"/>
 			<mx:HBox enabled="{sdRadio.selected}">
 				<mx:Label text="SD Number:" width="120"/>				 
 				<mx:TextInput id="SD" width="40"/>
 				<ui:HelpComponent helpText="One bin will be created for each standard deviation above and below the mean value.  Specifying 'SD Number' as 3 will create 6 bins."/>
 			</mx:HBox>
+		</mx:HBox>
+	
+		<mx:HRule width="100%"/>
+		
+		<mx:HBox styleName="group-hbox-style" width="100%">	
+			<mx:RadioButton id="catRadio" label="All categories (string values)" groupName="typeGroup" width="200"/>
+			<ui:HelpComponent helpText="One bin will be created for each unique string value in the column."/>
 		</mx:HBox>
 	
 	<!--<mx:ControlBar>
@@ -117,6 +115,7 @@ BinningDefinitionEditor
 			import weave.core.LinkableNumber;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.BinnedColumn;
+			import weave.data.BinningDefinitions.CategoryBinningDefinition;
 			import weave.data.BinningDefinitions.CustomSplitBinningDefinition;
 			import weave.data.BinningDefinitions.DynamicBinningDefinition;
 			import weave.data.BinningDefinitions.EqualIntervalBinningDefinition;
@@ -127,17 +126,6 @@ BinningDefinitionEditor
 			import weave.utils.EventUtils;
 			
 			/**make UI to access this for things using a binned column**/
-			
-			[Bindable]
-			private var _binningTypes:Array = ["Simple", "Quantile", "Equal Interval", "Standard Deviation", "Custom Split"];
-			
-			private function handleInputEnter(event:FlexEvent):void
-			{
-			    event.preventDefault();
-			
-			    stage.focus = null;
-		    }
-
 			
 			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn); 
 			override protected function childrenCreated():void
@@ -201,6 +189,11 @@ BinningDefinitionEditor
 					typeGroup.selection = sdRadio;
 					SD.text = _sdBD.sdNumber.value.toString();
 				}
+				else if(def is CategoryBinningDefinition)
+				{
+					var _catBD:CategoryBinningDefinition = def as CategoryBinningDefinition;
+					typeGroup.selection = catRadio;
+				}
 				
 			
 			}
@@ -229,6 +222,9 @@ BinningDefinitionEditor
 					case sdRadio:
 						var _sdBD:StandardDeviationBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(StandardDeviationBinningDefinition, false);
 						_sdBD.sdNumber.value = Number(SD.text);
+						break;
+					case catRadio:
+						var _catBD:CategoryBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, false);
 						break;
 					
 				}
