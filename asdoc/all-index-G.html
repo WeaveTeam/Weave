@@ -824,6 +824,31 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <td width="20"></td><td></td>
 </tr>
 <tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/ui/class-list.html');" href="weave/api/ui/IPlotterWithGeometries.html#getBackgroundGeometries()">getBackgroundGeometries</a>() &mdash; Method in interface weave.api.ui.<a onclick="javascript:loadClassListFrame('weave/api/ui/class-list.html');" href="weave/api/ui/IPlotterWithGeometries.html">IPlotterWithGeometries</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function will get an array ISimpleGeometry objects.</td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html#getBackgroundGeometries()">getBackgroundGeometries</a>() &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html">CirclePlotter</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GeometryPlotter.html#getBackgroundGeometries()">getBackgroundGeometries</a>() &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/GeometryPlotter.html">GeometryPlotter</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/ParallelCoordinatesPlotter.html#getBackgroundGeometries()">getBackgroundGeometries</a>() &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/ParallelCoordinatesPlotter.html">ParallelCoordinatesPlotter</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
+</tr>
+<tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/BitmapUtils.html#getBase64Image()">getBase64Image</a>(component) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/BitmapUtils.html">BitmapUtils</a></td>
 </tr>
 <tr>
@@ -1677,8 +1702,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 </tr>
 <tr>
 <td width="20"></td><td>
-   This function provides a mapping from a record key to an Array of IGeometry objects
+   This function provides a mapping from a record key to an Array of ISimpleGeometry objects
    in data coordinates.</td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html#getGeometriesFromRecordKey()">getGeometriesFromRecordKey</a>(recordKey:<a href="weave/api/data/IQualifiedKey.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IQualifiedKey</a>, minImportance, bounds:<a href="weave/api/primitives/IBounds2D.html" onclick="javascript:loadClassListFrame('weave/api/primitives./class-list.html');">weave.api.primitives:IBounds2D</a>) &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html">CirclePlotter</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/DynamicPlotter.html#getGeometriesFromRecordKey()">getGeometriesFromRecordKey</a>(recordKey:<a href="weave/api/data/IQualifiedKey.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IQualifiedKey</a>) &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/DynamicPlotter.html">DynamicPlotter</a></td>
@@ -1931,6 +1962,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 <tr>
 <td width="20"></td><td>
    This function will get the keys whose geometries intersect with the given geometry.</td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/PlotLayerContainer.html#getKeysOverlappingGeometry()">getKeysOverlappingGeometry</a>(simpleGeometries) &mdash; Method in class weave.visualization.layers.<a onclick="javascript:loadClassListFrame('weave/visualization/layers/class-list.html');" href="weave/visualization/layers/PlotLayerContainer.html">PlotLayerContainer</a></td>
+</tr>
+<tr>
+<td width="20"></td><td></td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/ColumnUtils.html#getKeyType()">getKeyType</a>(column:<a href="weave/api/data/IAttributeColumn.html" onclick="javascript:loadClassListFrame('weave/api/data./class-list.html');">weave.api.data:IAttributeColumn</a>) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/ColumnUtils.html">ColumnUtils</a></td>
@@ -2520,6 +2557,21 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 </tr>
 <tr>
 <td width="20"></td><td></td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/ui/class-list.html');" href="weave/ui/PenTool.html#getOverlappingKeys()">getOverlappingKeys</a>() &mdash; Method in class weave.ui.<a onclick="javascript:loadClassListFrame('weave/ui/class-list.html');" href="weave/ui/PenTool.html">PenTool</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   Get all the keys which overlap the drawn polygons.</td>
+</tr>
+<tr>
+<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/tools/class-list.html');" href="weave/visualization/tools/SimpleVisTool.html#getOverlappingQKeys()">getOverlappingQKeys</a>(layerName) &mdash; Method in class weave.visualization.tools.<a onclick="javascript:loadClassListFrame('weave/visualization/tools/class-list.html');" href="weave/visualization/tools/SimpleVisTool.html">SimpleVisTool</a></td>
+</tr>
+<tr>
+<td width="20"></td><td>
+   This function will return an array of IQualifiedKey objects which overlap
+   the geometries of the layer specified by <code>layerName</code>.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/HierarchyUtils.html#getPathDepth()">getPathDepth</a>(pathInHierarchy) &mdash; Static method in class weave.utils.<a onclick="javascript:loadClassListFrame('weave/utils/class-list.html');" href="weave/utils/HierarchyUtils.html">HierarchyUtils</a></td>
@@ -3138,20 +3190,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("GÂ
 </tr>
 <tr>
 <td width="20"></td><td></td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/api/ui/class-list.html');" href="weave/api/ui/IPlotterWithGeometrySelection.html#getSelectableGeometries()">getSelectableGeometries</a>() &mdash; Method in interface weave.api.ui.<a onclick="javascript:loadClassListFrame('weave/api/ui/class-list.html');" href="weave/api/ui/IPlotterWithGeometrySelection.html">IPlotterWithGeometrySelection</a></td>
-</tr>
-<tr>
-<td width="20"></td><td>
-   This function will get a vector of ISimpleGeometry objects.</td>
-</tr>
-<tr>
-<td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html#getSelectableGeometries()">getSelectableGeometries</a>() &mdash; Method in class weave.visualization.plotters.<a onclick="javascript:loadClassListFrame('weave/visualization/plotters/class-list.html');" href="weave/visualization/plotters/CirclePlotter.html">CirclePlotter</a></td>
-</tr>
-<tr>
-<td width="20"></td><td>
-   This function will get a vector of ISimpleGeometry objects.</td>
 </tr>
 <tr>
 <td colspan="2" class="idxrow"><a onclick="javascript:loadClassListFrame('weave/ui/class-list.html');" href="weave/ui/SessionNavigator.html#getSelectedItemOfClassType()">getSelectedItemOfClassType</a>() &mdash; Method in class weave.ui.<a onclick="javascript:loadClassListFrame('weave/ui/class-list.html');" href="weave/ui/SessionNavigator.html">SessionNavigator</a></td>

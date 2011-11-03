@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="CirclePlotter,weave.visualization.plotters.CirclePlotter,color,dataX,dataY,polygonVertexCount,radius,thickness,drawBackground,getSelectableGeometries" name="keywords">
+<meta content="CirclePlotter,weave.visualization.plotters.CirclePlotter,color,dataX,dataY,polygonVertexCount,projectionSRS,radius,thickness,drawBackground,getBackgroundGeometries,getGeometriesFromRecordKey" name="keywords">
 <title>weave.visualization.plotters.CirclePlotter</title>
 </head>
 <body>
@@ -41,7 +41,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">CirclePlotter <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> <a href="AbstractPlotter.html">AbstractPlotter</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Implements</td><td><a href="../../api/ui/IPlotterWithGeometrySelection.html">IPlotterWithGeometrySelection</a></td>
+<td class="classHeaderTableLabel">Implements</td><td><a href="../../api/ui/IPlotterWithGeometries.html">IPlotterWithGeometries</a></td>
 </tr>
 </table>
 <p></p>
@@ -158,6 +158,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This function returns a Bounds2D object set to the data bounds associated with the background.</div>
 </td><td class="summaryTableOwnerCol"><a href="AbstractPlotter.html">AbstractPlotter</a></td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getBackgroundGeometries()">getBackgroundGeometries</a>():Array</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+</tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
@@ -169,9 +176,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getSelectableGeometries()">getSelectableGeometries</a>():Vector</div>
-<div class="summaryTableDescription">
-   This function will get a vector of ISimpleGeometry objects.</div>
+<a class="signatureLink" href="#getGeometriesFromRecordKey()">getGeometriesFromRecordKey</a>(recordKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, minImportance:Number = 0, bounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a> = null):Array</div>
+<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CirclePlotter</td>
 </tr>
 </table>
@@ -266,6 +272,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">CirclePlotter</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#projectionSRS">projectionSRS</a> : <a href="../../core/LinkableString.html">LinkableString</a>
+<div class="summaryTableDescription">
+   The projection of the map when this circle was created.</div>
+</td><td class="summaryTableOwnerCol">CirclePlotter</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#radius">radius</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
 <div class="summaryTableDescription">
    The radius of the circle.</div>
@@ -354,22 +366,52 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="getSelectableGeometries()"></a>
+<a name="getBackgroundGeometries()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">getSelectableGeometries</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">getBackgroundGeometries</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getSelectableGeometries():Vector</code><p>
-   This function will get a vector of ISimpleGeometry objects.
-   
-   </p><p></p>
+<code>public function getBackgroundGeometries():Array</code>
+<p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Vector</code> &mdash; An array of ISimpleGeometry objects which can be used for spatial querying. 
-   </td>
+<td width="20"></td><td><code>Array</code></td>
+</tr>
+</table>
+</div>
+<a name="getGeometriesFromRecordKey()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getGeometriesFromRecordKey</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getGeometriesFromRecordKey(recordKey:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, minImportance:Number = 0, bounds:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a> = null):Array</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">recordKey</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">minImportance</span>:Number</code> (default = <code>0</code>)<code></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">bounds</span>:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code> (default = <code>null</code>)<code></code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code></td>
 </tr>
 </table>
 </div>
@@ -415,8 +457,18 @@ showHideInherited();
 <code>public const polygonVertexCount:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
    The number of vertices to use inside the polygon when selecting records. This must be at
    least <code>3</code>. <br>
-   </p><p>The default value is <code>25</code>.</p>
+   </p><p>The default value is <code>&lt;code&gt;25&lt;/code&gt;</code>.</p>
 </div>
+<a name="projectionSRS"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">projectionSRS</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const projectionSRS:<a href="../../core/LinkableString.html">LinkableString</a></code><p>
+   The projection of the map when this circle was created. 
+   </p></div>
 <a name="radius"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>

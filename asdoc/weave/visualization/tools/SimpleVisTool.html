@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SimpleVisTool,weave.visualization.tools.SimpleVisTool,children,enableTitle,layerListComponent,simpleAxisEditor,visCanvas,windowSettingsEditor,plotLayer,showAxes,visualization,xAxisLayer,yAxisLayer,height,plotterClass,width,childrenCreated,constructor,createChildren,dispose,getDefaultColumnsOfMostCommonKeyType,getLinkableChildren,getSelectableAttributeNames,getSelectableAttributes,initColumnDefaults,initDefaultPlotter" name="keywords">
+<meta content="SimpleVisTool,weave.visualization.tools.SimpleVisTool,children,enableTitle,layerListComponent,simpleAxisEditor,visCanvas,windowSettingsEditor,plotLayer,showAxes,visualization,xAxisLayer,yAxisLayer,height,plotterClass,width,childrenCreated,constructor,createChildren,dispose,getDefaultColumnsOfMostCommonKeyType,getLinkableChildren,getOverlappingQKeys,getSelectableAttributeNames,getSelectableAttributes,initColumnDefaults,initDefaultPlotter,selectRecords" name="keywords">
 <title>weave.visualization.tools.SimpleVisTool</title>
 </head>
 <body>
@@ -244,6 +244,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#getOverlappingQKeys()">getOverlappingQKeys</a>(layerName:String):Array</div>
+<div class="summaryTableDescription">
+   This function will return an array of IQualifiedKey objects which overlap
+   the geometries of the layer specified by <code>layerName</code>.</div>
+</td><td class="summaryTableOwnerCol">SimpleVisTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#getSelectableAttributeNames()">getSelectableAttributeNames</a>():Array</div>
 <div class="summaryTableDescription">
    This function should be defined with override by subclasses.</div>
@@ -321,6 +330,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="../../ui/DraggablePanel.html#restorePanel()">restorePanel</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="../../ui/DraggablePanel.html">DraggablePanel</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#selectRecords()">selectRecords</a>(layerName:String):void</div>
+<div class="summaryTableDescription">
+   This function will set the defaultSelectionKeySet to contain the keys
+   which overlap the geometries specified by the layer called <code>layerName</code>.</div>
+</td><td class="summaryTableOwnerCol">SimpleVisTool</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -938,6 +956,32 @@ showHideInherited();
 </tr>
 </table>
 </div>
+<a name="getOverlappingQKeys()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getOverlappingQKeys</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getOverlappingQKeys(layerName:String):Array</code><p>
+   This function will return an array of IQualifiedKey objects which overlap
+   the geometries of the layer specified by <code>layerName</code>.
+   
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">layerName</span>:String</code> &mdash; The name of the layer with the geometries used for the query.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code></td>
+</tr>
+</table>
+</div>
 <a name="getSelectableAttributeNames()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -1015,6 +1059,25 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>*</code></td>
+</tr>
+</table>
+</div>
+<a name="selectRecords()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">selectRecords</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function selectRecords(layerName:String):void</code><p>
+   This function will set the defaultSelectionKeySet to contain the keys
+   which overlap the geometries specified by the layer called <code>layerName</code>.
+   
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">layerName</span>:String</code> &mdash; The name of the layer with the geometries used for the query.
+   </td>
 </tr>
 </table>
 </div>
