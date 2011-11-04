@@ -106,6 +106,7 @@ BinningDefinitionEditor
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IBinningDefinition;
 			import weave.api.getCallbackCollection;
@@ -134,18 +135,9 @@ BinningDefinitionEditor
 				
 				binnedColumn.addGroupedCallback(this,handleBinnedColumnChange,true);
 				
-				EventUtils.addDelayedCallback(numOfBins,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(csEditor.splitValues,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(refQuantile,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(dataInterval,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(SD,Event.CHANGE,saveSessionState);
-				EventUtils.addDelayedCallback(typeGroup,Event.CHANGE,saveSessionState);
-				
-				
-//				csEditor.splitMax.addEventListener(Event.CHANGE,saveSessionState);
-//				csEditor.splitMin.addEventListener(Event.CHANGE,saveSessionState);
-//				csEditor.binRange.addEventListener(Event.CHANGE,saveSessionState);
-				
+				var delayedCallback:Function = (WeaveAPI.SessionManager as SessionManager).generateDelayedCallback(saveSessionState, []);
+				for each (var obj:IEventDispatcher in [numOfBins, csEditor.splitValues, refQuantile, dataInterval, SD, typeGroup])
+					obj.addEventListener(Event.CHANGE, delayedCallback);
 			}
 			
 			
