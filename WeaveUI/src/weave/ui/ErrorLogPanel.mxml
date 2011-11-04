@@ -102,9 +102,16 @@
 				console.log.verticalScrollPosition = console.log.maxVerticalScrollPosition;
 			}
 			
-			public static const instance:ErrorLogPanel = new ErrorLogPanel();
+			private static var _instance:ErrorLogPanel;
+			public static function getInstance():ErrorLogPanel
+			{
+				if (!_instance)
+					_instance = new ErrorLogPanel();
+				return _instance;
+			}
 			public static function openErrorLog():void
 			{
+				var instance:ErrorLogPanel = getInstance();
 				if (!instance.parent)
 				{
 					instance.panelX.value = "0%";

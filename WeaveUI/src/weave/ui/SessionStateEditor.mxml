@@ -753,10 +753,17 @@ A text editor to change the Session State on the fly.
 					super.removePanel();
 			}
 			
-			private static const defaultEditor:SessionStateEditor = new SessionStateEditor();
+			private static var _instance:SessionStateEditor;
+			public static function getInstance():SessionStateEditor
+			{
+				if (!_instance)
+					_instance = new SessionStateEditor();
+				return _instance;
+			}
 			
 			public static function openDefaultEditor(rootObject:ILinkableObject = null):void
 			{
+				var defaultEditor:SessionStateEditor = getInstance();
 				if (!defaultEditor.parent)
 					PopUpManager.addPopUp(defaultEditor, Application.application as Application);
 				
