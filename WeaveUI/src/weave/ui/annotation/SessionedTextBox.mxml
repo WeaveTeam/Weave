@@ -218,15 +218,22 @@
 				var end:int = 0;
 				while (true)
 				{
+					// find a pair of { and } brackets
 					begin = _tempTextField.text.indexOf("{", end);
 					if (begin < 0)
 						break;
 					end = _tempTextField.text.indexOf("}", begin);
 					if (end < 0)
 						break;
+					
 					// make sure the text between begin & end only has a single format
 					var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
 					_tempTextField.setTextFormat(f, begin, end + 1);
+					
+//					// replace the text from { to }
+//					var script:String = _tempTextField.text.substring(begin + 1, end);
+//					htmlTextFunction.value = script;
+//					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
 				}
 				
 				htmlTextFunction.value = '`' + _tempTextField.htmlText.split('`').join('\\`') + '`';
