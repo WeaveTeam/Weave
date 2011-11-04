@@ -59,11 +59,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.KeySet;
 			import weave.utils.ColumnUtils;
 			
 			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
 			
-			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,handleHeaderColumnChange);
+			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,handleHeaderColumnChange,true);
+			
+			public const filterKeySet:KeySet = newLinkableChild(this,KeySet,handleHeaderColumnChange,true);
 			
 			override protected function childrenCreated():void
 			{
@@ -110,7 +113,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					var sortFn:Function = ColumnUtils.generateSortFunction([col]);
 					
-					var keys:Array = col.keys;
+					var keys:Array = [];
+					if(filterKeySet.keys.length != 0)
+						keys = filterKeySet.keys;
+					else
+						keys = col.keys;
+					
 					keys.sort(sortFn);
 					var columnsToAdd:Array = [];
 					table.columns = [];
@@ -141,6 +149,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 				}
 			}
+			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
