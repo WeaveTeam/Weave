@@ -22,6 +22,7 @@
 <!---	
 A text editor to change the Session State on the fly.
 @author skolman
+@author adufilie
 @author kmonico
 -->
 <ui:DraggablePanel
@@ -70,29 +71,17 @@ A text editor to change the Session State on the fly.
 				</mx:VBox>
 			</mx:HDividedBox>
 		</mx:VBox>
-		<mx:VBox width="100%" height="0" paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5" verticalScrollPolicy="off">
-			<mx:TextArea id="log" click="handleConsoleLogClick()" mouseDown="handleConsoleLogClick()" width="100%" height="100%" minHeight="0" editable="false"/>
-			<mx:TextInput id="console" width="100%" enter="runCommand()"/>
-		</mx:VBox>
+		<ui:Console context="{sessionNav.selectedItem.object}" height="0"/>
 	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
-			import com.as3xls.xls.formula.Functions;
-			
-			import flash.utils.describeType;
-			
 			import mx.collections.ArrayCollection;
 			import mx.containers.VBox;
 			import mx.controls.Alert;
-			import mx.controls.Label;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
-			import mx.core.mx_internal;
-			import mx.effects.Resize;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
-			import mx.events.FlexEvent;
-			import mx.events.ListEvent;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
@@ -104,29 +93,22 @@ A text editor to change the Session State on the fly.
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.core.ILinkableVariable;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
-			import weave.api.linkBindableProperty;
 			import weave.api.setSessionState;
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.core.DynamicState;
 			import weave.core.ExternalSessionStateInterface;
-			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
 			import weave.core.weave_internal;
-			import weave.ui.colormap.*;
-			import weave.utils.DebugUtils;
 			import weave.utils.EventUtils;
-			import weave.utils.NumberUtils;
 			import weave.utils.PopUpUtils;
-			import weave.utils.VectorUtils;
 			use namespace weave_internal;
 
 		    private var selectors:Array = null;
@@ -138,8 +120,6 @@ A text editor to change the Session State on the fly.
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
-				
-				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager);
 			}			
 			
 			override protected function childrenCreated():void
@@ -786,130 +766,6 @@ A text editor to change the Session State on the fly.
 				defaultEditor.sessionNav.rootObject = rootObject;
 				//defaultEditor.refresh();
 				defaultEditor.restorePanel();
-			}
-			
-			
-			
-			/////////////////////////////////////////////////////////////
-			// console
-			
-			private const compiler:Compiler = new Compiler();
-			private function getObject(target:Object):ILinkableObject
-			{
-				if (target is String)
-					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
-				if (target is Array)
-					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
-				return ILinkableObject(target);
-			}
-			private function consoleWatch(target:Object, debugString:String):void
-			{
-				var linkableTarget:ILinkableObject = getObject(target);
-				getCallbackCollection(linkableTarget).addImmediateCallback(null, consoleTraceEval, [linkableTarget, debugString]);
-			}
-			private function consoleUnwatch(target:Object):void
-			{
-				var linkableTarget:ILinkableObject = getObject(target);
-				getCallbackCollection(linkableTarget).removeCallback(consoleTraceEval);
-			}
-			private function consoleTraceEval(thisArg:Object, script:String):void
-			{
-				try
-				{
-					var script:String = '`' + script.split('`').join('\\`') + '`';
-					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
-					consoleTrace(result);
-				}
-				catch (e:Error)
-				{
-					consoleTrace(script, e);
-				}
-			}
-			private function consoleTrace(...args):void
-			{
-				log.text += '\r' + args.join('\r') + '\r';
-				log.validateNow();
-				log.verticalScrollPosition = log.maxVerticalScrollPosition;
-			}
-			private function consoleClear():void
-			{
-				log.text = '';
-			}
-			
-			private const symbolTable:Object = {
-				'javaScript': function(...args):*
-				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					try
-					{
-						ExternalInterface.marshallExceptions = true;
-						ExternalInterface.call.apply(this, args);
-					}
-					finally
-					{
-						ExternalInterface.marshallExceptions = prev;
-					}
-				},
-				'application': Application.application,
-				'print': ObjectUtil.toString as Function,
-				'getObject': getObject,
-				'clear': consoleClear,
-				'watch': consoleWatch,
-				'unwatch': consoleUnwatch,
-				'trace': consoleTrace
-			};
-			private function runCommand():void
-			{
-				var result:*;
-				var decompiled:String;
-				try
-				{
-					var obj:ICompiledObject = compiler.compileToObject(console.text);
-					//decompiled = compiler.decompileObject(obj);
-					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
-					result = func.apply(sessionNav.getSelectedSessionedObject());
-					try
-					{
-						if (typeof result == 'object' && !(result is DisplayObject))
-						{
-							result = ObjectUtil.toString(result);
-							var max:int = 1024;
-							var text:String = result;
-							if (text.length > max)
-								text = text.substr(0, max) + '...';
-							result = StringUtil.trim(text);
-						}
-						else
-							result = String(result);
-					}
-					catch (e:Error)
-					{
-						result = String(result)
-					}
-				}
-				catch (e:Error)
-				{
-					result = e;
-				}
-				
-				log.text += StringUtil.substitute('\r{0}\r{1}\r', console.text, result);
-				console.setSelection(0, int.MAX_VALUE);
-				log.validateNow();
-				log.verticalScrollPosition = log.maxVerticalScrollPosition;
-			}
-			private function handleConsoleLogClick():void
-			{
-				if (console.selectionBeginIndex == 0 && console.selectionEndIndex == console.text.length)
-				{
-					if (log.selectionBeginIndex == log.selectionEndIndex)
-					{
-						log.selectionBeginIndex = log.text.lastIndexOf('\r', log.selectionBeginIndex) + 1;
-						log.selectionEndIndex = log.text.indexOf('\r', log.selectionEndIndex);
-						log.validateNow();
-					}
-					console.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join('; ');
-					console.setSelection(0, int.MAX_VALUE);
-				}
 			}
 		]]>
 	</mx:Script>
