@@ -172,6 +172,18 @@ public class SQLUtils
 				stmt = conn.prepareStatement("SELECT 0;");
 			stmt.execute(); // this will throw an exception if the connection is invalid
 		}
+		catch (RuntimeException e) // This is important for catching unexpected errors.
+		{
+			/*
+				java.lang.NullPointerException
+				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2484)
+				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2460)
+				at com.mysql.jdbc.PreparedStatement.execute(PreparedStatement.java:1298)
+				at weave.utils.SQLUtils.testConnection(SQLUtils.java:173)
+				[...]
+			 */
+			throw new SQLException("Connection is invalid", e);
+		}
 		finally
 		{
 			cleanup(stmt);
@@ -195,7 +207,6 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-//			e.printStackTrace();
 			SQLUtils.cleanup(conn);
 		}
 		
@@ -1058,9 +1069,13 @@ public class SQLUtils
 			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(ORACLE))
 				return true;
 		}
-		catch (SQLException e)
+		catch (SQLException e) // This is expected to be thrown if the connection is invalid.
 		{
 			e.printStackTrace();
+		}
+		catch (RuntimeException e) // This is important for catching unexpected errors.
+		{
+			return false;
 		}
 
 		return false;
