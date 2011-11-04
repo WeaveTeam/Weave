@@ -179,10 +179,11 @@
 			{
 				if (input.selectionBeginIndex == 0 && input.selectionEndIndex == input.text.length)
 				{
-					if (log.selectionBeginIndex == log.selectionEndIndex)
+					var clickedIndex:int = log.selectionEndIndex;
+					if (clickedIndex == log.selectionBeginIndex && clickedIndex < log.text.length)
 					{
-						var beginIndex:int = log.text.lastIndexOf('\r', log.selectionBeginIndex) + 1;
-						var endIndex:int = log.text.indexOf('\r', log.selectionEndIndex);
+						var beginIndex:int = log.text.lastIndexOf('\r', clickedIndex) + 1; // find the last \r BEFORE the clicked position
+						var endIndex:int = log.text.indexOf('\r', clickedIndex); // find the first \r AFTER the clicked position
 						log.selectionBeginIndex = beginIndex;
 						log.selectionEndIndex = endIndex < 0 ? log.text.length : endIndex;
 						log.validateNow();

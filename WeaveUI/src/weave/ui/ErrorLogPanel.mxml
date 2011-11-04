@@ -78,13 +78,21 @@
 					if (error is Fault)
 					{
 						var f:Fault = error as Fault;
-						var errorString:String = f.faultCode;
-						if (f.faultString)
-							errorString += ': ' + f.faultString;
-						if (f.faultDetail)
-							errorString += ': ' + f.faultDetail;
-						if (errorString == 'Error')
-							errorString = "Communication error";
+						var errorString:String = '';
+						if (f.faultDetail && [IOErrorEvent.IO_ERROR, SecurityErrorEvent.SECURITY_ERROR].indexOf(f.faultCode) >= 0)
+						{
+							errorString = f.faultDetail;
+						}
+						else
+						{
+							errorString = f.faultCode;
+							if (f.faultString)
+								errorString += ': ' + f.faultString;
+							if (f.faultDetail)
+								errorString += ': ' + f.faultDetail;
+							if (errorString == 'Error')
+								errorString = "Communication error";
+						}
 						
 						console.log.text += errorString;
 					}
