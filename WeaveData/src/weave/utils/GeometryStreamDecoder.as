@@ -33,6 +33,7 @@ package weave.utils
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
@@ -158,6 +159,41 @@ package weave.utils
 		private const maxKDKey:Array = [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity];
 		
 		/**
+		 * This function should be called when stream decoding begins or resumes.
+		 * @param stream The stream to be decoded. 
+		 * @return A value of true if this is the first time the decoding process has been reported for the specified stream.
+		 */
+		private function beginTask(stream:ByteArray):Boolean
+		{
+			if (_queuedStreamDictionary[stream])
+				return false;
+			_queuedStreamDictionary[stream] = NameUtil.createUniqueName(stream);
+			WeaveAPI.ProgressIndicator.addTask(stream);
+			return true;
+		}
+		/**
+		 * This function should be called to indicate decoding progress.
+		 * @param stream The stream being decoded.
+		 */
+		private function updateTask(stream:ByteArray):void
+		{
+			WeaveAPI.ProgressIndicator.updateTask(stream, stream.position / (stream.length - 1));
+		}
+		/**
+		 * This function should be called when we have finished decoding a stream.
+		 * @param stream The stream.
+		 * @return A value of true if there are more tasks in queue.
+		 */
+		private function endTask(stream:ByteArray):Boolean
+		{
+			delete _queuedStreamDictionary[stream];
+			WeaveAPI.ProgressIndicator.removeTask(stream);
+			for (var _stream:Object in _queuedStreamDictionary)
+				return true; // more tasks remain
+			return false; // no more tasks
+		}
+		
+		/**
 		 * getRequiredMetadataTileIDs, getRequiredGeometryTileIDs, and getRequiredTileIDs
 		 * These functions return an array of tile IDs that need to be downloaded in
 		 * order for shapes to be displayed at the given importance (quality) level.
@@ -230,9 +266,8 @@ package weave.utils
 		private function decodeTileList(tileTree:KDTree, tileIDToKDNodeMapping:Vector.<KDNode>, stream:ByteArray):void
 		{
 			// if this is the first time calling this function with this stream, call later
-			if (_queuedStreamDictionary[stream] == undefined)
+			if (beginTask(stream))
 			{
-				_queuedStreamDictionary[stream] = NameUtil.createUniqueName(stream);
 				StageUtils.callLater(this, decodeTileList, arguments);
 				return;
 			}
@@ -277,12 +312,8 @@ package weave.utils
 			//trace("decodeTileList(): tile counts: ",metadataTiles.nodeCount,geometryTiles.nodeCount);
 
 			// remove this stream from the processing list
-			delete _queuedStreamDictionary[stream];
-			for (var _stream:Object in _queuedStreamDictionary)
-			{
-				//trace("metadata stream still in queue");
+			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
-			}
 			
 			getCallbackCollection(this).triggerCallbacks();
 		}
@@ -332,9 +363,7 @@ package weave.utils
 		 */
 		public function decodeMetadataStream(stream:ByteArray):void
 		{
-			// remember that this stream is being processed
-			if (_queuedStreamDictionary[stream] == undefined)
-				_queuedStreamDictionary[stream] = NameUtil.createUniqueName(stream);
+			beginTask(stream);
 
 			//trace("decodeMetadataStream",_queuedStreamDictionary[stream],hex(stream));
 			var geometriesUpdated:Boolean = false;
@@ -377,6 +406,7 @@ package weave.utils
 						if (StageUtils.shouldCallLater)
 						{
 							//trace("callLater");
+							updateTask(stream);
 							StageUtils.callLater(this, decodeMetadataStream, arguments);
 							return;
 						}
@@ -495,12 +525,8 @@ package weave.utils
 			keysLastSeen.length = 0; // reset for next time
             
 			// remove this stream from the processing list
-			delete _queuedStreamDictionary[stream];
-			for (var _stream:Object in _queuedStreamDictionary)
-			{
-				//trace("metadata stream still in queue");
+			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
-			}
 			
 			//trace("metadata stream processing done");
 			//if (geometriesUpdated)
@@ -515,9 +541,7 @@ package weave.utils
 		 */
 		public function decodeGeometryStream(stream:ByteArray):void
 		{
-			// remember that this stream is being processed
-			if (_queuedStreamDictionary[stream] == undefined)
-				_queuedStreamDictionary[stream] = NameUtil.createUniqueName(stream);
+			beginTask(stream);
 
 			//trace("decodeGeometryStream",_queuedStreamDictionary[stream],hex(stream));
 			var geometriesUpdated:Boolean = false;
@@ -560,6 +584,7 @@ package weave.utils
 						if (StageUtils.shouldCallLater)
 						{
 							//trace("callLater");
+							updateTask(stream);
 							StageUtils.callLater(this, decodeGeometryStream, arguments);
 							return;
 						}
@@ -614,12 +639,8 @@ package weave.utils
 //            }
             
 			// remove this stream from the processing list
-			delete _queuedStreamDictionary[stream];
-			for (var _stream:Object in _queuedStreamDictionary)
-			{
-				//trace("geometry stream still in queue");
+			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
-			}
 			
 			//trace("geometry stream processing done");
 			//if (geometriesUpdated)
