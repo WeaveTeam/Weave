@@ -73,9 +73,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				columnsList.hashMap = columns;
 			}
 			
-			//TODO: called more than once
+			/**
+			 * @private handleHeaderColumnChange
+			 * This function is called when the Header Column is changed
+			 * If the Header Attribute Column is not set or is deleted then we use the first Attribute Column from the columns list
+			 * and use an empty string as the header text.
+			 * */
 			private function handleHeaderColumnChange():void
 			{
+				
 				if(headerAttributeColumn.internalColumn)
 					createHeaderColumns(headerAttributeColumn,false);
 				else
@@ -87,6 +93,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var columnObjects:Array = columns.getObjects();
 				sourceArrayCollection.removeAll();
+				
+				//table.columns.length is zero if DataGridColumns are not added to the Felx's DataGrid Component
+				//Even if the dataprovider is set, the length can still be zero if DataGridColumns are not used. 
+				//So here,if table.columns.length is zero then the headerAttributeColumn is not set.
+				//So we use the first attribute column added to the columns hashmap as the header column
 				if(table.columns.length ==0 && columnObjects.length !=0)
 					createHeaderColumns(columnObjects[0]);
 				for (var i:int = 0; i<columnObjects.length; i++)
@@ -94,7 +105,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var rowObject:Object = new Object();
 					
 					var keys:Array = columnObjects[i].keys;
-
+					
+					//We create an object with the first item as _name_ mapped to the Attribute Column name
+					//and then we create a mapping of the key to value 
 					rowObject["_name_"] =ColumnUtils.getTitle(columnObjects[i]);
 					for(var k:int=0; k<keys.length; k++ )
 					{
@@ -106,20 +119,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			/**
+			 *@private createHeaderColumns
+			 *This function creates an array of DataGridColumns and assigns it to the data grid
+			 * @param col The Attribute Column to be set as the Header Column
+			 * @param emptyHeader If false use the values in the Attribute Column as the header text
+			 * else leaves it empty.
+			 * */
 			private function createHeaderColumns(col:IAttributeColumn,emtpyHeader:Boolean=true):void
 			{
 				
 				if(col)
 				{
+					//sort the keys in the header column
 					var sortFn:Function = ColumnUtils.generateSortFunction([col]);
 					
 					var keys:Array = [];
+					
+					//filter the keys if filterKeySet is used
 					if(filterKeySet.keys.length != 0)
 						keys = filterKeySet.keys;
 					else
 						keys = col.keys;
 					
 					keys.sort(sortFn);
+					
+					
 					var columnsToAdd:Array = [];
 					table.columns = [];
 					for(var i:int=0; i<keys.length; i++ )
@@ -133,6 +158,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						columnsToAdd.push(gridColumn);
 					}
 					
+					//the first column is the list of the attribute column names
+					//the header text is left empty
 					var nameGridColumn:DataGridColumn = new DataGridColumn(" ");
 					nameGridColumn.dataField = "_name_";
 					
