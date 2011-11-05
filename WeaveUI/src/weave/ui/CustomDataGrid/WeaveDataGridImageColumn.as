@@ -68,11 +68,15 @@ package weave.ui.CustomDataGrid
 		
 		private function customSorter(item1:Object, item2:Object):int
 		{
-			var item1Data:Object = _attrColumn.getValueFromKey(item1[dataField]);
-			var item2Data:Object = _attrColumn.getValueFromKey(item2[dataField]);
+			var data1:Object = _attrColumn.getValueFromKey(item1[dataField]);
+			var data2:Object = _attrColumn.getValueFromKey(item2[dataField]);
 			
-			return ObjectUtil.compare(item1Data, item2Data)
-				|| ObjectUtil.compare(item1[dataField], item2[dataField]);
+			var itemCompare:int;
+			if (data1 is String && data2 is String)
+				itemCompare = ObjectUtil.stringCompare(data1 as String, data2 as String, true);
+			else
+				itemCompare = ObjectUtil.compare(data1, data2);
+			return itemCompare || ObjectUtil.compare(item1[dataField], item2[dataField]);
 		}
 		
 		private var _attrColumn:IAttributeColumn = null;
