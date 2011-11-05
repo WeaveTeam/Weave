@@ -288,9 +288,9 @@ package weave.core
 					{
 						// sanity checks
 						if (link._globalName != name)
-							throw new Error("Error!: LinkableDynamicObject did not link to expected global name.");
+							throw new Error("LinkableDynamicObject did not link to expected global name.");
 						if (link._internalObject != null)
-							throw new Error("Error!: LinkableDynamicObject was not pointing to a null global object as expected.");
+							throw new Error("LinkableDynamicObject was not pointing to a null global object as expected.");
 						
 						// enforce each link's type restriction separately
 						if (link._typeRestrictionClass == null || newObject is link._typeRestrictionClass)
@@ -315,15 +315,15 @@ package weave.core
 					{
 						// sanity check
 						if (link._globalName != name)
-							throw new Error("Error!: LinkableDynamicObject did not link to expected global name.");
+							throw new Error("LinkableDynamicObject did not link to expected global name.");
 						
 						if (link._internalObject != null)
 						{
 							// sanity checks
 							if (link._locked)
-								throw new Error("Error!: LinkableDynamicObject was locked while referenced global object was disposed of.");
+								throw new Error("LinkableDynamicObject was locked while referenced global object was disposed of.");
 							if (link._internalObject != oldObject)
-								throw new Error("Error!: LinkableDynamicObject was pointing to the wrong global object.");
+								throw new Error("LinkableDynamicObject was pointing to the wrong global object.");
 							
 							// clean up pointers
 							link._internalObject = null;

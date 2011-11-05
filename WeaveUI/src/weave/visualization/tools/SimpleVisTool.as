@@ -74,7 +74,6 @@ package weave.visualization.tools
 	{
 		public function SimpleVisTool()
 		{
-			// Actual constructors are interpreted, not compiled.
 			// Don't put any code here.
 			// Put code in the constructor() function instead.
 		}

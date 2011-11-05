@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.reportError;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -130,8 +131,7 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			WeaveAPI.ErrorManager.reportError(event.fault);
-			trace("FAULT on: RegressionLinePlotter "+token, event.message);
+			reportError(event, null, token);
 			intercept = NaN;
 			slope = NaN;
 			getCallbackCollection(this).triggerCallbacks();

@@ -70,6 +70,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
+			import weave.api.reportError;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
@@ -150,7 +151,7 @@
 				
 			public function shrinkComponents(event:MouseEvent = null):void
 			{
-				if(taskbarShrinkGrow.value == false)
+				if (taskbarShrinkGrow.value == false)
 					return;
 					
 				removeEventListener(MouseEvent.ROLL_OUT,  shrinkComponents);				
@@ -216,7 +217,7 @@
 				}
 				catch (error:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(error);
+					reportError(error);
 				}
 			}
 			public function cleanMinimizedComponentImage(minimizedComponent:MinimizedComponent):void
@@ -227,7 +228,8 @@
 				}
 				catch (error:Error)
 				{
-				}	
+					reportError(error);
+				}
 			}
 			
 			public function getMinimizedComponentXYRelativeToStage(minimizedComponent:MinimizedComponent):Point

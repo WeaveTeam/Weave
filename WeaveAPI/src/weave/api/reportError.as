@@ -34,27 +34,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.core
+package weave.api
 {
 	/**
-	 * This class is a central location for reporting and detecting errors.
-	 * The callbacks for the IErrorManager get called when an error is reported.
-	 * 
-	 * @author adufilie
+	 * @see weave.api.core.IErrorManager
 	 */
-	public interface IErrorManager extends ILinkableObject
+	public function reportError(error:Object, faultMessage:String = null, faultContent:Object = null):void
 	{
-		/**
-		 * This function is intended to be the global error reporting mechanism for Weave.
-		 * @param error An Error or a String describing the error.
-		 * @param faultMessage A message associated with the error, if any.  If specified, the error will be wrapped in a Fault object.
-		 * @param faultCessage Content associated with the error, if any.  If specified, the error will be wrapped in a Fault object.
-		 */
-		function reportError(error:Object, faultMessage:String = null, faultContent:Object = null):void;
-		
-		/**
-		 * This is the list of all previously reported errors.
-		 */
-		function get errors():Array;
+		WeaveAPI.ErrorManager.reportError(error, faultMessage, faultContent);
 	}
 }

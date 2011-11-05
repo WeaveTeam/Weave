@@ -28,6 +28,7 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ProxyObject;
 	import weave.core.LinkableHashMap;
@@ -162,7 +163,7 @@ package weave.core
 				catch (e:Error)
 				{
 					if (reportErrors)
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 				}
 			}
 			return compiler;

@@ -29,6 +29,7 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
 
@@ -289,7 +290,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 			return result;
 		}

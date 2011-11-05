@@ -148,6 +148,7 @@
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
@@ -269,7 +270,7 @@
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 						textArea.htmlText = htmlText.value; // show literally what the user has typed
 					}
 				}

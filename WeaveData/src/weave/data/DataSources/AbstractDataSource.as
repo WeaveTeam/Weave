@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.core.ClassUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
@@ -362,8 +363,7 @@ package weave.data.DataSources
 		 */
 		protected function handleUnsupportedColumnReference(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
 		{
-			var error:Error = new Error(this + " Unsupported column reference type: " + getQualifiedClassName(columnReference));
-			WeaveAPI.ErrorManager.reportError(error);
+			reportError(this + " Unsupported column reference type: " + getQualifiedClassName(columnReference));
 			proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
 			return;
 		}

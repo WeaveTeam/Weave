@@ -29,6 +29,7 @@ package weave.ui.colormap.colormapEditor
 	import mx.events.SliderEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.reportError;
 	import weave.core.ErrorManager;
 	import weave.primitives.ColorRamp;
 
@@ -125,7 +126,7 @@ package weave.ui.colormap.colormapEditor
 				updateColorPickerPosition(index);
 			} catch (error:Error) {
 			 	//Errors from SDK should not be ignored.
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError(error);
 			}
 		}
 		public function getThumbPercent(index:int):Number
@@ -146,7 +147,7 @@ package weave.ui.colormap.colormapEditor
 				colorRamp.detectChanges();
 			} catch (error:Error) {
 			 	//Errors from SDK should not be ignored.
-			 	WeaveAPI.ErrorManager.reportError(error);
+				reportError(error);
 			}
 		}
 		
@@ -159,7 +160,7 @@ package weave.ui.colormap.colormapEditor
 				picker.y = slider.getThumbAt(thumbIndex).y + slider.getThumbAt(thumbIndex).height;
 			} catch (error:Error) {
 			 	//Errors from SDK should not be ignored.
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError(error);
 			}
 		}
 	}

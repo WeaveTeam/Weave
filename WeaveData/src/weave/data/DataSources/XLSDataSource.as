@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
@@ -111,8 +112,7 @@ package weave.data.DataSources
 		 */
 		private function handleXLSDownloadError(event:FaultEvent, token:Object = null):void
 		{
-			trace(event.type, event.message + '\n' + event.fault);
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 		
 		/**

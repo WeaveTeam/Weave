@@ -58,15 +58,6 @@ package weave.visualization.layers
 		public function PlotLayer(externalPlotter:DynamicPlotter = null, externalSpatialIndex:SpatialIndex = null)
 		{
 			super();
-			init(externalPlotter, externalSpatialIndex);
-		}
-		
-		/**
-		 * This function gets called by the constructor.
-		 * This code is in its own function because constructors do not get compiled.
-		 */
-		private function init(externalPlotter:DynamicPlotter, externalSpatialIndex:SpatialIndex):void
-		{
 			if (externalPlotter && externalSpatialIndex)
 			{
 				_dynamicPlotter = registerLinkableChild(this, externalPlotter, invalidateGraphics);

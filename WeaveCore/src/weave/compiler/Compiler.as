@@ -749,7 +749,7 @@ package weave.compiler
 					compiledObjects.push(compileTokens(tokens, false));
 				}
 			}
-			return null; // unreachable
+			throw new Error("unreachable");
 		}
 		
 		/**
@@ -864,7 +864,7 @@ package weave.compiler
 			}
 			for each (token in tokens)
 				if (token is String && '.[](){}'.indexOf(token as String) >= 0)
-					new Error("Misplaced '" + token + "'");
+					throw new Error("Misplaced '" + token + "'");
 		}
 		
 		/**

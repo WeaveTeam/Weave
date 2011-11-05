@@ -15,6 +15,7 @@ package weave.visualization.plotters
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -151,7 +152,7 @@ package weave.visualization.plotters
 		
 		private function handleImageFaultRequest(event:FaultEvent,token:Object=null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 		
 		private function handleImageURLChange():void

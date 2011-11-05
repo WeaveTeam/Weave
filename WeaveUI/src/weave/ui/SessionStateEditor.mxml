@@ -96,6 +96,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
+			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
@@ -299,7 +300,7 @@ A text editor to change the Session State on the fly.
 			
 		    private function alertError(e:Error):void
 		    {
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 		    }
 		    
 		    private function handleApplyClick():void
@@ -728,7 +729,7 @@ A text editor to change the Session State on the fly.
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e);
+					reportError(e);
 				}
 		    }
 

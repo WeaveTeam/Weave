@@ -43,6 +43,7 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
+	import weave.api.reportError;
 
 	use namespace weave_internal;
 
@@ -207,8 +208,7 @@ package weave.core
 		{
 			if (parent == null || child == null)
 			{
-				var error:Error = new Error("SessionManager.removeLinkableChildrenFromSessionState(): Parameters to this function cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.removeLinkableChildrenFromSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
 			if (childToParentDictionaryMap[child] != undefined)
@@ -275,8 +275,7 @@ package weave.core
 		{
 			if (linkableObject == null)
 			{
-				var error:Error = new Error("SessionManager.setSessionState(): linkableObject cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.setSessionState(): linkableObject cannot be null.");
 				return;
 			}
 
@@ -361,8 +360,7 @@ package weave.core
 		{
 			if (linkableObject == null)
 			{
-				var error:Error = new Error("SessionManager.getSessionState(): linkableObject cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.getSessionState(): linkableObject cannot be null.");
 				return null;
 			}
 			
@@ -462,8 +460,7 @@ package weave.core
 		{
 			if (root == null)
 			{
-				var error:Error = new Error("SessionManager.getDescendants(): root cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.getDescendants(): root cannot be null.");
 				return [];
 			}
 
@@ -523,8 +520,7 @@ package weave.core
 		{
 			if (linkableObject == null)
 			{
-				var error:Error = new Error("SessionManager.getDeprecatedSetterNames(): linkableObject cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.getDeprecatedSetterNames(): linkableObject cannot be null.");
 				return [];
 			}
 			
@@ -551,8 +547,7 @@ package weave.core
 		{
 			if (linkableObject == null)
 			{
-				var error:Error = new Error("SessionManager.getLinkablePropertyNames(): linkableObject cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.getLinkablePropertyNames(): linkableObject cannot be null.");
 				return [];
 			}
 
@@ -678,7 +673,7 @@ package weave.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e);
+					reportError(e);
 				}
 				
 				var linkableObject:ILinkableObject = object as ILinkableObject;
@@ -789,10 +784,8 @@ package weave.core
 			var msg:String = "Disposed object still running callbacks: " + getQualifiedClassName(disposedObject);
 			if (disposedObject is ILinkableVariable)
 				msg += ' (value = ' + (disposedObject as ILinkableVariable).getSessionState() + ')';
-			var error:Error = new Error(msg);
-			trace(disposedError.getStackTrace());
-			trace(error.getStackTrace());
-			WeaveAPI.ErrorManager.reportError(error);
+			reportError(disposedError);
+			reportError(msg);
 		}
 
 //		public function getOwnerPath(root:ILinkableObject, descendant:ILinkableObject):Array
@@ -894,15 +887,14 @@ package weave.core
 		{
 			if (primary == null || secondary == null)
 			{
-				var error:Error = new Error("SessionManager.linkObjects(): Parameters to this function cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.linkObjects(): Parameters to this function cannot be null.");
 				return;
 			}
 			
 			// prevent
 			if (primary == secondary)
 			{
-				trace(new Error("Warning! Attempt to link session state of an object with itself").getStackTrace());
+				reportError("Warning! Attempt to link session state of an object with itself");
 				return;
 			}
 			
@@ -940,8 +932,7 @@ package weave.core
 		{
 			if (first == null || second == null)
 			{
-				var error:Error = new Error("SessionManager.unlinkObjects(): Parameters to this function cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("SessionManager.unlinkObjects(): Parameters to this function cannot be null.");
 				return;
 			}
 
@@ -985,19 +976,15 @@ package weave.core
 		 */
 		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void
 		{
-			var error:Error;
-			
 			if (linkableVariable == null || bindableParent == null || bindablePropertyName == null)
 			{
-				error = new Error("linkBindableProperty(): Parameters to this function cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("linkBindableProperty(): Parameters to this function cannot be null.");
 				return;
 			}
 			
 			if (!bindableParent.hasOwnProperty(bindablePropertyName))
 			{
-				error = new Error('linkBindableProperty(): Unable to access property "'+bindablePropertyName+'" in class '+getQualifiedClassName(bindableParent));
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError('linkBindableProperty(): Unable to access property "'+bindablePropertyName+'" in class '+getQualifiedClassName(bindableParent));
 				return;
 			}
 			
@@ -1125,8 +1112,7 @@ package weave.core
 		{
 			if (linkableVariable == null || bindableParent == null || bindablePropertyName == null)
 			{
-				var error:Error = new Error("unlinkBindableProperty(): Parameters to this function cannot be null.");
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError("unlinkBindableProperty(): Parameters to this function cannot be null.");
 				return;
 			}
 			

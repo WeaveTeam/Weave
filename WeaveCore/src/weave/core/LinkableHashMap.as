@@ -30,6 +30,7 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.core.weave_internal;
 	
 	use namespace weave_internal;
@@ -242,7 +243,7 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 					}
 				}
 				else

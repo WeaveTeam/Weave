@@ -41,6 +41,7 @@ package weave.visualization.layers
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -508,7 +509,7 @@ package weave.visualization.layers
 			var keySet:IKeySet = _plotLayer.probeFilter.internalObject as IKeySet;
 			if (keySet == null)
 			{
-				trace(this, 'WARNING: keySet is null',new Error().getStackTrace());
+				reportError('keySet is null');
 				return;
 			}
 			var recordKeys:Array = keySet.keys;

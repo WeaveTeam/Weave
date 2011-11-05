@@ -78,6 +78,7 @@
 			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
 			import mx.events.ResizeEvent;
+			import mx.rpc.Fault;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -89,6 +90,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
@@ -248,7 +250,7 @@
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(new Error('Error saving exported CSV file.\n' + e.message, e.errorID));
+					reportError(e);
 				}
 			}
 			
@@ -329,8 +331,10 @@
 							columnWidths.removeObject(name);
 					}
 					handleSessionedWidthChange(); // run the callback for the sessionedWidths
-				} catch (error:Error) {
-					WeaveAPI.ErrorManager.reportError(error);
+				}
+				catch (error:Error)
+				{
+					reportError(error);
 				}
 			}
 			

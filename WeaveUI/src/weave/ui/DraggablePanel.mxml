@@ -105,6 +105,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
@@ -332,7 +333,7 @@
 				}
 				catch (e:Error)
 				{
-					//WeaveAPI.ErrorManager.reportError(e);
+					//reportError(e);
 					title = panelTitle.value;
 				}
 			}
@@ -854,7 +855,7 @@
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 					}
 				}
 			}
@@ -1053,7 +1054,7 @@
 					return;
 				if (!parent)
 				{
-					WeaveAPI.ErrorManager.reportError(new Error("DraggablePanel.playRestorePanelEffect() called when parent is null"));
+					reportError("DraggablePanel.playRestorePanelEffect() called when parent is null");
 					return;
 				}
 
@@ -1374,7 +1375,7 @@
 						catch (e:Error)
 						{
 							draggablePanelCursorID = -1;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 					}
 				}

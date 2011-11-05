@@ -32,6 +32,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.utils.EquationColumnLib;
@@ -134,7 +135,9 @@ package weave.data.AttributeColumns
 		public function updateRecords(keysA:Vector.<IQualifiedKey>, keysB:Vector.<String>, data:Array):void
 		{
 			if (_uniqueStrings.length > 0)
-				throw new Error("Replacing existing records is not supported");
+			{
+				reportError("Replacing existing records is not supported");
+			}
 			
 			var index:int, qkeyA:IQualifiedKey, keyB:String, qkeyAB:IQualifiedKey;
 			var _key:*;
@@ -142,7 +145,7 @@ package weave.data.AttributeColumns
 
 			if (keysA.length != data.length || keysB.length != data.length)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Array lengths differ"));
+				reportError("Array lengths differ");
 				return;
 			}
 			

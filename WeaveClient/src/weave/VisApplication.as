@@ -60,6 +60,7 @@ package weave
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
@@ -406,7 +407,7 @@ package weave
 			super.createChildren();
 
 			UIComponentGlobals.catchCallLaterExceptions = true;
-			systemManager.addEventListener("callLaterError", function(event:*):void{ WeaveAPI.ErrorManager.reportError(event.error); });
+			systemManager.addEventListener("callLaterError", reportError);
 
 			_application.addChild(visDesktop);
 			visDesktop.percentWidth = 100;
@@ -1165,7 +1166,7 @@ package weave
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 			if (xml)
 				loadSessionState(xml);
@@ -1209,7 +1210,7 @@ package weave
 			}
 			else
 			{
-				WeaveAPI.ErrorManager.reportError(event.fault);
+				reportError(event);
 			}
 			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
 				Alert.show("The server hosting the configuration file does not have a permissive crossdomain policy.", "Security sandbox violation");

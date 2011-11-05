@@ -33,6 +33,7 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.reportError;
 	
 	/**
 	 * This is an all-static class that allows you to add callbacks that will be called when an event occurs on the stage.
@@ -207,7 +208,7 @@ package weave.core
 					}
 					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
 					args = calls[i] as Array;
-					stackTrace = _stackTraceMap[args];
+					stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
 					// don't call the function if the relevantContext was disposed of.
 					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
@@ -434,7 +435,7 @@ package weave.core
 			}
 			else
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("(StageUtils) Unsupported event: "+eventType));
+				reportError("(StageUtils) Unsupported event: "+eventType);
 			}
 		}
 		

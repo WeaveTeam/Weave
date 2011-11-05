@@ -30,12 +30,6 @@
 				percentWidth="NaN" percentHeight="NaN"
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical">
-	<mx:Script>
-		<![CDATA[
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.plotters.AxisLabelPlotter;
-		]]>
-	</mx:Script>
 	<mx:VBox borderStyle="solid"
 			 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
 			 backgroundAlpha="0.8" backgroundColor="white"
@@ -53,7 +47,6 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.ui.customLayerSettings.AxisLabelLayerControls;
 			import mx.managers.PopUpManager;
 			
 			import weave.api.disposeObjects;
@@ -61,10 +54,13 @@
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IPlotLayer;
 			import weave.api.ui.IPlotter;
+			import weave.ui.customLayerSettings.AxisLabelLayerControls;
 			import weave.ui.customLayerSettings.CompoundBarChartSettings;
 			import weave.ui.customLayerSettings.GridLineLayerControls;
 			import weave.utils.EditorManager;
+			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.AxisLabelPlotter;
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
@@ -88,7 +84,7 @@
 			public function set targetTool(value:SimpleVisTool):void
 			{
 				if (_tool != value && _tool != null)
-					throw new Error("CustomLayerWindow.targetTool should not be set more than once");
+					throw new Error("targetTool should not be set more than once");
 				
 				_tool = value;
 			}
