@@ -54,6 +54,7 @@ package weave.core
 		 */
 		public function reportError(error:Object, faultMessage:String = null, faultContent:Object = null):void
 		{
+			var e:Error;
 			if (error is FaultEvent)
 			{
 				// pull out the fault from the event
