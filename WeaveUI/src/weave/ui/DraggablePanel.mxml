@@ -248,8 +248,8 @@
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
 				setupControlButton(helpButton, null, toggleHelpPanel, "Click here to show help on how to use this component.");
-				setupControlButton(pinToBackButton, pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
-				setupControlButton(pinButton, pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
+				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
+				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
@@ -719,23 +719,21 @@
     			return value;
     		}
 			
-			[Embed(source= "/weave/resources/images/tinyWrench2.png")]
+			[Embed(source="/weave/resources/images/tinyWrench2.png")]
 			private var _userControlIcon:Class;
-			
 			[Embed(source="/weave/resources/images/pushpin.png")]
-			private var pinIcon:Class;
+			private var _pinIcon:Class;
 			[Embed(source="/weave/resources/images/pushpinback.png")]
-			private var pinToBackIcon:Class;
-			[Embed(source= "/weave/resources/images/maximize_icon.png")]
+			private var _pinToBackIcon:Class;
+			[Embed(source="/weave/resources/images/maximize_icon.png")]
 			private var _maximizeIcon:Class;
-			[Embed(source= "/weave/resources/images/unmaximize_icon.png")]
+			[Embed(source="/weave/resources/images/unmaximize_icon.png")]
 			private var _unmaximizeIcon:Class;
-			[Embed(source= "/weave/resources/images/minimize_icon.png")]
+			[Embed(source="/weave/resources/images/minimize_icon.png")]
 			private var _minimizeIcon:Class;
-			[Embed(source= "/weave/resources/images/minimize_down_icon.png")]
+			[Embed(source="/weave/resources/images/minimize_down_icon.png")]
 			private var _minimizeDownIcon:Class;
 			
-			private var _userControlBitmap:BitmapData = new _userControlIcon().bitmapData;
 			[Embed(source="/weave/resources/images/resize_TB.png")]
        		private var _resizeTBCursor:Class;
        		private var _resizeTBBitmap:BitmapAsset = new _resizeTBCursor() as BitmapAsset;
