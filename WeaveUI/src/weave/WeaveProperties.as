@@ -20,11 +20,15 @@
 package weave
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.ByteArray;
+	
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -44,17 +48,14 @@ package weave
 	 */
 	public class WeaveProperties implements ILinkableObject
 	{
-		public const version:LinkableString = new LinkableString("1.0 Beta Nightly Build"); // Weave version
+		[Embed(source="/weave/weave_version.txt", mimeType="application/octet-stream")]
+		private static const WeaveVersion:Class;
+		
+		public const version:LinkableString = new LinkableString(); // Weave version
 		
 		public function WeaveProperties()
 		{
-			constructor();
-		}
-		/**
-		 * This is the constructor code. The code is in a separate function because constructors do not get compiled.
-		 */
-		private function constructor():void
-		{
+			version.value = StringUtil.trim((new WeaveVersion() as ByteArray).toString());
 			version.lock(); // don't allow changing the version
 			
 			// register all properties as children of this object
@@ -326,7 +327,7 @@ package weave
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 			finally
 			{
