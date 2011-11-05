@@ -71,12 +71,12 @@ package weave.ui.CustomDataGrid
 			var data1:Object = _attrColumn.getValueFromKey(item1[dataField]);
 			var data2:Object = _attrColumn.getValueFromKey(item2[dataField]);
 			
-			var itemCompare:int;
+			var dataCompare:int;
 			if (data1 is String && data2 is String)
-				itemCompare = ObjectUtil.stringCompare(data1 as String, data2 as String, true);
+				dataCompare = ObjectUtil.stringCompare(data1 as String, data2 as String, true);
 			else
-				itemCompare = ObjectUtil.compare(data1, data2);
-			return itemCompare || ObjectUtil.compare(item1[dataField], item2[dataField]);
+				dataCompare = ObjectUtil.compare(data1, data2);
+			return dataCompare || ObjectUtil.compare(item1[dataField], item2[dataField]);
 		}
 		
 		private var _attrColumn:IAttributeColumn = null;
