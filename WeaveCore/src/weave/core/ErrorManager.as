@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.events.ErrorEvent;
 	import flash.system.Capabilities;
 	
 	import mx.rpc.Fault;
@@ -28,7 +27,6 @@ package weave.core
 	import weave.api.core.IErrorManager;
 	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
-	import weave.core.SessionManager;
 	
 	/**
 	 * This class is a central location for reporting and detecting errors.
@@ -65,7 +63,7 @@ package weave.core
 				error = faultEvent.fault;
 			}
 			if (error is String)
-				error = Error(error);
+				error = new Error(error);
 			if (error != null && !(error is Error))
 				faultContent = faultContent == null ? error : [error, faultContent];
 			if (!(error is Error) || faultMessage || faultContent != null)
