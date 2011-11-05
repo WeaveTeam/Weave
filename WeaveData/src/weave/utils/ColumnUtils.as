@@ -104,16 +104,32 @@ package weave.utils
 				return (column as IPrimitiveColumn).deriveStringFromNumber(number);
 			return null; // no specific string representation
 		}
+
+		/**
+		 * Get the QKey corresponding to <code>object.keyType</code>
+		 * and <code>object.localName</code>.
+		 *  
+		 * @param object An object with properties <code>keyType</code>
+		 * and <code>localName</code>.
+		 * @return An IQualifiedKey object. 
+		 */		
+		private static function getQKey(object:Object):IQualifiedKey
+		{
+			if (object is IQualifiedKey)
+				return object as IQualifiedKey;
+			return WeaveAPI.QKeyManager.getQKey(object.keyType, object.localName);
+		}
 		
 		/**
 		 * @param column A column to get a value from.
 		 * @param key A key in the given column to get the value for.
 		 * @return The Number corresponding to the given key.
 		 */
-		public static function getNumber(column:IAttributeColumn, key:IQualifiedKey):Number
+		public static function getNumber(column:IAttributeColumn, key:Object):Number
 		{
+			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return column.getValueFromKey(key, Number);
+				return column.getValueFromKey(qkey, Number);
 			return NaN;
 		}
 		/**
@@ -121,10 +137,11 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The String corresponding to the given key.
 		 */
-		public static function getString(column:IAttributeColumn, key:IQualifiedKey):String
+		public static function getString(column:IAttributeColumn, key:Object):String
 		{
+			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return column.getValueFromKey(key, String) as String;
+				return column.getValueFromKey(qkey, String) as String;
 			return '';
 		}
 		/**
@@ -132,10 +149,11 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The Boolean corresponding to the given key.
 		 */
-		public static function getBoolean(column:IAttributeColumn, key:IQualifiedKey):Boolean
+		public static function getBoolean(column:IAttributeColumn, key:Object):Boolean
 		{
+			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return StandardLib.asBoolean( column.getValueFromKey(key) );
+				return StandardLib.asBoolean( column.getValueFromKey(qkey) );
 			return false;
 		}
 		/**
@@ -143,13 +161,14 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The Number corresponding to the given key, normalized to be between 0 and 1.
 		 */
-		public static function getNorm(column:IAttributeColumn, key:IQualifiedKey):Number
+		public static function getNorm(column:IAttributeColumn, key:Object):Number
 		{
 			if (column != null)
 			{
+				var qkey:IQualifiedKey = getQKey(key);
 				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
 				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(key, Number);
+				var value:Number = column.getValueFromKey(qkey, Number);
 				return (value - min) / (max - min);
 			}
 			return NaN;
