@@ -64,11 +64,14 @@ package weave.core
 					faultMessage = StandardLib.asString(faultEvent.message.body);
 				error = faultEvent.fault;
 			}
-			error = Error(error);
-			if (faultMessage || faultContent)
+			if (error is String)
+				error = Error(error);
+			if (error != null && !(error is Error))
+				faultContent = faultContent == null ? error : [error, faultContent];
+			if (!(error is Error) || faultMessage || faultContent != null)
 			{
 				// wrap the error in a Fault object
-				if (!faultMessage)
+				if (!faultMessage && error is Error)
 					faultMessage = StandardLib.asString((error as Error).message);
 				var fault:Fault = new Fault('Error', faultMessage);
 				fault.content = faultContent;
@@ -76,10 +79,13 @@ package weave.core
 				error = fault;
 			}
 			
+			if (!(error is Error))
+				throw new Error("Assertion failed");
+			
 			if (Capabilities.isDebugger)
 			{
 				//throw error; // COMMENT THIS OUT WHEN NOT DEVELOPING
-				trace(error.getStackTrace() + "\n");
+				trace((error as Error).getStackTrace() + "\n");
 			}
 			
 			errors.push(error);
