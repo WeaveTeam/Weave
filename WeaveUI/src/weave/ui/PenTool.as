@@ -55,6 +55,7 @@ package weave.ui
 	import weave.utils.CustomCursorManager;
 	import weave.utils.SpatialIndex;
 	import weave.visualization.layers.PlotLayerContainer;
+	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.tools.SimpleVisTool;
 
@@ -546,7 +547,7 @@ package weave.ui
 			
 			var key:IQualifiedKey;
 			var keys:Dictionary = new Dictionary();
-			var layers:Array = visualization.layers.getObjects();
+			var layers:Array = visualization.layers.getObjects(SelectablePlotLayer);
 			var shapes:Array = WeaveAPI.CSVParser.parseCSV(coords.value);
 			for each (var shape:Array in shapes)
 			{
@@ -560,7 +561,7 @@ package weave.ui
 				}
 				_simpleGeom.setVertices(_tempArray);
 				
-				for each (var layer:IPlotLayer in layers)
+				for each (var layer:SelectablePlotLayer in layers)
 				{
 					var spatialIndex:SpatialIndex = layer.spatialIndex as SpatialIndex;
 					var overlappingKeys:Array = spatialIndex.getKeysGeometryOverlapGeometry(_simpleGeom);
