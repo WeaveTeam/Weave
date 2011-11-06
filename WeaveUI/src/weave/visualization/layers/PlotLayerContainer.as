@@ -202,9 +202,11 @@ package weave.visualization.layers
 				}
 			}
 			
-			if (!tempScreenBounds.isEmpty())
+			var overrideBounds:Boolean = isFinite(overrideXMin.value) || isFinite(overrideXMax.value)
+										|| isFinite(overrideYMin.value) || isFinite(overrideYMax.value);
+			if (!tempScreenBounds.isEmpty() && !overrideBounds)
 			{
-				var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
+				//var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
 				
 				if (!tempDataBounds.isUndefined() && !fullDataBounds.isUndefined())
 				{

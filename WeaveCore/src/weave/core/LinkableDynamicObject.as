@@ -269,7 +269,6 @@ package weave.core
 		 */
 		private static function handleGlobalListChange():void
 		{
-			//trace(ObjectUtil.toString(_globalHashMap.getSessionState()));
 			var name:String;
 			var links:Array;
 			var link:LinkableDynamicObject;
@@ -451,29 +450,28 @@ package weave.core
 		private var _internalObject:ILinkableObject = null;
 
 		// this is the local object factory
-		private var _localHashMap:LinkableHashMap = null;
+		private var _localHashMap:ILinkableHashMap = null;
 		// this is the name of the local object created inside _localHashMap
 		private static const LOCAL_OBJECT_NAME:String = 'localObject';
 
 		// this is the name of the linked global object
 		private var _globalName:String = null;
 		// this is the global object factory
-		private static var _globalHashMap:LinkableHashMap = null;
+		private static var _globalHashMap:ILinkableHashMap = null;
 		// this maps a global name to an Array of LinkableDynamicObjects
 		private static const _globalNameToLinksMap:Object = new Object();
 		
 		/**
 		 * This is the mapping from global names to objects.
 		 */
-		public static function get globalHashMap():LinkableHashMap
+		public static function get globalHashMap():ILinkableHashMap
 		{
 			if (!_globalHashMap)
+			{
 				_globalHashMap = new LinkableHashMap();
+				_globalHashMap.childListCallbacks.addImmediateCallback(null, handleGlobalListChange);
+			}
 			return _globalHashMap;
 		}
-		
-		{ /** begin static code block **/
-			globalHashMap.childListCallbacks.addImmediateCallback(null, handleGlobalListChange);
-		} /** end static code block **/
 	}
 }
