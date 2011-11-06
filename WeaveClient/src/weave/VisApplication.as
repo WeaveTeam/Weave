@@ -577,7 +577,7 @@ package weave
 				}
 				catch(error:Error)
 				{
-					trace(error.getStackTrace());
+					reportError(error);
 				}
 			}
 		}
