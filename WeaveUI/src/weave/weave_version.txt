@@ -1,1 +1,1 @@
-1.0 Beta Nightly Build
+1.0 Beta (DEV)

@@ -54,7 +54,6 @@ package weave.core
 		 */
 		public function reportError(error:Object, faultMessage:String = null, faultContent:Object = null):void
 		{
-			var e:Error;
 			if (error is FaultEvent)
 			{
 				// pull out the fault from the event
@@ -78,16 +77,17 @@ package weave.core
 				error = fault;
 			}
 			
-			if (!(error is Error))
+			var _error:Error = error as Error;
+			if (!_error)
 				throw new Error("Assertion failed");
 			
 			if (Capabilities.isDebugger)
 			{
 				//throw error; // COMMENT THIS OUT WHEN NOT DEVELOPING
-				trace((error as Error).getStackTrace() + "\n");
+				trace(_error.getStackTrace() + "\n");
 			}
 			
-			errors.push(error);
+			errors.push(_error);
 			getCallbackCollection(this).triggerCallbacks();
 		}
 	}

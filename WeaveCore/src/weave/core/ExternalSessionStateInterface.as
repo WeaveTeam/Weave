@@ -299,6 +299,10 @@ package weave.core
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
 		 */		
 		private const _callbackFunctionCache:Object = {};
+		
+		/**
+		 * @private
+		 */
 		private function getCachedCallbackFunction(callback:String):Function
 		{
 			if (!_callbackFunctionCache[callback])
