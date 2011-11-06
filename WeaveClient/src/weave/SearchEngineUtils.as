@@ -116,60 +116,60 @@ package weave
 		
 		private static function handleSearchQueryContextMenuItemSelect(event:ContextMenuEvent):void
 		{
-//			var probeText:String = ProbeTextUtils.getProbeText(_localProbeKeySet, null);
-//			if (probeText == null)
-//				return;
-//			// get first line of text only
-//			var query:String = probeText.split('\n')[0];
-//			for each(var c:Object in _searchQueryContextMenuItems)
-//			{
-//				var currentContextMenuItem:ContextMenuItem = (c.contextMenu as ContextMenuItem);
-//				if(currentContextMenuItem  == event.currentTarget)
-//				{
-//					if(currentContextMenuItem.enabled)
-//					{
-//						var combobox:CustomComboBox = new CustomComboBox(); //ComboBox to hold the service names
-//						var urlAlert:AlertTextBox = AlertTextBox.show("Custom URL",null);
-//						var hbox:HBox = new HBox();						
-//						var label:Label = new Label();
-//						var detailsButton:Button = new Button();
-//						
-//						detailsButton.toggle = true;
-//						detailsButton.label = "Show Details";
-//						detailsButton.toolTip = "Click to display the URL used for this service"
-//						urlAlert.alertVBox.removeChild(urlAlert.textBox);
-//						detailsButton.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void {																	
-//							if(detailsButton.selected) 
-//								urlAlert.alertVBox.addChildAt(urlAlert.textBox,2);
-//							else 								
-//								urlAlert.alertVBox.removeChild(urlAlert.textBox);							
-//						});
-//						
-//						hbox.toolTip = "Please select a service from the dropdown menu";
-//						urlAlert.textBox.toolTip = "This is the URL used to search for the record";
-//						label.text = "Select a service: ";
-//						
-//						hbox.addChild(label); hbox.addChild(combobox); hbox.addChild(detailsButton);
-//						urlAlert.alertVBox.addChildAt(hbox,0 );
-//						urlAlert.alertVBox.addChildAt(new Spacer(),0);
-//						
-//						try { // don't throw error if string is empty
-//							// replace any combinations of linefeeds and newlines with one newline character for consistency
-//							Weave.properties.searchServiceURLs.value = Weave.properties.searchServiceURLs.value.replace(/[\r\n]+/g,"\n");
-//							fillCBoxDataProvider(combobox);
-//							urlAlert.textInput = combobox.selectedItem.url;
-//						} catch (e:Error) {} 
-//						combobox.addEventListener(ListEvent.CHANGE, function(e:ListEvent):void{
-//							urlAlert.textInput = combobox.selectedItem.url;
-//						});
-//						urlAlert.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
-//							if( !e.confirm ) return ;
-//							//append queried record's name to the end of the url
-//							navigateToURL(new URLRequest(urlAlert.textInput + query), "_blank");							
-//						});						
-//					}
-//				}
-//			}
+			var probeText:String = ProbeTextUtils.getProbeText(_localProbeKeySet, null);
+			if (probeText == null)
+				return;
+			// get first line of text only
+			var query:String = probeText.split('\n')[0];
+			for each(var c:Object in _searchQueryContextMenuItems)
+			{
+				var currentContextMenuItem:ContextMenuItem = (c.contextMenu as ContextMenuItem);
+				if(currentContextMenuItem  == event.currentTarget)
+				{
+					if(currentContextMenuItem.enabled)
+					{
+						var combobox:CustomComboBox = new CustomComboBox(); //ComboBox to hold the service names
+						var urlAlert:AlertTextBox = AlertTextBox.show("Custom URL",null);
+						var hbox:HBox = new HBox();						
+						var label:Label = new Label();
+						var detailsButton:Button = new Button();
+						
+						detailsButton.toggle = true;
+						detailsButton.label = "Show Details";
+						detailsButton.toolTip = "Click to display the URL used for this service"
+						urlAlert.removeChild(urlAlert.textBox);
+						detailsButton.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void {																	
+							if(detailsButton.selected) 
+								urlAlert.addChildAt(urlAlert.textBox,2);
+							else 								
+								urlAlert.removeChild(urlAlert.textBox);							
+						});
+						
+						hbox.toolTip = "Please select a service from the dropdown menu";
+						urlAlert.textBox.toolTip = "This is the URL used to search for the record";
+						label.text = "Select a service: ";
+						
+						hbox.addChild(label); hbox.addChild(combobox); hbox.addChild(detailsButton);
+						urlAlert.addChildAt(hbox,0 );
+						urlAlert.addChildAt(new Spacer(),0);
+						
+						try { // don't throw error if string is empty
+							// replace any combinations of linefeeds and newlines with one newline character for consistency
+							Weave.properties.searchServiceURLs.value = Weave.properties.searchServiceURLs.value.replace(/[\r\n]+/g,"\n");
+							fillCBoxDataProvider(combobox);
+							urlAlert.textInput = combobox.selectedItem.url;
+						} catch (e:Error) {} 
+						combobox.addEventListener(ListEvent.CHANGE, function(e:ListEvent):void{
+							urlAlert.textInput = combobox.selectedItem.url;
+						});
+						urlAlert.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
+							if( !e.confirm ) return ;
+							//append queried record's name to the end of the url
+							navigateToURL(new URLRequest(urlAlert.textInput + query), "_blank");							
+						});						
+					}
+				}
+			}
 		}
 		
 		private static function fillCBoxDataProvider(cbox:ComboBox):void
