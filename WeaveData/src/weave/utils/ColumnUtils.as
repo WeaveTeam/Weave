@@ -24,12 +24,18 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getLinkableDescendants;
+	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	
 	/**
 	 * This class contains static functions that access values from IAttributeColumn objects.
@@ -58,6 +64,27 @@ package weave.utils
 			}
 
 			return title;
+		}
+		
+		public static function getDataSource(column:IAttributeColumn):String
+		{
+			var name:String;
+			var nameMap:Object = {};
+			var refs:Array = getLinkableDescendants(column, IColumnReference);
+			for (var i:int = 0; i < refs.length; i++)
+			{
+				var ref:IColumnReference = refs[i];
+				var source:IDataSource = ref.getDataSource();
+				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
+				if (!sourceOwner)
+					continue;
+				name = sourceOwner.getName(source);
+				nameMap[name] = true;
+			}
+			var names:Array = [];
+			for (name in nameMap)
+				names.push(name);
+			return names.join(', ');
 		}
 
 		/**
