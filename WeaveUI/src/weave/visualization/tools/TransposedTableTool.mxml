@@ -138,9 +138,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					//filter the keys if filterKeySet is used
 					if(filterKeySet.keys.length != 0)
-						keys = filterKeySet.keys;
+						keys = filterKeySet.keys.concat(); // make a copy so we don't modify the original
 					else
-						keys = col.keys;
+						keys = col.keys.concat(); // make a copy so we don't modify the original
 					
 					keys.sort(sortFn);
 					
