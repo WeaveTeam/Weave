@@ -42,6 +42,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
+  LinkableFunction allows a function to be defined by a String that can use macros defined in the static macros hash map.
+  Libraries listed in macroLibraries variable will be included when compiling the function.
+  
   <p></p>
 <br>
 <hr>
@@ -151,7 +154,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#LinkableFunction()">LinkableFunction</a>(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   </div>
 </td><td class="summaryTableOwnerCol">LinkableFunction</td>
 </tr>
 <tr class="hideInheritedMethod">
@@ -174,7 +178,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#apply()">apply</a>(thisArg:* = null, argArray:Array = null):*</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This will evaluate the function with the specified parameters.</div>
 </td><td class="summaryTableOwnerCol">LinkableFunction</td>
 </tr>
 <tr class="hideInheritedMethod">
@@ -331,28 +336,33 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)</code><span class="label">Parameters</span>
+<code>public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)</code><p>
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">defaultValue</span>:String</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">defaultValue</span>:String</code> (default = <code>null</code>)<code></code> &mdash; The default function definition.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">ignoreRuntimeErrors</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">ignoreRuntimeErrors</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is true, errors thrown during evaluation of the function will be caught and values of undefined will be returned.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">useThisScope</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">useThisScope</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; When true, variable lookups will be evaluated as if the function were in the scope of the thisArg passed to the apply() function.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">paramNames</span>:Array</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">paramNames</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; An Array of parameter names that can be used in the function definition.
+   </td>
 </tr>
 </table>
 </div>
@@ -365,23 +375,28 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function apply(thisArg:* = null, argArray:Array = null):*</code><span class="label">Parameters</span>
+<code>public function apply(thisArg:* = null, argArray:Array = null):*</code><p>
+   This will evaluate the function with the specified parameters.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">thisArg</span>:*</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">thisArg</span>:*</code> (default = <code>null</code>)<code></code> &mdash; The value of 'this' to be used when evaluating the function.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">argArray</span>:Array</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">argArray</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; An Array of arguments to be passed to the compiled function.
+   </td>
 </tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>*</code></td>
+<td width="20"></td><td><code>*</code> &mdash; The result of evaluating the function.
+   </td>
 </tr>
 </table>
 </div>
