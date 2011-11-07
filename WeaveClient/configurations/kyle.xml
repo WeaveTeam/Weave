@@ -24,7 +24,7 @@
               <hierarchy>
                 <category name="Data Tables" title="Data Tables">
                   <category name="issue_relations" title="issue_relations">
-                    <attribute keyType="Issue Relation ID" dataType="string" dataTable="issue_relations" name="relation_type" id="165143" title="relation_type"/>
+                    <attribute dataType="string" dataTable="issue_relations" keyType="Issue Relation ID" name="relation_type" id="165143" title="relation_type"/>
                   </category>
                 </category>
               </hierarchy>
@@ -47,7 +47,7 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="visualization" name="Red Scale" source="OIC" singlehue="true">
+      <colorRamp singlehue="true" name="Red Scale" source="OIC" category="visualization">
         <node color="0x000000" position="0"/>
         <node color="0xff0000" position="0.5"/>
         <node color="0xffcccc" position="1"/>
@@ -64,7 +64,7 @@
     <backgroundColor>0</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
     <dashboardMode>false</dashboardMode>
-    <dashedSelectionBox>5,5</dashedSelectionBox>
+    <dashedSelectionBox>1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1</dashedSelectionBox>
     <dataInfoURL/>
     <debugScreenBounds>false</debugScreenBounds>
     <enableAboutMenu>true</enableAboutMenu>
@@ -211,7 +211,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute title="Country Name" name="Country Name" csvColumn="Country Name" keyType="Country Code"/>
+              <attribute keyType="Country Code" name="Country Name" csvColumn="Country Name" title="Country Name"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -223,7 +223,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute title="Population, female (% of total)" name="Population, female (% of total)" csvColumn="Population, female (% of total)" keyType="Country Code"/>
+              <attribute keyType="Country Code" name="Population, female (% of total)" csvColumn="Population, female (% of total)" title="Population, female (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -235,7 +235,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute title="Rural population (% of total population)" name="Rural population (% of total population)" csvColumn="Rural population (% of total population)" keyType="Country Code"/>
+              <attribute keyType="Country Code" name="Rural population (% of total population)" csvColumn="Rural population (% of total population)" title="Rural population (% of total population)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -247,7 +247,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute title="Population ages 65 and above (% of total)" name="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)" keyType="Country Code"/>
+              <attribute keyType="Country Code" name="Population ages 65 and above (% of total)" csvColumn="Population ages 65 and above (% of total)" title="Population ages 65 and above (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -259,7 +259,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute title="Population ages 15-64 (% of total)" name="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)" keyType="Country Code"/>
+              <attribute keyType="Country Code" name="Population ages 15-64 (% of total)" csvColumn="Population ages 15-64 (% of total)" title="Population ages 15-64 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -271,7 +271,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute title="Urban population (% of total)" name="Urban population (% of total)" csvColumn="Urban population (% of total)" keyType="Country Code"/>
+              <attribute keyType="Country Code" name="Urban population (% of total)" csvColumn="Urban population (% of total)" title="Urban population (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -283,7 +283,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <dataSourceName>WorldPopulationIndicators2.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="Country Code">
-              <attribute title="Population ages 0-14 (% of total)" name="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)" keyType="Country Code"/>
+              <attribute keyType="Country Code" name="Population ages 0-14 (% of total)" csvColumn="Population ages 0-14 (% of total)" title="Population ages 0-14 (% of total)"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -305,11 +305,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="nhpn" title="nhpn"/>
           <category name="obesity" title="obesity"/>
           <category name="obesity-cube" title="obesity-cube">
-            <attribute number=" " name="ID" keyType="obesity-cube" dataType="number" dataTable="obesity-cube" string="&quot;ID&quot; + asString(number)" title="ID"/>
-            <attribute number=" " name="FIPS2" keyType="obesity-cube" dataType="string" dataTable="obesity-cube" string=" " title="FIPS2"/>
-            <attribute number="string.length" name="State" keyType="obesity-cube" dataType="string" dataTable="obesity-cube" string="&quot;# num characters &quot; + asString(number)" title="State"/>
-            <attribute number=" " name="Year" keyType="obesity-cube" dataType="number" dataTable="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" title="Year"/>
-            <attribute keyType="obesity-cube" dataType="number" dataTable="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" title="PercentObese"/>
+            <attribute dataType="number" number=" " name="ID" dataTable="obesity-cube" keyType="obesity-cube" string="&quot;ID&quot; + asString(number)" title="ID"/>
+            <attribute dataType="string" number=" " name="FIPS2" dataTable="obesity-cube" keyType="obesity-cube" string=" " title="FIPS2"/>
+            <attribute dataType="string" number="string.length" name="State" dataTable="obesity-cube" keyType="obesity-cube" string="&quot;# num characters &quot; + asString(number)" title="State"/>
+            <attribute dataType="number" number=" " name="Year" dataTable="obesity-cube" keyType="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" title="Year"/>
+            <attribute dataType="number" dataTable="obesity-cube" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" title="PercentObese"/>
           </category>
           <category name="obesity-cube2" title="obesity-cube2"/>
           <category name="obesity-cube3" title="obesity-cube3"/>
@@ -328,19 +328,19 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="world_borders" title="world_borders"/>
         </category>
         <category name="Geometry Collections" title="Geometry Collections">
-          <attribute keyType="new_world_borders" dataType="geometry" name="new_world_borders" title="new_world_borders"/>
-          <attribute keyType="nhpn" dataType="geometry" name="nhpn" title="nhpn"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="st99_d00" title="st99_d00"/>
-          <attribute keyType="states" dataType="geometry" name="states" title="states"/>
-          <attribute keyType="States2" dataType="geometry" name="States2" title="States2"/>
-          <attribute keyType="states23" dataType="geometry" name="states23" title="states23"/>
-          <attribute keyType="states43" dataType="geometry" name="states43" title="states43"/>
-          <attribute keyType="states5" dataType="geometry" name="states5" title="states5"/>
-          <attribute keyType="states6" dataType="geometry" name="states6" title="states6"/>
-          <attribute keyType="States7" dataType="geometry" name="States7" title="States7"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="States_geom" title="States_geom"/>
-          <attribute keyType="WB2" dataType="geometry" name="WB2" title="WB2"/>
-          <attribute keyType="world_borders" dataType="geometry" name="world_borders" title="world_borders"/>
+          <attribute dataType="geometry" keyType="new_world_borders" name="new_world_borders" title="new_world_borders"/>
+          <attribute dataType="geometry" keyType="nhpn" name="nhpn" title="nhpn"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="st99_d00" title="st99_d00"/>
+          <attribute dataType="geometry" keyType="states" name="states" title="states"/>
+          <attribute dataType="geometry" keyType="States2" name="States2" title="States2"/>
+          <attribute dataType="geometry" keyType="states23" name="states23" title="states23"/>
+          <attribute dataType="geometry" keyType="states43" name="states43" title="states43"/>
+          <attribute dataType="geometry" keyType="states5" name="states5" title="states5"/>
+          <attribute dataType="geometry" keyType="states6" name="states6" title="states6"/>
+          <attribute dataType="geometry" keyType="States7" name="States7" title="States7"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="States_geom" title="States_geom"/>
+          <attribute dataType="geometry" keyType="WB2" name="WB2" title="WB2"/>
+          <attribute dataType="geometry" keyType="world_borders" name="world_borders" title="world_borders"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
@@ -1128,36 +1128,36 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="iris_dataset" title="iris_dataset"/>
           <category name="IrisDataset" title="IrisDataset"/>
           <category name="issue_relations" title="issue_relations">
-            <attribute keyType="Issue Relation ID" dataType="number" dataTable="issue_relations" name="delay" id="165139" title="delay"/>
-            <attribute keyType="Issue Relation ID" dataType="Issue Relation ID" dataTable="issue_relations" name="id" id="165140" title="id"/>
-            <attribute keyType="Issue Relation ID" dataType="Issue ID" dataTable="issue_relations" name="issue_from_id" id="165141" title="issue_from_id"/>
-            <attribute keyType="Issue Relation ID" dataType="Issue ID" dataTable="issue_relations" name="issue_to_id" id="165142" title="issue_to_id"/>
-            <attribute keyType="Issue Relation ID" dataType="string" dataTable="issue_relations" name="relation_type" id="165143" title="relation_type"/>
+            <attribute dataType="number" dataTable="issue_relations" keyType="Issue Relation ID" name="delay" id="165139" title="delay"/>
+            <attribute dataType="Issue Relation ID" dataTable="issue_relations" keyType="Issue Relation ID" name="id" id="165140" title="id"/>
+            <attribute dataType="Issue ID" dataTable="issue_relations" keyType="Issue Relation ID" name="issue_from_id" id="165141" title="issue_from_id"/>
+            <attribute dataType="Issue ID" dataTable="issue_relations" keyType="Issue Relation ID" name="issue_to_id" id="165142" title="issue_to_id"/>
+            <attribute dataType="string" dataTable="issue_relations" keyType="Issue Relation ID" name="relation_type" id="165143" title="relation_type"/>
           </category>
           <category name="Issues" title="Issues">
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="assigned_to_id" id="165167" title="assigned_to_id"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="author_id" id="165168" title="author_id"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="category_id" id="165169" title="category_id"/>
-            <attribute keyType="Issue ID" dataType="string" dataTable="Issues" name="created_on" id="165170" title="created_on"/>
-            <attribute keyType="Issue ID" dataType="string" dataTable="Issues" name="description" id="165171" title="description"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="done_ratio" id="165172" title="done_ratio"/>
-            <attribute keyType="Issue ID" dataType="string" dataTable="Issues" name="due_date" id="165173" title="due_date"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="estimated_hours" id="165174" title="estimated_hours"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="fixed_version_id" id="165175" title="fixed_version_id"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="id" id="165176" title="id"/>
-            <attribute keyType="Issue ID" dataType="string" dataTable="Issues" name="is_private" id="165177" title="is_private"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="lft" id="165178" title="lft"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="lock_version" id="165179" title="lock_version"/>
-            <attribute keyType="Issue ID" dataType="Issue ID" dataTable="Issues" name="parent_id" id="165180" title="parent_id"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="priority_id" id="165181" title="priority_id"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="project_id" id="165182" title="project_id"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="rgt" id="165183" title="rgt"/>
-            <attribute keyType="Issue ID" dataType="Issue ID" dataTable="Issues" name="root_id" id="165184" title="root_id"/>
-            <attribute keyType="Issue ID" dataType="string" dataTable="Issues" name="start_date" id="165185" title="start_date"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="status_id" id="165186" title="status_id"/>
-            <attribute keyType="Issue ID" dataType="string" dataTable="Issues" name="subject" id="165187" title="subject"/>
-            <attribute keyType="Issue ID" dataType="number" dataTable="Issues" name="tracker_id" id="165188" title="tracker_id"/>
-            <attribute keyType="Issue ID" dataType="string" dataTable="Issues" name="updated_on" id="165189" title="updated_on"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="assigned_to_id" id="165167" title="assigned_to_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="author_id" id="165168" title="author_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="category_id" id="165169" title="category_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="created_on" id="165170" title="created_on"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="description" id="165171" title="description"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="done_ratio" id="165172" title="done_ratio"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="due_date" id="165173" title="due_date"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="estimated_hours" id="165174" title="estimated_hours"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="fixed_version_id" id="165175" title="fixed_version_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="id" id="165176" title="id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="is_private" id="165177" title="is_private"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="lft" id="165178" title="lft"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="lock_version" id="165179" title="lock_version"/>
+            <attribute dataType="Issue ID" dataTable="Issues" keyType="Issue ID" name="parent_id" id="165180" title="parent_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="priority_id" id="165181" title="priority_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="project_id" id="165182" title="project_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="rgt" id="165183" title="rgt"/>
+            <attribute dataType="Issue ID" dataTable="Issues" keyType="Issue ID" name="root_id" id="165184" title="root_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="start_date" id="165185" title="start_date"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="status_id" id="165186" title="status_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="subject" id="165187" title="subject"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="tracker_id" id="165188" title="tracker_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="updated_on" id="165189" title="updated_on"/>
           </category>
           <category name="Jiayan_All_Construction_emp_4_30_2011" title="Jiayan_All_Construction_emp_4_30_2011"/>
           <category name="Jiayan_Construction_emp_4_30_2011" title="Jiayan_Construction_emp_4_30_2011"/>
@@ -2132,715 +2132,385 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="ZillowNeighborhoods" title="ZillowNeighborhoods"/>
         </category>
         <category name="Geometry Collections" title="Geometry Collections">
-          <attribute keyType="" dataType="geometry" name="11_4_reprojected" title="11_4_reprojected"/>
-          <attribute keyType="11_4_reprojected_geometry" dataType="geometry" name="11_4_reprojected_geometry" title="11_4_reprojected_geometry"/>
-          <attribute keyType="agm_35_outline" dataType="geometry" name="agm_35_outline" title="agm_35_outline"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="agm_cousub_35" title="agm_cousub_35"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="agm_cousub_merrimackvalley" title="agm_cousub_merrimackvalley"/>
-          <attribute keyType="agm_cousub_merrimackvalley_outline" dataType="geometry" name="agm_cousub_merrimackvalley_outline" title="agm_cousub_merrimackvalley_outline"/>
-          <attribute keyType="AGM_grantmakers" dataType="geometry" name="AGM_grantmakers" title="AGM_grantmakers"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="agm_masstowns_5towns" title="agm_masstowns_5towns"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="agm_masstowns_greaterlowell" title="agm_masstowns_greaterlowell"/>
-          <attribute keyType="agm_masstowns_greaterlowell_outline" dataType="geometry" name="agm_masstowns_greaterlowell_outline" title="agm_masstowns_greaterlowell_outline"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="agm_masstowns_merrimackvalley" title="agm_masstowns_merrimackvalley"/>
-          <attribute keyType="agm_cousub_merrimackvalley_outline" dataType="geometry" name="agm_masstowns_merrimackvalley_outline" title="agm_masstowns_merrimackvalley_outline"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="agm_prof_acs_5towns" title="agm_prof_acs_5towns"/>
-          <attribute keyType="agm_recipient_grantamounts" dataType="geometry" name="agm_recipient_grantamounts" title="agm_recipient_grantamounts"/>
-          <attribute keyType="agm_recipients" dataType="geometry" name="agm_recipients" title="agm_recipients"/>
-          <attribute keyType="arra_mass_points201004" dataType="geometry" name="arra_mass_points201004" title="arra_mass_points201004"/>
-          <attribute keyType="" dataType="geometry" name="arra_point" title="arra_point"/>
-          <attribute keyType="" dataType="geometry" name="arra_point" title="arra_point"/>
-          <attribute keyType="" dataType="geometry" name="Arrests_Nashua" title="Arrests_Nashua"/>
-          <attribute keyType="Atlanta Superdistrict ID" dataType="geometry" name="Atlanta Superdistricts" title="Atlanta Superdistricts"/>
-          <attribute keyType="Atlanta Superdistrict ID" dataType="geometry" name="Atlanta Superdistricts11" title="Atlanta Superdistricts11"/>
-          <attribute keyType="Atlanta Transportation Analysis Zone ID" dataType="geometry" name="Atlanta Transportation Analysis Zones" title="Atlanta Transportation Analysis Zones"/>
-          <attribute keyType="Atlanta_CLCC_GDCH" dataType="geometry" name="Atlanta_CLCC_GDCH" title="Atlanta_CLCC_GDCH"/>
-          <attribute keyType="Atlanta_ES_4th_CRCT_Reading" dataType="geometry" name="Atlanta_ES_4th_CRCT_Reading" title="Atlanta_ES_4th_CRCT_Reading"/>
-          <attribute keyType="Atlanta_Head_Start" dataType="geometry" name="Atlanta_Head_Start" title="Atlanta_Head_Start"/>
-          <attribute keyType="Atlanta_LowPerfSchools" dataType="geometry" name="Atlanta_LowPerfSchools" title="Atlanta_LowPerfSchools"/>
-          <attribute keyType="Atlanta_MSA_Counties" dataType="geometry" name="Atlanta_MSA_Counties" title="Atlanta_MSA_Counties"/>
-          <attribute keyType="Atlanta_MSA_Interstates" dataType="geometry" name="Atlanta_MSA_Interstates" title="Atlanta_MSA_Interstates"/>
-          <attribute keyType="Atlanta_MSA_Places" dataType="geometry" name="Atlanta_MSA_Places" title="Atlanta_MSA_Places"/>
-          <attribute keyType="Atlanta_NPUs" dataType="geometry" name="Atlanta_NPUs" title="Atlanta_NPUs"/>
-          <attribute keyType="Atlanta_Pre-K" dataType="geometry" name="Atlanta_Pre-K" title="Atlanta_Pre-K"/>
-          <attribute keyType="Atlanta_Vuln3_5" dataType="geometry" name="Atlanta_Vuln3_5" title="Atlanta_Vuln3_5"/>
-          <attribute keyType="Atlanta_Vuln3Plus" dataType="geometry" name="Atlanta_Vuln3Plus" title="Atlanta_Vuln3Plus"/>
-          <attribute keyType="Atlanta_Vuln6_10" dataType="geometry" name="Atlanta_Vuln6_10" title="Atlanta_Vuln6_10"/>
-          <attribute keyType="BCFutureLandUse_2009" dataType="geometry" name="BCFutureLandUse_2009" title="BCFutureLandUse_2009"/>
-          <attribute keyType="bike trails" dataType="geometry" name="bike trails" title="bike trails"/>
-          <attribute keyType="bikeped_facilities" dataType="geometry" name="bikeped_facilities" title="bikeped_facilities"/>
-          <attribute keyType="Boston Parcel ID" dataType="geometry" name="Boston 2005 Parcels" title="Boston 2005 Parcels"/>
-          <attribute keyType="Boston Parcel ID" dataType="geometry" name="Boston 2005 Parcels Subset" title="Boston 2005 Parcels Subset"/>
-          <attribute keyType="Boston Parcels" dataType="geometry" name="Boston Parcels" title="Boston Parcels"/>
-          <attribute keyType="" dataType="geometry" name="boston_foreclosure_deeds" title="boston_foreclosure_deeds"/>
-          <attribute keyType="Boston_Hositals" dataType="geometry" name="Boston_Hositals" title="Boston_Hositals"/>
-          <attribute keyType="Boston_Hositals" dataType="geometry" name="Boston_Hositals111" title="Boston_Hositals111"/>
-          <attribute keyType="Boston_Neighborhoods" dataType="geometry" name="Boston_Neighborhoods" title="Boston_Neighborhoods"/>
-          <attribute keyType="boston_roads" dataType="geometry" name="boston_roads" title="boston_roads"/>
-          <attribute keyType="Boston_zips" dataType="geometry" name="Boston_zips" title="Boston_zips"/>
-          <attribute keyType="carcinogen" dataType="geometry" name="carcinogen" title="carcinogen"/>
-          <attribute keyType="CATCHMENTS_poly_region" dataType="geometry" name="CATCHMENTS_poly_region" title="CATCHMENTS_poly_region"/>
-          <attribute keyType="CBSA2003" dataType="geometry" name="CBSA2003" title="CBSA2003"/>
-          <attribute keyType="CBSAs" dataType="geometry" name="CBSAs" title="CBSAs"/>
-          <attribute keyType="cd99_110" dataType="geometry" name="cd99_110" title="cd99_110"/>
-          <attribute keyType="cd_110thCongress" dataType="geometry" name="cd_110thCongress" title="cd_110thCongress"/>
-          <attribute keyType="Census Trats MA 2010" dataType="geometry" name="Census Trats MA 2010" title="Census Trats MA 2010"/>
-          <attribute keyType="" dataType="geometry" name="census2000blockgroups_poly_orig" title="census2000blockgroups_poly_orig"/>
-          <attribute keyType="ICMB_ct" dataType="geometry" name="census2000tracts_ICC_Towns" title="census2000tracts_ICC_Towns"/>
-          <attribute keyType="CBSA2003" dataType="geometry" name="census_msad" title="census_msad"/>
-          <attribute keyType="CHCS_PT" dataType="geometry" name="CHCS_PT" title="CHCS_PT"/>
-          <attribute keyType="" dataType="geometry" name="chic_counties" title="chic_counties"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="Chicago Census Tracts" title="Chicago Census Tracts"/>
-          <attribute keyType="Chicago Municipal Codes" dataType="geometry" name="chicago_arra_munis" title="chicago_arra_munis"/>
-          <attribute keyType="" dataType="geometry" name="chicago_arra_point" title="chicago_arra_point"/>
-          <attribute keyType="" dataType="geometry" name="Chicago_Muni_ARRA" title="Chicago_Muni_ARRA"/>
-          <attribute keyType="" dataType="geometry" name="chicpoint2" title="chicpoint2"/>
-          <attribute keyType="" dataType="geometry" name="chicpoint2111" title="chicpoint2111"/>
-          <attribute keyType="" dataType="geometry" name="chicpoint3" title="chicpoint3"/>
-          <attribute keyType="CHN_adm1" dataType="geometry" name="CHN_adm1" title="CHN_adm1"/>
-          <attribute keyType="CHN_adm2" dataType="geometry" name="CHN_adm2" title="CHN_adm2"/>
-          <attribute keyType="CHN_adm3" dataType="geometry" name="CHN_adm3" title="CHN_adm3"/>
-          <attribute keyType="CityofAtlanta" dataType="geometry" name="CityofAtlanta" title="CityofAtlanta"/>
-          <attribute keyType="Community_ED EEC" dataType="geometry" name="Community_ED EEC" title="Community_ED EEC"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="connecticut_usproj" title="connecticut_usproj"/>
-          <attribute keyType="US County FIPS Code" dataType="geometry" name="Counties" title="Counties"/>
-          <attribute keyType="Countries" dataType="geometry" name="Countries" title="Countries"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="County Subdivisions" title="County Subdivisions"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="ct_lowell" title="ct_lowell"/>
-          <attribute keyType="DEGREES BY INSTITUTION " dataType="geometry" name="DEGREES BY INSTITUTION " title="DEGREES BY INSTITUTION "/>
-          <attribute keyType="DEMO_Shape" dataType="geometry" name="DEMO_Shape" title="DEMO_Shape"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="dhe_states" title="dhe_states"/>
-          <attribute keyType="eec2" dataType="geometry" name="eec2" title="eec2"/>
-          <attribute keyType="eec_artificial_child" dataType="geometry" name="eec_artificial_child" title="eec_artificial_child"/>
-          <attribute keyType="eec_comprehensive_family" dataType="geometry" name="eec_comprehensive_family" title="eec_comprehensive_family"/>
-          <attribute keyType="eec_familyservices_reproj" dataType="geometry" name="eec_familyservices_reproj" title="eec_familyservices_reproj"/>
-          <attribute keyType="eec_lowellschools_reproj" dataType="geometry" name="eec_lowellschools_reproj" title="eec_lowellschools_reproj"/>
-          <attribute keyType="eec_prek_pregnant_reproj" dataType="geometry" name="eec_prek_pregnant_reproj" title="eec_prek_pregnant_reproj"/>
-          <attribute keyType="eec_prekpregnant_reproj" dataType="geometry" name="eec_prekpregnant_reproj" title="eec_prekpregnant_reproj"/>
-          <attribute keyType="EEC_Providers" dataType="geometry" name="EEC_Providers" title="EEC_Providers"/>
-          <attribute keyType="eec_regcnt_MA_ElemSchoolDistricts" dataType="geometry" name="eec_regcnt_MA_ElemSchoolDistricts" title="eec_regcnt_MA_ElemSchoolDistricts"/>
-          <attribute keyType="eec_registrants_ma" dataType="geometry" name="eec_registrants_ma" title="eec_registrants_ma"/>
-          <attribute keyType="eec_SchAged_TeenParents" dataType="geometry" name="eec_SchAged_TeenParents" title="eec_SchAged_TeenParents"/>
-          <attribute keyType="eec_schoolagedchildren_reproj" dataType="geometry" name="eec_schoolagedchildren_reproj" title="eec_schoolagedchildren_reproj"/>
-          <attribute keyType="eec_test1" dataType="geometry" name="eec_test1" title="eec_test1"/>
-          <attribute keyType="eec_test2" dataType="geometry" name="eec_test2" title="eec_test2"/>
-          <attribute keyType="eec_zooaq" dataType="geometry" name="eec_zooaq" title="eec_zooaq"/>
-          <attribute keyType="elie_turi_nickel_1990-2008" dataType="geometry" name="elie_turi_nickel_1990-2008" title="elie_turi_nickel_1990-2008"/>
-          <attribute keyType="CATCHMENTS_poly_region" dataType="geometry" name="emassnh_catchments" title="emassnh_catchments"/>
-          <attribute keyType="EPA_emissions_CO2_1995-2010" dataType="geometry" name="EPA_emissions_CO2_1995-2010" title="EPA_emissions_CO2_1995-2010"/>
-          <attribute keyType="Exempt" dataType="geometry" name="Exempt" title="Exempt"/>
-          <attribute keyType="FamilyServices" dataType="geometry" name="FamilyServices" title="FamilyServices"/>
-          <attribute keyType="FCHC" dataType="geometry" name="FCHC" title="FCHC"/>
-          <attribute keyType="fd_2005" dataType="geometry" name="fd_2005" title="fd_2005"/>
-          <attribute keyType="fd_2006" dataType="geometry" name="fd_2006" title="fd_2006"/>
-          <attribute keyType="fd_2007" dataType="geometry" name="fd_2007" title="fd_2007"/>
-          <attribute keyType="fd_2008" dataType="geometry" name="fd_2008" title="fd_2008"/>
-          <attribute keyType="fd_2009" dataType="geometry" name="fd_2009" title="fd_2009"/>
-          <attribute keyType="fd_2010" dataType="geometry" name="fd_2010" title="fd_2010"/>
-          <attribute keyType="" dataType="geometry" name="FD_points_Lowell_new1" title="FD_points_Lowell_new1"/>
-          <attribute keyType="Rhode Island School District" dataType="geometry" name="fe_2007_44_elsd" title="fe_2007_44_elsd"/>
-          <attribute keyType="Rhode Island School District" dataType="geometry" name="fe_2007_44_unsd" title="fe_2007_44_unsd"/>
-          <attribute keyType="firms" dataType="geometry" name="firms" title="firms"/>
-          <attribute keyType="" dataType="geometry" name="FullPoints_Final" title="FullPoints_Final"/>
-          <attribute keyType="" dataType="geometry" name="FullPoints_Lowell" title="FullPoints_Lowell"/>
-          <attribute keyType="" dataType="geometry" name="fullpoints_lowell_reprojected" title="fullpoints_lowell_reprojected"/>
-          <attribute keyType="GHA_boundaries" dataType="geometry" name="GHA_boundaries" title="GHA_boundaries"/>
-          <attribute keyType="GHA_outline" dataType="geometry" name="GHA_outline" title="GHA_outline"/>
-          <attribute keyType="hb_states" dataType="geometry" name="hb_states" title="hb_states"/>
-          <attribute keyType="hbstates" dataType="geometry" name="hbstates" title="hbstates"/>
-          <attribute keyType="HeadStart" dataType="geometry" name="HeadStart" title="HeadStart"/>
-          <attribute keyType="" dataType="geometry" name="higher_ed_ma" title="higher_ed_ma"/>
-          <attribute keyType="higher_ed_ma_x" dataType="geometry" name="higher_ed_ma_x" title="higher_ed_ma_x"/>
-          <attribute keyType="HigherEd Institutions - Crime" dataType="geometry" name="HigherEd Institutions - Crime" title="HigherEd Institutions - Crime"/>
-          <attribute keyType="" dataType="geometry" name="hwt_point" title="hwt_point"/>
-          <attribute keyType="ICMB_ct" dataType="geometry" name="ICMB_ct" title="ICMB_ct"/>
-          <attribute keyType="IPEDS(For)2009" dataType="geometry" name="IPEDS(For)2009" title="IPEDS(For)2009"/>
-          <attribute keyType="IPEDS(Non)2009" dataType="geometry" name="IPEDS(Non)2009" title="IPEDS(Non)2009"/>
-          <attribute keyType="IPEDS(Public)2009" dataType="geometry" name="IPEDS(Public)2009" title="IPEDS(Public)2009"/>
-          <attribute keyType="ipeds_institutions2010" dataType="geometry" name="ipeds_2010_institutions" title="ipeds_2010_institutions"/>
-          <attribute keyType="" dataType="geometry" name="ireland_counties" title="ireland_counties"/>
-          <attribute keyType="" dataType="geometry" name="ireland_latlongpoints" title="ireland_latlongpoints"/>
-          <attribute keyType="" dataType="geometry" name="ireland_latlongpoints_v3" title="ireland_latlongpoints_v3"/>
-          <attribute keyType="" dataType="geometry" name="ireland_latlongpoints_v4" title="ireland_latlongpoints_v4"/>
-          <attribute keyType="" dataType="geometry" name="ireland_latlongpoints_v5" title="ireland_latlongpoints_v5"/>
-          <attribute keyType="" dataType="geometry" name="ireland_municipal_combined" title="ireland_municipal_combined"/>
-          <attribute keyType="" dataType="geometry" name="ireland_nation" title="ireland_nation"/>
-          <attribute keyType="" dataType="geometry" name="ireland_regions" title="ireland_regions"/>
-          <attribute keyType="" dataType="geometry" name="Lawrence Parcel" title="Lawrence Parcel"/>
-          <attribute keyType="" dataType="geometry" name="lawrence_home buyers active" title="lawrence_home buyers active"/>
-          <attribute keyType="" dataType="geometry" name="LCW Home purchase" title="LCW Home purchase"/>
-          <attribute keyType="LGSAC" dataType="geometry" name="LGSAC" title="LGSAC"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="lowell_ct_w_neigh" title="lowell_ct_w_neigh"/>
-          <attribute keyType="lowell_nccs_3" dataType="geometry" name="lowell_nccs_3" title="lowell_nccs_3"/>
-          <attribute keyType="Neighborhood" dataType="geometry" name="lowell_neighborhoods_reprojected" title="lowell_neighborhoods_reprojected"/>
-          <attribute keyType="" dataType="geometry" name="Lowell_Parcels" title="Lowell_Parcels"/>
-          <attribute keyType="lowell_registrants" dataType="geometry" name="lowell_registrants" title="lowell_registrants"/>
-          <attribute keyType="" dataType="geometry" name="LowellFD_2009_Final" title="LowellFD_2009_Final"/>
-          <attribute keyType="lowelltracts_w_eec_registrant_count" dataType="geometry" name="lowelltracts_w_eec_registrant_count" title="lowelltracts_w_eec_registrant_count"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="MA Census Tract" title="MA Census Tract"/>
-          <attribute keyType="US Census Tract 6-digit ID" dataType="geometry" name="MA Census Tract 6-digit" title="MA Census Tract 6-digit"/>
-          <attribute keyType="MA PRISONS" dataType="geometry" name="MA PRISONS" title="MA PRISONS"/>
-          <attribute keyType="org code" dataType="geometry" name="MA SCHOOLS" title="MA SCHOOLS"/>
-          <attribute keyType="MA Train lines" dataType="geometry" name="MA Train lines" title="MA Train lines"/>
-          <attribute keyType="" dataType="geometry" name="ma_childcare_2009_sample_points" title="ma_childcare_2009_sample_points"/>
-          <attribute keyType="" dataType="geometry" name="MA_COC" title="MA_COC"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="ma_cousub_noocean" title="ma_cousub_noocean"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="ma_ct2010_usproj" title="ma_ct2010_usproj"/>
-          <attribute keyType="MA_EEC_Registrants" dataType="geometry" name="MA_EEC_Registrants" title="MA_EEC_Registrants"/>
-          <attribute keyType="MA_Major_Streams_Lines" dataType="geometry" name="MA_Major_Streams_Lines" title="MA_Major_Streams_Lines"/>
-          <attribute keyType="org code" dataType="geometry" name="ma_SCHOOLS_PT" title="ma_SCHOOLS_PT"/>
-          <attribute keyType="Atlanta Superdistrict ID" dataType="geometry" name="ma_shapes_delete" title="ma_shapes_delete"/>
-          <attribute keyType="ma_town_region3" dataType="geometry" name="ma_town_region3" title="ma_town_region3"/>
-          <attribute keyType="MA_Towns_MultiPoly_TOWN" dataType="geometry" name="MA_Towns_MultiPoly_TOWN" title="MA_Towns_MultiPoly_TOWN"/>
-          <attribute keyType="ma_tract_w_eec_regcnt_and_town" dataType="geometry" name="ma_tract_w_eec_regcnt_and_town" title="ma_tract_w_eec_regcnt_and_town"/>
-          <attribute keyType="ma_tracts_w_eec_regcnt" dataType="geometry" name="ma_tracts_w_eec_regcnt" title="ma_tracts_w_eec_regcnt"/>
-          <attribute keyType="" dataType="geometry" name="MA_ZCTA" title="MA_ZCTA"/>
-          <attribute keyType="MA_ZipCodes_Poly" dataType="geometry" name="MA_ZipCodes_Poly" title="MA_ZipCodes_Poly"/>
-          <attribute keyType="MAPC_Municipalities" dataType="geometry" name="MAPC_Municipalities" title="MAPC_Municipalities"/>
-          <attribute keyType="Mars_bkg" dataType="geometry" name="Mars_bkg" title="Mars_bkg"/>
-          <attribute keyType="Mars_Points" dataType="geometry" name="Mars_Points" title="Mars_Points"/>
-          <attribute keyType="ICMB_ct" dataType="geometry" name="mass towns" title="mass towns"/>
-          <attribute keyType="mass_benchmarks" dataType="geometry" name="mass_benchmarks" title="mass_benchmarks"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="mass_cousub2010_massproj" title="mass_cousub2010_massproj"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="mass_proj_agm_35_plus" title="mass_proj_agm_35_plus"/>
-          <attribute keyType="mass_proj_agm_35v2" dataType="geometry" name="mass_proj_agm_35v2" title="mass_proj_agm_35v2"/>
-          <attribute keyType="ICMB_ct" dataType="geometry" name="mass_towns" title="mass_towns"/>
-          <attribute keyType="Massachusetts Town ID" dataType="geometry" name="Massachusetts Towns" title="Massachusetts Towns"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="Massachusetts Towns Unprojected" title="Massachusetts Towns Unprojected"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="massachusetts_usproj" title="massachusetts_usproj"/>
-          <attribute keyType="Point_ID" dataType="geometry" name="MassARRA" title="MassARRA"/>
-          <attribute keyType="MassARRALowellOnly" dataType="geometry" name="MassARRALowellOnly" title="MassARRALowellOnly"/>
-          <attribute keyType="MassARRApoint" dataType="geometry" name="MassARRApoint" title="MassARRApoint"/>
-          <attribute keyType="MassARRAPoint" dataType="geometry" name="MassARRAPoint" title="MassARRAPoint"/>
-          <attribute keyType="Atlanta Superdistrict ID" dataType="geometry" name="MassARRAVer6" title="MassARRAVer6"/>
-          <attribute keyType="masstowns_w_eec_registrant_count" dataType="geometry" name="masstowns_w_eec_registrant_count" title="masstowns_w_eec_registrant_count"/>
-          <attribute keyType="MBTA BUS ROUTES" dataType="geometry" name="MBTA BUS ROUTES" title="MBTA BUS ROUTES"/>
-          <attribute keyType="MBTA BUS Stops" dataType="geometry" name="MBTA BUS Stops" title="MBTA BUS Stops"/>
-          <attribute keyType="MBTA_ARC" dataType="geometry" name="MBTA_ARC" title="MBTA_ARC"/>
-          <attribute keyType="MBTA_NODE" dataType="geometry" name="MBTA_NODE" title="MBTA_NODE"/>
-          <attribute keyType="MBTABUSROUTES_ARC" dataType="geometry" name="MBTABUSROUTES_ARC" title="MBTABUSROUTES_ARC"/>
-          <attribute keyType="MBTABUSSTOPS_PT" dataType="geometry" name="MBTABUSSTOPS_PT" title="MBTABUSSTOPS_PT"/>
-          <attribute keyType="Merged Turi" dataType="geometry" name="Merged Turi" title="Merged Turi"/>
-          <attribute keyType="MetroBoston_Schools" dataType="geometry" name="MetroBoston_Schools" title="MetroBoston_Schools"/>
-          <attribute keyType="Metropolitan Division" dataType="geometry" name="Metropolitan Division" title="Metropolitan Division"/>
-          <attribute keyType="MEX" dataType="geometry" name="MEX" title="MEX"/>
-          <attribute keyType="MFI Ben" dataType="geometry" name="MFI Ben" title="MFI Ben"/>
-          <attribute keyType="MFI_GH" dataType="geometry" name="MFI_GH" title="MFI_GH"/>
-          <attribute keyType="MFI_GH1" dataType="geometry" name="MFI_GH1" title="MFI_GH1"/>
-          <attribute keyType="MFI_Points_2007" dataType="geometry" name="MFI_Points_2007" title="MFI_Points_2007"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="minnesota_usproj" title="minnesota_usproj"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="missouri_usproj" title="missouri_usproj"/>
-          <attribute keyType="Atlanta_MSA_Tracts" dataType="geometry" name="MSA_Tracts" title="MSA_Tracts"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="mv_ct_concentrate" title="mv_ct_concentrate"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="mv_ct_concentrate_massproj" title="mv_ct_concentrate_massproj"/>
-          <attribute keyType="mvhp" dataType="geometry" name="mvhp" title="mvhp"/>
-          <attribute keyType="mvhp_reprojected_v2" dataType="geometry" name="mvhp_reprojected_v2" title="mvhp_reprojected_v2"/>
-          <attribute keyType="mys1" dataType="geometry" name="mys1" title="mys1"/>
-          <attribute keyType="mys2" dataType="geometry" name="mys2" title="mys2"/>
-          <attribute keyType="mys4" dataType="geometry" name="mys4" title="mys4"/>
-          <attribute keyType="" dataType="geometry" name="Nashua_Tract" title="Nashua_Tract"/>
-          <attribute keyType="NCCS_Lowell" dataType="geometry" name="NCCS_Lowell" title="NCCS_Lowell"/>
-          <attribute keyType="nccs_ma_reprojected" dataType="geometry" name="nccs_ma_reprojected" title="nccs_ma_reprojected"/>
-          <attribute keyType="nccs_shape2" dataType="geometry" name="nccs_shape2" title="nccs_shape2"/>
-          <attribute keyType="nccs_shape_CT" dataType="geometry" name="nccs_shape_CT" title="nccs_shape_CT"/>
-          <attribute keyType="nccs_shape_LA" dataType="geometry" name="nccs_shape_LA" title="nccs_shape_LA"/>
-          <attribute keyType="nccs_shape_LA_FIPS22051" dataType="geometry" name="nccs_shape_LA_FIPS22051" title="nccs_shape_LA_FIPS22051"/>
-          <attribute keyType="nccs_shape_MA" dataType="geometry" name="nccs_shape_MA" title="nccs_shape_MA"/>
-          <attribute keyType="nccs_shape2" dataType="geometry" name="nccs_shape_MACT" title="nccs_shape_MACT"/>
-          <attribute keyType="ne_cd99_110" dataType="geometry" name="ne_cd99_110" title="ne_cd99_110"/>
-          <attribute keyType="ne_lldistricts" dataType="geometry" name="ne_lldistricts" title="ne_lldistricts"/>
-          <attribute keyType="ne_lsdistricts" dataType="geometry" name="ne_lsdistricts" title="ne_lsdistricts"/>
-          <attribute keyType="ne_streams" dataType="geometry" name="ne_streams" title="ne_streams"/>
-          <attribute keyType="nehucs10" dataType="geometry" name="nehucs10" title="nehucs10"/>
-          <attribute keyType="new_england_subbasins" dataType="geometry" name="new_england_subbasins" title="new_england_subbasins"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="NewEngland_Cousub" title="NewEngland_Cousub"/>
-          <attribute keyType="newengland_subbasins_v2" dataType="geometry" name="newengland_subbasins_v2" title="newengland_subbasins_v2"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="newhampshire_usproj" title="newhampshire_usproj"/>
-          <attribute keyType="US County Subdivision FIPS Code" dataType="geometry" name="nh_town_reproj" title="nh_town_reproj"/>
-          <attribute keyType="nhpn" dataType="geometry" name="nhpn" title="nhpn"/>
-          <attribute keyType="nhpn1" dataType="geometry" name="nhpn1" title="nhpn1"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="northcarolina_usproj" title="northcarolina_usproj"/>
-          <attribute keyType="NREL_NewEnglandShapeWGS84" dataType="geometry" name="NREL_NewEnglandShapeWGS84" title="NREL_NewEnglandShapeWGS84"/>
-          <attribute keyType="nuclear-facilities-update" dataType="geometry" name="nuclear-facilities-update" title="nuclear-facilities-update"/>
-          <attribute keyType="nuclear_seismic-hazard" dataType="geometry" name="nuclear_seismic-hazard" title="nuclear_seismic-hazard"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="nuclear_states" title="nuclear_states"/>
-          <attribute keyType="nuclear_us_earthquakes" dataType="geometry" name="nuclear_us_earthquakes" title="nuclear_us_earthquakes"/>
-          <attribute keyType="od_2005" dataType="geometry" name="od_2005" title="od_2005"/>
-          <attribute keyType="od_2006_reprojected" dataType="geometry" name="od_2006_reprojected" title="od_2006_reprojected"/>
-          <attribute keyType="od_2007" dataType="geometry" name="od_2007" title="od_2007"/>
-          <attribute keyType="od_2008" dataType="geometry" name="od_2008" title="od_2008"/>
-          <attribute keyType="od_2009" dataType="geometry" name="od_2009" title="od_2009"/>
-          <attribute keyType="od_2010" dataType="geometry" name="od_2010" title="od_2010"/>
-          <attribute keyType="Ohio FIPS codes" dataType="geometry" name="Ohio County Subdivisions" title="Ohio County Subdivisions"/>
-          <attribute keyType="Ohio FIPS codes" dataType="geometry" name="Ohio Places" title="Ohio Places"/>
-          <attribute keyType="ON no FD 2005" dataType="geometry" name="ON no FD 2005" title="ON no FD 2005"/>
-          <attribute keyType="on no fd 2006_reprojected" dataType="geometry" name="on no fd 2006_reprojected" title="on no fd 2006_reprojected"/>
-          <attribute keyType="on no fd 2007_reprojected" dataType="geometry" name="on no fd 2007_reprojected" title="on no fd 2007_reprojected"/>
-          <attribute keyType="on no fd 2008_reprojected" dataType="geometry" name="on no fd 2008_reprojected" title="on no fd 2008_reprojected"/>
-          <attribute keyType="on no fd 2009_reprojected" dataType="geometry" name="on no fd 2009_reprojected" title="on no fd 2009_reprojected"/>
-          <attribute keyType="on no fd 2010_reprojected" dataType="geometry" name="on no fd 2010_reprojected" title="on no fd 2010_reprojected"/>
-          <attribute keyType="on no fd_2005" dataType="geometry" name="on no fd_2005" title="on no fd_2005"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="oregon_usproj" title="oregon_usproj"/>
-          <attribute keyType="perc" dataType="geometry" name="perc" title="perc"/>
-          <attribute keyType="Plants" dataType="geometry" name="Plants" title="Plants"/>
-          <attribute keyType="pma_us96" dataType="geometry" name="pma_us96" title="pma_us96"/>
-          <attribute keyType="pma_us96_pmsa" dataType="geometry" name="pma_us96_pmsa" title="pma_us96_pmsa"/>
-          <attribute keyType="PreK" dataType="geometry" name="PreK" title="PreK"/>
-          <attribute keyType="PreK2" dataType="geometry" name="PreK2" title="PreK2"/>
-          <attribute keyType="Prek3" dataType="geometry" name="Prek3" title="Prek3"/>
-          <attribute keyType="Prek4" dataType="geometry" name="Prek4" title="Prek4"/>
-          <attribute keyType="PreK6" dataType="geometry" name="PreK6" title="PreK6"/>
-          <attribute keyType="PreKPregnant" dataType="geometry" name="PreKPregnant" title="PreKPregnant"/>
-          <attribute keyType="PrekPregnant2" dataType="geometry" name="PrekPregnant2" title="PrekPregnant2"/>
-          <attribute keyType="PreKPregnant3" dataType="geometry" name="PreKPregnant3" title="PreKPregnant3"/>
-          <attribute keyType="private_IPEDS" dataType="geometry" name="private_IPEDS" title="private_IPEDS"/>
-          <attribute keyType="Public Libraries MA" dataType="geometry" name="Public Libraries MA" title="Public Libraries MA"/>
-          <attribute keyType="Public School Pre K" dataType="geometry" name="Public School Pre K" title="Public School Pre K"/>
-          <attribute keyType="railways" dataType="geometry" name="railways" title="railways"/>
-          <attribute keyType="Registrants_US1" dataType="geometry" name="Registrants_US1" title="Registrants_US1"/>
-          <attribute keyType="registrants_us1" dataType="geometry" name="registrants_us1" title="registrants_us1"/>
-          <attribute keyType="RGGI" dataType="geometry" name="RGGI" title="RGGI"/>
-          <attribute keyType="RGGI_GDMReport" dataType="geometry" name="RGGI2" title="RGGI2"/>
-          <attribute keyType="rggi_2010_month_test" dataType="geometry" name="rggi_2010_month_test" title="rggi_2010_month_test"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="rhodeisland_usproj" title="rhodeisland_usproj"/>
-          <attribute keyType="ri_bg" dataType="geometry" name="ri_bg" title="ri_bg"/>
-          <attribute keyType="" dataType="geometry" name="ri_schools08_projected" title="ri_schools08_projected"/>
-          <attribute keyType="roads" dataType="geometry" name="roads" title="roads"/>
-          <attribute keyType="Rwanda_Districts" dataType="geometry" name="Rwanda_Districts" title="Rwanda_Districts"/>
-          <attribute keyType="Rwanda_Provinces" dataType="geometry" name="Rwanda_Provinces" title="Rwanda_Provinces"/>
-          <attribute keyType="SchoolAged" dataType="geometry" name="SchoolAged" title="SchoolAged"/>
-          <attribute keyType="schooldis_elem_POLY" dataType="geometry" name="schooldis_elem_POLY" title="schooldis_elem_POLY"/>
-          <attribute keyType="schooldishigh_POLY_ma" dataType="geometry" name="schooldishigh_POLY_ma" title="schooldishigh_POLY_ma"/>
-          <attribute keyType="schooldist_elem_ma" dataType="geometry" name="schooldist_elem_ma" title="schooldist_elem_ma"/>
-          <attribute keyType="schooldist_elem_maPOLY" dataType="geometry" name="schooldist_elem_maPOLY" title="schooldist_elem_maPOLY"/>
-          <attribute keyType="SCHOOLDISTELEM_POLY" dataType="geometry" name="SCHOOLDISTELEM_POLY" title="SCHOOLDISTELEM_POLY"/>
-          <attribute keyType="SCHOOLDISTHIGH_POLY" dataType="geometry" name="SCHOOLDISTHIGH_POLY" title="SCHOOLDISTHIGH_POLY"/>
-          <attribute keyType="seattle_elem_schools" dataType="geometry" name="seattle_elem_schools" title="seattle_elem_schools"/>
-          <attribute keyType="seattle_high_mid_alt_schools" dataType="geometry" name="seattle_high_mid_alt_schools" title="seattle_high_mid_alt_schools"/>
-          <attribute keyType="US Census Tract ID" dataType="geometry" name="seattletracts" title="seattletracts"/>
-          <attribute keyType="seattletracts_byname" dataType="geometry" name="seattletracts_byname" title="seattletracts_byname"/>
-          <attribute keyType="shapes_demo" dataType="geometry" name="shapes_demo" title="shapes_demo"/>
-          <attribute keyType="Soil Waste MA" dataType="geometry" name="Soil Waste MA" title="Soil Waste MA"/>
-          <attribute keyType="st99_d00" dataType="geometry" name="st99_d00" title="st99_d00"/>
-          <attribute keyType="st99_d001" dataType="geometry" name="st99_d001" title="st99_d001"/>
-          <attribute keyType="st99_d00123" dataType="geometry" name="st99_d00123" title="st99_d00123"/>
-          <attribute keyType="st99_d001234" dataType="geometry" name="st99_d001234" title="st99_d001234"/>
-          <attribute keyType="st99_d002" dataType="geometry" name="st99_d002" title="st99_d002"/>
-          <attribute keyType="st99_d003" dataType="geometry" name="st99_d003" title="st99_d003"/>
-          <attribute keyType="st99_d0034" dataType="geometry" name="st99_d0034" title="st99_d0034"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="State" title="State"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="States" title="States"/>
-          <attribute keyType="StatesforNREL" dataType="geometry" name="StatesforNREL" title="StatesforNREL"/>
-          <attribute keyType="STEM BY INSTITUTION" dataType="geometry" name="STEM BY INSTITUTION" title="STEM BY INSTITUTION"/>
-          <attribute keyType="Styrene" dataType="geometry" name="Styrene" title="Styrene"/>
-          <attribute keyType="Success_Boston_Student_Cohorts" dataType="geometry" name="Success_Boston_Student_Cohorts" title="Success_Boston_Student_Cohorts"/>
-          <attribute keyType="sulfuricacid" dataType="geometry" name="sulfuricacid" title="sulfuricacid"/>
-          <attribute keyType="ta tatata" dataType="geometry" name="ta tatata" title="ta tatata"/>
-          <attribute keyType="temp" dataType="geometry" name="temp" title="temp"/>
-          <attribute keyType="test" dataType="geometry" name="test" title="test"/>
-          <attribute keyType="TEST" dataType="geometry" name="TEST" title="TEST"/>
-          <attribute keyType="test_nccs" dataType="geometry" name="test_nccs" title="test_nccs"/>
-          <attribute keyType="test_st99" dataType="geometry" name="test_st99" title="test_st99"/>
-          <attribute keyType="testtodelete" dataType="geometry" name="testtodelete" title="testtodelete"/>
-          <attribute keyType="tgr33001lkA" dataType="geometry" name="tgr33001lkA" title="tgr33001lkA"/>
-          <attribute keyType="BKGPIDFP00" dataType="geometry" name="tl_2009_09_bg00" title="tl_2009_09_bg00"/>
-          <attribute keyType="tl_2009_us_cbsa" dataType="geometry" name="tl_2009_us_cbsa" title="tl_2009_us_cbsa"/>
-          <attribute keyType="tl_2009_us_state" dataType="geometry" name="tl_2009_us_state" title="tl_2009_us_state"/>
-          <attribute keyType="tl_2010_us_cbsa10" dataType="geometry" name="tl_2010_us_cbsa10" title="tl_2010_us_cbsa10"/>
-          <attribute keyType="tl_2010_us_state10" dataType="geometry" name="tl_2010_us_state10" title="tl_2010_us_state10"/>
-          <attribute keyType="" dataType="geometry" name="tr25_d00_reprojected" title="tr25_d00_reprojected"/>
-          <attribute keyType="TRAINS_NODE" dataType="geometry" name="TRAINS_NODE" title="TRAINS_NODE"/>
-          <attribute keyType="Turi points" dataType="geometry" name="Turi points" title="Turi points"/>
-          <attribute keyType="turi points" dataType="geometry" name="turi points" title="turi points"/>
-          <attribute keyType="turi points 2008" dataType="geometry" name="turi points 2008" title="turi points 2008"/>
-          <attribute keyType="turi00" dataType="geometry" name="turi00" title="turi00"/>
-          <attribute keyType="turi01" dataType="geometry" name="turi01" title="turi01"/>
-          <attribute keyType="turi02" dataType="geometry" name="turi02" title="turi02"/>
-          <attribute keyType="turi03" dataType="geometry" name="turi03" title="turi03"/>
-          <attribute keyType="turi04" dataType="geometry" name="turi04" title="turi04"/>
-          <attribute keyType="turi05" dataType="geometry" name="turi05" title="turi05"/>
-          <attribute keyType="turi06" dataType="geometry" name="turi06" title="turi06"/>
-          <attribute keyType="turi06-" dataType="geometry" name="turi06-" title="turi06-"/>
-          <attribute keyType="turi07" dataType="geometry" name="turi07" title="turi07"/>
-          <attribute keyType="turi07new" dataType="geometry" name="turi07new" title="turi07new"/>
-          <attribute keyType="turi08" dataType="geometry" name="turi08" title="turi08"/>
-          <attribute keyType="turi90" dataType="geometry" name="turi90" title="turi90"/>
-          <attribute keyType="turi91" dataType="geometry" name="turi91" title="turi91"/>
-          <attribute keyType="turi92" dataType="geometry" name="turi92" title="turi92"/>
-          <attribute keyType="turi93" dataType="geometry" name="turi93" title="turi93"/>
-          <attribute keyType="turi94" dataType="geometry" name="turi94" title="turi94"/>
-          <attribute keyType="turi95" dataType="geometry" name="turi95" title="turi95"/>
-          <attribute keyType="turi96" dataType="geometry" name="turi96" title="turi96"/>
-          <attribute keyType="turi97" dataType="geometry" name="turi97" title="turi97"/>
-          <attribute keyType="turi98" dataType="geometry" name="turi98" title="turi98"/>
-          <attribute keyType="turi99" dataType="geometry" name="turi99" title="turi99"/>
-          <attribute keyType="TURI_all_2008" dataType="geometry" name="TURI_all_2008" title="TURI_all_2008"/>
-          <attribute keyType="turi_perc_drycleaners_MA" dataType="geometry" name="turi_perc_drycleaners_MA" title="turi_perc_drycleaners_MA"/>
-          <attribute keyType="turi_perc_MAproj" dataType="geometry" name="turi_perc_MAproj" title="turi_perc_MAproj"/>
-          <attribute keyType="" dataType="geometry" name="Turkey" title="Turkey"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="US_AKHI_moved" title="US_AKHI_moved"/>
-          <attribute keyType="us_cbsa" dataType="geometry" name="us_cbsa" title="us_cbsa"/>
-          <attribute keyType="fipsstco" dataType="geometry" name="US_COUNTIES_GOOGLE_MERCATOR_bald" title="US_COUNTIES_GOOGLE_MERCATOR_bald"/>
-          <attribute keyType="us_interstates" dataType="geometry" name="us_interstates" title="us_interstates"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="US_Outline" title="US_Outline"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="US_Outline_As_State" title="US_Outline_As_State"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="US_States_WGS" title="US_States_WGS"/>
-          <attribute keyType="USCoastFinalver2selectable" dataType="geometry" name="USCoastFinalver2selectable" title="USCoastFinalver2selectable"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="USCoastFinalver2selectabledelete" title="USCoastFinalver2selectabledelete"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="USCoastFinalver2selectableWITHFIPS" title="USCoastFinalver2selectableWITHFIPS"/>
-          <attribute keyType="USoilPlatforms" dataType="geometry" name="USoilPlatforms" title="USoilPlatforms"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="utah_usproj" title="utah_usproj"/>
-          <attribute keyType="US State FIPS Code" dataType="geometry" name="washington_usproj" title="washington_usproj"/>
-          <attribute keyType="waterways" dataType="geometry" name="waterways" title="waterways"/>
-          <attribute keyType="wb_test" dataType="geometry" name="wb_test" title="wb_test"/>
-          <attribute keyType="wb_testest" dataType="geometry" name="wb_testest" title="wb_testest"/>
-          <attribute keyType="wbfasdljk" dataType="geometry" name="wbfasdljk" title="wbfasdljk"/>
-          <attribute keyType="welwellwelllll" dataType="geometry" name="welwellwelllll" title="welwellwelllll"/>
-          <attribute keyType="westminster_const_region" dataType="geometry" name="westminster_const_region" title="westminster_const_region"/>
-          <attribute keyType="" dataType="geometry" name="world" title="world"/>
-          <attribute keyType="ISO ALPHA-3 Country Code" dataType="geometry" name="World Borders" title="World Borders"/>
-          <attribute keyType="UN Codes" dataType="geometry" name="World Borders (UN Codes)" title="World Borders (UN Codes)"/>
-          <attribute keyType="World EU" dataType="geometry" name="World UN" title="World UN"/>
-          <attribute keyType="STUDY(ASN)" dataType="geometry" name="WT_FAAOE_2000_2011" title="WT_FAAOE_2000_2011"/>
-          <attribute keyType="" dataType="geometry" name="yb_points" title="yb_points"/>
-          <attribute keyType="" dataType="geometry" name="youthbuild_points" title="youthbuild_points"/>
-          <attribute keyType="ZillowNeighborhoods" dataType="geometry" name="ZillowNeighborhoods" title="ZillowNeighborhoods"/>
+          <attribute dataType="geometry" keyType="" name="11_4_reprojected" title="11_4_reprojected"/>
+          <attribute dataType="geometry" keyType="11_4_reprojected_geometry" name="11_4_reprojected_geometry" title="11_4_reprojected_geometry"/>
+          <attribute dataType="geometry" keyType="agm_35_outline" name="agm_35_outline" title="agm_35_outline"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="agm_cousub_35" title="agm_cousub_35"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="agm_cousub_merrimackvalley" title="agm_cousub_merrimackvalley"/>
+          <attribute dataType="geometry" keyType="agm_cousub_merrimackvalley_outline" name="agm_cousub_merrimackvalley_outline" title="agm_cousub_merrimackvalley_outline"/>
+          <attribute dataType="geometry" keyType="AGM_grantmakers" name="AGM_grantmakers" title="AGM_grantmakers"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="agm_masstowns_5towns" title="agm_masstowns_5towns"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="agm_masstowns_greaterlowell" title="agm_masstowns_greaterlowell"/>
+          <attribute dataType="geometry" keyType="agm_masstowns_greaterlowell_outline" name="agm_masstowns_greaterlowell_outline" title="agm_masstowns_greaterlowell_outline"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="agm_masstowns_merrimackvalley" title="agm_masstowns_merrimackvalley"/>
+          <attribute dataType="geometry" keyType="agm_cousub_merrimackvalley_outline" name="agm_masstowns_merrimackvalley_outline" title="agm_masstowns_merrimackvalley_outline"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="agm_prof_acs_5towns" title="agm_prof_acs_5towns"/>
+          <attribute dataType="geometry" keyType="agm_recipient_grantamounts" name="agm_recipient_grantamounts" title="agm_recipient_grantamounts"/>
+          <attribute dataType="geometry" keyType="agm_recipients" name="agm_recipients" title="agm_recipients"/>
+          <attribute dataType="geometry" keyType="arra_mass_points201004" name="arra_mass_points201004" title="arra_mass_points201004"/>
+          <attribute dataType="geometry" keyType="" name="arra_point" title="arra_point"/>
+          <attribute dataType="geometry" keyType="" name="arra_point" title="arra_point"/>
+          <attribute dataType="geometry" keyType="" name="Arrests_Nashua" title="Arrests_Nashua"/>
+          <attribute dataType="geometry" keyType="Atlanta Superdistrict ID" name="Atlanta Superdistricts" title="Atlanta Superdistricts"/>
+          <attribute dataType="geometry" keyType="Atlanta Superdistrict ID" name="Atlanta Superdistricts11" title="Atlanta Superdistricts11"/>
+          <attribute dataType="geometry" keyType="Atlanta Transportation Analysis Zone ID" name="Atlanta Transportation Analysis Zones" title="Atlanta Transportation Analysis Zones"/>
+          <attribute dataType="geometry" keyType="Atlanta_CLCC_GDCH" name="Atlanta_CLCC_GDCH" title="Atlanta_CLCC_GDCH"/>
+          <attribute dataType="geometry" keyType="Atlanta_ES_4th_CRCT_Reading" name="Atlanta_ES_4th_CRCT_Reading" title="Atlanta_ES_4th_CRCT_Reading"/>
+          <attribute dataType="geometry" keyType="Atlanta_Head_Start" name="Atlanta_Head_Start" title="Atlanta_Head_Start"/>
+          <attribute dataType="geometry" keyType="Atlanta_LowPerfSchools" name="Atlanta_LowPerfSchools" title="Atlanta_LowPerfSchools"/>
+          <attribute dataType="geometry" keyType="Atlanta_MSA_Counties" name="Atlanta_MSA_Counties" title="Atlanta_MSA_Counties"/>
+          <attribute dataType="geometry" keyType="Atlanta_MSA_Interstates" name="Atlanta_MSA_Interstates" title="Atlanta_MSA_Interstates"/>
+          <attribute dataType="geometry" keyType="Atlanta_MSA_Places" name="Atlanta_MSA_Places" title="Atlanta_MSA_Places"/>
+          <attribute dataType="geometry" keyType="Atlanta_NPUs" name="Atlanta_NPUs" title="Atlanta_NPUs"/>
+          <attribute dataType="geometry" keyType="Atlanta_Pre-K" name="Atlanta_Pre-K" title="Atlanta_Pre-K"/>
+          <attribute dataType="geometry" keyType="Atlanta_Vuln3_5" name="Atlanta_Vuln3_5" title="Atlanta_Vuln3_5"/>
+          <attribute dataType="geometry" keyType="Atlanta_Vuln3Plus" name="Atlanta_Vuln3Plus" title="Atlanta_Vuln3Plus"/>
+          <attribute dataType="geometry" keyType="Atlanta_Vuln6_10" name="Atlanta_Vuln6_10" title="Atlanta_Vuln6_10"/>
+          <attribute dataType="geometry" keyType="BCFutureLandUse_2009" name="BCFutureLandUse_2009" title="BCFutureLandUse_2009"/>
+          <attribute dataType="geometry" keyType="bike trails" name="bike trails" title="bike trails"/>
+          <attribute dataType="geometry" keyType="bikeped_facilities" name="bikeped_facilities" title="bikeped_facilities"/>
+          <attribute dataType="geometry" keyType="Boston Parcel ID" name="Boston 2005 Parcels" title="Boston 2005 Parcels"/>
+          <attribute dataType="geometry" keyType="Boston Parcel ID" name="Boston 2005 Parcels Subset" title="Boston 2005 Parcels Subset"/>
+          <attribute dataType="geometry" keyType="Boston Parcels" name="Boston Parcels" title="Boston Parcels"/>
+          <attribute dataType="geometry" keyType="" name="boston_foreclosure_deeds" title="boston_foreclosure_deeds"/>
+          <attribute dataType="geometry" keyType="Boston_Hositals" name="Boston_Hositals" title="Boston_Hositals"/>
+          <attribute dataType="geometry" keyType="Boston_Hositals" name="Boston_Hositals111" title="Boston_Hositals111"/>
+          <attribute dataType="geometry" keyType="Boston_Neighborhoods" name="Boston_Neighborhoods" title="Boston_Neighborhoods"/>
+          <attribute dataType="geometry" keyType="boston_roads" name="boston_roads" title="boston_roads"/>
+          <attribute dataType="geometry" keyType="Boston_zips" name="Boston_zips" title="Boston_zips"/>
+          <attribute dataType="geometry" keyType="carcinogen" name="carcinogen" title="carcinogen"/>
+          <attribute dataType="geometry" keyType="CATCHMENTS_poly_region" name="CATCHMENTS_poly_region" title="CATCHMENTS_poly_region"/>
+          <attribute dataType="geometry" keyType="CBSA2003" name="CBSA2003" title="CBSA2003"/>
+          <attribute dataType="geometry" keyType="CBSAs" name="CBSAs" title="CBSAs"/>
+          <attribute dataType="geometry" keyType="cd99_110" name="cd99_110" title="cd99_110"/>
+          <attribute dataType="geometry" keyType="cd_110thCongress" name="cd_110thCongress" title="cd_110thCongress"/>
+          <attribute dataType="geometry" keyType="Census Trats MA 2010" name="Census Trats MA 2010" title="Census Trats MA 2010"/>
+          <attribute dataType="geometry" keyType="" name="census2000blockgroups_poly_orig" title="census2000blockgroups_poly_orig"/>
+          <attribute dataType="geometry" keyType="ICMB_ct" name="census2000tracts_ICC_Towns" title="census2000tracts_ICC_Towns"/>
+          <attribute dataType="geometry" keyType="CBSA2003" name="census_msad" title="census_msad"/>
+          <attribute dataType="geometry" keyType="CHCS_PT" name="CHCS_PT" title="CHCS_PT"/>
+          <attribute dataType="geometry" keyType="" name="chic_counties" title="chic_counties"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="Chicago Census Tracts" title="Chicago Census Tracts"/>
+          <attribute dataType="geometry" keyType="Chicago Municipal Codes" name="chicago_arra_munis" title="chicago_arra_munis"/>
+          <attribute dataType="geometry" keyType="" name="chicago_arra_point" title="chicago_arra_point"/>
+          <attribute dataType="geometry" keyType="" name="Chicago_Muni_ARRA" title="Chicago_Muni_ARRA"/>
+          <attribute dataType="geometry" keyType="" name="chicpoint2" title="chicpoint2"/>
+          <attribute dataType="geometry" keyType="" name="chicpoint2111" title="chicpoint2111"/>
+          <attribute dataType="geometry" keyType="" name="chicpoint3" title="chicpoint3"/>
+          <attribute dataType="geometry" keyType="CHN_adm1" name="CHN_adm1" title="CHN_adm1"/>
+          <attribute dataType="geometry" keyType="CHN_adm2" name="CHN_adm2" title="CHN_adm2"/>
+          <attribute dataType="geometry" keyType="CHN_adm3" name="CHN_adm3" title="CHN_adm3"/>
+          <attribute dataType="geometry" keyType="CityofAtlanta" name="CityofAtlanta" title="CityofAtlanta"/>
+          <attribute dataType="geometry" keyType="Community_ED EEC" name="Community_ED EEC" title="Community_ED EEC"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="connecticut_usproj" title="connecticut_usproj"/>
+          <attribute dataType="geometry" keyType="US County FIPS Code" name="Counties" title="Counties"/>
+          <attribute dataType="geometry" keyType="Countries" name="Countries" title="Countries"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="County Subdivisions" title="County Subdivisions"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="ct_lowell" title="ct_lowell"/>
+          <attribute dataType="geometry" keyType="DEGREES BY INSTITUTION " name="DEGREES BY INSTITUTION " title="DEGREES BY INSTITUTION "/>
+          <attribute dataType="geometry" keyType="DEMO_Shape" name="DEMO_Shape" title="DEMO_Shape"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="dhe_states" title="dhe_states"/>
+          <attribute dataType="geometry" keyType="eec2" name="eec2" title="eec2"/>
+          <attribute dataType="geometry" keyType="eec_artificial_child" name="eec_artificial_child" title="eec_artificial_child"/>
+          <attribute dataType="geometry" keyType="eec_comprehensive_family" name="eec_comprehensive_family" title="eec_comprehensive_family"/>
+          <attribute dataType="geometry" keyType="eec_familyservices_reproj" name="eec_familyservices_reproj" title="eec_familyservices_reproj"/>
+          <attribute dataType="geometry" keyType="eec_lowellschools_reproj" name="eec_lowellschools_reproj" title="eec_lowellschools_reproj"/>
+          <attribute dataType="geometry" keyType="eec_prek_pregnant_reproj" name="eec_prek_pregnant_reproj" title="eec_prek_pregnant_reproj"/>
+          <attribute dataType="geometry" keyType="eec_prekpregnant_reproj" name="eec_prekpregnant_reproj" title="eec_prekpregnant_reproj"/>
+          <attribute dataType="geometry" keyType="EEC_Providers" name="EEC_Providers" title="EEC_Providers"/>
+          <attribute dataType="geometry" keyType="eec_regcnt_MA_ElemSchoolDistricts" name="eec_regcnt_MA_ElemSchoolDistricts" title="eec_regcnt_MA_ElemSchoolDistricts"/>
+          <attribute dataType="geometry" keyType="eec_registrants_ma" name="eec_registrants_ma" title="eec_registrants_ma"/>
+          <attribute dataType="geometry" keyType="eec_SchAged_TeenParents" name="eec_SchAged_TeenParents" title="eec_SchAged_TeenParents"/>
+          <attribute dataType="geometry" keyType="eec_schoolagedchildren_reproj" name="eec_schoolagedchildren_reproj" title="eec_schoolagedchildren_reproj"/>
+          <attribute dataType="geometry" keyType="eec_test1" name="eec_test1" title="eec_test1"/>
+          <attribute dataType="geometry" keyType="eec_test2" name="eec_test2" title="eec_test2"/>
+          <attribute dataType="geometry" keyType="eec_zooaq" name="eec_zooaq" title="eec_zooaq"/>
+          <attribute dataType="geometry" keyType="elie_turi_nickel_1990-2008" name="elie_turi_nickel_1990-2008" title="elie_turi_nickel_1990-2008"/>
+          <attribute dataType="geometry" keyType="CATCHMENTS_poly_region" name="emassnh_catchments" title="emassnh_catchments"/>
+          <attribute dataType="geometry" keyType="EPA_emissions_CO2_1995-2010" name="EPA_emissions_CO2_1995-2010" title="EPA_emissions_CO2_1995-2010"/>
+          <attribute dataType="geometry" keyType="Exempt" name="Exempt" title="Exempt"/>
+          <attribute dataType="geometry" keyType="FamilyServices" name="FamilyServices" title="FamilyServices"/>
+          <attribute dataType="geometry" keyType="FCHC" name="FCHC" title="FCHC"/>
+          <attribute dataType="geometry" keyType="fd_2005" name="fd_2005" title="fd_2005"/>
+          <attribute dataType="geometry" keyType="fd_2006" name="fd_2006" title="fd_2006"/>
+          <attribute dataType="geometry" keyType="fd_2007" name="fd_2007" title="fd_2007"/>
+          <attribute dataType="geometry" keyType="fd_2008" name="fd_2008" title="fd_2008"/>
+          <attribute dataType="geometry" keyType="fd_2009" name="fd_2009" title="fd_2009"/>
+          <attribute dataType="geometry" keyType="fd_2010" name="fd_2010" title="fd_2010"/>
+          <attribute dataType="geometry" keyType="" name="FD_points_Lowell_new1" title="FD_points_Lowell_new1"/>
+          <attribute dataType="geometry" keyType="Rhode Island School District" name="fe_2007_44_elsd" title="fe_2007_44_elsd"/>
+          <attribute dataType="geometry" keyType="Rhode Island School District" name="fe_2007_44_unsd" title="fe_2007_44_unsd"/>
+          <attribute dataType="geometry" keyType="firms" name="firms" title="firms"/>
+          <attribute dataType="geometry" keyType="" name="FullPoints_Final" title="FullPoints_Final"/>
+          <attribute dataType="geometry" keyType="" name="FullPoints_Lowell" title="FullPoints_Lowell"/>
+          <attribute dataType="geometry" keyType="" name="fullpoints_lowell_reprojected" title="fullpoints_lowell_reprojected"/>
+          <attribute dataType="geometry" keyType="GHA_boundaries" name="GHA_boundaries" title="GHA_boundaries"/>
+          <attribute dataType="geometry" keyType="GHA_outline" name="GHA_outline" title="GHA_outline"/>
+          <attribute dataType="geometry" keyType="hb_states" name="hb_states" title="hb_states"/>
+          <attribute dataType="geometry" keyType="hbstates" name="hbstates" title="hbstates"/>
+          <attribute dataType="geometry" keyType="HeadStart" name="HeadStart" title="HeadStart"/>
+          <attribute dataType="geometry" keyType="" name="higher_ed_ma" title="higher_ed_ma"/>
+          <attribute dataType="geometry" keyType="higher_ed_ma_x" name="higher_ed_ma_x" title="higher_ed_ma_x"/>
+          <attribute dataType="geometry" keyType="HigherEd Institutions - Crime" name="HigherEd Institutions - Crime" title="HigherEd Institutions - Crime"/>
+          <attribute dataType="geometry" keyType="" name="hwt_point" title="hwt_point"/>
+          <attribute dataType="geometry" keyType="ICMB_ct" name="ICMB_ct" title="ICMB_ct"/>
+          <attribute dataType="geometry" keyType="IPEDS(For)2009" name="IPEDS(For)2009" title="IPEDS(For)2009"/>
+          <attribute dataType="geometry" keyType="IPEDS(Non)2009" name="IPEDS(Non)2009" title="IPEDS(Non)2009"/>
+          <attribute dataType="geometry" keyType="IPEDS(Public)2009" name="IPEDS(Public)2009" title="IPEDS(Public)2009"/>
+          <attribute dataType="geometry" keyType="ipeds_institutions2010" name="ipeds_2010_institutions" title="ipeds_2010_institutions"/>
+          <attribute dataType="geometry" keyType="" name="ireland_counties" title="ireland_counties"/>
+          <attribute dataType="geometry" keyType="" name="ireland_latlongpoints" title="ireland_latlongpoints"/>
+          <attribute dataType="geometry" keyType="" name="ireland_latlongpoints_v3" title="ireland_latlongpoints_v3"/>
+          <attribute dataType="geometry" keyType="" name="ireland_latlongpoints_v4" title="ireland_latlongpoints_v4"/>
+          <attribute dataType="geometry" keyType="" name="ireland_latlongpoints_v5" title="ireland_latlongpoints_v5"/>
+          <attribute dataType="geometry" keyType="" name="ireland_municipal_combined" title="ireland_municipal_combined"/>
+          <attribute dataType="geometry" keyType="" name="ireland_nation" title="ireland_nation"/>
+          <attribute dataType="geometry" keyType="" name="ireland_regions" title="ireland_regions"/>
+          <attribute dataType="geometry" keyType="" name="Lawrence Parcel" title="Lawrence Parcel"/>
+          <attribute dataType="geometry" keyType="" name="lawrence_home buyers active" title="lawrence_home buyers active"/>
+          <attribute dataType="geometry" keyType="" name="LCW Home purchase" title="LCW Home purchase"/>
+          <attribute dataType="geometry" keyType="LGSAC" name="LGSAC" title="LGSAC"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="lowell_ct_w_neigh" title="lowell_ct_w_neigh"/>
+          <attribute dataType="geometry" keyType="lowell_nccs_3" name="lowell_nccs_3" title="lowell_nccs_3"/>
+          <attribute dataType="geometry" keyType="Neighborhood" name="lowell_neighborhoods_reprojected" title="lowell_neighborhoods_reprojected"/>
+          <attribute dataType="geometry" keyType="" name="Lowell_Parcels" title="Lowell_Parcels"/>
+          <attribute dataType="geometry" keyType="lowell_registrants" name="lowell_registrants" title="lowell_registrants"/>
+          <attribute dataType="geometry" keyType="" name="LowellFD_2009_Final" title="LowellFD_2009_Final"/>
+          <attribute dataType="geometry" keyType="lowelltracts_w_eec_registrant_count" name="lowelltracts_w_eec_registrant_count" title="lowelltracts_w_eec_registrant_count"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="MA Census Tract" title="MA Census Tract"/>
+          <attribute dataType="geometry" keyType="US Census Tract 6-digit ID" name="MA Census Tract 6-digit" title="MA Census Tract 6-digit"/>
+          <attribute dataType="geometry" keyType="MA PRISONS" name="MA PRISONS" title="MA PRISONS"/>
+          <attribute dataType="geometry" keyType="org code" name="MA SCHOOLS" title="MA SCHOOLS"/>
+          <attribute dataType="geometry" keyType="MA Train lines" name="MA Train lines" title="MA Train lines"/>
+          <attribute dataType="geometry" keyType="" name="ma_childcare_2009_sample_points" title="ma_childcare_2009_sample_points"/>
+          <attribute dataType="geometry" keyType="" name="MA_COC" title="MA_COC"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="ma_cousub_noocean" title="ma_cousub_noocean"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="ma_ct2010_usproj" title="ma_ct2010_usproj"/>
+          <attribute dataType="geometry" keyType="MA_EEC_Registrants" name="MA_EEC_Registrants" title="MA_EEC_Registrants"/>
+          <attribute dataType="geometry" keyType="MA_Major_Streams_Lines" name="MA_Major_Streams_Lines" title="MA_Major_Streams_Lines"/>
+          <attribute dataType="geometry" keyType="org code" name="ma_SCHOOLS_PT" title="ma_SCHOOLS_PT"/>
+          <attribute dataType="geometry" keyType="Atlanta Superdistrict ID" name="ma_shapes_delete" title="ma_shapes_delete"/>
+          <attribute dataType="geometry" keyType="ma_town_region3" name="ma_town_region3" title="ma_town_region3"/>
+          <attribute dataType="geometry" keyType="MA_Towns_MultiPoly_TOWN" name="MA_Towns_MultiPoly_TOWN" title="MA_Towns_MultiPoly_TOWN"/>
+          <attribute dataType="geometry" keyType="ma_tract_w_eec_regcnt_and_town" name="ma_tract_w_eec_regcnt_and_town" title="ma_tract_w_eec_regcnt_and_town"/>
+          <attribute dataType="geometry" keyType="ma_tracts_w_eec_regcnt" name="ma_tracts_w_eec_regcnt" title="ma_tracts_w_eec_regcnt"/>
+          <attribute dataType="geometry" keyType="" name="MA_ZCTA" title="MA_ZCTA"/>
+          <attribute dataType="geometry" keyType="MA_ZipCodes_Poly" name="MA_ZipCodes_Poly" title="MA_ZipCodes_Poly"/>
+          <attribute dataType="geometry" keyType="MAPC_Municipalities" name="MAPC_Municipalities" title="MAPC_Municipalities"/>
+          <attribute dataType="geometry" keyType="Mars_bkg" name="Mars_bkg" title="Mars_bkg"/>
+          <attribute dataType="geometry" keyType="Mars_Points" name="Mars_Points" title="Mars_Points"/>
+          <attribute dataType="geometry" keyType="ICMB_ct" name="mass towns" title="mass towns"/>
+          <attribute dataType="geometry" keyType="mass_benchmarks" name="mass_benchmarks" title="mass_benchmarks"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="mass_cousub2010_massproj" title="mass_cousub2010_massproj"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="mass_proj_agm_35_plus" title="mass_proj_agm_35_plus"/>
+          <attribute dataType="geometry" keyType="mass_proj_agm_35v2" name="mass_proj_agm_35v2" title="mass_proj_agm_35v2"/>
+          <attribute dataType="geometry" keyType="ICMB_ct" name="mass_towns" title="mass_towns"/>
+          <attribute dataType="geometry" keyType="Massachusetts Town ID" name="Massachusetts Towns" title="Massachusetts Towns"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="Massachusetts Towns Unprojected" title="Massachusetts Towns Unprojected"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="massachusetts_usproj" title="massachusetts_usproj"/>
+          <attribute dataType="geometry" keyType="Point_ID" name="MassARRA" title="MassARRA"/>
+          <attribute dataType="geometry" keyType="MassARRALowellOnly" name="MassARRALowellOnly" title="MassARRALowellOnly"/>
+          <attribute dataType="geometry" keyType="MassARRApoint" name="MassARRApoint" title="MassARRApoint"/>
+          <attribute dataType="geometry" keyType="MassARRAPoint" name="MassARRAPoint" title="MassARRAPoint"/>
+          <attribute dataType="geometry" keyType="Atlanta Superdistrict ID" name="MassARRAVer6" title="MassARRAVer6"/>
+          <attribute dataType="geometry" keyType="masstowns_w_eec_registrant_count" name="masstowns_w_eec_registrant_count" title="masstowns_w_eec_registrant_count"/>
+          <attribute dataType="geometry" keyType="MBTA BUS ROUTES" name="MBTA BUS ROUTES" title="MBTA BUS ROUTES"/>
+          <attribute dataType="geometry" keyType="MBTA BUS Stops" name="MBTA BUS Stops" title="MBTA BUS Stops"/>
+          <attribute dataType="geometry" keyType="MBTA_ARC" name="MBTA_ARC" title="MBTA_ARC"/>
+          <attribute dataType="geometry" keyType="MBTA_NODE" name="MBTA_NODE" title="MBTA_NODE"/>
+          <attribute dataType="geometry" keyType="MBTABUSROUTES_ARC" name="MBTABUSROUTES_ARC" title="MBTABUSROUTES_ARC"/>
+          <attribute dataType="geometry" keyType="MBTABUSSTOPS_PT" name="MBTABUSSTOPS_PT" title="MBTABUSSTOPS_PT"/>
+          <attribute dataType="geometry" keyType="Merged Turi" name="Merged Turi" title="Merged Turi"/>
+          <attribute dataType="geometry" keyType="MetroBoston_Schools" name="MetroBoston_Schools" title="MetroBoston_Schools"/>
+          <attribute dataType="geometry" keyType="Metropolitan Division" name="Metropolitan Division" title="Metropolitan Division"/>
+          <attribute dataType="geometry" keyType="MEX" name="MEX" title="MEX"/>
+          <attribute dataType="geometry" keyType="MFI Ben" name="MFI Ben" title="MFI Ben"/>
+          <attribute dataType="geometry" keyType="MFI_GH" name="MFI_GH" title="MFI_GH"/>
+          <attribute dataType="geometry" keyType="MFI_GH1" name="MFI_GH1" title="MFI_GH1"/>
+          <attribute dataType="geometry" keyType="MFI_Points_2007" name="MFI_Points_2007" title="MFI_Points_2007"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="minnesota_usproj" title="minnesota_usproj"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="missouri_usproj" title="missouri_usproj"/>
+          <attribute dataType="geometry" keyType="Atlanta_MSA_Tracts" name="MSA_Tracts" title="MSA_Tracts"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="mv_ct_concentrate" title="mv_ct_concentrate"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="mv_ct_concentrate_massproj" title="mv_ct_concentrate_massproj"/>
+          <attribute dataType="geometry" keyType="mvhp" name="mvhp" title="mvhp"/>
+          <attribute dataType="geometry" keyType="mvhp_reprojected_v2" name="mvhp_reprojected_v2" title="mvhp_reprojected_v2"/>
+          <attribute dataType="geometry" keyType="mys1" name="mys1" title="mys1"/>
+          <attribute dataType="geometry" keyType="mys2" name="mys2" title="mys2"/>
+          <attribute dataType="geometry" keyType="mys4" name="mys4" title="mys4"/>
+          <attribute dataType="geometry" keyType="" name="Nashua_Tract" title="Nashua_Tract"/>
+          <attribute dataType="geometry" keyType="NCCS_Lowell" name="NCCS_Lowell" title="NCCS_Lowell"/>
+          <attribute dataType="geometry" keyType="nccs_ma_reprojected" name="nccs_ma_reprojected" title="nccs_ma_reprojected"/>
+          <attribute dataType="geometry" keyType="nccs_shape2" name="nccs_shape2" title="nccs_shape2"/>
+          <attribute dataType="geometry" keyType="nccs_shape_CT" name="nccs_shape_CT" title="nccs_shape_CT"/>
+          <attribute dataType="geometry" keyType="nccs_shape_LA" name="nccs_shape_LA" title="nccs_shape_LA"/>
+          <attribute dataType="geometry" keyType="nccs_shape_LA_FIPS22051" name="nccs_shape_LA_FIPS22051" title="nccs_shape_LA_FIPS22051"/>
+          <attribute dataType="geometry" keyType="nccs_shape_MA" name="nccs_shape_MA" title="nccs_shape_MA"/>
+          <attribute dataType="geometry" keyType="nccs_shape2" name="nccs_shape_MACT" title="nccs_shape_MACT"/>
+          <attribute dataType="geometry" keyType="ne_cd99_110" name="ne_cd99_110" title="ne_cd99_110"/>
+          <attribute dataType="geometry" keyType="ne_lldistricts" name="ne_lldistricts" title="ne_lldistricts"/>
+          <attribute dataType="geometry" keyType="ne_lsdistricts" name="ne_lsdistricts" title="ne_lsdistricts"/>
+          <attribute dataType="geometry" keyType="ne_streams" name="ne_streams" title="ne_streams"/>
+          <attribute dataType="geometry" keyType="nehucs10" name="nehucs10" title="nehucs10"/>
+          <attribute dataType="geometry" keyType="new_england_subbasins" name="new_england_subbasins" title="new_england_subbasins"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="NewEngland_Cousub" title="NewEngland_Cousub"/>
+          <attribute dataType="geometry" keyType="newengland_subbasins_v2" name="newengland_subbasins_v2" title="newengland_subbasins_v2"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="newhampshire_usproj" title="newhampshire_usproj"/>
+          <attribute dataType="geometry" keyType="US County Subdivision FIPS Code" name="nh_town_reproj" title="nh_town_reproj"/>
+          <attribute dataType="geometry" keyType="nhpn" name="nhpn" title="nhpn"/>
+          <attribute dataType="geometry" keyType="nhpn1" name="nhpn1" title="nhpn1"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="northcarolina_usproj" title="northcarolina_usproj"/>
+          <attribute dataType="geometry" keyType="NREL_NewEnglandShapeWGS84" name="NREL_NewEnglandShapeWGS84" title="NREL_NewEnglandShapeWGS84"/>
+          <attribute dataType="geometry" keyType="nuclear-facilities-update" name="nuclear-facilities-update" title="nuclear-facilities-update"/>
+          <attribute dataType="geometry" keyType="nuclear_seismic-hazard" name="nuclear_seismic-hazard" title="nuclear_seismic-hazard"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="nuclear_states" title="nuclear_states"/>
+          <attribute dataType="geometry" keyType="nuclear_us_earthquakes" name="nuclear_us_earthquakes" title="nuclear_us_earthquakes"/>
+          <attribute dataType="geometry" keyType="od_2005" name="od_2005" title="od_2005"/>
+          <attribute dataType="geometry" keyType="od_2006_reprojected" name="od_2006_reprojected" title="od_2006_reprojected"/>
+          <attribute dataType="geometry" keyType="od_2007" name="od_2007" title="od_2007"/>
+          <attribute dataType="geometry" keyType="od_2008" name="od_2008" title="od_2008"/>
+          <attribute dataType="geometry" keyType="od_2009" name="od_2009" title="od_2009"/>
+          <attribute dataType="geometry" keyType="od_2010" name="od_2010" title="od_2010"/>
+          <attribute dataType="geometry" keyType="Ohio FIPS codes" name="Ohio County Subdivisions" title="Ohio County Subdivisions"/>
+          <attribute dataType="geometry" keyType="Ohio FIPS codes" name="Ohio Places" title="Ohio Places"/>
+          <attribute dataType="geometry" keyType="ON no FD 2005" name="ON no FD 2005" title="ON no FD 2005"/>
+          <attribute dataType="geometry" keyType="on no fd 2006_reprojected" name="on no fd 2006_reprojected" title="on no fd 2006_reprojected"/>
+          <attribute dataType="geometry" keyType="on no fd 2007_reprojected" name="on no fd 2007_reprojected" title="on no fd 2007_reprojected"/>
+          <attribute dataType="geometry" keyType="on no fd 2008_reprojected" name="on no fd 2008_reprojected" title="on no fd 2008_reprojected"/>
+          <attribute dataType="geometry" keyType="on no fd 2009_reprojected" name="on no fd 2009_reprojected" title="on no fd 2009_reprojected"/>
+          <attribute dataType="geometry" keyType="on no fd 2010_reprojected" name="on no fd 2010_reprojected" title="on no fd 2010_reprojected"/>
+          <attribute dataType="geometry" keyType="on no fd_2005" name="on no fd_2005" title="on no fd_2005"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="oregon_usproj" title="oregon_usproj"/>
+          <attribute dataType="geometry" keyType="perc" name="perc" title="perc"/>
+          <attribute dataType="geometry" keyType="Plants" name="Plants" title="Plants"/>
+          <attribute dataType="geometry" keyType="pma_us96" name="pma_us96" title="pma_us96"/>
+          <attribute dataType="geometry" keyType="pma_us96_pmsa" name="pma_us96_pmsa" title="pma_us96_pmsa"/>
+          <attribute dataType="geometry" keyType="PreK" name="PreK" title="PreK"/>
+          <attribute dataType="geometry" keyType="PreK2" name="PreK2" title="PreK2"/>
+          <attribute dataType="geometry" keyType="Prek3" name="Prek3" title="Prek3"/>
+          <attribute dataType="geometry" keyType="Prek4" name="Prek4" title="Prek4"/>
+          <attribute dataType="geometry" keyType="PreK6" name="PreK6" title="PreK6"/>
+          <attribute dataType="geometry" keyType="PreKPregnant" name="PreKPregnant" title="PreKPregnant"/>
+          <attribute dataType="geometry" keyType="PrekPregnant2" name="PrekPregnant2" title="PrekPregnant2"/>
+          <attribute dataType="geometry" keyType="PreKPregnant3" name="PreKPregnant3" title="PreKPregnant3"/>
+          <attribute dataType="geometry" keyType="private_IPEDS" name="private_IPEDS" title="private_IPEDS"/>
+          <attribute dataType="geometry" keyType="Public Libraries MA" name="Public Libraries MA" title="Public Libraries MA"/>
+          <attribute dataType="geometry" keyType="Public School Pre K" name="Public School Pre K" title="Public School Pre K"/>
+          <attribute dataType="geometry" keyType="railways" name="railways" title="railways"/>
+          <attribute dataType="geometry" keyType="Registrants_US1" name="Registrants_US1" title="Registrants_US1"/>
+          <attribute dataType="geometry" keyType="registrants_us1" name="registrants_us1" title="registrants_us1"/>
+          <attribute dataType="geometry" keyType="RGGI" name="RGGI" title="RGGI"/>
+          <attribute dataType="geometry" keyType="RGGI_GDMReport" name="RGGI2" title="RGGI2"/>
+          <attribute dataType="geometry" keyType="rggi_2010_month_test" name="rggi_2010_month_test" title="rggi_2010_month_test"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="rhodeisland_usproj" title="rhodeisland_usproj"/>
+          <attribute dataType="geometry" keyType="ri_bg" name="ri_bg" title="ri_bg"/>
+          <attribute dataType="geometry" keyType="" name="ri_schools08_projected" title="ri_schools08_projected"/>
+          <attribute dataType="geometry" keyType="roads" name="roads" title="roads"/>
+          <attribute dataType="geometry" keyType="Rwanda_Districts" name="Rwanda_Districts" title="Rwanda_Districts"/>
+          <attribute dataType="geometry" keyType="Rwanda_Provinces" name="Rwanda_Provinces" title="Rwanda_Provinces"/>
+          <attribute dataType="geometry" keyType="SchoolAged" name="SchoolAged" title="SchoolAged"/>
+          <attribute dataType="geometry" keyType="schooldis_elem_POLY" name="schooldis_elem_POLY" title="schooldis_elem_POLY"/>
+          <attribute dataType="geometry" keyType="schooldishigh_POLY_ma" name="schooldishigh_POLY_ma" title="schooldishigh_POLY_ma"/>
+          <attribute dataType="geometry" keyType="schooldist_elem_ma" name="schooldist_elem_ma" title="schooldist_elem_ma"/>
+          <attribute dataType="geometry" keyType="schooldist_elem_maPOLY" name="schooldist_elem_maPOLY" title="schooldist_elem_maPOLY"/>
+          <attribute dataType="geometry" keyType="SCHOOLDISTELEM_POLY" name="SCHOOLDISTELEM_POLY" title="SCHOOLDISTELEM_POLY"/>
+          <attribute dataType="geometry" keyType="SCHOOLDISTHIGH_POLY" name="SCHOOLDISTHIGH_POLY" title="SCHOOLDISTHIGH_POLY"/>
+          <attribute dataType="geometry" keyType="seattle_elem_schools" name="seattle_elem_schools" title="seattle_elem_schools"/>
+          <attribute dataType="geometry" keyType="seattle_high_mid_alt_schools" name="seattle_high_mid_alt_schools" title="seattle_high_mid_alt_schools"/>
+          <attribute dataType="geometry" keyType="US Census Tract ID" name="seattletracts" title="seattletracts"/>
+          <attribute dataType="geometry" keyType="seattletracts_byname" name="seattletracts_byname" title="seattletracts_byname"/>
+          <attribute dataType="geometry" keyType="shapes_demo" name="shapes_demo" title="shapes_demo"/>
+          <attribute dataType="geometry" keyType="Soil Waste MA" name="Soil Waste MA" title="Soil Waste MA"/>
+          <attribute dataType="geometry" keyType="st99_d00" name="st99_d00" title="st99_d00"/>
+          <attribute dataType="geometry" keyType="st99_d001" name="st99_d001" title="st99_d001"/>
+          <attribute dataType="geometry" keyType="st99_d00123" name="st99_d00123" title="st99_d00123"/>
+          <attribute dataType="geometry" keyType="st99_d001234" name="st99_d001234" title="st99_d001234"/>
+          <attribute dataType="geometry" keyType="st99_d002" name="st99_d002" title="st99_d002"/>
+          <attribute dataType="geometry" keyType="st99_d003" name="st99_d003" title="st99_d003"/>
+          <attribute dataType="geometry" keyType="st99_d0034" name="st99_d0034" title="st99_d0034"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="State" title="State"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="States" title="States"/>
+          <attribute dataType="geometry" keyType="StatesforNREL" name="StatesforNREL" title="StatesforNREL"/>
+          <attribute dataType="geometry" keyType="STEM BY INSTITUTION" name="STEM BY INSTITUTION" title="STEM BY INSTITUTION"/>
+          <attribute dataType="geometry" keyType="Styrene" name="Styrene" title="Styrene"/>
+          <attribute dataType="geometry" keyType="Success_Boston_Student_Cohorts" name="Success_Boston_Student_Cohorts" title="Success_Boston_Student_Cohorts"/>
+          <attribute dataType="geometry" keyType="sulfuricacid" name="sulfuricacid" title="sulfuricacid"/>
+          <attribute dataType="geometry" keyType="ta tatata" name="ta tatata" title="ta tatata"/>
+          <attribute dataType="geometry" keyType="temp" name="temp" title="temp"/>
+          <attribute dataType="geometry" keyType="test" name="test" title="test"/>
+          <attribute dataType="geometry" keyType="TEST" name="TEST" title="TEST"/>
+          <attribute dataType="geometry" keyType="test_nccs" name="test_nccs" title="test_nccs"/>
+          <attribute dataType="geometry" keyType="test_st99" name="test_st99" title="test_st99"/>
+          <attribute dataType="geometry" keyType="testtodelete" name="testtodelete" title="testtodelete"/>
+          <attribute dataType="geometry" keyType="tgr33001lkA" name="tgr33001lkA" title="tgr33001lkA"/>
+          <attribute dataType="geometry" keyType="BKGPIDFP00" name="tl_2009_09_bg00" title="tl_2009_09_bg00"/>
+          <attribute dataType="geometry" keyType="tl_2009_us_cbsa" name="tl_2009_us_cbsa" title="tl_2009_us_cbsa"/>
+          <attribute dataType="geometry" keyType="tl_2009_us_state" name="tl_2009_us_state" title="tl_2009_us_state"/>
+          <attribute dataType="geometry" keyType="tl_2010_us_cbsa10" name="tl_2010_us_cbsa10" title="tl_2010_us_cbsa10"/>
+          <attribute dataType="geometry" keyType="tl_2010_us_state10" name="tl_2010_us_state10" title="tl_2010_us_state10"/>
+          <attribute dataType="geometry" keyType="" name="tr25_d00_reprojected" title="tr25_d00_reprojected"/>
+          <attribute dataType="geometry" keyType="TRAINS_NODE" name="TRAINS_NODE" title="TRAINS_NODE"/>
+          <attribute dataType="geometry" keyType="Turi points" name="Turi points" title="Turi points"/>
+          <attribute dataType="geometry" keyType="turi points" name="turi points" title="turi points"/>
+          <attribute dataType="geometry" keyType="turi points 2008" name="turi points 2008" title="turi points 2008"/>
+          <attribute dataType="geometry" keyType="turi00" name="turi00" title="turi00"/>
+          <attribute dataType="geometry" keyType="turi01" name="turi01" title="turi01"/>
+          <attribute dataType="geometry" keyType="turi02" name="turi02" title="turi02"/>
+          <attribute dataType="geometry" keyType="turi03" name="turi03" title="turi03"/>
+          <attribute dataType="geometry" keyType="turi04" name="turi04" title="turi04"/>
+          <attribute dataType="geometry" keyType="turi05" name="turi05" title="turi05"/>
+          <attribute dataType="geometry" keyType="turi06" name="turi06" title="turi06"/>
+          <attribute dataType="geometry" keyType="turi06-" name="turi06-" title="turi06-"/>
+          <attribute dataType="geometry" keyType="turi07" name="turi07" title="turi07"/>
+          <attribute dataType="geometry" keyType="turi07new" name="turi07new" title="turi07new"/>
+          <attribute dataType="geometry" keyType="turi08" name="turi08" title="turi08"/>
+          <attribute dataType="geometry" keyType="turi90" name="turi90" title="turi90"/>
+          <attribute dataType="geometry" keyType="turi91" name="turi91" title="turi91"/>
+          <attribute dataType="geometry" keyType="turi92" name="turi92" title="turi92"/>
+          <attribute dataType="geometry" keyType="turi93" name="turi93" title="turi93"/>
+          <attribute dataType="geometry" keyType="turi94" name="turi94" title="turi94"/>
+          <attribute dataType="geometry" keyType="turi95" name="turi95" title="turi95"/>
+          <attribute dataType="geometry" keyType="turi96" name="turi96" title="turi96"/>
+          <attribute dataType="geometry" keyType="turi97" name="turi97" title="turi97"/>
+          <attribute dataType="geometry" keyType="turi98" name="turi98" title="turi98"/>
+          <attribute dataType="geometry" keyType="turi99" name="turi99" title="turi99"/>
+          <attribute dataType="geometry" keyType="TURI_all_2008" name="TURI_all_2008" title="TURI_all_2008"/>
+          <attribute dataType="geometry" keyType="turi_perc_drycleaners_MA" name="turi_perc_drycleaners_MA" title="turi_perc_drycleaners_MA"/>
+          <attribute dataType="geometry" keyType="turi_perc_MAproj" name="turi_perc_MAproj" title="turi_perc_MAproj"/>
+          <attribute dataType="geometry" keyType="" name="Turkey" title="Turkey"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="US_AKHI_moved" title="US_AKHI_moved"/>
+          <attribute dataType="geometry" keyType="us_cbsa" name="us_cbsa" title="us_cbsa"/>
+          <attribute dataType="geometry" keyType="fipsstco" name="US_COUNTIES_GOOGLE_MERCATOR_bald" title="US_COUNTIES_GOOGLE_MERCATOR_bald"/>
+          <attribute dataType="geometry" keyType="us_interstates" name="us_interstates" title="us_interstates"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="US_Outline" title="US_Outline"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="US_Outline_As_State" title="US_Outline_As_State"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="US_States_WGS" title="US_States_WGS"/>
+          <attribute dataType="geometry" keyType="USCoastFinalver2selectable" name="USCoastFinalver2selectable" title="USCoastFinalver2selectable"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="USCoastFinalver2selectabledelete" title="USCoastFinalver2selectabledelete"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="USCoastFinalver2selectableWITHFIPS" title="USCoastFinalver2selectableWITHFIPS"/>
+          <attribute dataType="geometry" keyType="USoilPlatforms" name="USoilPlatforms" title="USoilPlatforms"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="utah_usproj" title="utah_usproj"/>
+          <attribute dataType="geometry" keyType="US State FIPS Code" name="washington_usproj" title="washington_usproj"/>
+          <attribute dataType="geometry" keyType="waterways" name="waterways" title="waterways"/>
+          <attribute dataType="geometry" keyType="wb_test" name="wb_test" title="wb_test"/>
+          <attribute dataType="geometry" keyType="wb_testest" name="wb_testest" title="wb_testest"/>
+          <attribute dataType="geometry" keyType="wbfasdljk" name="wbfasdljk" title="wbfasdljk"/>
+          <attribute dataType="geometry" keyType="welwellwelllll" name="welwellwelllll" title="welwellwelllll"/>
+          <attribute dataType="geometry" keyType="westminster_const_region" name="westminster_const_region" title="westminster_const_region"/>
+          <attribute dataType="geometry" keyType="" name="world" title="world"/>
+          <attribute dataType="geometry" keyType="ISO ALPHA-3 Country Code" name="World Borders" title="World Borders"/>
+          <attribute dataType="geometry" keyType="UN Codes" name="World Borders (UN Codes)" title="World Borders (UN Codes)"/>
+          <attribute dataType="geometry" keyType="World EU" name="World UN" title="World UN"/>
+          <attribute dataType="geometry" keyType="STUDY(ASN)" name="WT_FAAOE_2000_2011" title="WT_FAAOE_2000_2011"/>
+          <attribute dataType="geometry" keyType="" name="yb_points" title="yb_points"/>
+          <attribute dataType="geometry" keyType="" name="youthbuild_points" title="youthbuild_points"/>
+          <attribute dataType="geometry" keyType="ZillowNeighborhoods" name="ZillowNeighborhoods" title="ZillowNeighborhoods"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
     <hierarchyURL/>
     <url>http://demo.oicweave.org:8080/WeaveServices/DataService</url>
   </WeaveDataSource>
-  <MapTool name="MapTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>true</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>0</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute keyType="US State FIPS Code" dataType="geometry" name="States_geom" title="States_geom"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointDataImageColumn encoding="dynamic"/>
-                <pointShapeSize>5</pointShapeSize>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="circle">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <CirclePlotter>
-                <color>3355443</color>
-                <dataX>-145.50760874213296</dataX>
-                <dataY>60.42497907961211</dataY>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <polygonVertexCount>25</polygonVertexCount>
-                <projectionSRS/>
-                <radius>14</radius>
-                <thickness>10</thickness>
-              </CirclePlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="circle2">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <CirclePlotter>
-                <color>0</color>
-                <dataX>-96.85904720730898</dataX>
-                <dataY>61.565806407643045</dataY>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <polygonVertexCount>25</polygonVertexCount>
-                <projectionSRS/>
-                <radius>1</radius>
-                <thickness>2</thickness>
-              </CirclePlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="circle3">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <CirclePlotter>
-                <color>0</color>
-                <dataX>-76.23890308005173</dataX>
-                <dataY>35.79062624857149</dataY>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <polygonVertexCount>25</polygonVertexCount>
-                <projectionSRS/>
-                <radius>1</radius>
-                <thickness>2</thickness>
-              </CirclePlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="circle4">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <CirclePlotter>
-                <color>0</color>
-                <dataX>-100.29573789518518</dataX>
-                <dataY>36.363408029884184</dataY>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <polygonVertexCount>25</polygonVertexCount>
-                <projectionSRS/>
-                <radius>1</radius>
-                <thickness>2</thickness>
-              </CirclePlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="circle5">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <CirclePlotter>
-                <color>0</color>
-                <dataX>-70.51108526692474</dataX>
-                <dataY>44.955134749574704</dataY>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <polygonVertexCount>25</polygonVertexCount>
-                <projectionSRS/>
-                <radius>4</radius>
-                <thickness>2</thickness>
-              </CirclePlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-        </layers>
-        <marginBottom>0</marginBottom>
-        <marginLeft>0</marginLeft>
-        <marginRight>0</marginRight>
-        <marginTop>0</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <overrideXMax>NaN</overrideXMax>
-        <overrideXMin>NaN</overrideXMin>
-        <overrideYMax>NaN</overrideYMax>
-        <overrideYMin>NaN</overrideYMin>
-        <shadowAmount>0</shadowAmount>
-        <zoomBounds>
-          <area>21996.218516341</area>
-          <xCenter>-114.04250064669</xCenter>
-          <yCenter>52.544493351968</yCenter>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBackground>false</enableBackground>
-    <enableBorders>true</enableBorders>
-    <enableOverview>false</enableOverview>
-    <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>49%</panelHeight>
-    <panelStyleList/>
-    <panelTitle/>
-    <panelWidth>50%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>0%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <projectionSRS/>
-    <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
-    <showMouseModeControls>true</showMouseModeControls>
-    <showZoomControls>true</showZoomControls>
-  </MapTool>
   <CompoundBarChartTool name="CompoundBarChartTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -2919,12 +2589,12 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>201.98098266793346</xMax>
+                  <xMax>201.98098266793343</xMax>
                   <xMin>69.48098266793342</xMin>
                   <yMax>-2.5318885448916397</yMax>
                   <yMin>-2.5318885448916397</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>201.98098266793346</axisLineMaxValue>
+                <axisLineMaxValue>201.98098266793343</axisLineMaxValue>
                 <axisLineMinValue>69.48098266793342</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
@@ -2964,7 +2634,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp category="aesthetic" name="Doppler Radar" dataFormat="qualitative" source="OIC">
+                  <colorRamp source="OIC" name="Doppler Radar" dataFormat="qualitative" category="aesthetic">
                     <node color="0x04E9E7" position="0"/>
                     <node color="0x009DF4" position="0.08"/>
                     <node color="0x0201F4" position="0.16"/>
@@ -2997,7 +2667,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string=" " title="FIPS2" dataType="string" dataTable="obesity-cube" name="FIPS2" keyType="obesity-cube"/>
+                                <attribute dataType="string" number=" " year="" string=" " dataTable="obesity-cube" keyType="obesity-cube" name="FIPS2" title="FIPS2"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -3013,7 +2683,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" title="State" dataType="string" dataTable="obesity-cube" name="State" keyType="obesity-cube"/>
+                                <attribute dataType="string" number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" dataTable="obesity-cube" keyType="obesity-cube" name="State" title="State"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -3029,7 +2699,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute year="" string="asString(number) + &quot;%&quot;" title="PercentObese" dataType="number" dataTable="obesity-cube" name="PercentObese" keyType="obesity-cube"/>
+                                <attribute dataType="number" year="" string="asString(number) + &quot;%&quot;" dataTable="obesity-cube" keyType="obesity-cube" name="PercentObese" title="PercentObese"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -3103,7 +2773,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" keyType="obesity-cube" dataType="number" dataTable="obesity-cube" name="ID" title="ID"/>
+                                <attribute dataType="number" number=" " year="" string="&quot;ID&quot; + asString(number)" dataTable="obesity-cube" keyType="obesity-cube" name="ID" title="ID"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -3197,7 +2867,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <xMax>201.98098266793346</xMax>
+          <xMax>201.98098266793343</xMax>
           <xMin>69.48098266793342</xMin>
           <yMax>16.26811145510836</yMax>
           <yMin>-2.5318885448916397</yMin>
@@ -3239,4 +2909,396 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showCloseDialog>false</showCloseDialog>
     <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
   </CompoundBarChartTool>
+  <MapTool name="MapTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>NaN</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>true</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>0</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <GeometryPlotter>
+                <fill>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
+                </fill>
+                <geometryColumn>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WeaveDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category name="Geometry Collections" title="Geometry Collections">
+                                <attribute dataType="geometry" keyType="US State FIPS Code" name="States_geom" title="States_geom"/>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                  <projectionSRS/>
+                </geometryColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <line>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>none</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </line>
+                <pixellation>1</pixellation>
+                <pointDataImageColumn encoding="dynamic"/>
+                <pointShapeSize>5</pointShapeSize>
+              </GeometryPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>16711680</color>
+                <dataX>-145.50760874213296</dataX>
+                <dataY>60.42497907961211</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <projectionSRS/>
+                <radius>14</radius>
+                <thickness>10</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle2">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>0</color>
+                <dataX>-96.85904720730898</dataX>
+                <dataY>61.565806407643045</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <projectionSRS/>
+                <radius>1</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle3">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>65280</color>
+                <dataX>-76.23890308005173</dataX>
+                <dataY>35.79062624857149</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <projectionSRS/>
+                <radius>1</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle4">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>0</color>
+                <dataX>-100.29573789518518</dataX>
+                <dataY>36.363408029884184</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <projectionSRS/>
+                <radius>1</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="circle5">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <CirclePlotter>
+                <color>0</color>
+                <dataX>-70.51108526692474</dataX>
+                <dataY>44.955134749574704</dataY>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <polygonVertexCount>25</polygonVertexCount>
+                <projectionSRS/>
+                <radius>4</radius>
+                <thickness>2</thickness>
+              </CirclePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="marker">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SingleImagePlotter>
+                <dataHeight>NaN</dataHeight>
+                <dataWidth>NaN</dataWidth>
+                <dataX>-112.8969370840646</dataX>
+                <dataY>38.94092604579134</dataY>
+                <horizontalAlign>left</horizontalAlign>
+                <imageURL/>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <verticalAlign>top</verticalAlign>
+              </SingleImagePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="marker2">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <SingleImagePlotter>
+                <dataHeight>NaN</dataHeight>
+                <dataWidth>NaN</dataWidth>
+                <dataX>-106.59633748962489</dataX>
+                <dataY>43.52318029629295</dataY>
+                <horizontalAlign>left</horizontalAlign>
+                <imageURL/>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <verticalAlign>top</verticalAlign>
+              </SingleImagePlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>0</marginBottom>
+        <marginLeft>0</marginLeft>
+        <marginRight>0</marginRight>
+        <marginTop>0</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
+        <shadowAmount>0</shadowAmount>
+        <zoomBounds>
+          <area>5499.0546290852</area>
+          <xCenter>-107.16911927094</xCenter>
+          <yCenter>34.645062685946</yCenter>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <enableBackground>false</enableBackground>
+    <enableBorders>true</enableBorders>
+    <enableOverview>false</enableOverview>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>49%</panelHeight>
+    <panelStyleList/>
+    <panelTitle/>
+    <panelWidth>50%</panelWidth>
+    <panelX>0%</panelX>
+    <panelY>0%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <projectionSRS/>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+    <showMouseModeControls>true</showMouseModeControls>
+    <showZoomControls>true</showZoomControls>
+  </MapTool>
 </Weave>
