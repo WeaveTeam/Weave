@@ -258,6 +258,8 @@ package weave.data.AttributeColumns
 						)
 					);
 		}
+		
+		private var _qkeyCache:Dictionary = new Dictionary(true);
 
 		/**
 		 * get data from key value
@@ -275,10 +277,16 @@ package weave.data.AttributeColumns
 			
 			if (dataType == IQualifiedKey)
 			{
-				var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
-				if (type == '')
-					type = DataTypes.STRING;
-				return WeaveAPI.QKeyManager.getQKey(type, deriveStringFromNumber(value));
+				if (_qkeyCache[qkey] === undefined)
+				{
+					var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
+					if (type == DataTypes.NUMBER)
+						return null;
+					if (type == '')
+						type = DataTypes.STRING;
+					_qkeyCache[qkey] = WeaveAPI.QKeyManager.getQKey(type, deriveStringFromNumber(value));
+				}
+				return _qkeyCache[qkey];
 			}
 			
 			if (dataType == String)

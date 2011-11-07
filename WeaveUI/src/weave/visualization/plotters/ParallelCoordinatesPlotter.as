@@ -23,9 +23,6 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -41,17 +38,14 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
-	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
-	import weave.utils.EquationColumnLib;
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	
