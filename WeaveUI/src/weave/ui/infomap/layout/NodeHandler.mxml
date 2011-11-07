@@ -84,6 +84,7 @@
 			
 			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680),highlightNode,true);
 			
+			public const newThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00255));
 			/**
 			 * @public 
 			 * A search filter to search within documents handled by this node. 
@@ -137,10 +138,6 @@
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
 				
-//				nodeControl.closeImg.addEventListener(MouseEvent.CLICK,remove);
-//				nodeControl.editImg.addEventListener(MouseEvent.CLICK,edit);
-//				nodeControl.searchImg.addEventListener(MouseEvent.CLICK,search);
-//				nodeControl.filterImg.addEventListener(MouseEvent.CLICK,filter);
 				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
 				nodeBase.closeImg.addEventListener(MouseEvent.CLICK,close);
 				
@@ -171,6 +168,12 @@
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 			}
 			
+			private var highlightNewDocuments:Boolean = false;
+			public function checkForNewDocuments():void
+			{
+				highlightNewDocuments = true;
+				createAndSendQuery();
+			}
 		
 				
 			[Bindable]
@@ -185,7 +188,7 @@
 			private function createAndSendQuery():void
 			{
 				
-				thumbnails.removeAllObjects();
+//				thumbnails.removeAllObjects();
 				
 				nodeBase.keywordTextArea.text = node.keywords.value;
 				nodeBase.keywordTextArea.toolTip = node.keywords.value;
@@ -309,8 +312,6 @@
 						imgExtension = ".png";
 					}
 
-//					if(linkExtension != 'pdf')
-//					{
 						//each document retrived is added to the docs map in the parent infomap panel
 						docObject = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);					
 						docObject.url.value = link;
@@ -319,12 +320,9 @@
 						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,500);
 						docObject.date.value = doc.date.text().toXMLString();
 						var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
-//						if(imgURL.substr(0,7) == "http://")
-//							docObject.imageURL.value = imgURL;
-//						else 
+
 						docObject.imageURL.value = "http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension;					
 						response.addItem(link);
-//					}
 				}
 				handleParsedResult(response);
 			}
@@ -336,6 +334,7 @@
 			
 			private var parser:CSVParser = new CSVParser();
 			
+			
 			/**
 			 * @private
 			 * This function takes an array collection of links and requests a thumbnail object to display the document object
@@ -344,7 +343,6 @@
 			 **/
 			private function handleParsedResult(response:ArrayCollection):void
 			{
-				
 				var obj:SelectableInfoMapDocument;
 				for(var i:int; i<response.length ;i++)
 				{
@@ -365,12 +363,20 @@
 					
 					thumbnail.doc = obj as SelectableInfoMapDocument;
 					
+					if(highlightNewDocuments)
+					{
+						thumbnail.defaultBorderColor.value = newThumbnailBorderColor.value;
+					}
+					
 				}
 				
 				//we now have all the required thumbnails, so we use the layout to plot them
 				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails();
 				
+				
 			}
+			
+			
 			
 			private function handleLayoutChange():void
 			{

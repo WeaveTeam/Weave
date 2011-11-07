@@ -114,8 +114,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				UIUtils.linkDisplayObjects(map,nodes,false);
 				sortByTitle();
-//				globalDateFilter.endDate.addImmediateCallback(this,handleEndDateChange);
-//				globalDateFilter.startDate.addImmediateCallback(this,handleStartDateChange);
 				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text");
 				
 				/*	we will create a CSVDataSource named docs which will hold all the doucments
@@ -126,27 +124,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				docsDataSource.csvDataString.value = "title,url,summary, image url, date";
 				docsDataSource.keyColName.value = "url";
 				docsDataSource.keyType.value = "url";
+				
+				refreshTimer.start();
+				//call event for each tick of refreshTimer
+				refreshTimer.addEventListener(TimerEvent.TIMER, refreshNodes);
 			}
+			
+			private var refreshTimer:Timer = new Timer(300000);
+			
+			private function refreshNodes(event:TimerEvent):void
+			{
+				var handlers:Array = nodes.getObjects();
+				
+				for (var i:int = 0;i<handlers.length;i++)
+				{
+					if(handlers[i] is NodeHandler)
+						(handlers[i] as NodeHandler).checkForNewDocuments();
+					
+				}
+			}
+			
 			
 			private function handlePanelResize():void
 			{
 				map.validateNow();
-//				searchBox.x = (map.width-searchBox.width);
 			}
 			
-//			private function handleEndDateChange():void
-//			{
-//				var e:Date = DateUtils.getDateFromString(globalDateFilter.endDate.value);
-//				
-////				endDateText.text = DateUtils.getDateInStringFormat(e);
-//			}
-//			
-//			private function handleStartDateChange():void
-//			{
-//				var s:Date = DateUtils.getDateFromString(globalDateFilter.startDate.value);
-//				
-////				startDateText.text = DateUtils.getDateInStringFormat(s);
-//			}
 			
 			
 			private function handleKeyUp(event:KeyboardEvent):void
@@ -169,8 +172,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var linkNode:LinkToInfoMapComponent = new LinkToInfoMapComponent();
 				linkNode = nodes.requestObject(linkNodeName,LinkToInfoMapComponent,false);
 				linkNode.mapNameTextArea.text = mapName;
-//				linkNode.width = 100;
-//				linkNode.height = 50;
 				
 			}
 			
@@ -199,10 +200,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else{
 					
 					nodeHandler.node.operator.value = op;
-//					operatorButton.selectedValue = op;
 				}
-//				nodeLayout.node.dateFilter.startDate.value = startDateText.text;
-//				nodeLayout.node.dateFilter.endDate.value = endDateText.text;
 			}
 			
 			private var loader:URLLoader = null;
@@ -286,17 +284,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 				}
 			
-				//force callback so in case if the search text is already enetred nodes are informed.
-				//globalSearchKeyword.triggerCallbacks();
 				
 			}
 			
-//			private function clearDateFilter():void
-//			{
-//				startDateText.text = '';
-//				endDateText.text = '';
-//			
-//			}
 			
 			private function handleNodeComboBoxChange():void
 			{
@@ -340,9 +330,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleDatasetLoaded(event:Event):void
 			{
 				imageURL.text = _fileLoader.name.substr(0,_fileLoader.name.length-4);
-				
-//				map.setStyle("backgroundImage",_fileLoader.data);
-				
 				
 				imgLoader.contentLoaderInfo.addEventListener(Event.COMPLETE,handleLoaderComplete);
 				imgLoader.loadBytes(_fileLoader.data);

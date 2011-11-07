@@ -396,6 +396,11 @@ Info to provide a tooltip describing the node (like number of documents found)
 						return;	
 					}
 					
+					//TODO:return or continue??
+					if(!nodeHandler.node.sources.value)
+						return;						
+					
+					
 					var sourceNames:Array = nodeHandler.node.sources.value.split(',');
 					
 					if(selectedSourcesList.dataProvider)

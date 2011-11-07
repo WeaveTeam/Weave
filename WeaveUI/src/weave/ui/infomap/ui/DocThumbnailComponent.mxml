@@ -116,10 +116,6 @@ so that it can be moved, selected, handle filters.
 				linkBindableProperty(xPos,this,"x");
 				linkBindableProperty(yPos,this,"y");
 				
-//				this.addEventListener(MouseEvent.ROLL_OVER,showDocSummary);
-//				this.addEventListener(MouseEvent.ROLL_OUT,removeDocSummary);
-				
-				
 				highlightedBorderColor.addGroupedCallback(this,highlight);
 				
 				var filterableNode:FilterableInfoMapNode = (this.parent as NodeHandler).node as FilterableInfoMapNode;
@@ -128,11 +124,6 @@ so that it can be moved, selected, handle filters.
 				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
 				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
 				
-//				_dateFilterObject = filterableNode.dateFilter;
-//				
-//				//adding callbacks for date filters made in the node handler this belongs to
-//				_dateFilterObject.startDate.addGroupedCallback(this,handleDateFilter);
-//				_dateFilterObject.endDate.addGroupedCallback(this,handleDateFilter);
 			}
 			
 			
@@ -240,19 +231,19 @@ so that it can be moved, selected, handle filters.
 				graphics.clear();
 				// set line style with with 0 and alpha 0
 				if(_doc.selected.value)
-					graphics.lineStyle(2,highlightedBorderColor.value,
-					1,false);
+					graphics.lineStyle(4,highlightedBorderColor.value,
+					1,true);
 				else if(_mouseOver || _mouseDown) 
-					graphics.lineStyle(2,defaultBorderColor.value,
-						1,false);
-				else
 					graphics.lineStyle(0,0,
-						0,false);
+						0,true);
+				else
+					graphics.lineStyle(4,defaultBorderColor.value,
+						1,true);
 				// draw rectangle
-				graphics.drawRect(-0.5,
+				graphics.drawRoundRect(-0.5,
 					-0.5,
 					this.width+0.5,
-					this.height+0.5);
+					this.height+0.5,10,10);
 					graphics.endFill();	
 			}
 			
@@ -381,6 +372,8 @@ so that it can be moved, selected, handle filters.
 				//this will force a call to the updateDisplayList which will draw a border around this image
 				this.invalidateDisplayList();
 			}
+			
+			
 		]]>
 	</mx:Script>
 	
