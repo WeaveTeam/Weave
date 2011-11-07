@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -59,11 +60,32 @@ package weave.visualization.plotters
 		 */		
 		public const radius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
-		/**
-		 * The color of the circle. 
-		 */		
-		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		[Deprecated(replacement="lineColor")] public function set color(value:Object):void
+		{
+			setSessionState(lineColor, value);
+		}
 		
+		/**
+		 * The color of the circle.
+		 * @default 0 
+		 */		
+		public const lineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyColor));
+		/**
+		 * The alpha of the circle.
+		 * @default 1 
+		 */		
+		public const lineAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifyAlpha));
+		/**
+		 * The color of the fill inside the circle.
+		 * @default 0 
+		 */		
+		public const fillColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyColor));
+		/**
+		 * The alpha of the fill inside the circle.
+		 * @default 0 
+		 */		
+		public const fillAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyAlpha));
+
 		/**
 		 * The thickness of the edge of the circle. 
 		 */		
@@ -72,7 +94,7 @@ package weave.visualization.plotters
 		/**
 		 * The projection of the map when this circle was created. 
 		 */		
-		public const projectionSRS:LinkableString = registerLinkableChild(this, new LinkableString('', WeaveAPI.ProjectionManager.projectionExists));
+		//public const projectionSRS:LinkableString = registerLinkableChild(this, new LinkableString('', WeaveAPI.ProjectionManager.projectionExists));
 		
 		/**
 		 * The number of vertices to use inside the polygon when selecting records. This must be at
@@ -109,7 +131,8 @@ package weave.visualization.plotters
 			var distance:Number = Point.distance(centerPoint, circumferencePoint);
 			
 			//draw circle
-			g.lineStyle(thickness.value, color.value, 1.0);
+			g.lineStyle(thickness.value, lineColor.value, lineAlpha.value);
+			g.beginFill(fillColor.value, fillAlpha.value);
 			g.drawCircle(centerPoint.x, centerPoint.y, distance);
 			
 			destination.draw(tempShape);
@@ -152,6 +175,16 @@ package weave.visualization.plotters
 			return geometryVector;
 		}
 		
+				
+		private function verifyColor(value:Number):Boolean
+		{
+			return value >= 0;
+		}
+		
+		private function verifyAlpha(value:Number):Boolean
+		{
+			return value >= 0 && value <= 1;
+		}
 		// reusable objects
 		
 		private var _tempDataBounds:IBounds2D;
