@@ -48,6 +48,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.api.ui.IPlotLayer;
 			import weave.api.unlinkBindableProperty;
@@ -99,8 +100,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(ScatterPlotPlotter) as ScatterPlotPlotter;
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				showAxes = true;
 				
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
@@ -465,7 +465,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleGetPhiPsiValuesFault(event:FaultEvent, token:Object = null):void
 			{
 				trace(["fault", token, event.message].join('\n'));
-				WeaveAPI.ErrorManager.reportError(event.fault);
+				reportError(event);
 			}
 			
 			protected function motifSearchBtn_clickHandler(event:MouseEvent):void

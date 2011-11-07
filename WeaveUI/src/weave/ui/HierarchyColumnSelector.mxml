@@ -202,7 +202,7 @@
 				var mappings:Array = WeaveAPI.QKeyManager.getKeyMappings(desiredKeyType, actualKeyType);
 				var lookupCol:ReferencedColumn = equationColumn.requestVariable(LOOKUP_VARIABLE, ReferencedColumn);
 				if (mappings.length > 0)
-					lookupCol.dynamicColumnReference.weave_internal::requestLocalObjectCopy(mappings[0]);
+					lookupCol.dynamicColumnReference.requestLocalObjectCopy(mappings[0]);
 				else
 					lookupCol.dynamicColumnReference.removeObject();
 				var title:String = "{ this.variables.getObject('"+DATA_VARIABLE+"').getMetadata('"+AttributeColumnMetadata.TITLE+"') }";
@@ -211,7 +211,7 @@
 				equationColumn.setMetadata(AttributeColumnMetadata.KEY_TYPE, desiredKeyType);
 				equationColumn.setMetadata(AttributeColumnMetadata.DATA_TYPE, dataRef.getMetadata(AttributeColumnMetadata.DATA_TYPE));
 				var keyCol:ReferencedColumn = equationColumn.keyColumn.requestLocalObject(ReferencedColumn, false);
-				keyCol.dynamicColumnReference.weave_internal::requestLocalObjectCopy(equationColumn.variables.getObject(LOOKUP_VARIABLE));
+				keyCol.dynamicColumnReference.requestLocalObjectCopy(equationColumn.variables.getObject(LOOKUP_VARIABLE));
 				
 				dynamicColumn.resumeCallbacks();
 			}

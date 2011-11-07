@@ -40,6 +40,7 @@ package weave.data.DataSources
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
@@ -113,7 +114,7 @@ package weave.data.DataSources
 			dbfData = ByteArray(event.result);
 			if (dbfData.length == 0)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Zero-byte DBF: " + dbfUrl.value));
+				reportError("Zero-byte DBF: " + dbfUrl.value);
 				return;
 			}
 			dbf = new DbfHeader( dbfData );	
@@ -149,7 +150,7 @@ package weave.data.DataSources
 			var bytes:ByteArray = ByteArray(event.result);
 			if (bytes.length == 0)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Zero-byte ShapeFile: " + shpUrl.value));
+				reportError("Zero-byte ShapeFile: " + shpUrl.value);
 				return;
 			}
 			shpfile = registerLinkableChild(this, new ShpFileReader(bytes));
@@ -165,8 +166,7 @@ package weave.data.DataSources
 			if (token != shpUrl.value)
 				return;
 			
-			trace(event.type, event.message + '\n' + event.fault);
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 
 		/**

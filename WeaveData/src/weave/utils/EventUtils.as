@@ -70,6 +70,11 @@ package weave.utils
 			delete callbackMap[callback];
 		}
 		
+		public static function addEventCallback(eventDispatcher:Object, event:String, callback:Function, params:Array = null):void
+		{
+			eventDispatcher.addEventListener(event, function(event:Event):void { callback.apply(null, params); } );
+		}
+		
 		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
 		{
 			eventDispatcher.addEventListener(event, (WeaveAPI.SessionManager as SessionManager).generateDelayedCallback(callback, [], delay));

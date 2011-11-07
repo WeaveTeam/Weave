@@ -23,9 +23,6 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -41,17 +38,14 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
-	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
-	import weave.utils.EquationColumnLib;
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
 	
@@ -189,9 +183,9 @@ package weave.visualization.plotters
 				var value:String = values[i];
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
-				col.variables.weave_internal::requestObjectCopy("keyCol", groupBy);
-				col.variables.weave_internal::requestObjectCopy("filterCol", xData);
-				col.variables.weave_internal::requestObjectCopy("dataCol", yData);
+				col.variables.requestObjectCopy("keyCol", groupBy);
+				col.variables.requestObjectCopy("filterCol", xData);
+				col.variables.requestObjectCopy("dataCol", yData);
 				
 				col.setMetadata(AttributeColumnMetadata.TITLE, value);
 				col.setMetadata(AttributeColumnMetadata.MIN, '{ getMin(dataCol) }');
@@ -318,6 +312,11 @@ package weave.visualization.plotters
 			}
 
 			return results;
+		}
+		
+		public function getBackgroundGeometries():Array
+		{
+			return [];
 		}
 		
 		/**

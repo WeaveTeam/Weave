@@ -26,23 +26,18 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
-			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
@@ -52,7 +47,6 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
-			import weave.utils.VectorUtils;
 			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
@@ -74,8 +68,7 @@
 				// add this callback first because it needs to be called for each column that is removed
 				_plotter.columns.childListCallbacks.addImmediateCallback(this, handleColumnAddRemoveReorder);
 				
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				showAxes = true;
 				visualization.includeNonSelectableLayersInAutoZoom.lock();
 				visualization.enableZoomAndPan.value = false;
 
@@ -142,12 +135,12 @@
 					return;
 				
 				var labelColumn:DynamicColumn = new DynamicColumn();
-				labelColumn.weave_internal::requestLocalObjectCopy(labelPlotter.text);
+				labelColumn.requestLocalObjectCopy(labelPlotter.text);
 				
 				var labelEquation:EquationColumn = labelPlotter.text.requestLocalObject(EquationColumn, false) as EquationColumn;
 				labelEquation.delayCallbacks();
-				labelEquation.variables.weave_internal::requestObjectCopy("labelColumn",labelColumn);
-				labelEquation.variables.weave_internal::requestObjectCopy("keyColumn", _plotter.groupBy);
+				labelEquation.variables.requestObjectCopy("labelColumn",labelColumn);
+				labelEquation.variables.requestObjectCopy("keyColumn", _plotter.groupBy);
 				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + "Equation");
 				labelEquation.equation.value = 'key = getAssociatedKeys(keyColumn, getKey())[0], getValueFromKey(labelColumn, key, String)';
 				labelEquation.resumeCallbacks();
@@ -389,7 +382,7 @@
 				}
 			
 				var lastColumn:IAttributeColumn = _columns.pop();
-				labelPlotter.dataY.weave_internal::requestLocalObjectCopy(lastColumn as ILinkableObject);
+				labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
 
 				if (labelPlotter.text.internalColumn == null)
 				{
@@ -398,7 +391,7 @@
 					{
 						if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(lastColumn))
 						{
-							labelPlotter.text.weave_internal::requestLocalObjectCopy(headers[i]);
+							labelPlotter.text.requestLocalObjectCopy(headers[i]);
 							break;
 						}
 					}

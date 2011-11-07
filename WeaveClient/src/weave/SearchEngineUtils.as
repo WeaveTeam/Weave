@@ -137,12 +137,12 @@ package weave
 						detailsButton.toggle = true;
 						detailsButton.label = "Show Details";
 						detailsButton.toolTip = "Click to display the URL used for this service"
-						urlAlert.alertVBox.removeChild(urlAlert.textBox);
+						urlAlert.removeChild(urlAlert.textBox);
 						detailsButton.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void {																	
 							if(detailsButton.selected) 
-								urlAlert.alertVBox.addChildAt(urlAlert.textBox,2);
+								urlAlert.addChildAt(urlAlert.textBox,2);
 							else 								
-								urlAlert.alertVBox.removeChild(urlAlert.textBox);							
+								urlAlert.removeChild(urlAlert.textBox);							
 						});
 						
 						hbox.toolTip = "Please select a service from the dropdown menu";
@@ -150,8 +150,8 @@ package weave
 						label.text = "Select a service: ";
 						
 						hbox.addChild(label); hbox.addChild(combobox); hbox.addChild(detailsButton);
-						urlAlert.alertVBox.addChildAt(hbox,0 );
-						urlAlert.alertVBox.addChildAt(new Spacer(),0);
+						urlAlert.addChildAt(hbox,0 );
+						urlAlert.addChildAt(new Spacer(),0);
 						
 						try { // don't throw error if string is empty
 							// replace any combinations of linefeeds and newlines with one newline character for consistency

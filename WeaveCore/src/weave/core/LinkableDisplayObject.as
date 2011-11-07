@@ -38,6 +38,7 @@ package weave.core
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.Compiler;
 
 	/**
@@ -132,7 +133,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 		}
 		
@@ -165,7 +166,7 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 					}
 				}
 			}
@@ -182,7 +183,7 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 					}
 					delete _defaultProperties[name];
 				}
@@ -229,7 +230,7 @@ package weave.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e);
+					reportError(e);
 				}
 			}
 		}
@@ -254,7 +255,7 @@ package weave.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e);
+					reportError(e);
 				}
 			}
 
@@ -275,9 +276,15 @@ package weave.core
 					eventObj[propertyName] = String(ObjectUtil.copy(event[propertyName]));
 				
 				var prev:Boolean = ExternalInterface.marshallExceptions;
-				ExternalInterface.marshallExceptions = true;
-				ExternalInterface.call(script, eventObj);
-				ExternalInterface.marshallExceptions = prev;
+				try
+				{
+					ExternalInterface.marshallExceptions = true;
+					ExternalInterface.call(script, eventObj);
+				}
+				finally
+				{
+					ExternalInterface.marshallExceptions = prev;
+				}
 			};
 			*/
 		}

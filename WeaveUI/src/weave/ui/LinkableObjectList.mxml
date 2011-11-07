@@ -222,7 +222,7 @@ LinkableObjectList
 							object = items[i] as ILinkableObject;
 							if (hashMap.getName(object) == null)
 							{
-								var newObject:ILinkableObject = hashMap.weave_internal::requestObjectCopy(null, object);
+								var newObject:ILinkableObject = hashMap.requestObjectCopy(null, object);
 								newNames.push(hashMap.getName(newObject));
 							}
 						}
@@ -236,7 +236,7 @@ LinkableObjectList
 					else if (dynamicObject && items.length > 0)
 					{
 						// only copy the first item in the list
-						dynamicObject.weave_internal::requestLocalObjectCopy(items[0]);
+						dynamicObject.requestLocalObjectCopy(items[0]);
 					}
 				}
 			}

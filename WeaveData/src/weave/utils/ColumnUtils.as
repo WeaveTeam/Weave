@@ -21,13 +21,21 @@ package weave.utils
 {
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getLinkableDescendants;
+	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	
 	/**
 	 * This class contains static functions that access values from IAttributeColumn objects.
@@ -56,6 +64,27 @@ package weave.utils
 			}
 
 			return title;
+		}
+		
+		public static function getDataSource(column:IAttributeColumn):String
+		{
+			var name:String;
+			var nameMap:Object = {};
+			var refs:Array = getLinkableDescendants(column, IColumnReference);
+			for (var i:int = 0; i < refs.length; i++)
+			{
+				var ref:IColumnReference = refs[i];
+				var source:IDataSource = ref.getDataSource();
+				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
+				if (!sourceOwner)
+					continue;
+				name = sourceOwner.getName(source);
+				nameMap[name] = true;
+			}
+			var names:Array = [];
+			for (name in nameMap)
+				names.push(name);
+			return names.join(', ');
 		}
 
 		/**
@@ -102,16 +131,32 @@ package weave.utils
 				return (column as IPrimitiveColumn).deriveStringFromNumber(number);
 			return null; // no specific string representation
 		}
+
+		/**
+		 * Get the QKey corresponding to <code>object.keyType</code>
+		 * and <code>object.localName</code>.
+		 *  
+		 * @param object An object with properties <code>keyType</code>
+		 * and <code>localName</code>.
+		 * @return An IQualifiedKey object. 
+		 */		
+		private static function getQKey(object:Object):IQualifiedKey
+		{
+			if (object is IQualifiedKey)
+				return object as IQualifiedKey;
+			return WeaveAPI.QKeyManager.getQKey(object.keyType, object.localName);
+		}
 		
 		/**
 		 * @param column A column to get a value from.
 		 * @param key A key in the given column to get the value for.
 		 * @return The Number corresponding to the given key.
 		 */
-		public static function getNumber(column:IAttributeColumn, key:IQualifiedKey):Number
+		public static function getNumber(column:IAttributeColumn, key:Object):Number
 		{
+			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return column.getValueFromKey(key, Number);
+				return column.getValueFromKey(qkey, Number);
 			return NaN;
 		}
 		/**
@@ -119,10 +164,11 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The String corresponding to the given key.
 		 */
-		public static function getString(column:IAttributeColumn, key:IQualifiedKey):String
+		public static function getString(column:IAttributeColumn, key:Object):String
 		{
+			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return column.getValueFromKey(key, String) as String;
+				return column.getValueFromKey(qkey, String) as String;
 			return '';
 		}
 		/**
@@ -130,10 +176,11 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The Boolean corresponding to the given key.
 		 */
-		public static function getBoolean(column:IAttributeColumn, key:IQualifiedKey):Boolean
+		public static function getBoolean(column:IAttributeColumn, key:Object):Boolean
 		{
+			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return StandardLib.asBoolean( column.getValueFromKey(key) );
+				return StandardLib.asBoolean( column.getValueFromKey(qkey) );
 			return false;
 		}
 		/**
@@ -141,13 +188,14 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The Number corresponding to the given key, normalized to be between 0 and 1.
 		 */
-		public static function getNorm(column:IAttributeColumn, key:IQualifiedKey):Number
+		public static function getNorm(column:IAttributeColumn, key:Object):Number
 		{
 			if (column != null)
 			{
+				var qkey:IQualifiedKey = getQKey(key);
 				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
 				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(key, Number);
+				var value:Number = column.getValueFromKey(qkey, Number);
 				return (value - min) / (max - min);
 			}
 			return NaN;
@@ -208,6 +256,37 @@ package weave.utils
 				result.push(values);
 			}
 			return result;
+		}
+		
+		/**
+		 * This funciton generates an Array sort function that will sort IQualifiedKeys.
+		 * @param columns An Array of IAttributeColumns to use for sorting IQualifiedKeys.
+		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
+		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns. 
+		 */		
+		public static function generateSortFunction(columns:Array, descendingFlags:Array = null):Function
+		{
+			var i:int;
+			var column:IAttributeColumn;
+			var result:int;
+			var n:int = columns.length;
+			if (descendingFlags)
+				descendingFlags.length = n;
+			return function arrayCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+			{
+				for (i = 0; i < n; i++)
+				{
+					column = columns[i] as IAttributeColumn;
+					result = ObjectUtil.compare(column.getValueFromKey(key1, Number), column.getValueFromKey(key2, Number));
+					if (result != 0)
+					{
+						if (descendingFlags && descendingFlags[i])
+							return -result;
+						return result;
+					}
+				}
+				return 0;
+			}
 		}
 		
 		//todo: (cached) get sorted index from a key and a column

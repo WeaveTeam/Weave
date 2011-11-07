@@ -20,27 +20,31 @@
 package weave.core
 {
 	import flash.utils.Dictionary;
-	import flash.utils.Proxy;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ProxyObject;
-	import weave.core.LinkableHashMap;
-	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	
 	use namespace weave_internal;
 
 	/**
+	 * LinkableFunction allows a function to be defined by a String that can use macros defined in the static macros hash map.
+	 * Libraries listed in macroLibraries variable will be included when compiling the function.
+	 * 
 	 * @author adufilie
 	 */
 	public class LinkableFunction extends LinkableString
 	{
+		/**
+		 * @param defaultValue The default function definition.
+		 * @param ignoreRuntimeErrors If this is true, errors thrown during evaluation of the function will be caught and values of undefined will be returned.
+		 * @param useThisScope When true, variable lookups will be evaluated as if the function were in the scope of the thisArg passed to the apply() function.
+		 * @param paramNames An Array of parameter names that can be used in the function definition.
+		 */
 		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
 			super(defaultValue);
@@ -56,11 +60,21 @@ package weave.core
 		private var _compiledMethod:Function = null;
 		private var _paramNames:Array = null;
 
+		/**
+		 * This is called whenever the session state changes.
+		 */
 		private function handleChange():void
 		{
+			// do not compile immediately because we don't want to throw an error at this time.
 			_compiledMethod = null;
 		}
 		
+		/**
+		 * This will evaluate the function with the specified parameters.
+		 * @param thisArg The value of 'this' to be used when evaluating the function.
+		 * @param argArray An Array of arguments to be passed to the compiled function.
+		 * @return The result of evaluating the function.
+		 */		
 		public function apply(thisArg:* = null, argArray:Array = null):*
 		{
 			if (_compiledMethod == null)
@@ -162,7 +176,7 @@ package weave.core
 				catch (e:Error)
 				{
 					if (reportErrors)
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 				}
 			}
 			return compiler;

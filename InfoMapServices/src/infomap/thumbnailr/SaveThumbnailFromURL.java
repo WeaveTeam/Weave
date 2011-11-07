@@ -48,6 +48,9 @@ public class SaveThumbnailFromURL  extends HttpServlet {
 	                }
 	                
 	                System.out.println("Imaged Saved as " + thumbnailPath + imgName);
+	        }catch(Exception e)
+	        {
+	        	System.out.println("Could not save image. Possibly image name already exists" + e.toString());
 	        }
 	        finally
 	        {
@@ -55,11 +58,11 @@ public class SaveThumbnailFromURL  extends HttpServlet {
 	                        in.close();
 	                if (fout != null)
 	                        fout.close();
-	                System.out.println("IN SAVE THUMBNAIL SERVLET FINALLY");
+//	                System.out.println("IN SAVE THUMBNAIL SERVLET FINALLY");
 	        		
+	                out.close();
+	                System.out.println("CLOSING SAVE THUMBNAIL SERVLET");
 	        }
-	        System.out.println("CLOSING SAVE THUMBNAIL SERVLET");
 			
-	    out.close();
 	}
 }

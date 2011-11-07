@@ -22,20 +22,28 @@
 <mx:HBox
     xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
-    horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all"
+	verticalAlign="middle"
+    horizontalScrollPolicy="off"
+	verticalScrollPolicy="off"
+	creationPolicy="all"
     >
     <mx:Script>
     	<![CDATA[
     		import mx.controls.Label;
-    		public const labelComponent:Label = new Label();
+    		public function get labelComponent():Label
+			{
+				return _labelComponent;
+			}
+			private const _labelComponent:Label = new Label();
     	
     		override protected function createChildren():void
     		{
-    			addChild(labelComponent);
-    			labelComponent.setStyle("textAlign", "right");
-    			
     			super.createChildren();
+				
+    			addChildAt(labelComponent, 0);
+    			labelComponent.setStyle("textAlign", "right");
     		}
+			
     		[Bindable]
     		public function get indent():int { return labelComponent.width; }
     		public function set indent(value:int):void { labelComponent.width = value; }

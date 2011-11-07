@@ -206,7 +206,7 @@
 					var nameOrder:Array = savedSelectionsMap.getNames();
 					nameOrder[nameOrder.indexOf(oldName)] = newName;
 					
-					savedSelectionsMap.weave_internal::requestObjectCopy(newName, oldSubset);
+					savedSelectionsMap.requestObjectCopy(newName, oldSubset);
 					savedSelectionsMap.removeObject(oldName);
 					savedSelectionsMap.setNameOrder(nameOrder);
 
@@ -228,7 +228,7 @@
 					if( !e.confirm )
 						return;
 					
-					savedSelectionsMap.weave_internal::requestObjectCopy(e.textInput, globalSelection);
+					savedSelectionsMap.requestObjectCopy(e.textInput, globalSelection);
 					var _selectionSelector:SelectionSelector = Weave.root.getObject("SelectionSelector") as SelectionSelector;
 					if( _selectionSelector )
 						_selectionSelector.setSelectionsSelectorIndex(e.textInput);

@@ -35,6 +35,7 @@ package weave.graphs
 	import weave.api.graphs.IGraphNode;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.core.CallbackCollection;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
@@ -374,7 +375,7 @@ package weave.graphs
 			var array:Array = event.result as Array;
 			if (!array || array.length < 3)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Invalid or insufficient results from RService."));
+				reportError("Invalid or insufficient results from RService.");
 				return;
 			}
 			
@@ -427,13 +428,13 @@ package weave.graphs
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 		}
 		
 		protected function handleLayoutFault(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(new Error(event.fault));
+			reportError(event.fault);
 		}
 
 		private var _rId:int = 0;

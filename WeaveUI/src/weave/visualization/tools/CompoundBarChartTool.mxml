@@ -23,9 +23,12 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
+		 creationComplete="creationComplete();"
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.events.FlexEvent;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
@@ -37,6 +40,7 @@
 			import weave.api.setSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
+			import weave.core.SessionManager;
 			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
@@ -62,9 +66,9 @@
 				_plotter.groupingMode.addGroupedCallback(this, updateProbeLines);
 				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines);
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
+				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
 				
-				yAxisEnabled = true;
-				xAxisEnabled = true;
+				showAxes = true;
 				
 				var objects:Array = [
 						xAxisLayer.axisPlotter,
@@ -109,20 +113,19 @@
 				{
 					columnsToInit.push(_plotter.heightColumns.requestObject(null, DynamicColumn, false));
 				}
-				if(columnsToInit.length > 0)
+				if (columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
 				_plotter.heightColumns.addGroupedCallback(this,updateProbeColumns);
 			}
 			
-			override protected function childrenCreated():void
+			protected function creationComplete():void
 			{
-				super.childrenCreated();
 				cRampEditor.colorRamp = _plotter.chartColors;
 				linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
 				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
-				linkBindableProperty(showAllLabels, showAllLabelsCheckBox, "selected");
+				//linkBindableProperty(showAllLabels, showAllLabelsCheckBox, "selected");
 				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
-				linkBindableProperty(_plotter.groupingMode, groupMode, 'selectedValue');
+				linkBindableProperty(_plotter.groupingMode, groupMode, 'selectedValue', 0); // this must be done after creationComplete because the RadioButtonGroup hasn't been initialized until then.
 				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
 				_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
@@ -155,12 +158,12 @@
 			
 			private function updateProbeLines():void
 			{
-				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP) 
+				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP)
 					visualization.disableProbelines();
-				else if( _plotter.horizontalMode.value) 
+				else if (_plotter.horizontalMode.value)
 					visualization.enableProbeLine(true, false);
 				else
-					visualization.enableProbeLine(false, true ) ;
+					visualization.enableProbeLine(false, true);
 			}
 			
 			private function updateProbeColumns():void
@@ -185,6 +188,7 @@
 				else
 					visualization.additionalProbeColumns = null;
 			}
+			
 			
 			private function numberToString(value:Number):String
 			{
@@ -225,19 +229,21 @@
 			
 			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), updateAxisLabels, true);
 
+			private var _showYAxisLabels:Boolean = false;
+			private var _showXAxisLabels:Boolean = false;
+			
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
 				
-				var heightColumns:Array = _plotter.heightColumns.getObjects();
-				
 				var sortAxisTitle:String = "Sorted by " + ColumnUtils.getTitle(_plotter.sortColumn);
 				var heightAxisTitle:String = '';
-				for (var i:int = heightColumns.length - 1; i >= 0; i--) // reverse order
+				var heightColumns:Array = _plotter.heightColumns.getObjects();
+				for (var i:int = 0; i < heightColumns.length; i++)
 				{
-					heightAxisTitle += ColumnUtils.getTitle(heightColumns[i] as IAttributeColumn);
 					if (i > 0)
 						heightAxisTitle += ', ';
+					heightAxisTitle += ColumnUtils.getTitle(heightColumns[i] as IAttributeColumn);
 				}
 				if (heightAxisTitle == '')
 					heightAxisTitle = "Click to select...";
@@ -258,7 +264,7 @@
 					yAxisTitle = sortAxisTitle;
 					sortAxisLayer = yAxisLayer;
 					visualization.setYAxisColumn(sortAxisToolTipColumn);
-					
+									
 					heightAxisLayer = xAxisLayer;
 					xAxisTitle = heightAxisTitle;
 					visualization.setXAxisColumn(heightAxisToolTipColumn);
@@ -283,6 +289,7 @@
 				heightAxisLayer.axisPlotter.tickMaxValue.value = NaN;
 				heightAxisLayer.axisPlotter.forceTickCount.value = false;
 				heightAxisLayer.axisPlotter.tickCountRequested.value = sizeAxisTickCountRequested.value;
+				heightAxisLayer.axisPlotter.showLabels.value = true;
 
 				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
 				sortAxisLayer.axisPlotter.tickMinValue.value = 0;
@@ -292,6 +299,7 @@
 					sortAxisLayer.axisPlotter.tickCountRequested.value = _plotter.maxTickMarks;
 				else
 					sortAxisLayer.axisPlotter.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
+				sortAxisLayer.axisPlotter.showLabels.value = !_plotter.showLabels.value;
 				
 				// END handling of horizontal/vertical mode --------------------------------
 				
@@ -351,6 +359,8 @@
 			{
 				setSessionState(_plotter.labelColumn, value);
 			}
+			
+			[Bindable] private var indent:int = 80;
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -369,7 +379,7 @@
 		</mx:VBox>
 		
 		<mx:VBox label="Bar Properties">
-			<mx:Button label="Show legend" click="Legend_clickHandler(event)"/>
+			<mx:Button label="Show legend" click="Legend_clickHandler(event)"/>			
 			<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
 						 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
 			<mx:HBox>
@@ -379,21 +389,91 @@
 				<mx:RadioButton id="groupedRadioButton" groupName="groupMode" label="Grouped bars" value="{CompoundBarChartPlotter.GROUP}"/>
 			</mx:HBox>
 			
-			<userControls:ControlsSubsetBox>
-				<mx:Label text="Bar spacing:"/>
+			<ui:Indent label="Bar spacing:">
 				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No gap', '1:4', '1:1']" tickInterval="0.25"
 							toolTip="Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width." showDataTip="false"
 							liveDragging="true"/>
-			</userControls:ControlsSubsetBox>
-			<mx:CheckBox id="showAllLabelsCheckBox" label="Show all bar labels"
-						 toolTip="This option will always show a label for each bar."/>
-			<mx:HBox>				
-				<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
-							 toolTip="This option will show a value label for each bar."/>
-				<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
-				<mx:Label text="Value label position"/>
-				<mx:TextInput id="valueDataCoordTxtInput" 
-							  creationComplete="linkBindableProperty(_plotter.labelBarHeightPercentage, event.target, 'text')"/>
+			</ui:Indent>
+			
+			
+			<mx:HBox borderStyle="inset" borderThickness="1">
+				<mx:VBox>					
+					<mx:CheckBox label="Show labels" id="labelsChkBx" toolTip="This option enables bar labels that use the Label column"							 
+								 creationComplete="linkBindableProperty(_plotter.showLabels, event.target, 'selected')"/>
+					<mx:VBox paddingLeft="15" enabled="{labelsChkBx.selected}">
+						<mx:HBox>
+							<mx:Label text="Label color"/>
+							<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
+						</mx:HBox>
+						<ui:TextBox inputWidth="64" label="Label position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
+						
+						<ui:TextBox inputWidth="64" label="Angle"
+									creationComplete="linkBindableProperty(_plotter.labelAngle, event.target, 'text')"/>
+						<mx:HBox>
+							<mx:Label text="Vertical Align"/>
+							<mx:ComboBox toolTip="Select the vertical align mode" 
+										 creationComplete="linkBindableProperty(_plotter.labelVerticalAlign, event.target, 'selectedItem')">
+								<mx:ArrayCollection>
+									<mx:String>top</mx:String>
+									<mx:String>middle</mx:String>
+									<mx:String>bottom</mx:String>
+								</mx:ArrayCollection>
+							</mx:ComboBox>					 			
+						</mx:HBox>					
+						
+						<mx:HBox label="Horizontal Align">		
+							<mx:Label text="Horizontal Align"/>
+							<mx:ComboBox toolTip="Select the horizontal align mode" 
+										 creationComplete="linkBindableProperty(_plotter.labelHorizontalAlign, event.target, 'selectedItem')">
+								<mx:ArrayCollection>
+									<mx:String>left</mx:String>
+									<mx:String>center</mx:String>
+									<mx:String>right</mx:String>
+								</mx:ArrayCollection>			
+							</mx:ComboBox>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:VBox>
+				
+				<mx:VBox>				
+					<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
+								 toolTip="This option will show a value label for each bar."/>
+					<mx:VBox paddingLeft="15" enabled="{showValueLabelsCheckBox.selected}">
+						<mx:HBox>
+							<mx:Label text="Value label color"/>
+							<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
+						</mx:HBox>
+												
+						<ui:TextBox inputWidth="64" label="Value label position" 
+									creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>							  
+						
+						<ui:TextBox inputWidth="64" label="Angle"
+									creationComplete="linkBindableProperty(_plotter.valueLabelAngle, event.target, 'text')"/>
+						<mx:HBox>
+							<mx:Label text="Vertical Align"/>
+							<mx:ComboBox toolTip="Select the vertical align mode" 
+										 creationComplete="linkBindableProperty(_plotter.valueLabelVerticalAlign, event.target, 'selectedItem')">
+								<mx:ArrayCollection>
+									<mx:String>top</mx:String>
+									<mx:String>middle</mx:String>
+									<mx:String>bottom</mx:String>
+								</mx:ArrayCollection>
+							</mx:ComboBox>					 			
+						</mx:HBox>					
+						
+						<mx:HBox label="Horizontal Align">		
+							<mx:Label text="Horizontal Align"/>
+							<mx:ComboBox toolTip="Select the horizontal align mode" 
+										 creationComplete="linkBindableProperty(_plotter.valueLabelHorizontalAlign, event.target, 'selectedItem')">
+								<mx:ArrayCollection>
+									<mx:String>left</mx:String>
+									<mx:String>center</mx:String>
+									<mx:String>right</mx:String>
+								</mx:ArrayCollection>			
+							</mx:ComboBox>
+						</mx:HBox>
+					</mx:VBox>
+				</mx:VBox>
 			</mx:HBox>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
@@ -401,11 +481,12 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-		</mx:VBox>
-		<mx:VBox id="advControlsPanel" label="Advanced">
-			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Positive error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Negative error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
-		</mx:VBox>
+			</mx:VBox>
+			
+			<mx:VBox id="advControlsPanel" label="Advanced">
+				<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
+				<ui:DynamicColumnComponent visTool="{this}" label="Positive error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="Negative error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
+			</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

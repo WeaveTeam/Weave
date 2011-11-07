@@ -23,7 +23,10 @@
     xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
 	textAlign="right"
-    horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all"
+	verticalAlign="middle"
+    horizontalScrollPolicy="off"
+	verticalScrollPolicy="off"
+	creationPolicy="all"
     >
     <mx:Label id="labelComponent" text="{label}" width="{indent}"/>
     <mx:TextInput id="input" textAlign="left" text="{text}" change="handleInputChange()" width="{inputWidth}" displayAsPassword="{displayAsPassword}"/>

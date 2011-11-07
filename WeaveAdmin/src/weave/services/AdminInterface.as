@@ -205,32 +205,6 @@ package weave.services
 			}
 			return query;
 		}
-		public function initWeaveFileAndOpenWeave(fileName:String = ""):DelayedAsyncInvocation
-		{
-			if ( fileName == "" )
-			{
-				fileName = "newClientConfig.xml";
-			}
-			// initialize the file on the server
-			var sessionStateXML:XML = <weave encoding="dynamic">
-					<WeaveDataSource name="WeaveDataSource"/>
-					<ProbeToolTipEditor name="ProbeToolTipEditor"/>
-				</weave>;
-			// save new file if it doesn't exist (no overwrite)
-			var query:DelayedAsyncInvocation = saveWeaveFile(
-					sessionStateXML.toXMLString(),
-					fileName,
-					false
-				);
-			query.addAsyncResponder(handleSaveWeaveFile);
-			// when file is initialized, load Weave to edit the session state.
-			function handleSaveWeaveFile(e:ResultEvent, token:Object = null):void
-			{
-				getWeaveFileNames();
-				openWeavePreview(fileName);
-			}
-			return query;
-		}
 
 
 
@@ -604,12 +578,13 @@ package weave.services
 		// this function is for verifying the local connection between Weave and the AdminConsole.
 		public function ping():String { return "pong"; }
 		
-		public function openWeavePreview(fileName:String):void
+		public function openWeavePopup(fileName:String = null):void
 		{
-			var connectionName:String = createWeaveService();
-			ExternalInterface.call(
-					'function(){ window.open("weave.html?file='+fileName+'&adminSession='+connectionName+'","_blank","width=800,height=600,location=0,toolbar=0,menubar=0,resizable=1") }'
-				);
+			var url:String = 'weave.html?';
+			if (fileName)
+				url += 'file=' + fileName + '&'
+			url += 'adminSession=' + createWeaveService();
+			ExternalInterface.call('window.open', url, '_blank', 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1');
 		}
 		
 		public function saveWeaveFile(sessionState:String, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation

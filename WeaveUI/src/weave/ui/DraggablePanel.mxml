@@ -105,6 +105,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
@@ -136,8 +137,8 @@
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.
 			 */
-			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
-			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(Math.random() * 50) + "%"));
+			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%"));
+			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%"));
 			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%"));
 			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%"));
 			
@@ -248,8 +249,8 @@
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
 				setupControlButton(helpButton, null, toggleHelpPanel, "Click here to show help on how to use this component.");
-				setupControlButton(pinToBackButton, pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
-				setupControlButton(pinButton, pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
+				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
+				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
@@ -332,7 +333,7 @@
 				}
 				catch (e:Error)
 				{
-					//WeaveAPI.ErrorManager.reportError(e);
+					//reportError(e);
 					title = panelTitle.value;
 				}
 			}
@@ -719,23 +720,21 @@
     			return value;
     		}
 			
-			[Embed(source= "/weave/resources/images/tinyWrench2.png")]
+			[Embed(source="/weave/resources/images/tinyWrench2.png")]
 			private var _userControlIcon:Class;
-			
 			[Embed(source="/weave/resources/images/pushpin.png")]
-			private var pinIcon:Class;
+			private var _pinIcon:Class;
 			[Embed(source="/weave/resources/images/pushpinback.png")]
-			private var pinToBackIcon:Class;
-			[Embed(source= "/weave/resources/images/maximize_icon.png")]
+			private var _pinToBackIcon:Class;
+			[Embed(source="/weave/resources/images/maximize_icon.png")]
 			private var _maximizeIcon:Class;
-			[Embed(source= "/weave/resources/images/unmaximize_icon.png")]
+			[Embed(source="/weave/resources/images/unmaximize_icon.png")]
 			private var _unmaximizeIcon:Class;
-			[Embed(source= "/weave/resources/images/minimize_icon.png")]
+			[Embed(source="/weave/resources/images/minimize_icon.png")]
 			private var _minimizeIcon:Class;
-			[Embed(source= "/weave/resources/images/minimize_down_icon.png")]
+			[Embed(source="/weave/resources/images/minimize_down_icon.png")]
 			private var _minimizeDownIcon:Class;
 			
-			private var _userControlBitmap:BitmapData = new _userControlIcon().bitmapData;
 			[Embed(source="/weave/resources/images/resize_TB.png")]
        		private var _resizeTBCursor:Class;
        		private var _resizeTBBitmap:BitmapAsset = new _resizeTBCursor() as BitmapAsset;
@@ -856,7 +855,7 @@
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 					}
 				}
 			}
@@ -1055,7 +1054,7 @@
 					return;
 				if (!parent)
 				{
-					WeaveAPI.ErrorManager.reportError(new Error("DraggablePanel.playRestorePanelEffect() called when parent is null"));
+					reportError("DraggablePanel.playRestorePanelEffect() called when parent is null");
 					return;
 				}
 
@@ -1376,7 +1375,7 @@
 						catch (e:Error)
 						{
 							draggablePanelCursorID = -1;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 					}
 				}

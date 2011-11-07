@@ -84,7 +84,7 @@ public class GenerateThumbnail extends HttpServlet {
 			runCommand(command);
 		}
 		
-		System.out.println("FINISHED GENERATING THUMBNAIL " + imgName);
+//		System.out.println("FINISHED GENERATING THUMBNAIL " + imgName);
 		out.close();
   }
 	
@@ -99,7 +99,7 @@ public class GenerateThumbnail extends HttpServlet {
 		try
 		{
 			int result = CommandUtils.runCommand(args);
-			System.out.println("Program terminated with status " + result);
+//			System.out.println("Program terminated with status " + result);
 		}
 		catch (Exception e){
 			e.printStackTrace();

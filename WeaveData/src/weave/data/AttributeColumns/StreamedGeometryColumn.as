@@ -32,6 +32,7 @@ package weave.data.AttributeColumns
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.ErrorManager;
 	import weave.services.beans.GeometryStreamMetadata;
@@ -165,14 +166,14 @@ package weave.data.AttributeColumns
 		
 		private function handleDownloadFault(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_streamDownloadCounter--;
 		}
 
 		private function handleGetTileDescriptorsFault(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 		
 		private function handleGetTileDescriptors(event:ResultEvent, token:Object = null):void
@@ -201,16 +202,14 @@ package weave.data.AttributeColumns
 			}
 			catch (error:Error)
 			{
-				trace('handleGetTileDescriptors() error parsing result from server');
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError(error, 'handleGetTileDescriptors() error parsing result from server');
 			}
 		}
 		
 
 		private function reportNullResult():void
 		{
-			var msg:String = "Did not receive any data from service for geometry column: " + ColumnUtils.getTitle(this);
-			WeaveAPI.ErrorManager.reportError(new Error(msg));
+			reportError("Did not receive any data from service for geometry column: " + ColumnUtils.getTitle(this));
 		}
 		
 		private var _totalDownloadedSize:int = 0;

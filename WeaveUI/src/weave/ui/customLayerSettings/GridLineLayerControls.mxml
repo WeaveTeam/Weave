@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
+<!---
+Editor for custom layers using GridLinePlotters
+@author kmanohar
+-->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 implements="weave.api.ui.ILinkableObjectEditor"
 		 label="Grid Line Settings" xmlns:ui="weave.ui.*">

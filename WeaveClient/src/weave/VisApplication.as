@@ -24,6 +24,7 @@ package weave
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
@@ -35,6 +36,7 @@ package weave
 	import flash.ui.ContextMenuItem;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.binding.utils.BindingUtils;
 	import mx.containers.HBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
@@ -58,12 +60,14 @@ package weave
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
 	import weave.core.weave_internal;
+	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.AttributeHierarchy;
@@ -120,6 +124,7 @@ package weave
 	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
+	import weave.visualization.tools.TransposedTableTool;
 
 	use namespace weave_internal;
 
@@ -230,7 +235,7 @@ package weave
 		private function applicationComplete( e:FlexEvent ):void
 		{
 			getFlashVars();
-			if (getFlashVarConnectionName() != null)
+			if (getFlashVarAdminConnectionName() != null)
 			{
 				// disable interface until connected to admin console
 				var _this:VisApplication = this;
@@ -240,7 +245,7 @@ package weave
 					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
 					_this.enabled = true;
 				};
-				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarConnectionName());
+				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
 				pendingAdminService.errorCallbacks.addGroupedCallback(this, errorHandler);
 				// when admin console responds, set adminService
 				DelayedAsyncResponder.addResponder(
@@ -271,7 +276,7 @@ package weave
 			);
 			
 			// load the session state file
-			var fileName:String = getFlashVarConfigFileName() || 'defaults.xml';
+			var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
 			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
 			WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault);
 		}
@@ -290,20 +295,19 @@ package weave
 		 * The mapping for the flash vars.
 		 */
 		private var _flashVars:Object;
-		private function getFlashVarConnectionName():String
+		public function get flashVars():Object { return _flashVars; }
+		
+		private function getFlashVarAdminConnectionName():String
 		{
 			return _flashVars['adminSession'] as String;
 		}
-
+		
 		/**
 		 * Gets the name of the config file.
 		 */
 		private function getFlashVarConfigFileName():String
 		{
-			if (_flashVars[CONFIG_FILE_FLASH_VAR_NAME] == undefined)
-				return null;
-			
-			return unescape(_flashVars[CONFIG_FILE_FLASH_VAR_NAME] as String);
+			return unescape(_flashVars[CONFIG_FILE_FLASH_VAR_NAME] || '');
 		}
 		
 		/**
@@ -332,13 +336,16 @@ package weave
 				for (var key:String in urlParams)
 					if (!_flashVars.hasOwnProperty(key))
 						_flashVars[key] = urlParams[key];
+				
 				// backwards compatibility with old param name
-				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && urlParams.hasOwnProperty('defaults'))
-					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = urlParams['defaults'];
+				const DEPRECATED_FILE_PARAM_NAME:String = 'defaults';
+				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && urlParams.hasOwnProperty(DEPRECATED_FILE_PARAM_NAME))
+					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = urlParams[DEPRECATED_FILE_PARAM_NAME];
 			}
 			catch(e:Error) { }
 		}
-		public const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
+		public static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
+		public static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
 
 		private function get _application():Application { return application as Application; }
 		
@@ -347,7 +354,7 @@ package weave
 		private function handleProgressIndicatorCounterChange():void
 		{
 			var pendingCount:int = WeaveAPI.ProgressIndicator.getTaskCount();
-			var tempString:String = pendingCount + " Pending Request" + (pendingCount == 1 ? '' : 's');
+			var tempString:String = pendingCount + " Background Task" + (pendingCount == 1 ? '' : 's');
 			
 			_progressBar.label = tempString;
 
@@ -400,7 +407,7 @@ package weave
 			super.createChildren();
 
 			UIComponentGlobals.catchCallLaterExceptions = true;
-			systemManager.addEventListener("callLaterError", function(event:*):void{ WeaveAPI.ErrorManager.reportError(event.error); });
+			systemManager.addEventListener("callLaterError", reportError);
 
 			_application.addChild(visDesktop);
 			visDesktop.percentWidth = 100;
@@ -478,11 +485,16 @@ package weave
 		
 		private function saveSessionStateToServer():void
 		{
+			if (adminService == null)
+			{
+				Alert.show("Not connected to Admin Console.", "Error");
+				return;
+			}
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
 			fileSaveDialogBox.textInput = getFlashVarConfigFileName();
 			fileSaveDialogBox.title = "Save File";
-			fileSaveDialogBox.message = "Save current Session State to server?";
+			fileSaveDialogBox.message = "Enter a filename";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
 			PopUpManager.centerPopUp(fileSaveDialogBox);
 		}
@@ -490,42 +502,31 @@ package weave
 		private function handleFileSaveClose(event:AlertTextBoxEvent):void
 		{
 			if (event.confirm)
-				savePreviewSessionState(event.textInput);
+			{
+				var fileName:String = event.textInput;
+				
+				var token:AsyncToken = adminService.invokeAsyncMethod(
+						'saveWeaveFile',
+						[Weave.getSessionStateXML().toXMLString(), fileName, true]
+					);
+				token.addResponder(new DelayedAsyncResponder(
+						function(event:ResultEvent, token:Object = null):void
+						{
+							Alert.show(String(event.result), "Admin Console Response");
+						},
+						function(event:FaultEvent, token:Object = null):void
+						{
+							Alert.show(event.fault.message, event.fault.name);
+						},
+						null
+					));
+				
+				setupVisMenuItems();
+			}
 		}
 		
 		private function savePreviewSessionState(fileName:String):void
 		{
-			if (adminService == null)
-			{
-				Alert.show("Not connected to Admin Console.\nSession State was not saved.", "Error");
-				return;
-			}
-			
-			// temporarily disable sessioning so config saved to server has sessioning disabled.
-			_disableSetupVisMenuItems = true; // stop the session settings from changing the vis menu
-			Weave.properties.enableSessionMenu.value = false;
-			Weave.properties.enableSessionEdit.value = false;
-			
-			var token:AsyncToken = adminService.invokeAsyncMethod(
-					'saveWeaveFile',
-					[Weave.getSessionStateXML().toXMLString(), fileName, true]
-				);
-			token.addResponder(new DelayedAsyncResponder(
-					function(event:ResultEvent, token:Object = null):void
-					{
-						Alert.show(String(event.result), "Admin Console Response");
-					},
-					function(event:FaultEvent, token:Object = null):void
-					{
-						Alert.show(event.fault.message, event.fault.name);
-					},
-					null
-				));
-			
-			Weave.properties.enableSessionMenu.value = true;
-			Weave.properties.enableSessionEdit.value = true;
-			_disableSetupVisMenuItems = false;
-			setupVisMenuItems();
 		}
 		
 		// this function may be called by the Admin Console to close this window
@@ -576,7 +577,7 @@ package weave
 				}
 				catch(error:Error)
 				{
-					trace(error.getStackTrace());
+					reportError(error);
 				}
 			}
 		}
@@ -590,27 +591,12 @@ package weave
 		private var _subsetsMenu:WeaveMenuItem = null;
 		private var _aboutMenu:WeaveMenuItem   = null;
 
-		private var _disableSetupVisMenuItems:Boolean = false; // this flag disables the setupVisMenuItems() function temporarily while true
-		
 		private function setupVisMenuItems():void
 		{
-			if (_disableSetupVisMenuItems)
-				return;
-			
 			if (!_weaveMenu)
 				return;
 			
 			_weaveMenu.validateNow();
-			
-			//TEMPORARY SOLUTION -- enable sessioning if loaded through admin console
-			if (!Weave.properties.enableSessionMenu.value || !Weave.properties.enableSessionEdit.value)
-			{
-				if (adminService != null)
-				{
-					Weave.properties.enableSessionMenu.value = true;
-					Weave.properties.enableSessionEdit.value = true;
-				}
-			}
 			
 			_weaveMenu.removeAllMenus();
 			
@@ -666,6 +652,7 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
 				createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
 				createToolMenuItem(Weave.properties.enableAddDataTable, "Add Data Table", createGlobalObject, [DataTableTool]);
+				createToolMenuItem(Weave.properties.enableAddDataTable, "Add Transposed Data Table", createGlobalObject, [TransposedTableTool]);
 				createToolMenuItem(Weave.properties.enableAddDimensionSliderTool, "Add Dimension Slider Tool", createGlobalObject, [DimensionSliderTool]);
 				createToolMenuItem(Weave.properties.enableAddGaugeTool, "Add Gauge Tool", createGlobalObject, [GaugeTool]);
 				createToolMenuItem(Weave.properties.enableAddHistogram, "Add Histogram", createGlobalObject, [HistogramTool]);
@@ -697,7 +684,7 @@ package weave
 			}
 			
 			
-			if (Weave.properties.enableSessionMenu.value)
+			if (Weave.properties.enableSessionMenu.value || adminService)
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar("Session", false);
 				
@@ -709,14 +696,14 @@ package weave
 				
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				
-				if (Weave.properties.enableSessionEdit.value)
+				if (Weave.properties.enableSessionEdit.value || adminService)
 				{
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
 					
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state ...", handleImportSessionState));
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
 				}
 
@@ -727,7 +714,7 @@ package weave
 				
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				
-				if (Weave.properties.enableUserPreferences.value)
+				if (Weave.properties.enableUserPreferences.value || adminService)
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("User interface preferences", GlobalUISettings.openGlobalEditor));
 			}
 			
@@ -789,7 +776,7 @@ package weave
 			
 			StageUtils.callLater(this,toggleMenuBar,null,false);
 			
-			if (!getFlashVarConnectionName())
+			if (!getFlashVarAdminConnectionName())
 				enabled = true;
 			
 			// backwards compatibility:
@@ -1074,18 +1061,6 @@ package weave
 		}
 
 		/**
-		 * Handle a file fault when trying to download the config file -- for now, this just pops up a window showing that the file could not be downloaded.
-		 */
-		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
-		{
-			//if connection name exists then user might be creating a new config file.
-			if (!getFlashVarConnectionName())
-			{
-				Alert.show("Missing client config file.  Please provide a defaults.xml file that specifies what to show in this situation.", "Missing Config File");
-			}		
-		}
-
-		/**
 		 * This function arranges all DraggablePanels along a diagonal
 		 * 
 		 * @author kmanohar
@@ -1093,12 +1068,13 @@ package weave
 		private function cascadeWindows():void
 		{
 			var panels:Array = getWindowsOnStage();
-			if(!panels.length) return;			
+			if (!panels.length)
+				return;
 			
 			var increment:Number = 50/panels.length;
 			var dist:Number = 0 ;
 			
-			for each( var dp:DraggablePanel in panels)
+			for each (var dp:DraggablePanel in panels)
 			{				
 				dp.panelX.value = dp.panelY.value = dist.toString()+"%";			
 				dp.panelHeight.value = dp.panelWidth.value = "50%" ;	
@@ -1118,14 +1094,15 @@ package weave
 		{
 			var panels:Array = getWindowsOnStage();
  			var numPanels:uint = panels.length;
-			if(!numPanels) return;
+			if (!numPanels)
+				return;
 			
 			var gridLength:Number = Math.ceil(Math.sqrt(numPanels));
 			
 			var rows:uint = gridLength; 
 			var columns:uint = gridLength;
 			
-			if(gridLength*gridLength != numPanels)
+			if (gridLength*gridLength != numPanels)
 			{	
 				rows = Math.round(Math.sqrt(numPanels));
 				columns = gridLength;
@@ -1137,22 +1114,24 @@ package weave
 			var height:Number = 100/((stage.stageWidth > stage.stageHeight) ? columns : rows);
 			
 			var i:int = 0;
-			for each( var dp:DraggablePanel in panels)
+			for each (var dp:DraggablePanel in panels)
 			{				
 				dp.panelX.value = xPos.toString() + "%";
 				dp.panelY.value = yPos.toString() + "%";
 				
 				dp.panelHeight.value = height.toString() + "%";
 				dp.panelWidth.value = width.toString() + "%";
-				if( i == (panels.length - 1))
+				if (i == (panels.length - 1))
 				{
 					// expand to fill the width of stage
 					dp.panelWidth.value = (100-xPos).toString() + "%";
 				}
 				
 				xPos += width;
-				if(xPos >= 100) xPos = 0;
-				if( !xPos) yPos += height ;
+				if (xPos >= 100)
+					xPos = 0;
+				if (!xPos)
+					yPos += height ;
 				i++;
 			}
 		}
@@ -1167,9 +1146,9 @@ package weave
 			var panels:Array = Weave.root.getObjects(DraggablePanel);
 			var panelsOnStage:Array = [];
 			
-			for each( var panel:DraggablePanel in panels )
-			{				
-				if(!panel.minimized.value) 
+			for each (var panel:DraggablePanel in panels)
+			{
+				if (!panel.minimized.value) 
 					panelsOnStage.push(panel);
 			}
 			return panelsOnStage;
@@ -1187,7 +1166,7 @@ package weave
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 			if (xml)
 				loadSessionState(xml);
@@ -1211,6 +1190,30 @@ package weave
 			
 			if (getFlashVarEditable())
 				addHistorySlider();
+		}
+		
+		/**
+		 * Handle a file fault when trying to download the config file -- for now, this just pops up a window showing that the file could not be downloaded.
+		 */
+		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
+		{
+			// When creating a new file through the admin console, don't report an error for the missing file.
+			var adminDefault:Boolean = (getFlashVarAdminConnectionName() && !getFlashVarConfigFileName());
+			if (adminDefault)
+			{
+				// The admin hasn't created a default configuration yet.
+				// When we're creating a new config through the admin console, create a
+				// WeaveDataSource so the admin doesn't have to add it manually every time.
+				Weave.root.requestObject(null, WeaveDataSource, false);
+				// It's convenient if the admin sets probed columns first so new tools will have default attributes selected.
+				ProbeToolTipEditor.openDefaultEditor();
+			}
+			else
+			{
+				reportError(event);
+			}
+			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
+				Alert.show("The server hosting the configuration file does not have a permissive crossdomain policy.", "Security sandbox violation");
 		}
 		
 		private var log:SessionStateLog;
@@ -1294,12 +1297,12 @@ package weave
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				
-				if(Weave.properties.enableMarker.value)
+				if (Weave.properties.enableMarker.value)
 				{
 					MarkerSettingsComponent.createContextMenuItems(this);
 				}
 				
-				if(Weave.properties.enableDrawCircle.value)
+				if (Weave.properties.enableDrawCircle.value)
 				{
 					CirclePlotterSettings.createContextMenuItems(this);
 				}

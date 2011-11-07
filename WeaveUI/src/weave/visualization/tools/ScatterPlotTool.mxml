@@ -98,8 +98,7 @@
 					visualization.layers.setNameOrder(names);
 				}
 				
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				showAxes = true;
 				
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);

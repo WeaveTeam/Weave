@@ -36,8 +36,11 @@
 			 width="100%" height="100%">
 		
 		<mx:List id="layerSelector" width="100%" height="100%" minWidth="250">
-			<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{SelectablePlotLayer}"/>
+			<!-- For now, add new plotter editors here. later, there will be a way of listing them automatically. -->
+			
+			<!--<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>-->
+			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
+			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
 		</mx:List>
 	
 		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
@@ -51,21 +54,26 @@
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IPlotLayer;
 			import weave.api.ui.IPlotter;
+			import weave.ui.customLayerSettings.AxisLabelLayerControls;
 			import weave.ui.customLayerSettings.CompoundBarChartSettings;
 			import weave.ui.customLayerSettings.GridLineLayerControls;
 			import weave.utils.EditorManager;
+			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.AxisLabelPlotter;
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			{
+				// For now, register all plotter editors here.
+				
+				//EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
 				EditorManager.registerEditor(GridLinePlotter, GridLineLayerControls);
-				EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
+				EditorManager.registerEditor(AxisLabelPlotter, AxisLabelLayerControls);
 			}
 
-			[Bindable]
 			private var _tool:SimpleVisTool = null;
 			
 			override protected function constructor():void
@@ -76,7 +84,7 @@
 			public function set targetTool(value:SimpleVisTool):void
 			{
 				if (_tool != value && _tool != null)
-					throw new Error("CustomLayerWindow.targetTool should not be set more than once");
+					throw new Error("targetTool should not be set more than once");
 				
 				_tool = value;
 			}
@@ -112,7 +120,7 @@
 				}
 				else
 				{
-					controls.revert();
+					controls.removePanel();
 				}
 				
 				removePanel();

@@ -129,7 +129,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 
 				name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
-				output.weave_internal::requestObjectCopy(name, tempNumberClassifier);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 		}
 		

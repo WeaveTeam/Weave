@@ -155,6 +155,11 @@ package weave.visualization.plotters
 			return results;
 		}
 		
+		public function getBackgroundGeometries():Array
+		{
+			return [];
+		}
+		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
 		 * @param outputDataBounds A Bounds2D object to store the result in.

@@ -160,6 +160,7 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.reportError;
 			import weave.core.ErrorManager;
 			import weave.ui.DraggablePanel;
 			import weave.ui.OICLogoPane;
@@ -266,7 +267,7 @@
     			var itemIndex:int = _menuList.getItemIndex(menu);
     			if (itemIndex == -1)
     			{
-					WeaveAPI.ErrorManager.reportError(new Error("addMenuItemToMenu(): menu not found: "+menu.name));
+					reportError("addMenuItemToMenu(): menu not found: "+menu.name);
     				return;
     			}
     			var menuToModify:WeaveMenuItem = (_menuList.getItemAt( itemIndex ) as WeaveMenuItem);
@@ -284,7 +285,7 @@
 				var n:int = parentMenu.children.getItemIndex(menuItemToRemove);
 				if (n < 0)
 				{
-					trace(new Error("removeMenuItemFromMenu: item not found").getStackTrace());
+					reportError("removeMenuItemFromMenu: item not found");
 					return;
 				}
 				
@@ -320,9 +321,9 @@
     				
     				targetMenuItem.runClickFunction();
     			}
-    			catch(error:Error)
+    			catch (error:Error)
     			{
-					WeaveAPI.ErrorManager.reportError(error);
+					reportError(error);
     			}
     		}
     	]]>

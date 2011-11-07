@@ -283,6 +283,7 @@ import org.openscales.proj4as.Proj4as;
 import org.openscales.proj4as.ProjPoint;
 import org.openscales.proj4as.ProjProjection;
 
+import weave.api.WeaveAPI;
 import weave.api.data.AttributeColumnMetadata;
 import weave.api.data.DataTypes;
 import weave.api.data.IAttributeColumn;
@@ -325,7 +326,7 @@ internal class WorkerThread
 	private var coordsVectorIndex:int; // the index of the Array in coordsVector that should be passed to GeneralizedGeometry.setCoordinates()
 	private var keysVector:Vector.<IQualifiedKey>; // vector to pass to GeometryColumn.setGeometries()
 	private var geomVector:Vector.<GeneralizedGeometry>; // vector to pass to GeometryColumn.setGeometries()
-	private var coordsVector:Vector.<Array>; // each Array will be passed to setCoordinates() on the corresponding GeneralizedGeometry 
+	private const coordsVector:Vector.<Array> = new Vector.<Array>(); // each Array will be passed to setCoordinates() on the corresponding GeneralizedGeometry 
 	private var sourceProj:ProjProjection; // parameter for Proj4as.transform()
 	private var destinationProj:ProjProjection; // parameter for Proj4as.transform()
 
@@ -391,10 +392,12 @@ internal class WorkerThread
 		coordsVectorIndex = 0;
 		keysVector = new Vector.<IQualifiedKey>();
 		geomVector = new Vector.<GeneralizedGeometry>();
-		coordsVector = new Vector.<Array>();
+		coordsVector.length = 0;
 		sourceProj = projectionManager.getProjection(sourceProjSRS);
 		destinationProj = projectionManager.getProjection(destinationProjSRS);
 		
+		WeaveAPI.ProgressIndicator.addTask(this);
+		WeaveAPI.ProgressIndicator.addTask(coordsVector);
 		processGeometries(taskID);
 	}
 	
@@ -413,6 +416,7 @@ internal class WorkerThread
 			// continue later if necessary
 			if (StageUtils.shouldCallLater)
 			{
+				WeaveAPI.ProgressIndicator.updateTask(this, keyIndex / (keys.length - 1));
 				StageUtils.callLater(unprojectedColumn, processGeometries, arguments);
 				return;
 			}
@@ -475,13 +479,16 @@ internal class WorkerThread
 			// continue later if necessary
 			if (StageUtils.shouldCallLater)
 			{
+				WeaveAPI.ProgressIndicator.updateTask(coordsVector, coordsVectorIndex / (coordsVector.length - 1));
 				StageUtils.callLater(unprojectedColumn, processGeometries, arguments);
 				return;
 			}
 			newGeometry = geomVector[coordsVectorIndex];
 			newGeometry.setCoordinates(coordsVector[coordsVectorIndex], BLGTreeUtils.METHOD_SAMPLE);
 		}
-								
+		WeaveAPI.ProgressIndicator.removeTask(coordsVector);
+		WeaveAPI.ProgressIndicator.removeTask(this);
+		
 		// after all geometries have been reprojected, update the reprojected column
 		var reprojectedColumn:GeometryColumn = proxyColumn.internalColumn as GeometryColumn;
 		reprojectedColumn.setGeometries(keysVector, geomVector);

@@ -54,6 +54,7 @@
 			import weave.api.copySessionState;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.reportError;
 			import weave.core.ErrorManager;
 			import weave.core.SessionManager;
 			import weave.data.KeySets.KeySet;
@@ -116,7 +117,7 @@
 			
 			public function handleGetRowFault(event:FaultEvent, token:Object = null):void
 			{
-				WeaveAPI.ErrorManager.reportError(event.fault);
+				reportError(event);
 			}
 			
 			/**

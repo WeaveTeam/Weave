@@ -177,5 +177,12 @@ package weave.core
 			
 			return true; // successfully cached
 		}
+		
+		/*
+		private function typeEquals(o:*, cls:Class):Boolean
+		{
+			return o == null ? false : Object(o).constructor == cls;
+		}
+		*/
 	}
 }

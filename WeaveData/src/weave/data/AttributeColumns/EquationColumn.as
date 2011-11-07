@@ -32,9 +32,11 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
+	import weave.compiler.ProxyObject;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -118,7 +120,7 @@ package weave.data.AttributeColumns
 				{
 					try
 					{
-						var func:Function = compiler.compileToFunction(value, variableGetter, true);
+						var func:Function = compiler.compileToFunction(value, symbolTableProxy, true);
 						value = func.apply(this, arguments);
 					}
 					catch (e:Error)
@@ -126,7 +128,7 @@ package weave.data.AttributeColumns
 						if (_lastError != e.message)
 						{
 							_lastError = e.message;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 					}
 				}
@@ -242,7 +244,7 @@ package weave.data.AttributeColumns
 				else
 				{
 					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true, false, ['key', 'dataType']);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, symbolTableProxy, true, false, ['key', 'dataType']);
 					_equationIsConstant = false;
 				}
 			}
@@ -308,11 +310,20 @@ package weave.data.AttributeColumns
 			}
 		}
 		
+		private const symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, variableGetter, null);
+		
 		private function variableGetter(name:String):*
 		{
 			if (name == 'get')
 				return variables.getObject as Function;
 			return variables.getObject(name) || undefined;
+		}
+		
+		private function hasVariable(name:String):Boolean
+		{
+			if (name == 'get')
+				return true;
+			return variables.getObject(name) != null;
 		}
 		
 		/**
@@ -362,7 +373,7 @@ package weave.data.AttributeColumns
 						if (_lastError != e.message)
 						{
 							_lastError = e.message;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 						//value = e;
 					}

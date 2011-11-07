@@ -19,6 +19,12 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
+
+<!---
+@author skolman
+@author kmonico
+@author sanbalag
+-->
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
@@ -66,45 +72,29 @@
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
 			
-			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
-			import mx.collections.ListCollectionView;
-			import mx.collections.Sort;
-			import mx.collections.SortField;
-			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.controls.listClasses.ListBase;
 			import mx.core.Application;
-			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
-			import mx.events.FlexEvent;
-			import mx.events.ListEvent;
 			import mx.events.ResizeEvent;
-			import mx.managers.PopUpManager;
-			import mx.skins.halo.DataGridSortArrow;
-			import mx.utils.ColorUtil;
-			import mx.utils.ObjectUtil;
+			import mx.rpc.Fault;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.compiler.StandardLib;
-			import weave.core.ErrorManager;
+			import weave.api.reportError;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.core.SessionManager;
 			import weave.core.StageUtils;
 			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -143,7 +133,7 @@
 					if (probedColumn is DynamicColumn)
 						copySessionState(probedColumn, dynamicColumn);
 					else
-						dynamicColumn.weave_internal::requestLocalObjectCopy(probedColumn);
+						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
 			}
 			
@@ -260,7 +250,7 @@
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(new Error('Error saving exported CSV file.\n' + e.message, e.errorID));
+					reportError(e);
 				}
 			}
 			
@@ -341,8 +331,10 @@
 							columnWidths.removeObject(name);
 					}
 					handleSessionedWidthChange(); // run the callback for the sessionedWidths
-				} catch (error:Error) {
-					WeaveAPI.ErrorManager.reportError(error);
+				}
+				catch (error:Error)
+				{
+					reportError(error);
 				}
 			}
 			

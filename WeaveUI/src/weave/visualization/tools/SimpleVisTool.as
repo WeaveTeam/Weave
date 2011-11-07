@@ -35,10 +35,14 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotLayer;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -47,9 +51,11 @@ package weave.visualization.tools
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.KeySets.KeySet;
 	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
 	import weave.ui.LayerListComponent;
+	import weave.ui.PenTool;
 	import weave.ui.editors.SimpleAxisEditor;
 	import weave.ui.editors.WindowSettingsEditor;
 	import weave.utils.ColumnUtils;
@@ -57,6 +63,7 @@ package weave.visualization.tools
 	import weave.visualization.layers.AxisLayer;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
+	import weave.visualization.plotters.DynamicPlotter;
 
 	/**
 	 * A simple visualization is one with a single SelectablePlotLayer
@@ -67,7 +74,6 @@ package weave.visualization.tools
 	{
 		public function SimpleVisTool()
 		{
-			// Actual constructors are interpreted, not compiled.
 			// Don't put any code here.
 			// Put code in the constructor() function instead.
 		}
@@ -311,6 +317,57 @@ package weave.visualization.tools
 		}
 		
 		/**
+		 * This function will return an array of IQualifiedKey objects which overlap
+		 * the geometries of the layer specified by <code>layerName</code>.
+		 * 
+		 * @param layerName The name of the layer with the geometries used for the query.
+		 */		
+		public function getOverlappingQKeys(layerName:String):Array
+		{
+			var key:IQualifiedKey;
+			var simpleGeometries:Array = [];
+			var simpleGeometry:ISimpleGeometry;
+			
+			// First check the children to see if the specified layer is a penTool
+			var penTool:PenTool = children.getObject(layerName) as PenTool;
+			if (penTool)
+			{
+				return penTool.getOverlappingKeys();
+			}
+			
+			// Otherwise, it's an IPlotLayer and go through it
+			var layer:IPlotLayer = visualization.layers.getObject(layerName) as IPlotLayer;
+			if (!layer)
+				return [];
+			
+			var polygonPlotter:IPlotterWithGeometries = layer.plotter as IPlotterWithGeometries;
+			if (!polygonPlotter && layer.plotter is DynamicPlotter)
+			{
+				polygonPlotter = (layer.plotter as DynamicPlotter).internalObject as IPlotterWithGeometries;
+			}
+			if (!polygonPlotter)
+				return [];
+			
+			return visualization.getKeysOverlappingGeometry( polygonPlotter.getBackgroundGeometries() || [] );
+		}
+		
+		/**
+		 * This function will set the defaultSelectionKeySet to contain the keys
+		 * which overlap the geometries specified by the layer called <code>layerName</code>.
+		 * 
+		 * @param layerName The name of the layer with the geometries used for the query.
+		 */
+		public function selectRecords(layerName:String):void
+		{
+			var keys:Array = getOverlappingQKeys(layerName);
+			
+			// set the selection keyset
+			var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			selectionKeySet.replaceKeys(keys);
+		}
+		
+		
+		/**
 		 * This function takes a list of dynamic column objects and
 		 * initializes the internal columns to default ones.
 		 */
@@ -328,26 +385,18 @@ package weave.visualization.tools
 					if (selectedColumn is DynamicColumn)
 						copySessionState(selectedColumn, columnToInit);
 					else
-						columnToInit.weave_internal::requestLocalObjectCopy(selectedColumn);
+						columnToInit.requestLocalObjectCopy(selectedColumn);
 				}
 			}
 		}
 		
-		public function get xAxisEnabled():Boolean
+		public function get showAxes():Boolean
 		{
-			return visualization.xAxisEnabled;
+			return visualization.showAxes;
 		}
-		public function set xAxisEnabled(value:Boolean):void
+		public function set showAxes(value:Boolean):void
 		{
-			visualization.xAxisEnabled = value;
-		}
-		public function get yAxisEnabled():Boolean
-		{
-			return visualization.yAxisEnabled;
-		}
-		public function set yAxisEnabled(value:Boolean):void
-		{
-			visualization.yAxisEnabled = value;
+			visualization.showAxes = value;
 		}
 		
 		[Inspectable]

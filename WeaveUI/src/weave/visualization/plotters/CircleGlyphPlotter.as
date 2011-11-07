@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -55,17 +56,12 @@ package weave.visualization.plotters
 			lineStyle.requestLocalObject(SolidLineStyle, false);
 			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
-			
-			minScreenRadius.value = 5;
-			maxScreenRadius.value = 10;
-			defaultScreenRadius.value = 5
-			enabledSizeBy.value = false;
 		}
 
-		public const minScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const maxScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const defaultScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const enabledSizeBy:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3));
+		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12));
+		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const enabledSizeBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.

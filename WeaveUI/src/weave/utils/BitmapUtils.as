@@ -157,8 +157,6 @@ package weave.utils
 			return encoder.drain();
 		}
 		
-		// note: use ImageSnapshot.captureImage().data instead of these functions
-		
 //		/**
 //		 * This generates a JPEG screenshot of a component.
 //		 * @param component The component from which to get a screenshot.
@@ -171,15 +169,16 @@ package weave.utils
 //			var bitmap:BitmapData = getBitmapDataFromComponent(component);
 //			return new JPEGEncoder(quality).encode(bitmap);
 //		}
-//		/**
-//		 * This generates a PNG screenshot of a component.
-//		 * @param component The component from which to get a screenshot.
-//		 * @return A PNG version of the screenshot, stored in a ByteArray.
-//		 */
-//		public static function getPNGFromComponent(component:UIComponent):ByteArray
-//		{		
-//			var bitmap:BitmapData = getBitmapDataFromComponent(component);
-//			return new PNGEncoder().encode(bitmap);
-//		}
+		
+		/**
+		 * This generates a PNG screenshot of a component.
+		 * @param component The component from which to get a screenshot.
+		 * @return A PNG version of the screenshot, stored in a ByteArray.
+		 */
+		public static function getPNGFromComponent(component:UIComponent):ByteArray
+		{		
+			var bitmap:BitmapData = getBitmapDataFromComponent(component);
+			return new PNGEncoder().encode(bitmap);
+		}
 	}
 }

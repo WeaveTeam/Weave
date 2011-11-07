@@ -76,7 +76,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
 				name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.weave_internal::requestLocalObjectCopy(name, tempNumberClassifier);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}	
 						
 			for (iBin = 0 ; iBin < sdNumber.value ; iBin++)
@@ -94,7 +94,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
 				name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.weave_internal::requestObjectCopy(name, tempNumberClassifier);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 		}
 		// reusable temporary object

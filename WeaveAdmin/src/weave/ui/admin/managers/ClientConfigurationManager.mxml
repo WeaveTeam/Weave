@@ -26,6 +26,11 @@
 				label="Client configurations"
 				creationComplete="handleCreationComplete()">
 	<mx:VBox height="100%">
+		<mx:HBox>
+			<mx:Button label="Open selected file" click="openSelectedFile()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
+			<mx:Button label="Delete selected file" click="removeClientConfigFile()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
+			<mx:Button label="Create new file" click="createFile()"/>
+		</mx:HBox>
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search configuration files"
 						   doubleClickEnabled="true" doubleClick="openSelectedFile()"
 						   toolTip="Double-click a file name to open it with Weave."/>
@@ -35,24 +40,16 @@
 		</mx:HBox>
 	</mx:VBox>
 	
-	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
+<!--	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
 		<mx:Canvas label="Settings" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%">
 				<mx:VBox width="100%">
-					<mx:HBox>
-						<mx:Button label="Open Selected File" click="openSelectedFile()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
-						<mx:Button label="Delete Selected File" click="removeClientConfigFile()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
-					</mx:HBox>
-					<mx:Spacer height="16"/>
-					<mx:HBox width="100%" height="100%">
-						<mx:Label text="Create new file:" textAlign="right"/>
-						<mx:TextInput id="weaveFileNameInput" text="newClientConfig.xml" width="200"/>
-						<mx:Button label="Create" click="createFile()"/>
-					</mx:HBox>
+					<mx:Label text="This space for rent"/>
 				</mx:VBox>
 			</mx:VBox>
 		</mx:Canvas>
 	</mx:TabNavigator>
+-->
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
@@ -80,16 +77,12 @@
 			{
 				var item:Object = treeWithSearch.tree.selectedItem;
 				if (item)
-					AdminInterface.instance.openWeavePreview(item.label);
-					AdminInterface.instance.initWeaveFileAndOpenWeave(item.label);
+					AdminInterface.instance.openWeavePopup(item.label);
 			}
 			
 			private function createFile():void
 			{
-				if (AdminInterface.instance.weaveFileNames.indexOf(weaveFileNameInput.text) >= 0)
-					AdminInterface.instance.openWeavePreview(weaveFileNameInput.text);
-				else
-					AdminInterface.instance.initWeaveFileAndOpenWeave(weaveFileNameInput.text);
+				AdminInterface.instance.openWeavePopup();
 			}
 			
 			private function removeClientConfigFile():void

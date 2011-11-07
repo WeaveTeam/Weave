@@ -24,50 +24,45 @@
  	*  Saves the file to the server.
 -->
 
-<mx:TitleWindow 
+<mx:TitleWindow
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
-	layout="absolute" 
-    title="{_title}"
     showCloseButton="false"
     close="handleClose()"
     creationComplete="handleCreationComplete(event)"
     borderAlpha="0.95"
     borderThickness="2"
+	autoLayout="true"
     horizontalScrollPolicy="off" verticalScrollPolicy="off"
 	titleStyleName="weave-panel-title-style"
 	styleName="weave-panel-style"
+	paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
 	>
+	<mx:Label text="{_message}" horizontalCenter="0"/>
+	<mx:TextInput text="{_textInput}" id="textBox" change="_textInput = textBox.text;" enter="if (textBox.text) handleOKClick()"/>
+	<mx:HBox id="alertButtons" width="100%">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Ok" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text)}"/>
+		<mx:Button label="Cancel" click="handleCancelClick()"/>
+	</mx:HBox>
+	
     <mx:Metadata>
     	[Event(name="buttonClicked", type="weave.ui.AlertTextBoxEvent")]
-    	
     </mx:Metadata>
     <mx:Script>
 	<![CDATA[
-		import mx.core.Application;
 		import mx.controls.Button;
+		import mx.core.Application;
 		import mx.events.CloseEvent;
 		import mx.managers.PopUpManager;
 		import mx.printing.FlexPrintJob;
 		import mx.printing.FlexPrintJobScaleType;
 		import mx.utils.ObjectUtil;
 		
+		import weave.compiler.StandardLib;
 		import weave.data.AttributeColumns.AbstractAttributeColumn;
 		import weave.utils.BitmapUtils;
 		
-		
-		
-		//Title of the Dialog Box
-		[Bindable]
-		private var _title:String = null;
-		public override function get title():String
-		{
-			return _title;
-		}
-	    public override function set title(value:String):void
-		{
-			_title = value;
-		}
 		
 		//Message before TextBox
 		[Bindable]
@@ -95,11 +90,6 @@
 	
 		private function handleCreationComplete(event:Event):void
 		{
-			if(_title == null)
-			{
-				_title = "Alert";
-			}
-			
 			focusManager.setFocus(textBox);
 		}		
 		
@@ -146,21 +136,12 @@
 		
 		override public function move(x:Number, y:Number):void
 		{
-			x = Math.min(x, parent.width - this.width);
-			y = Math.min(y, parent.height - this.height);
+			x = StandardLib.constrain(x, 0, parent.width - this.width);
+			y = StandardLib.constrain(y, 0, parent.height - this.height);
 			
 			super.move(x, y);
 		}
 		
    		]]>
 	</mx:Script>
-	<mx:VBox id="alertVBox" horizontalAlign="left" width="100%" height="100%" backgroundColor="0xFFFFFF" paddingLeft="5" paddingBottom="5">
-		<mx:Label text="{_message}" horizontalCenter="0" width="100%"/>
-		<mx:TextInput text="{_textInput}" id="textBox" change="_textInput = textBox.text;" enter="handleOKClick()"/>
-		<mx:HBox id="alertButtons">
-		<mx:Button label="OK" click="handleOKClick()" emphasized="true"/>
-		<mx:Button label="Cancel" click="handleCancelClick()"/>
-		</mx:HBox>
-	</mx:VBox>
-
 </mx:TitleWindow> 
