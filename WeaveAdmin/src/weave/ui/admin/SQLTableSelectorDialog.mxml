@@ -24,18 +24,16 @@
 		 width="100%"
 		 creationComplete="getSchemas()"
 		 xmlns:ui="weave.ui.*">
-	<mx:HBox>
-		<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_SQL_SCHEMA_LABEL}" textAlign="left"/>
+	<ui:Indent indent="{indent}" label="{StringDefinition.DEFAULT_SQL_SCHEMA_LABEL}">
 		<ui:CustomComboBox id="schemaInput" toolTip="{StringDefinition.DEFAULT_SQL_SCHEMA_DROPDOWNBOX_TOOLTIP}" text="{activeSchema}" prompt="Select a schema..." dataProvider="{schemas}" change="activeSchema = schemaInput.text;"/>
 		<mx:Button label="Refresh" click="getSchemas()" toolTip="{StringDefinition.DEFAULT_SCHEMAS_REFRESH_BUTTON_TOOLTIP}"/>
-	</mx:HBox>
-	<mx:HBox id="tableControls">
-		<mx:Label width="{indent}" id="tableLabel" text="{StringDefinition.DEFAULT_SQL_TABLE_LABEL}" textAlign="left"/>
+	</ui:Indent>
+	<ui:Indent id="tableControls" indent="{indent}" label="{StringDefinition.DEFAULT_SQL_TABLE_LABEL}">
 		<ui:CustomComboBox id="_tableCombo" editable="true" text="{activeTable}" dataProvider="{tables}" prompt="Select a SQL table..." change="activeTable = _tableCombo.text;" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DROPDOWNBOX_TOOLTIP}"/>
 		<ui:TextInputWithPrompt id="_tableInput" editable="true" text="{activeTable}" prompt="Enter a SQL table name" change="activeTable = _tableInput.text;"/>
 		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}" width="{tableOverwriteCheckVisible ? NaN : 0}" toolTip="{StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP}"/>
 		<mx:Button id="tablesRefreshButton" label="Refresh" click="getTables()" toolTip="{StringDefinition.DEFAULT_TABLES_REFRESH_BUTTON_TOOLTIP}" visible="{_showTableCombo}" width="{_showTableCombo ? NaN : 0}"/>
-	</mx:HBox>
+	</ui:Indent>
 	<mx:Metadata>
 		[Exclude(name="_tableCombo", kind="property")]
 		[Exclude(name="_tableInput", kind="property")]
