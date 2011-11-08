@@ -133,9 +133,61 @@ package weave.utils
 		}
 
 		/**
+		 * Gets an array of QKey objects from <code>column</code> which meet the criteria
+		 * <code>min <= getNumber(column, key) <= max</code>, where key is a <code>QKey</code> 
+		 * in <code>column</code>.
+		 * @param min The minimum value for the keys
+		 * @param max The maximum value for the keys
+		 * @param inclusiveRange A boolean specifying whether the range includes the min and max values.
+		 * Default value is <code>true</code>.
+		 * @return An array QKey objects. 
+		 */		
+		public static function getQKeysInNumericRange(column:IAttributeColumn, min:Number, max:Number, inclusiveRange:Boolean = true):Array
+		{
+			var result:Array = [];
+			var keys:Array = column.keys;
+			for each (var qkey:IQualifiedKey in keys)
+			{
+				var number:Number = getNumber(column, qkey);
+				var isInRange:Boolean = false;
+				if (inclusiveRange)
+					isInRange = min <= number && number <= max;
+				else
+					isInRange = min < number && number < max;
+				
+				if (isInRange)
+					result.push(qkey);
+			}
+			
+			return result;
+		}
+		
+		/**
+		 * This is mostly a convenience function to call through Javascript. For example,
+		 * a user could invoke 'KeySet.replaceKeys( getQKeys(keyObjects) )' where keyObjects
+		 * is an array of generic objects in Javascript.  
+		 * @param genericObjects An array of generic objects with <code>keyType</code>
+		 * and <code>localName</code> properties.
+		 * @return An array of IQualifiedKey objects.
+		 * 
+		 */		
+		public static function getQKeys(genericObjects:Array):Array
+		{
+			var result:Array = [];
+			
+			for each (var key:Object in genericObjects)
+			{
+				var qkey:IQualifiedKey = getQKey(key);
+				result.push(qkey);
+			}
+
+			return result;
+		}
+			
+		/**
 		 * Get the QKey corresponding to <code>object.keyType</code>
 		 * and <code>object.localName</code>.
-		 *  
+		 * 
 		 * @param object An object with properties <code>keyType</code>
 		 * and <code>localName</code>.
 		 * @return An IQualifiedKey object. 
