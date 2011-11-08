@@ -71,7 +71,7 @@ A text editor to change the Session State on the fly.
 				</mx:VBox>
 			</mx:HDividedBox>
 		</mx:VBox>
-		<ui:Console context="{sessionNav.selectedItem.object}" height="0"/>
+		<ui:Console id="console" context="{null}" height="0"/>
 	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
@@ -280,6 +280,9 @@ A text editor to change the Session State on the fly.
 		    }
 			private function handleSessionNavSelect():void
 			{
+				if (sessionNav.selectedItem)
+					console.context = sessionNav.selectedItem.object;
+				
 				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedSessionedObject() as ILinkableDynamicObject;
 				if (dynamicObject)
 				{
