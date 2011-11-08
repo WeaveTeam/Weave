@@ -39,7 +39,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  all-static class containing functions to aid in performing zooming calculations
+  A static library containing functions to aid in performing zooming calculations
   
   <p></p>
 <br>
@@ -74,14 +74,16 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#getZoomLevel()">getZoomLevel</a>(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, useXCoordinates:Boolean):Number</div>
 <div class="summaryTableDescription">[static]
-   </div>
+   This function calculates the zoom level.</div>
 </td><td class="summaryTableOwnerCol">ZoomUtils</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#zoomDataBoundsByRelativeScreenScale()">zoomDataBoundsByRelativeScreenScale</a>(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, xScreenOrigin:Number, yScreenOrigin:Number, relativeScale:Number, repositionCenter:Boolean):void</div>
-<div class="summaryTableDescription">[static]</div>
+<div class="summaryTableDescription">[static]
+   scale greater than 1 will zoom in, scale less than 1 will zoom out
+   </div>
 </td><td class="summaryTableOwnerCol">ZoomUtils</td>
 </tr>
 </table>
@@ -162,6 +164,9 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static function getZoomLevel(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, useXCoordinates:Boolean):Number</code><p>
+   This function calculates the zoom level.  If dataBounds is scaled to fit into screenBounds,
+   the screen size of fullDataBounds would be 2^zoomLevel minSize.  Zoom level is defined this way
+   to be compatible with the zoom level used by Google Maps and other tiled WMS services.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -213,40 +218,48 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function zoomDataBoundsByRelativeScreenScale(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, xScreenOrigin:Number, yScreenOrigin:Number, relativeScale:Number, repositionCenter:Boolean):void</code><span class="label">Parameters</span>
+<code>public static function zoomDataBoundsByRelativeScreenScale(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, xScreenOrigin:Number, yScreenOrigin:Number, relativeScale:Number, repositionCenter:Boolean):void</code><p>
+   scale greater than 1 will zoom in, scale less than 1 will zoom out
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">dataBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
+<td width="20px"></td><td><code><span class="label">dataBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; The visible data bounds
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">screenBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
+<td width="20px"></td><td><code><span class="label">screenBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; The screen bounds that the data bounds is scaled to fit in
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">xScreenOrigin</span>:Number</code></td>
+<td width="20px"></td><td><code><span class="label">xScreenOrigin</span>:Number</code> &mdash; The x screen coordinate used as the scale origin
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">yScreenOrigin</span>:Number</code></td>
+<td width="20px"></td><td><code><span class="label">yScreenOrigin</span>:Number</code> &mdash; The y screen coordinate used as the scale origin
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">relativeScale</span>:Number</code></td>
+<td width="20px"></td><td><code><span class="label">relativeScale</span>:Number</code> &mdash; The relative scale value used to scale the data bounds
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">repositionCenter</span>:Boolean</code></td>
+<td width="20px"></td><td><code><span class="label">repositionCenter</span>:Boolean</code> &mdash; If true, this causes the data coordinates to be associated with the screen origin to be moved to the center of the screen bounds after scaling.
+   </td>
 </tr>
 </table>
 </div>

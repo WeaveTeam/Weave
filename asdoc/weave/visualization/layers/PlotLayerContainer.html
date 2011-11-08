@@ -79,7 +79,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#getZoomLevel()">getZoomLevel</a>():Number</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This function gets the current zoom level as defined in ZoomUtils.</div>
 </td><td class="summaryTableOwnerCol">PlotLayerContainer</td>
 </tr>
 <tr class="">
@@ -93,7 +94,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#setZoomLevel()">setZoomLevel</a>(newZoomLevel:Number):void</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This function sets the zoom level as defined in ZoomUtils.</div>
 </td><td class="summaryTableOwnerCol">PlotLayerContainer</td>
 </tr>
 </table>
@@ -272,14 +274,20 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getZoomLevel():Number</code>
-<p></p>
+<code>public function getZoomLevel():Number</code><p>
+   This function gets the current zoom level as defined in ZoomUtils.
+   </p><p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Number</code></td>
+<td width="20"></td><td><code>Number</code> &mdash; The current zoom level.
+   </td>
 </tr>
 </table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">weave.utils::ZoomUtils.getZoomLevel</div>
 </div>
 <a name="invalidateGraphics()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -297,12 +305,19 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function setZoomLevel(newZoomLevel:Number):void</code><span class="label">Parameters</span>
+<code>public function setZoomLevel(newZoomLevel:Number):void</code><p>
+   This function sets the zoom level as defined in ZoomUtils.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">newZoomLevel</span>:Number</code></td>
+<td width="20px"></td><td><code><span class="label">newZoomLevel</span>:Number</code> &mdash; The new zoom level.
+   </td>
 </tr>
 </table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">weave.utils::ZoomUtils.getZoomLevel</div>
 </div>
 <a name="updateDisplayList()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
