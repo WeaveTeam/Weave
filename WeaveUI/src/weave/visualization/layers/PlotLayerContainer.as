@@ -236,6 +236,11 @@ package weave.visualization.layers
 			getCallbackCollection(this).resumeCallbacks();
 		}
 		
+		/**
+		 * This function gets the current zoom level as defined in ZoomUtils.
+		 * @return The current zoom level.
+		 * @see weave.utils::ZoomUtils.getZoomLevel
+		 */
 		public function getZoomLevel():Number
 		{
 			zoomBounds.getDataBounds(tempDataBounds);
@@ -246,6 +251,11 @@ package weave.visualization.layers
 			return zoomLevel;
 		}
 		
+		/**
+		 * This function sets the zoom level as defined in ZoomUtils.
+		 * @param newZoomLevel The new zoom level.
+		 * @see weave.utils::ZoomUtils.getZoomLevel
+		 */
 		public function setZoomLevel(newZoomLevel:Number):void
 		{
 			var currentZoomLevel:Number = getZoomLevel();
