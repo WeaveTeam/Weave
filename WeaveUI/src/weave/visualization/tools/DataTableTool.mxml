@@ -307,7 +307,7 @@
 			//we need to do this to set the arrow to the correct column
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-				sortCallback();
+//				sortCallback();
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
 			}
 			
