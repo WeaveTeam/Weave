@@ -73,10 +73,10 @@
 				var objects:Array = [
 						xAxisLayer.axisPlotter,
 						yAxisLayer.axisPlotter,
-						visualization.marginLeft,
-						visualization.marginBottom,
-						visualization.marginTop,
-						visualization.marginRight,
+						visualization.marginLeftNumber,
+						visualization.marginBottomNumber,
+						visualization.marginTopNumber,
+						visualization.marginRightNumber,
 						_plotter
 					];
 				for each (var object:ILinkableObject in objects)
@@ -94,10 +94,10 @@
 
 				showAllLabels.value = false;
 
-				visualization.marginBottom.value = 80;
-				visualization.marginLeft.value = 80;
-				visualization.marginTop.value = 30;
-				visualization.marginRight.value = 30;
+				visualization.marginBottom.value = "80";
+				visualization.marginLeft.value = "80";
+				visualization.marginTop.value = "30";
+				visualization.marginRight.value = "30";
 				
 				visualization.enableZoomAndPan.value = false;
 
@@ -303,8 +303,8 @@
 				
 				// END handling of horizontal/vertical mode --------------------------------
 				
-				xAxisLayer.axisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisLayer.axisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisLayer.axisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 			
 			private function heightAxisLabelFunction(value:Number):String

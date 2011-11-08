@@ -43,6 +43,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						   rollOverColor="0xDADAFF"
 						   selectionColor="0xFFAAAA"
 						   lockedColumnCount="1"
+						   wordWrap="true"
 						   />
 		
 	</mx:VBox>

@@ -43,20 +43,20 @@
 	<mx:HBox width="100%" id="marginProperties" verticalAlign="middle">
 		<mx:Label  text="Margins:"/>
 		
-		<mx:NumericStepper id="marginLeft" toolTip="Enter a number of pixels to use for the left margin"
-						   minimum="0" maximum="200" stepSize="5"
-						   creationComplete="linkBindableProperty(_tool.visualization.marginLeft, event.target, 'value');"/>
+		<mx:TextInput id="marginLeft" toolTip="Enter a number of pixels to use for the left margin" width="40"
+					  		cornerRadius="5" borderStyle="solid"
+						   creationComplete="linkBindableProperty(_tool.visualization.marginLeft, event.target, 'text');"/>
 		<mx:VBox>
-			<mx:NumericStepper id="marginTop" toolTip="Enter a number of pixels to use for the top margin"
-							   minimum="0" maximum="200" stepSize="5"
-							   creationComplete="linkBindableProperty(_tool.visualization.marginTop, event.target, 'value');"/>
-			<mx:NumericStepper id="marginBottom" toolTip="Enter a number of pixels to use for the bottom margin"
-							   minimum="0" maximum="200" stepSize="5"
-							   creationComplete="linkBindableProperty(_tool.visualization.marginBottom, event.target, 'value');"/>
+			<mx:TextInput id="marginTop" toolTip="Enter a number of pixels to use for the top margin" width="40"
+						  cornerRadius="5" borderStyle="solid"
+						  creationComplete="linkBindableProperty(_tool.visualization.marginTop, event.target, 'text');"/>
+			<mx:TextInput id="marginBottom" toolTip="Enter a number of pixels to use for the bottom margin" width="40"
+						  cornerRadius="5" borderStyle="solid"
+						  creationComplete="linkBindableProperty(_tool.visualization.marginBottom, event.target, 'text');"/>
 		</mx:VBox>
-		<mx:NumericStepper id="marginRight" toolTip="Enter a number of pixels to use for the right margin"
-						   minimum="0" maximum="200" stepSize="5"
-						   creationComplete="linkBindableProperty(_tool.visualization.marginRight, event.target, 'value');"/>
+		<mx:TextInput id="marginRight" toolTip="Enter a number of pixels to use for the right margin" width="40"
+					  cornerRadius="5" borderStyle="solid"
+					  creationComplete="linkBindableProperty(_tool.visualization.marginRight, event.target, 'text');"/>
 	</mx:HBox>
 	<mx:VBox id="axisSettings" verticalGap="{verticalGap}">
 		<mx:HBox width="100%" verticalAlign="middle">

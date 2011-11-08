@@ -58,10 +58,10 @@
 			{
 				super.constructor();
 				
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 80;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "80";
 				
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(ParallelCoordinatesPlotter) as ParallelCoordinatesPlotter;
@@ -84,10 +84,10 @@
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxes);
 			
 				// BEGIN TEMPORARY SOLUTION
-				visualization.marginLeft.addGroupedCallback(this, updateAxes);
-				visualization.marginBottom.addGroupedCallback(this, updateAxes);
-				visualization.marginTop.addGroupedCallback(this, updateAxes);
-				visualization.marginRight.addGroupedCallback(this, updateAxes);
+				visualization.marginLeftNumber.addGroupedCallback(this, updateAxes);
+				visualization.marginBottomNumber.addGroupedCallback(this, updateAxes);
+				visualization.marginTopNumber.addGroupedCallback(this, updateAxes);
+				visualization.marginRightNumber.addGroupedCallback(this, updateAxes);
 
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateAxes, true);
 				// END TEMPORARY SOLUTION
@@ -103,7 +103,7 @@
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
 				_plotter.xValues.addGroupedCallback(this, updateFilterText);
 				
-				linkSessionState(visualization.marginRight, labelPlotter.maxWidth);
+				linkSessionState(visualization.marginRightNumber, labelPlotter.maxWidth);
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -273,13 +273,13 @@
 				xAxisLayer.axisPlotter.setSideAxisName(
 					xAxisName,
 					0,
-					0, visualization.marginBottom.value - 3,
+					0, visualization.marginBottomNumber.value - 3,
 					BitmapText.VERTICAL_ALIGN_BOTTOM
 				);
 				yAxisLayer.axisPlotter.setSideAxisName(
 					yAxisName,
 					-90,
-					-visualization.marginLeft.value, 0,
+					-visualization.marginLeftNumber.value, 0,
 					BitmapText.VERTICAL_ALIGN_TOP
 				);
 

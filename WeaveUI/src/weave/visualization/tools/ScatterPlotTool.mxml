@@ -101,8 +101,8 @@
 				showAxes = true;
 				
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
@@ -130,10 +130,10 @@
 				colorColumn.addGroupedCallback(this, updateProbeColumns);
 				
 				plotter.enabledSizeBy.value = true;
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 30;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 30;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "30";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "30";
 				
 				initializeUndefinedLayers();				
 			}
@@ -209,10 +209,10 @@
 					column.addGroupedCallback(this, setUndefinedPlotterKeySource, true);
 				}
 				
-				visualization.marginTop.addGroupedCallback(this, setUndefinedLayerScreenBounds,true);
-				visualization.marginBottom.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
-				visualization.marginRight.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
-				visualization.marginLeft.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
+				visualization.marginTopNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds,true);
+				visualization.marginBottomNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
+				visualization.marginRightNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
+				visualization.marginLeftNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
 				
 				visualization.gridLineAlpha.addGroupedCallback(this, setUndefinedLayerScreenBounds);
 				visualization.gridLineColor.addGroupedCallback(this, setUndefinedLayerScreenBounds);
@@ -273,15 +273,15 @@
 			
 			private function setUndefinedLayerScreenBounds():void
 			{				
-				var left:Number = visualization.marginLeft.value;
-				var top:Number = visualization.marginTop.value;
-				var right:Number = visualization.width - visualization.marginRight.value;
-				var bottom:Number = visualization.height - visualization.marginBottom.value;
+				var left:Number = visualization.marginLeftNumber.value;
+				var top:Number = visualization.marginTopNumber.value;
+				var right:Number = visualization.width - visualization.marginRightNumber.value;
+				var bottom:Number = visualization.height - visualization.marginBottomNumber.value;
 				var width:Number = visualization.width;
 				var height:Number = visualization.height;
 				
 				var topOffset:Number = top/2;
-				var rightOffset:Number = visualization.marginRight.value/2;
+				var rightOffset:Number = visualization.marginRightNumber.value/2;
 				var graphics:Graphics = visualization.graphics;
 				graphics.clear();
 				graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
@@ -410,8 +410,8 @@
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
 				plotter.minScreenRadius.addGroupedCallback(this, updateSizeSlider);
 				plotter.maxScreenRadius.addGroupedCallback(this, updateSizeSlider, true);
-				visualization.marginLeft.addGroupedCallback(this, updateEquation);
-				visualization.marginBottom.addGroupedCallback(this, updateEquation);
+				visualization.marginLeftNumber.addGroupedCallback(this, updateEquation);
+				visualization.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				
 				Weave.properties.axisFontFamily.addGroupedCallback(this,updateEquationStyle);
@@ -445,8 +445,8 @@
 					equationText.text = "slope = " + slope + "\nintercept = " + intercept;
 					equationText.validateNow();
 					// severely hacked
-					equationText.width = visualization.marginLeft.value * 2;
-					equationText.height = Math.min(equationText.textHeight + 10, visualization.marginBottom.value);
+					equationText.width = visualization.marginLeftNumber.value * 2;
+					equationText.height = Math.min(equationText.textHeight + 10, visualization.marginBottomNumber.value);
 				}
 				else
 				{ 
@@ -463,14 +463,14 @@
 				xAxisLayer.axisPlotter.setSideAxisName(
 					ColumnUtils.getTitle(plotter.xColumn), 
 					0,   
-					0, visualization.marginBottom.value - 3, 
+					0, visualization.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM
 				);
 				
 				yAxisLayer.axisPlotter.setSideAxisName(
 					ColumnUtils.getTitle(plotter.yColumn), 
 					-90, 
-					-visualization.marginLeft.value, 0, 
+					-visualization.marginLeftNumber.value, 0, 
 					BitmapText.VERTICAL_ALIGN_TOP
 				);
 			}

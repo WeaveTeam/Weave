@@ -78,16 +78,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				visualization.enableProbeLine(true, true);
 				
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				
 				visualization.enableXAxisProbing = true;
 				visualization.enableYAxisProbing = true;
 				
-				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
@@ -198,8 +198,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				yAxisLayer.axisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber);
 				
 				
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.yColumn), -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.yColumn), -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>

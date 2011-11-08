@@ -24,8 +24,10 @@ package weave.visualization.layers
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
+	import mx.events.ResizeEvent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
@@ -42,11 +44,14 @@ package weave.visualization.layers
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
+	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.core.UIUtils;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.LinkableBounds2D;
 	import weave.primitives.ZoomBounds;
+	import weave.utils.NumberUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
 	import weave.visualization.plotters.DynamicPlotter;
@@ -61,10 +66,12 @@ package weave.visualization.layers
 		public function PlotLayerContainer()
 		{
 			super();
-			init();
-		}
-		private function init():void
-		{
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginBottomNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginTopNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginLeftNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginRightNumber);
+			
+			
 			this.horizontalScrollPolicy = "off";
 			this.verticalScrollPolicy = "off";
 
@@ -75,15 +82,27 @@ package weave.visualization.layers
 			UIUtils.linkDisplayObjects(this, layers);
 			
 			layers.addImmediateCallback(this, updateZoom);
+			
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));
 		public const zoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, updateZoom, false); // must be immediate callback to avoid displaying a stretched map, for example
 		
-		public const marginRight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const marginLeft:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const marginTop:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const marginBottom:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		//These variables hold the numeric values of the margins. They are removed from the session state after the values are set
+		//This was done to support percent values
+		public const marginRightNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginLeftNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginTopNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginBottomNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		
+		//These values take a string which could be a number value or a percentage value. The string is evaluated and 
+		//the above set of margin values (marginTopnumber, margingBottomNumber...) are set with the correct numerci value
+		public const marginRight:LinkableString = registerLinkableChild(this, new LinkableString(''), updateMargins, true);
+		public const marginLeft:LinkableString= registerLinkableChild(this, new LinkableString(''), updateMargins, true);
+		public const marginTop:LinkableString = registerLinkableChild(this, new LinkableString(''), updateMargins, true);
+		public const marginBottom:LinkableString= registerLinkableChild(this, new LinkableString(''), updateMargins, true);
+		
+		
 		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
 		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
 		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateZoom, true);
@@ -95,6 +114,16 @@ package weave.visualization.layers
 		public const overrideYMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
 		public const overrideXMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
 		public const overrideYMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
+		
+		
+		private function updateMargins():void
+		{
+			marginBottomNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginBottom.value,unscaledHeight));
+			marginTopNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginTop.value,unscaledHeight));
+			
+			marginLeftNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginLeft.value,unscaledWidth));
+			marginRightNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginRight.value,unscaledWidth));
+		}
 		
 		/**
 		 * This is the collective data bounds of all the selectable plot layers.
@@ -161,10 +190,10 @@ package weave.visualization.layers
 			
 			// calculate new screen bounds in temp variable
 			// default behaviour is to set screenBounds beginning from lower-left corner and ending at upper-right corner
-			var left:Number = marginLeft.value;
-			var top:Number = marginTop.value;
-			var right:Number = unscaledWidth - marginRight.value;
-			var bottom:Number = unscaledHeight - marginBottom.value;
+			var left:Number = marginLeftNumber.value;
+			var top:Number = marginTopNumber.value;
+			var right:Number = unscaledWidth - marginRightNumber.value;
+			var bottom:Number = unscaledHeight - marginBottomNumber.value;
 			// set screenBounds beginning from lower-left corner and ending at upper-right corner
 			//TODO: is other behavior required?
 			tempScreenBounds.setBounds(left, bottom, right, top);
@@ -294,7 +323,10 @@ package weave.visualization.layers
 			_prevUnscaledWidth = unscaledWidth;
 			_prevUnscaledHeight = unscaledHeight;
 			if (sizeChanged)
+			{
+				updateMargins();				
 				updateZoom();
+			}
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}

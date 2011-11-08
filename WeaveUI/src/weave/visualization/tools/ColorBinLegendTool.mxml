@@ -71,10 +71,10 @@
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";
 				
-				visualization.marginBottom.value = 5;
-				visualization.marginTop.value    = DEFAULT_MARGIN_TOP;
-				visualization.marginLeft.value   = 5;
-				visualization.marginRight.value  = 5;
+				visualization.marginBottom.value = "5";
+				visualization.marginTop.value    = DEFAULT_MARGIN_TOP.toString();
+				visualization.marginLeft.value   = "5";
+				visualization.marginRight.value  = "5";
 			}
 			
 			override protected function childrenCreated():void
@@ -82,13 +82,13 @@
 				super.childrenCreated();
 				dataColumnComponent.dynamicObject = _plotter.dynamicColorColumn;
 				_plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, null, true);
-				visualization.marginTop.addGroupedCallback(this, handleMarginChange);
-				linkBindableProperty(visualization.marginTop, marginLabel, "height");
+				visualization.marginTopNumber.addGroupedCallback(this, handleMarginChange);
+				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
 			}
 			private static const DEFAULT_MARGIN_TOP:int = 25;
 			private function handleMarginChange():void
 			{
-				marginLabelCheckBox.selected = visualization.marginTop.value != 0;
+				marginLabelCheckBox.selected = visualization.marginTopNumber.value != 0;
 			}
 			
 			private var _prevBinnedColumn:BinnedColumn;
@@ -202,7 +202,7 @@
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
-			<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTop.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
+			<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
 			<mx:HBox>
 				<mx:Label text="Max bubble size"/>
 				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
