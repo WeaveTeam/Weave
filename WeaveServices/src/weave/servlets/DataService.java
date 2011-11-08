@@ -317,21 +317,25 @@ public class DataService extends GenericServlet
 		boolean hasSecondaryKey = true;
 		
 		// use config min,max or param min,max to filter the data
-		String infoMinStr = info.getMetadata(Metadata.MIN.toString());
-		String infoMaxStr = info.getMetadata(Metadata.MAX.toString());
 		double minValue = Double.NEGATIVE_INFINITY;
 		double maxValue = Double.POSITIVE_INFINITY;
 		// first try parsing config min,max values
-		try { minValue = Double.parseDouble(infoMinStr); } catch (Exception e) { }
-		try { maxValue = Double.parseDouble(infoMaxStr); } catch (Exception e) { }
+		try {
+			minValue = Double.parseDouble(info.getMetadata(Metadata.MIN.toString()));
+		} catch (Exception e) { }
+		try {
+			maxValue = Double.parseDouble(info.getMetadata(Metadata.MAX.toString()));
+		} catch (Exception e) { }
 		// override config min,max with param values if given
 		try {
 			minValue = Double.parseDouble(paramMinStr);
-			infoMinStr = paramMinStr; // this happens only if parseDouble() succeeds
+			// if paramMinStr parses successfully, overwrite returned min metadata
+			info.metadata.put(Metadata.MIN.toString(), paramMinStr); // this happens only if parseDouble() succeeds
 		} catch (Exception e) { }
 		try {
 			maxValue = Double.parseDouble(paramMaxStr);
-			infoMaxStr = paramMaxStr; // this happens only if parseDouble() succeeds
+			// if paramMaxStr parses successfully, overwrite returned max metadata
+			info.metadata.put(Metadata.MAX.toString(), paramMaxStr); // this happens only if parseDouble() succeeds
 		} catch (Exception e) { }
 		
 		try
