@@ -56,8 +56,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.utils.ColumnUtils;
@@ -68,9 +71,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const filterKeySet:KeySet = newLinkableChild(this,KeySet,handleHeaderColumnChange,true);
 			
+			public const fontSize:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),updateFontSize);
+			
 			override protected function childrenCreated():void
 			{
 				columnsList.hashMap = columns;
+				linkBindableProperty(fontSize,fontSizeInput,"text");
+			}
+			
+			/**
+			 * @private updateFontSize
+			 * This function is called when the value of the fontSize linkable is changed.
+			 * It updates the font size of the text in the grid cells.
+			 **/
+			private function updateFontSize():void
+			{
+				table.setStyle("fontSize",fontSize.value);
 			}
 			
 			/**
@@ -112,7 +128,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					for(var k:int=0; k<keys.length; k++ )
 					{
 						var keyName:String = (keys[k] as IQualifiedKey).localName;
-						rowObject[keyName] = columnObjects[i].getValueFromKey((keys[k] as IQualifiedKey));
+						rowObject[keyName] = columnObjects[i].getValueFromKey((keys[k] as IQualifiedKey),String);
 					}
 					
 					sourceArrayCollection.addItem(rowObject);
@@ -151,7 +167,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						var colName:String = " ";
 						if(!emtpyHeader)
-							colName = col.getValueFromKey((keys[i] as IQualifiedKey));							
+							colName = col.getValueFromKey((keys[i] as IQualifiedKey),String);							
 						var gridColumn:DataGridColumn = new DataGridColumn(colName);
 						
 						gridColumn.dataField = (keys[i] as IQualifiedKey).localName;
@@ -181,6 +197,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Data Table">
+			<mx:HBox>
+				<mx:Label text="Font Size: " fontWeight="bold"/>
+				<mx:TextInput id="fontSizeInput" width="35" cornerRadius="5" borderStyle="solid"/>
+			</mx:HBox>
 			<ui:DynamicColumnComponent id="headerColumn" label="Header Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
 			<ui:ColumnListComponent id="columnsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
 		</mx:VBox>
