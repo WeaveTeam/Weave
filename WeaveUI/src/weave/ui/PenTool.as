@@ -487,11 +487,13 @@ package weave.ui
 							g.lineTo(_tempPoint.x, _tempPoint.y);
 					}
 				
-					// If we are not drawing, always connect back to first point in the shape.
+					// If we are not drawing (or this is not the last shape), always connect back to first point in the shape.
 					// The effect of this is either completing the polygon by drawing a line or
 					// drawing to the current position of the graphics object. This is only used to
 					// draw complete polygons without affecting the polygon's internal representation.					
-					if (points && points.length >= 2 && !_drawing && drawingMode.value == POLYGON_DRAW_MODE)
+					if (points.length >= 2 &&			// at least 2 points 
+						(!_drawing || line < (_coordsArrays.length - 1)) && 	// not drawing or not on the last line
+						drawingMode.value == POLYGON_DRAW_MODE)	// and drawing polygons
 					{
 						projectCoordToScreenBounds(points[0], points[1], _tempPoint);
 						
