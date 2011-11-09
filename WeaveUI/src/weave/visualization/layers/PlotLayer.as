@@ -243,7 +243,7 @@ package weave.visualization.layers
 			//trace(name,'validateSpatialIndex()',_spatialIndexDirty);
 			if (_spatialIndexDirty)
 			{
-				//trace(name,"updating spatial index"); // DebugUtils.getCompactStackTrace(new Error())
+				//trace(name,"updating spatial index"); // DebugUtils.getCompactStackTrace(new Error("Stack trace"))
 				_spatialIndexDirty = false;
 				_spatialIndex.createIndex(plotter, showMissingRecords);
 				//trace(name,"updated spatial index", (spatialIndex as SpatialIndex).collectiveBounds);

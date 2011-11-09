@@ -106,7 +106,7 @@ package weave.core
 				entry.schedule = 1;
 			
 			// UNCOMMENT THIS LINE FOR DEBUGGING
-			entry.addCallback_stackTrace = new Error().getStackTrace();
+			entry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
 
 			// run callback now if requested
 			if (runCallbackNow)
@@ -384,7 +384,7 @@ package weave.core
 				_groupedCallbackToTriggerEntryMap[groupedCallback] = triggerEntry;
 				triggerEntry.recursionLimit = recursionLimit;
 				triggerEntry.context = [relevantContext]; // the context in this entry will be an array of contexts
-				triggerEntry.addCallback_stackTrace = new Error().getStackTrace();
+				triggerEntry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
 				triggerEntry.callback = function():void
 				{
 					if (_runningGroupedCallbacksNow)
