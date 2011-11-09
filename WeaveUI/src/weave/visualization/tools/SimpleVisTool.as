@@ -23,11 +23,8 @@ package weave.visualization.tools
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.Canvas;
-	import mx.containers.HBox;
 	import mx.containers.VBox;
-	import mx.controls.Label;
 	import mx.core.UIComponent;
-	import mx.skins.Border;
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
@@ -37,18 +34,13 @@ package weave.visualization.tools
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
-	import weave.api.disposeObjects;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
-	import weave.core.LinkableString;
 	import weave.core.UIUtils;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeySet;
