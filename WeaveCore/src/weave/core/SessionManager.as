@@ -33,6 +33,7 @@ package weave.core
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -965,6 +966,22 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
+		/*
+		private function debugLink(linkable:Object, bindable:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
+		{
+			linkable = ObjectUtil.toString(linkable);
+			bindable = ObjectUtil.toString(bindable);
+			var link:String = useLinkableBefore && useLinkableAfter ? 'LINK' : 'link';
+			var bind:String = !useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind';
+			var dir:String = '--';
+			if (useLinkableBefore && !useLinkableAfter)
+				dir = '->';
+			if (!useLinkableBefore && useLinkableAfter)
+				dir = '<-';
+			
+			trace(link, linkable, dir, bind, bindable, callingLater ? 'callingLater' : '');
+		}
+		*/
 		
 		/**
 		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
@@ -1011,6 +1028,8 @@ package weave.core
 					return;
 				}
 				
+				//debugLink(linkableVariable.getSessionState(),bindableParent[bindablePropertyName],useLinkableValue,firstParam===undefined,callingLater);
+				
 				// If bindableParent has focus:
 				// When linkableVariable changes, update bindable value only when focus is lost.
 				// When bindable value changes, update linkableVariable after a delay.
@@ -1024,6 +1043,9 @@ package weave.core
 					{
 						// if there is a callLater waiting to trigger, update the target time
 						callLaterTime = useLinkableValue ? int.MAX_VALUE : getTimer() + delay;
+						
+						//trace('\tdelaying the timer some more');
+						
 						return;
 					}
 				}
@@ -1100,7 +1122,7 @@ package weave.core
 			_watcherMap[linkableVariable][bindableParent][bindablePropertyName] = watcher;
 			// when session state changes, set bindable property
 			_watcherToSynchronizeFunctionMap[watcher] = synchronize;
-			callbackCollection.addGroupedCallback(bindableParent, synchronize);
+			callbackCollection.addImmediateCallback(bindableParent, synchronize);
 		}
 		/**
 		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().
@@ -1140,38 +1162,6 @@ package weave.core
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
 
-		/**
-		 * This function generates a delayed version of a callback.
-		 * @param callback The callback function
-		 * @param callbackParams If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
-		 * @param delay The number of milliseconds to delay before running the callback.
-		 * @return A wrapper around the callback that remembers the parameters and delays calling the original callback.
-		 */
-		public function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function
-		{
-			var _timer:Timer = new Timer(delay, 1);
-			var _delayedThisArg:Object;
-			var _delayedParams:Array;
-			// this function gets called immediately and delays calling the original callback
-			var delayedCallback:Function = function(...params):void
-			{
-				_timer.stop();
-				_timer.start();
-				// remember the params passed to this delayedCallback
-				_delayedThisArg = this;
-				_delayedParams = params;
-			};
-			// this function gets called when the timer completes
-			var callback_apply:Function = function(..._):void
-			{
-				// call the original callback with the params passed to delayedCallback
-				callback.apply(_delayedThisArg, callbackParams || _delayedParams);
-			};
-			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
-			
-			return delayedCallback;
-		}
-		
 		/**
 		 * This function computes the diff of two session states.
 		 * @param oldState The source session state.

@@ -135,7 +135,7 @@ BinningDefinitionEditor
 				
 				binnedColumn.addGroupedCallback(this,handleBinnedColumnChange,true);
 				
-				var delayedCallback:Function = (WeaveAPI.SessionManager as SessionManager).generateDelayedCallback(saveSessionState, []);
+				var delayedCallback:Function = EventUtils.generateDelayedCallback(saveSessionState, []);
 				for each (var obj:IEventDispatcher in [numOfBins, csEditor.splitValues, refQuantile, dataInterval, SD, typeGroup])
 					obj.addEventListener(Event.CHANGE, delayedCallback);
 			}
