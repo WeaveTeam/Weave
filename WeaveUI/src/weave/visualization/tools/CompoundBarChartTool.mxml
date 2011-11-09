@@ -31,6 +31,8 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
@@ -200,8 +202,40 @@
 				return value.toString();
 			}
 			
-			private function handleAxisClick(isXAxis:Boolean):void
+ 			private function forceFirstColumnDynamic():void
 			{
+				var hc:ILinkableHashMap = _plotter.heightColumns;
+				
+				var cols:Array = hc.getObjects();
+				if (cols.length == 0)
+				{
+					// just create a new dynamic column
+					hc.requestObject(null, DynamicColumn, false);
+				}
+				else if (!(cols[0] is DynamicColumn))
+				{
+					// don't run callbacks while we edit session state
+					getCallbackCollection(hc).delayCallbacks();
+					// remember the order
+					var names:Array = hc.getNames();
+					
+					// create a new wrapper column
+					var newCol:DynamicColumn = hc.requestObject(null, DynamicColumn, false);
+					// copy the old col inside the new col
+					newCol.requestLocalObjectCopy(cols[0]);
+					// remove old col
+					hc.removeObject(hc.getName(cols[0]));
+					
+					// restore name order
+					hc.setNameOrder(names);
+					// done editing session state
+					getCallbackCollection(hc).resumeCallbacks();
+				}
+			}
+			
+ 			private function handleAxisClick(isXAxis:Boolean):void
+			{
+				
 				if (isXAxis != _plotter.horizontalMode.value)
 					AttributeSelectorPanel.openToolSelector(this,_plotter.sortColumn);
 				else
