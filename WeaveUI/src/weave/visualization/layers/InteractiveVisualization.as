@@ -331,6 +331,8 @@ package weave.visualization.layers
 					break;
 				}
 				case MouseEvent.MOUSE_MOVE:
+				case MouseEvent.ROLL_OVER:
+				case MouseEvent.ROLL_OUT:
 				{
 					if (event.buttonDown)
 						eventType = InteractionController.DRAG;
