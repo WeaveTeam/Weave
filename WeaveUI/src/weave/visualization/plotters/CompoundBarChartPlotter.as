@@ -83,14 +83,9 @@ package weave.visualization.plotters
 //			registerSpatialProperty(groupBy, handleGroupBy);//todo: this won't work
 			heightColumns.addGroupedCallback(this, heightColumnsGroupCallback);
 			registerSpatialProperty(sortColumn);
-			
-			for each (var child:ILinkableObject in [
-				colorColumn,
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor])
-			{
-				registerLinkableChild(this, child);
-			}
+			registerSpatialProperty(colorColumn); // because color is used for sorting
+			registerLinkableChild(this, Weave.properties.axisFontSize);
+			registerLinkableChild(this, Weave.properties.axisFontColor);
 			
 			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
 		}
