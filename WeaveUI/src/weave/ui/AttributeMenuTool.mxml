@@ -50,6 +50,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			import weave.Weave;
 			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -195,6 +196,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					// using the index, get the corresponding "SelectableAttribute" from the tool
 					var dynamicColumn:DynamicColumn = attrObjs[index] as DynamicColumn;
+					var hashMap:ILinkableHashMap = attrObjs[index] as ILinkableHashMap;
+					
+					if (hashMap)
+					{
+						ColumnUtils.forceFirstColumnDynamic(hashMap);
+						dynamicColumn = hashMap.getObjects(IAttributeColumn)[0];
+					}
+					
 					if (dynamicColumn)
 					{
 						// get the column object the user clicked on and set the tool attribute
@@ -204,8 +213,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					else
 					{
-						// for now, we only support DynamicColumn
-						reportError('This option is not yet supported for column lists ("' + targetAttribute.value + '")');
+						reportError('This option is not supported for the attribute "' + targetAttribute.value + '"');
 					}
 				}
 			}
