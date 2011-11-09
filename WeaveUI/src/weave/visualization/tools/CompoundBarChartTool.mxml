@@ -149,8 +149,8 @@
 					_plotter.labelColumn,
 					_plotter.sortColumn,
 					_plotter.heightColumns,
-					_plotter.positiveError,
-					_plotter.negativeError
+					_plotter.positiveErrorColumns,
+					_plotter.negativeErrorColumns
 				];
 			}
 			
@@ -170,19 +170,24 @@
 			{
 				if (includeToolAttributesInProbe.value)
 				{
-					var col:IAttributeColumn;
-					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
-					if (columns.length <= 1)
+					var columns:Array = [];
+					var _heightColumns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
+					var _posErrColumns:Array = _plotter.positiveErrorColumns.getObjects(IAttributeColumn);
+					var _negErrColumns:Array = _plotter.negativeErrorColumns.getObjects(IAttributeColumn);
+					for (var i:int = 0; i < _heightColumns.length; i++)
+					{
+						columns.push(_heightColumns[i]);
+						if (_posErrColumns.length > i && _negErrColumns.length > i)
+							columns.push(_posErrColumns[i], _negErrColumns[i]);
+					}
+					if (_heightColumns.length <= 1)
 					{
 						// get all ReferencedColumn objects
 						var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(_plotter.colorColumn, ReferencedColumn);
-						for each (col in refCols)
+						for each (var col:IAttributeColumn in refCols)
 							columns.unshift(col);
 					}
 					columns.unshift(_plotter.labelColumn, _plotter.sortColumn);
-					columns.push(_plotter.positiveError, _plotter.negativeError);
-//					columns.concat(_plotter.positiveErrorColumns.getObjects());
-//					columns.concat(_plotter.negativeErrorColumns.getObjects());
 					visualization.additionalProbeColumns = columns;
 				}
 				else
@@ -370,12 +375,11 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="labelColumnInput" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
-			<!-- <mx:TabNavigator> -->
+			<mx:TabNavigator width="100%" height="100%">
 				<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
-<!--
 				<ui:ColumnListComponent visTool="{this}" label="Positive error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
 				<ui:ColumnListComponent visTool="{this}" label="Negative error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
-			</mx:TabNavigator> -->
+			</mx:TabNavigator>
 		</mx:VBox>
 		
 		<mx:VBox label="Bar Properties">
@@ -384,9 +388,9 @@
 						 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
 			<mx:HBox>
 				<mx:RadioButtonGroup id="groupMode"/>
+				<mx:RadioButton id="groupedRadioButton" groupName="groupMode" label="Grouped bars" value="{CompoundBarChartPlotter.GROUP}"/>
 				<mx:RadioButton id="stackedRadioButton" groupName="groupMode" label="Stacked bars" value="{CompoundBarChartPlotter.STACK}"/>
 				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="100% Stacked bars" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
-				<mx:RadioButton id="groupedRadioButton" groupName="groupMode" label="Grouped bars" value="{CompoundBarChartPlotter.GROUP}"/>
 			</mx:HBox>
 			
 			<ui:Indent label="Bar spacing:">
@@ -485,8 +489,6 @@
 			
 			<mx:VBox id="advControlsPanel" label="Advanced">
 				<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
-				<ui:DynamicColumnComponent visTool="{this}" label="Positive error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.positiveError"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="Negative error" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.negativeError"/>
 			</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

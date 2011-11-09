@@ -78,7 +78,7 @@ package weave.visualization.plotters
 		public const italic:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
 		public const underline:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
 		public const hAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.HORIZONTAL_ALIGN_CENTER));
-		public const vAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const vAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const angle:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);

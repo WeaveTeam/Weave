@@ -132,7 +132,7 @@ package weave.visualization.plotters
 				case BitmapText.VERTICAL_ALIGN_TOP: 
 					yOffset = 0;
 					break;
-				case BitmapText.VERTICAL_ALIGN_CENTER: 
+				case BitmapText.VERTICAL_ALIGN_MIDDLE: 
 					yOffset = -imageBitmapData.height / 2;
 					break;
 				case BitmapText.VERTICAL_ALIGN_BOTTOM:

@@ -61,7 +61,7 @@ package weave.utils
 		public static const HORIZONTAL_ALIGN_CENTER:String = "center";
 		public static const HORIZONTAL_ALIGN_RIGHT:String = "right";
 		public static const VERTICAL_ALIGN_TOP:String = "top";
-		public static const VERTICAL_ALIGN_CENTER:String = "middle";
+		public static const VERTICAL_ALIGN_MIDDLE:String = "middle";
 		public static const VERTICAL_ALIGN_BOTTOM:String = "bottom";
 		public static const ELLIPSIS_LOCATION_LEFT:String = "left";
 		public static const ELLIPSIS_LOCATION_CENTER:String = "center";
@@ -88,7 +88,7 @@ package weave.utils
 			_verticalAlign = value;
 			// BACKWARDS COMPATIBILITY
 			if (value == "center")
-				_verticalAlign = VERTICAL_ALIGN_CENTER;
+				_verticalAlign = VERTICAL_ALIGN_MIDDLE;
 		}
 		
 		public function get verticalAlign():String
@@ -326,7 +326,7 @@ package weave.utils
 			else if (horizontalAlign == HORIZONTAL_ALIGN_RIGHT) // x is aligned to right side of text
 				_matrix.translate(- _textField.width, 0);
 			
-			if (verticalAlign == VERTICAL_ALIGN_CENTER)
+			if (verticalAlign == VERTICAL_ALIGN_MIDDLE)
 				_matrix.translate(0, - _textField.height / 2);
 			else if (verticalAlign == VERTICAL_ALIGN_BOTTOM)
 				_matrix.translate(0, - _textField.height);
@@ -410,7 +410,7 @@ package weave.utils
 				case VERTICAL_ALIGN_TOP: 
 					outputBounds.setYRange(y, y + _textField.height);
 					break;
-				case VERTICAL_ALIGN_CENTER: 
+				case VERTICAL_ALIGN_MIDDLE: 
 					outputBounds.setYRange(y - _textField.height / 2, y + _textField.height / 2);
 					break;
 				case VERTICAL_ALIGN_BOTTOM:

@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
+	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -67,10 +68,6 @@ package weave.visualization.plotters
 	public class CompoundBarChartPlotter extends AbstractPlotter
 	{
 		public function CompoundBarChartPlotter()
-		{
-			init();
-		}
-		private function init():void
 		{
 			colorColumn.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
 
@@ -109,8 +106,6 @@ package weave.visualization.plotters
 		private var _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
 		private var _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
 		private var _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
-		public const positiveError:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const negativeError:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
@@ -144,20 +139,20 @@ package weave.visualization.plotters
 		public const valueLabelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const valueLabelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
-		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const valueLabelAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
-		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const labelAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-//		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-//		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
@@ -191,11 +186,14 @@ package weave.visualization.plotters
 			// save local copies of these values to speed up calculations
 			var _barSpacing:Number = barSpacing.value;
 			var _heightColumns:Array = heightColumns.getObjects();
+			var _posErrCols:Array = positiveErrorColumns.getObjects();
+			var _negErrCols:Array = negativeErrorColumns.getObjects();
 			var _groupingMode:String = getActualGroupingMode();
 			var _horizontalMode:Boolean = horizontalMode.value;
 			var _groupBySortColumn:Boolean = groupBySortColumn.value;
 			if (_horizontalMode && _groupingMode == GROUP)
 				_heightColumns = _heightColumns.reverse();
+			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
 			
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
@@ -336,7 +334,6 @@ package weave.visualization.plotters
 								tempPoint.y = yNegativeMax;
 							}
 						}
-						dataBounds.projectPointTo(tempPoint, screenBounds);
 						tempBounds.setMinPoint(tempPoint);
 						
 						if (height >= 0)
@@ -365,8 +362,9 @@ package weave.visualization.plotters
 								tempPoint.y = yNegativeMin;
 							}
 						}
-						dataBounds.projectPointTo(tempPoint, screenBounds);
 						tempBounds.setMaxPoint(tempPoint);
+						
+						dataBounds.projectCoordsTo(tempBounds, screenBounds);
 						
 						//////////////////////////
 						// BEGIN draw graphics
@@ -381,7 +379,7 @@ package weave.visualization.plotters
 						// if there is one column, act like a regular bar chart and color in with a chosen color
 						if (_heightColumns.length == 1)
 							fillStyle.beginFillStyle(recordKey, graphics);
-							// otherwise use a pre-defined set of colors for each bar segment
+						// otherwise use a pre-defined set of colors for each bar segment
 						else
 							graphics.beginFill(color, 1);
 						
@@ -393,6 +391,70 @@ package weave.visualization.plotters
 						graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 						
 						graphics.endFill();
+						
+						if (showErrorBars)
+						{
+							//------------------------------------
+							// BEGIN code to draw one error bar
+							//------------------------------------
+							var positiveError:IAttributeColumn = _posErrCols.length > i ? _posErrCols[i] as IAttributeColumn : null;
+							var negativeError:IAttributeColumn = _negErrCols.length > i ? _negErrCols[i] as IAttributeColumn : null;
+							var errorPlusVal:Number = positiveError ? positiveError.getValueFromKey(recordKey, Number) : NaN;
+							var errorMinusVal:Number = negativeError ? negativeError.getValueFromKey(recordKey, Number) : NaN;
+							if (isFinite(errorPlusVal) && isFinite(errorMinusVal))
+							{
+								var center:Number = (barStart + barEnd) / 2;
+								var width:Number = barEnd - barStart; 
+								var left:Number = center - width / 4;
+								var right:Number = center + width / 4;
+								var top:Number;
+								var bottom:Number;
+								if (height >= 0)
+								{
+									top = yMax + errorPlusVal;
+									bottom = yMax - errorMinusVal;
+								}
+								else
+								{
+									top = yNegativeMax + errorPlusVal;
+									bottom = yNegativeMax - errorMinusVal;
+								}
+								if (top != bottom)
+								{
+									var coords:Array = []; // each pair of 4 numbers represents a line segment to draw
+									if (!_horizontalMode)
+									{
+										coords.push(left, top, right, top);
+										coords.push(center, top, center, bottom);
+										coords.push(left, bottom, right, bottom);
+									}
+									else
+									{
+										coords.push(top, left, top, right);
+										coords.push(top, center, bottom, center);
+										coords.push(bottom, left, bottom, right);
+									}
+									
+									// BEGIN DRAW
+									lineStyle.beginLineStyle(recordKey, graphics);
+									for (var iCoord:int = 0; iCoord < coords.length; iCoord += 2) // loop over x,y coordinate pairs
+									{
+										tempPoint.x = coords[iCoord];
+										tempPoint.y = coords[iCoord + 1];
+										dataBounds.projectPointTo(tempPoint, screenBounds);
+										if (iCoord % 4 == 0) // every other pair
+											graphics.moveTo(tempPoint.x, tempPoint.y);
+										else
+											graphics.lineTo(tempPoint.x, tempPoint.y);
+									}
+									// END DRAW
+								}
+							}
+							//------------------------------------
+							// END code to draw one error bar
+							//------------------------------------
+						}
+							
 						destination.draw(tempShape, null, null, null, clipRectangle);
 						//////////////////////////
 						// END draw graphics
@@ -436,7 +498,6 @@ package weave.visualization.plotters
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
 							_bitmapText.angle = 270;
-							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 						}
 						else
 						{
@@ -452,13 +513,12 @@ package weave.visualization.plotters
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
 							_bitmapText.angle = 0;
-							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 						}
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
-						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
+						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; // this line makes some code above uselss...
 						_bitmapText.angle = isNaN(valueLabelAngle.value) ? _bitmapText.angle : valueLabelAngle.value;
 						_bitmapText.textFormat.color = valueLabelColor.value;
 						_bitmapText.draw(destination);
@@ -473,7 +533,7 @@ package weave.visualization.plotters
 					if (shouldDrawLabel && !heightMissing)
 					{
 						_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
-						_bitmapText.horizontalAlign = "right";
+						_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 						var labelPos:Number = labelDataCoordinate.value;
 						if (_horizontalMode)
 						{
@@ -491,7 +551,6 @@ package weave.visualization.plotters
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
 							_bitmapText.angle = 0;
-							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 						}
 						else
 						{
@@ -509,15 +568,14 @@ package weave.visualization.plotters
 								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 							}
 							_bitmapText.angle = 270;
-							_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
 						}
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
 						_bitmapText.angle = isNaN(labelAngle.value) ? _bitmapText.angle : labelAngle.value;
 						_bitmapText.verticalAlign = labelVerticalAlign.value;
-						_bitmapText.horizontalAlign = labelHorizontalAlign.value;
-						_bitmapText.textFormat.color = labelColor.value ;
+						_bitmapText.horizontalAlign = labelHorizontalAlign.value; // this line makes some code above useless..
+						_bitmapText.textFormat.color = labelColor.value;
 						_bitmapText.draw(destination);
 					}
 					//------------------------------------
@@ -526,76 +584,6 @@ package weave.visualization.plotters
 				}
 				//------------------------------------
 				// END code to draw one compound bar
-				//------------------------------------
-				
-				//------------------------------------
-				// BEGIN code to draw one error bar
-				//------------------------------------
-				if (_heightColumns.length == 1 && this.positiveError.internalColumn != null)
-				{
-					var errorPlusVal:Number = this.positiveError.getValueFromKey( recordKey, Number);
-					var errorMinusVal:Number;
-					if (this.negativeError.internalColumn != null)
-					{
-						errorMinusVal = this.negativeError.getValueFromKey( recordKey , Number);
-					}
-					else
-					{
-						errorMinusVal = errorPlusVal;
-					}
-					if (isFinite(errorPlusVal) && isFinite(errorMinusVal))
-					{
-						var center:Number = (barStart + barEnd) / 2;
-						var width:Number = barEnd - barStart; 
-						var left:Number = center - width / 4;
-						var right:Number = center + width / 4;
-						var top:Number, bottom:Number;
-						if (height >= 0)
-						{
-							top = yMax + errorPlusVal;
-							bottom = yMax - errorMinusVal;
-						}
-						else
-						{
-							top = yNegativeMax + errorPlusVal;
-							bottom = yNegativeMax - errorMinusVal;
-						}
-						if (top != bottom)
-						{
-							var coords:Array = []; // each pair of 4 numbers represents a line segment to draw
-							if (!_horizontalMode)
-							{
-								coords.push(left, top, right, top);
-								coords.push(center, top, center, bottom);
-								coords.push(left, bottom, right, bottom);
-							}
-							else
-							{
-								coords.push(top, left, top, right);
-								coords.push(top, center, bottom, center);
-								coords.push(bottom, left, bottom, right);
-							}
-							
-							// BEGIN DRAW
-							graphics.clear();
-							lineStyle.beginLineStyle(recordKey, graphics);
-							for (i = 0; i < coords.length; i += 2) // loop over x,y coordinate pairs
-							{
-								tempPoint.x = coords[i];
-								tempPoint.y = coords[i + 1];
-								dataBounds.projectPointTo(tempPoint, screenBounds);
-								if (i % 4 == 0) // every other pair
-									graphics.moveTo(tempPoint.x, tempPoint.y);
-								else
-									graphics.lineTo(tempPoint.x, tempPoint.y);
-							}
-							destination.draw(tempShape, null, null, null, clipRectangle);
-							// END DRAW
-						}
-					}
-				}
-				//------------------------------------
-				// END code to draw one error bar
 				//------------------------------------
 			}
 			
@@ -616,12 +604,15 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var errorBounds:IBounds2D = getReusableBounds(); // the bounds of key + error bars
-			var keyBounds:IBounds2D = getReusableBounds(); // the bounds of just the key
+			var bounds:IBounds2D = getReusableBounds();
 			var _groupingMode:String = getActualGroupingMode();
-			var errorColumnsIncluded:Boolean = false; // this value is true when the i = 1 and i=2 columns are error columns
 			var _groupBySortColumn:Boolean = groupBySortColumn.value;
 			var _heightColumns:Array = heightColumns.getObjects();
+			var _posErrCols:Array = positiveErrorColumns.getObjects();
+			var _negErrCols:Array = negativeErrorColumns.getObjects();
+			_posErrCols.length = _heightColumns.length;
+			_negErrCols.length = _heightColumns.length;
+			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
 			
 			// bar position depends on sorted index
 			var sortedIndex:int;
@@ -649,88 +640,54 @@ package weave.visualization.plotters
 			}
 			// this bar is between minPos and maxPos in the x or y range
 			if (horizontalMode.value)
-				keyBounds.setYRange(minPos, maxPos);
+				bounds.setYRange(minPos, maxPos);
 			else
-				keyBounds.setXRange(minPos, maxPos);
-			
-			if (_heightColumns.length == 1)
-			{
-				_heightColumns.push(positiveError);
-				_heightColumns.push(negativeError);
-				errorColumnsIncluded = true; 
-			}
+				bounds.setXRange(minPos, maxPos);
 			
 			tempRange.setRange(0, 0); // bar starts at zero
 			
-			
-			if (_groupingMode == PERCENT_STACK)
+			for (var i:int = 0; i < _heightColumns.length; i++)
 			{
-				tempRange.begin = 0;
-				tempRange.end = 100;
-			}
-			else
-			{
-				// loop over height columns, incrementing y coordinates
-				for (var i:int = 0; i < _heightColumns.length; i++)
+				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
+				if (_groupingMode == PERCENT_STACK)
 				{
-					var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
-					var height:Number = heightColumn.getValueFromKey(recordKey, Number);
-					
-					if (heightColumn == positiveError)
+					tempRange.begin = 0;
+					tempRange.end = 100;
+				}
+				else
+				{
+					var height:Number = column.getValueFromKey(recordKey, Number);
+					var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
+					var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
+					if (showErrorBars && positiveError && negativeError)
 					{
-						if (tempRange.end == 0)
-							continue;
+						var errorPlus:Number = positiveError.getValueFromKey(recordKey, Number);
+						var errorMinus:Number = -negativeError.getValueFromKey(recordKey, Number);
+						if (height > 0 && errorPlus > 0)
+							height += errorPlus;
+						if (height < 0 && errorMinus < 0)
+							height += errorMinus;
 					}
-					if (heightColumn == negativeError)
-					{
-						if (isNaN(height))
-							height = positiveError.getValueFromKey(recordKey, Number);
-						if (tempRange.begin < 0)
-							height = -height;
-						else
-							continue;
-					}
-					
-					if (isNaN(height))
-						height = WeaveAPI.StatisticsCache.getMean(heightColumn);
-					if (isNaN(height))
-						height = 0;
 					if (_groupingMode == GROUP)
 					{
 						tempRange.includeInRange(height);
 					}
 					else
 					{
-						// add this height to the current bar, so add to y value
-						// avoid adding NaN to y coordinate (because result will be NaN).
-						if (isFinite(height))
-						{
-							if (height >= 0)
-								tempRange.end += height;
-							else
-								tempRange.begin += height;
-						}
-					}
-					
-					// if there are no error columns in _heightColumns, 
-					// or if there are error columns (which occurs only if there is one height column),
-					// we want to include the current range in keyBounds
-					if (!errorColumnsIncluded || i == 0) 
-					{
-						if (horizontalMode.value)
-							keyBounds.setXRange(tempRange.begin, tempRange.end);
-						else
-							keyBounds.setYRange(tempRange.begin, tempRange.end);
+						if (height > 0)
+							tempRange.end += height;
+						if (height < 0)
+							tempRange.begin += height;
 					}
 				}
 			}
 			
-			if (horizontalMode.value)
-				errorBounds.setBounds(tempRange.begin, minPos, tempRange.end, maxPos); // x,y swapped
-			else
-				errorBounds.setBounds(minPos, tempRange.begin, maxPos, tempRange.end);
-			
-			return [keyBounds, errorBounds];
+			if (horizontalMode.value) // x range
+				bounds.setXRange(tempRange.begin, tempRange.end);
+			else // y range
+				bounds.setYRange(tempRange.begin, tempRange.end);
+
+			return [bounds];
 		}
 		
 		override public function getBackgroundDataBounds():IBounds2D
@@ -740,15 +697,16 @@ package weave.visualization.plotters
 			{
 				tempRange.setRange(0, 0);
 				var _heightColumns:Array = heightColumns.getObjects();
+				var _posErrCols:Array = positiveErrorColumns.getObjects();
+				var _negErrCols:Array = negativeErrorColumns.getObjects();
+				_posErrCols.length = _heightColumns.length;
+				_negErrCols.length = _heightColumns.length;
 				var _groupingMode:String = getActualGroupingMode();
-				for each (var column:IAttributeColumn in _heightColumns)
+				var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
+				for (var i:int = 0; i < _heightColumns.length; i++)
 				{
-					if (_groupingMode == GROUP)
-					{
-						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMin(column));
-						tempRange.includeInRange(WeaveAPI.StatisticsCache.getMax(column));
-					}
-					else if (_groupingMode == PERCENT_STACK)
+					var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
+					if (_groupingMode == PERCENT_STACK)
 					{
 						tempRange.begin = 0;
 						tempRange.end = 100;
@@ -757,21 +715,30 @@ package weave.visualization.plotters
 					{
 						var max:Number = WeaveAPI.StatisticsCache.getMax(column);
 						var min:Number = WeaveAPI.StatisticsCache.getMin(column);
-						if (_heightColumns.length == 1)
+						var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
+						var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
+						if (showErrorBars && positiveError && negativeError)
 						{
 							var errorMax:Number = WeaveAPI.StatisticsCache.getMax(positiveError);
 							var errorMin:Number = -WeaveAPI.StatisticsCache.getMax(negativeError);
-							if (isNaN(errorMin))
-								errorMin = errorMax;
 							if (max > 0 && errorMax > 0)
 								max += errorMax;
-							if (min < 0 && errorMin > 0)
-								min -= errorMin;
+							if (min < 0 && errorMin < 0)
+								min += errorMin;
 						}
-						if (max > 0)
-							tempRange.end += max;
-						if (min < 0)
-							tempRange.begin += min;
+						
+						if (_groupingMode == GROUP)
+						{
+							tempRange.includeInRange(min);
+							tempRange.includeInRange(max);
+						}
+						else
+						{
+							if (max > 0)
+								tempRange.end += max;
+							if (min < 0)
+								tempRange.begin += min;
+						}
 					}
 				}
 				
@@ -792,7 +759,6 @@ package weave.visualization.plotters
 		
 		// backwards compatibility
 		[Deprecated(replacement='groupingMode')] public function set groupMode(value:Boolean):void { groupingMode.value = value ? GROUP : STACK; }
-/*
 		[Deprecated(replacement="positiveErrorColumns")] public function set positiveError(value:Object):void
 		{
 			var dynamicState:DynamicState = DynamicState.cast(value);
@@ -811,6 +777,5 @@ package weave.visualization.plotters
 				negativeErrorColumns.setSessionState([dynamicState], false);
 			}
 		}
-*/
 	}
 }

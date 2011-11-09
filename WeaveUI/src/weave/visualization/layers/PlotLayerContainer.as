@@ -66,11 +66,6 @@ package weave.visualization.layers
 		public function PlotLayerContainer()
 		{
 			super();
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginBottomNumber);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginTopNumber);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginLeftNumber);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,marginRightNumber);
-			
 			
 			this.horizontalScrollPolicy = "off";
 			this.verticalScrollPolicy = "off";
@@ -83,6 +78,10 @@ package weave.visualization.layers
 			
 			layers.addImmediateCallback(this, updateZoom);
 			
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginBottomNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginTopNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginLeftNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginRightNumber);
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));
@@ -96,12 +95,11 @@ package weave.visualization.layers
 		public const marginBottomNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
 		
 		//These values take a string which could be a number value or a percentage value. The string is evaluated and 
-		//the above set of margin values (marginTopnumber, margingBottomNumber...) are set with the correct numerci value
-		public const marginRight:LinkableString = registerLinkableChild(this, new LinkableString(''), updateMargins, true);
-		public const marginLeft:LinkableString= registerLinkableChild(this, new LinkableString(''), updateMargins, true);
-		public const marginTop:LinkableString = registerLinkableChild(this, new LinkableString(''), updateMargins, true);
-		public const marginBottom:LinkableString= registerLinkableChild(this, new LinkableString(''), updateMargins, true);
-		
+		//the above set of margin values (marginTopNumber, margingBottomNumber...) are set with the correct numeric value
+		public const marginRight:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
+		public const marginLeft:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
+		public const marginTop:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
+		public const marginBottom:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
 		
 		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
 		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
@@ -114,16 +112,6 @@ package weave.visualization.layers
 		public const overrideYMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
 		public const overrideXMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
 		public const overrideYMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
-		
-		
-		private function updateMargins():void
-		{
-			marginBottomNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginBottom.value,unscaledHeight));
-			marginTopNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginTop.value,unscaledHeight));
-			
-			marginLeftNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginLeft.value,unscaledWidth));
-			marginRightNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginRight.value,unscaledWidth));
-		}
 		
 		/**
 		 * This is the collective data bounds of all the selectable plot layers.
@@ -181,6 +169,12 @@ package weave.visualization.layers
 		{
 			getCallbackCollection(this).delayCallbacks();
 			//trace('begin updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
+			
+			// make sure numeric margin values are correct
+			marginBottomNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginBottom.value, unscaledHeight));
+			marginTopNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginTop.value, unscaledHeight));
+			marginLeftNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginLeft.value, unscaledWidth));
+			marginRightNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginRight.value, unscaledWidth));
 			
 			var layer:IPlotLayer;
 			var plotLayer:PlotLayer;
@@ -323,10 +317,7 @@ package weave.visualization.layers
 			_prevUnscaledWidth = unscaledWidth;
 			_prevUnscaledHeight = unscaledHeight;
 			if (sizeChanged)
-			{
-				updateMargins();				
 				updateZoom();
-			}
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}

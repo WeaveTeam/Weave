@@ -110,7 +110,7 @@ package weave.visualization.plotters
 		public const labelNumberFormatter:LinkableNumberFormatter = newLinkableChild(this, LinkableNumberFormatter); // formatter to use when generating tick mark labels
 		public const labelTextAlignment:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
-		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const labelDistanceIsVertical:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const labelWordWrapSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
 		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));

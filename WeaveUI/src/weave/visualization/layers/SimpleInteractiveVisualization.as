@@ -73,10 +73,6 @@ package weave.visualization.layers
 		public function SimpleInteractiveVisualization()
 		{
 			super();
-			init();
-		}
-		private function init():void
-		{
 			linkSessionState(Weave.properties.axisFontSize, axisFontSize);
 			linkSessionState(Weave.properties.axisFontFamily, axisFontFamily);
 			linkSessionState(Weave.properties.axisFontUnderline, axisFontUnderline);

@@ -142,7 +142,7 @@ package weave.visualization.plotters
 				
 				_bitmapText.text = label.getValueFromKey((_filteredData.keys[i] as IQualifiedKey));
 				
-				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				
 				_bitmapText.angle = screenBounds.getYDirection() * (midRadians * 180 / Math.PI);
 				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
