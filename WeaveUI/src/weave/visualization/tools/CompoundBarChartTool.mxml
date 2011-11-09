@@ -411,8 +411,10 @@
 						</mx:HBox>
 						<ui:TextBox inputWidth="64" label="Label position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
 						
-						<ui:TextBox inputWidth="64" label="Angle"
-									creationComplete="linkBindableProperty(_plotter.labelAngle, event.target, 'text')"/>
+						<ui:Indent label="Angle">
+							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
+									creationComplete="linkBindableProperty(_plotter.labelRelativeAngle, event.target, 'value')"/>
+						</ui:Indent>
 						<mx:HBox>
 							<mx:Label text="Vertical Align"/>
 							<mx:ComboBox toolTip="Select the vertical align mode" 
@@ -451,8 +453,10 @@
 						<ui:TextBox inputWidth="64" label="Value label position" 
 									creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>							  
 						
-						<ui:TextBox inputWidth="64" label="Angle"
-									creationComplete="linkBindableProperty(_plotter.valueLabelAngle, event.target, 'text')"/>
+						<ui:Indent label="Angle">
+							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
+									creationComplete="linkBindableProperty(_plotter.valueLabelRelativeAngle, event.target, 'value')"/>
+						</ui:Indent>
 						<mx:HBox>
 							<mx:Label text="Vertical Align"/>
 							<mx:ComboBox toolTip="Select the vertical align mode" 

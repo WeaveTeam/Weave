@@ -140,14 +140,14 @@ package weave.visualization.plotters
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const valueLabelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
-		public const valueLabelAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
+		public const valueLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
-		public const labelAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
+		public const labelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -519,7 +519,8 @@ package weave.visualization.plotters
 						_bitmapText.y = tempPoint.y;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
 						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; // this line makes some code above uselss...
-						_bitmapText.angle = isNaN(valueLabelAngle.value) ? _bitmapText.angle : valueLabelAngle.value;
+						if (isFinite(valueLabelRelativeAngle.value))
+							_bitmapText.angle += valueLabelRelativeAngle.value;
 						_bitmapText.textFormat.color = valueLabelColor.value;
 						_bitmapText.draw(destination);
 					}
@@ -572,7 +573,8 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
-						_bitmapText.angle = isNaN(labelAngle.value) ? _bitmapText.angle : labelAngle.value;
+						if (isFinite(labelRelativeAngle.value))
+							_bitmapText.angle += labelRelativeAngle.value;
 						_bitmapText.verticalAlign = labelVerticalAlign.value;
 						_bitmapText.horizontalAlign = labelHorizontalAlign.value; // this line makes some code above useless..
 						_bitmapText.textFormat.color = labelColor.value;

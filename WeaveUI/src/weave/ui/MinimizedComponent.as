@@ -22,7 +22,9 @@ package weave.ui
 	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
+	import mx.utils.StringUtil;
 	
+	import weave.api.reportError;
 	import weave.utils.BitmapUtils;
 	
 	public class MinimizedComponent extends Canvas
@@ -56,11 +58,19 @@ package weave.ui
 
 		public function updateMinimizedIcon(desiredWidth:int, desiredHeight:int):void
 		{
-			graphics.clear();
-			width  = desiredWidth;
-			height = desiredHeight;
-			var thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(_mainComponent, desiredWidth, desiredHeight);
-			BitmapUtils.drawCenteredIcon(graphics, desiredWidth/2, desiredHeight/2, thumbnail);
+			try
+			{
+				graphics.clear();
+				width  = desiredWidth;
+				height = desiredHeight;
+				var thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(_mainComponent, desiredWidth, desiredHeight);
+				BitmapUtils.drawCenteredIcon(graphics, desiredWidth/2, desiredHeight/2, thumbnail);
+			}
+			catch (e:Error)
+			{
+				var msg:String = StringUtil.substitute("Unable to update minimized icon for component ({0} x {1})", _mainComponent.width, _mainComponent.height);
+				reportError(e, msg, _mainComponent);
+			}
 		}
 	}
 }
