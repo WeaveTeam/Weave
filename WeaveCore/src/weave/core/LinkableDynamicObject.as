@@ -226,7 +226,10 @@ package weave.core
 			if (newGlobalName == null) // local object
 			{
 				// initialize the local object -- this may trigger childListCallback()
-				_localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
+				var result:ILinkableObject = _localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
+				// if the object fails to be created, remove any existing object (may be a global one).
+				if (!result)
+					removeObject();
 			}
 			else // global object
 			{
