@@ -73,11 +73,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.</div>
 </td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
 </tr>
-<tr class="hideInheritedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../../core/CallbackCollection.html#callbacksWereTriggered">callbacksWereTriggered</a> : Boolean<div class="summaryTableDescription">
-   This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.</div>
-</td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
-</tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keyFilter">keyFilter</a> : <a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a>
 <div class="summaryTableDescription">[read-only]
@@ -88,6 +83,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keys">keys</a> : Array<div class="summaryTableDescription">[read-only]
    </div>
 </td><td class="summaryTableOwnerCol">FilteredKeySet</td>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../../core/CallbackCollection.html#triggerCounter">triggerCounter</a> : uint<div class="summaryTableDescription">
+   This counter gets incremented at the time that callbacks are triggered and before they are actually called.</div>
+</td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
 </tr>
 <tr class="hideInheritedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../../core/CallbackCollection.html#wasDisposed">wasDisposed</a> : Boolean<div class="summaryTableDescription">

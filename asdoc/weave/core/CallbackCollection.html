@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="CallbackCollection,weave.core.CallbackCollection,allowDelayCallbacks,callbacksAreDelayed,callbacksWereTriggered,wasDisposed,_runCallbacksImmediately,addGroupedCallback,addImmediateCallback,delayCallbacks,dispose,removeCallback,resumeCallbacks,triggerCallbacks" name="keywords">
+<meta content="CallbackCollection,weave.core.CallbackCollection,allowDelayCallbacks,callbacksAreDelayed,triggerCounter,wasDisposed,_runCallbacksImmediately,addGroupedCallback,addImmediateCallback,delayCallbacks,dispose,removeCallback,resumeCallbacks,triggerCallbacks" name="keywords">
 <title>weave.core.CallbackCollection</title>
 </head>
 <body>
@@ -65,8 +65,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">CallbackCollection</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#callbacksWereTriggered">callbacksWereTriggered</a> : Boolean<div class="summaryTableDescription">[read-only]
-   This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#triggerCounter">triggerCounter</a> : uint<div class="summaryTableDescription">[read-only]
+   This counter gets incremented at the time that callbacks are triggered and before they are actually called.</div>
 </td><td class="summaryTableOwnerCol">CallbackCollection</td>
 </tr>
 <tr class="">
@@ -212,19 +212,19 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get callbacksAreDelayed():Boolean</code>
 <br>
 </div>
-<a name="callbacksWereTriggered"></a>
+<a name="triggerCounter"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">callbacksWereTriggered</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">triggerCounter</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>callbacksWereTriggered:Boolean</code>&nbsp;&nbsp;[read-only]<p>
-   This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.
-   It is necessary in some situations to check this flag to determine if cached data should be used.
+<code>triggerCounter:uint</code>&nbsp;&nbsp;[read-only]<p>
+   This counter gets incremented at the time that callbacks are triggered and before they are actually called.
+   It is necessary in some situations to check this counter to determine if cached data should be used.
    </p><span class="label">Implementation</span>
 <br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get callbacksWereTriggered():Boolean</code>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get triggerCounter():uint</code>
 <br>
 </div>
 <a name="wasDisposed"></a>

@@ -63,11 +63,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
-<tr class="hideInheritedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="ICallbackInterface.html#callbacksWereTriggered">callbacksWereTriggered</a> : Boolean<div class="summaryTableDescription">
-   This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.</div>
-</td><td class="summaryTableOwnerCol"><a href="ICallbackInterface.html">ICallbackInterface</a></td>
-</tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lastNameAdded">lastNameAdded</a> : String<div class="summaryTableDescription">[read-only]
    This is the name of the object that was added prior to running immediate callbacks.</div>
@@ -89,6 +84,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <div class="summaryTableDescription">[read-only]
    This is the object that was removed prior to running immediate callbacks.</div>
 </td><td class="summaryTableOwnerCol">IChildListCallbackInterface</td>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="ICallbackInterface.html#triggerCounter">triggerCounter</a> : uint<div class="summaryTableDescription">
+   This counter gets incremented at the time that callbacks are triggered and before they are actually called.</div>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackInterface.html">ICallbackInterface</a></td>
 </tr>
 </table>
 </div>
