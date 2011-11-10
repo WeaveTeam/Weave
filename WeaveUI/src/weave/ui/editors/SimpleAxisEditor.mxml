@@ -20,7 +20,7 @@
 */
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
-		 label="General"
+		 label=""
 		 enabled="{_tool != null}"
 		 verticalGap="{verticalGap}"
 		 creationPolicy="all" xmlns:settings="weave.ui.settings.*" xmlns:ui="weave.ui.*">
@@ -132,10 +132,15 @@
 					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.overrideAxisName, yAxisTitle, 'text');
 					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.labelFunction, yAxisLabelFunction, 'text');
 					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.axisLabelRelativeAngle, yLabelAngle, 'value');
+					
+					if (!label)
+						label = "Axes";
 				}
 				else
 				{
 					axisSettings.parent.removeChild(axisSettings);
+					if (!label)
+						label = "Background";
 				}
 			}
 			
