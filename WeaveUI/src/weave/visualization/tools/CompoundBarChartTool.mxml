@@ -72,8 +72,8 @@
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
 				
-				_plotter.sortColumn.addImmediateCallback(this,handleSortColumnChange);
-				_plotter.heightColumns.addImmediateCallback(this,handleHeightColumnsChange);
+				_plotter.sortColumn.addGroupedCallback(this,handleSortColumnChange);
+				_plotter.heightColumns.addGroupedCallback(this,handleHeightColumnsChange);
 				
 				showAxes = true;
 				
@@ -344,32 +344,50 @@
 				}
 			}
 			
+			
 			private function handleSortColumnChange():void
 			{
+				
+
+				
 				if(!_plotter.sortColumn.internalColumn)
 					return;
+				
 				if(linkHeightAndSortColumns.value)
 				{
+					_plotter.heightColumns.delayCallbacks();
+					
+					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
+					
 					var col:Array = _plotter.heightColumns.getObjects();
 					
-					if(col[0] is DynamicColumn)
-					{
-						copySessionState(_plotter.sortColumn,col[0]);
-					}
+					copySessionState(_plotter.sortColumn,col[0]);
+					
+					_plotter.heightColumns.resumeCallbacks();
 				}
+				
 			}
 			
 			private function handleHeightColumnsChange():void
 			{
+				
 				var col:Array = _plotter.heightColumns.getObjects();
 				
 				if(col.length <1)
 					return;
 				
+
 				if(linkHeightAndSortColumns.value)
 				{
-					_plotter.sortColumn.requestLocalObjectCopy((col[0] as DynamicColumn));
+					_plotter.heightColumns.delayCallbacks();
+					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
+					//new object has been created because of forceFirstColumnDynamic. 
+					//so we set col again.
+					col = _plotter.heightColumns.getObjects();
+					copySessionState(col[0],_plotter.sortColumn);
+					_plotter.heightColumns.resumeCallbacks();
 				}
+				
 			}
 			
 			private function updateInteractivity():void
