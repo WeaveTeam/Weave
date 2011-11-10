@@ -32,9 +32,11 @@ package weave.utils
 	import weave.api.data.IDataSource;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	
 	/**
@@ -337,7 +339,39 @@ package weave.utils
 						return result;
 					}
 				}
-				return 0;
+				return ObjectUtil.compare(key1, key2);
+			}
+		}
+		
+		/**
+		 * This function will make sure the first IAttributeColumn in a linkable hash map is a DynamicColumn.
+		 */		
+		public static function forceFirstColumnDynamic(columnHashMap:ILinkableHashMap):void
+		{
+			var cols:Array = columnHashMap.getObjects(IAttributeColumn);
+			if (cols.length == 0)
+			{
+				// just create a new dynamic column
+				columnHashMap.requestObject(null, DynamicColumn, false);
+			}
+			else if (!(cols[0] is DynamicColumn))
+			{
+				// don't run callbacks while we edit session state
+				getCallbackCollection(columnHashMap).delayCallbacks();
+				// remember the order
+				var names:Array = columnHashMap.getNames();
+				
+				// create a new wrapper column
+				var newCol:DynamicColumn = columnHashMap.requestObject(null, DynamicColumn, false);
+				// copy the old col inside the new col
+				newCol.requestLocalObjectCopy(cols[0]);
+				// remove old col
+				columnHashMap.removeObject(columnHashMap.getName(cols[0]));
+				
+				// restore name order
+				columnHashMap.setNameOrder(names);
+				// done editing session state
+				getCallbackCollection(columnHashMap).resumeCallbacks();
 			}
 		}
 		

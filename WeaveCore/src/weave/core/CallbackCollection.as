@@ -74,6 +74,11 @@ package weave.core
 		private var _runCallbacksIsPending:Boolean = false;
 		
 		/**
+		 * This value keeps track of how many times callbacks were triggered, and is returned by the public triggerCounter accessor function.
+		 */
+		private var _triggerCounter:uint = 0;
+		
+		/**
 		 * If this is true, it means _runCallbacksImmediately() is currently executing.
 		 */
 		private var _callbacksAreRunning:Boolean = false;
@@ -106,7 +111,7 @@ package weave.core
 				entry.schedule = 1;
 			
 			// UNCOMMENT THIS LINE FOR DEBUGGING
-			entry.addCallback_stackTrace = new Error().getStackTrace();
+			entry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
 
 			// run callback now if requested
 			if (runCallbackNow)
@@ -126,6 +131,7 @@ package weave.core
 		{
 			if (_delayCount > 0)
 			{
+				_triggerCounter++;
 				_runCallbacksIsPending = true;
 				return;
 			}
@@ -144,6 +150,7 @@ package weave.core
 		 */		
 		protected final function _runCallbacksImmediately(...preCallbackParams):void
 		{
+			_triggerCounter++;
 			_runCallbacksIsPending = false;
 			
 			// save current value of this variable to prevent recursive calls from making it incorrect.
@@ -235,12 +242,12 @@ package weave.core
 		}
 		
 		/**
-		 * This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.
-		 * It is necessary in some situations to check this flag to determine if cached data should be used.
+		 * This counter gets incremented at the time that callbacks are triggered and before they are actually called.
+		 * It is necessary in some situations to check this counter to determine if cached data should be used.
 		 */
-		public final function get callbacksWereTriggered():Boolean
+		public final function get triggerCounter():uint
 		{
-			return _runCallbacksIsPending || _callbacksAreRunning;
+			return _triggerCounter;
 		}
 		
 		/**
@@ -384,7 +391,7 @@ package weave.core
 				_groupedCallbackToTriggerEntryMap[groupedCallback] = triggerEntry;
 				triggerEntry.recursionLimit = recursionLimit;
 				triggerEntry.context = [relevantContext]; // the context in this entry will be an array of contexts
-				triggerEntry.addCallback_stackTrace = new Error().getStackTrace();
+				triggerEntry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
 				triggerEntry.callback = function():void
 				{
 					if (_runningGroupedCallbacksNow)

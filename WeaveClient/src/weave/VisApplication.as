@@ -75,6 +75,7 @@ package weave
 	import weave.services.LocalAsyncService;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
+	import weave.ui.AttributeMenuTool;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorBinEditor;
@@ -647,6 +648,7 @@ package weave
 
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				
+				createToolMenuItem(Weave.properties.enableAddAttributeMenuTool, "Add Attribute Menu Tool", createGlobalObject, [AttributeMenuTool]);
 				createToolMenuItem(Weave.properties.enableAddBarChart, "Add Bar Chart", createGlobalObject, [CompoundBarChartTool]);
 				createToolMenuItem(Weave.properties.enableAddColormapHistogram, "Add Color Histogram", createColorHistogram);
 				createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
