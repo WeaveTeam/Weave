@@ -82,8 +82,7 @@ package weave.ui.CustomDataGrid
 			if(filterComp){
 				_filterComponent = filterComp;
 				_filterComponent.mapColumnToFilter(this);
-				filterComp.width = this.width;
-				
+				filterComp.width = this.width;				
 			}			
 		}
 		

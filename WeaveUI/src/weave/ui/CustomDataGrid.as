@@ -98,7 +98,7 @@ package weave.ui
 		}
 		
 		override protected function commitProperties():void{
-			if (activateFilters.value){//whenever activate filters is called, 
+			if (activateFilters.value){ 
 				activateFilters.value = false;
 				updateFilterFunctions();
 				resultKeys = [];

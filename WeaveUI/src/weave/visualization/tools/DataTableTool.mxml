@@ -250,8 +250,6 @@
 							else tableArea.addChildAt(filterControls, 0);
 							UIUtils.linkDisplayObjects(filterControls,filterComponents);
 							createFilterComponents();
-							
-							filterComponents.getObjects().length;
 						}
 					}
 					else
@@ -259,8 +257,6 @@
 						if (tableArea == filterControls.parent){
 							filterComponents.removeAllObjects();
 							UIUtils.unlinkDisplayObjects(filterControls,filterComponents);
-							
-							//filterControls.removeAllChildren();
 							tableArea.removeChild(filterControls);
 						}							
 						var currentSelection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
@@ -269,27 +265,24 @@
 				}
 				catch (e:Error) 
 				{
-					trace(e.message);
 				}
 			}
+			//based column datatype, filter components are decided 
+			//column names are passed to get linkableHashMap.requestObjects , it will retain the same object, if created early.
 			private function createFilterComponents():void{				
 				var classDef:Class = null;
 				var colNames:Array = columns.getNames();
+				//better to use seesioned Object to run a loop instead of UI objects
 				for(var i:int = 0; i<colNames.length;i++){
 					var attrColum:IAttributeColumn = columns.getObject(colNames[i]) as IAttributeColumn;
-					var dgic:WeaveCustomDataGridColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;					
+					var filterableColumn:WeaveCustomDataGridColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;					
 					var dataType:String = ColumnUtils.getDataType(attrColum);
-					if(attrColum is KeyColumn){
-						classDef = SearchFilterComponent;
-					}					
-					if(dataType == DataTypes.STRING)	{							
-						classDef = SearchFilterComponent;														
-					}
-					else if(dataType ==DataTypes.NUMBER){							
-						classDef = SliderFilterComponent;													
-					}
-					dgic.filterComponent = filterComponents.requestObject(colNames[i],classDef,false);						
-														
+					
+					if(attrColum is KeyColumn)classDef = SearchFilterComponent;										
+					if(dataType == DataTypes.STRING)classDef = SearchFilterComponent;
+					else if(dataType ==DataTypes.NUMBER)classDef = SliderFilterComponent;
+					
+					filterableColumn.filterComponent = filterComponents.requestObject(colNames[i],classDef,false);														
 				}								
 			}
 			
@@ -302,11 +295,11 @@
 			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
 			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
+			
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
-				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
-				
+				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);				
 				AttributeSelectorPanel.openDefaultSelector(imageCol);
 			}
 			

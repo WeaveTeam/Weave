@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
 <mx:Box  xmlns:mx="http://www.adobe.com/2006/mxml"  implements="weave.ui.filterComponents.IFilterComponent"
 		 verticalScrollPolicy="off" horizontalScrollPolicy="off"  >
 	
@@ -21,11 +41,14 @@
 			
 			
 			public var column:WeaveCustomDataGridColumn;
+			// This method is called before the component is added using addchild mehtod
+			// so rangeSlider will be null
+			//while calling form sessionStateLog this method is called after initilaisation
 			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void{				
 				 this.column =column;
 				 attrCol = column.attrColumn;
 				 dataMinimum = WeaveAPI.StatisticsCache.getMin(attrCol);
-				 dataMaximum = WeaveAPI.StatisticsCache.getMax(attrCol);
+				 dataMaximum = WeaveAPI.StatisticsCache.getMax(attrCol);				 
 				 if(rangeSlider){
 					 rangeSlider.values = [dataMinimum, dataMaximum];
 				 }
@@ -46,8 +69,7 @@
 			}
 			private function handleLinkableValues():void				
 			{
-				//if(minimum.value && maximum.value)
-					rangeSlider.values = [minimum.value, maximum.value];
+				rangeSlider.values = [minimum.value, maximum.value];
 			}
 			
 			
