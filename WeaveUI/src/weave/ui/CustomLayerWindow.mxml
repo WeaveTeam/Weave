@@ -39,6 +39,9 @@
 			<!-- For now, add new plotter editors here. later, there will be a way of listing them automatically. -->
 			
 			<!--<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>-->
+			<mx:Object label="Geometry Labels" plotterClass="{GeometryLabelPlotter}" layerclass="{PlotLayer}"/>
+			<mx:Object label="Geometry Plotter" plotterClass="{GeometryPlotter}" layerclass="{PlotLayer}"/>
+			<mx:Object label="WMS Plotter" plotterClass="{WMSPlotter}" layerclass="{PlotLayer}"/>
 			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
 			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
 		</mx:List>
@@ -56,20 +59,29 @@
 			import weave.api.ui.IPlotter;
 			import weave.ui.customLayerSettings.AxisLabelLayerControls;
 			import weave.ui.customLayerSettings.CompoundBarChartSettings;
+			import weave.ui.customLayerSettings.GeometryLabelPlotterControls;
+			import weave.ui.customLayerSettings.GeometryPlotterControls;
 			import weave.ui.customLayerSettings.GridLineLayerControls;
+			import weave.ui.customLayerSettings.WMSPlotterControls;
 			import weave.utils.EditorManager;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AxisLabelPlotter;
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 			import weave.visualization.plotters.DynamicPlotter;
+			import weave.visualization.plotters.GeometryLabelPlotter;
+			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
+			import weave.visualization.plotters.WMSPlotter;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			{
 				// For now, register all plotter editors here.
 				
 				//EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
+				EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterControls);
+				EditorManager.registerEditor(GeometryPlotter, GeometryPlotterControls);
+				EditorManager.registerEditor(WMSPlotter, WMSPlotterControls);
 				EditorManager.registerEditor(GridLinePlotter, GridLineLayerControls);
 				EditorManager.registerEditor(AxisLabelPlotter, AxisLabelLayerControls);
 			}

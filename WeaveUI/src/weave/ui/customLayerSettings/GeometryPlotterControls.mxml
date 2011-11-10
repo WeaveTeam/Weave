@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" implements="weave.api.ui.ILinkableObjectEditor">
+	<mx:HBox  width="100%" horizontalAlign="center" verticalAlign="middle">												
+		<mx:VBox borderStyle="solid" verticalGap="0" 
+				 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			<mx:CheckBox id="fillEnabled" label="Enable Fill Color" fontWeight="bold"
+						 toolTip="Check this box to enable the color used inside each shape.  &#13;This would typically be unchecked if the shapes are to be used for borders only, such as overlaying state borders over colored in municipalities."
+						 creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')"/>
+			
+			<mx:HBox verticalAlign="middle" >
+				<mx:VBox enabled="{fillEnabled.selected}" verticalGap="0">
+					<mx:Label text="alpha:"/>
+					<mx:NumericStepper 	id="fillAlpha" 
+										minimum="0" maximum="1" stepSize="0.1" 
+										value="0"
+										width="50"
+										toolTip="Set the alpha (0: transparent, 1: opaque) of the color inside each shape."
+										creationComplete="linkBindableProperty(_plotter.fill.alpha.defaultValue,event.target,'value')"/>
+					
+				</mx:VBox>
+				
+				<mx:VBox enabled="{fillEnabled.selected}" verticalGap="0" horizontalAlign="center">
+					<mx:Label text="default color:"/>
+					<mx:HBox>
+						<mx:CheckBox id="enableDefaultColor" label="" 
+									 change="handleSolidFillColorCheck()"
+									 toolTip="Check this box to allow choosing a color that will be used either when there is missing data when data is mapped to the color, or as the color for all shapes when no data is mapped.   &#13;This would typically be checked when a single color is desired for all shapes (no data mapped to color), or when the missing data is to be shown as a solid color rather than the default pattern."/>
+						<mx:ColorPicker id="fillColor"
+										enabled="{enableDefaultColor.selected}"
+										change="handleFillColorSelected()"
+										selectedColor="0xFFFFFF"
+										toolTip="Set the color to fill in the shape when there is no data mapped to the shapes or when there is missing data when data is being mapped to the shapes." />
+					</mx:HBox>
+					
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
+		
+		
+		
+		<mx:VBox borderStyle="solid" verticalGap="0" 
+				 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			<mx:CheckBox id="lineEnabled" label="Enable Borders" fontWeight="bold" 
+						 toolTip="Check this box to enable borders around each shape.  &#13;This would typically be unchecked to have a more subtle mesh of colors on a map, rather than distinguished by borders between areas."
+						 creationComplete="linkBindableProperty(_plotter.line.enabled.defaultValue,event.target,'selected')"/>
+			
+			<mx:HBox verticalAlign="middle" >
+				<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
+					<mx:Label text="alpha:"/>
+					<mx:NumericStepper 	id="lineAlpha" 
+										minimum="0" maximum="1" stepSize="0.1"
+										width="50"
+										toolTip="Set the alpha (0: transparent, 1: opaque) of the borders around each shape."
+										creationComplete="linkBindableProperty(_plotter.line.alpha.defaultValue, event.target, 'value')"/>
+				</mx:VBox>
+				
+				<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
+					<mx:Label text="weight:"/>
+					<mx:NumericStepper 	id="lineWeight" 
+										minimum="1" maximum="10"
+										width="50"
+										toolTip="Set the thickness of the borders around each shape."
+										creationComplete="linkBindableProperty(_plotter.line.weight.defaultValue, event.target, 'value')"/>
+				</mx:VBox>
+				<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
+					<mx:Label text="color:"/>
+					<mx:ColorPicker id="lineColor"
+									toolTip="Set the color used for the borders around each shape." 
+									creationComplete="linkBindableProperty(_plotter.line.color.defaultValue,event.target,'selectedColor')"/>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
+		
+		<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected}"
+				 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			<mx:Label text="point size:"/>
+			<mx:NumericStepper 	id="pointSize" 
+								toolTip="Set the default point size when point-based geometries are used."
+								minimum="0.2" maximum="60"
+								width="50"
+								creationComplete="linkBindableProperty(_plotter.pointShapeSize,event.target,'value')"/>
+		</mx:VBox>
+		<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
+				 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
+			<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+		</mx:VBox>
+	</mx:HBox>
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.compiler.StandardLib;
+			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.utils.EventUtils;
+			import weave.visualization.plotters.GeometryPlotter;
+			
+			private var _plotter:GeometryPlotter = null;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				_plotter = object as GeometryPlotter;
+			}
+			
+			public function applyChanges():void
+			{
+				
+			}			
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				_plotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
+			}
+			
+			private function handleSolidFillColorCheck():void
+			{
+				var defaultColor:Number = StandardLib.asNumber(_plotter.fill.color.defaultValue.value);
+				if (enableDefaultColor.selected)
+				{
+					_plotter.fill.color.defaultValue.value = fillColor.selectedColor;
+				}
+				else
+				{
+					_plotter.fill.color.defaultValue.value = NaN;
+				}
+			}
+			
+			private function handleFillColorSelected():void
+			{
+				// copy gui values to session state
+				_plotter.fill.color.defaultValue.value = fillColor.selectedColor;
+			}
+			
+			private function handleGeomPlotterImageToggle():void
+			{
+				if (!useImagesCheck.selected)
+					_plotter.pointDataImageColumn.removeObject();
+				else
+					handleGeomPlotterImageInput();
+			}
+			
+			private function handleGeomPlotterImageInput():void
+			{
+				var url:String = imageURL.text;
+				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.requestLocalObject(AlwaysDefinedColumn, false);
+				adc.defaultValue.value = url;
+			}
+			
+			private function handleGeomPlotterImageURLChange():void
+			{
+				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+				if (adc)
+					imageURL.text = adc.defaultValue.value as String;
+			}
+			
+		]]>
+	</mx:Script>
+</mx:VBox>
