@@ -744,6 +744,11 @@
 			public const lockedColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLockedColumnChange, true);
 			private function handleLockedColumnChange():void
 			{
+				if (!parent)
+				{
+					callLater(handleLockedColumnChange);
+					return;
+				}
 				if (lockedColumns.value < 0 || lockedColumns.value > dataGrid.columns.length)
 					lockedColumns.value = 0;
 				dataGrid.lockedColumnCount = lockedColumns.value;
