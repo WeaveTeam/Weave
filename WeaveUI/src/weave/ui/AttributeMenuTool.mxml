@@ -24,7 +24,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				width="25%" height="10%"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.ui.editors.*">
 	
-	<mx:Canvas width="100%" height="100%">
+	<mx:Canvas id="canvas" width="100%" height="100%">
 		<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
 						width="100%" height="100%"
 						labelFunction="choiceComboLabelFunction"
@@ -100,7 +100,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			// this returns the tool object corresponding to the selected item in the toolCombo
-			private function getTargetTool():SimpleVisTool
+			public function getTargetTool():SimpleVisTool
 			{
 				return Weave.root.getObject(targetTool.value) as SimpleVisTool;
 			}
@@ -113,6 +113,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// after we set the data provider, we have to make sure the correct item is selected
 				handleTargetToolChange();
 			}
+			
 			// called when the target tool changes
 			private function handleTargetToolChange():void
 			{
@@ -148,6 +149,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				// make sure the correct item is selected
 				targetAttributeCombo.selectedItem = targetAttribute.value;
+				choiceCombo.selectedIndex = -1;
 			}
 			
 			// called when the admin alters the choices through the control panel
@@ -163,11 +165,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return ColumnUtils.getTitle(attrCol);
 			}
 			
+			// called when combo box selection changes, makes sure it has focus before setting target LinkableString
 			private function handleComboChange(combo:ComboBox, target:LinkableString):void
 			{
 				try
 				{
-					if (combo.contains(combo.getFocus()))
+					if (combo.contains(getFocus()))
 						target.value = combo.selectedItem as String;
 				}
 				catch (e:Error)
