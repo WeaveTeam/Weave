@@ -81,7 +81,7 @@ package weave
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:String):Boolean
 		{
-			if (value.substr(-1) == '%')
+			if (value && value.substr(-1) == '%')
 				return StandardLib.asNumber(value.substr(0, -1)) > 0;
 			return StandardLib.asNumber(value) >= 1;
 		}
