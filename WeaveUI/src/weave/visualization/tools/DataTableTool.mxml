@@ -38,7 +38,7 @@
 			<ui:CustomComboBox id="keyTypeCombo" change="keyTypeChangeEventHandler()" toolTip="Only columns of the selected key type will be shown."/>
 			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
-	
+		<mx:HBox minWidth="0" borderStyle="solid"  horizontalGap="0"  id="filterControls" width="100%" height="10%" verticalAlign="middle" horizontalScrollPolicy="off"/>
 		<ui:CustomDataGrid id="dataGrid"  
 					 	horizontalScrollPolicy="off" verticalScrollPolicy="auto"
 						 dataProvider="{dataRowKeys}" 
@@ -77,12 +77,12 @@
 			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
 			import mx.events.ResizeEvent;
-			import mx.rpc.Fault;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.data.IPrimitiveColumn;
@@ -97,7 +97,7 @@
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
-			import weave.core.weave_internal;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.AttributeColumns.KeyColumn;
@@ -106,8 +106,10 @@
 			import weave.data.KeySets.KeySet;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
-			import weave.ui.CustomDataGrid.WeaveDataGridImageColumn;
+			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
 			import weave.ui.DraggablePanel;
+			import weave.ui.filterComponents.SearchFilterComponent;
+			import weave.ui.filterComponents.SliderFilterComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
@@ -119,9 +121,11 @@
 
 				_columnCheckList = new Dictionary();
 				getCallbackCollection(keySet).addGroupedCallback(this, handleKeySetChange);
+				//getCallbackCollection(dataGrid.filteredKeySet).addGroupedCallback(this, handleKeySetChange);
 				getCallbackCollection(_selection).addGroupedCallback(this, handleGlobalSelectionChange);
 				getCallbackCollection(_subset).addGroupedCallback(this, handleSubsetChange);
 				Weave.properties.axisFontSize.addGroupedCallback(this, handleFontChange, true);
+				
 
 				registerLinkableChild(this, columns);
 				
@@ -145,6 +149,7 @@
 				super.childrenCreated();
 				
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
+				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
 				
 				columns.addGroupedCallback(this, handleColumnsChange, true);
 				columns.childListCallbacks.addGroupedCallback(this, handleColumnListChange, true);
@@ -230,6 +235,65 @@
 				}
 			}
 			
+			
+			public const showFilters:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateFilters);
+			private function updateFilters():void
+			{
+				if (!parent)
+					return callLater(updateFilters);
+				try
+				{
+					if (showFilters.value)
+					{
+						if (tableArea != filterControls.parent){							
+							if(tableArea.contains(topControls))	tableArea.addChildAt(filterControls, 1);
+							else tableArea.addChildAt(filterControls, 0);
+							UIUtils.linkDisplayObjects(filterControls,filterComponents);
+							createFilterComponents();
+							
+							filterComponents.getObjects().length;
+						}
+					}
+					else
+					{
+						if (tableArea == filterControls.parent){
+							filterComponents.removeAllObjects();
+							UIUtils.unlinkDisplayObjects(filterControls,filterComponents);
+							
+							//filterControls.removeAllChildren();
+							tableArea.removeChild(filterControls);
+						}							
+						var currentSelection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+						currentSelection.replaceKeys([]);
+					}
+				}
+				catch (e:Error) 
+				{
+					trace(e.message);
+				}
+			}
+			private function createFilterComponents():void{				
+				var classDef:Class = null;
+				var colNames:Array = columns.getNames();
+				for(var i:int = 0; i<colNames.length;i++){
+					var attrColum:IAttributeColumn = columns.getObject(colNames[i]) as IAttributeColumn;
+					var dgic:WeaveCustomDataGridColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;					
+					var dataType:String = ColumnUtils.getDataType(attrColum);
+					if(attrColum is KeyColumn){
+						classDef = SearchFilterComponent;
+					}					
+					if(dataType == DataTypes.STRING)	{							
+						classDef = SearchFilterComponent;														
+					}
+					else if(dataType ==DataTypes.NUMBER){							
+						classDef = SliderFilterComponent;													
+					}
+					dgic.filterComponent = filterComponents.requestObject(colNames[i],classDef,false);						
+														
+				}								
+			}
+			
+			
 			[Bindable]
 			private var dataRowKeys:ArrayCollection = new ArrayCollection([]);
 			
@@ -237,6 +301,7 @@
 			
 			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
@@ -317,6 +382,9 @@
 					return callLater(handleDataSourceChange);
 				try {
 					dataGrid.columns = [];
+					if(filterControls){
+						filterControls.removeAllChildren();
+					}
 					_currentDataGridColumns = [];
 
 					// add the items to the data grid
@@ -325,6 +393,10 @@
 					{
 						addItem(attrColumn);
 					}
+					if(filterControls && showFilters.value){
+						createFilterComponents();
+					}
+					
 					
 					// remove values which lack associated columns
 					var _sessionedWidthNames:Array = columnWidths.getNames();
@@ -362,7 +434,7 @@
 				
 				for(var i:int = 0; i<dataGrid.columns.length; i++)
 				{
-					var currAttrColumn:WeaveDataGridImageColumn = dataGrid.columns[i] as WeaveDataGridImageColumn;
+					var currAttrColumn:WeaveCustomDataGridColumn = dataGrid.columns[i] as WeaveCustomDataGridColumn;
 					var columnName:String = columns.getName(currAttrColumn.attrColumn as ILinkableObject);
 					newColumnOrder.push(columnName);
 				}
@@ -429,7 +501,7 @@
 			}
 			private function handleKeyTypeChange():void
 			{
-				for each (var col:WeaveDataGridImageColumn in dataGrid.columns)
+				for each (var col:WeaveCustomDataGridColumn in dataGrid.columns)
 				{
 					if(keyTypeCombo.selectedItem == "Show All" || (col.attrColumn is KeyColumn) || (ColumnUtils.getKeyType(col.attrColumn) == keyTypeCombo.selectedItem))
 						col.visible = true;
@@ -623,15 +695,19 @@
 				var totalWidth:Number = dataGrid.width;
 				for (i = 0; i < _currentDataGridColumns.length; ++i)
 				{
-					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[i];
+					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[i];
 					var column:IAttributeColumn = dgc.attrColumn;
 					var columnName:String = columns.getName(column);
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
-					var width:Number = (_currentDataGridColumns[i] as WeaveDataGridImageColumn).width;
+					var width:Number = (_currentDataGridColumns[i] as WeaveCustomDataGridColumn).width;
 					if (isNaN(width) || width <= 5) // this happens when a column is stretched all the way to the right
 						width = _minSuggestedColumnSize;
 					_guiWidthChanged = true; // don't let the next line run callbacks
 					sessionedWidth.value = Math.floor(100 * width / totalWidth) + "%";
+					if(dgc.filterComponent){
+						dgc.filterComponent.width =dgc.width;
+					}
+					
 					_guiWidthChanged = false; 
 				}
 			}
@@ -652,7 +728,7 @@
 				var totalWidth:Number = dataGrid.width - dataGrid.getScrollWidth(CustomDataGrid.VERTICAL_SCROLL);
 				for (var j:int = 0; j < _currentDataGridColumns.length - 1; ++j)
 				{
-					var dgc:WeaveDataGridImageColumn = _currentDataGridColumns[j] as WeaveDataGridImageColumn;
+					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[j] as WeaveCustomDataGridColumn;
 					var columnName:String = columns.getName(dgc.attrColumn);
 					if (columnName == null)
 						continue;
@@ -676,6 +752,10 @@
 					
 					// now we force it into doing the proper resizing (if any)
 					dgc.width = dgc.width;
+					if(dgc.filterComponent){
+						dgc.filterComponent.width = dgc.width;
+					}
+					
 				}
 //				dataGrid.invalidateDisplayList();
 				dataGrid.validateSize(true);
@@ -684,7 +764,8 @@
 			
 			public function addItem(attrColumn:IAttributeColumn):void
 			{				
-				var dgc:WeaveDataGridImageColumn = new WeaveDataGridImageColumn(attrColumn);
+				var dgc:WeaveCustomDataGridColumn = new WeaveCustomDataGridColumn(attrColumn);	
+				
 				_currentDataGridColumns.push(dgc);
 				var columnName:String = columns.getName(attrColumn);
 				var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, true);
@@ -699,7 +780,7 @@
 			{
 				// NEED TO DETERMINE WHETHER OR NOT TO SHOW A SCROLL BAR -- if not, it will resize each column automatically
 				var totalColumnWidths:Number = 0;
-				for each (var obj:WeaveDataGridImageColumn in _currentDataGridColumns)
+				for each (var obj:WeaveCustomDataGridColumn in _currentDataGridColumns)
 				{
 					totalColumnWidths += obj.width;
 				}
@@ -730,9 +811,9 @@
 						var nameOrder:Array = columns.getNames();
 						columns.requestObject("KeyColumn",KeyColumn, false);
 						columns.setNameOrder(nameOrder);
-					}
-					
+					}					
 					updateKeyTypeComboBox();
+					
 				}
 				else
 				{
@@ -742,6 +823,7 @@
 						columns.removeObject(keyCol);
 					}
 				}
+				
 			}
 			
 			public const lockedColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLockedColumnChange, true);
@@ -779,6 +861,7 @@
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
 			<mx:Button label="Add Image Column" click="addImageColumn()" />
 			<mx:CheckBox id="showControlsCheckBox" label="Show controls on panel"/>
+			<mx:CheckBox id="showFiltersCheckBox" label="Show Filters on panel"/>
 			<mx:CheckBox change="handleKeyColumnCheckBox()" id="showKeyColumnCheckBox" label="Show Key Column"/>
 			<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
 			<mx:Button label="Export Data..." click="exportCSV()" />

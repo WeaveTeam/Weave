@@ -24,8 +24,20 @@ package weave.ui
 	import flash.display.Shape;
 	
 	import mx.controls.DataGrid;
+	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.controls.listClasses.ListRowInfo;
 	import mx.core.mx_internal;
+	
+	import weave.Weave;
+	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
+	import weave.data.KeySets.KeySet;
+	import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
+	import weave.ui.filterComponents.IFilterComponent;
 
 	use namespace mx_internal;	                          
 
@@ -36,15 +48,22 @@ package weave.ui
 	 * 
 	 * @author kmonico
 	 */	
-	public class CustomDataGrid extends DataGrid
+	public class CustomDataGrid extends DataGrid implements ILinkableObject
 	{
+		
+		public function CustomDataGrid(){
+			super();			
+		}
+		
+		
+		
 		/**
 		 * There's a bug in Flex 3.6 SDK where the locked column content may not be updated
 		 * at the same time as the listItems for the DataGrid. This is an issue because they
 		 * could have different lengths, and thus cause a null reference error.
 		 * 
 		 * @param layoutChanged If the layout changed.
-		 */		
+		 */			
 		override mx_internal function addClipMask(layoutChanged:Boolean):void
 		{
 			if (lockedColumnCount == 0)
@@ -64,9 +83,74 @@ package weave.ui
 			else if (scrollBar == HORIZONTAL_SCROLL && horizontalScrollBar)
 			{
 				return horizontalScrollBar.getExplicitOrMeasuredWidth();
-			}
-			
+			}			
 			return 0;
 		}
+		
+		
+		
+		
+		public const activateFilters:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false),handleActivateFilters);	
+		protected function handleActivateFilters():void{
+			if (activateFilters.value){
+				invalidateProperties();
+			}
+		}
+		
+		override protected function commitProperties():void{
+			if (activateFilters.value){//whenever activate filters is called, 
+				activateFilters.value = false;
+				updateFilterFunctions();
+				resultKeys = [];
+				collection.filterFunction = callAllFilterFunctions;
+				//refresh call the respective function(**callAllFilterFunctions**) through internalrefresh in listCollectionView 
+				collection.refresh();
+				handleCollectionRefresh();
+			}
+			super.commitProperties();
+		}
+		
+		protected var columnFilterFunctions:Array;
+		
+		//consequnce of change in --activateFilters-- through **commit properties** method
+		//fills --columnFilterFunctions--
+		protected function updateFilterFunctions():void{
+			var cff:Array = [];
+			for each (var column:DataGridColumn in columns){
+				if (column is WeaveCustomDataGridColumn){
+					var mc:WeaveCustomDataGridColumn = WeaveCustomDataGridColumn(column);					
+					if (mc.filterComponent)	{
+						var filter:IFilterComponent = mc.filterComponent;
+						if(filter.isActive)
+							cff.push(filter.filterFunction);
+					}						
+				}
+			}
+			columnFilterFunctions = cff;
+		}
+		
+		
+		private var resultKeys:Array = [];		
+		
+		/**
+		 * This function is a logical AND of all functions in --columnFilterFunctions--
+		 * on each record filterFunctions are applied through 
+		 * **commitProperties** -> listcollectionview.refresh -> internalrefresh -> callAllfilterFunction through reference
+		 */		
+		protected function callAllFilterFunctions(obj:Object):Boolean
+		{
+			for each (var cff:Function in columnFilterFunctions){
+				if (!cff(obj))
+					return false;
+			}			
+			resultKeys.push(obj.key);		
+			return true;
+		}
+		//executes after iteration on callAllFilterFunctions by all the datagrid records
+		private function handleCollectionRefresh():void{			
+			var filteredKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			filteredKeySet.replaceKeys(resultKeys);			
+		}
+		
 	}
 }
