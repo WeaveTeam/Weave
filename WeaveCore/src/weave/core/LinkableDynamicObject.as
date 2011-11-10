@@ -92,12 +92,15 @@ package weave.core
 		 */
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
+			delayCallbacks();
 			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
 			var object:ILinkableObject = requestLocalObject(classDef, false);
-			if (object == null || objectToCopy == null)
-				return;
-			var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
-			WeaveAPI.SessionManager.setSessionState(object, state, true);
+			if (object != null && objectToCopy != null)
+			{
+				var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
+				WeaveAPI.SessionManager.setSessionState(object, state, true);
+			}
+			resumeCallbacks();
 		}
 		
 		/**
