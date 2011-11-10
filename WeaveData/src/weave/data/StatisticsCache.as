@@ -157,17 +157,8 @@ package weave.data
 		 * This maps an IAttributeColumn to a value of true or false, indicating
 		 * whether or not the cached values are valid for that column.
 		 */
-		private const cacheIsValid:Dictionary = new Dictionary(true);
+		private const triggerCounterMap:Dictionary = new Dictionary(true);
 
-		/**
-		 * This function will invalidate any cached statistical values associated with the given column.
-		 * @param column A column to invalidate statistics for.
-		 */
-		private function invalidateCache(column:IAttributeColumn):void
-		{
-			cacheIsValid[column] = false;
-		}
-		
 		/**
 		 * This function will validate the cached statistical values for the given column.
 		 * @param column A column to calculate basic statistical values for.
@@ -196,13 +187,8 @@ package weave.data
 			if (column == null)
 				return NaN;
 
-			// if the cacheIsValid dictionary has no entry for this column,
-			// add a callback to the column that will invalidate the cache
-			if (cacheIsValid[column] === undefined)
-				column.addImmediateCallback(column, invalidateCache, [column], true);
-			
 			// if cache is invalid, validate it now.  if callbacks are running, cache is invalid.
-			if (!cacheIsValid[column] || column.callbacksWereTriggered)
+			if (triggerCounterMap[column] != column.triggerCounter)
 			{
 				var min:Number = NaN;
 				var max:Number = NaN;
@@ -263,7 +249,7 @@ package weave.data
 				cache[getRunningTotals][column] = runningTotals;
 				
 				// the cache is now valid for this column
-				cacheIsValid[column] = true;
+				triggerCounterMap[column] = column.triggerCounter;
 			}
 			
 			return cache[statsFunction][column];

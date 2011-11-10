@@ -339,7 +339,7 @@ package weave.utils
 						return result;
 					}
 				}
-				return 0;
+				return ObjectUtil.compare(key1, key2);
 			}
 		}
 		

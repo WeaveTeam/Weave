@@ -45,14 +45,17 @@ package weave.data.BinClassifiers
 		 * This is a private copy of the last getObjects() result.
 		 */
 		private var _bins:Array = [];
+		
+		private var _lastTriggerCounter:uint = 0;
 
 		/**
 		 * This function will update the local arrays if necessary.
 		 */
 		private function validateLocalArrays():void
 		{
-			if (_names == null || this.callbacksWereTriggered)
+			if (_names == null || triggerCounter != _lastTriggerCounter)
 			{
+				_lastTriggerCounter = triggerCounter;
 				_names = getNames();
 				_bins = getObjects();
 			}

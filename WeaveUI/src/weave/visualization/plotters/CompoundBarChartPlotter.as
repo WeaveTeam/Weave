@@ -78,14 +78,12 @@ package weave.visualization.plotters
 			// This is so the records will be filtered before they are sorted in the _sortColumn.
 			linkSessionState(_filteredKeySet.keyFilter, _filteredSortColumn.filter);
 			
-//			_groupByBins = newDisposableChild(this, BinnedColumn);
-//			_groupByBins.binningDefinition.requestLocalObject(CategoryBinningDefinition, true);
-//			registerSpatialProperty(groupBy, handleGroupBy);//todo: this won't work
 			heightColumns.addGroupedCallback(this, heightColumnsGroupCallback);
 			registerSpatialProperty(sortColumn);
 			registerSpatialProperty(colorColumn); // because color is used for sorting
 			registerLinkableChild(this, Weave.properties.axisFontSize);
 			registerLinkableChild(this, Weave.properties.axisFontColor);
+			colorColumn.addImmediateCallback(this, function():void { _binnedSortColumnTriggerCounter = 0; });
 			
 			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
 		}
@@ -98,9 +96,10 @@ package weave.visualization.plotters
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
 		
 		public const groupBySortColumn:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
-		private var _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
-		private var _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
-		private var _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
+		private var _binnedSortColumnTriggerCounter:uint = 0;
+		private const _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
+		private const _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
+		private const _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
@@ -175,6 +174,16 @@ package weave.visualization.plotters
 				return _binnedSortColumn.numberOfBins;
 			return _filteredKeySet.keys.length;
 		}
+		
+		private function sortBins():void
+		{
+			if (groupBySortColumn.value && _binnedSortColumnTriggerCounter != _binnedSortColumn.triggerCounter)
+			{
+				_binnedSortColumnTriggerCounter = _binnedSortColumn.triggerCounter;
+				for (var i:int = 0; i < _binnedSortColumn.numberOfBins; i++)
+					_binnedSortColumn.getKeysFromBinIndex(i).sort(_sortByColor);
+			}
+		}
 				
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -186,8 +195,15 @@ package weave.visualization.plotters
 			var _groupingMode:String = getActualGroupingMode();
 			var _horizontalMode:Boolean = horizontalMode.value;
 			var _groupBySortColumn:Boolean = groupBySortColumn.value;
-			if (_horizontalMode && _groupingMode == GROUP)
-				_heightColumns = _heightColumns.reverse();
+			var reverseOrder:Boolean = (_horizontalMode == (_groupingMode == GROUP));
+			if (reverseOrder)
+			{
+				_heightColumns.reverse();
+				_posErrCols.reverse();
+				_negErrCols.reverse();
+			}
+			sortBins(); // make sure group-by-sort will work properly
+			
 			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
 			
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
@@ -236,13 +252,15 @@ package weave.visualization.plotters
 				var barWidth:Number = _groupingMode == GROUP ? recordWidth / numHeightColumns : recordWidth;
 				if (_groupBySortColumn)
 				{
-					var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
-					keysInBin.sort(_sortByColor);
-					var index:int = keysInBin.indexOf(recordKey);
-					recordWidth /= keysInBin.length;
-					barWidth /= keysInBin.length;
-					xMin += index * recordWidth;
-					xMax = xMin + recordWidth;
+					var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
+					if (keysInBin)
+					{
+						var index:int = keysInBin.indexOf(recordKey);
+						recordWidth /= keysInBin.length;
+						barWidth /= keysInBin.length;
+						xMin += index * recordWidth;
+						xMax = xMin + recordWidth;
+					}
 				}
 				
 				var totalHeight:Number = 0;
@@ -367,7 +385,7 @@ package weave.visualization.plotters
 						graphics.clear();
 						
 						var colorNorm:Number = i / (_heightColumns.length - 1);
-						if (_horizontalMode && _groupingMode == GROUP)
+						if (reverseOrder)
 							colorNorm = 1 - colorNorm;
 						var color:Number = chartColors.getColorFromNorm(colorNorm);
 						
@@ -610,6 +628,7 @@ package weave.visualization.plotters
 			_posErrCols.length = _heightColumns.length;
 			_negErrCols.length = _heightColumns.length;
 			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
+			sortBins(); // make sure group-by-sort will work properly
 			
 			// bar position depends on sorted index
 			var sortedIndex:int;
@@ -625,10 +644,9 @@ package weave.visualization.plotters
 			if (_groupBySortColumn)
 			{
 				// separate the bounds for each record when grouping by sort column
-				var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex);
+				var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
 				if (keysInBin)
 				{
-					keysInBin.sort(_sortByColor);
 					var index:int = keysInBin.indexOf(recordKey);
 					recordWidth /= keysInBin.length;
 					minPos = minPos + index * recordWidth;
