@@ -109,7 +109,7 @@ package weave.services
 					// set url variables from parameters
 					for (var name:String in methodParameters)
 					{
-						if(methodParameters[name] is Array)
+						if (methodParameters[name] is Array)
 							request.data[name] = WeaveAPI.CSVParser.createCSVFromArrays([methodParameters[name]]);
 						else
 							request.data[name] = methodParameters[name];
@@ -123,10 +123,24 @@ package weave.services
 				var obj:Object = new Object();
 				obj.methodName = methodName;
 				obj.methodParameters = methodParameters;
+				obj.streamParameterIndex = -1; // index of stream parameter
+				
+				var streamContent:ByteArray;
+				var params:Array = methodParameters as Array;
+				var index:int = params.length - 1;
+				if (params && params.length > 0 && params[index] is ByteArray)
+				{
+					obj.streamParameterIndex = index; // tell the server about the stream parameter index
+					streamContent = params[index];
+					params[index] = null; // keep the placeholder where the server will insert the stream parameter
+				}
 				
 				// serialize into compressed AMF3
 				var byteArray:ByteArray = new ByteArray(); 
 				byteArray.writeObject(obj);
+				// if stream content exists, append after the AMF3-serialized object
+				if (streamContent)
+					byteArray.writeBytes(streamContent);
 				byteArray.compress();
 				
 				request.data = byteArray;
