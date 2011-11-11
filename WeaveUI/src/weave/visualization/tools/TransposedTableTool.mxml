@@ -36,7 +36,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						   width="100%" height="100%"
 						   allowMultipleSelection="true"
 						   dataProvider="{sourceArrayCollection}"
-						   minWidth="0"
 						   paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
 						   fontWeight="normal"
 						   alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
@@ -63,6 +62,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.utils.ColumnUtils;
@@ -75,12 +75,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const fontSize:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),updateFontSize);
 			
+			public const headerText:LinkableString = registerLinkableChild(this,new LinkableString(""),updateHeaderText);
+			
 			override protected function childrenCreated():void
 			{
 				columnsList.hashMap = columns;
 				linkBindableProperty(fontSize,fontSizeInput,"text");
+				linkBindableProperty(headerText,headerTextInput,"text");
 			}
 			
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				handleColumnWidthChange();
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+			}
 			/**
 			 * @private updateFontSize
 			 * This function is called when the value of the fontSize linkable is changed.
@@ -176,8 +185,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					
 					//the first column is the list of the attribute column names
-					//the header text is left empty
-					var nameGridColumn:DataGridColumn = new DataGridColumn(" ");
+					var headerColName:String = headerText.value
+					//if headerText is an empty string we set the header text of the first column to a string a single whitespace
+					//because if we set it to empty string it defaults to the dataField value which is "_name_"
+					if(!headerColName)
+						headerColName = " ";
+					var nameGridColumn:DataGridColumn = new DataGridColumn(headerColName);
 					nameGridColumn.dataField = "_name_";
 					
 					columnsToAdd.unshift(nameGridColumn);
@@ -191,19 +204,46 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					handleColumnWidthChange();
 					
+				}else{
+					//if headerAttribute Column is not set, remove the header text
+					
+					for each(var headerCol:DataGridColumn in table.columns)
+					{
+						headerCol.headerText = " ";
+						headerText.value = " ";
+					}
 				}
 			}
 			
-			public const headerColumnWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100),handleColumnWidthChange,true);
-			public const dataColumnWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100),handleColumnWidthChange,true);
+			private function updateHeaderText():void
+			{
+				var col:Array = table.columns;
+				
+				if(col.length <1)
+					return;
+				
+				//if headerText is an empty string we set the header text of the first column to a string a single whitespace
+				//because if we set it to empty string it defaults to the dataField value which is "_name_"
+				if(headerText.value)
+					(col[0] as DataGridColumn).headerText = headerText.value;
+				else
+					(col[0] as DataGridColumn).headerText = " ";
+			}
+			
+			/**
+			 * @public headerColumnWidth
+			 * 
+			 * */
+			public const headerColumnPercentWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleColumnWidthChange,true);
+			public const dataColumnPercentWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleColumnWidthChange,true);
 			
 			
 			private function handlerHeaderRelease(event:DataGridEvent):void
 			{
 				if(event.columnIndex == 0)
-					headerColumnWidth.value = (table.columns[0] as DataGridColumn).width;
+					headerColumnPercentWidth.value = (table.columns[0] as DataGridColumn).width/unscaledWidth * 100;
 				else
-					dataColumnWidth.value = (table.columns[event.columnIndex] as DataGridColumn).width;
+					dataColumnPercentWidth.value = (table.columns[event.columnIndex] as DataGridColumn).width/unscaledWidth * 100;
 			}
 			
 			private function handleColumnWidthChange():void
@@ -211,14 +251,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(table.columnCount == 0)
 					return;
 				
-				(table.columns[0] as DataGridColumn).width = headerColumnWidth.value;
+				(table.columns[0] as DataGridColumn).width = headerColumnPercentWidth.value/100 * unscaledWidth;
 				
 				for(var i:int =1; i<table.columnCount; i++)
 				{
-					(table.columns[i] as DataGridColumn).width = dataColumnWidth.value; 
+					(table.columns[i] as DataGridColumn).width = dataColumnPercentWidth.value/100 * unscaledWidth; 
 				}
 				
 			}
+			
+			[Deprecated(replacement="headerColumnPercentWidth")] public function set headerColumnWidth(value:Number):void
+			{
+				headerColumnPercentWidth.value = value;
+			}
+			
+			[Deprecated(replacement="dataColumnPercentWidth")] public function set dataColumnWidth(value:Number):void
+			{
+				dataColumnPercentWidth.value = value;
+			}
+			
+			
 			
 		]]>
 	</mx:Script>
@@ -227,6 +279,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HBox>
 				<mx:Label text="Font Size: " fontWeight="bold"/>
 				<mx:TextInput id="fontSizeInput" width="35" cornerRadius="5" borderStyle="solid"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Header Text: " fontWeight="bold"/>
+				<mx:TextInput id="headerTextInput" width="300"/>
 			</mx:HBox>
 			<ui:DynamicColumnComponent id="headerColumn" label="Header Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
 			<ui:ColumnListComponent id="columnsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
