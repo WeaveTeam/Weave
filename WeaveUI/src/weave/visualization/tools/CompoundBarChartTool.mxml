@@ -162,7 +162,7 @@
 			
 			private function updateProbeLines():void
 			{
-				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP)
+				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP || _plotter.groupingMode.value == CompoundBarChartPlotter.PERCENT_STACK)
 					visualization.disableProbelines();
 				else if (_plotter.horizontalMode.value)
 					visualization.enableProbeLine(true, false);
