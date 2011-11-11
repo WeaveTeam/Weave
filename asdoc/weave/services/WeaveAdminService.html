@@ -39,7 +39,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-<p></p>
+  The functions in this class correspond directly to Weave servlet functions written in Java.
+  This object uses a queue to guarantee that asynchronous servlet calls will execute in the order they are requested.
+  <p></p>
+<p>
+<span class="classHeaderTableLabel">See also</span>
+</p>
+<div class="seeAlso">WeaveServices/src/weave/servlets/AdminService.java<br>WeaveServices/src/weave/servlets/DataService.java</div>
 <br>
 <hr>
 </div>
@@ -54,7 +60,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#WeaveAdminService()">WeaveAdminService</a>(url:String)</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   </div>
 </td><td class="summaryTableOwnerCol">WeaveAdminService</td>
 </tr>
 <tr class="">
@@ -440,10 +447,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function WeaveAdminService(url:String)</code><span class="label">Parameters</span>
+<code>public function WeaveAdminService(url:String)</code><p>
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">url</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">url</span>:String</code> &mdash; The URL pointing to where a WeaveServices.war has been deployed.  Example: http://example.com/WeaveServices
+   </td>
 </tr>
 </table>
 </div>

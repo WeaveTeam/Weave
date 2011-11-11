@@ -42,7 +42,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  AMF3Servlet
   This is an extension of Servlet that deserializes AMF3 result objects and handles special cases where an ErrorMessage is returned.
   
   <p></p>
@@ -138,7 +137,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#invokeAsyncMethod()">invokeAsyncMethod</a>(methodName:String, methodParameters:Object = null):AsyncToken</div>
 <div class="summaryTableDescription">
-   This function makes a remote procedure call.</div>
+   This function makes a remote procedure call to a Weave AMF3 servlet.</div>
 </td><td class="summaryTableOwnerCol">AMF3Servlet</td>
 </tr>
 </table>
@@ -201,7 +200,10 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public override function invokeAsyncMethod(methodName:String, methodParameters:Object = null):AsyncToken</code><p>
-   This function makes a remote procedure call.
+   This function makes a remote procedure call to a Weave AMF3 servlet.  As a special case, if
+   methodParameters is an Array and the last item is a ByteArray, the bytes will be appended after
+   the initial AMF3 serialization of the preceeding parameters to allow additional content that can
+   be treated as a stream in Java.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
