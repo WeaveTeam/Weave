@@ -29,6 +29,7 @@
 	fontSize="11" fontFamily="_typewriter"
 	width="100%" height="100%"
 	paddingLeft="{padding}" paddingRight="{padding}" paddingBottom="{padding}" paddingTop="{padding}" verticalGap="{padding}"
+	minHeight="0"
 	verticalScrollPolicy="off">
 	<mx:TextArea id="log" click="handleConsoleLogClick()" mouseDown="handleConsoleLogClick()" width="100%" height="100%" minHeight="0" editable="false" borderStyle="{innerBorderStyle}"/>
 	<mx:TextInput id="input" width="100%" enter="runCommand()" borderStyle="{innerBorderStyle}"/>

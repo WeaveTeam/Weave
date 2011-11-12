@@ -407,8 +407,8 @@ package weave
 		{
 			super.createChildren();
 
-			UIComponentGlobals.catchCallLaterExceptions = true;
-			systemManager.addEventListener("callLaterError", reportError);
+			//UIComponentGlobals.catchCallLaterExceptions = true;
+			//systemManager.addEventListener("callLaterError", reportError);
 
 			_application.addChild(visDesktop);
 			visDesktop.percentWidth = 100;

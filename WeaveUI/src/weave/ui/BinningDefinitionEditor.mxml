@@ -41,11 +41,8 @@ BinningDefinitionEditor
 			<mx:HBox enabled="{simpleRadio.selected}">
 				<mx:Label text="Number of Bins:" width="120"/>
 				<mx:NumericStepper minimum="2" maximum="20" stepSize="1" id="numOfBins"/>
-				<!--
-					<TextInputWithRegex change="saveSessionState()" id="numOfBins" width="40" enter="handleInputEnter(event)" restrict="0-9"/>	
-				-->
-				<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>
+			<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>
@@ -62,8 +59,8 @@ BinningDefinitionEditor
 			<mx:HBox enabled="{quantileRadio.selected}">
 				<mx:Label text="Reference Quantile:" width="120"/>
 				<mx:TextInput id="refQuantile" width="40"/>	
-				<ui:HelpComponent helpText="Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order"/>
-			</mx:HBox>		
+			</mx:HBox>
+			<ui:HelpComponent helpText="Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order"/>
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>
@@ -73,8 +70,8 @@ BinningDefinitionEditor
 			<mx:HBox enabled="{equalIntervalRadio.selected}">
 				<mx:Label text="Data Interval:" width="120"/>				 
 				<mx:TextInput id="dataInterval" width="40"/>				
-				<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>	
+			<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>
@@ -84,8 +81,8 @@ BinningDefinitionEditor
 			<mx:HBox enabled="{sdRadio.selected}">
 				<mx:Label text="SD Number:" width="120"/>				 
 				<mx:TextInput id="SD" width="40"/>
-				<ui:HelpComponent helpText="One bin will be created for each standard deviation above and below the mean value.  Specifying 'SD Number' as 3 will create 6 bins."/>
 			</mx:HBox>
+			<ui:HelpComponent helpText="One bin will be created for each standard deviation above and below the mean value.  Specifying 'SD Number' as 3 will create 6 bins."/>
 		</mx:HBox>
 	
 		<mx:HRule width="100%"/>

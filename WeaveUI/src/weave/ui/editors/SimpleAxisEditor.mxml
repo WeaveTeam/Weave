@@ -75,19 +75,37 @@
 						creationComplete="linkBindableProperty(_tool.visualization.gridLineAlpha, event.target, 'value');"/>
 		</mx:HBox>
 		<mx:VBox>
-			<ui:TextBox label="Y axis title:" id="yAxisTitle" indent="{yAxisLabelFunction.labelComponent.width}"/>
 			<mx:HBox verticalAlign="middle">
-				<ui:TextBox label="Y axis label function:" id="yAxisLabelFunction"/>
-				<mx:Label text="Angle:"/>
-				<mx:NumericStepper id="yLabelAngle" minimum="-180" maximum="180" stepSize="15"/>
+				<mx:VBox>
+					<ui:TextBox label="Y axis title:" id="yAxisTitle" indent="{yAxisLabelFunction.labelComponent.width}"/>
+					<ui:TextBox label="Y axis label function:" id="yAxisLabelFunction"/>
+				</mx:VBox>
+				<mx:VBox>
+					<ui:Indent id="yDistLbl" label="Distance:">
+						<mx:NumericStepper id="yLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
+					</ui:Indent>
+					<ui:Indent indent="{yDistLbl.labelComponent.width}" label="Angle:">
+						<mx:NumericStepper id="yLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
+					</ui:Indent>
+				</mx:VBox>
+				<ui:AlignmentControl id="yLabelAlign"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox>
-			<ui:TextBox label="X axis title:" id="xAxisTitle" indent="{xAxisLabelFunction.labelComponent.width}"/>
 			<mx:HBox verticalAlign="middle">
-				<ui:TextBox label="X axis label function:" id="xAxisLabelFunction"/>
-				<mx:Label text="Angle:"/>
-				<mx:NumericStepper id="xLabelAngle" minimum="-180" maximum="180" stepSize="15"/>
+				<mx:VBox>
+					<ui:TextBox label="X axis title:" id="xAxisTitle" indent="{xAxisLabelFunction.labelComponent.width}"/>
+					<ui:TextBox label="X axis label function:" id="xAxisLabelFunction"/>
+				</mx:VBox>
+				<mx:VBox>
+					<ui:Indent id="xDistLbl" label="Distance:">
+						<mx:NumericStepper id="xLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
+					</ui:Indent>
+					<ui:Indent indent="{xDistLbl.labelComponent.width}" label="Angle:">
+						<mx:NumericStepper id="xLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
+					</ui:Indent>
+				</mx:VBox>
+				<ui:AlignmentControl id="xLabelAlign"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:VBox>
@@ -128,10 +146,16 @@
 					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.overrideAxisName, xAxisTitle, 'text');
 					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.labelFunction, xAxisLabelFunction, 'text');
 					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.axisLabelRelativeAngle, xLabelAngle, 'value');
+					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.labelHorizontalAlign, xLabelAlign, 'horizontalAlign');
+					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.labelVerticalAlign, xLabelAlign, 'verticalAlign');
+					linkBindableProperty(_tool.visualization.getXAxisLayer().axisPlotter.axisLabelDistance, xLabelDistance, 'value');
 					
 					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.overrideAxisName, yAxisTitle, 'text');
 					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.labelFunction, yAxisLabelFunction, 'text');
 					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.axisLabelRelativeAngle, yLabelAngle, 'value');
+					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.labelHorizontalAlign, yLabelAlign, 'horizontalAlign');
+					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.labelVerticalAlign, yLabelAlign, 'verticalAlign');
+					linkBindableProperty(_tool.visualization.getYAxisLayer().axisPlotter.axisLabelDistance, yLabelDistance, 'value');
 					
 					if (!label)
 						label = "Axes";
