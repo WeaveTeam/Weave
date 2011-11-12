@@ -659,7 +659,7 @@ public class GenericServlet extends HttpServlet
     	Amf3Input amf3Input = new Amf3Input(context);
 		amf3Input.setInputStream(inputStream); // uncompress
 		deSerializedObj = amf3Input.readObject();
-		amf3Input.close();
+		//amf3Input.close();
     	
 		return deSerializedObj;
     }    
