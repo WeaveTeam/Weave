@@ -29,27 +29,34 @@
     >
     <mx:Script>
     	<![CDATA[
-    		import mx.controls.Label;
-    		public function get labelComponent():Label
+			import mx.controls.Label;
+
+			[Bindable]
+			public function get labelComponent():Label
 			{
 				return _labelComponent;
 			}
-			private const _labelComponent:Label = new Label();
+			private function set labelComponent(value:Label):void
+			{
+				throw new Error("labelComponent cannot be set");
+			}
+			
+			private var _labelComponent:Label = new Label();
     	
     		override protected function createChildren():void
     		{
     			super.createChildren();
 				
-    			addChildAt(labelComponent, 0);
-    			labelComponent.setStyle("textAlign", "right");
+    			addChildAt(_labelComponent, 0);
+				_labelComponent.setStyle("textAlign", "right");
     		}
 			
     		[Bindable]
-    		public function get indent():int { return labelComponent.width; }
-    		public function set indent(value:int):void { labelComponent.width = value; }
+    		public function get indent():int { return _labelComponent.width; }
+    		public function set indent(value:int):void { _labelComponent.width = value; }
     		
-    		override public function get label():String { return labelComponent.text; }
-    		override public function set label(value:String):void { labelComponent.text = value; }
+    		override public function get label():String { return _labelComponent.text; }
+    		override public function set label(value:String):void { _labelComponent.text = value; }
     	]]>
     </mx:Script>
 </mx:HBox>

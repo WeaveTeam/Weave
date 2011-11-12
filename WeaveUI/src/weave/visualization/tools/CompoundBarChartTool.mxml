@@ -37,9 +37,11 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
+			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.SessionManager;
@@ -69,6 +71,9 @@
 				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines);
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
+				
+				_plotter.sortColumn.addGroupedCallback(this,handleSortColumnChange);
+				_plotter.heightColumns.addGroupedCallback(this,handleHeightColumnsChange);
 				
 				showAxes = true;
 				
@@ -157,7 +162,7 @@
 			
 			private function updateProbeLines():void
 			{
-				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP)
+				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP || _plotter.groupingMode.value == CompoundBarChartPlotter.PERCENT_STACK)
 					visualization.disableProbelines();
 				else if (_plotter.horizontalMode.value)
 					visualization.enableProbeLine(true, false);
@@ -328,6 +333,63 @@
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
 			}
 			
+			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false),handleLinkSortAndHeightColumnChange);
+			
+			private function handleLinkSortAndHeightColumnChange():void
+			{
+				//if checked we set the sort column to the first height column by default
+				if(linkHeightAndSortColumns.value)
+				{
+					handleHeightColumnsChange();
+				}
+			}
+			
+			
+			private function handleSortColumnChange():void
+			{
+				
+
+				
+				if(!_plotter.sortColumn.internalColumn)
+					return;
+				
+				if(linkHeightAndSortColumns.value)
+				{
+					_plotter.heightColumns.delayCallbacks();
+					
+					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
+					
+					var col:Array = _plotter.heightColumns.getObjects();
+					
+					copySessionState(_plotter.sortColumn,col[0]);
+					
+					_plotter.heightColumns.resumeCallbacks();
+				}
+				
+			}
+			
+			private function handleHeightColumnsChange():void
+			{
+				
+				var col:Array = _plotter.heightColumns.getObjects();
+				
+				if(col.length <1)
+					return;
+				
+
+				if(linkHeightAndSortColumns.value)
+				{
+					_plotter.heightColumns.delayCallbacks();
+					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
+					//new object has been created because of forceFirstColumnDynamic. 
+					//so we set col again.
+					col = _plotter.heightColumns.getObjects();
+					copySessionState(col[0],_plotter.sortColumn);
+					_plotter.heightColumns.resumeCallbacks();
+				}
+				
+			}
+			
 			private function updateInteractivity():void
 			{
 				if (!parent)
@@ -340,6 +402,7 @@
 					groupMode.enabled = true;
 					showValueLabelsCheckBox.enabled = groupedRadioButton.selected;
 					colorColumnInput.enabled = false;
+										
 				}
 				else
 				{
@@ -374,6 +437,7 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
+			<mx:CheckBox label="Link Height and Sort Column" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
 			<mx:TabNavigator width="100%" height="100%">
 				<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 				<ui:ColumnListComponent visTool="{this}" label="Positive error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>

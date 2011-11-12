@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.system.Capabilities;
 	
+	import mx.events.DynamicEvent;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	
@@ -54,6 +55,8 @@ package weave.core
 		 */
 		public function reportError(error:Object, faultMessage:String = null, faultContent:Object = null):void
 		{
+			if (error is DynamicEvent && error.error)
+				error = error.error;
 			if (error is FaultEvent)
 			{
 				// pull out the fault from the event

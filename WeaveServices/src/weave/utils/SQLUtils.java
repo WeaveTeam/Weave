@@ -1346,15 +1346,18 @@ public class SQLUtils
 		}
 	}
 	
-	public static String quoteString(String dbms, String symbol)
+	public static String quoteString(String dbms, String string)
 	{
-		if (MYSQL.equalsIgnoreCase(dbms))
-			return "`" + symbol + "`";
+		String quote;
 		if (POSTGRESQL.equalsIgnoreCase(dbms))
-			return "\"" + symbol + "\"";
-		if (SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
-			return "'" + symbol + "'";
-		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
+			quote = "\"";
+		else if (MYSQL.equalsIgnoreCase(dbms) || SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
+			quote = "'";
+		else
+			throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
+		
+		// make sure to escape matching quotes in the actual string
+		return quote + string.replace(quote, "\\" + quote) + quote;
 	}
 	
 	/**

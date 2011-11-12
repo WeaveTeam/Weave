@@ -62,17 +62,23 @@ package weave.core
 		private var _defaultProperties:Object = {}; // default values for the modified properties of the DisplayObject
 		private var _eventListenerMap:Object = null; // hash map of event listeners that have been added to the DisplayObject
 		
-		// IDisposableObject interface
+		/**
+		 * @see weave.api.core.IDisposableObject
+		 */
 		public function dispose():void
 		{
 			setParentContainer(null);
 		}
-		// ILinkableContainer interface
+		/**
+		 * @see weave.api.core.ILinkableContainer
+		 */
 		public function getLinkableChildren():ILinkableHashMap
 		{
 			return children;
 		}
-		// ILinkableDisplayObject interface
+		/**
+		 * @see weave.api.core.ILinkableDisplayObject
+		 */
 		public function setParentContainer(parent:DisplayObjectContainer):void
 		{
 			if (_parent == parent)
@@ -83,7 +89,9 @@ package weave.core
 			if (_parent && _displayObject)
 				_parent.addChild(_displayObject);
 		}
-		// ILinkableDisplayObject interface
+		/**
+		 * @see weave.api.core.ILinkableDisplayObject
+		 */
 		public function getDisplayObject():DisplayObject
 		{
 			return _displayObject;

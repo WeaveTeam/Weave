@@ -247,15 +247,23 @@ public class GenericServlet extends HttpServlet
 
     		try
     		{
-    			Object obj = deseriaizeCompressedAmf3(request.getInputStream());
+    	    	InflaterInputStream inflaterInputStream = new InflaterInputStream(request.getInputStream());
+    			Object obj = deseriaizeAmf3(inflaterInputStream);
     			
 	    		String methodName = (String) ((ASObject)obj).get(METHOD_PARAM_NAME);
 	    		Object methodParameters = ((ASObject)obj).get("methodParameters");
-	    		
-	    		if(methodParameters instanceof Object[])
+	    		Number streamParameterIndex = (Number) ((ASObject)obj).get("streamParameterIndex");
+	    		if (methodParameters instanceof Object[])
+	    		{
+	    			int index = streamParameterIndex.intValue();
+	    			if (index >= 0)
+	    				((Object[])methodParameters)[index] = inflaterInputStream;
 	    			invokeMethod(methodName, (Object[])methodParameters, request, response);
+	    		}
 	    		else
+	    		{
 	    			invokeMethod(methodName, (Map)methodParameters, request, response);
+	    		}
 	    	}
 	    	catch (Exception e)
 	    	{
@@ -431,6 +439,7 @@ public class GenericServlet extends HttpServlet
 				}
 				else if (value != null)
 				{
+					// additional parameter type casting
 					if (value instanceof Boolean && expectedArgTypes[index] == boolean.class)
 					{
 						value = (boolean)(Boolean)value;
@@ -641,18 +650,16 @@ public class GenericServlet extends HttpServlet
     }
 
     //  De-serialize a ByteArray/AMF3/Flex object to a Java object  
-    protected Object deseriaizeCompressedAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
+    protected Object deseriaizeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
     {
     	Object deSerializedObj = null;
 
     	SerializationContext context = getSerializationContext();
 		
-    	InflaterInputStream inflaterInputStream = new InflaterInputStream(inputStream);
-    	
     	Amf3Input amf3Input = new Amf3Input(context);
-		amf3Input.setInputStream(inflaterInputStream); // uncompress
+		amf3Input.setInputStream(inputStream); // uncompress
 		deSerializedObj = amf3Input.readObject();
-		amf3Input.close();
+		//amf3Input.close();
     	
 		return deSerializedObj;
     }    

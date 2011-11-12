@@ -20,13 +20,13 @@
 package weave.servlets;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -48,6 +48,9 @@ import java.util.Vector;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import weave.beans.AdminServiceResponse;
+import weave.beans.UploadFileFilter;
+import weave.beans.UploadedFile;
 import weave.config.DatabaseConfig;
 import weave.config.DublinCoreElement;
 import weave.config.DublinCoreUtils;
@@ -64,7 +67,6 @@ import weave.config.SQLConfigXML;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
 import weave.geometrystream.SQLGeometryStreamDestination;
-import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
@@ -72,9 +74,6 @@ import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
-import weave.beans.AdminServiceResponse;
-import weave.beans.UploadFileFilter;
-import weave.beans.UploadedFile;
 
 public class AdminService extends GenericServlet
 {
@@ -1090,7 +1089,7 @@ public class AdminService extends GenericServlet
 	 * @param fileName The name of the file.
 	 * @param content The file content.
 	 */
-	public void uploadFile(String fileName, byte[] content) throws RemoteException
+	public void uploadFile(String fileName, InputStream content) throws RemoteException
 	{
 		// make sure the upload folder exists
 		(new File(uploadPath)).mkdirs();
@@ -1098,7 +1097,7 @@ public class AdminService extends GenericServlet
 		String filePath = uploadPath + fileName;
 		try
 		{
-			FileUtils.copy(new ByteArrayInputStream(content), new FileOutputStream(filePath));
+			FileUtils.copy(content, new FileOutputStream(filePath));
 		}
 		catch (Exception e)
 		{

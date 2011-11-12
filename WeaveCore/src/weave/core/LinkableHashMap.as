@@ -197,14 +197,16 @@ package weave.core
 		{
 			if (objectToCopy == null)
 				return null;
-			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
+			
+			delayCallbacks(); // make sure callbacks only trigger once
+			var className:String = getQualifiedClassName(objectToCopy);
+			var classDef:Class = ClassUtils.getClassDefinition(className);
 			var object:ILinkableObject = requestObject(name, classDef, false);
-			if (object is classDef)
-			{
+			if (object != null)
 				copySessionState(objectToCopy, object);
-				return object;
-			}
-			return null;
+			resumeCallbacks();
+			
+			return object;
 		}
 		
 		/**

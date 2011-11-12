@@ -400,4 +400,23 @@ public class CSVParser
 		}
 		return rows;
 	}
+	
+	/**
+	 * This function will convert a table of objects to a table of Strings using Object.toString() on each object.
+	 * @param rows A two-dimensional array of objects.
+	 * @return A two-dimensional array of Strings corresponding to the objects.
+	 */
+	public String[][] convertObjectTableToStringTable(Object[][] rows)
+	{
+		String[][] result = new String[rows.length][];
+		for (int i = 0; i < rows.length; i++)
+		{
+			result[i] = new String[rows[i].length];
+			Object[] row = rows[i];
+			for (int j = 0; j < row.length; j++)
+				if (row[j] != null)
+					result[i][j] = row[j].toString();
+		}
+		return result;	
+	}
 }
