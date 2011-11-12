@@ -30,7 +30,7 @@ A text editor to change the Session State on the fly.
     xmlns:mx="http://www.adobe.com/2006/mxml"
     width="800" height="600"
     title="Session State Editor"
-	backgroundColor="#EFF4BC" 
+	backgroundColor="#EFF4BC"
     xmlns:sessioning="weave.core.*">
 	<mx:VDividedBox id="vDividedBox" width="100%" height="100%">
 	    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
@@ -60,14 +60,18 @@ A text editor to change the Session State on the fly.
 					</mx:HBox>
 					<mx:Canvas id="editorBox" width="100%" height="100%">
 						<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11" 
-									 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
+									 fontFamily="_typewriter" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
 						<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
-									 fontFamily="Courier New" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
+									 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
 									 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24"> 
 						</mx:DataGrid>
 					</mx:Canvas>
-					<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
-								 selected="true"/>
+					<mx:HBox width="100%">
+						<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
+									 selected="true"/>
+						<mx:Spacer width="100%"/>
+						<mx:Button id="showConsole" label="Show console" toggle="true" selected="{console.height > 0}" click="console.percentHeight = showConsole.selected ? 50 : 0"/>
+					</mx:HBox>
 				</mx:VBox>
 			</mx:HDividedBox>
 		</mx:VBox>

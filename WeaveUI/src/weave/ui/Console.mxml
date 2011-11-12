@@ -26,6 +26,7 @@
     xmlns:ui ="weave.ui.*"
     xmlns:sessioning="weave.core.*"
 	label="Console"
+	fontSize="11" fontFamily="_typewriter"
 	width="100%" height="100%"
 	paddingLeft="{padding}" paddingRight="{padding}" paddingBottom="{padding}" paddingTop="{padding}" verticalGap="{padding}"
 	verticalScrollPolicy="off">
