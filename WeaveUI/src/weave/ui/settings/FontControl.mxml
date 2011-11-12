@@ -24,14 +24,17 @@
 		xmlns:settings="weave.ui.settings.*"
 		xmlns:ui="weave.ui.*"
 		creationPolicy="all"
-		horizontalGap="4"
-		initialize="init();">
+		horizontalGap="4">
 	
 	<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 
 	<settings:FontStyleList id="fontFamilyCombo" width="150" />
 
-	<ui:CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"/>
+	<ui:CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"
+					   fontSize="10"
+					   textDecoration="none"
+					   fontStyle="normal"
+					   fontWeight="normal"/>
 
 	<mx:Button id="boldButton" toggle="true" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="Bold"/>
 	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="Italic"/>
@@ -39,18 +42,7 @@
 
 	<mx:Script>
 		<![CDATA[
-			import mx.core.mx_internal;
-			use namespace mx_internal;
-			
 			public const fontSizeArray:Array = [8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72];
-			
-			private function init():void
-			{
-				fontSizeCombo.setStyle("fontSize", 10);
-				fontSizeCombo.setStyle('textDecoration', 'none');
-				fontSizeCombo.setStyle('fontStyle', 'normal');
-				fontSizeCombo.setStyle('fontWeight', 'normal');
-			}
 		]]>
 	</mx:Script>
 </mx:HBox>
