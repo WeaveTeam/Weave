@@ -1346,14 +1346,12 @@ public class SQLUtils
 		}
 	}
 	
-	public static String quoteString(String dbms, String symbol)
+	public static String quoteString(String dbms, String string)
 	{
-		if (MYSQL.equalsIgnoreCase(dbms))
-			return "`" + symbol + "`";
 		if (POSTGRESQL.equalsIgnoreCase(dbms))
-			return "\"" + symbol + "\"";
-		if (SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
-			return "'" + symbol + "'";
+			return "\"" + string + "\"";
+		if (MYSQL.equalsIgnoreCase(dbms) || SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
+			return "'" + string + "'";
 		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 	}
 	
