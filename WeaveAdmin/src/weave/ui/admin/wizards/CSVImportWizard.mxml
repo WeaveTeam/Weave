@@ -31,7 +31,7 @@
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 	<mx:VBox id="csvUploadPage" label="Import a CSV file to SQL">
 		<mx:HBox>
-			<mx:Label text="CSV file" width="{indent}" />
+			<mx:Label text="CSV file" width="{indent}" textAlign="right" />
 			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
 			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="Select a CSV file." change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
 			<mx:Button label="Upload File" click="browseAndUpload();"/>
@@ -72,17 +72,21 @@
 						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
 					</mx:HBox>
 				</ui:Indent>
-				<mx:CheckBox id="generateFilterColumns" label="Generate filter Columns" selected="false"/>
-				<ui:Indent visible="{generateFilterColumns.selected}">
-					<mx:Label text="Filtered Column"/>						
-					<ui:CustomComboBox id="filteredColumnCombo" />
-				</ui:Indent>
-				<ui:Indent>
-					<mx:HBox visible="{generateFilterColumns.selected}">
-						<mx:Label text="Filter column names: "/>
-						<ui:TextBox id="filterColumnInput"/>
-					</mx:HBox>
-				</ui:Indent>
+				<mx:Canvas
+						visible="false">
+					<!-- temporarily hiding this -->
+					<mx:CheckBox id="generateFilterColumns" label="Generate filter Columns" selected="false"/>
+					<ui:Indent visible="{generateFilterColumns.selected}">
+						<mx:Label text="Filtered Column"/>						
+						<ui:CustomComboBox id="filteredColumnCombo" />
+					</ui:Indent>
+					<ui:Indent>
+						<mx:HBox visible="{generateFilterColumns.selected}">
+							<mx:Label text="Filter column names: "/>
+							<ui:TextBox id="filterColumnInput"/>
+						</mx:HBox>
+					</ui:Indent>
+				</mx:Canvas>
 			</mx:VBox>
 		</ui:Indent>
 	</mx:VBox>

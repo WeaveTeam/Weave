@@ -1423,8 +1423,8 @@ public class AdminService extends GenericServlet
 			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
 			
 			return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
-					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, Arrays.asList(originalColumnNames), Arrays
-							.asList(columnNames), sqlSchema, sqlTable, ignoreKeyColumnQueries, filterColumn, Arrays.asList(filterColumnNames));
+					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames,
+					columnNames, sqlSchema, sqlTable, ignoreKeyColumnQueries, filterColumn, filterColumnNames);
 		}
 		catch (RemoteException e) // required since RemoteException extends IOException
 		{
@@ -1458,12 +1458,12 @@ public class AdminService extends GenericServlet
 		//tableName = tableName.toLowerCase();
 
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		List<String> columnNames = getColumnsList(connectionName, schemaName, tableName);
+		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
 		return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName, geometryCollectionName,
 				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false, null, null);
 	}
 
-	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String filterColumn, List<String> filterColumnNames) throws RemoteException
+	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String filterColumn, String[] filterColumnNames) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		//sqlTable = sqlTable.toLowerCase();
@@ -1473,7 +1473,7 @@ public class AdminService extends GenericServlet
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 		String dbms = info.dbms;
 		if (sqlColumnNames == null)
-			sqlColumnNames = new Vector<String>();
+			sqlColumnNames = new String[0];
 
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
@@ -1484,7 +1484,7 @@ public class AdminService extends GenericServlet
 		if (i >= 0)
 		{
 			originalKeyColumName = keyColumnName; // before quoting, save the column name
-			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(i));
+			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[i]);
 		}
 		else
 		{
@@ -1492,7 +1492,7 @@ public class AdminService extends GenericServlet
 		}
 		
 		if (j >= 0)
-			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(j));
+			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[j]);
 		// Write SQL statements into sqlconfig.
 
 		if (!configOverwrite)
@@ -1518,10 +1518,10 @@ public class AdminService extends GenericServlet
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
 //			System.out.println("ignoreKeyColumnQueries: " + ignoreKeyColumnQueries);
-			for (i = 0; i < sqlColumnNames.size(); i++)
+			for (i = 0; i < sqlColumnNames.length; i++)
 			{
 				// test each query
-				String columnName = sqlColumnNames.get(i);
+				String columnName = sqlColumnNames[i];
 //				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
 				if (ignoreKeyColumnQueries && originalKeyColumName.equals(columnName))
 					continue;
@@ -1559,15 +1559,15 @@ public class AdminService extends GenericServlet
 		}
 		
 		String uniqueValuesQuery = "select distinct ";				
-		ArrayList<String> columnNames = new ArrayList<String>(configColumnNames);
+		List<String> columnNames = Arrays.asList(configColumnNames);
 		try {			
-			if(filterColumnNames != null && filterColumnNames.size() > 0)
+			if(filterColumnNames != null && filterColumnNames.length > 0)
 			{
 				i = 0; 
 				for(String colName : filterColumnNames)
 				{										
 					uniqueValuesQuery = uniqueValuesQuery.concat(SQLUtils.quoteSymbol(conn, colName));
-					if(i < filterColumnNames.size() - 1)
+					if(i < filterColumnNames.length - 1)
 						uniqueValuesQuery = uniqueValuesQuery.concat(",");
 					i++;
 				}
@@ -1650,10 +1650,10 @@ public class AdminService extends GenericServlet
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
 		}
 		
-		if (sqlColumnNames.size() == 0)
+		if (sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
 		
-		return String.format("DataTable \"%s\" was added to the configuration with %s columns.\n", configDataTableName, sqlColumnNames.size());
+		return String.format("DataTable \"%s\" was added to the configuration with %s columns.\n", configDataTableName, sqlColumnNames.length);
 	}
 
 	/**
@@ -1661,7 +1661,7 @@ public class AdminService extends GenericServlet
 	 * the config file.
 	 */
 
-	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, List<String> keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
+	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
@@ -1695,7 +1695,7 @@ public class AdminService extends GenericServlet
 			{
 				// convert shape data to streaming sql format
 				String shpfile = uploadPath + file + ".shp";
-				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, keyColumns);
+				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, Arrays.asList(keyColumns));
 			}
 			converter.flushAndCommitAll();
 		}
@@ -1715,24 +1715,24 @@ public class AdminService extends GenericServlet
 
 		// get key column SQL code
 		String keyColumnsString;
-		if (keyColumns.size() == 1)
+		if (keyColumns.length == 1)
 		{
-			keyColumnsString = keyColumns.get(0);
+			keyColumnsString = keyColumns[0];
 		}
 		else
 		{
 			keyColumnsString = "CONCAT(";
-			for (int i = 0; i < keyColumns.size(); i++)
+			for (int i = 0; i < keyColumns.length; i++)
 			{
 				if (i > 0)
 					keyColumnsString += ",";
-				keyColumnsString += "CAST(" + keyColumns.get(i) + " AS CHAR)";
+				keyColumnsString += "CAST(" + keyColumns[i] + " AS CHAR)";
 			}
 			keyColumnsString += ")";
 		}
 
 		// add SQL statements to sqlconfig
-		List<String> columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName);
+		String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
 				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
 				dbfTableName, false, null, null);
