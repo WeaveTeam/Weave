@@ -76,6 +76,17 @@ public class SQLResult
 			}
 			System.out.println();
 		}
-		//return CSVParser.defaultParser.createCSVFromArrays(new String[][] {columnNames}, true) + "\n" + CSVParser.defaultParser.createCSVFromArrays(rows, true);
+	}
+	
+	/**
+	 * @return A CSV representation of the data.
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString()
+	{
+		String header = CSVParser.defaultParser.createCSVFromArrays(new String[][]{ columnNames }, true);
+		String[][] stringRows = CSVParser.defaultParser.convertObjectTableToStringTable(rows);
+		String data = CSVParser.defaultParser.createCSVFromArrays(stringRows, true);
+		return header + CSVParser.LF + data;
 	}
 }
