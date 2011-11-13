@@ -25,7 +25,7 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*" 
 			label="Import CSV data to Weave"
-			width="640" height="300"
+			width="640" height="400"
 			creationComplete="handleCreationComplete()"
 			>
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
@@ -66,7 +66,7 @@
 					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{dataTableNameInput.asTextInput().text}"/>
 				</ui:Indent>
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-				<ui:Indent>
+				<ui:Indent height="{secondaryKeyColumnCheckBox.selected ? NaN : 0}">
 					<mx:HBox visible="{secondaryKeyColumnCheckBox.selected}">
 						<mx:Label text="Secondary key column"/>
 						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
@@ -236,8 +236,8 @@
 						geometryCollection,
 						keyType,
 						nullFlagInput.text,
-						filteredColumnCombo.selectedItem.toString(),
-						(filterColumnInput.text != null && filterColumnInput.text != "") ? filterColumnInput.text.split(",") : null 
+						String(filteredColumnCombo.selectedItem),
+						filterColumnInput.text ? filterColumnInput.text.split(",") : null
 					);
 				
 				query.addAsyncResponder(handleImportCSV);
