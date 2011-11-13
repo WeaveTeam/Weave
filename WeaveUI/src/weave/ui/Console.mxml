@@ -37,6 +37,7 @@
 		<![CDATA[
 			import mx.containers.VBox;
 			import mx.core.Application;
+			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
 			
@@ -50,6 +51,7 @@
 			import weave.core.ExternalSessionStateInterface;
 			import weave.core.weave_internal;
 			use namespace weave_internal;
+			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
 			[Bindable] public var innerBorderStyle:String = 'inset';
@@ -68,6 +70,7 @@
 				super.childrenCreated();
 				
 				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager);
+				input.getTextField().alwaysShowSelection = true;
 		    }
 			
 			private const compiler:Compiler = new Compiler();
@@ -179,7 +182,7 @@
 			}
 			private function handleConsoleLogClick():void
 			{
-				if (input.selectionBeginIndex == 0 && input.selectionEndIndex == input.text.length)
+				if (input.selectionBeginIndex == 0 && (input.selectionEndIndex == input.text.length || input.selectionEndIndex == 0))
 				{
 					var clickedIndex:int = log.selectionEndIndex;
 					if (clickedIndex == log.selectionBeginIndex && clickedIndex < log.text.length)
@@ -191,7 +194,7 @@
 						log.validateNow();
 					}
 					input.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join('; ');
-					input.setSelection(0, int.MAX_VALUE);
+					input.setSelection(0, input.text.length);
 				}
 			}
 		]]>
