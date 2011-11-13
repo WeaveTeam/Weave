@@ -162,7 +162,7 @@ package weave.utils
 //		 * @param component The component from which to get a screenshot.
 //		 * @param quality A quality value between 0 and 100.
 //		 * @return A JPEG version of the screenshot, stored in a ByteArray.
-//		 * @see JPEGEncoder
+//		 * @see mx.graphics.codec.JPEGEncoder
 //		 */
 //		public static function getJPEGFromComponent(component:UIComponent, quality:int = 100):ByteArray
 //		{		

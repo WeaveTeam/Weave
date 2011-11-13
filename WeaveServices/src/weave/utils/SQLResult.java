@@ -22,7 +22,6 @@ package weave.utils;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.LinkedList;
 
 /**

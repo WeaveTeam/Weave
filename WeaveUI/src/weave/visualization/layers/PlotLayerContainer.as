@@ -262,7 +262,7 @@ package weave.visualization.layers
 		/**
 		 * This function gets the current zoom level as defined in ZoomUtils.
 		 * @return The current zoom level.
-		 * @see weave.utils::ZoomUtils.getZoomLevel
+		 * @see weave.utils.ZoomUtils#getZoomLevel
 		 */
 		public function getZoomLevel():Number
 		{
@@ -277,7 +277,7 @@ package weave.visualization.layers
 		/**
 		 * This function sets the zoom level as defined in ZoomUtils.
 		 * @param newZoomLevel The new zoom level.
-		 * @see weave.utils::ZoomUtils.getZoomLevel
+		 * @see weave.utils.ZoomUtils#getZoomLevel
 		 */
 		public function setZoomLevel(newZoomLevel:Number):void
 		{
