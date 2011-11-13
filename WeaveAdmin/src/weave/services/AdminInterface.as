@@ -514,7 +514,6 @@ package weave.services
 								  geometryCollectionName:String,
 								  keyType:String,
 								  nullValues:String, 
-								  filterColumn:String,
 								  filterColumnNames:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.importCSV(
@@ -531,7 +530,6 @@ package weave.services
 				geometryCollectionName,
 				keyType,
 				nullValues,
-				filterColumn,
 				filterColumnNames
 			);
 			

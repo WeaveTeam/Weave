@@ -47,6 +47,6 @@ public class CSVImport
 
 		AdminService as = new AdminService(configManager);
 		//as.init2(); // un-comment this to run the test
-		as.importCSV("<USER>", "<PASSWORD>", file.getPath(), "KEY", "", "weave", "tablename", true, "dataTable", true, "", "", (new String[] {""}), null, (new String[] {""}));
+		as.importCSV("<USER>", "<PASSWORD>", file.getPath(), "KEY", "", "weave", "tablename", true, "dataTable", true, "", "", (new String[] {""}), null);
 	}
 }
