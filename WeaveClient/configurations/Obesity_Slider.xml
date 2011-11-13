@@ -2431,7 +2431,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       </hierarchy>
     </attributeHierarchy>
     <hierarchyURL/>
-    <url>/WeaveServices/DataService</url>
+    <url>http://demo.oicweave.org:8080/WeaveServices/DataService</url>
   </WeaveDataSource>
   <ColorBinLegendTool name="ColorBinLegendTool">
     <buttonRadius>3</buttonRadius>
