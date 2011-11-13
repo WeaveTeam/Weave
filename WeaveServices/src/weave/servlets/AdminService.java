@@ -1465,9 +1465,6 @@ public class AdminService extends GenericServlet
 
 	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String filterColumn, String[] filterColumnNames) throws RemoteException
 	{
-		// use lower case sql table names (fix for mysql linux problems)
-		//sqlTable = sqlTable.toLowerCase();
-
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
