@@ -263,7 +263,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#importCSV()">importCSV</a>(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
+<a class="signatureLink" href="#importCSV()">importCSV</a>(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String, filterColumn:String, filterColumnNames:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
 </div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">WeaveAdminService</td>
@@ -1236,7 +1236,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><span class="label">Parameters</span>
+<code>public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String, filterColumn:String, filterColumnNames:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">connectionName</span>:String</code></td>
@@ -1312,6 +1312,18 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">nullValues</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">filterColumn</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">filterColumnNames</span>:Array</code></td>
 </tr>
 </table>
 <p></p>
