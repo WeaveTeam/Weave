@@ -345,7 +345,7 @@ package weave.services
 		
 		
 		// import data
-		public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String):DelayedAsyncInvocation
+		public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String, filterColumn:String, filterColumnNames:Array):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = invokeAdminService("importCSV", arguments);
 		    query.addAsyncResponder(alertResult);

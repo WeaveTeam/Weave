@@ -22,6 +22,7 @@ package weave.utils;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 /**
@@ -58,4 +59,23 @@ public class SQLResult
 	public String[] columnNames;
 	public int[] columnTypes;
 	public Object[][] rows;
+	
+	public void printSQLResult()
+	{
+		int i, j;
+		for(String s : columnNames)
+		{
+			System.out.print(s + " ");
+		}
+		System.out.println();
+		for( i = 0; i < rows.length; i++)
+		{
+			for (j = 0; j < rows[i].length; j++)
+			{
+				System.out.print(rows[i][j] + " ");
+			}
+			System.out.println();
+		}
+		//return CSVParser.defaultParser.createCSVFromArrays(new String[][] {columnNames}, true) + "\n" + CSVParser.defaultParser.createCSVFromArrays(rows, true);
+	}
 }

@@ -513,7 +513,9 @@ package weave.services
 								  dataTableOverwriteCheck:Boolean,
 								  geometryCollectionName:String,
 								  keyType:String,
-								  nullValues:String	):DelayedAsyncInvocation
+								  nullValues:String, 
+								  filterColumn:String,
+								  filterColumnNames:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.importCSV(
 				activeConnectionName,
@@ -528,7 +530,9 @@ package weave.services
 				dataTableOverwriteCheck,
 				geometryCollectionName,
 				keyType,
-				nullValues
+				nullValues,
+				filterColumn,
+				filterColumnNames
 			);
 			
 			query.addAsyncResponder(handler);
