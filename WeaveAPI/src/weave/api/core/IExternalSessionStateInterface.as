@@ -138,14 +138,15 @@ package weave.api.core
 		 * <code> document.getElementById('weave').evaluateExpression(null, 'openDefaultEditor()', null, ['weave.ui::SessionStateEditor'])</code>
 		 * <br> <br>
 		 * 
-		 * Note that any code written for this function depends on the implementation of the Actionscript
-		 * code inside Weave. This code is subject to change. 
+		 * Note that any code written for this function depends on the implementation of the ActionScript
+		 * code inside Weave, which is subject to change. 
 		 *  
-		 * @param scopeObjectPath A sequence of child names used to refer to an object appearing in the session state.
+		 * @param scopeObjectPath A sequence of child names used to refer to an object appearing in the session state which will be used as the <code>this</code> pointer when evaluating the expression.
 		 * @param expression The expression to evaluate.
 		 * @param variables A hash map of variable names to values.
 		 * @param staticLibraries An array of fully qualified class names which contain static methods to include the expression.
 		 * @return The value of the evaluated expression.
+		 * @see weave.compiler.Compiler
 		 */
 		function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*;
 		
@@ -158,6 +159,7 @@ package weave.api.core
 		 * @param callback The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
 		 * @return true if objectPath refers to an existing object in the session state.
+		 * @see weave.api.core.ICallbackInterface#addGroupedCallback
 		 */
 		function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean;
 		
