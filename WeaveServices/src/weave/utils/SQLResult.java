@@ -59,24 +59,6 @@ public class SQLResult
 	public int[] columnTypes;
 	public Object[][] rows;
 	
-	public void printSQLResult()
-	{
-		int i, j;
-		for(String s : columnNames)
-		{
-			System.out.print(s + " ");
-		}
-		System.out.println();
-		for( i = 0; i < rows.length; i++)
-		{
-			for (j = 0; j < rows[i].length; j++)
-			{
-				System.out.print(rows[i][j] + " ");
-			}
-			System.out.println();
-		}
-	}
-	
 	/**
 	 * @return A CSV representation of the data.
 	 * @see java.lang.Object#toString()

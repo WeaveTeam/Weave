@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1463,7 +1464,7 @@ public class AdminService extends GenericServlet
 				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false, null);
 	}
 
-	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String[] filterColumnNames) throws RemoteException
+	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String[] filterColumnNames) throws RemoteException
 	{
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
@@ -1474,22 +1475,22 @@ public class AdminService extends GenericServlet
 
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
-		int i = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames); 
-		int j = ListUtils.findIgnoreCase(secondaryKeyColumnName, sqlColumnNames);
+		int iKey = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames); 
+		int iSecondaryKey = ListUtils.findIgnoreCase(secondarySqlKeyColumn, sqlColumnNames);
 
-		String originalKeyColumName; // save the original column name
-		if (i >= 0)
+		String sqlKeyColumn; // save the original column name
+		if (iKey >= 0)
 		{
-			originalKeyColumName = keyColumnName; // before quoting, save the column name
-			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[i]);
+			sqlKeyColumn = keyColumnName; // before quoting, save the column name
+			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iKey]);
 		}
 		else
 		{
-			originalKeyColumName = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
+			sqlKeyColumn = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
 		}
 		
-		if (j >= 0)
-			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[j]);
+		if (iSecondaryKey >= 0)
+			secondarySqlKeyColumn = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iSecondaryKey]);
 		// Write SQL statements into sqlconfig.
 
 		if (!configOverwrite)
@@ -1505,126 +1506,71 @@ public class AdminService extends GenericServlet
 
 		// connect to database, generate and test each query before modifying
 		// config file
+		List<String> titles = new LinkedList<String>();
 		List<String> queries = new Vector<String>();
 		List<String> dataTypes = new Vector<String>();
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		String query = null;
 		Connection conn = null;
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
-//			System.out.println("ignoreKeyColumnQueries: " + ignoreKeyColumnQueries);
-			for (i = 0; i < sqlColumnNames.length; i++)
+			SQLResult filteredValues = null;
+			if (filterColumnNames != null && filterColumnNames.length > 0)
 			{
-				// test each query
-				String columnName = sqlColumnNames[i];
+				// get a list of unique combinations of filter values
+				String columnList = "";
+				for (int i = 0; i < filterColumnNames.length; i++)
+				{
+					if (i > 0)
+						columnList += ",";
+					columnList += SQLUtils.quoteSymbol(conn, filterColumnNames[i]);
+				}
+				query = String.format(
+					"select distinct %s from %s order by %s",
+					columnList,
+					SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable),
+					columnList
+				);
+				filteredValues = SQLUtils.getRowSetFromQuery(conn, query);
+//				System.out.println(query);
+//				System.out.println(filteredValues);
+			}
+			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
+			{
+				String sqlColumn = sqlColumnNames[iCol];
 //				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
-				if (ignoreKeyColumnQueries && originalKeyColumName.equals(columnName))
+				if (ignoreKeyColumnQueries && sqlKeyColumn.equals(sqlColumn))
 					continue;
-				columnName = SQLUtils.quoteSymbol(dbms, columnName);
+				sqlColumn = SQLUtils.quoteSymbol(dbms, sqlColumn);
 				
 				// hack
-				if (secondaryKeyColumnName != null && secondaryKeyColumnName.length() > 0)
-					columnName += "," + secondaryKeyColumnName;
+				if (secondarySqlKeyColumn != null && secondarySqlKeyColumn.length() > 0)
+					sqlColumn += "," + secondarySqlKeyColumn;
 				
 				// generate column query
-				query = String.format("SELECT %s,%s FROM %s", keyColumnName, columnName, SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable));
+				query = String.format("SELECT %s,%s FROM %s", keyColumnName, sqlColumn, SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable));
 
-				String testQuery = query;
-				if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
-					testQuery += " LIMIT 1";
-				
-//				System.out.println("QUERY:\t" + testQuery);
-				stmt = conn.prepareStatement(testQuery);
-				rs = stmt.executeQuery();
-				
-				DataType dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
-				queries.add(query);
-				dataTypes.add(dataType.toString());
-				
-				SQLUtils.cleanup(rs);
-				SQLUtils.cleanup(stmt);
-			}
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to execute generated query:\n\n" + query, e);
-		}
-		finally
-		{			
-		}
-		
-		String uniqueValuesQuery = "select distinct ";				
-		List<String> columnNames = new ArrayList<String>(Arrays.asList(configColumnNames));
-		try {			
-			if(filterColumnNames != null && filterColumnNames.length > 0)
-			{
-				i = 0; 
-				for(String colName : filterColumnNames)
+				if (filteredValues != null)
 				{
-					uniqueValuesQuery = uniqueValuesQuery.concat(SQLUtils.quoteSymbol(conn, colName));
-					if(i < filterColumnNames.length - 1)
-						uniqueValuesQuery = uniqueValuesQuery.concat(",");
-					i++;
-				}
-				uniqueValuesQuery = uniqueValuesQuery.concat(" from " + SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable) + ";" );
-				//System.out.println(uniqueValuesQuery);
-				SQLResult rsfilter = SQLUtils.getRowSetFromQuery(conn, uniqueValuesQuery);
-				//System.out.println(rsfilter.toString());
-					
-				if(rsfilter.rows.length > 0)
-					for (String columnName : configColumnNames)
-					{							
-						for( i = 0 ; i < rsfilter.rows.length ; i++ )
-						{
-							String colNameNew = columnName.concat(" (") ;
-							query = String.format("select %s,%s from %s where ", SQLUtils.quoteSymbol(conn, originalKeyColumName), SQLUtils.quoteSymbol(conn, columnName), SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable));
-							for( j = 0 ; j < rsfilter.rows[i].length ; j++ )
-							{
-								if(j > 0)
-								{
-									query = query.concat(" and ");
-									colNameNew = colNameNew.concat(",");
-								}
-								query = query.concat(String.format("%s='%s'", SQLUtils.quoteSymbol(conn, rsfilter.columnNames[j]), rsfilter.rows[i][j].toString()));
-								colNameNew = colNameNew.concat(rsfilter.rows[i][j].toString());
-							}
-							query = query.concat(";");
-							colNameNew = colNameNew.concat(")");
-							//System.out.println(query);						
-
-							columnNames.add(colNameNew);
-							String testQuery = query;
-
-							//System.out.println("QUERY:\t" + testQuery);
-							stmt = conn.prepareStatement(testQuery);
-							rs = stmt.executeQuery();
-
-							DataType dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
-							queries.add(query);
-							dataTypes.add(dataType.toString());
-
-							SQLUtils.cleanup(rs);
-							SQLUtils.cleanup(stmt);
-						}
+					// generate one query per unique filter value combination
+					for (int iRow = 0 ; iRow < filteredValues.rows.length ; iRow++ )
+					{
+						String filteredQuery = buildFilteredQuery(conn, query, filteredValues, iRow);
+						titles.add(buildFilteredColumnTitle(configColumnNames[iCol], filteredValues, iRow));
+						queries.add(filteredQuery);
+						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery));
 					}
+				}
+				else
+				{
+					titles.add(configColumnNames[iCol]);
+					queries.add(query);
+					dataTypes.add(testQueryAndGetDataType(conn, query));
+				}
 			}
-		} catch (SQLException e)
-		{
-			throw new RemoteException("Unable to generate filter column queries:\n\n" + query, e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(stmt);
-			SQLUtils.cleanup(conn);
-		}
-		// done generating queries
+			// done generating queries
 
-		// generate config DataTable entry
-		try
-		{
+			// generate config DataTable entry
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, configDataTableName);
 
 			config.removeDataTable(configDataTableName);
@@ -1634,18 +1580,22 @@ public class AdminService extends GenericServlet
 			metadata.put(Metadata.KEYTYPE.toString(), keyType);
 			metadata.put(Metadata.GEOMETRYCOLLECTION.toString(), geometryCollectionName);
 			
-			int numberSqlColumns = columnNames.size();
+			int numberSqlColumns = titles.size();
 			if (ignoreKeyColumnQueries)
 				--numberSqlColumns;
-			for (i = 0; i < numberSqlColumns; i++)
+			for (int i = 0; i < numberSqlColumns; i++)
 			{
-				metadata.put(Metadata.NAME.toString(),  columnNames.get(i));
+				metadata.put(Metadata.NAME.toString(), titles.get(i));
 				metadata.put(Metadata.DATATYPE.toString(), dataTypes.get(i));
 				AttributeColumnInfo attrInfo = new AttributeColumnInfo(connectionName, queries.get(i), metadata);
 				config.addAttributeColumn(attrInfo);
 			}
 
 			backupAndSaveConfig(config);
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
 		}
 		catch (RemoteException e)
 		{
@@ -1655,7 +1605,77 @@ public class AdminService extends GenericServlet
 		if (sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
 		
-		return String.format("DataTable \"%s\" was added to the configuration with %s columns.\n", configDataTableName, sqlColumnNames.length);
+		return String.format("DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n", configDataTableName, titles.size());
+	}
+	
+	private String testQueryAndGetDataType(Connection conn, String query) throws RemoteException
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		DataType dataType = null;
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+				query += " LIMIT 1";
+	
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+	
+			dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException("Unable to execute generated query:\n" + query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+		
+		return dataType.toString();
+	}
+	
+	private String buildFilteredColumnTitle(String columnName, SQLResult filteredValues, int filteredValueRow)
+	{
+		String columnTitle = columnName + " (";
+		for (int j = 0 ; j < filteredValues.rows[filteredValueRow].length ; j++ )
+		{
+			if (j > 0)
+				columnTitle += " ";
+			boolean isNull = filteredValues.rows[filteredValueRow][j] == null;
+			String value;
+			if (isNull)
+				value = "NULL";
+			else
+				value = filteredValues.rows[filteredValueRow][j].toString();
+			columnTitle += isNull ? "NULL" : value;
+		}
+		columnTitle += ")";
+		return columnTitle;
+	}
+	
+	private String buildFilteredQuery(Connection conn, String unfilteredQuery, SQLResult filteredValues, int filteredValueRow) throws IllegalArgumentException, SQLException
+	{
+		String query = unfilteredQuery + " where ";
+		for (int j = 0 ; j < filteredValues.rows[filteredValueRow].length ; j++ )
+		{
+			if (j > 0)
+				query += " and ";
+			boolean isNull = filteredValues.rows[filteredValueRow][j] == null;
+			String value;
+			if (isNull)
+				value = "NULL";
+			else
+				value = filteredValues.rows[filteredValueRow][j].toString();
+			query += String.format(
+				"%s=%s",
+				SQLUtils.quoteSymbol(conn, filteredValues.columnNames[j]),
+				isNull ? "NULL" : SQLUtils.quoteString(conn, value)
+			);
+		}
+		return query;
 	}
 
 	/**

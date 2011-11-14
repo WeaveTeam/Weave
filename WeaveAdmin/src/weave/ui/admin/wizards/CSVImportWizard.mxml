@@ -72,12 +72,9 @@
 						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
 					</mx:HBox>
 				</ui:Indent>
-					<mx:CheckBox id="generateFilterColumns" label="Generate filter Columns" selected="false"/>					
+					<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
 					<ui:Indent>
-						<mx:HBox visible="{generateFilterColumns.selected}">
-							<mx:Label text="Filter column names: "/>
-							<ui:TextBox id="filterColumnInput"/>
-						</mx:HBox>
+						<ui:TextBox visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
 					</ui:Indent>
 			</mx:VBox>
 		</ui:Indent>
@@ -150,12 +147,12 @@
 				csvKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.selectedIndex = -1;
+				filterColumnsInput.text = WeaveAPI.CSVParser.createCSVFromArrays([firstRow]);
 				
-				filterColumnInput.text = firstRow.toString();
 				var tableName:String = _csvFileReference.name;
 				
 				//clip the ".csv"
-				tableName = tableName.substring(0,tableName.lastIndexOf("."));
+				tableName = tableName.substring(0, tableName.lastIndexOf("."));
 				
 				tableSelector.activeTable = tableName;
 				enableAllWidgets();
@@ -231,7 +228,7 @@
 						geometryCollection,
 						keyType,
 						nullFlagInput.text,
-						(generateFilterColumns.selected && filterColumnInput.text) ? filterColumnInput.text.split(",") : null
+						(generateFilterColumns.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
 					);
 				
 				query.addAsyncResponder(handleImportCSV);
