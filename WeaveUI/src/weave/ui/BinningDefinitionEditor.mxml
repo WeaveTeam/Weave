@@ -32,7 +32,7 @@ BinningDefinitionEditor
 		 width="{NaN}" height="{NaN}"
 		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
 	<!-- NOTE: setting the panel's width and height to NaN will force it to resize to the children... -->
-	
+		<mx:Button label="Edit Names" click="editNames()"/>
 		<mx:Label text="Binning Type:"/>
 		<mx:RadioButtonGroup id="typeGroup"/>
 		
@@ -102,7 +102,9 @@ BinningDefinitionEditor
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.core.IFlexDisplayObject;
 			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -111,6 +113,7 @@ BinningDefinitionEditor
 			import weave.api.data.IBinningDefinition;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableNumber;
@@ -221,6 +224,18 @@ BinningDefinitionEditor
 					
 				}
 				binnedColumn.resumeCallbacks();
+			}
+			
+			private function editNames():void
+			{
+				var binNameseditor:BinNamesEditor = new BinNamesEditor();
+				
+				//TODO:check if this right way to do!
+				linkSessionState(binNameseditor.binnedColumn,binnedColumn);
+				
+				PopUpManager.addPopUp(binNameseditor as IFlexDisplayObject,this);
+				
+				binNameseditor.sendWindowToForeground();
 			}
 		]]>
 	</mx:Script>
