@@ -28,7 +28,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
-	import weave.StringDefinition;
+	import weave.Strings;
 	import weave.Weave;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
@@ -543,7 +543,7 @@ package weave.services
 			return query;
 		}
 		
-		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):DelayedAsyncInvocation
+		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String, filterColumns:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.addConfigDataTableFromDatabase(
 				activeConnectionName,
@@ -555,7 +555,8 @@ package weave.services
 				tableName,
 				overwrite,
 				geometryCollection,
-				keyType
+				keyType,
+				filterColumns
 			);
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void

@@ -44,8 +44,8 @@
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
 		<mx:HBox>
-			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}"/>
-			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
+			<mx:Label text="{Strings.TABLE_DISPLAY_NAME}"/>
+			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{Strings.CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TIP}"/>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</mx:HBox>
 		<mx:HBox toolTip="Specify flag values to treat as missing data, separated by commas">
@@ -59,7 +59,7 @@
 			<mx:VBox visible="{!generateKeyColumn.selected}">
 				<mx:HBox>
 					<mx:Label text="Key column"/>
-					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
+					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.SELECT_KEY_COLUMN_TIP}"/><!-- editable because user may have typed in a file name manually -->
 				</mx:HBox>
 				<mx:Label text="What do these keys correspond to?"/>
 				<ui:Indent>
@@ -67,15 +67,15 @@
 				</ui:Indent>
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
 				<ui:Indent height="{secondaryKeyColumnCheckBox.selected ? NaN : 0}">
-					<mx:HBox visible="{secondaryKeyColumnCheckBox.selected}">
+					<mx:HBox>
 						<mx:Label text="Secondary key column"/>
-						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
+						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
 					</mx:HBox>
 				</ui:Indent>
-					<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
-					<ui:Indent>
-						<ui:TextBox visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
-					</ui:Indent>
+				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
+				<ui:Indent>
+					<ui:TextBox visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
+				</ui:Indent>
 			</mx:VBox>
 		</ui:Indent>
 	</mx:VBox>
@@ -104,7 +104,7 @@
 			import mx.rpc.AsyncResponder;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;

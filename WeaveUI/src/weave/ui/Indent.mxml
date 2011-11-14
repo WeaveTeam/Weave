@@ -26,6 +26,7 @@
     horizontalScrollPolicy="off"
 	verticalScrollPolicy="off"
 	creationPolicy="all"
+	width="100%"
     >
     <mx:Script>
     	<![CDATA[

@@ -1334,7 +1334,7 @@ public class SQLUtils
 	/**
 	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
 	 */
-	@Deprecated public static String quoteString(Connection conn, String string)
+	public static String quoteString(Connection conn, String string)
 	{
 		try 
 		{
@@ -1350,7 +1350,7 @@ public class SQLUtils
 	/**
 	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
 	 */
-	@Deprecated public static String quoteString(String dbms, String string)
+	public static String quoteString(String dbms, String string)
 	{
 		String quote = "'";
 		

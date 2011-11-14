@@ -351,7 +351,7 @@ package weave.services
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}
-		public function addConfigDataTableFromDatabase(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String, configDataTableName:String, configOverwrite:Boolean, geometryCollectionName:String, keyType:String):DelayedAsyncInvocation
+		public function addConfigDataTableFromDatabase(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String, configDataTableName:String, configOverwrite:Boolean, geometryCollectionName:String, keyType:String, filterColumns:Array):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = invokeAdminService("addConfigDataTableFromDatabase", arguments);
 		    query.addAsyncResponder(alertResult);

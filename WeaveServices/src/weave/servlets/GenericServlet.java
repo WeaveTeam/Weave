@@ -547,11 +547,12 @@ public class GenericServlet extends HttpServlet
     	List<String> names = new Vector<String>(paramValuesOrTypes.length);
     	for (int i = 0; i < paramValuesOrTypes.length; i++)
     	{
+    		Object valueOrType = paramValuesOrTypes[i];
     		String name = "null";
-    		if (paramValuesOrTypes[i] instanceof Class)
-    			name = ((Class<?>)paramValuesOrTypes[i]).getName();
-    		else 
-    			name = paramValuesOrTypes[i].getClass().getName();
+    		if (valueOrType instanceof Class)
+    			name = ((Class<?>)valueOrType).getName();
+    		else if (valueOrType != null)
+    			name = valueOrType.getClass().getName();
     		
     		// decode output of Class.getName()
     		while (name.charAt(0) == '[') // array type
