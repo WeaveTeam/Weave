@@ -53,7 +53,7 @@
 			</mx:HBox>
 		</mx:HBox>
 		<ui:Indent id="keyType" enabled="false" label="Key type" indent="{indent}">
-			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{StringDefinition.DEFAULT_SHAPE_KEY_TYPE_DROPDOWNBOX_TOOLTIP}"/>
+			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.SHAPE_KEY_TYPE_DROPDOWNBOX_TIP}"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
 			<ui:HelpComponent helpText="{helpForKeyType}"/>
 		</ui:Indent>
@@ -68,7 +68,7 @@
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;

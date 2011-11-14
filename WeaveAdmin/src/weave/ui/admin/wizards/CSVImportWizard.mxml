@@ -25,13 +25,13 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*" 
 			label="Import CSV data to Weave"
-			width="640" height="300"
+			width="640" height="400"
 			creationComplete="handleCreationComplete()"
 			>
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 	<mx:VBox id="csvUploadPage" label="Import a CSV file to SQL">
 		<mx:HBox>
-			<mx:Label text="CSV file" width="{indent}" />
+			<mx:Label text="CSV file" width="{indent}" textAlign="right" />
 			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
 			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="Select a CSV file." change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
 			<mx:Button label="Upload File" click="browseAndUpload();"/>
@@ -44,8 +44,8 @@
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
 		<mx:HBox>
-			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}"/>
-			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
+			<mx:Label text="{Strings.TABLE_DISPLAY_NAME}"/>
+			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{Strings.CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TIP}"/>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</mx:HBox>
 		<mx:HBox toolTip="Specify flag values to treat as missing data, separated by commas">
@@ -59,18 +59,22 @@
 			<mx:VBox visible="{!generateKeyColumn.selected}">
 				<mx:HBox>
 					<mx:Label text="Key column"/>
-					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
+					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.SELECT_KEY_COLUMN_TIP}"/><!-- editable because user may have typed in a file name manually -->
 				</mx:HBox>
 				<mx:Label text="What do these keys correspond to?"/>
 				<ui:Indent>
 					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{dataTableNameInput.asTextInput().text}"/>
 				</ui:Indent>
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-				<ui:Indent>
-					<mx:HBox visible="{secondaryKeyColumnCheckBox.selected}">
+				<ui:Indent height="{secondaryKeyColumnCheckBox.selected ? NaN : 0}">
+					<mx:HBox>
 						<mx:Label text="Secondary key column"/>
-						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
+						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
 					</mx:HBox>
+				</ui:Indent>
+				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
+				<ui:Indent>
+					<ui:TextBox visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
 				</ui:Indent>
 			</mx:VBox>
 		</ui:Indent>
@@ -100,7 +104,7 @@
 			import mx.rpc.AsyncResponder;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
@@ -143,11 +147,12 @@
 				csvKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.selectedIndex = -1;
+				filterColumnsInput.text = WeaveAPI.CSVParser.createCSVFromArrays([firstRow]);
 				
 				var tableName:String = _csvFileReference.name;
 				
 				//clip the ".csv"
-				tableName = tableName.substring(0,tableName.lastIndexOf("."));
+				tableName = tableName.substring(0, tableName.lastIndexOf("."));
 				
 				tableSelector.activeTable = tableName;
 				enableAllWidgets();
@@ -222,8 +227,10 @@
 						dataTableOverwriteCheck.selected,
 						geometryCollection,
 						keyType,
-						nullFlagInput.text
+						nullFlagInput.text,
+						(generateFilterColumns.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
 					);
+				
 				query.addAsyncResponder(handleImportCSV);
 				function handleImportCSV(event:ResultEvent, token:Object = null):void
 				{

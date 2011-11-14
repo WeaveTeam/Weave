@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -38,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1173,7 +1173,7 @@ public class AdminService extends GenericServlet
 		return false;
 	}
 	
-	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues) throws RemoteException
+	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues, String[] filterColumnNames) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
@@ -1423,8 +1423,8 @@ public class AdminService extends GenericServlet
 			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
 			
 			return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
-					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, Arrays.asList(originalColumnNames), Arrays
-							.asList(columnNames), sqlSchema, sqlTable, ignoreKeyColumnQueries);
+					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames,
+					columnNames, sqlSchema, sqlTable, ignoreKeyColumnQueries, filterColumnNames);
 		}
 		catch (RemoteException e) // required since RemoteException extends IOException
 		{
@@ -1452,47 +1452,44 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType) throws RemoteException
+	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType, String[] filterColumnNames) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		//tableName = tableName.toLowerCase();
 
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		List<String> columnNames = getColumnsList(connectionName, schemaName, tableName);
+		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
 		return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName, geometryCollectionName,
-				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false);
+				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false, filterColumnNames);
 	}
 
-	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries) throws RemoteException
+	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String[] filterColumnNames) throws RemoteException
 	{
-		// use lower case sql table names (fix for mysql linux problems)
-		//sqlTable = sqlTable.toLowerCase();
-
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 		String dbms = info.dbms;
 		if (sqlColumnNames == null)
-			sqlColumnNames = new Vector<String>();
+			sqlColumnNames = new String[0];
 
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
-		int i = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames); 
-		int j = ListUtils.findIgnoreCase(secondaryKeyColumnName, sqlColumnNames);
+		int iKey = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames); 
+		int iSecondaryKey = ListUtils.findIgnoreCase(secondarySqlKeyColumn, sqlColumnNames);
 
-		String originalKeyColumName; // save the original column name
-		if (i >= 0)
+		String sqlKeyColumn; // save the original column name
+		if (iKey >= 0)
 		{
-			originalKeyColumName = keyColumnName; // before quoting, save the column name
-			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(i));
+			sqlKeyColumn = keyColumnName; // before quoting, save the column name
+			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iKey]);
 		}
 		else
 		{
-			originalKeyColumName = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
+			sqlKeyColumn = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
 		}
 		
-		if (j >= 0)
-			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(j));
+		if (iSecondaryKey >= 0)
+			secondarySqlKeyColumn = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iSecondaryKey]);
 		// Write SQL statements into sqlconfig.
 
 		if (!configOverwrite)
@@ -1508,63 +1505,71 @@ public class AdminService extends GenericServlet
 
 		// connect to database, generate and test each query before modifying
 		// config file
+		List<String> titles = new LinkedList<String>();
 		List<String> queries = new Vector<String>();
 		List<String> dataTypes = new Vector<String>();
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		String query = null;
 		Connection conn = null;
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
-//			System.out.println("ignoreKeyColumnQueries: " + ignoreKeyColumnQueries);
-			for (i = 0; i < sqlColumnNames.size(); i++)
+			SQLResult filteredValues = null;
+			if (filterColumnNames != null && filterColumnNames.length > 0)
 			{
-				// test each query
-				String columnName = sqlColumnNames.get(i);
+				// get a list of unique combinations of filter values
+				String columnList = "";
+				for (int i = 0; i < filterColumnNames.length; i++)
+				{
+					if (i > 0)
+						columnList += ",";
+					columnList += SQLUtils.quoteSymbol(conn, filterColumnNames[i]);
+				}
+				query = String.format(
+					"select distinct %s from %s order by %s",
+					columnList,
+					SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable),
+					columnList
+				);
+				filteredValues = SQLUtils.getRowSetFromQuery(conn, query);
+//				System.out.println(query);
+//				System.out.println(filteredValues);
+			}
+			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
+			{
+				String sqlColumn = sqlColumnNames[iCol];
 //				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
-				if (ignoreKeyColumnQueries && originalKeyColumName.equals(columnName))
+				if (ignoreKeyColumnQueries && sqlKeyColumn.equals(sqlColumn))
 					continue;
-				columnName = SQLUtils.quoteSymbol(dbms, columnName);
+				sqlColumn = SQLUtils.quoteSymbol(dbms, sqlColumn);
 				
 				// hack
-				if (secondaryKeyColumnName != null && secondaryKeyColumnName.length() > 0)
-					columnName += "," + secondaryKeyColumnName;
+				if (secondarySqlKeyColumn != null && secondarySqlKeyColumn.length() > 0)
+					sqlColumn += "," + secondarySqlKeyColumn;
 				
 				// generate column query
-				query = String.format("SELECT %s,%s FROM %s", keyColumnName, columnName, SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable));
+				query = String.format("SELECT %s,%s FROM %s", keyColumnName, sqlColumn, SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable));
 
-				String testQuery = query;
-				if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
-					testQuery += " LIMIT 1";
-				
-//				System.out.println("QUERY:\t" + testQuery);
-				stmt = conn.prepareStatement(testQuery);
-				rs = stmt.executeQuery();
-				
-				DataType dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
-				queries.add(query);
-				dataTypes.add(dataType.toString());
-				
-				SQLUtils.cleanup(rs);
-				SQLUtils.cleanup(stmt);
+				if (filteredValues != null)
+				{
+					// generate one query per unique filter value combination
+					for (int iRow = 0 ; iRow < filteredValues.rows.length ; iRow++ )
+					{
+						String filteredQuery = buildFilteredQuery(conn, query, filteredValues, iRow);
+						titles.add(buildFilteredColumnTitle(configColumnNames[iCol], filteredValues, iRow));
+						queries.add(filteredQuery);
+						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery));
+					}
+				}
+				else
+				{
+					titles.add(configColumnNames[iCol]);
+					queries.add(query);
+					dataTypes.add(testQueryAndGetDataType(conn, query));
+				}
 			}
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to execute generated query:\n\n" + query, e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(stmt);
-			SQLUtils.cleanup(conn);
-		}
-		// done generating queries
+			// done generating queries
 
-		// generate config DataTable entry
-		try
-		{
+			// generate config DataTable entry
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, configDataTableName);
 
 			config.removeDataTable(configDataTableName);
@@ -1574,12 +1579,12 @@ public class AdminService extends GenericServlet
 			metadata.put(Metadata.KEYTYPE.toString(), keyType);
 			metadata.put(Metadata.GEOMETRYCOLLECTION.toString(), geometryCollectionName);
 			
-			int numberSqlColumns = sqlColumnNames.size();
+			int numberSqlColumns = titles.size();
 			if (ignoreKeyColumnQueries)
 				--numberSqlColumns;
-			for (i = 0; i < numberSqlColumns; i++)
+			for (int i = 0; i < numberSqlColumns; i++)
 			{
-				metadata.put(Metadata.NAME.toString(), configColumnNames.get(i));
+				metadata.put(Metadata.NAME.toString(), titles.get(i));
 				metadata.put(Metadata.DATATYPE.toString(), dataTypes.get(i));
 				AttributeColumnInfo attrInfo = new AttributeColumnInfo(connectionName, queries.get(i), metadata);
 				config.addAttributeColumn(attrInfo);
@@ -1587,15 +1592,89 @@ public class AdminService extends GenericServlet
 
 			backupAndSaveConfig(config);
 		}
+		catch (SQLException e)
+		{
+			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
+		}
 		catch (RemoteException e)
 		{
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
 		}
 		
-		if (sqlColumnNames.size() == 0)
+		if (sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
 		
-		return String.format("DataTable \"%s\" was added to the configuration with %s columns.\n", configDataTableName, sqlColumnNames.size());
+		return String.format("DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n", configDataTableName, titles.size());
+	}
+	
+	private String testQueryAndGetDataType(Connection conn, String query) throws RemoteException
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		DataType dataType = null;
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+				query += " LIMIT 1";
+	
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+	
+			dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException("Unable to execute generated query:\n" + query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+		
+		return dataType.toString();
+	}
+	
+	private String buildFilteredColumnTitle(String columnName, SQLResult filteredValues, int filteredValueRow)
+	{
+		String columnTitle = columnName + " (";
+		for (int j = 0 ; j < filteredValues.rows[filteredValueRow].length ; j++ )
+		{
+			if (j > 0)
+				columnTitle += " ";
+			boolean isNull = filteredValues.rows[filteredValueRow][j] == null;
+			String value;
+			if (isNull)
+				value = "NULL";
+			else
+				value = filteredValues.rows[filteredValueRow][j].toString();
+			columnTitle += isNull ? "NULL" : value;
+		}
+		columnTitle += ")";
+		return columnTitle;
+	}
+	
+	private String buildFilteredQuery(Connection conn, String unfilteredQuery, SQLResult filteredValues, int filteredValueRow) throws IllegalArgumentException, SQLException
+	{
+		String query = unfilteredQuery + " where ";
+		for (int j = 0 ; j < filteredValues.rows[filteredValueRow].length ; j++ )
+		{
+			if (j > 0)
+				query += " and ";
+			boolean isNull = filteredValues.rows[filteredValueRow][j] == null;
+			String value;
+			if (isNull)
+				value = "NULL";
+			else
+				value = filteredValues.rows[filteredValueRow][j].toString();
+			query += String.format(
+				"%s=%s",
+				SQLUtils.quoteSymbol(conn, filteredValues.columnNames[j]),
+				isNull ? "NULL" : SQLUtils.quoteString(conn, value)
+			);
+		}
+		return query;
 	}
 
 	/**
@@ -1603,7 +1682,7 @@ public class AdminService extends GenericServlet
 	 * the config file.
 	 */
 
-	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, List<String> keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
+	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
@@ -1637,7 +1716,7 @@ public class AdminService extends GenericServlet
 			{
 				// convert shape data to streaming sql format
 				String shpfile = uploadPath + file + ".shp";
-				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, keyColumns);
+				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, Arrays.asList(keyColumns));
 			}
 			converter.flushAndCommitAll();
 		}
@@ -1657,27 +1736,27 @@ public class AdminService extends GenericServlet
 
 		// get key column SQL code
 		String keyColumnsString;
-		if (keyColumns.size() == 1)
+		if (keyColumns.length == 1)
 		{
-			keyColumnsString = keyColumns.get(0);
+			keyColumnsString = keyColumns[0];
 		}
 		else
 		{
 			keyColumnsString = "CONCAT(";
-			for (int i = 0; i < keyColumns.size(); i++)
+			for (int i = 0; i < keyColumns.length; i++)
 			{
 				if (i > 0)
 					keyColumnsString += ",";
-				keyColumnsString += "CAST(" + keyColumns.get(i) + " AS CHAR)";
+				keyColumnsString += "CAST(" + keyColumns[i] + " AS CHAR)";
 			}
 			keyColumnsString += ")";
 		}
 
 		// add SQL statements to sqlconfig
-		List<String> columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName);
+		String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
 				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
-				dbfTableName, false);
+				dbfTableName, false, null);
 
 		return resultAddSQL
 				+ "\n\n"

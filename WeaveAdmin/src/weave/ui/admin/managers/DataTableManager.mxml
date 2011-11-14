@@ -27,7 +27,7 @@
 				creationComplete="handleCreationComplete()">
 	<mx:VBox height="100%">
 		<mx:HBox width="100%">
-			<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SQL_DATA_BUTTON_TOOLTIP}"/>
+			<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.IMPORT_SQL_DATA_BUTTON_TIP}"/>
 			<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())"/>
 		</mx:HBox>
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search data tables" click="handleTableSelectionChange()"/>
@@ -114,7 +114,7 @@
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;

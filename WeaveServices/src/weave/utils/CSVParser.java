@@ -60,8 +60,8 @@ public class CSVParser
 	private char quote = '"'; // this gets set in the constructor and should not change
 	private char delimiter = ','; // this gets set in the constructor and should not change
 
-	private static final char CR = '\r';
-	private static final char LF = '\n';
+	public static final char CR = '\r';
+	public static final char LF = '\n';
 	
 	/**
 	 * This function will decode a CSV token, removing quotes and un-escaping quotes where applicable.

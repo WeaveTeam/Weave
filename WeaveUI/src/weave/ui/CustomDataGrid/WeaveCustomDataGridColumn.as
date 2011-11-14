@@ -24,19 +24,26 @@ package weave.ui.CustomDataGrid
 	import mx.controls.Label;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.core.ClassFactory;
+	import mx.core.mx_internal;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.ImageColumn;
+	import weave.data.AttributeColumns.KeyColumn;
+	import weave.ui.CustomDataGrid;
+	import weave.ui.filterComponents.IFilterComponent;
+	import weave.ui.filterComponents.SearchFilterComponent;
+	import weave.ui.filterComponents.SliderFilterComponent;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.tools.DataItemRenderer;
 	
-	public class WeaveDataGridImageColumn extends DataGridColumn
+	
+	
+	public class WeaveCustomDataGridColumn extends DataGridColumn 
 	{
-		public static const COLUMN_NEEDS_UPDATE_EVENT:String = "WeaveDataGridColumn.COLUMN_NEEDS_UPDATE_EVENT";
-		
-		public function WeaveDataGridImageColumn(attrColumn:IAttributeColumn)
+		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn)
 		{
 			super();
 			
@@ -49,8 +56,6 @@ package weave.ui.CustomDataGrid
 				var factory:ClassFactory = new ClassFactory( DataItemRenderer );
 				factory.properties = { imageColumn: attrColumn };
 				this.itemRenderer = factory;
-				
-				
 			}
 			else
 				this.itemRenderer = new ClassFactory(HeatMapDataGridColumnRenderer);
@@ -62,9 +67,26 @@ package weave.ui.CustomDataGrid
 			this.minWidth = 0;	
 			
 			_attrColumn = attrColumn;
-			_attrColumn.addImmediateCallback(this, handleColumnChange);
+			_attrColumn.addImmediateCallback(this, handleColumnChange);						
 			handleColumnChange();
 		}
+		
+		
+				
+		protected var _filterComponent:IFilterComponent;	
+		public function get filterComponent():IFilterComponent{
+			return _filterComponent;
+		}
+		
+		public function set filterComponent(filterComp:IFilterComponent):void{				
+			if(filterComp){
+				_filterComponent = filterComp;
+				_filterComponent.mapColumnToFilter(this);
+				filterComp.width = this.width;				
+			}			
+		}
+		
+		
 		
 		private function customSorter(item1:Object, item2:Object):int
 		{
@@ -80,30 +102,25 @@ package weave.ui.CustomDataGrid
 		}
 		
 		private var _attrColumn:IAttributeColumn = null;
-		public function get attrColumn():IAttributeColumn
-		{
+		public function get attrColumn():IAttributeColumn{
 			return _attrColumn;
 		}
 		
 		private function handleColumnChange():void
 		{
 			headerText = ColumnUtils.getTitle(_attrColumn);
-			dispatchEvent(new Event(COLUMN_NEEDS_UPDATE_EVENT));
 		}
 		
 		private function extractDataFunction(item:Object, column:DataGridColumn):String
 		{
-			var xml:XML = <data/>;
-			
-			var col:IAttributeColumn = _attrColumn;
-			
+			var xml:XML = <data/>;			
+			var col:IAttributeColumn = _attrColumn;			
 			if(col is ImageColumn)
 				xml.@norm = 0;
 			else
 				xml.@norm = ColumnUtils.getNorm(col, item[dataField] as IQualifiedKey);
 			
-			xml.@string = col.getValueFromKey(item[dataField] as IQualifiedKey, String) as String;
-			
+			xml.@string = col.getValueFromKey(item[dataField] as IQualifiedKey, String) as String;			
 			return xml.toXMLString();
 		}
 	}

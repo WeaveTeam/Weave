@@ -60,10 +60,16 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.PROJECTION_SRS)
-				return _geometryStreamDecoder.projectionSrsCode;
+			if (propertyName == AttributeColumnMetadata.PROJECTION)
+				return projectionSrsCode;
 			return super.getMetadata(propertyName);
 		}
+		
+		/**
+		 * This is the projection that the coordinates are in.
+		 * Note: SRS ID means "Spatial Reference System Identifier"
+		 */
+		private var projectionSrsCode:String = null;
 		
 		/**
 		 * This is a list of unique keys this column defines values for.
@@ -191,7 +197,7 @@ package weave.data.AttributeColumns
 				
 				_metadata.@keyType = result.keyType;
 				_geometryStreamDecoder.keyType = result.keyType;
-				_geometryStreamDecoder.projectionSrsCode = result.projection;
+				projectionSrsCode = result.projection;
 				
 				// handle metadata tiles
 				_geometryStreamDecoder.decodeMetadataTileList(result.metadataTileDescriptors);

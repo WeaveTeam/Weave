@@ -217,7 +217,7 @@
 							Alert.show("Source Name already being used. Please give a different name", "Error");
 							break;
 						}
-						var weaveDataSource:WeaveDataSource = Weave.root.requestObject(weaveDataSourceEditor.sourceName.text,WeaveDataSource, false);
+						var weaveDataSource:WeaveDataSource = Weave.root.requestObject(weaveDataSourceEditor.sourceName.text, WeaveDataSource, false);
 						if(weaveDataSource != null)
 							Alert.show("Data Source added successfully");
 						weaveDataSource.url.value = weaveDataSourceEditor.url.text;

@@ -82,6 +82,7 @@ package weave.data.DataSources
 						tag.@dataType = _convertOldDataType(tag.@dataType);
 					}
 				}
+				super.convertOldHierarchyFormat(_attributeHierarchy.value, 'attribute', {'projectionSRS': AttributeColumnMetadata.PROJECTION});
 			}
 			
 			super.initialize();
@@ -250,7 +251,7 @@ package weave.data.DataSources
 						altProj += ':' + array[1];
 					if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
 						proj = altProj;
-					attrNode['@'+AttributeColumnMetadata.PROJECTION_SRS] = proj;
+					attrNode['@'+AttributeColumnMetadata.PROJECTION] = proj;
 				}
 				node.appendChild(attrNode);
 			}

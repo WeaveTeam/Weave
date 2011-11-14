@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	This is a control for setting two text alignment values:  horizontalAlign and verticalAlign.
+
+	@author adufilie
+-->
+<mx:Canvas xmlns="weave.ui.*"
+		xmlns:mx="http://www.adobe.com/2006/mxml"
+		creationPolicy="all" clipContent="false"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off" toolTip="Alignment">
+	<mx:Grid verticalGap="0" horizontalGap="0">
+		<mx:GridRow>
+			<mx:GridItem verticalAlign="top" horizontalAlign="left">
+				<mx:RadioButton group="{radioGroup}" value="top,left" width="14" height="14"/>
+			</mx:GridItem>
+			<mx:GridItem verticalAlign="top" horizontalAlign="center">
+				<mx:RadioButton group="{radioGroup}" value="top,center" width="14" height="14"/>
+			</mx:GridItem>
+			<mx:GridItem verticalAlign="top" horizontalAlign="right">
+				<mx:RadioButton group="{radioGroup}" value="top,right" width="14" height="14"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow>
+			<mx:GridItem verticalAlign="middle" horizontalAlign="left">
+				<mx:RadioButton group="{radioGroup}" value="middle,left" width="14" height="14"/>
+			</mx:GridItem>
+			<mx:GridItem verticalAlign="middle" horizontalAlign="center">
+				<mx:RadioButton group="{radioGroup}" value="middle,center" width="14" height="14"/>
+			</mx:GridItem>
+			<mx:GridItem verticalAlign="middle" horizontalAlign="right">
+				<mx:RadioButton group="{radioGroup}" value="middle,right" width="14" height="14"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow>
+			<mx:GridItem verticalAlign="bottom" horizontalAlign="left">
+				<mx:RadioButton group="{radioGroup}" value="bottom,left" width="14" height="14"/>
+			</mx:GridItem>
+			<mx:GridItem verticalAlign="bottom" horizontalAlign="center">
+				<mx:RadioButton group="{radioGroup}" value="bottom,center" width="14" height="14"/>
+			</mx:GridItem>
+			<mx:GridItem verticalAlign="bottom" horizontalAlign="right">
+				<mx:RadioButton group="{radioGroup}" value="bottom,right" width="14" height="14"/>
+			</mx:GridItem>
+		</mx:GridRow>
+	</mx:Grid>
+	<mx:RadioButtonGroup id="radioGroup" change="handleChange()" selectedValue="{verticalAlign + ',' + horizontalAlign}"/>
+	<mx:Label text="T" x="-10.5" y="-9" width="100%"
+			  fontFamily="_serif" fontSize="50" textAlign="center" alpha="0.33"
+			  mouseEnabled="false" mouseChildren="false" includeInLayout="false"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			
+			[Bindable] public var verticalAlign:String = 'middle';
+			[Bindable] public var horizontalAlign:String = 'center';
+			
+			private function handleChange():void
+			{
+				var values:Array = String(radioGroup.selectedValue).split(',');
+				verticalAlign = values[0];
+				horizontalAlign = values[1];
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

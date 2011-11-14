@@ -54,11 +54,6 @@ package weave.visualization.plotters
 	{
 		public function SimpleAxisPlotter()
 		{
-			init();
-		}
-		
-		private function init():void
-		{
 			//TODO: this list of properties should be contained in a separate object so we don't have to list them all here
 			linkSessionState(Weave.properties.axisFontFamily, axisFontFamily);
 			linkSessionState(Weave.properties.axisFontColor, axisFontColor);
@@ -291,7 +286,7 @@ package weave.visualization.plotters
 				}
 				else if (axisAngle == 0)
 				{
-					var offset:Number = 1 ;
+					var offset:Number = 1;
 					graphics.moveTo(xTick, yTick + offset);
 					graphics.lineTo(xTick, yTick+axesThickness.value + offset);
 					graphics.moveTo(xTick, yTick);
@@ -395,26 +390,43 @@ package weave.visualization.plotters
 		 */		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			setupAxisNameBitmapText(dataBounds,screenBounds);
-			
-			var axisAngle:Number = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());
-			var length:Number = (axisAngle == 0 ) ? _axisLineScreenBounds.getWidth() : _axisLineScreenBounds.getHeight();
-			// draw the axis line
-			var graphics:Graphics = tempShape.graphics;
-			graphics.clear();
-			graphics.lineStyle(1, axesColor.value, axesAlpha.value, true, LineScaleMode.NORMAL, CapsStyle.SQUARE);
-			graphics.beginFill(axesColor.value, axesAlpha.value);
-			var offset:Number = 1 ;
-			if(axisAngle == 0 )
-				graphics.drawRect(_axisLineScreenBounds.xMin - axesThickness.value, _axisLineScreenBounds.yMax+offset, length+axesThickness.value, axesThickness.value );
-			else
-				graphics.drawRect(_axisLineScreenBounds.xMin - axesThickness.value, _axisLineScreenBounds.yMin, axesThickness.value, length) ;
-			graphics.endFill();
-			
-			
-			destination.draw(tempShape);
+			// draw the axis border
+			if (axesThickness.value != 0)
+			{
+				initPrivateAxisLineBoundsVariables(dataBounds, screenBounds);
+				var axisAngle:Number = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());
+				var thickness:Number = axesThickness.value;
+				var graphics:Graphics = tempShape.graphics;
+				graphics.clear();
+				graphics.lineStyle(0,0,0);
+				graphics.beginFill(axesColor.value, axesAlpha.value);
+				var xMin:Number = _axisLineScreenBounds.getXNumericMin();
+				var yMin:Number = _axisLineScreenBounds.getYNumericMin();
+				var yOffset:Number = 1;
+				if (_axisLineScreenBounds.getXCoverage() == 0) // draw vertical rectangle to the left of the axis
+				{
+					graphics.drawRect(
+						xMin - thickness,
+						yMin,
+						thickness,
+						_axisLineScreenBounds.getYCoverage() + yOffset
+					);
+				}
+				if (_axisLineScreenBounds.getYCoverage() == 0) // draw horizontal rectangle below axis
+				{
+					graphics.drawRect(
+						xMin - thickness,
+						yMin + yOffset,
+						_axisLineScreenBounds.getXCoverage() + thickness,
+						thickness
+					);
+				}
+				graphics.endFill();
+				destination.draw(tempShape);
+			}
 			if (showAxisName.value && axisName != null)
 			{
+				setupAxisNameBitmapText(dataBounds,screenBounds);
 //				getAxisNameScreenBounds(dataBounds,screenBounds,_tempBounds);
 //				destination.fillRect(new Rectangle(_tempBounds.xMin,_tempBounds.yMin,_tempBounds.width,_tempBounds.height),0x80FF0000);
 				_bitmapText.draw(destination);

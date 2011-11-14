@@ -139,7 +139,7 @@
 
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color"];
+				return ["Color data"];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -198,7 +198,7 @@
 				toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute used for colors."/>
 	<ui:ControlPanel>
 		<mx:VBox label="Visualization Controls">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="color data"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">

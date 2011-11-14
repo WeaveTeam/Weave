@@ -173,7 +173,7 @@
 				for each (var column:ReprojectedGeometryColumn in reprojectedColumns)
 				{
 					linkProjection(column.projectionSRS);
-					projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
+					projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);					
 				}

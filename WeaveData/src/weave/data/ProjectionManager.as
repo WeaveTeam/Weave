@@ -343,7 +343,7 @@ internal class WorkerThread
 		// if the source and destination projection are the same, we don't need to reproject.
 		// if we don't know the projection of the original column, we can't reproject.
 		// if there is no destination projection, don't reproject.
-		var sourceProjSRS:String = unprojectedColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
+		var sourceProjSRS:String = unprojectedColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
 		if (sourceProjSRS == destinationProjSRS ||
 			!projectionManager.projectionExists(sourceProjSRS) ||
 			!projectionManager.projectionExists(destinationProjSRS))
@@ -367,7 +367,7 @@ internal class WorkerThread
 				title={ ColumnUtils.getTitle(unprojectedColumn) }
 				keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
 				dataType={ DataTypes.GEOMETRY }
-				projectionSRS={ destinationProjSRS }
+				projection={ destinationProjSRS }
 			/>;
 		proxyColumn.setMetadata(metadata);
 

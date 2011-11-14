@@ -127,7 +127,7 @@ package weave.services
 				
 				var streamContent:ByteArray;
 				var params:Array = methodParameters as Array;
-				var index:int = params.length - 1;
+				var index:int = params ? params.length - 1 : -1;
 				if (params && params.length > 0 && params[index] is ByteArray)
 				{
 					obj.streamParameterIndex = index; // tell the server about the stream parameter index
