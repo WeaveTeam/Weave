@@ -182,7 +182,7 @@ package weave.data
 			if (column == null)
 				return NaN;
 
-			if (detectLinkableObjectChange(StatisticsCache, column))
+			if (detectLinkableObjectChange(cache, column))
 			{
 				var min:Number = NaN;
 				var max:Number = NaN;

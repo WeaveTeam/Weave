@@ -628,12 +628,18 @@ package weave.core
 		}
 
 		/**
-		 * This function is used to detect if callbacks of a linkable object were triggered since the last time this function was called.
+		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
+		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
+		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
+		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
+		 * parameters.
 		 * @param observer The object that is observing the change.
 		 * @param linkableObject The object that is being observed.
+		 * @param clearChangedNow If this is true, the trigger counter will be reset to the current value now so that this function will
+		 *        return false if called again with the same parameters before the next time the linkable object triggers its callbacks.
 		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
 		 */
-		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject):Boolean
+		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
 		{
 			if (!_triggerCounterMap[observer])
 				_triggerCounterMap[observer] = new Dictionary(true);
@@ -642,7 +648,8 @@ package weave.core
 			var newCount:uint = getCallbackCollection(linkableObject).triggerCounter;
 			if (previousCount != newCount)
 			{
-				_triggerCounterMap[observer][linkableObject] = newCount;
+				if (clearChangedNow)
+					_triggerCounterMap[observer][linkableObject] = newCount;
 				return true;
 			}
 			return false;

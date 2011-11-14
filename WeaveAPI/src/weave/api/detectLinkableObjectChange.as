@@ -42,8 +42,8 @@ package weave.api
 	/**
 	 * @see weave.api.core.ISessionManager
 	 */
-	public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject):Boolean
+	public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
 	{
-		return WeaveAPI.SessionManager.detectLinkableObjectChange(observer, linkableObject);
+		return WeaveAPI.SessionManager.detectLinkableObjectChange(observer, linkableObject, clearChangedNow);
 	}
 }

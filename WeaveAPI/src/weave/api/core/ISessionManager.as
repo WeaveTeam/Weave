@@ -53,14 +53,18 @@ package weave.api.core
 		function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection;
 
 		/**
-		 * This function is used to detect if callbacks of a linkable object were triggered since
-		 * the last time detectLinkableObjectChange was called with the same parameters, likely by the observer.
-		 * Note that once this function returns true, subsequent calls will return false until the callbacks are triggered again.
+		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
+		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
+		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
+		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
+		 * parameters.
 		 * @param observer The object that is observing the change.
 		 * @param linkableObject The object that is being observed.
+		 * @param clearChangedNow If this is true, the trigger counter will be reset to the current value now so that this function will
+		 *        return false if called again with the same parameters before the next time the linkable object triggers its callbacks.
 		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
 		 */
-		function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject):Boolean
+		function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
 		
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
