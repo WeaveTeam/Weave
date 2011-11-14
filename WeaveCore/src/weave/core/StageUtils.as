@@ -273,6 +273,11 @@ package weave.core
 			}
 		}
 		
+		public static function getSupportedEventTypes():Array
+		{
+			return _eventTypes.concat();
+		}
+		
 		/**
 		 * This is a list of supported events.
 		 */

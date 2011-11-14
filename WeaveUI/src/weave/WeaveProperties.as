@@ -32,6 +32,7 @@ package weave
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
@@ -40,6 +41,7 @@ package weave
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.DebugUtils;
 	import weave.visualization.layers.InteractionController;
+	import weave.visualization.layers.LinkableEventListener;
 
 	use namespace weave_internal;
 	
@@ -207,7 +209,9 @@ package weave
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
-
+		
+		public const recordInteractions:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
+		
 		// dashed lines for the perimeter of the rectangle used for selection and zooming
 		public const dashedSelectionBox:LinkableString = new LinkableString("5,5", verifyDashedSelectionBox);
 		public function verifyDashedSelectionBox(csv:String):Boolean
