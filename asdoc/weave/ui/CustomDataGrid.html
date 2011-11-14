@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="CustomDataGrid,weave.ui.CustomDataGrid,HORIZONTAL_SCROLL,VERTICAL_SCROLL,activateFilters,columnFilterFunctions,callAllFilterFunctions,commitProperties,getScrollWidth,handleActivateFilters,updateFilterFunctions" name="keywords">
+<meta content="CustomDataGrid,weave.ui.CustomDataGrid,HORIZONTAL_SCROLL,VERTICAL_SCROLL,columnFilterFunctions,callAllFilterFunctions,commitProperties,getScrollWidth,invalidateFilters,updateFilterFunctions" name="keywords">
 <title>weave.ui.CustomDataGrid</title>
 </head>
 <body>
@@ -87,6 +87,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CustomDataGrid</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#invalidateFilters()">invalidateFilters</a>():void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">CustomDataGrid</td>
+</tr>
 </table>
 </div>
 <a name="protectedMethodSummary"></a>
@@ -117,13 +124,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#handleActivateFilters()">handleActivateFilters</a>():void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CustomDataGrid</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#updateFilterFunctions()">updateFilterFunctions</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CustomDataGrid</td>
@@ -136,11 +136,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <table id="summaryTableConstant" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#activateFilters">activateFilters</a> : <a href="../core/LinkableBoolean.html">LinkableBoolean</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CustomDataGrid</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#HORIZONTAL_SCROLL">HORIZONTAL_SCROLL</a> : String = "Horizontal"<div class="summaryTableDescription">[static]</div>
@@ -236,14 +231,14 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="handleActivateFilters()"></a>
+<a name="invalidateFilters()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">handleActivateFilters</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">invalidateFilters</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>protected function handleActivateFilters():void</code>
+<code>public function invalidateFilters():void</code>
 </div>
 <a name="updateFilterFunctions()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -256,19 +251,10 @@ showHideInherited();
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
-<a name="activateFilters"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">activateFilters</td><td class="detailHeaderType">constant</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const activateFilters:<a href="../core/LinkableBoolean.html">LinkableBoolean</a></code>
-</div>
 <a name="HORIZONTAL_SCROLL"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">HORIZONTAL_SCROLL</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">HORIZONTAL_SCROLL</td><td class="detailHeaderType">constant</td>
 </tr>
 </table>
 <div class="detailBody">
