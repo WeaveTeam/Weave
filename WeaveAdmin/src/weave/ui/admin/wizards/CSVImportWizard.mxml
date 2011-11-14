@@ -25,7 +25,6 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*" 
 			label="Import CSV data to Weave"
-			width="640" height="400"
 			creationComplete="handleCreationComplete()"
 			>
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
