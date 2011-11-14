@@ -210,13 +210,20 @@ package weave
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
 		
-		public const recordInteractions:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
+		/**
+		 * This is an array of LinkableEventListeners which specify a macro to run on an event.
+		 */
+		public const macroEvents:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
 		
-		// dashed lines for the perimeter of the rectangle used for selection and zooming
+		/**
+		 * Parameters for the DashedLine selection box.
+		 * @default "5,5"
+		 */
 		public const dashedSelectionBox:LinkableString = new LinkableString("5,5", verifyDashedSelectionBox);
 		public function verifyDashedSelectionBox(csv:String):Boolean
 		{
-			if (csv === null) return false;
+			if (csv === null) 
+				return false;
 			
 			var parser:CSVParser = new CSVParser();
 			var rows:Array = parser.parseCSV(csv);
@@ -224,26 +231,20 @@ package weave
 			if (rows.length == 0)
 				return false;
 			
+			// Only the first row will be used
 			var values:Array = rows[0];
-/*			if (values.length % 2 == 1) // length is odd with at least 1 element--push last element
-			{
-				var lastValue:String = values[values.length - 1];
-				if (lastValue == 0)
-					lastValue = 1;
-				else
-					lastValue = 0;
-				
-				values.push(lastValue);
-			}
-*/			
 			var foundNonZero:Boolean = false;
 			for (var i:int = 0; i < values.length; ++i)
 			{
+				// We want every value >= 0 with at least one value > 0 
+				// Undefined and negative numbers are invalid.
 				var value:int = int(values[i]);
-				if (isNaN(value)) return false;
-				if (value < 0) return false;
+				if (isNaN(value)) 
+					return false;
+				if (value < 0) 
+					return false;
 				if (value != 0)
-					foundNonZero = true;
+					foundNonZero = true; 
 			}
 			
 			return foundNonZero;

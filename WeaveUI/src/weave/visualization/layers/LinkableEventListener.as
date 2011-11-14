@@ -39,7 +39,7 @@ package weave.visualization.layers
 
 	/**
 	 * A LinkableEventListener is a sessioned eventLinster which is added to the stage. The action is specified by
-	 * <code>action.value</code> and the listener function specified by the LinkableFunction <code>listener.value</code>.
+	 * <code>event.value</code> and the listener function specified by the LinkableFunction <code>macro.value</code>.
 	 * 
 	 * @author kmonico
 	 */	
@@ -57,15 +57,15 @@ package weave.visualization.layers
 		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
-		 * The action which triggers this interaction.
+		 * The event which triggers this interaction.
 		 */		
-		public const action:LinkableString = registerLinkableChild(this, new LinkableString(MouseEvent.DOUBLE_CLICK, verifyAction), handleMouseActionChange);
+		public const event:LinkableString = registerLinkableChild(this, new LinkableString(MouseEvent.DOUBLE_CLICK, verifyAction), handleMouseActionChange);
 		
 		/**
 		 * The function to call when the event occurs.<br>
 		 * The compiled function has one argument named "event" which specifies the target. 
 		 */		
-		public const listener:LinkableFunction = registerLinkableChild(this, new LinkableFunction('', true, true, ["event", "panel"]));
+		public const macro:LinkableFunction = registerLinkableChild(this, new LinkableFunction('', true, true, ["event", "panel"]));
 
 		
 		private var _lastEvent:String = null; 
@@ -76,7 +76,9 @@ package weave.visualization.layers
 			{
 				try
 				{
-					listener.apply(this, [ StageUtils.event, DraggablePanel.activePanel ] );
+					// Give the macro the event and the active panel. The active panel
+					// simplifies the work needed to get the SimpleVisTool.
+					macro.apply(this, [ StageUtils.event, DraggablePanel.activePanel ] );
 				} 
 				catch (e:Error)
 				{
@@ -89,8 +91,8 @@ package weave.visualization.layers
 				StageUtils.removeEventCallback(_lastEvent, _lastFunction);
 			
 			// Always add the new event and save the event and function
-			StageUtils.addEventCallback(action.value, this, func);
-			_lastEvent = action.value;
+			StageUtils.addEventCallback(event.value, this, func);
+			_lastEvent = event.value;
 			_lastFunction = func;
 		}
 		
