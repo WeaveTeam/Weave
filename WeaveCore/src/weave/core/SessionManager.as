@@ -628,6 +628,33 @@ package weave.core
 		}
 
 		/**
+		 * This function is used to detect if callbacks of a linkable object were triggered since the last time this function was called.
+		 * @param observer The object that is observing the change.
+		 * @param linkableObject The object that is being observed.
+		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
+		 */
+		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject):Boolean
+		{
+			if (!_triggerCounterMap[observer])
+				_triggerCounterMap[observer] = new Dictionary(true);
+			
+			var previousCount:uint = uint(_triggerCounterMap[observer][linkableObject]); // will be zero if undefined
+			var newCount:uint = getCallbackCollection(linkableObject).triggerCounter;
+			if (previousCount != newCount)
+			{
+				_triggerCounterMap[observer][linkableObject] = newCount;
+				return true;
+			}
+			return false;
+		}
+		
+		/**
+		 * This is a two-dimensional dictionary, where _triggerCounterMap[observer][linkableObject]
+		 * equals the previous triggerCounter value from linkableObject observed by the observer.
+		 */		
+		private const _triggerCounterMap:Dictionary = new Dictionary(true);
+
+		/**
 		 * This function checks if an object has been disposed of by SessionManager.
 		 * @param object An object to check.
 		 * @return true if SessionManager.dispose() was called for the specified object.

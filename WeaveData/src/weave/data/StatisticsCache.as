@@ -28,6 +28,7 @@ package weave.data
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IStatisticsCache;
+	import weave.api.detectLinkableObjectChange;
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -154,12 +155,6 @@ package weave.data
 		private const cache:Dictionary = new Dictionary();
 
 		/**
-		 * This maps an IAttributeColumn to a value of true or false, indicating
-		 * whether or not the cached values are valid for that column.
-		 */
-		private const triggerCounterMap:Dictionary = new Dictionary(true);
-
-		/**
 		 * This function will validate the cached statistical values for the given column.
 		 * @param column A column to calculate basic statistical values for.
 		 * @param statsFunction The function we are interested in calling.
@@ -187,8 +182,7 @@ package weave.data
 			if (column == null)
 				return NaN;
 
-			// if cache is invalid, validate it now.  if callbacks are running, cache is invalid.
-			if (triggerCounterMap[column] != column.triggerCounter)
+			if (detectLinkableObjectChange(StatisticsCache, column))
 			{
 				var min:Number = NaN;
 				var max:Number = NaN;
@@ -247,9 +241,6 @@ package weave.data
 				cache[getVariance][column] = variance;
 				cache[getStandardDeviation][column] = standardDeviation;
 				cache[getRunningTotals][column] = runningTotals;
-				
-				// the cache is now valid for this column
-				triggerCounterMap[column] = column.triggerCounter;
 			}
 			
 			return cache[statsFunction][column];

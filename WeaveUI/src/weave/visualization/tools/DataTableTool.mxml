@@ -667,7 +667,6 @@
 			private var _currentDataGridColumns:Array = [];
 			
 			
-			private var _triggerCounter:int = -1;
 			private function handleNewWidth(newWidth:Number, allowCallLater:Boolean = true):void
 			{
 				// delay this function to let the flex component update correctly.
