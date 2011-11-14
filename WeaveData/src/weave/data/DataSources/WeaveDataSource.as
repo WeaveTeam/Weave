@@ -118,7 +118,8 @@ package weave.data.DataSources
 			convertOldHierarchyFormat(root, "attribute", {
 				attributeColumnName: "name",
 				dataTableName: "dataTable",
-				dataType: _convertOldDataType
+				dataType: _convertOldDataType,
+				projectionSRS: AttributeColumnMetadata.PROJECTION
 			});
 			for each (var node:XML in root.descendants())
 			{
@@ -301,7 +302,7 @@ package weave.data.DataSources
 							name={ geomName }
 							dataType={ DataTypes.GEOMETRY }
 							keyType={ result.geometryCollectionKeyType }
-							projectionSRS={ result.geometryCollectionProjectionSRS }
+							projection={ result.geometryCollectionProjectionSRS }
 						/>
 					);
 				}

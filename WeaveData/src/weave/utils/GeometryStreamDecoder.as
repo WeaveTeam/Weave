@@ -318,12 +318,6 @@ package weave.utils
 			getCallbackCollection(this).triggerCallbacks();
 		}
 
-		/**
-		 * This is the projection that the coordinates are in.
-		 * Note: SRS ID means "Spatial Reference System Identifier"
-		 */
-		public var projectionSrsCode:String = null;
-		
 		private var _projectionWKT:String = ""; // stores the well-known-text defining the projection
 		
 		
