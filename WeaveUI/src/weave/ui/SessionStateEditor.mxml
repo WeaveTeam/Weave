@@ -783,7 +783,7 @@ A text editor to change the Session State on the fly.
 					rootObject = Weave.root;
 				
 				defaultEditor.sessionNav.rootObject = rootObject;
-				//defaultEditor.refresh();
+				defaultEditor.refresh();
 				defaultEditor.restorePanel();
 			}
 		]]>
