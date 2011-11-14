@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
+<link rel="stylesheet" href="../../print.css" type="text/css" media="print">
+<meta content="AsyncServiceQueue,weave.services.AsyncServiceQueue,generateAndPerformQuery,generateQuery,generateQueryAndAddToQueue" name="keywords">
+<title>weave.services.AsyncServiceQueue</title>
+</head>
+<body>
+<script type="text/javascript" language="javascript" src="../../asdoc.js"></script><script type="text/javascript" language="javascript" src="../../cookies.js"></script><script type="text/javascript" language="javascript">
+<!--
+				asdocTitle = 'AsyncServiceQueue - Weave AS3 documentation';
+				var baseRef = '../../';
+				window.onload = configPage;
+			--></script>
+<table style="display:none" id="titleTable" cellspacing="0" cellpadding="0" class="titleTable">
+<tr>
+<td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/services/AsyncServiceQueue.html&amp;weave/services/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
+</tr>
+<tr class="titleTableRow2">
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;AsyncServiceQueue</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#methodSummary">Methods</a></td>
+</tr>
+<tr class="titleTableRow3">
+<td colspan="2">&nbsp;</td>
+</tr>
+</table>
+<script type="text/javascript" language="javascript">
+<!--
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class AsyncServiceQueue"); titleBar_setSubNav(false,false,false,false,false,false,true,false,false,false,false,false,false,false);}
+--></script>
+<div class="MainContent">
+<table cellspacing="0" cellpadding="0" class="classHeaderTable">
+<tr>
+<td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.services</a></td>
+</tr>
+<tr>
+<td class="classHeaderTableLabel">Class</td><td class="classSignature">public class AsyncServiceQueue</td>
+</tr>
+</table>
+<p></p>
+  AsyncServiceQueue
+  
+  <p></p>
+<br>
+<hr>
+</div>
+<a name="methodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Methods</div>
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#AsyncServiceQueue()">AsyncServiceQueue</a>(asyncService:<a href="../api/services/IAsyncService.html">IAsyncService</a>)</div>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol">AsyncServiceQueue</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#generateAndPerformQuery()">generateAndPerformQuery</a>(webMethod:String, parameters:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
+</div>
+<div class="summaryTableDescription">
+   generateAndPerformQuery
+   Generates a new DelayedAsyncCall and performs it immediately.</div>
+</td><td class="summaryTableOwnerCol">AsyncServiceQueue</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#generateQuery()">generateQuery</a>(methodName:String, methodParameters:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
+</div>
+<div class="summaryTableDescription">
+   generateQuery
+   </div>
+</td><td class="summaryTableOwnerCol">AsyncServiceQueue</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#generateQueryAndAddToQueue()">generateQueryAndAddToQueue</a>(webMethod:String, parameters:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
+</div>
+<div class="summaryTableDescription">
+   generateQueryAndAddToQueue
+   Generates a new DelayedAsyncCall and adds it to the queue.</div>
+</td><td class="summaryTableOwnerCol">AsyncServiceQueue</td>
+</tr>
+</table>
+</div>
+<script type="text/javascript" language="javascript">
+<!--
+showHideInherited();
+--></script>
+<div class="MainContent">
+<a name="constructorDetail"></a>
+<div class="detailSectionHeader">Constructor detail</div>
+<a name="AsyncServiceQueue()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">AsyncServiceQueue</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">constructor</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function AsyncServiceQueue(asyncService:<a href="../api/services/IAsyncService.html">IAsyncService</a>)</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">asyncService</span>:<a href="../api/services/IAsyncService.html">IAsyncService</a></code> &mdash; The async service to create a queue for.
+   </td>
+</tr>
+</table>
+</div>
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="generateAndPerformQuery()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">generateAndPerformQuery</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function generateAndPerformQuery(webMethod:String, parameters:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><p>
+   generateAndPerformQuery
+   Generates a new DelayedAsyncCall and performs it immediately.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">webMethod</span>:String</code> &mdash; The name of the function to call on the WebService.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">parameters</span>:Array</code> &mdash; The parameters to the WebService function.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code> &mdash; 
+                        A new DelayedAsyncCall object responsible for making the WebService call.
+   
+                        
+                     </td>
+</tr>
+</table>
+</div>
+<a name="generateQuery()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">generateQuery</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function generateQuery(methodName:String, methodParameters:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><p>
+   generateQuery
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">methodName</span>:String</code> &mdash; The name of the function to call on the WebService.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">methodParameters</span>:Array</code> &mdash; The parameters to the WebService function.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code> &mdash; 
+                        A new DelayedAsyncCall object responsible for making the WebService call.
+   
+                        
+                     </td>
+</tr>
+</table>
+</div>
+<a name="generateQueryAndAddToQueue()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">generateQueryAndAddToQueue</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function generateQueryAndAddToQueue(webMethod:String, parameters:Array):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><p>
+   generateQueryAndAddToQueue
+   Generates a new DelayedAsyncCall and adds it to the queue.
+   If useQueue is false, the query will be performed immediately.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">webMethod</span>:String</code> &mdash; The name of the function to call on the WebService.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">parameters</span>:Array</code> &mdash; The parameters to the WebService function.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code> &mdash; 
+                        A new DelayedAsyncCall object responsible for making the WebService call.
+   
+                        
+                     </td>
+</tr>
+</table>
+</div>
+<br>
+<br>
+<hr>
+<br>
+<p></p>
+<center class="copyright"> 
+</center>
+</div>
+</body>
+</html>
+<!-- -->
