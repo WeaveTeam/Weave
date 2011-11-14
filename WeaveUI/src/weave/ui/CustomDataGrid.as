@@ -90,16 +90,17 @@ package weave.ui
 		
 		
 		
-		public const activateFilters:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false),handleActivateFilters);	
-		protected function handleActivateFilters():void{
-			if (activateFilters.value){
-				invalidateProperties();
-			}
+		public function invalidateFilters():void
+		{
+			_filtersInvalid = true;
+			invalidateProperties();
 		}
+		private var _filtersInvalid:Boolean = false;
 		
 		override protected function commitProperties():void{
-			if (activateFilters.value){ 
-				activateFilters.value = false;
+			if (_filtersInvalid)
+			{ 
+				_filtersInvalid = false;
 				updateFilterFunctions();
 				resultKeys = [];
 				collection.filterFunction = callAllFilterFunctions;

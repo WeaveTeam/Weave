@@ -75,6 +75,7 @@
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.mx_internal;
+			import mx.events.CollectionEvent;
 			import mx.events.DataGridEvent;
 			import mx.events.ResizeEvent;
 			
@@ -165,8 +166,11 @@
 
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
 				addEventListener(ResizeEvent.RESIZE, handleResize);
+				getCallbackCollection(filterComponents).addImmediateCallback(this, dataGrid.invalidateFilters);
+				dataRowKeys.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleGlobalSelectionChange);
 				
 				enableContextMenuItems(false);
+				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 			}
 			public static function createContextMenuItems(destination:Object):void
 			{
@@ -217,16 +221,16 @@
 				{
 					if (showControls.value)
 					{
-						if (tableArea != topControls.parent)
+						if (!topControls.parent)
 							tableArea.addChildAt(topControls, 0);
-						if (tableArea != bottomControls.parent)
+						if (!bottomControls.parent)
 							tableArea.addChild(bottomControls);
 					}
 					else
 					{
-						if (tableArea == topControls.parent)
+						if (topControls.parent)
 							tableArea.removeChild(topControls);
-						if (tableArea == bottomControls.parent)
+						if (bottomControls.parent)
 							tableArea.removeChild(bottomControls);
 					}
 				}
@@ -245,18 +249,16 @@
 				{
 					if (showFilters.value)
 					{
-						if (tableArea != filterControls.parent){							
-							if(tableArea.contains(topControls))	tableArea.addChildAt(filterControls, 1);
-							else tableArea.addChildAt(filterControls, 0);
-							UIUtils.linkDisplayObjects(filterControls,filterComponents);
+						if (!filterControls.parent){							
+							// if there are controls above where the filters should be.. add the filters at index 1, otherwise use index 0
+							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);
 							createFilterComponents();
 						}
 					}
 					else
 					{
-						if (tableArea == filterControls.parent){
+						if (filterControls.parent){
 							filterComponents.removeAllObjects();
-							UIUtils.unlinkDisplayObjects(filterControls,filterComponents);
 							tableArea.removeChild(filterControls);
 						}							
 						var currentSelection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
@@ -287,8 +289,7 @@
 			}
 			
 			
-			[Bindable]
-			private var dataRowKeys:ArrayCollection = new ArrayCollection([]);
+			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
 			
 			private var fr:FileReference = new FileReference();	// CSV download file reference
 			
@@ -369,42 +370,6 @@
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
 			}
 			
-			private function handleDataSourceChange():void
-			{
-				if (!parent)
-					return callLater(handleDataSourceChange);
-				try {
-					dataGrid.columns = [];
-					if(filterControls){
-						filterControls.removeAllChildren();
-					}
-					_currentDataGridColumns = [];
-
-					// add the items to the data grid
-					var attrColumns:Array = columns.getObjects();
-					for each (var attrColumn:IAttributeColumn in attrColumns)
-					{
-						addItem(attrColumn);
-					}
-					if(filterControls && showFilters.value){
-						createFilterComponents();
-					}
-					
-					
-					// remove values which lack associated columns
-					var _sessionedWidthNames:Array = columnWidths.getNames();
-					for each (var name:String in _sessionedWidthNames)
-					{
-						if (!columns.getObject(name))
-							columnWidths.removeObject(name);
-					}
-					handleSessionedWidthChange(); // run the callback for the sessionedWidths
-				}
-				catch (error:Error)
-				{
-					reportError(error);
-				}
-			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			private function handleItemSelection(event:Event=null):void
@@ -435,7 +400,7 @@
 				columns.setNameOrder(newColumnOrder);	
 			}
 			
-			private function handleGlobalSelectionChange():void
+			private function handleGlobalSelectionChange(e:Event = null):void
 			{
 				if (!parent)
 					return callLater(handleGlobalSelectionChange);
@@ -444,7 +409,7 @@
 				var selectedItems:Array = [];
 				for each (var item:Object in dataGrid.dataProvider)
 				{
-					if(_selection.containsKey(item.key))
+					if (_selection.containsKey(item.key))
 						selectedItems.push(item);
 				}
 				dataGrid.selectedItems = selectedItems;
@@ -642,6 +607,43 @@
 				updateBorders();
 			}
 			
+			private function handleDataSourceChange():void
+			{
+				if (!parent)
+					return callLater(handleDataSourceChange);
+				try {
+					dataGrid.columns = [];
+					if(filterControls){
+						filterControls.removeAllChildren();
+					}
+					_currentDataGridColumns = [];
+					
+					// add the items to the data grid
+					var attrColumns:Array = columns.getObjects();
+					for each (var attrColumn:IAttributeColumn in attrColumns)
+					{
+						addItem(attrColumn);
+					}
+					if(filterControls && showFilters.value){
+						createFilterComponents();
+					}
+					
+					
+					// remove values which lack associated columns
+					var _sessionedWidthNames:Array = columnWidths.getNames();
+					for each (var name:String in _sessionedWidthNames)
+					{
+						if (!columns.getObject(name))
+							columnWidths.removeObject(name);
+					}
+					handleSessionedWidthChange(); // run the callback for the sessionedWidths
+				}
+				catch (error:Error)
+				{
+					reportError(error);
+				}
+			}
+			
 			private function handleColumnListChange():void
 			{
 				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;
@@ -668,14 +670,6 @@
 			private var _triggerCounter:int = -1;
 			private function handleNewWidth(newWidth:Number, allowCallLater:Boolean = true):void
 			{
-				// if this was called from the callbacks of columnWidths, return
-				// (this means this function already ran)
-				if (_triggerCounter == getCallbackCollection(columnWidths).triggerCounter)
-				{
-					return;
-				}
-				_triggerCounter = getCallbackCollection(columnWidths).triggerCounter;
-				
 				// delay this function to let the flex component update correctly.
 				if (allowCallLater)
 				{
@@ -719,7 +713,8 @@
 				
 				// loop through the data and put them into the data grid
 				var totalWidth:Number = dataGrid.width - dataGrid.getScrollWidth(CustomDataGrid.VERTICAL_SCROLL);
-				for (var j:int = 0; j < _currentDataGridColumns.length - 1; ++j)
+				var n:int = _currentDataGridColumns.length;
+				for (var j:int = 0; j < n; ++j)
 				{
 					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[j] as WeaveCustomDataGridColumn;
 					var columnName:String = columns.getName(dgc.attrColumn);
@@ -740,15 +735,21 @@
 					
 					// always force the width to be the new value
 					var newWidth:int = Math.floor(Math.min(temp, totalWidth - 1));
-					dgc.setWidth(newWidth);
-					dgc.width = newWidth;
 					
-					// now we force it into doing the proper resizing (if any)
-					dgc.width = dgc.width;
-					if(dgc.filterComponent){
-						dgc.filterComponent.width = dgc.width;
+					// don't set width of last data grid column
+					if (j < n - 1)
+					{
+						dgc.setWidth(newWidth);
+						dgc.width = newWidth;
 					}
 					
+					if (dgc.filterComponent)
+					{
+						if (j == n - 1)
+							dgc.filterComponent.percentWidth = 100;
+						else
+							dgc.filterComponent.width = newWidth;
+					}
 				}
 //				dataGrid.invalidateDisplayList();
 				dataGrid.validateSize(true);

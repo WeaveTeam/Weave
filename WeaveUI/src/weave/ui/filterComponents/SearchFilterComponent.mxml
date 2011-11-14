@@ -25,6 +25,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[	
 			import mx.core.mx_internal;
 			import mx.events.FlexEvent;
+			import mx.utils.ObjectUtil;
 			
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -37,35 +38,42 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.EventUtils;
 			 
 			public var column:WeaveCustomDataGridColumn;
-			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void{
+			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void
+			{
 				this.column = column;
-				
 			}
 			
-			protected function strToSrchInput_initializeHandler(event:FlexEvent):void{				
+			protected function strToSrchInput_initializeHandler(event:FlexEvent):void
+			{				
 				linkBindableProperty(strToSearch, event.target, 'text', 500);
 			}
 			
 			public var regExp:RegExp;			
-			public const strToSearch:LinkableString = registerLinkableChild(this, new LinkableString(""),handleChangeInSearchString);
-			protected function handleChangeInSearchString():void{				
-				regExp = strToRegExp(strToSearch.value);	
-				if(column){
-					var customDG:CustomDataGrid = column.mx_internal::owner as CustomDataGrid;
-					customDG.activateFilters.value = true;//will call **commitProperties**  of dataGrid through **invalidateProperties** for the change in Filter - Property value											
-				}
+			public const strToSearch:LinkableString = registerLinkableChild(this, new LinkableString("", verifyStrToSearch),handleChangeInSearchString);
+			
+			private function verifyStrToSearch(value:String):Boolean
+			{
+				return value != null;
+			}
+			
+			protected function handleChangeInSearchString():void
+			{
+				regExp = strToRegExp(strToSearch.value);
 			}
 					
 			
 			
-			public function get isActive():Boolean	{
+			public function get isActive():Boolean
+			{
 				return (strToSearch.value != null && strToSearch.value != "");
 			}
 			
-			public function filterFunction(obj:Object):Boolean{
+			public function filterFunction(obj:Object):Boolean
+			{
 				if (!regExp)
 					return true;
-				return regExp.test(column.itemToLabel(obj));
+				var str:String = column.itemToLabel(obj);
+				return regExp.test(str);
 			}
 			
 			public static function strToRegExp(strToSrch:String, flags:String = "i", asterisk:Boolean = true, questionMark:Boolean = true):RegExp

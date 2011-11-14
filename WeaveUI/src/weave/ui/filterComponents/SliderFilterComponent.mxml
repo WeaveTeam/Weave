@@ -79,17 +79,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			public var dataMaximum:Number; 
 			
-			public const minimum:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleFilterPropertyChange);
-			public const maximum:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleFilterPropertyChange);
-			
-			
-			protected function handleFilterPropertyChange():void{
-
-				if(column){
-					var customDG:CustomDataGrid = column.mx_internal::owner as CustomDataGrid;
-					customDG.activateFilters.value = true;//will call **commitProperties**  of dataGrid through **invalidateProperties** for the change in Filter - Property value											
-				}
-			}
+			public const minimum:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
+			public const maximum:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
 			
 			//range value nor getting stored in session need to find why?s
 			public function get isActive():Boolean{

@@ -58,8 +58,11 @@ package weave.ui.CustomDataGrid
 				this.itemRenderer = factory;
 			}
 			else
-				this.itemRenderer = new ClassFactory(HeatMapDataGridColumnRenderer);
-			//this.headerRenderer = new ClassFactory(LockableHeaderRenderer);	
+			{
+				this.itemRenderer = new ClassFactory(Label);
+				//this.itemRenderer = new ClassFactory(HeatMapDataGridColumnRenderer);
+				//this.headerRenderer = new ClassFactory(LockableHeaderRenderer);
+			}
 			
 			this.dataTipField = "key";
 			this.showDataTips = true;
@@ -113,15 +116,21 @@ package weave.ui.CustomDataGrid
 		
 		private function extractDataFunction(item:Object, column:DataGridColumn):String
 		{
-			var xml:XML = <data/>;			
 			var col:IAttributeColumn = _attrColumn;			
+			var str:String = col.getValueFromKey(item[dataField] as IQualifiedKey, String) as String;
+			
+			return str;
+			
+			/*
+			var xml:XML = <data/>;			
 			if(col is ImageColumn)
 				xml.@norm = 0;
 			else
 				xml.@norm = ColumnUtils.getNorm(col, item[dataField] as IQualifiedKey);
 			
-			xml.@string = col.getValueFromKey(item[dataField] as IQualifiedKey, String) as String;			
+			xml.@string = str;			
 			return xml.toXMLString();
+			*/
 		}
 	}
 }
