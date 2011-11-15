@@ -26,8 +26,10 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
+	import weave.api.getLinkableRoot;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.CallbackCollection;
@@ -51,10 +53,11 @@ package weave.visualization.layers
 		}
 
 		/**
-		 * A boolean indicating whether this interaction event is enabled.
-		 * @default true 
+		 * The name of the component in the session state which owns the event.
+		 * If this is empty, the event applies across the stage.
 		 */		
-		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const target:LinkableString = registerLinkableChild(this, new LinkableString());
+		
 		
 		/**
 		 * The event which triggers this interaction.
@@ -65,20 +68,45 @@ package weave.visualization.layers
 		 * The function to call when the event occurs.<br>
 		 * The compiled function has one argument named "event" which specifies the target. 
 		 */		
-		public const macro:LinkableFunction = registerLinkableChild(this, new LinkableFunction('', true, true, ["event", "panel"]));
+		public const macro:LinkableFunction = registerLinkableChild(this, new LinkableFunction('', true, true, ["event"]));
 
 		
 		private var _lastEvent:String = null; 
 		private var _lastFunction:Function = null;
 		private function handleMouseActionChange():void
 		{
+			var self:LinkableEventListener = this;
 			var func:Function = function():void
 			{
 				try
 				{
-					// Give the macro the event and the active panel. The active panel
-					// simplifies the work needed to get the SimpleVisTool.
-					macro.apply(this, [ StageUtils.event, DraggablePanel.activePanel ] );
+					var thisPointer:* = null;
+					var stageEvent:Event = StageUtils.event;
+					
+					// if a target is specified, check that the event occurred on the target
+					if (target.value)
+					{
+						var root:ILinkableHashMap = getLinkableRoot(self) as ILinkableHashMap;
+						var globalObject:* = root.getObject(target.value);
+						var component:* = stageEvent.target;
+						
+						while (component)
+						{
+							if (component == globalObject)
+								break;
+							component = component.parent;
+						}
+						
+						if (component == null)
+							return;
+						
+						// set the thisPointer 
+						thisPointer = component;
+						
+						// fall through
+					}
+					
+					macro.apply(thisPointer, [ stageEvent ] );
 				} 
 				catch (e:Error)
 				{

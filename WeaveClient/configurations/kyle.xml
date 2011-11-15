@@ -25,7 +25,7 @@
               <hierarchy>
                 <category name="Data Tables" title="Data Tables">
                   <category name="issue_relations" title="issue_relations">
-                    <attribute dataTable="issue_relations" keyType="Issue Relation ID" name="relation_type" id="165143" dataType="string" title="relation_type"/>
+                    <attribute title="relation_type" dataTable="issue_relations" name="relation_type" id="165143" dataType="string" keyType="Issue Relation ID"/>
                   </category>
                 </category>
               </hierarchy>
@@ -48,7 +48,7 @@
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp singlehue="true" category="visualization" name="Red Scale" source="OIC">
+      <colorRamp category="visualization" singlehue="true" name="Red Scale" source="OIC">
         <node color="0x000000" position="0"/>
         <node color="0xff0000" position="0.5"/>
         <node color="0xffcccc" position="1"/>
@@ -149,16 +149,21 @@
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
     <macroEvents encoding="dynamic">
       <LinkableEventListener name="MapTool">
-        <enabled>true</enabled>
         <event>doubleClick</event>
-        <macro>qkey = panel.visualization.lastProbedKey;
-column = panel.visualization.layers.getObject('plot').plotter.internalObject.geometryColumn;
+        <macro>qkey = visualization.lastProbedKey;
+column = visualization.layers.getObject('plot').plotter.internalObject.geometryColumn;
+urlRequestInstance = getNewInstance("flash.net.URLRequest");
+urlRequestInstance.url = "http://www.google.com";
+navigateToURL(urlRequestInstance);
 Alert.show(`column: {column}  qkey: {ColumnUtils.getString(column, qkey)}`);</macro>
+        <target>MapTool</target>
       </LinkableEventListener>
     </macroEvents>
     <macroLibraries>weave.api::WeaveAPI
 mx.controls::Alert
-weave.utils::ColumnUtils</macroLibraries>
+weave.utils::ColumnUtils
+weave.core::ClassUtils
+weave.compiler::GlobalLib</macroLibraries>
     <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Sample Weave Configuration</pageTitle>
@@ -318,11 +323,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="nhpn" title="nhpn"/>
           <category name="obesity" title="obesity"/>
           <category name="obesity-cube" title="obesity-cube">
-            <attribute number=" " string="&quot;ID&quot; + asString(number)" dataType="number" keyType="obesity-cube" dataTable="obesity-cube" name="ID" title="ID"/>
-            <attribute number=" " string=" " dataType="string" keyType="obesity-cube" dataTable="obesity-cube" name="FIPS2" title="FIPS2"/>
-            <attribute number="string.length" string="&quot;# num characters &quot; + asString(number)" dataType="string" keyType="obesity-cube" dataTable="obesity-cube" name="State" title="State"/>
-            <attribute number=" " string="&quot;01/01/&quot; + asString(number) % 100" dataType="number" keyType="obesity-cube" dataTable="obesity-cube" name="Year" title="Year"/>
-            <attribute dataTable="obesity-cube" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" dataType="number" title="PercentObese"/>
+            <attribute number=" " string="&quot;ID&quot; + asString(number)" keyType="obesity-cube" dataTable="obesity-cube" name="ID" dataType="number" title="ID"/>
+            <attribute number=" " string=" " keyType="obesity-cube" dataTable="obesity-cube" name="FIPS2" dataType="string" title="FIPS2"/>
+            <attribute number="string.length" string="&quot;# num characters &quot; + asString(number)" keyType="obesity-cube" dataTable="obesity-cube" name="State" dataType="string" title="State"/>
+            <attribute number=" " string="&quot;01/01/&quot; + asString(number) % 100" keyType="obesity-cube" dataTable="obesity-cube" name="Year" dataType="number" title="Year"/>
+            <attribute title="PercentObese" dataTable="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" dataType="number" keyType="obesity-cube"/>
           </category>
           <category name="obesity-cube2" title="obesity-cube2"/>
           <category name="obesity-cube3" title="obesity-cube3"/>
@@ -1141,36 +1146,36 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="iris_dataset" title="iris_dataset"/>
           <category name="IrisDataset" title="IrisDataset"/>
           <category name="issue_relations" title="issue_relations">
-            <attribute dataTable="issue_relations" keyType="Issue Relation ID" name="delay" id="165139" dataType="number" title="delay"/>
-            <attribute dataTable="issue_relations" keyType="Issue Relation ID" name="id" id="165140" dataType="Issue Relation ID" title="id"/>
-            <attribute dataTable="issue_relations" keyType="Issue Relation ID" name="issue_from_id" id="165141" dataType="Issue ID" title="issue_from_id"/>
-            <attribute dataTable="issue_relations" keyType="Issue Relation ID" name="issue_to_id" id="165142" dataType="Issue ID" title="issue_to_id"/>
-            <attribute dataTable="issue_relations" keyType="Issue Relation ID" name="relation_type" id="165143" dataType="string" title="relation_type"/>
+            <attribute title="delay" dataTable="issue_relations" name="delay" id="165139" dataType="number" keyType="Issue Relation ID"/>
+            <attribute title="id" dataTable="issue_relations" name="id" id="165140" dataType="Issue Relation ID" keyType="Issue Relation ID"/>
+            <attribute title="issue_from_id" dataTable="issue_relations" name="issue_from_id" id="165141" dataType="Issue ID" keyType="Issue Relation ID"/>
+            <attribute title="issue_to_id" dataTable="issue_relations" name="issue_to_id" id="165142" dataType="Issue ID" keyType="Issue Relation ID"/>
+            <attribute title="relation_type" dataTable="issue_relations" name="relation_type" id="165143" dataType="string" keyType="Issue Relation ID"/>
           </category>
           <category name="Issues" title="Issues">
-            <attribute dataTable="Issues" keyType="Issue ID" name="assigned_to_id" id="165167" dataType="number" title="assigned_to_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="author_id" id="165168" dataType="number" title="author_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="category_id" id="165169" dataType="number" title="category_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="created_on" id="165170" dataType="string" title="created_on"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="description" id="165171" dataType="string" title="description"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="done_ratio" id="165172" dataType="number" title="done_ratio"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="due_date" id="165173" dataType="string" title="due_date"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="estimated_hours" id="165174" dataType="number" title="estimated_hours"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="fixed_version_id" id="165175" dataType="number" title="fixed_version_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="id" id="165176" dataType="number" title="id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="is_private" id="165177" dataType="string" title="is_private"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="lft" id="165178" dataType="number" title="lft"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="lock_version" id="165179" dataType="number" title="lock_version"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="parent_id" id="165180" dataType="Issue ID" title="parent_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="priority_id" id="165181" dataType="number" title="priority_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="project_id" id="165182" dataType="number" title="project_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="rgt" id="165183" dataType="number" title="rgt"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="root_id" id="165184" dataType="Issue ID" title="root_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="start_date" id="165185" dataType="string" title="start_date"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="status_id" id="165186" dataType="number" title="status_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="subject" id="165187" dataType="string" title="subject"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="tracker_id" id="165188" dataType="number" title="tracker_id"/>
-            <attribute dataTable="Issues" keyType="Issue ID" name="updated_on" id="165189" dataType="string" title="updated_on"/>
+            <attribute title="assigned_to_id" dataTable="Issues" name="assigned_to_id" id="165167" dataType="number" keyType="Issue ID"/>
+            <attribute title="author_id" dataTable="Issues" name="author_id" id="165168" dataType="number" keyType="Issue ID"/>
+            <attribute title="category_id" dataTable="Issues" name="category_id" id="165169" dataType="number" keyType="Issue ID"/>
+            <attribute title="created_on" dataTable="Issues" name="created_on" id="165170" dataType="string" keyType="Issue ID"/>
+            <attribute title="description" dataTable="Issues" name="description" id="165171" dataType="string" keyType="Issue ID"/>
+            <attribute title="done_ratio" dataTable="Issues" name="done_ratio" id="165172" dataType="number" keyType="Issue ID"/>
+            <attribute title="due_date" dataTable="Issues" name="due_date" id="165173" dataType="string" keyType="Issue ID"/>
+            <attribute title="estimated_hours" dataTable="Issues" name="estimated_hours" id="165174" dataType="number" keyType="Issue ID"/>
+            <attribute title="fixed_version_id" dataTable="Issues" name="fixed_version_id" id="165175" dataType="number" keyType="Issue ID"/>
+            <attribute title="id" dataTable="Issues" name="id" id="165176" dataType="number" keyType="Issue ID"/>
+            <attribute title="is_private" dataTable="Issues" name="is_private" id="165177" dataType="string" keyType="Issue ID"/>
+            <attribute title="lft" dataTable="Issues" name="lft" id="165178" dataType="number" keyType="Issue ID"/>
+            <attribute title="lock_version" dataTable="Issues" name="lock_version" id="165179" dataType="number" keyType="Issue ID"/>
+            <attribute title="parent_id" dataTable="Issues" name="parent_id" id="165180" dataType="Issue ID" keyType="Issue ID"/>
+            <attribute title="priority_id" dataTable="Issues" name="priority_id" id="165181" dataType="number" keyType="Issue ID"/>
+            <attribute title="project_id" dataTable="Issues" name="project_id" id="165182" dataType="number" keyType="Issue ID"/>
+            <attribute title="rgt" dataTable="Issues" name="rgt" id="165183" dataType="number" keyType="Issue ID"/>
+            <attribute title="root_id" dataTable="Issues" name="root_id" id="165184" dataType="Issue ID" keyType="Issue ID"/>
+            <attribute title="start_date" dataTable="Issues" name="start_date" id="165185" dataType="string" keyType="Issue ID"/>
+            <attribute title="status_id" dataTable="Issues" name="status_id" id="165186" dataType="number" keyType="Issue ID"/>
+            <attribute title="subject" dataTable="Issues" name="subject" id="165187" dataType="string" keyType="Issue ID"/>
+            <attribute title="tracker_id" dataTable="Issues" name="tracker_id" id="165188" dataType="number" keyType="Issue ID"/>
+            <attribute title="updated_on" dataTable="Issues" name="updated_on" id="165189" dataType="string" keyType="Issue ID"/>
           </category>
           <category name="Jiayan_All_Construction_emp_4_30_2011" title="Jiayan_All_Construction_emp_4_30_2011"/>
           <category name="Jiayan_Construction_emp_4_30_2011" title="Jiayan_Construction_emp_4_30_2011"/>
@@ -2557,13 +2562,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>62.71564885496183</xMax>
-                  <xMin>62.71564885496183</xMin>
-                  <yMax>18.719969040247683</yMax>
-                  <yMin>14.019969040247682</yMin>
+                  <xMax>61.514551526717554</xMax>
+                  <xMin>61.514551526717554</xMin>
+                  <yMax>17.814164086687313</yMax>
+                  <yMin>15.464164086687312</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>18.719969040247683</axisLineMaxValue>
-                <axisLineMinValue>14.019969040247682</axisLineMinValue>
+                <axisLineMaxValue>17.814164086687313</axisLineMaxValue>
+                <axisLineMinValue>15.464164086687312</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -2602,13 +2607,13 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>95.84064885496184</xMax>
-                  <xMin>62.71564885496183</xMin>
-                  <yMax>14.019969040247682</yMax>
-                  <yMin>14.019969040247682</yMin>
+                  <xMax>78.07705152671755</xMax>
+                  <xMin>61.514551526717554</xMin>
+                  <yMax>15.464164086687312</yMax>
+                  <yMin>15.464164086687312</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>95.84064885496184</axisLineMaxValue>
-                <axisLineMinValue>62.71564885496183</axisLineMinValue>
+                <axisLineMaxValue>78.07705152671755</axisLineMaxValue>
+                <axisLineMinValue>61.514551526717554</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -2680,7 +2685,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string=" " dataType="string" keyType="obesity-cube" dataTable="obesity-cube" name="FIPS2" title="FIPS2"/>
+                                <attribute number=" " year="" string=" " keyType="obesity-cube" dataTable="obesity-cube" name="FIPS2" dataType="string" title="FIPS2"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2696,7 +2701,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" dataType="string" keyType="obesity-cube" dataTable="obesity-cube" name="State" title="State"/>
+                                <attribute number="string.length" year="" string="&quot;# num characters &quot; + asString(number)" keyType="obesity-cube" dataTable="obesity-cube" name="State" dataType="string" title="State"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2712,7 +2717,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute year="" name="PercentObese" dataType="number" keyType="obesity-cube" dataTable="obesity-cube" string="asString(number) + &quot;%&quot;" title="PercentObese"/>
+                                <attribute dataTable="obesity-cube" year="" name="PercentObese" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" dataType="number" title="PercentObese"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2786,7 +2791,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" dataType="number" keyType="obesity-cube" dataTable="obesity-cube" name="ID" title="ID"/>
+                                <attribute number=" " year="" string="&quot;ID&quot; + asString(number)" keyType="obesity-cube" dataTable="obesity-cube" name="ID" dataType="number" title="ID"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -2880,10 +2885,10 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <xMax>95.84064885496184</xMax>
-          <xMin>62.71564885496183</xMin>
-          <yMax>18.719969040247683</yMax>
-          <yMin>14.019969040247682</yMin>
+          <xMax>78.07705152671755</xMax>
+          <xMin>61.514551526717554</xMin>
+          <yMax>17.814164086687313</yMax>
+          <yMin>15.464164086687312</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
       <PenTool name="penTool">
@@ -2980,7 +2985,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute keyType="US State FIPS Code" name="States_geom" dataType="geometry" title="States_geom"/>
+                                <attribute title="States_geom" name="States_geom" dataType="geometry" keyType="US State FIPS Code"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -3290,9 +3295,9 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <overrideYMin>NaN</overrideYMin>
         <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <area>0.00035075565529</area>
-          <xCenter>-155.20895290253</xCenter>
-          <yCenter>67.351316683447</yCenter>
+          <area>0.00049097480125</area>
+          <xCenter>-155.27628022325</xCenter>
+          <yCenter>67.369379355312</yCenter>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
