@@ -35,7 +35,6 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
-	import weave.visualization.layers.InteractiveVisualization;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
 	
 	/**
@@ -63,7 +62,7 @@ package weave.utils
 		 * @param additionalColumns An array of additional columns (other than global probed columns) to be displayed in the probe tooltip
 		 * @param maxRecordsShown Maximum no. of records shown in one probe tooltip
 		 * @return A string to be displayed on a tooltip while probing 
-		 */		
+		 */
 		public static function getProbeText(keySet:IKeySet, additionalColumns:Array = null):String
 		{
 			var result:String = '';

@@ -159,7 +159,7 @@ package weave.visualization.plotters
 			var binNames:Array = [];
 			for (binName in _tempBinKeyToSingleRecordKeyMap)
 				binNames.push(binName);
-			var allBinNames:Array = binCol.derivedBins.getNames();
+			var allBinNames:Array = binCol.getDerivedBins().getNames();
 			
 			// draw the bins
 			// BEGIN template code for defining a drawPlot() function.

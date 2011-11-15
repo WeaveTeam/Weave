@@ -79,7 +79,7 @@ package weave.data.AttributeColumns
 		 * Derived values don't need to appear in the session state.
 		 * These bins are provided for convenience only and should not be modified.
 		 */
-		public function get derivedBins():BinClassifierCollection
+		public function getDerivedBins():BinClassifierCollection
 		{
 			if (_dirty)
 				validateBins();
