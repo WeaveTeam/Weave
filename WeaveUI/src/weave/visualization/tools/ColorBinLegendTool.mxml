@@ -46,15 +46,12 @@
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
 			private var _plotter:ColorBinLegendPlotter = null;
-			public function get plotter():ColorBinLegendPlotter
-			{
-				return _plotter;
-			}
 			override protected function constructor():void
 			{
 				super.constructor();
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(ColorBinLegendPlotter) as ColorBinLegendPlotter;
+
 				plotLayer.useTextBitmapFilters.value = true;
 				
 				visualization.enableAutoZoomToExtent.value = true;
@@ -84,6 +81,9 @@
 				_plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, null, true);
 				visualization.marginTopNumber.addGroupedCallback(this, handleMarginChange);
 				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
+				
+				linkBindableProperty(_plotter.maxColumns, maxCols, 'value');
+				linkBindableProperty(_plotter.reverseOrder, chkReverseOrder, 'selected');
 			}
 			private static const DEFAULT_MARGIN_TOP:int = 25;
 			private function handleMarginChange():void
@@ -209,6 +209,13 @@
 			</mx:HBox>
 			<mx:Spacer/>
 			<ui:ColorRampEditor id="cRampEditor"/>
+			<mx:HBox>
+				<mx:Label text="Number of columns"/>
+				<mx:NumericStepper id="maxCols" minimum="1"
+								   toolTip="This specifies the maximum number of columns to show in a row in the legend."/>
+			</mx:HBox>
+			<mx:CheckBox label="Reverse item order" id="chkReverseOrder"
+						 toolTip="Check this box to reverse the ordering of the items in this legend."/>
 		</mx:VBox>
 	</ui:ControlPanel>
 
