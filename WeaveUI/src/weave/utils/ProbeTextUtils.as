@@ -66,10 +66,11 @@ package weave.utils
 		public static function getProbeText(keySet:IKeySet, additionalColumns:Array = null):String
 		{
 			var result:String = '';
-			var columns:Array = probedColumns.getObjects(IAttributeColumn);
+			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
+			// include headers in list of columns so that those appearing in the headers won't be duplicated.
+			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
 			if (additionalColumns != null)
 				columns = columns.concat(additionalColumns);
-			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
 			var keys:Array = keySet.keys.concat().sort(ObjectUtil.compare);
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
@@ -101,12 +102,15 @@ package weave.utils
 						continue;
 					var title:String = ColumnUtils.getTitle(column);
 					var line:String = StandardLib.lpad(value, 8) + ' (' + title + ')\n';
-					if(lookup[line]  == undefined )
+					// prevent duplicate lines from being added
+					if (lookup[line] == undefined)
 					{
 						if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
 						{
-							record += line;
-							lookup[line] = true;
+							lookup[line] = true; // this prevents the line from being duplicated
+							// the headers are only included so that the information will not be duplicated
+							if (iColumn >= headers.length)
+								record += line;
 						}
 					}
 				}
