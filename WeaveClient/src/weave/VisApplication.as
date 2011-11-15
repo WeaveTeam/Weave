@@ -106,6 +106,7 @@ package weave
 	import weave.ui.settings.GlobalUISettings;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
+	import weave.utils.PopUpUtils;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -348,8 +349,6 @@ package weave
 		public static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 		public static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
 
-		private function get _application():Application { return application as Application; }
-		
 		private var _maxProgressBarValue:int = 0;
 		private var _progressBar:ProgressBar = new ProgressBar;
 		private function handleProgressIndicatorCounterChange():void
@@ -410,7 +409,7 @@ package weave
 			//UIComponentGlobals.catchCallLaterExceptions = true;
 			//systemManager.addEventListener("callLaterError", reportError);
 
-			_application.addChild(visDesktop);
+			this.addChild(visDesktop);
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;
 			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
@@ -445,19 +444,18 @@ package weave
 		}
 		private function updateWorkspaceSize(..._):void
 		{
-			var visDesktop:Application = _application;
-			if (!visDesktop.parent)
+			if (!this.parent)
 				return;
 			var w:Number = Weave.properties.workspaceWidth.value;
 			var h:Number = Weave.properties.workspaceHeight.value;
 			if (isFinite(w))
-				visDesktop.width = w;
+				this.width = w;
 			else
-				visDesktop.width = visDesktop.parent.width;
+				this.width = this.parent.width;
 			if (isFinite(h))
-				visDesktop.height = h;
+				this.height = h;
 			else
-				visDesktop.height = visDesktop.parent.height;
+				this.height = this.parent.height;
 		}
 
 		private var adminService:LocalAsyncService = null;
@@ -549,10 +547,11 @@ package weave
 					_weaveMenu.percentWidth = 100;
 					StageUtils.callLater(this,setupVisMenuItems,null,false);
 					
-					_application.addChildAt(_weaveMenu, 0);
+					//PopUpManager.addPopUp(_weaveMenu, this);
+					this.addChildAt(_weaveMenu, 0);
 					
-					if (_application == _oicLogoPane.parent)
-						_application.removeChild(_oicLogoPane);
+					if (this == _oicLogoPane.parent)
+						this.removeChild(_oicLogoPane);
 				}
 				
 				// always show menu bar when admin service is present
@@ -563,18 +562,18 @@ package weave
 			{
 				try
 				{
-		   			if (_weaveMenu && _application == _weaveMenu.parent)
-						_application.removeChild(_weaveMenu);
+		   			if (_weaveMenu && this == _weaveMenu.parent)
+						this.removeChild(_weaveMenu);
 
 		   			_weaveMenu = null;
 					
 					if (Weave.properties.showCopyright.value)
 					{
-						_application.addChildAt(_oicLogoPane, _application.numChildren);
-						_application.setStyle("horizontalAlign", "right");
+						this.addChildAt(_oicLogoPane, this.numChildren);
+						this.setStyle("horizontalAlign", "right");
 					}
-					else if (_application == _oicLogoPane.parent)
-						_application.removeChild(_oicLogoPane);
+					else if (this == _oicLogoPane.parent)
+						this.removeChild(_oicLogoPane);
 				}
 				catch(error:Error)
 				{
