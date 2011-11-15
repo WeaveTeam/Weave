@@ -133,16 +133,22 @@ package weave.data.AttributeColumns
 			if (dataBounds.isUndefined() || dataBounds.isEmpty())
 				return;
 			
-			var query:AsyncToken;
-			
-			//TODO: instead of a single geometryStreamDecoder tile query, make several tile queries
-			// and make a single webservice query for each group of results.
-			
-			// request ALL metadata tiles
-			var metadataTileIDs:Array = _geometryStreamDecoder.getRequiredMetadataTileIDs(
-				_geometryStreamDecoder.collectiveBounds, 0, true
-			).sort(Array.NUMERIC);
-			// request geometry tiles needed for desired dataBounds
+			var metadataTileIDs:Array;
+			if (true)
+			{
+				// request ALL metadata tiles
+				metadataTileIDs = _geometryStreamDecoder.getRequiredMetadataTileIDs(
+					_geometryStreamDecoder.collectiveBounds, 0, true
+				).sort(Array.NUMERIC);
+			}
+			else
+			{
+				// request only those metadata tiles containing shapes visible at current zoom
+				metadataTileIDs = _geometryStreamDecoder.getRequiredMetadataTileIDs(
+					dataBounds, lowestImportance, true
+				).sort(Array.NUMERIC);
+			}
+			// request geometry tiles needed for desired dataBounds and zoom level
 			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(
 				dataBounds, lowestImportance, true
 			).sort(Array.NUMERIC);
@@ -152,6 +158,7 @@ package weave.data.AttributeColumns
 //			if (geometryTileIDs.length > 0)
 //				trace("requesting geometry tiles: " + geometryTileIDs);
 			
+			var query:AsyncToken;
 			// make requests for groups of tiles
 			while (metadataTileIDs.length > 0)
 			{
