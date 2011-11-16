@@ -474,6 +474,6 @@ package weave.core
 		 * This is a special pseudo-event supported by StageUtils.
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
-		public static const POINT_CLICK_EVENT:String = "StageUtils.POINT_CLICK_EVENT";
+		public static const POINT_CLICK_EVENT:String = "pointClick";
 	}
 }
