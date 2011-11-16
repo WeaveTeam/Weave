@@ -39,8 +39,9 @@
 			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
 		<mx:HBox minWidth="0" borderStyle="solid"  horizontalGap="0"  id="filterControls" width="100%" height="10%" verticalAlign="middle" horizontalScrollPolicy="off"/>
-		<ui:CustomDataGrid id="dataGrid"  
-					 	horizontalScrollPolicy="off" verticalScrollPolicy="auto"
+		<CustomDataGrid:CustomDataGrid id="dataGrid"  
+					 	horizontalScrollPolicy="auto"
+						verticalScrollPolicy="auto"
 						 dataProvider="{dataRowKeys}" 
 						 width="100%" height="100%"
 						 allowMultipleSelection="true"
@@ -107,10 +108,10 @@
 			import weave.data.KeySets.KeySet;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
+			import weave.ui.CustomDataGrid.SearchFilterComponent;
+			import weave.ui.CustomDataGrid.SliderFilterComponent;
 			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
 			import weave.ui.DraggablePanel;
-			import weave.ui.filterComponents.SearchFilterComponent;
-			import weave.ui.filterComponents.SliderFilterComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
@@ -280,11 +281,14 @@
 					var filterableColumn:WeaveCustomDataGridColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;					
 					var dataType:String = ColumnUtils.getDataType(attrColum);
 					
-					if(attrColum is KeyColumn)classDef = SearchFilterComponent;										
-					if(dataType == DataTypes.STRING)classDef = SearchFilterComponent;
-					else if(dataType ==DataTypes.NUMBER)classDef = SliderFilterComponent;
+					if (attrColum is KeyColumn)
+						classDef = SearchFilterComponent;										
+					if (dataType == DataTypes.STRING)
+						classDef = SearchFilterComponent;
+					else if(dataType == DataTypes.NUMBER)
+						classDef = SliderFilterComponent;
 					
-					filterableColumn.filterComponent = filterComponents.requestObject(colNames[i],classDef,false);														
+					filterableColumn.filterComponent = filterComponents.requestObject(colNames[i], classDef, false);
 				}								
 			}
 			
@@ -378,9 +382,9 @@
 
 				var selectedKeys:Array = new Array();
 				
-				for(var i:int = 0; i < dataGrid.selectedIndices.length; i++)
+				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
 				{
-					selectedKeys[i] = (dataGrid.dataProvider as ArrayCollection).getItemAt( dataGrid.selectedIndices[i] ).key;
+					selectedKeys[i] = (dataGrid.dataProvider as ArrayCollection).getItemAt( dataGrid.selectedIndices[i] ) as IQualifiedKey;
 				}
 				
 				_selection.replaceKeys(selectedKeys);
@@ -409,7 +413,7 @@
 				var selectedItems:Array = [];
 				for each (var item:Object in dataGrid.dataProvider)
 				{
-					if (_selection.containsKey(item.key))
+					if (_selection.containsKey(item as IQualifiedKey))
 						selectedItems.push(item);
 				}
 				dataGrid.selectedItems = selectedItems;
@@ -423,7 +427,7 @@
 			
 			private function filterKeys(item:Object):Boolean
 			{
-				if(_subset.containsKey(item.key))
+				if(_subset.containsKey(item as IQualifiedKey))
 					return true;
 				else 
 					return false;
@@ -522,7 +526,7 @@
 								keyLookup[key] = true;
 						var keys:Array = [];
 						for (var keyObj:* in keyLookup)
-							keys.push({key: keyObj});
+							keys.push(keyObj);
 						return keys;
 					}
 				}
@@ -547,7 +551,7 @@
 				var keys:* = getExportDataProvider();
 				for each (var item:Object in keys)
 				{
-					var key:IQualifiedKey = item.key as IQualifiedKey;
+					var key:IQualifiedKey = item as IQualifiedKey;
 					var record:Object = {};
 					// each record has a property named after the keyType equal to the key value
 					if (exportKeys.value)
@@ -586,12 +590,7 @@
 			
 			private function updateDataRowKeys():void
 			{
-				var keyObjects:Array = [];
-				for each (var key:IQualifiedKey in keySet.keys)
-				{
-					keyObjects.push({key: key});
-				}
-				dataRowKeys.source = keyObjects;
+				dataRowKeys.source = keySet.keys;
 			}			
 			
 			private function handleColumnsChange():void
@@ -725,7 +724,7 @@
 						continue; 
 					var temp:Number;
 					if (sessionedWidth.value)
-						temp =  NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
+						temp = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
 					else
 						temp = totalWidth / _currentDataGridColumns.length - 1;
 
@@ -740,6 +739,7 @@
 					{
 						dgc.setWidth(newWidth);
 						dgc.width = newWidth;
+						dgc.width = dgc.width;
 					}
 					
 					if (dgc.filterComponent)
@@ -777,21 +777,10 @@
 				{
 					totalColumnWidths += obj.width;
 				}
-				if (totalColumnWidths < dataGrid.width) 
+				if (totalColumnWidths < dataGrid.width)
 					dataGrid.horizontalScrollPolicy = "off";
 				else
-					dataGrid.horizontalScrollPolicy = "off";
-			}
-			
-			private function indexOfAttributeColumnAdded(attrCol:IAttributeColumn):int
-			{
-				// TODO: O(n) lookups are bad. These should be indexed in a dictionary...
-				for(var i:int = 0; i < _currentDataGridColumns.length; i++)
-				{
-					if(_currentDataGridColumns[i].attrColumn == attrCol)
-						return i;
-				}
-				return -1;
+					dataGrid.horizontalScrollPolicy = "auto";
 			}
 			
 			private function handleKeyColumnCheckBox():void

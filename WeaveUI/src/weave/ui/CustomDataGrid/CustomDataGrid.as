@@ -17,27 +17,15 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.ui
+package weave.ui.CustomDataGrid
 {
-	import flash.display.DisplayObject;
-	import flash.display.Graphics;
-	import flash.display.Shape;
-	
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
-	import mx.controls.listClasses.ListRowInfo;
 	import mx.core.mx_internal;
 	
 	import weave.Weave;
 	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.core.LinkableBoolean;
-	import weave.core.LinkableNumber;
 	import weave.data.KeySets.KeySet;
-	import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
-	import weave.ui.filterComponents.IFilterComponent;
 
 	use namespace mx_internal;	                          
 
@@ -51,7 +39,8 @@ package weave.ui
 	public class CustomDataGrid extends DataGrid implements ILinkableObject
 	{
 		
-		public function CustomDataGrid(){
+		public function CustomDataGrid()
+		{
 			super();			
 		}
 		
@@ -97,7 +86,8 @@ package weave.ui
 		}
 		private var _filtersInvalid:Boolean = false;
 		
-		override protected function commitProperties():void{
+		override protected function commitProperties():void
+		{
 			if (_filtersInvalid)
 			{ 
 				_filtersInvalid = false;
@@ -115,12 +105,16 @@ package weave.ui
 		
 		//consequnce of change in --activateFilters-- through **commit properties** method
 		//fills --columnFilterFunctions--
-		protected function updateFilterFunctions():void{
+		protected function updateFilterFunctions():void
+		{
 			var cff:Array = [];
-			for each (var column:DataGridColumn in columns){
-				if (column is WeaveCustomDataGridColumn){
+			for each (var column:DataGridColumn in columns)
+			{
+				if (column is WeaveCustomDataGridColumn)
+				{
 					var mc:WeaveCustomDataGridColumn = WeaveCustomDataGridColumn(column);					
-					if (mc.filterComponent)	{
+					if (mc.filterComponent)
+					{
 						var filter:IFilterComponent = mc.filterComponent;
 						if(filter.isActive)
 							cff.push(filter.filterFunction);
@@ -138,17 +132,19 @@ package weave.ui
 		 * on each record filterFunctions are applied through 
 		 * **commitProperties** -> listcollectionview.refresh -> internalrefresh -> callAllfilterFunction through reference
 		 */		
-		protected function callAllFilterFunctions(obj:Object):Boolean
+		protected function callAllFilterFunctions(key:Object):Boolean
 		{
-			for each (var cff:Function in columnFilterFunctions){
-				if (!cff(obj))
+			for each (var cff:Function in columnFilterFunctions)
+			{
+				if (!cff(key))
 					return false;
 			}			
-			resultKeys.push(obj.key);		
+			resultKeys.push(key);		
 			return true;
 		}
 		//executes after iteration on callAllFilterFunctions by all the datagrid records
-		private function handleCollectionRefresh():void{			
+		private function handleCollectionRefresh():void
+		{			
 			var filteredKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			filteredKeySet.replaceKeys(resultKeys);			
 		}

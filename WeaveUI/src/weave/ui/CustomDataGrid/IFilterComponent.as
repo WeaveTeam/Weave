@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-package weave.ui.filterComponents
+package weave.ui.CustomDataGrid
 {
 	import mx.core.IUIComponent;
 	
