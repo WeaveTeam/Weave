@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="PlotLayerContainer,weave.visualization.layers.PlotLayerContainer,enableAutoZoomToExtent,enableFixedAspectRatio,fullDataBounds,includeNonSelectableLayersInAutoZoom,layers,marginBottom,marginBottomNumber,marginLeft,marginLeftNumber,marginRight,marginRightNumber,marginTop,marginTopNumber,maxZoomLevel,minScreenSize,minZoomLevel,overrideXMax,overrideXMin,overrideYMax,overrideYMin,zoomBounds,getKeysOverlappingGeometry,getZoomLevel,invalidateGraphics,setZoomLevel,updateDisplayList,updateFullDataBounds,updateZoom" name="keywords">
+<meta content="PlotLayerContainer,weave.visualization.layers.PlotLayerContainer,enableAutoZoomToExtent,enableFixedAspectRatio,fullDataBounds,includeNonSelectableLayersInAutoZoom,layers,marginBottom,marginBottomNumber,marginLeft,marginLeftNumber,marginRight,marginRightNumber,marginTop,marginTopNumber,maxZoomLevel,minScreenSize,minZoomLevel,overrideXMax,overrideXMin,overrideYMax,overrideYMin,zoomBounds,getKeysOverlappingGeometry,getMouseDataCoordinates,getZoomLevel,invalidateGraphics,setZoomLevel,updateDisplayList,updateFullDataBounds,updateZoom" name="keywords">
 <title>weave.visualization.layers.PlotLayerContainer</title>
 </head>
 <body>
@@ -72,7 +72,18 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#getKeysOverlappingGeometry()">getKeysOverlappingGeometry</a>(simpleGeometries:Array):Array</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This function will get all the unique keys that overlap each geometry specified by
+   simpleGeometries.</div>
+</td><td class="summaryTableOwnerCol">PlotLayerContainer</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getMouseDataCoordinates()">getMouseDataCoordinates</a>():Point</div>
+<div class="summaryTableDescription">
+   Get the <code>mouseX</code> and <code>mouseY</code> properties of the container
+   projected into data coordinates for the container.</div>
 </td><td class="summaryTableOwnerCol">PlotLayerContainer</td>
 </tr>
 <tr class="">
@@ -273,7 +284,10 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getKeysOverlappingGeometry(simpleGeometries:Array):Array</code><span class="label">Parameters</span>
+<code>public function getKeysOverlappingGeometry(simpleGeometries:Array):Array</code><p>
+   This function will get all the unique keys that overlap each geometry specified by
+   simpleGeometries. 
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">simpleGeometries</span>:Array</code></td>
@@ -283,7 +297,27 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Array</code></td>
+<td width="20"></td><td><code>Array</code> &mdash; An array of keys.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getMouseDataCoordinates()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getMouseDataCoordinates</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getMouseDataCoordinates():Point</code><p>
+   Get the <code>mouseX</code> and <code>mouseY</code> properties of the container
+   projected into data coordinates for the container. 
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Point</code> &mdash; The point containing the projected mouseX and mouseY.
+   </td>
 </tr>
 </table>
 </div>
