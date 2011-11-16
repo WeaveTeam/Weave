@@ -39,7 +39,8 @@
 			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
 		<mx:HBox minWidth="0" borderStyle="solid"  horizontalGap="0"  id="filterControls" width="100%" height="10%" verticalAlign="middle" horizontalScrollPolicy="off"/>
-		<CustomDataGrid:CustomDataGrid id="dataGrid"  
+		<CustomDataGrid:CustomDataGrid id="dataGrid"
+						scroll="handleDataGridScroll()"
 					 	horizontalScrollPolicy="auto"
 						verticalScrollPolicy="auto"
 						 dataProvider="{dataRowKeys}" 
@@ -752,6 +753,14 @@
 				}
 //				dataGrid.invalidateDisplayList();
 				dataGrid.validateSize(true);
+			}
+			private function handleDataGridScroll():void
+			{
+				var hsp:int = 0;
+				for (var i:int = 0; i < dataGrid.horizontalScrollPosition && i < _currentDataGridColumns.length; i++)
+					hsp += (_currentDataGridColumns[i] as WeaveCustomDataGridColumn).width;
+				filterControls.horizontalScrollPosition = hsp;
+				
 			}
 			private var _guiWidthChanged:Boolean = false; 
 			
