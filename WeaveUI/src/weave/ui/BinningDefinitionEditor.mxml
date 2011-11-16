@@ -25,19 +25,21 @@ BinningDefinitionEditor
 
 @sanbalagan
 -->
-<mx:VBox xmlns:ui ="weave.ui.*"
+<mx:HBox xmlns:ui ="weave.ui.*"
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 implements="weave.api.core.ILinkableObject"
 		 width="{NaN}" height="{NaN}"
 		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
 	<!-- NOTE: setting the panel's width and height to NaN will force it to resize to the children... -->
-		<mx:Button label="Edit Names" click="editNames()"/>
-		<mx:Label text="Binning Type:"/>
+		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
+				  paddingLeft="3" paddingRight="3" paddingBottom="3">
+			
+		<mx:Label fontWeight="bold" text="Binning Type:"/>
 		<mx:RadioButtonGroup id="typeGroup"/>
 		
-		<mx:HBox styleName="group-hbox-style" width="100%">
-			<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="200"/>
+		<mx:HBox styleName="group-hbox-style" width="50%">
+			<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="130"/>
 			<mx:HBox enabled="{simpleRadio.selected}">
 				<mx:Label text="Number of Bins:" width="120"/>
 				<mx:NumericStepper minimum="2" maximum="20" stepSize="1" id="numOfBins"/>
@@ -48,14 +50,14 @@ BinningDefinitionEditor
 		<mx:HRule width="100%"/>
 		
 		<mx:HBox styleName="group-hbox-style" width="100%">
-			<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="200"/>
-			<ui:CustomSplitBinningEditor id="csEditor" enabled="{ncRadio.selected}"/>
+			<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="130"/>
+			<ui:CustomSplitBinningEditor id="csEditor" enableComponent="{ncRadio.selected}" width="200"/>
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>
 		
 		<mx:HBox styleName="group-hbox-style" width="100%">
-			<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="200"/>
+			<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="130"/>
 			<mx:HBox enabled="{quantileRadio.selected}">
 				<mx:Label text="Reference Quantile:" width="120"/>
 				<mx:TextInput id="refQuantile" width="40"/>	
@@ -66,7 +68,7 @@ BinningDefinitionEditor
 		<mx:HRule width="100%"/>
 		
 		<mx:HBox styleName="group-hbox-style" width="100%">
-			<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="200"/>
+			<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="130"/>
 			<mx:HBox enabled="{equalIntervalRadio.selected}">
 				<mx:Label text="Data Interval:" width="120"/>				 
 				<mx:TextInput id="dataInterval" width="40"/>				
@@ -77,7 +79,7 @@ BinningDefinitionEditor
 		<mx:HRule width="100%"/>
 		
 		<mx:HBox styleName="group-hbox-style" width="100%">	
-			<mx:RadioButton id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="200"/>
+			<mx:RadioButton id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="130"/>
 			<mx:HBox enabled="{sdRadio.selected}">
 				<mx:Label text="SD Number:" width="120"/>				 
 				<mx:TextInput id="SD" width="40"/>
@@ -91,7 +93,12 @@ BinningDefinitionEditor
 			<mx:RadioButton id="catRadio" label="All categories (string values)" groupName="typeGroup" width="200"/>
 			<ui:HelpComponent helpText="One bin will be created for each unique string value in the column."/>
 		</mx:HBox>
-	
+		</mx:VBox>
+		<mx:VBox height="100%">
+			<mx:DataGrid width="100%" height="100%" minWidth="0" editable="{overrideNamesCheckBox.selected}" id="editor" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}"/>
+			<mx:CheckBox id="overrideNamesCheckBox" label="Edit and Override Names" change="handleOverrideCheckbox()"/>
+			<mx:Label fontSize="9" id="errorInNameLabel" color="red" visible="false" text="Name already exists. Please enter a unique name"/>
+		</mx:VBox>
 	<!--<mx:ControlBar>
 		<mx:Button label="Apply" click="saveSessionState()"/>
 	</mx:ControlBar>-->
@@ -99,7 +106,11 @@ BinningDefinitionEditor
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.Application;
 			import mx.core.IFlexDisplayObject;
+			import mx.events.DataGridEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
@@ -116,6 +127,8 @@ BinningDefinitionEditor
 			import weave.core.LinkableNumber;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.BinnedColumn;
+			import weave.data.BinClassifiers.BinClassifierCollection;
+			import weave.data.BinningDefinitions.AbstractBinningDefinition;
 			import weave.data.BinningDefinitions.CategoryBinningDefinition;
 			import weave.data.BinningDefinitions.CustomSplitBinningDefinition;
 			import weave.data.BinningDefinitions.DynamicBinningDefinition;
@@ -124,6 +137,7 @@ BinningDefinitionEditor
 			import weave.data.BinningDefinitions.QuantileBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
+			import weave.data.CSVParser;
 			import weave.utils.EventUtils;
 			
 			/**make UI to access this for things using a binned column**/
@@ -138,6 +152,16 @@ BinningDefinitionEditor
 				var delayedCallback:Function = EventUtils.generateDelayedCallback(saveSessionState, []);
 				for each (var obj:IEventDispatcher in [numOfBins, csEditor.splitValues, refQuantile, dataInterval, SD, typeGroup])
 					obj.addEventListener(Event.CHANGE, delayedCallback);
+					
+				var cols:Array = []
+				
+				var col:DataGridColumn = new DataGridColumn("Bin Name");
+				col.dataField = "binName";
+				cols.push(col);
+				
+				editor.columns = cols;
+				
+				(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.addGroupedCallback(this,handleOverrideBinNamesChange,true);
 			}
 			
 			
@@ -187,7 +211,16 @@ BinningDefinitionEditor
 					typeGroup.selection = catRadio;
 				}
 				
-			
+				var bins:BinClassifierCollection =  binnedColumn.derivedBins;
+				
+				var names:Array = bins.getNames();
+				
+				gridSource.removeAll();
+				for (var i:int = 0; i <names.length; i++)
+				{
+					var rowObj:Object = {binName:names[i]};
+					gridSource.addItem(rowObj);
+				}
 			}
 			
 			public function saveSessionState():void
@@ -223,19 +256,64 @@ BinningDefinitionEditor
 				binnedColumn.resumeCallbacks();
 			}
 			
-			private function editNames():void
+			private function handleOverrideBinNamesChange():void
 			{
-				var binNameseditor:BinNamesEditor = new BinNamesEditor();
+				if((binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value)
+					overrideNamesCheckBox.selected = true;
+				else
+					overrideNamesCheckBox.selected = false;
+			}
+			
+			private function handleOverrideCheckbox():void
+			{
+				if(overrideNamesCheckBox.selected)
+				{
+				}else
+				{
+					(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value = '';
+				}
+			}
+			
+			
+			
+			[Bindable]
+			private var gridSource:ArrayCollection = new ArrayCollection();
+			
+			
+			private var csvParser:CSVParser = new CSVParser();
+			private function handleItemEdited(event:DataGridEvent):void
+			{
+				var source:Array = gridSource.source;
+				var names:Array = [];
 				
-				//TODO:check if this right way to do!
-				linkSessionState(binNameseditor.binnedColumn,binnedColumn);
+				if((editor.itemEditorInstance as TextInput).text == event.itemRenderer.data.binName as String)
+				{
+					return;
+				}
 				
-				PopUpManager.addPopUp(binNameseditor as IFlexDisplayObject,this);
+				if(binnedColumn.derivedBins.getObject((editor.itemEditorInstance as TextInput).text))
+				{
+					errorInNameLabel.visible = true;
+					event.preventDefault();
+					return;
+				}
 				
-				binNameseditor.sendWindowToForeground();
+				errorInNameLabel.visible = false;
+				
+				for(var i:int = 0; i < source.length; i++)
+				{
+					if(event.rowIndex == i)
+					{
+						names.push((editor.itemEditorInstance as TextInput).text);
+					}
+					else
+						names.push((source[i] as Object).binName);
+				}
+				
+				(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value = names.toString();
 			}
 		]]>
 	</mx:Script>
 	
 
-	</mx:VBox>
+	</mx:HBox>

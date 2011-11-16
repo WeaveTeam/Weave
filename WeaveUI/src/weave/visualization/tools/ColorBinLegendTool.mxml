@@ -199,7 +199,7 @@
 	<ui:ControlPanel>
 		<mx:VBox label="Visualization Controls">
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
-			<ui:BinningDefinitionEditor id="binEditor"/>
+			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
