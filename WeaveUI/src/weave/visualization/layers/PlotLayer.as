@@ -26,6 +26,7 @@ package weave.visualization.layers
 	import mx.core.UIComponent;
 	import mx.utils.NameUtil;
 	
+	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IQualifiedKey;
@@ -86,6 +87,7 @@ package weave.visualization.layers
 				_dynamicPlotter.spatialCallbacks.addImmediateCallback(this, invalidateSpatialIndex);
 			
 			//_filteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+			_dynamicPlotter.keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 			
 			_filteredKeys.setBaseKeySet(_dynamicPlotter.keySet);
 			isOverlay.value = false;

@@ -70,7 +70,7 @@ A text editor to change the Session State on the fly.
 						<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
 									 selected="true"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button id="showConsole" label="Show console" toggle="true" selected="{console.height > 0}" click="console.percentHeight = showConsole.selected ? 100 : 0"/>
+						<mx:Button id="showConsole" label="Show console" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
 					</mx:HBox>
 				</mx:VBox>
 			</mx:HDividedBox>
@@ -763,6 +763,19 @@ A text editor to change the Session State on the fly.
 					askToSave(saveAndClosePanel, super.removePanel);
 				else
 					super.removePanel();
+			}
+			
+			private function toggleShowConsole():void
+			{
+				if (showConsole.selected)
+				{
+					console.percentHeight = 100;
+					console.input.setFocus();
+				}
+				else
+				{
+					console.percentHeight = 0;
+				}
 			}
 			
 			private static var _instance:SessionStateEditor;
