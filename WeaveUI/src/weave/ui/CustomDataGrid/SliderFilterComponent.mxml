@@ -19,22 +19,19 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Box  xmlns:mx="http://www.adobe.com/2006/mxml"  implements="weave.ui.filterComponents.IFilterComponent"
+<mx:Box  xmlns:mx="http://www.adobe.com/2006/mxml"  implements="weave.ui.CustomDataGrid.IFilterComponent"
 		 verticalScrollPolicy="off" horizontalScrollPolicy="off"  >
 	
 	<mx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
-			import mx.events.SliderEvent;
 			
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableNumber;
-			import weave.ui.CustomDataGrid;
-			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
 			import weave.utils.EventUtils;
 			
 			
@@ -79,17 +76,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			public var dataMaximum:Number; 
 			
-			public const minimum:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleFilterPropertyChange);
-			public const maximum:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleFilterPropertyChange);
-			
-			
-			protected function handleFilterPropertyChange():void{
-
-				if(column){
-					var customDG:CustomDataGrid = column.mx_internal::owner as CustomDataGrid;
-					customDG.activateFilters.value = true;//will call **commitProperties**  of dataGrid through **invalidateProperties** for the change in Filter - Property value											
-				}
-			}
+			public const minimum:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
+			public const maximum:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
 			
 			//range value nor getting stored in session need to find why?s
 			public function get isActive():Boolean{
@@ -99,8 +87,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			private var attrCol:IAttributeColumn = null;
-			public function filterFunction(obj:Object):Boolean	{
-				var value:Number =attrCol.getValueFromKey(obj.key,Number);
+			public function filterFunction(key:Object):Boolean	{
+				var value:Number = attrCol.getValueFromKey(key as IQualifiedKey, Number);
 				var min:Number = minimum.value;
 				var max:Number = maximum.value;
 				if (!isNaN(value))

@@ -25,6 +25,8 @@ package weave.core
 	import flash.utils.describeType;
 	
 	import mx.controls.SWFLoader;
+	import mx.core.ClassFactory;
+	import mx.core.mx_internal;
 
 	/**
 	 * ClassUtils
@@ -178,6 +180,17 @@ package weave.core
 			return true; // successfully cached
 		}
 		
+		/**
+		 * Returns a new instance of a class.
+		 * 
+		 * @param classQName The qualified name of the class.
+		 * @return A new instance of the class.
+		 */		
+		public static function getNewInstance(classQName:String):Object
+		{
+			var classDef:Class = getClassDefinition(classQName);
+			return new classDef();
+		}
 		/*
 		private function typeEquals(o:*, cls:Class):Boolean
 		{

@@ -128,7 +128,7 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			var bins:Array = binnedColumn.derivedBins.getObjects();
+			var bins:Array = binnedColumn.getDerivedBins().getObjects();
 			numBins = bins.length;
 			var maxCols:int = maxColumns.value;
 			if (maxCols <= 0)
@@ -208,7 +208,7 @@ package weave.visualization.plotters
 			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(getInternalColorColumn().internalDynamicColumn);
 			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(getInternalColorColumn().internalDynamicColumn);
 			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
-			var binCount:int = binnedColumn.derivedBins.getObjects().length;
+			var binCount:int = binnedColumn.getDerivedBins().getObjects().length;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
 				// if _drawBackground is set, we should draw the bins that have no records in them.

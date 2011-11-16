@@ -20,33 +20,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 package weave.utils
 {
 	import flash.geom.Point;
-	import flash.ui.KeyLocation;
 	import flash.utils.Dictionary;
-	import flash.utils.clearTimeout;
 	
 	import weave.Weave;
-	import weave.WeaveProperties;
-	import weave.api.WeaveAPI;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
-	import weave.api.linkBindableProperty;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.CallbackCollection;
-	import weave.core.LinkableBoolean;
-	import weave.data.AttributeColumns.GeometryColumn;
-	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.KDTree;
 	import weave.primitives.SimpleGeometry;
-	import weave.ui.probing.WeaveProbeTemplate;
 	import weave.visualization.plotters.DynamicPlotter;
-	import weave.visualization.plotters.GeometryPlotter;
 	
 	/**
 	 * This class provides an interface to a collection of spatially indexed IShape objects.

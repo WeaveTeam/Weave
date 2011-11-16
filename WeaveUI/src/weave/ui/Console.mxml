@@ -49,6 +49,7 @@
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.core.ExternalSessionStateInterface;
+			import weave.core.StageUtils;
 			import weave.core.weave_internal;
 			use namespace weave_internal;
 			use namespace mx_internal;
@@ -111,9 +112,12 @@
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
 			}
-			private function consoleClear():void
+			private function consoleClear(now:Boolean = false):void
 			{
-				log.text = '';
+				if (now)
+					log.text = '';
+				else
+					StageUtils.callLater(this, consoleClear, [true], false);
 			}
 			
 			private const symbolTable:Object = {

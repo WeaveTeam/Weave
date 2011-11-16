@@ -21,10 +21,8 @@ package weave.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.events.TimerEvent;
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
-	import flash.utils.Timer;
 	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
@@ -33,9 +31,7 @@ package weave.core
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
-	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableCompositeObject;
@@ -626,6 +622,40 @@ package weave.core
 			}
 			return objectCC;
 		}
+
+		/**
+		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
+		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
+		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
+		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
+		 * parameters.
+		 * @param observer The object that is observing the change.
+		 * @param linkableObject The object that is being observed.
+		 * @param clearChangedNow If this is true, the trigger counter will be reset to the current value now so that this function will
+		 *        return false if called again with the same parameters before the next time the linkable object triggers its callbacks.
+		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
+		 */
+		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
+		{
+			if (!_triggerCounterMap[observer])
+				_triggerCounterMap[observer] = new Dictionary(true);
+			
+			var previousCount:uint = uint(_triggerCounterMap[observer][linkableObject]); // will be zero if undefined
+			var newCount:uint = getCallbackCollection(linkableObject).triggerCounter;
+			if (previousCount != newCount)
+			{
+				if (clearChangedNow)
+					_triggerCounterMap[observer][linkableObject] = newCount;
+				return true;
+			}
+			return false;
+		}
+		
+		/**
+		 * This is a two-dimensional dictionary, where _triggerCounterMap[observer][linkableObject]
+		 * equals the previous triggerCounter value from linkableObject observed by the observer.
+		 */		
+		private const _triggerCounterMap:Dictionary = new Dictionary(true);
 
 		/**
 		 * This function checks if an object has been disposed of by SessionManager.

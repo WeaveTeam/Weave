@@ -25,7 +25,6 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*"
 			label="Import SQL tables to Weave"
-			width="640" height="300"
 			>
 	<mx:VBox width="100%" height="100%">
 		<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
@@ -40,7 +39,8 @@
 				<ui:CustomComboBox id="keyColumnComboBox" prompt="Select a column..." dataProvider="{tableSelector.columns}" toolTip="{Strings.SELECT_KEY_COLUMN_TIP}" creationComplete="initCombo(event)"/>
 			</ui:Indent>
 			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
-				<ui:Indent indent="{tableSelector.indent}">
+				<mx:Label text="What do these keys correspond to?"/>
+				<ui:Indent>
 					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{tableSelector.activeTable}"/>
 				</ui:Indent>
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>

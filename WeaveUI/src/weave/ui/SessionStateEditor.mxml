@@ -70,7 +70,7 @@ A text editor to change the Session State on the fly.
 						<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
 									 selected="true"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button id="showConsole" label="Show console" toggle="true" selected="{console.height > 0}" click="console.percentHeight = showConsole.selected ? 50 : 0"/>
+						<mx:Button id="showConsole" label="Show console" toggle="true" selected="{console.height > 0}" click="console.percentHeight = showConsole.selected ? 100 : 0"/>
 					</mx:HBox>
 				</mx:VBox>
 			</mx:HDividedBox>
@@ -783,7 +783,7 @@ A text editor to change the Session State on the fly.
 					rootObject = Weave.root;
 				
 				defaultEditor.sessionNav.rootObject = rootObject;
-				//defaultEditor.refresh();
+				defaultEditor.refresh();
 				defaultEditor.restorePanel();
 			}
 		]]>

@@ -25,7 +25,6 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*" 
 			label="Import shape data"
-			width="640" height="300"
 			creationComplete="handleCreationComplete()"
 			>
 	<mx:VBox width="100%" height="100%">

@@ -47,8 +47,6 @@
 			public function set text(value:String):void
 			{
 				_tooltipText = value;
-				
-				showComplexProbeData(XML(value));
 			}
 			public function get text():String
 			{
@@ -69,21 +67,6 @@
 			protected var flipHorizontal:Boolean = false; 
 			protected var flipVertical:Boolean = false;  
 			
-			protected var displayClass:IProbeDisplay = new WeaveProbeTemplate();
-			    
-		    private function showComplexProbeData(data:XML):void
-		    {
-		    	removeAllChildren();
-		    	addChild(displayClass.createFromComplexProbeData(data) );
-		    }
-		    private function showSimpleProbeData(xPosition:int, yPosition:int, data:String):void
-		    {		    	
-		    	removeAllChildren();
-		    	addChild(displayClass.createFromSimpleProbeData(data) );
-		    }
-		   
-
-		    
 		    protected var arrowThickness:int = 15;
 		    protected var cornerRadius:int = 15;
 		    protected var xOffset:int = 30;

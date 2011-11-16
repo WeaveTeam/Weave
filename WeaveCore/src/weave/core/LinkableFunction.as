@@ -81,7 +81,7 @@ package weave.core
 			{
 				if (_macroProxy == null)
 					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null); // allows evaluating macros but not setting them
-				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors, _useThisScope, _paramNames);
+				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors || debugMode, _useThisScope, _paramNames);
 			}
 			return _compiledMethod.apply(thisArg, argArray);
 		}
@@ -181,6 +181,11 @@ package weave.core
 			}
 			return compiler;
 		}
+
+		/**
+		 * Debug mode. 
+		 */		
+		public static var debugMode:Boolean = false;
 		
 //		/**
 //		 * This function returns a new compiler initialized with the libraries specified by the public static libraries variable.

@@ -28,7 +28,6 @@ package weave.visualization.layers
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
-	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
 	import mx.core.Application;
@@ -36,13 +35,11 @@ package weave.visualization.layers
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotLayer;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.core.LinkableString;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
@@ -149,7 +146,7 @@ package weave.visualization.layers
 		protected const mouseDragStageCoords:IBounds2D = new Bounds2D();
 		
 
-		private var _mouseMode:String = null;
+		protected var _mouseMode:String = null;
 		
 		private function isModeSelection(mode:String):Boolean
 		{
@@ -303,8 +300,8 @@ package weave.visualization.layers
 		
 		protected var mouseIsRolledOver:Boolean = false; // start this at false because we don't want tools probing when mouse is not rolled over
 		
-		private var _tempBounds:IBounds2D = new Bounds2D();
-		private var _screenBounds:IBounds2D = new Bounds2D();
+		private const _tempBounds:IBounds2D = new Bounds2D();
+		private const _screenBounds:IBounds2D = new Bounds2D();
 		protected function handleMouseWheel(event:MouseEvent):void
 		{
 			if (Weave.properties.enableMouseWheel.value)

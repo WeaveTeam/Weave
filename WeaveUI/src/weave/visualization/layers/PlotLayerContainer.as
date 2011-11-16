@@ -19,42 +19,33 @@
 
 package weave.visualization.layers
 {
-	import flash.events.Event;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
-	import mx.events.ResizeEvent;
-	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
-	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
-	import weave.api.ui.IPlotterWithGeometries;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.core.StageUtils;
 	import weave.core.UIUtils;
 	import weave.primitives.Bounds2D;
-	import weave.primitives.LinkableBounds2D;
 	import weave.primitives.ZoomBounds;
 	import weave.utils.NumberUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
-	import weave.visualization.plotters.DynamicPlotter;
 
 	/**
 	 * This is a container for a list of PlotLayers
@@ -322,6 +313,12 @@ package weave.visualization.layers
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 		
+		/**
+		 * This function will get all the unique keys that overlap each geometry specified by
+		 * simpleGeometries. 
+		 * @param simpleGeometries
+		 * @return An array of keys.
+		 */		
 		public function getKeysOverlappingGeometry(simpleGeometries:Array):Array
 		{
 			var container:PlotLayerContainer = owner as PlotLayerContainer;
@@ -351,6 +348,22 @@ package weave.visualization.layers
 				result.push(keyObj as IQualifiedKey);
 			
 			return result;
+		}
+
+		/**
+		 * Get the <code>mouseX</code> and <code>mouseY</code> properties of the container
+		 * projected into data coordinates for the container. 
+		 * @return The point containing the projected mouseX and mouseY.
+		 */		
+		public function getMouseDataCoordinates():Point
+		{
+			tempPoint.x = mouseX;
+			tempPoint.y = mouseY;
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			zoomBounds.getDataBounds(tempDataBounds);
+			tempScreenBounds.projectPointTo(tempPoint, tempDataBounds);
+			
+			return tempPoint;
 		}
 		
 		// these variables are used to detect a change in size
