@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:HBox  width="100%" horizontalAlign="center" verticalAlign="middle">												
-		<mx:VBox borderStyle="solid" verticalGap="0" 
-				 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*">									
+	<mx:VBox width="100%">
+		<ui:DynamicColumnComponent id="geometryComponent" label="Geometry"/> 	
+	</mx:VBox>
+	<mx:VBox borderStyle="solid" verticalGap="0" 
+				paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 			<mx:CheckBox id="fillEnabled" label="Enable Fill Color" fontWeight="bold"
 						 toolTip="Check this box to enable the color used inside each shape.  &#13;This would typically be unchecked if the shapes are to be used for borders only, such as overlaying state borders over colored in municipalities."
 						 creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')"/>
@@ -85,7 +87,6 @@
 			<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
 			<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 		</mx:VBox>
-	</mx:HBox>
 	
 	
 	<mx:Script>
@@ -154,6 +155,11 @@
 				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
 				if (adc)
 					imageURL.text = adc.defaultValue.value as String;
+			}
+			
+			private function linkGeometryProperties():void
+			{
+				geometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
 			}
 			
 		]]>

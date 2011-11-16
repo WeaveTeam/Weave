@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" label="Geometry Labels" 
+		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*">
 	<mx:VBox width="100%">
 		<ui:DynamicColumnComponent id="labelComponent" label="Label"/> 
 		<ui:DynamicColumnComponent id="geometryComponent" label="Geometry"/> 
@@ -24,7 +25,17 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.ui.IPlotLayer;
+			import weave.api.ui.IPlotter;
+			import weave.api.unlinkBindableProperty;
+			import weave.ui.PlotLayerEditor;
+			import weave.utils.ColumnUtils;
+			import weave.utils.EditorManager;
+			import weave.visualization.layers.PlotLayer;
+			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			
 			private var _plotter:GeometryLabelPlotter = null;
@@ -42,7 +53,52 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				linkGeometryProperties();
 			}
+			
+			override public function set data(value:Object):void
+			{
+				
+				if (value == data)
+					return;
+				if (data is SelectablePlotLayer)
+				{
+					unlinkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
+					unlinkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
+				}
+				// unlink the edit controls
+				unlinkGeometryProperties();
+				
+				// save pointer to new layer
+				super.data = value;
+				
+				if (data is SelectablePlotLayer)
+				{
+					linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
+					linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
+				}
+				
+				// link the edit controls	
+				callLater(linkGeometryProperties, [data]);
+				
+			}
+			
+			private function linkGeometryProperties():void
+			{
+				labelComponent.dynamicObject = _plotter.text;
+				geometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
+			}
+			
+			
+			private function unlinkGeometryProperties():void
+			{
+				if (!data)
+					return;
+				
+				labelComponent.dynamicObject = null;
+				geometryComponent.dynamicObject = null;
+			}
+			
 		]]>
 	</mx:Script>
 		
