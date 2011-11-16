@@ -211,7 +211,7 @@ BinningDefinitionEditor
 					typeGroup.selection = catRadio;
 				}
 				
-				var bins:BinClassifierCollection =  binnedColumn.derivedBins;
+				var bins:BinClassifierCollection =  binnedColumn.getDerivedBins();
 				
 				var names:Array = bins.getNames();
 				
@@ -286,12 +286,12 @@ BinningDefinitionEditor
 				var source:Array = gridSource.source;
 				var names:Array = [];
 				
-				if((editor.itemEditorInstance as TextInput).text == event.itemRenderer.data.binName as String)
+				if ((editor.itemEditorInstance as TextInput).text == event.itemRenderer.data.binName as String)
 				{
 					return;
 				}
 				
-				if(binnedColumn.derivedBins.getObject((editor.itemEditorInstance as TextInput).text))
+				if (binnedColumn.getDerivedBins().getObject((editor.itemEditorInstance as TextInput).text))
 				{
 					errorInNameLabel.visible = true;
 					event.preventDefault();

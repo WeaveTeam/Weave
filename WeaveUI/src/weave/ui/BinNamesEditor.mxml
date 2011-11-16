@@ -56,13 +56,13 @@ BinNamesEditor
 				
 			}
 			
-			private var gridSource:ArrayCollection = new ArrayCollection();
+			private const gridSource:ArrayCollection = new ArrayCollection();
 			
 			public const binnedColumn:BinnedColumn = registerLinkableChild(this,new BinnedColumn(),handleBinnedColumnChange);
 			
 			private function handleBinnedColumnChange():void
 			{
-				var bins:BinClassifierCollection =  binnedColumn.derivedBins;
+				var bins:BinClassifierCollection =  binnedColumn.getDerivedBins();
 				
 				var names:Array = bins.getNames();
 				
