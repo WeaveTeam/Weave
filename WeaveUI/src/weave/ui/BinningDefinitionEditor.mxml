@@ -35,64 +35,64 @@ BinningDefinitionEditor
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
 				  paddingLeft="3" paddingRight="3" paddingBottom="3">
 			
-		<mx:Label fontWeight="bold" text="Binning Type:"/>
-		<mx:RadioButtonGroup id="typeGroup"/>
-		
-		<mx:HBox styleName="group-hbox-style" width="50%">
-			<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="130"/>
-			<mx:HBox enabled="{simpleRadio.selected}">
-				<mx:Label text="Number of Bins:" width="120"/>
-				<mx:NumericStepper minimum="2" maximum="20" stepSize="1" id="numOfBins"/>
+			<mx:Label fontWeight="bold" text="Binning Type:"/>
+			<mx:RadioButtonGroup id="typeGroup"/>
+			
+			<mx:HBox styleName="group-hbox-style" width="50%">
+				<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="130"/>
+				<mx:HBox enabled="{simpleRadio.selected}">
+					<mx:Label text="Number of Bins:" width="120"/>
+					<mx:NumericStepper minimum="2" maximum="20" stepSize="1" id="numOfBins"/>
+				</mx:HBox>
+				<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>
-			<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
-		</mx:HBox>
-		
-		<mx:HRule width="100%"/>
-		
-		<mx:HBox styleName="group-hbox-style" width="100%">
-			<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="130"/>
-			<ui:CustomSplitBinningEditor id="csEditor" enableComponent="{ncRadio.selected}" width="200"/>
-		</mx:HBox>
-		
-		<mx:HRule width="100%"/>
-		
-		<mx:HBox styleName="group-hbox-style" width="100%">
-			<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="130"/>
-			<mx:HBox enabled="{quantileRadio.selected}">
-				<mx:Label text="Reference Quantile:" width="120"/>
-				<mx:TextInput id="refQuantile" width="40"/>	
+			
+			<mx:HRule width="100%"/>
+			
+			<mx:HBox styleName="group-hbox-style" width="100%">
+				<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="130"/>
+				<ui:CustomSplitBinningEditor id="csEditor" enableComponent="{ncRadio.selected}" width="200"/>
 			</mx:HBox>
-			<ui:HelpComponent helpText="Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order"/>
-		</mx:HBox>
-		
-		<mx:HRule width="100%"/>
-		
-		<mx:HBox styleName="group-hbox-style" width="100%">
-			<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="130"/>
-			<mx:HBox enabled="{equalIntervalRadio.selected}">
-				<mx:Label text="Data Interval:" width="120"/>				 
-				<mx:TextInput id="dataInterval" width="40"/>				
-			</mx:HBox>	
-			<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
-		</mx:HBox>
-		
-		<mx:HRule width="100%"/>
-		
-		<mx:HBox styleName="group-hbox-style" width="100%">	
-			<mx:RadioButton id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="130"/>
-			<mx:HBox enabled="{sdRadio.selected}">
-				<mx:Label text="SD Number:" width="120"/>				 
-				<mx:TextInput id="SD" width="40"/>
+			
+			<mx:HRule width="100%"/>
+			
+			<mx:HBox styleName="group-hbox-style" width="100%">
+				<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="130"/>
+				<mx:HBox enabled="{quantileRadio.selected}">
+					<mx:Label text="Reference Quantile:" width="120"/>
+					<mx:TextInput id="refQuantile" width="40"/>	
+				</mx:HBox>
+				<ui:HelpComponent helpText="Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order"/>
 			</mx:HBox>
-			<ui:HelpComponent helpText="One bin will be created for each standard deviation above and below the mean value.  Specifying 'SD Number' as 3 will create 6 bins."/>
-		</mx:HBox>
-	
-		<mx:HRule width="100%"/>
+			
+			<mx:HRule width="100%"/>
+			
+			<mx:HBox styleName="group-hbox-style" width="100%">
+				<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="130"/>
+				<mx:HBox enabled="{equalIntervalRadio.selected}">
+					<mx:Label text="Data Interval:" width="120"/>				 
+					<mx:TextInput id="dataInterval" width="40"/>				
+				</mx:HBox>	
+				<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
+			</mx:HBox>
+			
+			<mx:HRule width="100%"/>
+			
+			<mx:HBox styleName="group-hbox-style" width="100%">	
+				<mx:RadioButton id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="130"/>
+				<mx:HBox enabled="{sdRadio.selected}">
+					<mx:Label text="SD Number:" width="120"/>				 
+					<mx:TextInput id="SD" width="40"/>
+				</mx:HBox>
+				<ui:HelpComponent helpText="One bin will be created for each standard deviation above and below the mean value.  Specifying 'SD Number' as 3 will create 6 bins."/>
+			</mx:HBox>
 		
-		<mx:HBox styleName="group-hbox-style" width="100%">	
-			<mx:RadioButton id="catRadio" label="All categories (string values)" groupName="typeGroup" width="200"/>
-			<ui:HelpComponent helpText="One bin will be created for each unique string value in the column."/>
-		</mx:HBox>
+			<mx:HRule width="100%"/>
+			
+			<mx:HBox styleName="group-hbox-style" width="100%">	
+				<mx:RadioButton id="catRadio" label="All categories (string values)" groupName="typeGroup" width="200"/>
+				<ui:HelpComponent helpText="One bin will be created for each unique string value in the column."/>
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox height="100%">
 			<mx:DataGrid width="100%" height="100%" minWidth="0" editable="{overrideNamesCheckBox.selected}" id="editor" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}"/>
