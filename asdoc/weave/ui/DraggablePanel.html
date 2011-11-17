@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="DraggablePanel,weave.ui.DraggablePanel,BOOMERANG_MINIMIZE_EFFECT,CIRCULAR_MINIMIZE_EFFECT,LINEAR_MINIMIZE_EFFECT,RESIZE_CLICK,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,effectInProgress,enableBorders,forceEnableBorders,helpButton,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimizeEffectMode,minimized,minimizedComponentVersion,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelTitle,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showCloseDialog,showRollOverBorders,userControlButton,controlPanel,helpPanel,percentHeight,percentWidth,percentX,percentY,x,y,commitProperties,constructor,createChildren,dispose,getStyle,getTotalIconAreaWidth,handleMinimizeButtonClick,handlePanelTitleChange,layoutChrome,minimizePanel,minimizeToTaskbar,move,onTweenEnd,onTweenUpdate,preinitialize,removePanel,resourcesChanged,restoreFromTaskbar,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleHelpPanel,toggleMaximized,togglePinned,togglePinnedToBack,trace,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
+<meta content="DraggablePanel,weave.ui.DraggablePanel,BOOMERANG_MINIMIZE_EFFECT,CIRCULAR_MINIMIZE_EFFECT,LINEAR_MINIMIZE_EFFECT,RESIZE_CLICK,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,effectInProgress,enableBorders,forceEnableBorders,helpButton,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimizeEffectMode,minimized,minimizedComponentVersion,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelTitle,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showCloseDialog,showRollOverBorders,userControlButton,activePanelName,controlPanel,helpPanel,percentHeight,percentWidth,percentX,percentY,x,y,commitProperties,constructor,createChildren,dispose,getStyle,getTotalIconAreaWidth,handleMinimizeButtonClick,handlePanelTitleChange,layoutChrome,minimizePanel,minimizeToTaskbar,move,onTweenEnd,onTweenUpdate,preinitialize,removePanel,resourcesChanged,restoreFromTaskbar,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleHelpPanel,toggleMaximized,togglePinned,togglePinnedToBack,trace,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
 <title>weave.ui.DraggablePanel</title>
 </head>
 <body>
@@ -61,6 +61,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#activePanel">activePanel</a> : <a href="../ui/DraggablePanel.html">DraggablePanel</a> = null<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#activePanelName">activePanelName</a> : String<div class="summaryTableDescription">[static][read-only]</div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
 </tr>
 <tr class="">
@@ -558,6 +562,18 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static var activePanel:<a href="../ui/DraggablePanel.html">DraggablePanel</a> = null</code>
+</div>
+<a name="activePanelName"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">activePanelName</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>activePanelName:String</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get activePanelName():String</code>
+<br>
 </div>
 <a name="controlBarWidthBeforeScale"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
