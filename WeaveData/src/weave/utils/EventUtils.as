@@ -26,12 +26,6 @@ package weave.utils
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
-	import mx.core.UIComponent;
-	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableVariable;
-	import weave.api.getCallbackCollection;
-	import weave.core.SessionManager;
 	
 	/**
 	 * Static functions related to event callbacks.

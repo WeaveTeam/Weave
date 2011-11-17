@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import weave.api.core.ICallbackInterface;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
@@ -50,7 +51,6 @@ package weave.visualization.plotters
 		{
 			super(IPlotter);
 			addImmediateCallback(this, handleInternalObjectChange);
-			_spatialCallbacks.addImmediateCallback(this, handleSpatialCallbacks);
 		}
 
 		private var _internalPlotter:IPlotter = null; // The previous internal plotter
@@ -123,14 +123,6 @@ package weave.visualization.plotters
 		}
 		
 		/**
-		 * This function gets called when spatial callbacks trigger.
-		 */		
-		private function handleSpatialCallbacks():void
-		{
-			currentBackgroundDataBounds = null;
-		}
-
-		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param recordKey The key of a data record.
 		 * @param outputDataBounds A Bounds2D object to store the result in.
@@ -176,10 +168,10 @@ package weave.visualization.plotters
 			// test code
 			if (Weave.properties.debugScreenBounds.value)
 			{
-				screenBounds.getRectangle(tempRect);
-				destination.fillRect(tempRect, 0xCC000000 | (Math.random() * 0xFFFFFF));
-				tempRect.inflate(-1, -1);
-				destination.fillRect(tempRect, 0x00000000);
+				screenBounds.getRectangle(_tempRect);
+				destination.fillRect(_tempRect, 0xCC000000 | (Math.random() * 0xFFFFFF));
+				_tempRect.inflate(-1, -1);
+				destination.fillRect(_tempRect, 0x00000000);
 			}
 			// end test code
 			
@@ -195,17 +187,16 @@ package weave.visualization.plotters
 		{
 			if (internalObject is IPlotter)
 			{
-				if (currentBackgroundDataBounds == null)
-					currentBackgroundDataBounds = (internalObject as IPlotter).getBackgroundDataBounds();
-				return currentBackgroundDataBounds;
+				if (detectLinkableObjectChange(_currentBackgroundDataBounds, _spatialCallbacks))
+					_currentBackgroundDataBounds.copyFrom((internalObject as IPlotter).getBackgroundDataBounds());
+				return _currentBackgroundDataBounds;
 			}
 			else
-				return undefinedBounds; // if no internal plotter, return an undefined data bounds
+				return _undefinedBounds; // if no internal plotter, return an undefined data bounds
 		}
 		
-		private var currentBackgroundDataBounds:IBounds2D = null;
-		private const undefinedBounds:IBounds2D = new Bounds2D();
-		
-		private const tempRect:Rectangle = new Rectangle();
+		private const _currentBackgroundDataBounds:IBounds2D = new Bounds2D();
+		private const _undefinedBounds:IBounds2D = new Bounds2D();
+		private const _tempRect:Rectangle = new Rectangle();
 	}
 }

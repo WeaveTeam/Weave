@@ -232,6 +232,7 @@
 			
 			public function refresh(selectedObject:ILinkableObject = null):void
 			{
+				var vsp:int = verticalScrollPosition;
 				if (selectedObject == null)
 					selectedObject = (selectedItem && selectedItem.object) as ILinkableObject;
 				
@@ -249,6 +250,7 @@
 				if (selectedIndex >= 0)
 					scrollToIndex(selectedIndex);
 				expandItem(rootItem, true);
+				verticalScrollPosition = vsp;
 			}
 			
 			// TODO: make this function iterative (breadth first search) to improve performance

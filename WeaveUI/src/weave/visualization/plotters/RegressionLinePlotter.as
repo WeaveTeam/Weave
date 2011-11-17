@@ -113,7 +113,7 @@ package weave.visualization.plotters
 				RresultArray.push(rResult);				
 			}
 			
-			if(RresultArray.length > 1)
+			if (RresultArray.length > 1)
 			{
 				intercept = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
 				slope = Number((RresultArray[1] as RResult).value);

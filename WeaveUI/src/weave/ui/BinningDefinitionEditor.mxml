@@ -28,12 +28,12 @@ BinningDefinitionEditor
 <mx:HBox xmlns:ui ="weave.ui.*"
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
+		 width="100%"
 		 implements="weave.api.core.ILinkableObject"
-		 width="{NaN}" height="{NaN}"
 		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
 	<!-- NOTE: setting the panel's width and height to NaN will force it to resize to the children... -->
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
-				  paddingLeft="3" paddingRight="3" paddingBottom="3">
+				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
 			
 			<mx:Label fontWeight="bold" text="Binning Type:"/>
 			<mx:RadioButtonGroup id="typeGroup"/>
@@ -94,10 +94,9 @@ BinningDefinitionEditor
 				<ui:HelpComponent helpText="One bin will be created for each unique string value in the column."/>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox height="100%">
-			<mx:DataGrid width="100%" height="100%" minWidth="0" editable="{overrideNamesCheckBox.selected}" id="editor" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}"/>
+		<mx:VBox width="100%" height="100%">
+			<mx:DataGrid sortableColumns="false" width="100%" height="100%" minWidth="0" editable="{overrideNamesCheckBox.selected}" id="editor" itemFocusOut="handleItemEdited(event)" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}"/>
 			<mx:CheckBox id="overrideNamesCheckBox" label="Edit and Override Names" change="handleOverrideCheckbox()"/>
-			<mx:Label fontSize="9" id="errorInNameLabel" color="red" visible="false" text="Name already exists. Please enter a unique name"/>
 		</mx:VBox>
 	<!--<mx:ControlBar>
 		<mx:Button label="Apply" click="saveSessionState()"/>
@@ -105,8 +104,13 @@ BinningDefinitionEditor
 	
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.clearInterval;
+			import flash.utils.setInterval;
+			import flash.utils.setTimeout;
+			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.controls.ToolTip;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.IFlexDisplayObject;
@@ -123,9 +127,11 @@ BinningDefinitionEditor
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.reportError;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableNumber;
 			import weave.core.SessionManager;
+			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.BinClassifiers.BinClassifierCollection;
 			import weave.data.BinningDefinitions.AbstractBinningDefinition;
@@ -139,6 +145,7 @@ BinningDefinitionEditor
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
 			import weave.data.CSVParser;
 			import weave.utils.EventUtils;
+			import weave.utils.PopUpUtils;
 			
 			/**make UI to access this for things using a binned column**/
 			
@@ -211,7 +218,7 @@ BinningDefinitionEditor
 					typeGroup.selection = catRadio;
 				}
 				
-				var bins:BinClassifierCollection =  binnedColumn.derivedBins;
+				var bins:BinClassifierCollection =  binnedColumn.getDerivedBins();
 				
 				var names:Array = bins.getNames();
 				
@@ -283,28 +290,29 @@ BinningDefinitionEditor
 			private var csvParser:CSVParser = new CSVParser();
 			private function handleItemEdited(event:DataGridEvent):void
 			{
+				var input:TextInput = editor.itemEditorInstance as TextInput;
 				var source:Array = gridSource.source;
 				var names:Array = [];
 				
-				if((editor.itemEditorInstance as TextInput).text == event.itemRenderer.data.binName as String)
+				if (input.text == event.itemRenderer.data.binName as String)
 				{
 					return;
 				}
 				
-				if(binnedColumn.derivedBins.getObject((editor.itemEditorInstance as TextInput).text))
+				if (binnedColumn.getDerivedBins().getObject(input.text))
 				{
-					errorInNameLabel.visible = true;
+					PopUpUtils.showTemporaryTooltip(input, "Name already exists.");
+					
+					// don't save the new value
 					event.preventDefault();
 					return;
 				}
-				
-				errorInNameLabel.visible = false;
 				
 				for(var i:int = 0; i < source.length; i++)
 				{
 					if(event.rowIndex == i)
 					{
-						names.push((editor.itemEditorInstance as TextInput).text);
+						names.push(input.text);
 					}
 					else
 						names.push((source[i] as Object).binName);
