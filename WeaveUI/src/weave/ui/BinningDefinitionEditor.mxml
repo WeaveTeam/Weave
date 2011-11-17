@@ -95,7 +95,7 @@ BinningDefinitionEditor
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
-			<mx:DataGrid sortableColumns="false" width="100%" height="100%" minWidth="0" editable="{overrideNamesCheckBox.selected}" id="editor" itemFocusOut="handleItemEdited(event)" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}"/>
+			<mx:DataGrid id="binNameEditor" draggableColumns="false" sortableColumns="false" width="100%" height="100%" minWidth="0" editable="{overrideNamesCheckBox.selected}" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}"/>
 			<mx:CheckBox id="overrideNamesCheckBox" label="Edit and Override Names" change="handleOverrideCheckbox()"/>
 		</mx:VBox>
 	<!--<mx:ControlBar>
@@ -162,11 +162,11 @@ BinningDefinitionEditor
 					
 				var cols:Array = []
 				
-				var col:DataGridColumn = new DataGridColumn("Bin Name");
-				col.dataField = "binName";
+				var col:DataGridColumn = new DataGridColumn();
+				col.headerText = "Bin Names";
 				cols.push(col);
 				
-				editor.columns = cols;
+				binNameEditor.columns = cols;
 				
 				(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.addGroupedCallback(this,handleOverrideBinNamesChange,true);
 			}
@@ -224,10 +224,7 @@ BinningDefinitionEditor
 				
 				gridSource.removeAll();
 				for (var i:int = 0; i <names.length; i++)
-				{
-					var rowObj:Object = {binName:names[i]};
-					gridSource.addItem(rowObj);
-				}
+					gridSource.addItem(names[i]);
 			}
 			
 			public function saveSessionState():void
@@ -265,7 +262,7 @@ BinningDefinitionEditor
 			
 			private function handleOverrideBinNamesChange():void
 			{
-				if((binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value)
+				if ((binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value)
 					overrideNamesCheckBox.selected = true;
 				else
 					overrideNamesCheckBox.selected = false;
@@ -273,9 +270,10 @@ BinningDefinitionEditor
 			
 			private function handleOverrideCheckbox():void
 			{
-				if(overrideNamesCheckBox.selected)
+				if (overrideNamesCheckBox.selected)
 				{
-				}else
+				}
+				else
 				{
 					(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value = '';
 				}
@@ -290,11 +288,11 @@ BinningDefinitionEditor
 			private var csvParser:CSVParser = new CSVParser();
 			private function handleItemEdited(event:DataGridEvent):void
 			{
-				var input:TextInput = editor.itemEditorInstance as TextInput;
+				var input:TextInput = binNameEditor.itemEditorInstance as TextInput;
 				var source:Array = gridSource.source;
 				var names:Array = [];
 				
-				if (input.text == event.itemRenderer.data.binName as String)
+				if (input.text == event.itemRenderer.data as String)
 				{
 					return;
 				}
@@ -308,17 +306,17 @@ BinningDefinitionEditor
 					return;
 				}
 				
-				for(var i:int = 0; i < source.length; i++)
+				for (var i:int = 0; i < source.length; i++)
 				{
-					if(event.rowIndex == i)
+					if (event.rowIndex == i)
 					{
 						names.push(input.text);
 					}
 					else
-						names.push((source[i] as Object).binName);
+						names.push(source[i] as String);
 				}
 				
-				(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value = names.toString();
+				(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value = WeaveAPI.CSVParser.createCSVFromArrays([names]);
 			}
 		]]>
 	</mx:Script>

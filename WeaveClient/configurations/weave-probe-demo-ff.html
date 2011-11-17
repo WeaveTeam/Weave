@@ -20,33 +20,71 @@ body { margin: 0px; overflow:hidden }
 </style>
 <script language="JavaScript" type="text/javascript">
 <!--
-function showWeavePopup(x, y, text)
+var weavePopupData = null;
+var probedPanelName = null;
+function getWeave()
 {
-	var coords = {x:x,y:y};
+	return document.getElementById('weave');
+}
+function updateWeavePopup()
+{
+	var path = weavePopupData.path;
+	var expr = "visualization.getStageCoordinates(coords.x, coords.y)";
+	var vars = {"coords": weavePopupData.coords};
+	var libs = [];
+	var stagePoint = getWeave().evaluateExpression(path, expr, vars, libs);
+	var popup = getWeavePopup();
+	popup.style.left = stagePoint.x + 'px';
+	popup.style.top = stagePoint.y + 'px';
+}
+function getWeavePopup()
+{
 	var d = document.getElementById('weavePopup') || document.createElement('div');
 	d.id = 'weavePopup';
-	var style = {
-	  position: 'absolute',
-	  left: coords.x+'px',
-	  top: coords.y+'px',
-	  width: '150px',
-	  height: '150px',
-	  color: "#ffffff",
-	  fontWeight: 'bold',
-	  backgroundColor: '#800080',
-	  textAlign: 'left',
-	  lineHeight: '15px',
-	  fontSize: '15px'
-	};
-	for (var key in style)
-	  d.style[key] = style[key];
-	while (text && text.indexOf('\n') >= 0)
-		text = text.replace('\n','<br>');
-	d.innerHTML = text;
-	if (text)
+	return d;
+}
+function showWeavePopup(panelName, coords, text)
+{
+	var callbackString = 'updateWeavePopup';
+	if (weavePopupData)
+	{
+		// remove previous callback
+		getWeave().removeCallback(weavePopupData.path, callbackString);
+	}
+	if (panelName && text)
+	{
+		var d = getWeavePopup();
+		var style = {
+		  position: 'absolute',
+		  width: '150px',
+		  height: '150px',
+		  color: "#ffffff",
+		  fontWeight: 'bold',
+		  backgroundColor: '#800080',
+		  textAlign: 'left',
+		  lineHeight: '15px',
+		  fontSize: '15px'
+		};
+		for (var key in style)
+		  d.style[key] = style[key];
+		while (text && text.indexOf('\n') >= 0)
+			text = text.replace('\n','<br>');
+		d.innerHTML = text;
+		weavePopupData = {"path": [panelName], "coords": coords};
+		getWeave().addCallback(weavePopupData.path, callbackString, true);
 		document.body.appendChild(d);
+	}
 	else
-		document.body.removeChild(d);
+	{
+		try
+		{
+			document.body.removeChild(getWeavePopup());
+		}
+		catch (e)
+		{
+			// do nothing
+		}
+	}
 }
 
 

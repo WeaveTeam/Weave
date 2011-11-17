@@ -315,6 +315,10 @@ package weave.core
 						ExternalInterface.marshallExceptions = true;
 						ExternalInterface.call(callback);
 					}
+					catch (e:Error)
+					{
+						reportError(e);
+					}
 					finally
 					{
 						ExternalInterface.marshallExceptions = prev;

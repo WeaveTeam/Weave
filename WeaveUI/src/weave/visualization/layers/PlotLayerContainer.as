@@ -351,10 +351,25 @@ package weave.visualization.layers
 		}
 
 		/**
+		 * This function projects data coordinates to stage coordinates.
+		 * @return The point containing the stageX and stageY.
+		 */		
+		public function getStageCoordinates(dataX:Number, dataY:Number):Point
+		{
+			tempPoint.x = dataX;
+			tempPoint.y = dataY;
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			zoomBounds.getDataBounds(tempDataBounds);
+			tempDataBounds.projectPointTo(tempPoint, tempScreenBounds);
+			
+			return localToGlobal(tempPoint);
+		}
+
+		/**
 		 * Get the <code>mouseX</code> and <code>mouseY</code> properties of the container
 		 * projected into data coordinates for the container. 
 		 * @return The point containing the projected mouseX and mouseY.
-		 */		
+		 */
 		public function getMouseDataCoordinates():Point
 		{
 			tempPoint.x = mouseX;
