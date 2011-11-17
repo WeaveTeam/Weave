@@ -339,8 +339,21 @@ package weave
 			}
 		}
 		
-		public function get macroLibraries():LinkableString { return LinkableFunction.libraries; }
+		/**
+		 * @see weave.core.LinkableFunction#macros
+		 */
 		public function get macros():ILinkableHashMap { return LinkableFunction.macros; }
+		/**
+		 * @see weave.core.LinkableFunction#macroLibraries
+		 */
+		public function get macroLibraries():LinkableString { return LinkableFunction.macroLibraries; }
+		/**
+		 * @see weave.core.LinkableFunction#includeMacroLibrary
+		 */
+		public function includeMacroLibrary(libraryName:String):void
+		{
+			LinkableFunction.includeMacroLibrary(libraryName);
+		}
 		
 		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
 		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);

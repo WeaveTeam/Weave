@@ -20,6 +20,19 @@ body { margin: 0px; overflow:hidden }
 </style>
 <script language="JavaScript" type="text/javascript">
 <!--
+function weaveReady(weave)
+{
+	var path = ['WeaveProperties','eventListeners','probeListener'];
+	weave.requestObject(path, 'LinkableEventListener');
+	weave.setSessionState(path.concat('event'), 'pointClick');
+	var script = "vis = DraggablePanel.activePanel.visualization;\n"
+		+ "qkey = vis.lastProbedKey;\n"
+		+ "coords = vis.getMouseDataCoordinates();\n"
+		+ "call('showWeavePopup', DraggablePanel.activePanelName, coords, getProbeText([qkey]));";
+	weave.setSessionState(path.concat('script'), script);
+	for each (var lib in ["weave.ui.DraggablePanel", "weave.utils.ProbeTextUtils", "flash.external.ExternalInterface"])
+		weave.evaluateExpression(['WeaveProperties'], 'includeMacroLibrary(lib)', {"lib": lib});
+}
 var weavePopupData = null;
 var probedPanelName = null;
 function getWeave()

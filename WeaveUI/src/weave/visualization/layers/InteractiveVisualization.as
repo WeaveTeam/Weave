@@ -793,8 +793,9 @@ package weave.visualization.layers
 				// NOTE: this code is hacked to work with only one global probe KeySet
 				if (lastActiveLayer)
 					setProbeKeys(lastActiveLayer, []);
-				_lastProbedQKey = null;
 			}
+			// either not rolled over or nothing was probed
+			_lastProbedQKey = null;
 		}
 		
 		private var _lastSelectedKeys:Array = null;

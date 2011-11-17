@@ -121,9 +121,23 @@ package weave.core
 		public static const macros:ILinkableHashMap = new LinkableHashMap(LinkableFunction);
 		
 		/**
-		 * This is a list of libraries to include in the static compiler.
+		 * This is a list of libraries to include in the static compiler for macros.
 		 */
-		public static const libraries:LinkableString = new LinkableString();
+		public static const macroLibraries:LinkableString = new LinkableString();
+		
+		/**
+		 * This function will add a library to the static list of macro libraries if it is not already added.
+		 * @param libraryQName A library to add to the list of static libraries.
+		 */
+		public static function includeMacroLibrary(libraryQName:String):void
+		{
+			var rows:Array = WeaveAPI.CSVParser.parseCSV(macroLibraries.value);
+			for each (var row:Array in rows)
+				if (row.indexOf(libraryQName) >= 0)
+					return;
+			rows.push([libraryQName]);
+			macroLibraries.value = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+		}
 		
 		{ /** begin static code block **/
 			staticInit();
@@ -135,8 +149,8 @@ package weave.core
 		private static function staticInit():void
 		{
 			// when the libraries change, we need to update the compiler
-			libraries.addImmediateCallback(null, handleLibrariesChange);
-			libraries.value = getQualifiedClassName(WeaveAPI);
+			macroLibraries.addImmediateCallback(null, handleLibrariesChange);
+			macroLibraries.value = getQualifiedClassName(WeaveAPI);
 		}
 		
 		/**
@@ -147,7 +161,7 @@ package weave.core
 		
 		/**
 		 * This function will update the static compiler when the static libraries change.
-		 */		
+		 */
 		private static function handleLibrariesChange():void
 		{
 			_compiler = _getNewCompiler(true);
@@ -167,7 +181,7 @@ package weave.core
 		private static function _getNewCompiler(reportErrors:Boolean):Compiler
 		{
 			var compiler:Compiler = new Compiler();
-			for each (var row:Array in WeaveAPI.CSVParser.parseCSV(libraries.value))
+			for each (var row:Array in WeaveAPI.CSVParser.parseCSV(macroLibraries.value))
 			{
 				try
 				{
