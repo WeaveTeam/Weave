@@ -147,18 +147,18 @@
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
-    <macroEvents encoding="dynamic">
+    <eventListeners encoding="dynamic">
       <LinkableEventListener name="MapTool">
         <event>doubleClick</event>
-        <macro>qkey = visualization.lastProbedKey;
+        <script>qkey = visualization.lastProbedKey;
 column = visualization.layers.getObject('plot').plotter.internalObject.geometryColumn;
 urlRequestInstance = getNewInstance("flash.net.URLRequest");
 urlRequestInstance.url = "http://www.google.com";
 navigateToURL(urlRequestInstance);
-Alert.show(`column: {column}  qkey: {ColumnUtils.getString(column, qkey)}`);</macro>
+Alert.show(`column: {column}  qkey: {ColumnUtils.getString(column, qkey)}`);</script>
         <target>MapTool</target>
       </LinkableEventListener>
-    </macroEvents>
+    </eventListeners>
     <macroLibraries>weave.api::WeaveAPI
 mx.controls::Alert
 weave.utils::ColumnUtils

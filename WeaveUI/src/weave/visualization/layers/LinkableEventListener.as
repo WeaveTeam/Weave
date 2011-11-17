@@ -41,7 +41,7 @@ package weave.visualization.layers
 
 	/**
 	 * A LinkableEventListener is a sessioned eventLinster which is added to the stage. The action is specified by
-	 * <code>event.value</code> and the listener function specified by the LinkableFunction <code>macro.value</code>.
+	 * <code>event.value</code> and the listener function specified by the LinkableFunction <code>script.value</code>.
 	 * 
 	 * @author kmonico
 	 */	
@@ -68,7 +68,7 @@ package weave.visualization.layers
 		 * The function to call when the event occurs.<br>
 		 * The compiled function has one argument named "event" which specifies the target. 
 		 */		
-		public const macro:LinkableFunction = registerLinkableChild(this, new LinkableFunction('', true, true, ["event"]));
+		public const script:LinkableFunction = registerLinkableChild(this, new LinkableFunction('', true, true, ["event"]));
 
 		
 		private var _lastEvent:String = null; 
@@ -106,7 +106,7 @@ package weave.visualization.layers
 						// fall through
 					}
 					
-					macro.apply(thisPointer, [ stageEvent ] );
+					script.apply(thisPointer, [ stageEvent ] );
 				} 
 				catch (e:Error)
 				{

@@ -842,7 +842,7 @@ package weave.visualization.layers
 				}
 				else
 				{
-					var text:String = ProbeTextUtils.getProbeText(keySet, additionalProbeColumns);
+					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
 					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}

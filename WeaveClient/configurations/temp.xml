@@ -91,8 +91,21 @@
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
     <enableWindowMenu>true</enableWindowMenu>
+    <eventListeners encoding="dynamic">
+      <LinkableEventListener name="probe">
+        <event>pointClick</event>
+        <script>vis = DraggablePanel.activePanel.visualization;
+qkey = vis.lastProbedKey;
+coords = vis.getMouseDataCoordinates();
+call('showWeavePopup', event.stageX, event.stageY, getProbeText([qkey]))</script>
+        <target/>
+      </LinkableEventListener>
+    </eventListeners>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
-    <macroLibraries>weave.api::WeaveAPI</macroLibraries>
+    <macroLibraries>weave.api::WeaveAPI
+weave.ui.DraggablePanel
+flash.external.ExternalInterface
+weave.utils.ProbeTextUtils</macroLibraries>
     <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
@@ -157,12 +170,12 @@ wheel</zoom>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="5-Color" source="OIC" category="basic">
-        <node color="0xEFF3FF" position="0"/>
-        <node color="0xBDD7E7" position="0.25"/>
-        <node color="0x6BAED6" position="0.5"/>
-        <node color="0x3182BD" position="0.75"/>
-        <node color="0x08519C" position="1"/>
+      <colorRamp category="basic" name="5-Color" source="OIC">
+        <node position="0" color="0xEFF3FF"/>
+        <node position="0.25" color="0xBDD7E7"/>
+        <node position="0.5" color="0x6BAED6"/>
+        <node position="0.75" color="0x3182BD"/>
+        <node position="1" color="0x08519C"/>
       </colorRamp>
     </ramp>
   </ColorColumn>
@@ -170,6 +183,7 @@ wheel</zoom>
     <binningDefinition encoding="dynamic">
       <SimpleBinningDefinition>
         <numberOfBins>10</numberOfBins>
+        <overrideBinNames/>
       </SimpleBinningDefinition>
     </binningDefinition>
     <internalDynamicColumn encoding="dynamic">
@@ -187,9 +201,9 @@ wheel</zoom>
             <dataSourceName>WeaveDataSource</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <category name="Data Tables" title="Data Tables">
-                  <category name="obesity-cube" title="obesity-cube">
-                    <attribute dataType="number" dataTable="obesity-cube" keyType="obesity-cube" name="PercentObese" title="PercentObese"/>
+                <category title="Data Tables" name="Data Tables">
+                  <category title="obesity-cube" name="obesity-cube">
+                    <attribute keyType="obesity-cube" dataType="number" name="PercentObese" dataTable="obesity-cube" title="PercentObese"/>
                   </category>
                 </category>
               </hierarchy>
@@ -207,18 +221,18 @@ wheel</zoom>
   </KeyFilter>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
-  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
-  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
           <dataSourceName>WeaveDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <category name="Data Tables" title="Data Tables">
-                <category name="obesity-cube" title="obesity-cube">
-                  <attribute dataType="US State Name" dataTable="obesity-cube" keyType="obesity-cube" id="5747" name="State" title="State"/>
+              <category title="Data Tables" name="Data Tables">
+                <category title="obesity-cube" name="obesity-cube">
+                  <attribute keyType="obesity-cube" dataType="US State Name" name="State" dataTable="obesity-cube" title="State" id="5747"/>
                 </category>
               </category>
             </hierarchy>
@@ -227,7 +241,7 @@ wheel</zoom>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -279,9 +293,9 @@ wheel</zoom>
             <dataSourceName>WeaveDataSource</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <category name="Data Tables" title="Data Tables">
-                  <category name="obesity-cube" title="obesity-cube">
-                    <attribute dataType="US State FIPS Code" dataTable="obesity-cube" keyType="obesity-cube" name="FIPS2" id="5746" title="FIPS2"/>
+                <category title="Data Tables" name="Data Tables">
+                  <category title="obesity-cube" name="obesity-cube">
+                    <attribute keyType="obesity-cube" dataType="US State FIPS Code" name="FIPS2" dataTable="obesity-cube" title="FIPS2" id="5746"/>
                   </category>
                 </category>
               </hierarchy>
@@ -295,8 +309,8 @@ wheel</zoom>
             <dataSourceName>WeaveDataSource</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <category name="Geometry Collections" title="Geometry Collections">
-                  <attribute name="States" dataType="geometry" title="States"/>
+                <category title="Geometry Collections" name="Geometry Collections">
+                  <attribute title="States" name="States" dataType="geometry"/>
                 </category>
               </hierarchy>
             </hierarchyPath>
@@ -308,9 +322,9 @@ wheel</zoom>
   <CSVDataSource name="CSVDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute keyType="CSVDataSource" csvColumn="a" title="a"/>
-        <attribute keyType="CSVDataSource" csvColumn="b" title="b"/>
-        <attribute keyType="CSVDataSource" csvColumn="c" title="c"/>
+        <attribute title="a" csvColumn="a" keyType="CSVDataSource"/>
+        <attribute title="b" csvColumn="b" keyType="CSVDataSource"/>
+        <attribute title="c" csvColumn="c" keyType="CSVDataSource"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>a,b,c
@@ -325,7 +339,7 @@ wheel</zoom>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
         <axesAlpha>NaN</axesAlpha>
-        <axesColor>NaN</axesColor>
+        <axesColor>0</axesColor>
         <axesThickness>NaN</axesThickness>
         <axisFontBold>true</axisFontBold>
         <axisFontColor>0</axisFontColor>
@@ -352,24 +366,24 @@ wheel</zoom>
             <plotter encoding="dynamic">
               <BarChartLegendPlotter>
                 <chartColors encoding="xml">
-                  <colorRamp name="Doppler Radar" dataFormat="qualitative" category="aesthetic" source="OIC">
-                    <node color="0x04E9E7" position="0"/>
-                    <node color="0x009DF4" position="0.08"/>
-                    <node color="0x0201F4" position="0.16"/>
-                    <node color="0x01FC01" position="0.24"/>
-                    <node color="0x00C400" position="0.32"/>
-                    <node color="0x008C00" position="0.4"/>
-                    <node color="0x0FDF801" position="0.48"/>
-                    <node color="0xF99200" position="0.56"/>
-                    <node color="0xFD0000" position="0.64"/>
-                    <node color="0xBC0000" position="0.72"/>
-                    <node color="0xBC0000" position="0.8"/>
-                    <node color="0xF800FD" position="0.88"/>
-                    <node color="0x9854C6" position="1.0"/>
+                  <colorRamp source="OIC" name="Doppler Radar" dataFormat="qualitative" category="aesthetic">
+                    <node position="0" color="0x04E9E7"/>
+                    <node position="0.08" color="0x009DF4"/>
+                    <node position="0.16" color="0x0201F4"/>
+                    <node position="0.24" color="0x01FC01"/>
+                    <node position="0.32" color="0x00C400"/>
+                    <node position="0.4" color="0x008C00"/>
+                    <node position="0.48" color="0x0FDF801"/>
+                    <node position="0.56" color="0xF99200"/>
+                    <node position="0.64" color="0xFD0000"/>
+                    <node position="0.72" color="0xBC0000"/>
+                    <node position="0.8" color="0xBC0000"/>
+                    <node position="0.88" color="0xF800FD"/>
+                    <node position="1.0" color="0x9854C6"/>
                   </colorRamp>
                 </chartColors>
                 <columns encoding="dynamic">
-                  <DynamicColumn name="DynamicColumn3" encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
@@ -383,7 +397,7 @@ wheel</zoom>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </DynamicColumn>
-                  <DynamicColumn name="DynamicColumn" encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
@@ -397,7 +411,7 @@ wheel</zoom>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </DynamicColumn>
-                  <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
@@ -709,20 +723,20 @@ wheel</zoom>
               <CompoundBarChartPlotter>
                 <barSpacing>0</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp name="Doppler Radar" dataFormat="qualitative" category="aesthetic" source="OIC">
-                    <node color="0x04E9E7" position="0"/>
-                    <node color="0x009DF4" position="0.08"/>
-                    <node color="0x0201F4" position="0.16"/>
-                    <node color="0x01FC01" position="0.24"/>
-                    <node color="0x00C400" position="0.32"/>
-                    <node color="0x008C00" position="0.4"/>
-                    <node color="0x0FDF801" position="0.48"/>
-                    <node color="0xF99200" position="0.56"/>
-                    <node color="0xFD0000" position="0.64"/>
-                    <node color="0xBC0000" position="0.72"/>
-                    <node color="0xBC0000" position="0.8"/>
-                    <node color="0xF800FD" position="0.88"/>
-                    <node color="0x9854C6" position="1.0"/>
+                  <colorRamp source="OIC" name="Doppler Radar" dataFormat="qualitative" category="aesthetic">
+                    <node position="0" color="0x04E9E7"/>
+                    <node position="0.08" color="0x009DF4"/>
+                    <node position="0.16" color="0x0201F4"/>
+                    <node position="0.24" color="0x01FC01"/>
+                    <node position="0.32" color="0x00C400"/>
+                    <node position="0.4" color="0x008C00"/>
+                    <node position="0.48" color="0x0FDF801"/>
+                    <node position="0.56" color="0xF99200"/>
+                    <node position="0.64" color="0xFD0000"/>
+                    <node position="0.72" color="0xBC0000"/>
+                    <node position="0.8" color="0xBC0000"/>
+                    <node position="0.88" color="0xF800FD"/>
+                    <node position="1.0" color="0x9854C6"/>
                   </colorRamp>
                 </chartColors>
                 <colorColumn>
@@ -734,7 +748,7 @@ wheel</zoom>
                 <groupBySortColumn>false</groupBySortColumn>
                 <groupingMode>group</groupingMode>
                 <heightColumns encoding="dynamic">
-                  <DynamicColumn name="DynamicColumn3" encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
@@ -748,7 +762,7 @@ wheel</zoom>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </DynamicColumn>
-                  <DynamicColumn name="DynamicColumn" encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
@@ -762,7 +776,7 @@ wheel</zoom>
                       </dynamicColumnReference>
                     </ReferencedColumn>
                   </DynamicColumn>
-                  <DynamicColumn name="DynamicColumn2" encoding="dynamic">
+                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
@@ -840,7 +854,7 @@ wheel</zoom>
                         <dataSourceName>CSVDataSource</dataSourceName>
                         <hierarchyPath encoding="xml">
                           <hierarchy>
-                            <attribute keyType="CSVDataSource" csvColumn="a" title="a"/>
+                            <attribute title="a" csvColumn="a" keyType="CSVDataSource"/>
                           </hierarchy>
                         </hierarchyPath>
                       </HierarchyColumnReference>
@@ -944,6 +958,7 @@ wheel</zoom>
     <enableBorders>true</enableBorders>
     <enableTitle>false</enableTitle>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <linkHeightAndSortColumns>false</linkHeightAndSortColumns>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>

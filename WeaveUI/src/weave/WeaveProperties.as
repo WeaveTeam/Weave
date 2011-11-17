@@ -29,6 +29,7 @@ package weave
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -211,9 +212,9 @@ package weave
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
 		
 		/**
-		 * This is an array of LinkableEventListeners which specify a macro to run on an event.
+		 * This is an array of LinkableEventListeners which specify a function to run on an event.
 		 */
-		public const macroEvents:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
+		public const eventListeners:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
 		
 		/**
 		 * Parameters for the DashedLine selection box.
