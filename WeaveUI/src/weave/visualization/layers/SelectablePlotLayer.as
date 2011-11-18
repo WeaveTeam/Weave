@@ -266,15 +266,6 @@ package weave.visualization.layers
 		}
 		
 		
-		public function invalidateGraphics():void
-		{
-			//trace(name,'invalidateGraphics');
-			// invalidate the graphics of all the layers in SelectablePlotLayer
-			_plotLayer.invalidateGraphics();
-			_selectionLayer.invalidateGraphics();
-			_probeLayer.invalidateGraphics();
-		}
-		
 		private function get probeExists():Boolean
 		{
 			return (

@@ -23,6 +23,7 @@ package weave.visualization.layers
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
+	import mx.core.UIComponent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -287,20 +288,6 @@ package weave.visualization.layers
 			}
 		}
 		
-		public function invalidateGraphics():void
-		{
-			for each (var layer:IPlotLayer in layers.getObjects(IPlotLayer))
-			{
-				layer.invalidateGraphics();
-			}
-		}
-		
-		/**
-		 * This function checks if the unscaled size of the UIComponent changed.
-		 * If so, the graphics are invalidated.
-		 * If the graphics are invalid, this function will call validateGraphics().
-		 * This is the only function that should call validateGraphics() directly.
-		 */
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			// detect size change
