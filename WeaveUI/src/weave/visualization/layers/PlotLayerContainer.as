@@ -35,6 +35,7 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
+	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -47,6 +48,7 @@ package weave.visualization.layers
 	import weave.utils.NumberUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
+	import weave.visualization.plotters.DynamicPlotter;
 
 	/**
 	 * This is a container for a list of PlotLayers
@@ -308,7 +310,6 @@ package weave.visualization.layers
 		 */		
 		public function getKeysOverlappingGeometry(simpleGeometries:Array):Array
 		{
-			var container:PlotLayerContainer = owner as PlotLayerContainer;
 			var key:IQualifiedKey;
 			var keys:Dictionary = new Dictionary();
 			var _layers:Array = layers.getObjects();
@@ -336,7 +337,7 @@ package weave.visualization.layers
 			
 			return result;
 		}
-
+		
 		/**
 		 * This function projects data coordinates to stage coordinates.
 		 * @return The point containing the stageX and stageY.

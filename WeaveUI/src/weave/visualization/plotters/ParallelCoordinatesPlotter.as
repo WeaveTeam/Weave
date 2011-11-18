@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -302,7 +303,7 @@ package weave.visualization.plotters
 				
 				if (i > 0)
 				{
-					var geometry:SimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
+					var geometry:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
 					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
 					results.push(geometry);
 				}
