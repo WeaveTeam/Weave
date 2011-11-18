@@ -92,7 +92,7 @@ package weave.core
 			if (Capabilities.isDebugger)
 			{
 				trace('\n' + _error.getStackTrace() + '\n');
-				enterDebugger();
+				//enterDebugger();
 			}
 			
 			errors.push(_error);
