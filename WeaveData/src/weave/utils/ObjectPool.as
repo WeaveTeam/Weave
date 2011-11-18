@@ -48,9 +48,11 @@ package weave.utils
 		 */
 		public static function borrowObject(objectType:Class):*
 		{
-			for (var object:* in pool[objectType])
+			var objects:Array = pool[objectType] as Array;
+			if (objects && objects.length)
 			{
-				delete pool[objectType][object];
+				var object:* = objects.pop();
+				pool[object] = false; // set flag to remember we don't have this object anymore
 				return object;
 			}
 			return new objectType();
@@ -67,10 +69,17 @@ package weave.utils
 		 */		
 		public static function returnObject(object:Object):void
 		{
+			// stop if the object was already returned (this will prevent returning the same object twice from borrowObject)
+			if (pool[object])
+				return;
+			
 			var objectType:Class = ClassUtils.getClassDefinition(getQualifiedClassName(object)) as Class;
-			if (pool[objectType] == undefined)
-				pool[objectType] = new Dictionary();
-			pool[objectType][object] = null;
+			var objects:Array = pool[objectType] as Array;
+			if (!objects)
+				pool[objectType] = objects = [];
+			objects.push(object);
+			// set flag to remember that this object is in the pool
+			pool[object] = true;
 		}
 	}
 }

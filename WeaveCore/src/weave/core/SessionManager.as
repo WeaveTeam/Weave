@@ -637,22 +637,22 @@ package weave.core
 		 */
 		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
 		{
-			if (!_triggerCounterMap[observer])
-				_triggerCounterMap[observer] = new Dictionary(true);
+			if (!_triggerCounterMap[linkableObject])
+				_triggerCounterMap[linkableObject] = new Dictionary(false); // weakKeys=false to allow observers to be Functions
 			
-			var previousCount:uint = uint(_triggerCounterMap[observer][linkableObject]); // will be zero if undefined
+			var previousCount:* = _triggerCounterMap[linkableObject][observer]; // untyped to handle undefined value
 			var newCount:uint = getCallbackCollection(linkableObject).triggerCounter;
-			if (previousCount != newCount)
+			if (previousCount !== newCount) // no casting to handle 0 !== undefined
 			{
 				if (clearChangedNow)
-					_triggerCounterMap[observer][linkableObject] = newCount;
+					_triggerCounterMap[linkableObject][observer] = newCount;
 				return true;
 			}
 			return false;
 		}
 		
 		/**
-		 * This is a two-dimensional dictionary, where _triggerCounterMap[observer][linkableObject]
+		 * This is a two-dimensional dictionary, where _triggerCounterMap[linkableObject][observer]
 		 * equals the previous triggerCounter value from linkableObject observed by the observer.
 		 */		
 		private const _triggerCounterMap:Dictionary = new Dictionary(true);

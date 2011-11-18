@@ -23,6 +23,7 @@ package weave.visualization.layers
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
+	import mx.core.UIComponent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -287,20 +288,6 @@ package weave.visualization.layers
 			}
 		}
 		
-		public function invalidateGraphics():void
-		{
-			for each (var layer:IPlotLayer in layers.getObjects(IPlotLayer))
-			{
-				layer.invalidateGraphics();
-			}
-		}
-		
-		/**
-		 * This function checks if the unscaled size of the UIComponent changed.
-		 * If so, the graphics are invalidated.
-		 * If the graphics are invalid, this function will call validateGraphics().
-		 * This is the only function that should call validateGraphics() directly.
-		 */
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			// detect size change
@@ -351,10 +338,25 @@ package weave.visualization.layers
 		}
 
 		/**
+		 * This function projects data coordinates to stage coordinates.
+		 * @return The point containing the stageX and stageY.
+		 */		
+		public function getStageCoordinates(dataX:Number, dataY:Number):Point
+		{
+			tempPoint.x = dataX;
+			tempPoint.y = dataY;
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			zoomBounds.getDataBounds(tempDataBounds);
+			tempDataBounds.projectPointTo(tempPoint, tempScreenBounds);
+			
+			return localToGlobal(tempPoint);
+		}
+
+		/**
 		 * Get the <code>mouseX</code> and <code>mouseY</code> properties of the container
 		 * projected into data coordinates for the container. 
 		 * @return The point containing the projected mouseX and mouseY.
-		 */		
+		 */
 		public function getMouseDataCoordinates():Point
 		{
 			tempPoint.x = mouseX;

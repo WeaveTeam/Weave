@@ -125,6 +125,10 @@
 			
 			public static var showRollOverBorders:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
+			public static function get activePanelName():String
+			{
+				return Weave.root.getName(activePanel);
+			}
 			
 			public static const CIRCULAR_MINIMIZE_EFFECT:String  = "CIRCULAR_MINIMIZE_EFFECT";
 			public static const LINEAR_MINIMIZE_EFFECT:String    = "LINEAR_MINIMIZE_EFFECT";

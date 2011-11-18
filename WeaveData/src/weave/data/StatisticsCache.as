@@ -60,7 +60,8 @@ package weave.data
 				getSquareSum,
 				getVariance,
 				getStandardDeviation,
-				getRunningTotals
+				getRunningTotals,
+				validateCache
 			];
 			for each (var func:Function in functions)
 				cache[func] = new Dictionary(true);
@@ -182,7 +183,8 @@ package weave.data
 			if (column == null)
 				return NaN;
 
-			if (detectLinkableObjectChange(cache, column))
+			// the cache becomes invalid when the trigger counter has changed
+			if (uint(cache[validateCache][column]) != column.triggerCounter)
 			{
 				var min:Number = NaN;
 				var max:Number = NaN;
@@ -241,6 +243,8 @@ package weave.data
 				cache[getVariance][column] = variance;
 				cache[getStandardDeviation][column] = standardDeviation;
 				cache[getRunningTotals][column] = runningTotals;
+				// remember the trigger counter so we can detect when the cache becomes invalid
+				cache[validateCache][column] = column.triggerCounter;
 			}
 			
 			return cache[statsFunction][column];

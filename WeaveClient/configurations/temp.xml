@@ -97,7 +97,7 @@
         <script>vis = DraggablePanel.activePanel.visualization;
 qkey = vis.lastProbedKey;
 coords = vis.getMouseDataCoordinates();
-call('showWeavePopup', event.stageX, event.stageY, getProbeText([qkey]))</script>
+call('showWeavePopup', DraggablePanel.activePanelName, coords, getProbeText([qkey]))</script>
         <target/>
       </LinkableEventListener>
     </eventListeners>
