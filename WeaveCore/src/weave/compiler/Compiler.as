@@ -48,7 +48,7 @@ package weave.compiler
 		
 		/**
 		 * Set this to true to enable trace statements for debugging.
-		 */		
+		 */
 		public var debug:Boolean = false;
 		
 		/**
