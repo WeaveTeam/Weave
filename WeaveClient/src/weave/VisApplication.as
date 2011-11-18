@@ -240,48 +240,44 @@ package weave
 		/**
 		 * This needed to be a function because FlashVars can't be fetched till the application loads.
 		 */
-		private function applicationComplete( e:FlexEvent ):void
+		private function applicationComplete(event:FlexEvent = null):void
 		{
-			getFlashVars();
-			if (getFlashVarAdminConnectionName() != null)
+			if (event != null)
 			{
-				// disable interface until connected to admin console
-				var _this:VisApplication = this;
-				_this.enabled = false;
-				var errorHandler:Function = function(..._):void
+				getFlashVars();
+				// disable application until it's ready
+				enabled = false;
+				
+				if (getFlashVarAdminConnectionName() != null)
 				{
-					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
-					_this.enabled = true;
-				};
-				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
-				pendingAdminService.errorCallbacks.addGroupedCallback(this, errorHandler);
-				// when admin console responds, set adminService
-				DelayedAsyncResponder.addResponder(
-					pendingAdminService.invokeAsyncMethod("ping"),
-					function(..._):*
+					// disable interface until connected to admin console
+					var _this:VisApplication = this;
+					_this.enabled = false;
+					var resultHandler:Function = function(..._):void
 					{
-						//Alert.show("Connected to Admin Console");
 						_this.enabled = true;
 						adminService = pendingAdminService;
-						toggleMenuBar();
-						StageUtils.callLater(this,setupVisMenuItems,null,false);
-					},
-					errorHandler
-				);
+						applicationComplete();
+					};
+					var faultHandler:Function = function(..._):void
+					{
+						_this.enabled = true;
+						Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
+						applicationComplete();
+					};
+					var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
+					pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
+					// when admin console responds, set adminService
+					DelayedAsyncResponder.addResponder(
+						pendingAdminService.invokeAsyncMethod("ping"),
+						resultHandler,
+						faultHandler
+					);
+					
+					// do nothing until admin console is connected.
+					return;
+				}
 			}
-			else
-			{
-				enabled = false;
-			}
-			// handle dynamic changes to the session state that change what CSS file to use
-			Weave.properties.cssStyleSheetName.addGroupedCallback(
-				this,
-				function():void
-				{
-					CSSUtils.loadStyleSheet(Weave.properties.cssStyleSheetName.value);
-				},
-				true
-			);
 			
 			// load the session state file
 			var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;

@@ -19,6 +19,8 @@
 
 package weave.utils
 {
+	import flash.geom.Point;
+	import flash.net.getClassByAlias;
 	import flash.utils.Dictionary;
 	
 	import mx.utils.ObjectUtil;
@@ -38,6 +40,8 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
+	import weave.primitives.BLGNode;
+	import weave.primitives.GeneralizedGeometry;
 	
 	/**
 	 * This class contains static functions that access values from IAttributeColumn objects.
@@ -253,6 +257,48 @@ package weave.utils
 				return (value - min) / (max - min);
 			}
 			return NaN;
+		}
+		
+		/**
+		 * @param geometryColumn A GeometryColumn which contains the geometry objects for the key.
+		 * @param key An object with <code>keyType</code> and <code>localName</code> properties.
+		 * @return An array of arrays of arrays of Points.
+		 * For example, 
+		 * <code>result[0]</code> is type <code>Array of Array of Point</code>. <br>
+		 * <code>result[0][0]</code> is type <code>Array of Point</code> <br>
+		 * <code>result[0][0][0]</code> is a <code>Point</code>
+		 */		
+		public static function getGeometry(geometryColumn:IAttributeColumn, key:Object):Array
+		{
+			var qkey:IQualifiedKey = getQKey(key);
+			var genGeoms:Array = geometryColumn.getValueFromKey(qkey) as Array;
+			
+			if (genGeoms == null)
+				return null;
+			
+			var result:Array = [];
+			
+			for (var iGenGeom:int; iGenGeom < genGeoms.length; ++iGenGeom)
+			{
+				var genGeom:GeneralizedGeometry = genGeoms[iGenGeom];
+				var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry();
+				var newSimplifiedGeom:Array = [];			
+				for (var iSimplifiedGeom:int; iSimplifiedGeom < simplifiedGeom.length; ++iSimplifiedGeom)
+				{
+					var nodeVector:Vector.<BLGNode> = simplifiedGeom[iSimplifiedGeom];
+					var newNodeVector:Array = [];
+					for (var iNode:int = 0; iNode < nodeVector.length; ++iNode)
+					{
+						var node:BLGNode = nodeVector[iNode];
+						var point:Point = new Point(node.x, node.y);
+						newNodeVector.push(point);
+					}
+					newSimplifiedGeom.push(newNodeVector);
+				}
+				result.push(newSimplifiedGeom);
+			}
+			
+			return result;			
 		}
 
 		/**

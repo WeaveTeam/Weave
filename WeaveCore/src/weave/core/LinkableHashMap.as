@@ -31,7 +31,6 @@ package weave.core
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.core.weave_internal;
 	
 	use namespace weave_internal;
 	

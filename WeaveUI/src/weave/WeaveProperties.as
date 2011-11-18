@@ -52,7 +52,11 @@ package weave
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
+<<<<<<< HEAD
 	import weave.ui.ErrorLogPanel;
+=======
+	import weave.utils.CSSUtils;
+>>>>>>> branch 'master' of https://sabman83@github.com/IVPR/Weave.git
 	import weave.utils.DebugUtils;
 	import weave.utils.EventUtils;
 	import weave.visualization.layers.InteractionController;
@@ -80,6 +84,16 @@ package weave
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
 			
 			enableWeaveFonts.addGroupedCallback(this,loadEmbeddedFonts,true);
+
+			// handle dynamic changes to the session state that change what CSS file to use
+			cssStyleSheetName.addGroupedCallback(
+				this,
+				function():void
+				{
+					CSSUtils.loadStyleSheet(cssStyleSheetName.value);
+				}
+			);
+
 		}
 		
 		private function loadEmbeddedFonts():void

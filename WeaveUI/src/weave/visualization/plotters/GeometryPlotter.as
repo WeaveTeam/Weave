@@ -94,6 +94,7 @@ package weave.visualization.plotters
 		 * This is the reprojected geometry column to draw.
 		 */
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
+		
 		/**
 		 *  This is the default URL path for images, when using images in place of points.
 		 */
@@ -145,7 +146,7 @@ package weave.visualization.plotters
 			if (value is Array)
 				geoms = value;
 			else if (value is GeneralizedGeometry)
-				geoms [ value as GeneralizedGeometry ];
+				geoms = [ value as GeneralizedGeometry ];
 			
 			var results:Array = [];
 			if (geoms != null)
