@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="CallbackCollection,weave.core.CallbackCollection,allowDelayCallbacks,callbacksAreDelayed,triggerCounter,wasDisposed,_runCallbacksImmediately,addGroupedCallback,addImmediateCallback,delayCallbacks,dispose,removeCallback,resumeCallbacks,triggerCallbacks" name="keywords">
+<meta content="CallbackCollection,weave.core.CallbackCollection,allowDelayCallbacks,debug,callbacksAreDelayed,triggerCounter,wasDisposed,_runCallbacksImmediately,addGroupedCallback,addImmediateCallback,delayCallbacks,dispose,removeCallback,resumeCallbacks,triggerCallbacks" name="keywords">
 <title>weave.core.CallbackCollection</title>
 </head>
 <body>
@@ -62,6 +62,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#callbacksAreDelayed">callbacksAreDelayed</a> : Boolean<div class="summaryTableDescription">[read-only]
    While this is true, it means the delay count is greater than zero and the effects of
    triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.</div>
+</td><td class="summaryTableOwnerCol">CallbackCollection</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#debug">debug</a> : Boolean = false<div class="summaryTableDescription">[static]
+   Set this to true to enable stack traces for debugging.</div>
 </td><td class="summaryTableOwnerCol">CallbackCollection</td>
 </tr>
 <tr class="">
@@ -212,6 +217,16 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get callbacksAreDelayed():Boolean</code>
 <br>
 </div>
+<a name="debug"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">debug</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static var debug:Boolean = false</code><p>
+   Set this to true to enable stack traces for debugging.
+   </p></div>
 <a name="triggerCounter"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>

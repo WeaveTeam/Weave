@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="InteractiveVisualization,weave.visualization.layers.InteractiveVisualization,_mouseMode,activeKeyType,additionalProbeColumns,enableProbe,enableSelection,enableZoomAndPan,mouseDragActive,mouseDragStageCoords,mouseIsRolledOver,queryBounds,selectionRectangleCanvas,shadowAmount,tempDataBounds,tempScreenBounds,lastProbedKey,lastSelectedKeys,clearProbe,delayedHandleSelection,dispose,handleDoubleClick,handleKeyboardEvent,handleMouseClick,handleMouseDown,handleMouseEvent,handleMouseMove,handleMouseUp,handleMouseWheel,handleProbe,handleRollOut,handleRollOver,immediateHandleSelection,projectDragBoundsToDataQueryBounds,setProbeKeys,setSelectionKeys,updateMouseMode,updateSelectionRectangleGraphics" name="keywords">
+<meta content="InteractiveVisualization,weave.visualization.layers.InteractiveVisualization,additionalProbeColumns,enableProbe,enableSelection,enableZoomAndPan,mouseIsRolledOver,queryBounds,shadowAmount,tempDataBounds,tempScreenBounds,lastProbedKey,clearProbe,delayedHandleSelection,dispose,handleDoubleClick,handleMouseClick,handleMouseDown,handleMouseEvent,handleMouseMove,handleMouseUp,handleMouseWheel,handleProbe,handleRollOut,handleRollOver,immediateHandleSelection,projectDragBoundsToDataQueryBounds,setProbeKeys,setSelectionKeys,updateSelectionRectangleGraphics" name="keywords">
 <title>weave.visualization.layers.InteractiveVisualization</title>
 </head>
 <body>
@@ -73,10 +73,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This is the last IQualifiedKey (record identifier) that was probed.</div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lastSelectedKeys">lastSelectedKeys</a> : Array<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
 </table>
 </div>
 <a name="protectedPropertySummary"></a>
@@ -87,23 +83,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#activeKeyType">activeKeyType</a> : String = "null"<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#mouseDragActive">mouseDragActive</a> : Boolean = false<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#mouseIsRolledOver">mouseIsRolledOver</a> : Boolean = false<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#_mouseMode">_mouseMode</a> : String = "null"<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#selectionRectangleCanvas">selectionRectangleCanvas</a> : Canvas<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
 </table>
@@ -174,13 +154,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="PlotLayerContainer.html#invalidateGraphics()">invalidateGraphics</a>():void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="PlotLayerContainer.html">PlotLayerContainer</a></td>
-</tr>
-<tr class="hideInheritedMethod">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="PlotLayerContainer.html#setZoomLevel()">setZoomLevel</a>(newZoomLevel:Number):void</div>
 <div class="summaryTableDescription">
    This function sets the zoom level as defined in ZoomUtils.</div>
@@ -221,13 +194,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#handleDoubleClick()">handleDoubleClick</a>(event:MouseEvent):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#handleKeyboardEvent()">handleKeyboardEvent</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
@@ -327,8 +293,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="PlotLayerContainer.html#updateDisplayList()">updateDisplayList</a>(unscaledWidth:Number, unscaledHeight:Number):void</div>
-<div class="summaryTableDescription">
-   This function checks if the unscaled size of the UIComponent changed.</div>
+<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayerContainer.html">PlotLayerContainer</a></td>
 </tr>
 <tr class="hideInheritedProtectedMethod">
@@ -338,13 +303,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">
    This function gets called by updateZoom and updates fullDataBounds.</div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayerContainer.html">PlotLayerContainer</a></td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#updateMouseMode()">updateMouseMode</a>(mouseEventType:String = null):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -514,11 +472,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#mouseDragStageCoords">mouseDragStageCoords</a> : <a href="../../api/primitives/IBounds2D.html">IBounds2D</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#queryBounds">queryBounds</a> : <a href="../../api/primitives/IBounds2D.html">IBounds2D</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">InteractiveVisualization</td>
@@ -542,19 +495,10 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
-<a name="activeKeyType"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">activeKeyType</td><td class="detailHeaderType">property</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var activeKeyType:String = "null"</code>
-</div>
 <a name="additionalProbeColumns"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">additionalProbeColumns</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">additionalProbeColumns</td><td class="detailHeaderType">property</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -575,29 +519,6 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get lastProbedKey():<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code>
 <br>
 </div>
-<a name="lastSelectedKeys"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">lastSelectedKeys</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>lastSelectedKeys:Array</code>&nbsp;&nbsp;[read-write]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get lastSelectedKeys():Array</code>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set lastSelectedKeys(value:Array):void</code>
-<br>
-</div>
-<a name="mouseDragActive"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">mouseDragActive</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var mouseDragActive:Boolean = false</code>
-</div>
 <a name="mouseIsRolledOver"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -606,24 +527,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected var mouseIsRolledOver:Boolean = false</code>
-</div>
-<a name="_mouseMode"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">_mouseMode</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var _mouseMode:String = "null"</code>
-</div>
-<a name="selectionRectangleCanvas"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">selectionRectangleCanvas</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var selectionRectangleCanvas:Canvas</code>
 </div>
 <a name="constructorDetail"></a>
 <div class="detailSectionHeader">Constructor detail</div>
@@ -683,15 +586,6 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">event</span>:MouseEvent</code></td>
 </tr>
 </table>
-</div>
-<a name="handleKeyboardEvent()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">handleKeyboardEvent</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected function handleKeyboardEvent():void</code>
 </div>
 <a name="handleMouseClick()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -888,20 +782,6 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="updateMouseMode()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">updateMouseMode</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected function updateMouseMode(mouseEventType:String = null):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">mouseEventType</span>:String</code> (default = <code>null</code>)<code></code></td>
-</tr>
-</table>
-</div>
 <a name="updateSelectionRectangleGraphics()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -939,15 +819,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const enableZoomAndPan:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
-</div>
-<a name="mouseDragStageCoords"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">mouseDragStageCoords</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected const mouseDragStageCoords:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a></code>
 </div>
 <a name="queryBounds"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

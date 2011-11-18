@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="IPlotLayer,weave.api.ui.IPlotLayer,plotter,spatialIndex,subsetFilter,invalidateGraphics" name="keywords">
+<meta content="IPlotLayer,weave.api.ui.IPlotLayer,plotter,spatialIndex,subsetFilter" name="keywords">
 <title>weave.api.ui.IPlotLayer</title>
 </head>
 <body>
@@ -89,7 +89,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <a onclick="javascript:setInheritedVisible(true,'Method');" href="#methodSummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Methods</a>
 </div>
 </div>
-<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<table id="summaryTableMethod" class="summaryTable hideInheritedMethod" cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
@@ -106,14 +106,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <a class="signatureLink" href="IZoomView.html#getScreenBounds()">getScreenBounds</a>(destination:<a href="../primitives/IBounds2D.html">IBounds2D</a>):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="IZoomView.html">IZoomView</a></td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#invalidateGraphics()">invalidateGraphics</a>():void</div>
-<div class="summaryTableDescription">
-   This will be used to filter the graphics that are drawn, but not the records that were used to calculate the graphics.</div>
-</td><td class="summaryTableOwnerCol">IPlotLayer</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -178,18 +170,6 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get subsetFilter():<a href="../data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>
 <br>
 </div>
-<a name="methodDetail"></a>
-<div class="detailSectionHeader">Method detail</div>
-<a name="invalidateGraphics()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">invalidateGraphics</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function invalidateGraphics():void</code><p>
-   This will be used to filter the graphics that are drawn, but not the records that were used to calculate the graphics.
-   </p></div>
 <br>
 <br>
 <hr>
