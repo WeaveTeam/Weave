@@ -31,7 +31,7 @@ A text editor to change the Session State on the fly.
     width="800" height="600"
     title="Session State Editor"
 	backgroundColor="#EFF4BC"
-    xmlns:sessioning="weave.core.*">
+    >
 	<mx:VDividedBox id="vDividedBox" width="100%" height="100%">
 	    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
 				 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
@@ -452,6 +452,8 @@ A text editor to change the Session State on the fly.
 				loadSelectedSessionObjectInView();
 			}
 			
+			private static const DATA_GRID:String = 'DataGrid';
+			private static const TEXT_EDITOR:String = 'TextArea';
 			private function changeView(newValue:String = null):void
 			{
 				var oldValue:String;
@@ -531,8 +533,6 @@ A text editor to change the Session State on the fly.
 			private var _lastLoadChangedEditor:Boolean = false;
 			private const _nameColumn:DataGridColumn = new DataGridColumn("Name");
 			private const _valueColumn:DataGridColumn = new DataGridColumn("Value");
-			public static const TEXT_EDITOR:String = WeaveProperties.TEXT_EDITOR;
-			public static const DATA_GRID:String = WeaveProperties.DATA_GRID;
 			private function loadSessionStateInView():void
 			{
 				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;

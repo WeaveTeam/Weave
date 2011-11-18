@@ -20,17 +20,14 @@
 package weave
 {
 	import flash.events.Event;
-	import flash.events.EventDispatcher;
 	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
-	import flash.utils.flash_proxy;
 	
 	import mx.collections.ArrayCollection;
-	import mx.events.FlexEvent;
 	import mx.utils.StringUtil;
 	
 	import ru.etcs.utils.FontLoader;
@@ -40,9 +37,7 @@ package weave
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -54,7 +49,6 @@ package weave
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
-	import weave.utils.EventUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
 
@@ -128,16 +122,12 @@ package weave
 		public static const DEFAULT_FONT_SIZE:Number = 10;
 		public static const DEFAULT_AXIS_FONT_SIZE:Number = 11;
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
-		public static const DATA_GRID:String = "DataGrid";
-		public static const TEXT_EDITOR:String = "TextArea";
 		
 		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
 		private static const GOOGLE_URL:String = "Google|http://www.google.com/search?q=";
 		private static const GOOGLE_MAPS_URL:String = "Google Maps|http://maps.google.com/maps?t=h&q=";
 		private static const GOOGLE_IMAGES_URL:String = "Google Images|http://images.google.com/images?q=";
 		
-		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
-		//public static function verifyFontFamily(value:String):Boolean { return !(embeddedFonts.indexOf(value) == -1); }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:String):Boolean
@@ -146,7 +136,6 @@ package weave
 				return StandardLib.asNumber(value.substr(0, -1)) > 0;
 			return StandardLib.asNumber(value) >= 1;
 		}
-		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
 		private function verifyMaxTooltipRecordsShown(value:Number):Boolean { return 0 <= value && value <= 20; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
