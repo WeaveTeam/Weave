@@ -52,11 +52,7 @@ package weave
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
-<<<<<<< HEAD
-	import weave.ui.ErrorLogPanel;
-=======
 	import weave.utils.CSSUtils;
->>>>>>> branch 'master' of https://sabman83@github.com/IVPR/Weave.git
 	import weave.utils.DebugUtils;
 	import weave.utils.EventUtils;
 	import weave.visualization.layers.InteractionController;
