@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.debugger.enterDebugger;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -245,6 +246,7 @@ package weave.core
 					catch (e:Error)
 					{
 						reportError(e);
+						enterDebugger();
 					}
 				}
 				else
