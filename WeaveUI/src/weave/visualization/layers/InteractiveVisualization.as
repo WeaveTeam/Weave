@@ -54,7 +54,7 @@ package weave.visualization.layers
 	 * 
 	 * @author adufilie
 	 */
-	public class InteractiveVisualization extends PlotLayerContainer implements IDisposableObject
+	public class InteractiveVisualization extends PlotLayerContainer
 	{
 		public function InteractiveVisualization()
 		{
@@ -62,7 +62,6 @@ package weave.visualization.layers
 			init();
 		}
 		
-		private var plotShadow:DropShadowFilter 	= new DropShadowFilter(1, 45, 0x000000, 0.2, 0, 0, 1);
 		private function init():void
 		{
 			doubleClickEnabled = true;
@@ -73,8 +72,6 @@ package weave.visualization.layers
 			enableAutoZoomToExtent.value = true;
 			// adding a canvas as child gets the selection rectangle on top of the vis
 			addChild(selectionRectangleCanvas);
-			
-			shadowAmount.value = 0;
 			
 			addContextMenuEventListener();
 			
@@ -95,15 +92,6 @@ package weave.visualization.layers
 			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, null, true);
 		}
 		
-		public function dispose():void
-		{
-			removeEventListener(MouseEvent.CLICK, handleMouseClick);
-			removeEventListener(MouseEvent.DOUBLE_CLICK, handleDoubleClick);
-			removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
-			removeEventListener(MouseEvent.ROLL_OUT, handleRollOut);
-			removeEventListener(MouseEvent.ROLL_OVER, handleRollOver);
-		}
-		
 		private function addContextMenuEventListener():void
 		{
 			var contextMenu:ContextMenu = (Application.application as Application).contextMenu;
@@ -114,25 +102,6 @@ package weave.visualization.layers
 		private function removeCursor(e:Event):void
 		{
 			CustomCursorManager.removeCurrentCursor();
-		}
-		
-		public const shadowAmount:LinkableNumber = newLinkableChild(this, LinkableNumber, updateShadow);
-		private function updateShadow():void
-		{
-			if (shadowAmount.value == 0)
-			{
-				filters = null;
-				return;
-			}
-			
-			var amount:Number = shadowAmount.value / 100;
-			
-			plotShadow.distance = 1 + (1 * amount);
-			plotShadow.alpha = amount;
-			plotShadow.blurX = 2 * amount;
-			plotShadow.blurY = 2 * amount;
-			
-			filters = [plotShadow];
 		}
 		
 		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
