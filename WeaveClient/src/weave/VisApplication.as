@@ -32,6 +32,7 @@ package weave
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
 	import flash.system.System;
+	import flash.text.Font;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.getQualifiedClassName;
@@ -54,6 +55,8 @@ package weave
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import ru.etcs.utils.FontLoader;
+	
 	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -62,6 +65,7 @@ package weave
 	import weave.api.getSessionState;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.ClassUtils;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionStateLog;
@@ -229,8 +233,10 @@ package weave
 			Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange, true);
+			
 		}
 
+		
 		/**
 		 * This needed to be a function because FlashVars can't be fetched till the application loads.
 		 */

@@ -100,7 +100,7 @@ package weave.visualization.layers
 		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		
-		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
 		public const axisFontBold:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const axisFontItalic:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const axisFontUnderline:LinkableBoolean = newLinkableChild(this, LinkableBoolean);

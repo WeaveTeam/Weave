@@ -1,0 +1,33 @@
+/* Sample CSS file to load fonts
+
+To compile CSS file to a SWF File, right click on this file from Flash Builder 
+and select Compile CSS to SWF
+*/
+@font-face {
+	src:url("MyriadPro-Bold.otf");
+	fontFamily: MyriadPro-Bold;
+	fontWeight:bold;
+	advancedAntiAliasing: true;
+}
+@font-face {
+	src:url("MyriadPro-BoldCond.otf");
+	fontFamily: MyriadPro-BoldCond;
+	fontWeight:bold;
+	advancedAntiAliasing: true;
+}
+@font-face {
+	src:url("MyriadPro-Cond.otf");
+	fontFamily: MyriadPro-Cond;
+	advancedAntiAliasing: true;
+}
+@font-face {
+	src:url("MyriadPro-Regular.otf");
+	fontFamily: MyriadPro-Regular;
+	advancedAntiAliasing: true;
+}
+@font-face {
+	src:url("MyriadPro-Semibold.otf");
+	fontFamily: MyriadPro-Semibold;
+	fontWeight:bold;
+	advancedAntiAliasing: true;
+}

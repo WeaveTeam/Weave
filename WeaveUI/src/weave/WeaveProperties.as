@@ -19,10 +19,21 @@
 
 package weave
 {
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
+	import flash.events.IOErrorEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
+	import flash.net.URLRequest;
+	import flash.text.Font;
 	import flash.utils.ByteArray;
+	import flash.utils.flash_proxy;
 	
+	import mx.collections.ArrayCollection;
+	import mx.events.FlexEvent;
 	import mx.utils.StringUtil;
+	
+	import ru.etcs.utils.FontLoader;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
@@ -31,6 +42,7 @@ package weave
 	import weave.api.reportError;
 	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
+	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -40,7 +52,9 @@ package weave
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
+	import weave.ui.ErrorLogPanel;
 	import weave.utils.DebugUtils;
+	import weave.utils.EventUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
 
@@ -64,6 +78,40 @@ package weave
 			// register all properties as children of this object
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
+			
+			enableWeaveFonts.addGroupedCallback(this,loadEmbeddedFonts,true);
+		}
+		
+		private function loadEmbeddedFonts():void
+		{
+			if(Weave.properties.enableWeaveFonts.value)
+			{
+				fontLoader.autoRegister = true;
+				fontLoader.addEventListener(Event.COMPLETE,weaveFontsLoaded);
+				fontLoader.addEventListener(IOErrorEvent.IO_ERROR,handleLoaderErrorEvent);
+				fontLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleLoaderErrorEvent);
+				fontLoader.load(new URLRequest("WeaveFonts.swf"));
+			}			
+		}
+		
+		private var fontLoader:FontLoader = new FontLoader();
+		
+		public static const embeddedFonts:ArrayCollection = new ArrayCollection([EmbeddedFonts.SophiaNubian]);
+		private function weaveFontsLoaded(event:Event):void
+		{
+			var fonts:Array = fontLoader.fonts;
+			
+			for each (var font:Font in fonts)
+			{
+				embeddedFonts.addItem(font.fontName);
+			}
+			
+		}
+		
+		private function handleLoaderErrorEvent(event:Event):void
+		{
+			//DO Nothing
+			
 		}
 		
 		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
@@ -79,7 +127,7 @@ package weave
 		private static const GOOGLE_IMAGES_URL:String = "Google Images|http://images.google.com/images?q=";
 		
 		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
-		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
+		//public static function verifyFontFamily(value:String):Boolean { return !(embeddedFonts.indexOf(value) == -1); }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:String):Boolean
@@ -98,6 +146,8 @@ package weave
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
+		
+		public const enableWeaveFonts:LinkableBoolean = new LinkableBoolean(true);
 		
 		
 		// enable/disable advanced features
@@ -260,7 +310,7 @@ package weave
 				
 		public const axisFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
 		public const axisFontSize:LinkableNumber = new LinkableNumber(DEFAULT_AXIS_FONT_SIZE, verifyFontSize);
-		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY, verifyFontFamily);
+		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY);
 		public const axisFontBold:LinkableBoolean = new LinkableBoolean(true);
 		public const axisFontItalic:LinkableBoolean = new LinkableBoolean(false);
 		public const axisFontUnderline:LinkableBoolean = new LinkableBoolean(false);

@@ -71,7 +71,7 @@ package weave.visualization.plotters
 		public const sortColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const font:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const font:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_FAMILY));
 		public const size:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_SIZE));
 		public const color:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0x000000));
 		public const bold:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));

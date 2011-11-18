@@ -67,7 +67,7 @@ package weave.visualization.plotters
 		
 		public const horizontal:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const font:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const font:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
 		public const size:LinkableNumber = registerLinkableChild(this, new LinkableNumber(WeaveProperties.DEFAULT_FONT_SIZE));
 		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		public const bold:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));

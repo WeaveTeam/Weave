@@ -35,6 +35,7 @@
 		
 		<mx:HBox>
 			<mx:Label text="Visualization font:"/>
+			<ui:CustomComboBox id="embeddedFontList" dataProvider="{WeaveProperties.embeddedFonts}"/>
 			<FontControl id="toolFontControl"/>
 		</mx:HBox>
 		
@@ -100,6 +101,7 @@
 -->
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
 			import mx.core.Application;
 			import mx.core.ClassFactory;
 			import mx.core.IFlexDisplayObject;
@@ -108,13 +110,17 @@
 			import mx.events.ListEvent;
 			import mx.managers.PopUpManager;
 			
+			import ru.etcs.utils.FontLoader;
+			
 			import weave.Weave;
+			import weave.WeaveProperties;
 			import weave.api.linkBindableProperty;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			import weave.ui.DraggablePanel;
 			import weave.utils.EventUtils;
 			import weave.visualization.tools.SimpleVisTool;
+			
 			
 			[Bindable]
 			public var selectedColor:uint;
@@ -142,6 +148,7 @@
 				linkBindableProperty(Weave.properties.panelTitleFontItalic, windowTitleFontControl.italicButton, "selected");
 				linkBindableProperty(Weave.properties.panelTitleFontUnderline, windowTitleFontControl.underlineButton, "selected");
 				
+				linkBindableProperty(Weave.properties.axisFontFamily, embeddedFontList, "selectedItem");
 				linkBindableProperty(Weave.properties.axisFontSize, toolFontControl.fontSizeCombo, "selectedItem");
 				linkBindableProperty(Weave.properties.axisFontColor, toolFontControl.colorPicker, "selectedColor");
 				linkBindableProperty(Weave.properties.axisFontUnderline, toolFontControl.underlineButton, "selected" );
@@ -151,6 +158,7 @@
 			{
 				Weave.properties.panelTitleFontFamily.value = event.target.selectedLabel;
 			}
+			
 		]]>
 	</mx:Script>
 </mx:VBox>	

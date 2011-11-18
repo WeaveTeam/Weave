@@ -67,7 +67,7 @@ package weave.visualization.plotters
 		}
 		
 		//TODO: put this huge list of properties into a separate object instead
-		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
 		public const axisFontBold:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const axisFontItalic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const axisFontUnderline:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
