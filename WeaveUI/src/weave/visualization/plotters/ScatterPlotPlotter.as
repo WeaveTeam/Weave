@@ -20,6 +20,7 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
+	import flash.utils.Dictionary;
 	
 	import mx.utils.ObjectUtil;
 	
@@ -100,18 +101,24 @@ package weave.visualization.plotters
 		public function get radiusColumn():DynamicColumn { return circlePlotter.screenRadius; }
 		public function get zoomToSubset():LinkableBoolean { return circlePlotter.zoomToSubset; }
 		
-		private function getAllKeys(outputKeySet:KeySet, inputKeySets:Array):void
+		private function getAllKeys(...inputKeySets):Array
 		{
-			outputKeySet.delayCallbacks();
-			if (inputKeySets.length > 0)
-				outputKeySet.replaceKeys((inputKeySets[0] as IKeySet).keys);
-			else
-				outputKeySet.clearKeys();
-			for (var i:int = 1; i < inputKeySets.length; i++)
+			var lookup:Dictionary = new Dictionary(true);
+			var result:Array = [];
+			for (var i:int = 0; i < inputKeySets.length; i++)
 			{
-				outputKeySet.addKeys((inputKeySets[i] as IKeySet).keys);
+				var keys:Array = (inputKeySets[i] as IKeySet).keys;
+				for (var j:int = 0; j < keys.length; j++)
+				{
+					var key:IQualifiedKey = keys[j] as IQualifiedKey;
+					if (lookup[key] === undefined)
+					{
+						lookup[key] = true;
+						result.push(key);
+					}
+				}
 			}
-			outputKeySet.resumeCallbacks();			
+			return result;
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
@@ -126,7 +133,7 @@ package weave.visualization.plotters
 				
 		private function updateKeys():void
 		{
-			getAllKeys(_keySet,[xColumn,yColumn,radiusColumn,colorColumn]);
+			_keySet.replaceKeys(getAllKeys(xColumn, yColumn, radiusColumn, colorColumn));
 		}
 	}
 }
