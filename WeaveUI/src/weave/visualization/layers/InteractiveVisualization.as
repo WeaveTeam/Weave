@@ -139,14 +139,14 @@ package weave.visualization.layers
 		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableProbe:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
-		protected var activeKeyType:String = null;
-		protected var mouseDragActive:Boolean = false;
-		protected var selectionRectangleCanvas:Canvas = new Canvas();
+		private var activeKeyType:String = null;
+		private var mouseDragActive:Boolean = false;
+		private const selectionRectangleCanvas:Canvas = new Canvas();
 		
-		protected const mouseDragStageCoords:IBounds2D = new Bounds2D();
+		private const mouseDragStageCoords:IBounds2D = new Bounds2D();
 		
 
-		protected var _mouseMode:String = null;
+		private var _mouseMode:String = null;
 		
 		private function isModeSelection(mode:String):Boolean
 		{
@@ -164,7 +164,7 @@ package weave.visualization.layers
 		}
 		
 		
-		protected function updateMouseMode(mouseEventType:String = null):void
+		private function updateMouseMode(mouseEventType:String = null):void
 		{
 			if (mouseEventType)
 				_mouseMode = Weave.properties.toolInteractions.determineMouseAction(mouseEventType);
@@ -215,7 +215,7 @@ package weave.visualization.layers
 			}
 		}
 		
-		protected function handleKeyboardEvent():void
+		private function handleKeyboardEvent():void
 		{
 			// if the escape key was hit, stop whatever mouse drag operation is in progress
 			if (StageUtils.keyboardEvent && StageUtils.keyboardEvent.keyCode == Keyboard.ESCAPE)
@@ -798,16 +798,6 @@ package weave.visualization.layers
 			_lastProbedQKey = null;
 		}
 		
-		private var _lastSelectedKeys:Array = null;
-		public function set lastSelectedKeys(a:Array):void
-		{
-			_lastSelectedKeys = a;
-		}
-		public function get lastSelectedKeys():Array
-		{
-			return _lastSelectedKeys ? _lastSelectedKeys.concat() : [];
-		}
-		
 		protected function setSelectionKeys(layer:SelectablePlotLayer, keys:Array, useMouseMode:Boolean = false):void
 		{
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
@@ -823,7 +813,6 @@ package weave.visualization.layers
 					keySet.removeKeys(keys);
 				else
 					keySet.replaceKeys(keys);
-				_lastSelectedKeys = keySet.keys.concat();
 			}
 		}
 		
