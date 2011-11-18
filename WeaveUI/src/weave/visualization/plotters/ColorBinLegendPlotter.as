@@ -107,14 +107,14 @@ package weave.visualization.plotters
 		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
 
 		private const _binsOrdering:Array = [];
-		private var _binToBounds:Dictionary = new Dictionary();
-		private var _binToString:Dictionary = new Dictionary();
+		private var _binToBounds:Array = [];
+		private var _binToString:Array = [];
 		public var numBins:int = 0;
 		private function createHashMaps():void
 		{
 			_binsOrdering.length = 0;
-			_binToString = new Dictionary();
-			_binToBounds = new Dictionary();
+			_binToString = [];
+			_binToBounds = [];
 			
 			var keys:Array = keySet.keys;
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
