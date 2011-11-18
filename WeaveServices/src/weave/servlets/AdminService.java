@@ -1580,8 +1580,6 @@ public class AdminService extends GenericServlet
 			metadata.put(Metadata.GEOMETRYCOLLECTION.toString(), geometryCollectionName);
 			
 			int numberSqlColumns = titles.size();
-			if (ignoreKeyColumnQueries)
-				--numberSqlColumns;
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
 				metadata.put(Metadata.NAME.toString(), titles.get(i));
