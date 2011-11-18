@@ -25,17 +25,9 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
-			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.ui.IPlotLayer;
-			import weave.api.ui.IPlotter;
 			import weave.api.unlinkBindableProperty;
-			import weave.ui.PlotLayerEditor;
-			import weave.utils.ColumnUtils;
-			import weave.utils.EditorManager;
-			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			
 			private var _plotter:GeometryLabelPlotter = null;
@@ -54,33 +46,6 @@
 			{
 				super.childrenCreated();
 				linkGeometryProperties();
-			}
-			
-			override public function set data(value:Object):void
-			{
-				
-				if (value == data)
-					return;
-				if (data is SelectablePlotLayer)
-				{
-					unlinkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
-					unlinkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-				}
-				// unlink the edit controls
-				unlinkGeometryProperties();
-				
-				// save pointer to new layer
-				super.data = value;
-				
-				if (data is SelectablePlotLayer)
-				{
-					linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
-					linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-				}
-				
-				// link the edit controls	
-				callLater(linkGeometryProperties, [data]);
-				
 			}
 			
 			private function linkGeometryProperties():void
