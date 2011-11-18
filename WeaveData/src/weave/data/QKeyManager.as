@@ -26,6 +26,7 @@ package weave.data
 	import mx.utils.object_proxy;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
@@ -50,6 +51,8 @@ package weave.data
 	 */
 	public final class QKeyManager implements IQualifiedKeyManager
 	{
+		private var _callbackCollection:ICallbackCollection = getCallbackCollection(this as ILinkableObject);
+		
 		/**
 		 * Get the QKey object for a given key type and key.
 		 *
@@ -87,11 +90,11 @@ package weave.data
 			if (qkey == null)
 			{
 				// QKey not created for this key yet (or it has been garbage-collected)
-				qkey = new QKey().init(keyType, localName);
+				qkey = new QKey(keyType, localName);
 				qkeyRef[qkey] = null; //save weak reference
 				
 				// trigger callbacks whenever a new key is created
-				getCallbackCollection(this).triggerCallbacks();
+				_callbackCollection.triggerCallbacks();
 			}
 			
 			return qkey;
@@ -104,9 +107,14 @@ package weave.data
 		 */
 		public function getQKeys(keyType:String, keyStrings:Array):Array
 		{
-			var keys:Array = new Array(keyStrings.length);
-			for (var i:int = 0; i < keyStrings.length; i++)
+			_callbackCollection.delayCallbacks();
+			
+			var i:int = keyStrings.length;
+			var keys:Array = new Array(i);
+			while (--i >= 0)
 				keys[i] = getQKey(keyType, keyStrings[i]);
+			
+			_callbackCollection.resumeCallbacks();
 			return keys;
 		}
 
@@ -194,7 +202,7 @@ package weave.data
 					refList.push(refHash); // append
 			}
 			
-			getCallbackCollection(this).triggerCallbacks();
+			_callbackCollection.triggerCallbacks();
 		}
 		
 		/**
@@ -280,11 +288,10 @@ import weave.api.data.IQualifiedKey;
  */
 internal class QKey implements IQualifiedKey
 {
-	internal function init(keyType:String, key:String):QKey
+	public function QKey(keyType:String, key:String)
 	{
 		_keyType = keyType;
 		_localName = key;
-		return this;
 	}
 
 	private var _keyType:String; // namespace
