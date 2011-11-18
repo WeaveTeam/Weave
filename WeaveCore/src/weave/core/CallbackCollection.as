@@ -75,8 +75,11 @@ package weave.core
 		
 		/**
 		 * This value keeps track of how many times callbacks were triggered, and is returned by the public triggerCounter accessor function.
+		 * The value starts at 1 to simplify code that compares the counter to a previous value.
+		 * This allows the previous value to be set to zero so change will be detected the first time the counter is compared.
+		 * This fixes potential bugs where the base case of zero is not considered.
 		 */
-		private var _triggerCounter:uint = 0;
+		private var _triggerCounter:uint = 1;
 		
 		/**
 		 * If this is true, it means _runCallbacksImmediately() is currently executing.
