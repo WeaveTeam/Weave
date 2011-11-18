@@ -40,6 +40,7 @@ package weave
 	import weave.core.weave_internal;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
+	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
@@ -64,6 +65,15 @@ package weave
 			// register all properties as children of this object
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
+
+			// handle dynamic changes to the session state that change what CSS file to use
+			cssStyleSheetName.addGroupedCallback(
+				this,
+				function():void
+				{
+					CSSUtils.loadStyleSheet(cssStyleSheetName.value);
+				}
+			);
 		}
 		
 		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
