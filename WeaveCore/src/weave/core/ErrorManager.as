@@ -19,9 +19,11 @@
 
 package weave.core
 {
+	import flash.debugger.enterDebugger;
 	import flash.system.Capabilities;
 	
 	import mx.events.DynamicEvent;
+	import mx.messaging.messages.ErrorMessage;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	
@@ -71,13 +73,16 @@ package weave.core
 				faultContent = faultContent == null ? error : [error, faultContent];
 			if (!(error is Error) || faultMessage || faultContent != null)
 			{
-				// wrap the error in a Fault object
-				if (!faultMessage && error is Error)
-					faultMessage = StandardLib.asString((error as Error).message);
-				var fault:Fault = new Fault('Error', faultMessage);
-				fault.content = faultContent;
-				fault.rootCause = error;
-				error = fault;
+				if (!error is Fault)
+				{
+					// wrap the error in a Fault object
+					if (!faultMessage && error is Error)
+						faultMessage = StandardLib.asString((error as Error).message);
+					var fault:Fault = new Fault('Error', faultMessage);
+					fault.content = faultContent;
+					fault.rootCause = error;
+					error = fault;
+				}
 			}
 			
 			var _error:Error = error as Error;
@@ -86,8 +91,8 @@ package weave.core
 			
 			if (Capabilities.isDebugger)
 			{
-				//throw error; // COMMENT THIS OUT WHEN NOT DEVELOPING
-				trace(_error.getStackTrace() + "\n");
+				trace('\n' + _error.getStackTrace() + '\n');
+				enterDebugger();
 			}
 			
 			errors.push(_error);

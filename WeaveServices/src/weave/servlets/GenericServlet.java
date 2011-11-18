@@ -268,7 +268,7 @@ public class GenericServlet extends HttpServlet
 	    	catch (Exception e)
 	    	{
 	    		e.printStackTrace();
-	    		sendError(response, e.getMessage());
+	    		sendError(response, e);
 	    	}
     	}
     	finally
@@ -333,7 +333,7 @@ public class GenericServlet extends HttpServlet
 	{	
 		if(!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
 		{
-			sendError(response, String.format("Method \"%s\" not supported.", methodName));
+			sendError(response, new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)));
 			return;
 		}
 		
@@ -409,7 +409,7 @@ public class GenericServlet extends HttpServlet
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		if (exposedMethod == null)
 		{
-			sendError(response, "Unknown method: "+methodName);
+			sendError(response, new IllegalArgumentException("Unknown method: "+methodName));
 		}
 		
 		// cast input values to appropriate types if necessary
@@ -511,23 +511,22 @@ public class GenericServlet extends HttpServlet
 		{
 			System.out.println(methodName + (List)Arrays.asList(methodParameters));
 			e.getCause().printStackTrace();
-			sendError(response, e.getCause().getMessage());
+			sendError(response, e.getCause());
 		}
 		catch (IllegalArgumentException e)
 		{
-			String error = e.getMessage() + "\n" +
+			String moreInfo = 
 				"Expected: " + formatFunctionSignature(methodName, expectedArgTypes, exposedMethod.paramNames) + "\n" +
 				"Received: " + formatFunctionSignature(methodName, methodParameters, null);
+			System.out.println(e.getMessage() + '\n' + moreInfo);
 			
-			System.out.println(error);
-			
-			sendError(response, error);
+			sendError(response, e, moreInfo);
 		}
 		catch (Exception e)
 		{
 			System.out.println(methodName + (List)Arrays.asList(methodParameters));
 			e.printStackTrace();
-			sendError(response, e.getMessage());
+			sendError(response, e);
 		}
     }
     
@@ -592,16 +591,23 @@ public class GenericServlet extends HttpServlet
     	return String.format("%s(%s)", methodName, result.substring(1, result.length() - 1));
     }
     
-    private void sendError(HttpServletResponse response, String message) throws IOException
+    private void sendError(HttpServletResponse response, Throwable exception) throws IOException
+    {
+    	sendError(response, exception, null);
+    }
+    private void sendError(HttpServletResponse response, Throwable exception, String moreInfo) throws IOException
 	{
     	//response.setHeader("Cache-Control", "no-cache");
     	//response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
     	
+    	String message = exception.getMessage();
+    	if (moreInfo != null)
+    		message += "\n" + moreInfo;
     	System.out.println("Serializing ErrorMessage: "+message);
     	
     	ServletOutputStream servletOutputStream = response.getOutputStream();
     	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
-    	errorMessage.faultCode = "Error";
+    	errorMessage.faultCode = exception.getClass().getSimpleName();
     	seriaizeCompressedAmf3(errorMessage, servletOutputStream);
 	}
     

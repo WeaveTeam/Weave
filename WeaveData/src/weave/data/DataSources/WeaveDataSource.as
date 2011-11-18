@@ -382,7 +382,7 @@ package weave.data.DataSources
 				return;
 			
 			request.proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
-			reportError(event, "Unable to download column data from server.", token);
+			reportError(event, null, token);
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{
