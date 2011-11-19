@@ -73,6 +73,7 @@
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
+				visualization.topMarginColumn = _colorLegendPlotter.dynamicColorColumn;
 				visualization.topMarginClickCallbacks.addImmediateCallback(this, handleMarginLabelClick);
 				_colorLegendPlotter.dynamicColorColumn.addGroupedCallback(this, updateMarginLabel, true);
 
@@ -98,11 +99,6 @@
 				linkBindableProperty(_colorLegendPlotter.maxColumns, maxCols, 'value');
 				linkBindableProperty(_colorLegendPlotter.reverseOrder, chkReverseOrder, 'selected');
 				linkBindableProperty(_barLegendPlotter.reverseOrder, chkReverseOrder, 'selected');
-			}
-			private static const DEFAULT_MARGIN_TOP:int = 25;
-			private function handleMarginChange():void
-			{
-				marginLabelCheckBox.selected = visualization.marginTopNumber.value != 0;
 			}
 			
 			public const dynamicBarChartTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(CompoundBarChartTool), handleBarChartChange, true);
@@ -146,9 +142,6 @@
 					AttributeSelectorPanel.openDefaultSelector(barChart._plotter.heightColumns);
 			}
 			
-			[Bindable]
-			private var marginLabelText:String = "";
-			
 			private function updateMarginLabel():void
 			{
 				if (!parent)
@@ -156,12 +149,14 @@
 				
 				if (_barLegendPlotter.columns.getObjects().length <= 1 || barChart == null)
 				{
-					marginLabelText = ColumnUtils.getTitle(_colorLegendPlotter.dynamicColorColumn);
+					visualization.topMarginToolTip = null;
+					marginLabel.text = ColumnUtils.getTitle(_colorLegendPlotter.dynamicColorColumn);
 					visualization.additionalProbeColumns = WeaveAPI.SessionManager.getLinkableDescendants(_colorLegendPlotter.dynamicColorColumn, ReferencedColumn);
 				}
 				else
 				{
-					marginLabelText = "Bar Segment Colors";
+					visualization.topMarginToolTip = "Click to select the attribute(s) used for the bars.";
+					marginLabel.text = "Bar Segment Colors";
 					visualization.additionalProbeColumns = null;
 				}
 				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
@@ -178,25 +173,40 @@
 					title = "Bar Chart Legend";
 			}
 			
+			private static const DEFAULT_MARGIN_TOP:int = 25;
+			private var _prevMarginTop:String = String(DEFAULT_MARGIN_TOP); // this stores the previous nonzero top margin setting
+			private function handleMarginChange():void
+			{
+				if (visualization.marginTopNumber.value != 0)
+				{
+					_prevMarginTop = visualization.marginTop.value;
+					showAttributeNameCheck.selected = true;
+				}
+				else
+				{
+					showAttributeNameCheck.selected = false;
+				}
+			}
+			private function toggleShowAttributeName():void
+			{
+				visualization.marginTop.value = showAttributeNameCheck.selected ? _prevMarginTop : '0';
+			}
 		]]>
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
-				fontWeight="bold" click="handleMarginLabelClick()" 
-				x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
-				text="{marginLabelText}" width="100%"
-				rollOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				rollOut="CursorManager.removeAllCursors()"
-				wordWrap="true" selectable="false" editable="false"
-				borderThickness="0" backgroundAlpha="0"
-			  	toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute(s) used for the bars."/>
+			mouseChildren="false" mouseEnabled="false"
+			fontWeight="bold" 
+			x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off"
+			wordWrap="true" selectable="false" editable="false"
+			borderThickness="0" backgroundAlpha="0"/>
 	
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Color Bin Legend">
-			<mx:CheckBox id="marginLabelCheckBox" 
+			<mx:CheckBox id="showAttributeNameCheck" 
 						 label="Show legend attribute name" 
-						 change="visualization.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0" 
+						 change="toggleShowAttributeName()"
 						 toolTip="Click to hide the title of the Legend."/>
 			<mx:HBox>
 				<mx:Label text="Number of columns"/>

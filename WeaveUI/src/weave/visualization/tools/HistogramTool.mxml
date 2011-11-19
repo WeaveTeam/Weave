@@ -81,7 +81,6 @@
 				visualization.marginRight.value  = "10";
 				
 				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
-				visualization.enableXAxisProbing = true;
 
 				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
 				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
@@ -170,7 +169,7 @@
 			{
 				handlePanelTitleChange();
 				
-				visualization.setXAxisColumn(plotter.dynamicColorColumn);
+				visualization.bottomMarginColumn = plotter.dynamicColorColumn;
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)

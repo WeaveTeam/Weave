@@ -69,9 +69,6 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
 				// END TEMPORARY SOLUTION
 				
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
-				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.xColumn])
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.yColumn])
 				
@@ -131,8 +128,8 @@
 			
 			private function updateAxisLabels():void
 			{
-				visualization.setXAxisColumn(_plotter.xColumn);
-				visualization.setYAxisColumn(_plotter.yColumn);
+				visualization.bottomMarginColumn = _plotter.xColumn;
+				visualization.leftMarginColumn = _plotter.yColumn;
 				
 				if (_plotter == null)
 					title = "Scatter Plot";

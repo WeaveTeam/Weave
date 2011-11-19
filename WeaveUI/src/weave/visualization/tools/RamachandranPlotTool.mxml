@@ -124,9 +124,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.enableAutoZoomToExtent.lock();
 				visualization.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
 				
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
-				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openDefaultSelector,[_plotter.xColumn])
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openDefaultSelector,[_plotter.yColumn])
 				
@@ -183,8 +180,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function updateAxisLabels():void
 			{
-				visualization.setXAxisColumn(_plotter.xColumn);
-				visualization.setYAxisColumn(_plotter.yColumn);
+				visualization.bottomMarginColumn = _plotter.xColumn;
+				visualization.leftMarginColumn = _plotter.yColumn;
 				
 				if (_plotter == null)
 					title = "Ramachandran Plot";

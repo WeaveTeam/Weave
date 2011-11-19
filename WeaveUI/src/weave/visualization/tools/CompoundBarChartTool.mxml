@@ -106,9 +106,6 @@
 				
 				visualization.enableZoomAndPan.value = false;
 
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
-				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [true]);
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [false]);
 				
@@ -273,21 +270,21 @@
 				{
 					yAxisTitle = sortAxisTitle;
 					sortAxisLayer = yAxisLayer;
-					visualization.setYAxisColumn(sortAxisToolTipColumn);
+					visualization.leftMarginColumn = sortAxisToolTipColumn;
 									
 					heightAxisLayer = xAxisLayer;
 					xAxisTitle = heightAxisTitle;
-					visualization.setXAxisColumn(heightAxisToolTipColumn);
+					visualization.bottomMarginColumn = heightAxisToolTipColumn;
 				}
 				else
 				{
 					xAxisTitle = sortAxisTitle;
 					sortAxisLayer = xAxisLayer;
-					visualization.setXAxisColumn(sortAxisToolTipColumn);
+					visualization.bottomMarginColumn = sortAxisToolTipColumn;
 					
 					yAxisTitle = heightAxisTitle;
 					heightAxisLayer = yAxisLayer;
-					visualization.setYAxisColumn(heightAxisToolTipColumn);
+					visualization.leftMarginColumn = heightAxisToolTipColumn;
 				}
 
 				sortAxisLayer.axisPlotter.setLabelFunction(_plotter.sortAxisLabelFunction);

@@ -108,9 +108,6 @@
 				
 				visualization.enableZoomAndPan.value = false;
 				
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
-				
 				xAxisLayer.axisPlotter.setLabelFunction(labelFunctionX);
 				yAxisLayer.axisPlotter.setLabelFunction(labelFunctionY);
 				
@@ -457,8 +454,8 @@
 			}
 			private function updateAxisLabels():void
 			{
-				visualization.setXAxisColumn(plotter.xColumn);
-				visualization.setYAxisColumn(plotter.yColumn);
+				visualization.bottomMarginColumn = plotter.xColumn;
+				visualization.leftMarginColumn = plotter.yColumn;
 				
 				xAxisLayer.axisPlotter.setSideAxisName(
 					ColumnUtils.getTitle(plotter.xColumn), 

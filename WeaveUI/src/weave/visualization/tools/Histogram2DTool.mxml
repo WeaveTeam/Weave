@@ -83,9 +83,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.marginLeft.value   = "80";
 				visualization.marginRight.value  = "10";
 				
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
-				
 				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
 				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
@@ -180,8 +177,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
-				visualization.setXAxisColumn(plotter.xColumn);
-				visualization.setYAxisColumn(plotter.yColumn);
+				visualization.bottomMarginColumn = plotter.xColumn;
+				visualization.leftMarginColumn = plotter.yColumn;
 				
 				var xBinCol:BinnedColumn = plotter.xBinnedColumn;
 				
