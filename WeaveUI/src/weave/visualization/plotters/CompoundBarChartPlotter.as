@@ -29,7 +29,9 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -83,7 +85,6 @@ package weave.visualization.plotters
 			registerSpatialProperty(colorColumn); // because color is used for sorting
 			registerLinkableChild(this, Weave.properties.axisFontSize);
 			registerLinkableChild(this, Weave.properties.axisFontColor);
-			colorColumn.addImmediateCallback(this, function():void { _binnedSortColumnTriggerCounter = 0; });
 			
 			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
 		}
@@ -96,14 +97,13 @@ package weave.visualization.plotters
 		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
 		
 		public const groupBySortColumn:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
-		private var _binnedSortColumnTriggerCounter:uint = 0;
 		private const _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
 		private const _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
 		private const _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
-		private var _sortByColor:Function = ColumnUtils.generateSortFunction([colorColumn]);
+		private var _sortByColor:Function;
 		
 		public function sortAxisLabelFunction(value:Number):String
 		{
@@ -177,9 +177,30 @@ package weave.visualization.plotters
 		
 		private function sortBins():void
 		{
-			if (groupBySortColumn.value && _binnedSortColumnTriggerCounter != _binnedSortColumn.triggerCounter)
+			if (!groupBySortColumn.value)
+				return;
+			var colorChanged:Boolean = detectLinkableObjectChange(sortBins, colorColumn);
+			var binsChanged:Boolean = detectLinkableObjectChange(sortBins, _binnedSortColumn);
+			
+			if (colorChanged)
 			{
-				_binnedSortColumnTriggerCounter = _binnedSortColumn.triggerCounter;
+				// find internal color column, then use its internal column
+				var column:IAttributeColumn = colorColumn;
+				while (column)
+				{
+					if (column is ColorColumn)
+					{
+						column = (column as ColorColumn).internalDynamicColumn;
+						break;
+					}
+					if (column is IColumnWrapper)
+						column = (column as IColumnWrapper).internalColumn;
+				}
+				_sortByColor = ColumnUtils.generateSortFunction([column]);
+			}
+			
+			if (colorChanged || binsChanged)
+			{
 				for (var i:int = 0; i < _binnedSortColumn.numberOfBins; i++)
 					_binnedSortColumn.getKeysFromBinIndex(i).sort(_sortByColor);
 			}
@@ -493,7 +514,7 @@ package weave.visualization.plotters
 					{
 						_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
 						var valueLabelPos:Number = valueLabelDataCoordinate.value;
-						if(isNaN(valueLabelPos))
+						if (isNaN(valueLabelPos))
 						{
 							valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
 						}
@@ -542,11 +563,14 @@ package weave.visualization.plotters
 					//------------------------------------
 					
 					//------------------------------------
-					// BEGIN code to draw one label using labelColumn
+					// BEGIN code to draw one label using labelColumn (or column title if grouped)
 					//------------------------------------
 					if (shouldDrawLabel && !heightMissing)
 					{
-						_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
+						if (_groupingMode == GROUP)
+							_bitmapText.text = ColumnUtils.getTitle(heightColumn);
+						else
+							_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
 						_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 						var labelPos:Number = labelDataCoordinate.value;
 						if (_horizontalMode)
