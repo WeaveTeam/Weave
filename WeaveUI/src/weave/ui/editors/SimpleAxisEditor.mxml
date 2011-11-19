@@ -20,10 +20,12 @@
 */
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns="weave.ui.editors.*"
+		 xmlns:ui="weave.ui.*"
 		 label=""
 		 enabled="{_tool != null}"
 		 verticalGap="{verticalGap}"
-		 creationPolicy="all" xmlns:settings="weave.ui.settings.*" xmlns:ui="weave.ui.*">
+		 creationPolicy="all" >
 	
 	<mx:HBox width="100%">
 		<mx:CheckBox id="enableTitle" label="Visualization title" toolTip="Selecting this option will turn the title of this tool on or off"
