@@ -298,37 +298,7 @@ package weave.visualization.plotters
 				// draw tick mark label
 				if (showLabels.value)
 				{
-					_bitmapText.text = null;
-					// attempt to use label function
-					var labelFunctionResult:String = _labelFunction == null ? null : _labelFunction(tickValue);
-					if (_labelFunction != null && labelFunctionResult != null)
-					{
-						_bitmapText.text = labelFunctionResult;
-					}
-					else if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY )
-					{
-						if (tickValue == int(tickValue))
-							_numberFormatter.precision = -1;
-						else
-							_numberFormatter.precision = 2;
-						
-						_bitmapText.text = _numberFormatter.format(tickValue);
-					}
-					else
-					{
-						_bitmapText.text = labelNumberFormatter.format(tickValue);
-					}
-					
-					try
-					{
-						if (labelFunction.value)
-							_bitmapText.text = labelFunction.apply(null, [tickValue, _bitmapText.text]);
-					}
-					catch (e:Error)
-					{
-						_bitmapText.text = '';
-					}
-					
+					_bitmapText.text = getLabel(tickValue);
 					_bitmapText.x = xTick + xLabelOffset;
 					_bitmapText.y = yTick + yLabelOffset;
 					_bitmapText.draw(destination);					
@@ -521,6 +491,48 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		private const tempPoint2:Point = new Point();
 
+		public function getLabel(tickValue:Number):String
+		{
+			var minValue:Number = tickMinValue.value;
+			var maxValue:Number = tickMaxValue.value;
+			if (isNaN(minValue))
+				minValue = axisLineMinValue.value;
+			if (isNaN(maxValue))
+				maxValue = axisLineMaxValue.value;
+			
+			var result:String = null;
+			// attempt to use label function
+			var labelFunctionResult:String = _labelFunction == null ? null : _labelFunction(tickValue);
+			if (_labelFunction != null && labelFunctionResult != null)
+			{
+				result = labelFunctionResult;
+			}
+			else if (tickValue == minValue || tickValue == maxValue)
+			{
+				if (tickValue == int(tickValue))
+					_numberFormatter.precision = -1;
+				else
+					_numberFormatter.precision = 2;
+				
+				result = _numberFormatter.format(tickValue);
+			}
+			else
+			{
+				result = labelNumberFormatter.format(tickValue);
+			}
+			
+			try
+			{
+				if (labelFunction.value)
+					result = labelFunction.apply(null, [tickValue, result]);
+			}
+			catch (e:Error)
+			{
+				result = '';
+			}
+			
+			return result;
+		}
 		// TEMPORARY SOLUTION
 		public function setLabelFunction(func:Function):void
 		{
