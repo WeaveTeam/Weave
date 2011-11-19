@@ -84,7 +84,7 @@
 				
 				// lock dynamic objects into place
 				plotter = initDefaultPlotter(ScatterPlotPlotter) as ScatterPlotPlotter;
-				visualization.enableProbeLine(true, true, labelFunctionY, labelFunctionX);
+				visualization.enableProbeLine(true, true);
 				
 				initRegressionLayer() ;
 				

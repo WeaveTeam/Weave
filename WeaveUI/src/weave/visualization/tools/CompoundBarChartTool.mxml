@@ -27,8 +27,6 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
-			import mx.events.FlexEvent;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -37,18 +35,15 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
-			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
-			import weave.core.SessionManager;
 			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.BitmapText;
@@ -58,7 +53,17 @@
 
 			use namespace weave_internal;
 
-			public var _plotter:CompoundBarChartPlotter = null;
+			/**
+			 * When this is set to true, labels for all bars will be shown.
+			 */
+			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxisLabels, true);
+			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), updateAxisLabels, true);
+			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
+			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			
+			private var _plotter:CompoundBarChartPlotter = null;
+			private var _showYAxisLabels:Boolean = false;
+			private var _showXAxisLabels:Boolean = false;
 
 			override protected function constructor():void
 			{
@@ -66,14 +71,12 @@
 
 				// lock dynamic objects into place
 				_plotter = initDefaultPlotter(CompoundBarChartPlotter) as CompoundBarChartPlotter;
-				visualization.enableProbeLine(false, true);
-				_plotter.groupingMode.addGroupedCallback(this, updateProbeLines);
-				_plotter.horizontalMode.addGroupedCallback(this, updateProbeLines);
+				_plotter.groupingMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
 				
-				_plotter.sortColumn.addGroupedCallback(this,handleSortColumnChange);
-				_plotter.heightColumns.addGroupedCallback(this,handleHeightColumnsChange);
+				_plotter.sortColumn.addGroupedCallback(this, handleSortColumnChange);
+				_plotter.heightColumns.addGroupedCallback(this, handleHeightColumnsChange);
 				
 				showAxes = true;
 				
@@ -155,17 +158,8 @@
 				];
 			}
 			
-			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
-			
-			private function updateProbeLines():void
-			{
-				if (_plotter.groupingMode.value == CompoundBarChartPlotter.GROUP || _plotter.groupingMode.value == CompoundBarChartPlotter.PERCENT_STACK)
-					visualization.disableProbelines();
-				else if (_plotter.horizontalMode.value)
-					visualization.enableProbeLine(true, false);
-				else
-					visualization.enableProbeLine(false, true);
-			}
+			public function get heightColumns():ILinkableHashMap { return _plotter.heightColumns; }
+			public function get chartColors():ColorRamp { return _plotter.chartColors; }
 			
 			private function updateProbeColumns():void
 			{
@@ -195,7 +189,6 @@
 					visualization.additionalProbeColumns = null;
 			}
 			
-			
 			private function numberToString(value:Number):String
 			{
 				return value.toString();
@@ -209,11 +202,6 @@
 				else
 					AttributeSelectorPanel.openToolSelector(this,_plotter.heightColumns);
 			}
-			
-			/**
-			 * When this is set to true, labels for all bars will be shown.
-			 */
-			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxisLabels, true);
 			
 			override protected function handlePanelTitleChange():void
 			{
@@ -232,12 +220,6 @@
 				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
 				return fc.internalDynamicColumn;
 			}
-			
-			
-			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), updateAxisLabels, true);
-
-			private var _showYAxisLabels:Boolean = false;
-			private var _showXAxisLabels:Boolean = false;
 			
 			private function updateAxisLabels():void
 			{
@@ -265,7 +247,7 @@
 				var yAxisTitle:String; // title for y axis, whether or not horizontal mode is on
 
 				// BEGIN handling of horizontal/vertical mode ----------------------
-				
+				var _groupingMode:String = _plotter.getActualGroupingMode();
 				if (_plotter.horizontalMode.value)
 				{
 					yAxisTitle = sortAxisTitle;
@@ -275,6 +257,8 @@
 					heightAxisLayer = xAxisLayer;
 					xAxisTitle = heightAxisTitle;
 					visualization.bottomMarginColumn = heightAxisToolTipColumn;
+					
+					visualization.enableProbeLine(_groupingMode == CompoundBarChartPlotter.STACK, false);
 				}
 				else
 				{
@@ -285,11 +269,12 @@
 					yAxisTitle = heightAxisTitle;
 					heightAxisLayer = yAxisLayer;
 					visualization.leftMarginColumn = heightAxisToolTipColumn;
+					
+					visualization.enableProbeLine(false, _groupingMode == CompoundBarChartPlotter.STACK);
 				}
-
+				
 				sortAxisLayer.axisPlotter.setLabelFunction(_plotter.sortAxisLabelFunction);
 				heightAxisLayer.axisPlotter.setLabelFunction(heightAxisLabelFunction);
-				
 				
 				// height axis uses automatic min,max based on data
 				heightAxisLayer.axisPlotter.tickMinValue.value = NaN;
@@ -324,67 +309,43 @@
 				return null;
 			}
 			
-			
 			private function alphaSliderFormatFunction(item:Number):String {
 				//return int(100 - (item * 100)) + "% Transparent";
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
 			}
 			
-			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false),handleLinkSortAndHeightColumnChange);
-			
-			private function handleLinkSortAndHeightColumnChange():void
-			{
-				//if checked we set the sort column to the first height column by default
-				if(linkHeightAndSortColumns.value)
-				{
-					handleHeightColumnsChange();
-				}
-			}
-			
-			
 			private function handleSortColumnChange():void
 			{
-				
-
-				
-				if(!_plotter.sortColumn.internalColumn)
+				if (!_plotter.sortColumn.internalColumn)
 					return;
 				
-				if(linkHeightAndSortColumns.value)
+				if (linkHeightAndSortColumns.value)
 				{
 					_plotter.heightColumns.delayCallbacks();
 					
 					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
-					
-					var col:Array = _plotter.heightColumns.getObjects();
-					
-					copySessionState(_plotter.sortColumn,col[0]);
+					var columns:Array = _plotter.heightColumns.getObjects();
+					copySessionState(_plotter.sortColumn, columns[0]);
 					
 					_plotter.heightColumns.resumeCallbacks();
 				}
-				
 			}
 			
 			private function handleHeightColumnsChange():void
 			{
-				
-				var col:Array = _plotter.heightColumns.getObjects();
-				
-				if(col.length <1)
+				if (_plotter.heightColumns.getObjects().length < 1)
 					return;
-				
 
-				if(linkHeightAndSortColumns.value)
+				if (linkHeightAndSortColumns.value)
 				{
 					_plotter.heightColumns.delayCallbacks();
+					
 					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
-					//new object has been created because of forceFirstColumnDynamic. 
-					//so we set col again.
-					col = _plotter.heightColumns.getObjects();
-					copySessionState(col[0],_plotter.sortColumn);
+					var columns:Array = _plotter.heightColumns.getObjects();
+					copySessionState(columns[0], _plotter.sortColumn);
+					
 					_plotter.heightColumns.resumeCallbacks();
 				}
-				
 			}
 			
 			private function updateInteractivity():void
@@ -399,7 +360,6 @@
 					groupMode.enabled = true;
 					showValueLabelsCheckBox.enabled = groupedRadioButton.selected;
 					colorColumnInput.enabled = false;
-										
 				}
 				else
 				{
@@ -413,18 +373,16 @@
 			private const groupCheckDisabledToolTip:String = 'There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.';
 			private const groupCheckEnabledToolTip:String = 'Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.';
 			
-			protected function Legend_clickHandler(event:MouseEvent):void
+			public function createLegend():void
 			{
 				var barChartLegendTool:BarChartLegendTool = Weave.root.requestObject(null, BarChartLegendTool, false);
 				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(this);
 			}
 			
-			[Deprecated] public function set labelColumn(value:Object):void
-			{
-				setSessionState(_plotter.labelColumn, value);
-			}
-			
 			[Bindable] private var indent:int = 80;
+			
+			// backwards compatibility
+			[Deprecated] public function set labelColumn(value:Object):void { setSessionState(_plotter.labelColumn, value); }
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -451,89 +409,42 @@
 		</mx:VBox>
 		
 		<mx:VBox label="Labeling">
-			<mx:Button label="Show legend" click="Legend_clickHandler(event)"/>
+			<mx:Button label="Show legend" click="createLegend()"/>
 			<mx:CheckBox label="Show all axis labels" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
 			
 			<mx:HBox borderStyle="inset" borderThickness="1">
-				<mx:VBox>					
-					<mx:CheckBox label="Show labels" id="labelsChkBx" toolTip="This option enables bar labels that use the Label column"							 
+				<mx:VBox>
+					<mx:CheckBox label="Show record labels" id="labelsChkBx" toolTip="This option enables bar labels that use the Label column"							 
 								 creationComplete="linkBindableProperty(_plotter.showLabels, event.target, 'selected')"/>
-					<mx:VBox paddingLeft="15" enabled="{labelsChkBx.selected}">
+					<mx:VBox paddingLeft="20" enabled="{labelsChkBx.selected}">
 						<mx:HBox>
-							<mx:Label text="Label color"/>
+							<mx:Label text="Color"/>
 							<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
 						</mx:HBox>
-						<ui:TextBox inputWidth="64" label="Label position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
-						
+						<ui:TextBox inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
 						<ui:Indent label="Angle">
 							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
 									creationComplete="linkBindableProperty(_plotter.labelRelativeAngle, event.target, 'value')"/>
 						</ui:Indent>
-						<mx:HBox>
-							<mx:Label text="Vertical Align"/>
-							<mx:ComboBox toolTip="Select the vertical align mode" 
-										 creationComplete="linkBindableProperty(_plotter.labelVerticalAlign, event.target, 'selectedItem')">
-								<mx:ArrayCollection>
-									<mx:String>top</mx:String>
-									<mx:String>middle</mx:String>
-									<mx:String>bottom</mx:String>
-								</mx:ArrayCollection>
-							</mx:ComboBox>					 			
-						</mx:HBox>					
-						
-						<mx:HBox label="Horizontal Align">		
-							<mx:Label text="Horizontal Align"/>
-							<mx:ComboBox toolTip="Select the horizontal align mode" 
-										 creationComplete="linkBindableProperty(_plotter.labelHorizontalAlign, event.target, 'selectedItem')">
-								<mx:ArrayCollection>
-									<mx:String>left</mx:String>
-									<mx:String>center</mx:String>
-									<mx:String>right</mx:String>
-								</mx:ArrayCollection>			
-							</mx:ComboBox>
-						</mx:HBox>
+						<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.labelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.labelHorizontalAlign, event.target, 'horizontalAlign');"/>
 					</mx:VBox>
 				</mx:VBox>
 				
 				<mx:VBox>				
 					<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
 								 toolTip="This option will show a value label for each bar."/>
-					<mx:VBox paddingLeft="15" enabled="{showValueLabelsCheckBox.selected}">
+					<mx:VBox paddingLeft="20" enabled="{showValueLabelsCheckBox.selected}">
 						<mx:HBox>
-							<mx:Label text="Value label color"/>
+							<mx:Label text="Color"/>
 							<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
 						</mx:HBox>
-												
-						<ui:TextBox inputWidth="64" label="Value label position" 
+						<ui:TextBox inputWidth="64" label="Position" 
 									creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>							  
-						
 						<ui:Indent label="Angle">
 							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
 									creationComplete="linkBindableProperty(_plotter.valueLabelRelativeAngle, event.target, 'value')"/>
 						</ui:Indent>
-						<mx:HBox>
-							<mx:Label text="Vertical Align"/>
-							<mx:ComboBox toolTip="Select the vertical align mode" 
-										 creationComplete="linkBindableProperty(_plotter.valueLabelVerticalAlign, event.target, 'selectedItem')">
-								<mx:ArrayCollection>
-									<mx:String>top</mx:String>
-									<mx:String>middle</mx:String>
-									<mx:String>bottom</mx:String>
-								</mx:ArrayCollection>
-							</mx:ComboBox>					 			
-						</mx:HBox>					
-						
-						<mx:HBox label="Horizontal Align">		
-							<mx:Label text="Horizontal Align"/>
-							<mx:ComboBox toolTip="Select the horizontal align mode" 
-										 creationComplete="linkBindableProperty(_plotter.valueLabelHorizontalAlign, event.target, 'selectedItem')">
-								<mx:ArrayCollection>
-									<mx:String>left</mx:String>
-									<mx:String>center</mx:String>
-									<mx:String>right</mx:String>
-								</mx:ArrayCollection>			
-							</mx:ComboBox>
-						</mx:HBox>
+						<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.valueLabelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.valueLabelHorizontalAlign, event.target, 'horizontalAlign');"/>
 					</mx:VBox>
 				</mx:VBox>
 			</mx:HBox>

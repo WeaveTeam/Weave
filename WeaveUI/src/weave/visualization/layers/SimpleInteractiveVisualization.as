@@ -445,42 +445,38 @@ package weave.visualization.layers
 		private var _probePlotter:ProbeLinePlotter = null ;
 		
 		/**
-		 * This function should be called by a tool to initialize a probe line layer and its ProbeLinePlotter
-		 * @param xAxisToPlot set to true if xAxis needs a probe line and tooltip
-		 * @param yAxisToPlot set to true if yAxis needs a probe line and tooltip
-		 * @param labelFunction optional function to convert number values to string 
-		 * @param labelFunctionX optional function to convert xAxis number values to string
+		 * This function should be called by a tool to initialize a probe line layer and its ProbeLinePlotter.
+		 * To disable probe lines, call this function with both parameters set to false.
+		 * @param xToolTipEnabled set to true if xAxis needs a probe line and tooltip
+		 * @param yToolTipEnabled set to true if yAxis needs a probe line and tooltip
+		 * @param xLabelFunction optional function to convert xAxis number values to string
+		 * @param yLabelFunction optional function to convert yAxis number values to string
 		 */	
-		public function enableProbeLine(xAxisToPlot:Boolean, yAxisToPlot:Boolean, labelFunction:Function = null, labelFunctionX:Function = null):void
+		public function enableProbeLine(xToolTipEnabled:Boolean, yToolTipEnabled:Boolean):void
 		{
+			if (!xToolTipEnabled && !yToolTipEnabled)
+			{
+				getCallbackCollection(_plotLayer.probeFilter).removeCallback(updateProbeLines);
+				return;
+			}
 			if (!_probeLineLayer)
 			{
 				_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
 				_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
 			}
-			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xAxisToPlot, yAxisToPlot, labelFunction, labelFunctionX], false);
-		}
-		
-		/**
-		 * Disables probe lines by removing the appropriate function from the list of callbacks
-		 */
-		public function disableProbelines():void 
-		{
-			getCallbackCollection(_plotLayer.probeFilter).removeCallback(updateProbeLines);
+			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xToolTipEnabled, yToolTipEnabled], false);
 		}
 		
 		/**
 		 * Draws the probe lines using _probePlotter and the corresponding axes tooltips
-		 * @param xAxisToPlot set to true if xAxis needs a probe line and tooltip
-		 * @param yAxisToPlot set to true if yAxis needs a probe line and tooltip
+		 * @param xToolTipEnabled set to true if xAxis needs a probe line and tooltip
+		 * @param yToolTipEnabled set to true if yAxis needs a probe line and tooltip
 		 * @param labelFunction optional function to convert number values to string 
 		 * @param labelFunctionX optional function to convert xAxis number values to string 
 		 * 
 		 */	
-		private function updateProbeLines(xAxisToPlot:Boolean, yAxisToPlot:Boolean, labelFunctionY:Function, labelFunctionX:Function):void
+		private function updateProbeLines(xToolTipEnabled:Boolean, yToolTipEnabled:Boolean):void
 		{
-			// TODO: why is this called when the drag select reaches another window?
-			
 			destroyProbeLineTooltips();
 			if (!Weave.properties.enableProbeLines.value)
 				return;
@@ -513,7 +509,7 @@ package weave.visualization.layers
 			var yExists:Boolean = isFinite(bounds.getYMin());
 			var xExists:Boolean = isFinite(bounds.getXMin());
 			
-			if( yAxisToPlot && !xAxisToPlot && xExists && yExists) // bar charts, histograms
+			if( yToolTipEnabled && !xToolTipEnabled && xExists && yExists) // bar charts, histograms
 			{
 				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				y_yAxis = bounds.getYMax();
@@ -521,11 +517,11 @@ package weave.visualization.layers
 				xPlot = bounds.getXCenter();
 				yPlot = bounds.getYMax();
 				
-				 showProbeTooltips(y_yAxis, bounds, labelFunctionY);
-				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yAxisToPlot, xAxisToPlot);
+				 showProbeTooltips(y_yAxis, bounds, _yAxisLayer.axisPlotter.getLabel);
+				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yToolTipEnabled, xToolTipEnabled);
 				
 			}
-			else if (yAxisToPlot && xAxisToPlot) //scatterplot
+			else if (yToolTipEnabled && xToolTipEnabled) //scatterplot
 			{
 				var xAxisMin:Number = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				var yAxisMin:Number = _yAxisLayer.axisPlotter.axisLineMinValue.value;
@@ -545,13 +541,13 @@ package weave.visualization.layers
 					y_xAxis = yAxisMin;
 
 					if (yExists)
-						showProbeTooltips(y_yAxis, bounds, labelFunctionY);
+						showProbeTooltips(y_yAxis, bounds, _yAxisLayer.axisPlotter.getLabel);
 					if (xExists)
-						showProbeTooltips(x_xAxis, bounds, labelFunctionX, true);
+						showProbeTooltips(x_xAxis, bounds, _xAxisLayer.axisPlotter.getLabel, true);
 					_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yExists, xExists);
 				}
 			}
-			else if (!yAxisToPlot && xAxisToPlot) // special case for horizontal bar chart
+			else if (!yToolTipEnabled && xToolTipEnabled) // special case for horizontal bar chart
 			{
 				xPlot = bounds.getXMax();
 				yPlot = bounds.getYCenter();
@@ -559,7 +555,7 @@ package weave.visualization.layers
 				x_xAxis = xPlot;
 				y_xAxis = _yAxisLayer.axisPlotter.axisLineMinValue.value;
 				
-				showProbeTooltips(xPlot, bounds, labelFunctionY,false, true);
+				showProbeTooltips(xPlot, bounds, _xAxisLayer.axisPlotter.getLabel, false, true);
 				
 				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, false, true);
 			}
@@ -576,10 +572,12 @@ package weave.visualization.layers
 		public function showProbeTooltips(displayValue:Number, bounds:IBounds2D, labelFunction:Function, xAxis:Boolean = false, useXMax:Boolean = false):void
 		{
 			var yPoint:Point = new Point();
-			var text1:String = "";
+			var text:String = "";
 			if (labelFunction != null)
-				text1 = labelFunction(displayValue);
-			else text1 = displayValue.toString();
+				text = labelFunction(displayValue);
+			
+			if (!text)
+				text = StandardLib.formatNumber(displayValue);
 			
 			if (xAxis || useXMax)
 			{
@@ -598,13 +596,13 @@ package weave.visualization.layers
 			
 			if (xAxis || useXMax)
 			{
-				xAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
+				xAxisTooltip = ToolTipManager.createToolTip(text, yPoint.x, yPoint.y);
 				xAxisTooltip.move(xAxisTooltip.x - (xAxisTooltip.width / 2), xAxisTooltip.y);
 				xAxisTooltipPtr = xAxisTooltip;
 			}
 			else
 			{
-				yAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
+				yAxisTooltip = ToolTipManager.createToolTip(text, yPoint.x, yPoint.y);
 				yAxisTooltip.move(yAxisTooltip.x - yAxisTooltip.width, yAxisTooltip.y - (yAxisTooltip.height / 2));
 				yAxisTooltipPtr = yAxisTooltip
 			}

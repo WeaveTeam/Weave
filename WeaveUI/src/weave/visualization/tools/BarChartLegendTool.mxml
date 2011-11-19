@@ -114,8 +114,8 @@
 				
 				if (barChart != null)
 				{
-					copySessionState(barChart._plotter.chartColors, _barLegendPlotter.chartColors);
-					copySessionState(barChart._plotter.heightColumns, _barLegendPlotter.columns);
+					copySessionState(barChart.chartColors, _barLegendPlotter.chartColors);
+					copySessionState(barChart.heightColumns, _barLegendPlotter.columns);
 				}
 				
 				if (_barLegendPlotter.columns.getObjects().length == 1 || barChart == null)
@@ -139,7 +139,7 @@
 				if (_barLegendPlotter.columns.getObjects().length == 1 || barChart == null)
 					AttributeSelectorPanel.openDefaultSelector(_colorLegendPlotter.dynamicColorColumn);
 				else
-					AttributeSelectorPanel.openDefaultSelector(barChart._plotter.heightColumns);
+					AttributeSelectorPanel.openDefaultSelector(barChart.heightColumns);
 			}
 			
 			private function updateMarginLabel():void

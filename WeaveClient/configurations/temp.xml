@@ -90,22 +90,11 @@
     <enableToolProbe>true</enableToolProbe>
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
+    <enableWeaveFonts>true</enableWeaveFonts>
     <enableWindowMenu>true</enableWindowMenu>
-    <eventListeners encoding="dynamic">
-      <LinkableEventListener name="probe">
-        <event>pointClick</event>
-        <script>vis = DraggablePanel.activePanel.visualization;
-qkey = vis.lastProbedKey;
-coords = vis.getMouseDataCoordinates();
-call('showWeavePopup', DraggablePanel.activePanelName, coords, getProbeText([qkey]))</script>
-        <target/>
-      </LinkableEventListener>
-    </eventListeners>
+    <eventListeners encoding="dynamic"/>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
-    <macroLibraries>weave.api::WeaveAPI
-weave.ui.DraggablePanel
-flash.external.ExternalInterface
-weave.utils.ProbeTextUtils</macroLibraries>
+    <macroLibraries>weave.api::WeaveAPI</macroLibraries>
     <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
@@ -170,12 +159,15 @@ wheel</zoom>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="basic" name="5-Color" source="OIC">
-        <node position="0" color="0xEFF3FF"/>
-        <node position="0.25" color="0xBDD7E7"/>
-        <node position="0.5" color="0x6BAED6"/>
-        <node position="0.75" color="0x3182BD"/>
-        <node position="1" color="0x08519C"/>
+      <colorRamp source="ColorBrewer" singlehue="false" printFriendly="true" dataFormat="qualitative" name="Set 3" reverse="false" category="basic">
+        <node position="0" color="0x8DD3C7"/>
+        <node position="0.14" color="0xFFFFB3"/>
+        <node position="0.28" color="0xBEBADA"/>
+        <node position="0.42" color="0xFB8072"/>
+        <node position="0.56" color="0x80B1D3"/>
+        <node position="0.7" color="0xFDB462"/>
+        <node position="0.84" color="0xB3DE69"/>
+        <node position="1.0" color="0xFCCDE5"/>
       </colorRamp>
     </ramp>
   </ColorColumn>
@@ -203,7 +195,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-cube" name="obesity-cube">
-                    <attribute keyType="obesity-cube" dataType="number" name="PercentObese" dataTable="obesity-cube" title="PercentObese"/>
+                    <attribute keyType="obesity-cube" dataTable="obesity-cube" name="State" title="State" dataType="US State Name"/>
                   </category>
                 </category>
               </hierarchy>
@@ -215,15 +207,203 @@ wheel</zoom>
   </FilteredColumn>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
-    <included>obesity-cube,467,470,520,519,471,517,516,518,469,468,418,420,419,422,421,370,372,373,371,369</included>
+    <included>obesity-cube,170,192,197,187,136,150,516,147,203,663,520,474,563,510,552,313,465,419,105,158,119,451,522,519,447,383,448,469,472,209</included>
     <includeMissingKeys>false</includeMissingKeys>
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
-  <LinkableHashMap encoding="dynamic" name="Probe Header Columns">
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <WeaveDataSource name="WeaveDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="Open Indicators Server">
+        <category title="Data Tables" name="Data Tables">
+          <category title="arts_and_culture_!^##$>&lt;>&lt;>points" name="arts_and_culture_!^##$>&lt;>&lt;>points"/>
+          <category title="asdf" name="asdf"/>
+          <category title="Atlanta Sujperdistricts" name="Atlanta Sujperdistricts"/>
+          <category title="Atlanta Superdistrict Data" name="Atlanta Superdistrict Data"/>
+          <category title="Atlanta Superdistricts" name="Atlanta Superdistricts"/>
+          <category title="bikeped_facilities" name="bikeped_facilities"/>
+          <category title="Boston 2005 Parcels" name="Boston 2005 Parcels"/>
+          <category title="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal" name="Boston Arts and Culture Small Scale Nonprofits 2004 Municipal"/>
+          <category title="Boston Land Use" name="Boston Land Use"/>
+          <category title="Boston Parcel Data" name="Boston Parcel Data"/>
+          <category title="boston_foreclosure_deeds" name="boston_foreclosure_deeds"/>
+          <category title="Census County Data" name="Census County Data"/>
+          <category title="Chicago Demographics" name="Chicago Demographics"/>
+          <category title="Columbus Data" name="Columbus Data"/>
+          <category title="Connecticut Data" name="Connecticut Data"/>
+          <category title="Counties" name="Counties"/>
+          <category title="County Subdivisions" name="County Subdivisions"/>
+          <category title="educational attainment" name="educational attainment"/>
+          <category title="Educational Attainment (Census Tract)" name="Educational Attainment (Census Tract)"/>
+          <category title="educational attainment v3" name="educational attainment v3"/>
+          <category title="fe_2007_44_elsd" name="fe_2007_44_elsd"/>
+          <category title="fe_2007_44_unsd" name="fe_2007_44_unsd"/>
+          <category title="h_and_t" name="h_and_t"/>
+          <category title="Housing Price Index" name="Housing Price Index"/>
+          <category title="Housing Price Index V2" name="Housing Price Index V2"/>
+          <category title="MA Census Tract" name="MA Census Tract"/>
+          <category title="Massachusetts Land Use" name="Massachusetts Land Use"/>
+          <category title="Massachusetts Towns" name="Massachusetts Towns"/>
+          <category title="mhd_major_roads_lines_geometry" name="mhd_major_roads_lines_geometry"/>
+          <category title="nccs_ma_reprojected_test" name="nccs_ma_reprojected_test"/>
+          <category title="nccs_shape_CT" name="nccs_shape_CT"/>
+          <category title="ne_indicatorssdff" name="ne_indicatorssdff"/>
+          <category title="New England Congressional District Data" name="New England Congressional District Data"/>
+          <category title="New England Lower House District Data" name="New England Lower House District Data"/>
+          <category title="New England Municipal Data" name="New England Municipal Data"/>
+          <category title="New England Subbasin Data" name="New England Subbasin Data"/>
+          <category title="New England Upper House District Data" name="New England Upper House District Data"/>
+          <category title="newfile" name="newfile"/>
+          <category title="nonsupertable" name="nonsupertable"/>
+          <category title="Obesity" name="Obesity"/>
+          <category title="Obesity Years" name="Obesity Years"/>
+          <category title="obesity-cube" name="obesity-cube">
+            <attribute keyType="obesity-cube" dataTable="obesity-cube" name="ID" title="ID" dataType="obesity-cube"/>
+            <attribute keyType="obesity-cube" dataTable="obesity-cube" name="FIPS2" title="FIPS2" dataType="US State FIPS Code"/>
+            <attribute keyType="obesity-cube" dataTable="obesity-cube" name="State" title="State" dataType="US State Name"/>
+            <attribute keyType="obesity-cube" dataTable="obesity-cube" name="Year" title="Year" dataType="Year"/>
+            <attribute keyType="obesity-cube" dataTable="obesity-cube" name="PercentObese" title="PercentObese" dataType="number"/>
+          </category>
+          <category title="Obesity1" name="Obesity1">
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="fips" title="fips" dataType="string"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="State" title="State" dataType="string"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2007" title="PercentObese2007" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2006" title="PercentObese2006" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2005" title="PercentObese2005" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2004" title="PercentObese2004" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2003" title="PercentObese2003" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2002" title="PercentObese2002" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2001" title="PercentObese2001" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese2000" title="PercentObese2000" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese1999" title="PercentObese1999" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese1998" title="PercentObese1998" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese1997" title="PercentObese1997" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese1996" title="PercentObese1996" dataType="number"/>
+            <attribute keyType="Obesity1" dataTable="Obesity1" name="PercentObese1995" title="PercentObese1995" dataType="number"/>
+          </category>
+          <category title="Obesity3" name="Obesity3"/>
+          <category title="objectid" name="objectid"/>
+          <category title="Ohio County Subdivisions" name="Ohio County Subdivisions"/>
+          <category title="Ohio Places" name="Ohio Places"/>
+          <category title="Perc by Town" name="Perc by Town"/>
+          <category title="RI School Proficiency" name="RI School Proficiency"/>
+          <category title="ri_schools08_projected" name="ri_schools08_projected"/>
+          <category title="Rosling Indicators" name="Rosling Indicators"/>
+          <category title="school_performance_level" name="school_performance_level"/>
+          <category title="st99_d00" name="st99_d00"/>
+          <category title="States" name="States">
+            <attribute keyType="US State FIPS Code" name="States" projection="EPSG:4326" title="States" dataType="geometry"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_18_21" geometryCollection="States" title="AGE_18_21" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_22_29" geometryCollection="States" title="AGE_22_29" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_30_39" geometryCollection="States" title="AGE_30_39" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_40_49" geometryCollection="States" title="AGE_40_49" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_50_64" geometryCollection="States" title="AGE_50_64" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_5_17" geometryCollection="States" title="AGE_5_17" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_65_UP" geometryCollection="States" title="AGE_65_UP" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AGE_UNDER5" geometryCollection="States" title="AGE_UNDER5" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AMERI_ES" geometryCollection="States" title="AMERI_ES" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="ASIAN" geometryCollection="States" title="ASIAN" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AVE_FAM_SZ" geometryCollection="States" title="AVE_FAM_SZ" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AVE_HH_SZ" geometryCollection="States" title="AVE_HH_SZ" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AVG_SALE97" geometryCollection="States" title="AVG_SALE97" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="AVG_SIZE97" geometryCollection="States" title="AVG_SIZE97" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="BLACK" geometryCollection="States" title="BLACK" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="CROP_ACR97" geometryCollection="States" title="CROP_ACR97" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="FAMILIES" geometryCollection="States" title="FAMILIES" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="FEMALES" geometryCollection="States" title="FEMALES" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="FHH_CHILD" geometryCollection="States" title="FHH_CHILD" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="HAWN_PI" geometryCollection="States" title="HAWN_PI" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="HISPANIC" geometryCollection="States" title="HISPANIC" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="HOUSEHOLDS" geometryCollection="States" title="HOUSEHOLDS" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="HSE_UNITS" geometryCollection="States" title="HSE_UNITS" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="HSEHLD_1_F" geometryCollection="States" title="HSEHLD_1_F" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="HSEHLD_1_M" geometryCollection="States" title="HSEHLD_1_M" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MALES" geometryCollection="States" title="MALES" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MARHH_CHD" geometryCollection="States" title="MARHH_CHD" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MARHH_NO_C" geometryCollection="States" title="MARHH_NO_C" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MED_AGE" geometryCollection="States" title="MED_AGE" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MED_AGE_F" geometryCollection="States" title="MED_AGE_F" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MED_AGE_M" geometryCollection="States" title="MED_AGE_M" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MHH_CHILD" geometryCollection="States" title="MHH_CHILD" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="MULT_RACE" geometryCollection="States" title="MULT_RACE" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="NO_FARMS97" geometryCollection="States" title="NO_FARMS97" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="OTHER" geometryCollection="States" title="OTHER" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="OWNER_OCC" geometryCollection="States" title="OWNER_OCC" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="POP00_SQMI" geometryCollection="States" title="POP00_SQMI" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="POP07_SQMI" geometryCollection="States" title="POP07_SQMI" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="POP2000" geometryCollection="States" title="POP2000" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="POP2007" geometryCollection="States" title="POP2007" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="RENTER_OCC" geometryCollection="States" title="RENTER_OCC" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="SQMI" geometryCollection="States" title="SQMI" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="STATE_ABBR" geometryCollection="States" title="STATE_ABBR" dataType="string"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="STATE_FIPS" geometryCollection="States" title="STATE_FIPS" dataType="string"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="STATE_NAME" geometryCollection="States" title="STATE_NAME" dataType="string"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="SUB_REGION" geometryCollection="States" title="SUB_REGION" dataType="string"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="the_geom_id" geometryCollection="States" title="the_geom_id" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="VACANT" geometryCollection="States" title="VACANT" dataType="number"/>
+            <attribute keyType="US State FIPS Code" dataTable="States" name="WHITE" geometryCollection="States" title="WHITE" dataType="number"/>
+          </category>
+          <category title="StatesHealth" name="StatesHealth"/>
+          <category title="StatesHealth Years" name="StatesHealth Years"/>
+          <category title="student_CMD" name="student_CMD"/>
+          <category title="student_EJL" name="student_EJL"/>
+          <category title="Suffolk County Demographics By Census Tract" name="Suffolk County Demographics By Census Tract"/>
+          <category title="temp" name="temp"/>
+          <category title="test" name="test"/>
+          <category title="test1" name="test1"/>
+          <category title="test1234444444" name="test1234444444"/>
+          <category title="test1ff" name="test1ff"/>
+          <category title="testabc" name="testabc"/>
+          <category title="testasdfasfas" name="testasdfasfas"/>
+          <category title="TURI Totals 1990-2007 by town" name="TURI Totals 1990-2007 by town"/>
+          <category title="turi_perc_linechart" name="turi_perc_linechart"/>
+          <category title="Unemployment MSA data" name="Unemployment MSA data"/>
+          <category title="unicefcombined" name="unicefcombined"/>
+          <category title="urbanrural years" name="urbanrural years"/>
+          <category title="US_States_WGS" name="US_States_WGS"/>
+          <category title="USprisoners" name="USprisoners"/>
+          <category title="Weave Jira Issues" name="Weave Jira Issues"/>
+          <category title="World Bank Development Indicators" name="World Bank Development Indicators"/>
+          <category title="World Borders" name="World Borders"/>
+          <category title="World Name Table" name="World Name Table"/>
+          <category title="ZillowNeighborhoods" name="ZillowNeighborhoods"/>
+        </category>
+        <category title="Geometry Collections" name="Geometry Collections">
+          <attribute title="asdf" name="asdf" dataType="geometry"/>
+          <attribute title="Atlanta Sujperdistricts" name="Atlanta Sujperdistricts" dataType="geometry"/>
+          <attribute title="Atlanta Superdistricts" name="Atlanta Superdistricts" dataType="geometry"/>
+          <attribute title="bikeped_facilities" name="bikeped_facilities" dataType="geometry"/>
+          <attribute title="Boston 2005 Parcels" name="Boston 2005 Parcels" dataType="geometry"/>
+          <attribute title="boston_foreclosure_deeds" name="boston_foreclosure_deeds" dataType="geometry"/>
+          <attribute title="Counties" name="Counties" dataType="geometry"/>
+          <attribute title="County Subdivisions" name="County Subdivisions" dataType="geometry"/>
+          <attribute title="fe_2007_44_elsd" name="fe_2007_44_elsd" dataType="geometry"/>
+          <attribute title="fe_2007_44_unsd" name="fe_2007_44_unsd" dataType="geometry"/>
+          <attribute title="MA Census Tract" name="MA Census Tract" dataType="geometry"/>
+          <attribute title="Massachusetts Towns" name="Massachusetts Towns" dataType="geometry"/>
+          <attribute title="nccs_ma_reprojected_test" name="nccs_ma_reprojected_test" dataType="geometry"/>
+          <attribute title="nccs_shape_CT" name="nccs_shape_CT" dataType="geometry"/>
+          <attribute title="Ohio County Subdivisions" name="Ohio County Subdivisions" dataType="geometry"/>
+          <attribute title="Ohio Places" name="Ohio Places" dataType="geometry"/>
+          <attribute title="ri_schools08_projected" name="ri_schools08_projected" dataType="geometry"/>
+          <attribute title="st99_d00" name="st99_d00" dataType="geometry"/>
+          <attribute title="States" name="States" dataType="geometry"/>
+          <attribute title="test" name="test" dataType="geometry"/>
+          <attribute title="test1234444444" name="test1234444444" dataType="geometry"/>
+          <attribute title="test1ff" name="test1ff" dataType="geometry"/>
+          <attribute title="US_States_WGS" name="US_States_WGS" dataType="geometry"/>
+          <attribute title="World Borders" name="World Borders" dataType="geometry"/>
+          <attribute title="ZillowNeighborhoods" name="ZillowNeighborhoods" dataType="geometry"/>
+        </category>
+      </hierarchy>
+    </attributeHierarchy>
+    <hierarchyURL/>
+    <url>/WeaveServices/DataService</url>
+  </WeaveDataSource>
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -232,7 +412,7 @@ wheel</zoom>
             <hierarchy>
               <category title="Data Tables" name="Data Tables">
                 <category title="obesity-cube" name="obesity-cube">
-                  <attribute keyType="obesity-cube" dataType="US State Name" name="State" dataTable="obesity-cube" title="State" id="5747"/>
+                  <attribute keyType="obesity-cube" dataTable="obesity-cube" name="State" id="5747" title="State" dataType="US State Name"/>
                 </category>
               </category>
             </hierarchy>
@@ -241,38 +421,50 @@ wheel</zoom>
       </dynamicColumnReference>
     </ReferencedColumn>
   </LinkableHashMap>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns">
-    <ReferencedColumn name="ReferencedColumn">
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+    <ReferencedColumn name="ReferencedColumn2">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
-          <dataSourceName>CSVDataSource</dataSourceName>
+          <dataSourceName>WeaveDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="a" csvColumn="a" keyType="CSVDataSource"/>
+              <category title="Data Tables" name="Data Tables">
+                <category title="obesity-cube" name="obesity-cube">
+                  <attribute keyType="obesity-cube" dataTable="obesity-cube" name="FIPS2" id="5746" title="FIPS2" dataType="US State FIPS Code"/>
+                </category>
+              </category>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
-    <ReferencedColumn name="ReferencedColumn5">
+    <ReferencedColumn name="ReferencedColumn3">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
-          <dataSourceName>CSVDataSource</dataSourceName>
+          <dataSourceName>WeaveDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="b" csvColumn="b" keyType="CSVDataSource"/>
+              <category title="Data Tables" name="Data Tables">
+                <category title="obesity-cube" name="obesity-cube">
+                  <attribute keyType="obesity-cube" number="asNumber(string)" string="number == round(number) ? number : ''" id="5748" dataType="Year" dataTable="obesity-cube" name="Year" title="Year"/>
+                </category>
+              </category>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
-    <ReferencedColumn name="ReferencedColumn6">
+    <ReferencedColumn name="ReferencedColumn4">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
-          <dataSourceName>CSVDataSource</dataSourceName>
+          <dataSourceName>WeaveDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy>
-              <attribute title="c" csvColumn="c" keyType="CSVDataSource"/>
+              <category title="Data Tables" name="Data Tables">
+                <category title="obesity-cube" name="obesity-cube">
+                  <attribute keyType="obesity-cube" string="`{number}%`" id="5749" dataType="number" dataTable="obesity-cube" name="PercentObese" title="PercentObese"/>
+                </category>
+              </category>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -295,7 +487,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-cube" name="obesity-cube">
-                    <attribute keyType="obesity-cube" dataType="US State FIPS Code" name="FIPS2" dataTable="obesity-cube" title="FIPS2" id="5746"/>
+                    <attribute keyType="obesity-cube" dataTable="obesity-cube" name="FIPS2" id="5746" title="FIPS2" dataType="US State FIPS Code"/>
                   </category>
                 </category>
               </hierarchy>
@@ -319,22 +511,7 @@ wheel</zoom>
       </ReferencedColumn>
     </variables>
   </EquationColumn>
-  <CSVDataSource name="CSVDataSource">
-    <attributeHierarchy encoding="xml">
-      <hierarchy>
-        <attribute title="a" csvColumn="a" keyType="CSVDataSource"/>
-        <attribute title="b" csvColumn="b" keyType="CSVDataSource"/>
-        <attribute title="c" csvColumn="c" keyType="CSVDataSource"/>
-      </hierarchy>
-    </attributeHierarchy>
-    <csvDataString>a,b,c
-1,2,3
-2,4,6</csvDataString>
-    <keyColName/>
-    <keyType>CSVDataSource</keyType>
-    <url/>
-  </CSVDataSource>
-  <BarChartLegendTool name="BarChartLegendTool">
+  <ColorBinLegendTool name="ColorBinLegendTool2">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -363,132 +540,6 @@ wheel</zoom>
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <BarChartLegendPlotter>
-                <chartColors encoding="xml">
-                  <colorRamp source="OIC" name="Doppler Radar" dataFormat="qualitative" category="aesthetic">
-                    <node position="0" color="0x04E9E7"/>
-                    <node position="0.08" color="0x009DF4"/>
-                    <node position="0.16" color="0x0201F4"/>
-                    <node position="0.24" color="0x01FC01"/>
-                    <node position="0.32" color="0x00C400"/>
-                    <node position="0.4" color="0x008C00"/>
-                    <node position="0.48" color="0x0FDF801"/>
-                    <node position="0.56" color="0xF99200"/>
-                    <node position="0.64" color="0xFD0000"/>
-                    <node position="0.72" color="0xBC0000"/>
-                    <node position="0.8" color="0xBC0000"/>
-                    <node position="0.88" color="0xF800FD"/>
-                    <node position="1.0" color="0x9854C6"/>
-                  </colorRamp>
-                </chartColors>
-                <columns encoding="dynamic">
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>CSVDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <attribute title="a" csvColumn="a" keyType="CSVDataSource"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>CSVDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <attribute title="b" csvColumn="b" keyType="CSVDataSource"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>CSVDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <attribute title="c" csvColumn="c" keyType="CSVDataSource"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                </columns>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </lineStyle>
-                <maxColumns>1</maxColumns>
-                <reverseOrder>false</reverseOrder>
-                <shapeSize>12</shapeSize>
-              </BarChartLegendPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="color legend">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>false</layerIsVisible>
             <plotter encoding="dynamic">
               <ColorBinLegendPlotter>
                 <dynamicColorColumn encoding="dynamic">
@@ -537,8 +588,8 @@ wheel</zoom>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
                 </lineStyle>
-                <maxColumns>1</maxColumns>
-                <reverseOrder>false</reverseOrder>
+                <maxColumns>6</maxColumns>
+                <reverseOrder>true</reverseOrder>
                 <shapeSize>20</shapeSize>
               </ColorBinLegendPlotter>
             </plotter>
@@ -565,7 +616,6 @@ wheel</zoom>
         <overrideXMin>NaN</overrideXMin>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
-        <shadowAmount>0</shadowAmount>
         <zoomBounds>
           <xMax>1</xMax>
           <xMin>0</xMin>
@@ -576,9 +626,6 @@ wheel</zoom>
     </children>
     <closeable>true</closeable>
     <draggable>true</draggable>
-    <dynamicBarChartTool encoding="dynamic">
-      <GlobalObjectReference name="CompoundBarChartTool2"/>
-    </dynamicBarChartTool>
     <enableBorders>true</enableBorders>
     <enableTitle>false</enableTitle>
     <maximizable>true</maximizable>
@@ -587,26 +634,26 @@ wheel</zoom>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>50%</panelHeight>
+    <panelHeight>11%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>11%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>0%</panelY>
+    <panelWidth>52%</panelWidth>
+    <panelX>25%</panelX>
+    <panelY>11%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
     <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
     <showCloseDialog>false</showCloseDialog>
-  </BarChartLegendTool>
-  <CompoundBarChartTool name="CompoundBarChartTool2">
+  </ColorBinLegendTool>
+  <CompoundBarChartTool name="CompoundBarChartTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
         <axesAlpha>1</axesAlpha>
         <axesColor>11579568</axesColor>
-        <axesThickness>10</axesThickness>
+        <axesThickness>17</axesThickness>
         <axisFontBold>true</axisFontBold>
         <axisFontColor>0</axisFontColor>
         <axisFontFamily>Sophia Nubian</axisFontFamily>
@@ -630,15 +677,15 @@ wheel</zoom>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+                <axisLabelDistance>0</axisLabelDistance>
+                <axisLabelRelativeAngle>0</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>-0.5</xMax>
-                  <xMin>-0.5</xMin>
-                  <yMax>6</yMax>
+                  <xMax>-0.4224137931034483</xMax>
+                  <xMin>-0.4224137931034483</xMin>
+                  <yMax>26.8</yMax>
                   <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>6</axisLineMaxValue>
+                <axisLineMaxValue>26.8</axisLineMaxValue>
                 <axisLineMinValue>0</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
@@ -646,7 +693,7 @@ wheel</zoom>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
                 <labelFunction>string</labelFunction>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelHorizontalAlign>left</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
                   <decimalSeparatorTo>.</decimalSeparatorTo>
@@ -659,8 +706,8 @@ wheel</zoom>
                 </labelNumberFormatter>
                 <labelTextAlignment>left</labelTextAlignment>
                 <labelVerticalAlign>bottom</labelVerticalAlign>
-                <labelWordWrapSize>80</labelWordWrapSize>
-                <overrideAxisName/>
+                <labelWordWrapSize>50</labelWordWrapSize>
+                <overrideAxisName>Percent Obese</overrideAxisName>
                 <showAxisName>true</showAxisName>
                 <showLabels>true</showLabels>
                 <tickCountRequested>5</tickCountRequested>
@@ -675,23 +722,23 @@ wheel</zoom>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <SimpleAxisPlotter>
-                <axisLabelDistance>-10</axisLabelDistance>
-                <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+                <axisLabelDistance>0</axisLabelDistance>
+                <axisLabelRelativeAngle>0</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>1.5</xMax>
-                  <xMin>-0.5</xMin>
+                  <xMax>4.422413793103448</xMax>
+                  <xMin>-0.4224137931034483</xMin>
                   <yMax>0</yMax>
                   <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>1.5</axisLineMaxValue>
-                <axisLineMinValue>-0.5</axisLineMinValue>
-                <forceTickCount>false</forceTickCount>
+                <axisLineMaxValue>4.422413793103448</axisLineMaxValue>
+                <axisLineMinValue>-0.4224137931034483</axisLineMinValue>
+                <forceTickCount>true</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
                 </keySet>
                 <labelDistanceIsVertical>false</labelDistanceIsVertical>
                 <labelFunction>string</labelFunction>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelHorizontalAlign>center</labelHorizontalAlign>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
                   <decimalSeparatorTo>.</decimalSeparatorTo>
@@ -704,12 +751,12 @@ wheel</zoom>
                 </labelNumberFormatter>
                 <labelTextAlignment>left</labelTextAlignment>
                 <labelVerticalAlign>top</labelVerticalAlign>
-                <labelWordWrapSize>80</labelWordWrapSize>
+                <labelWordWrapSize>50</labelWordWrapSize>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
                 <showLabels>true</showLabels>
-                <tickCountRequested>2</tickCountRequested>
-                <tickMaxValue>1</tickMaxValue>
+                <tickCountRequested>5</tickCountRequested>
+                <tickMaxValue>4</tickMaxValue>
                 <tickMinValue>0</tickMinValue>
               </SimpleAxisPlotter>
             </plotter>
@@ -721,9 +768,9 @@ wheel</zoom>
             <layerIsVisible>true</layerIsVisible>
             <plotter encoding="dynamic">
               <CompoundBarChartPlotter>
-                <barSpacing>0</barSpacing>
+                <barSpacing>0.3103448275862069</barSpacing>
                 <chartColors encoding="xml">
-                  <colorRamp source="OIC" name="Doppler Radar" dataFormat="qualitative" category="aesthetic">
+                  <colorRamp name="Doppler Radar" source="OIC" category="aesthetic" dataFormat="qualitative">
                     <node position="0" color="0x04E9E7"/>
                     <node position="0.08" color="0x009DF4"/>
                     <node position="0.16" color="0x0201F4"/>
@@ -745,45 +792,21 @@ wheel</zoom>
                     <GlobalObjectReference name="defaultColorColumn"/>
                   </internalDynamicColumn>
                 </colorColumn>
-                <groupBySortColumn>false</groupBySortColumn>
-                <groupingMode>group</groupingMode>
+                <groupBySortColumn>true</groupBySortColumn>
+                <groupingMode>stack</groupingMode>
                 <heightColumns encoding="dynamic">
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn3">
+                  <DynamicColumn name="DynamicColumn2" encoding="dynamic">
                     <ReferencedColumn>
                       <dynamicColumnReference encoding="dynamic">
                         <HierarchyColumnReference>
-                          <dataSourceName>CSVDataSource</dataSourceName>
+                          <dataSourceName>WeaveDataSource</dataSourceName>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
-                              <attribute title="a" csvColumn="a" keyType="CSVDataSource"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>CSVDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <attribute title="b" csvColumn="b" keyType="CSVDataSource"/>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </DynamicColumn>
-                  <DynamicColumn encoding="dynamic" name="DynamicColumn2">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>CSVDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <attribute title="c" csvColumn="c" keyType="CSVDataSource"/>
+                              <category title="Data Tables" name="Data Tables">
+                                <category title="obesity-cube" name="obesity-cube">
+                                  <attribute keyType="obesity-cube" string="`{number}%`" id="5749" dataType="number" dataTable="obesity-cube" name="PercentObese" title="PercentObese"/>
+                                </category>
+                              </category>
                             </hierarchy>
                           </hierarchyPath>
                         </HierarchyColumnReference>
@@ -798,9 +821,26 @@ wheel</zoom>
                   </keyFilter>
                 </keySet>
                 <labelColor>0</labelColor>
-                <labelColumn encoding="dynamic"/>
+                <labelColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="obesity-cube" name="obesity-cube">
+                                <attribute keyType="obesity-cube" dataTable="obesity-cube" name="State" title="State" dataType="US State Name"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </labelColumn>
                 <labelDataCoordinate>NaN</labelDataCoordinate>
-                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelHorizontalAlign>left</labelHorizontalAlign>
                 <labelRelativeAngle>NaN</labelRelativeAngle>
                 <labelVerticalAlign>middle</labelVerticalAlign>
                 <lineStyle encoding="dynamic">
@@ -845,26 +885,32 @@ wheel</zoom>
                 </lineStyle>
                 <negativeErrorColumns encoding="dynamic"/>
                 <positiveErrorColumns encoding="dynamic"/>
-                <showLabels>false</showLabels>
-                <showValueLabels>false</showValueLabels>
+                <showLabels>true</showLabels>
+                <showValueLabels>true</showValueLabels>
                 <sortColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>CSVDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <attribute title="a" csvColumn="a" keyType="CSVDataSource"/>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
+                  <DynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WeaveDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category title="Data Tables" name="Data Tables">
+                                <category title="obesity-cube" name="obesity-cube">
+                                  <attribute dataTable="obesity-cube" number="asNumber(string)" string="number == round(number) ? number : ''" id="5748" dataType="Year" keyType="obesity-cube" name="Year" title="Year"/>
+                                </category>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </DynamicColumn>
                 </sortColumn>
                 <valueLabelColor>0</valueLabelColor>
                 <valueLabelDataCoordinate>NaN</valueLabelDataCoordinate>
-                <valueLabelHorizontalAlign>left</valueLabelHorizontalAlign>
-                <valueLabelRelativeAngle>NaN</valueLabelRelativeAngle>
+                <valueLabelHorizontalAlign>right</valueLabelHorizontalAlign>
+                <valueLabelRelativeAngle>0</valueLabelRelativeAngle>
                 <valueLabelVerticalAlign>middle</valueLabelVerticalAlign>
                 <zoomToSubset>true</zoomToSubset>
               </CompoundBarChartPlotter>
@@ -886,7 +932,9 @@ wheel</zoom>
             <plotter encoding="dynamic">
               <ProbeLinePlotter>
                 <keySet>
-                  <keyFilter encoding="dynamic"/>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
                 </keySet>
                 <lineStyle encoding="dynamic">
                   <SolidLineStyle>
@@ -933,10 +981,10 @@ wheel</zoom>
             <selectionFilter encoding="dynamic"/>
           </PlotLayer>
         </layers>
-        <marginBottom>80</marginBottom>
-        <marginLeft>80</marginLeft>
-        <marginRight>30</marginRight>
-        <marginTop>30</marginTop>
+        <marginBottom>50</marginBottom>
+        <marginLeft>50</marginLeft>
+        <marginRight>20</marginRight>
+        <marginTop>20</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
@@ -944,11 +992,10 @@ wheel</zoom>
         <overrideXMin>NaN</overrideXMin>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
-        <shadowAmount>0</shadowAmount>
         <zoomBounds>
-          <xMax>1.5</xMax>
-          <xMin>-0.5</xMin>
-          <yMax>6</yMax>
+          <xMax>4.422413793103448</xMax>
+          <xMin>-0.4224137931034483</xMin>
+          <yMax>26.8</yMax>
           <yMin>0</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
@@ -965,18 +1012,18 @@ wheel</zoom>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>50%</panelHeight>
+    <panelHeight>42%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>36%</panelWidth>
-    <panelX>11%</panelX>
-    <panelY>0%</panelY>
+    <panelWidth>52%</panelWidth>
+    <panelX>25%</panelX>
+    <panelY>22%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
     <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
-    <showAllLabels>false</showAllLabels>
+    <showAllLabels>true</showAllLabels>
     <showCloseDialog>false</showCloseDialog>
     <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
   </CompoundBarChartTool>
