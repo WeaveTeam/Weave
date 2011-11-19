@@ -35,7 +35,6 @@
 		
 		<mx:HBox>
 			<mx:Label text="Visualization font:"/>
-			<ui:CustomComboBox id="embeddedFontList" dataProvider="{WeaveProperties.embeddedFonts}"/>
 			<FontControl id="toolFontControl"/>
 		</mx:HBox>
 		
@@ -133,7 +132,8 @@
 				windowTitleFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleFontListChange );
 
 				toolFontControl.initialize();
-				toolFontControl.removeChild(toolFontControl.fontFamilyCombo);
+				toolFontControl.fontFamilyCombo.dataProvider = WeaveProperties.embeddedFonts;
+				toolFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleToolFontListChange );
 				toolFontControl.removeChild(toolFontControl.underlineButton);
 				toolFontControl.removeChild(toolFontControl.boldButton);
 				toolFontControl.removeChild(toolFontControl.italicButton);
@@ -148,7 +148,7 @@
 				linkBindableProperty(Weave.properties.panelTitleFontItalic, windowTitleFontControl.italicButton, "selected");
 				linkBindableProperty(Weave.properties.panelTitleFontUnderline, windowTitleFontControl.underlineButton, "selected");
 				
-				linkBindableProperty(Weave.properties.axisFontFamily, embeddedFontList, "selectedItem");
+				linkBindableProperty(Weave.properties.axisFontFamily, toolFontControl.fontFamilyCombo, "selectedLabel");
 				linkBindableProperty(Weave.properties.axisFontSize, toolFontControl.fontSizeCombo, "selectedItem");
 				linkBindableProperty(Weave.properties.axisFontColor, toolFontControl.colorPicker, "selectedColor");
 				linkBindableProperty(Weave.properties.axisFontUnderline, toolFontControl.underlineButton, "selected" );
@@ -157,6 +157,11 @@
 			private function handleFontListChange(event:ListEvent):void
 			{
 				Weave.properties.panelTitleFontFamily.value = event.target.selectedLabel;
+			}
+			
+			private function handleToolFontListChange(event:ListEvent):void
+			{
+				Weave.properties.axisFontFamily.value = event.target.selectedLabel;
 			}
 			
 		]]>
