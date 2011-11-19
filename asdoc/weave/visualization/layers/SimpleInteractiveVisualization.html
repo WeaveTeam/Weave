@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SimpleInteractiveVisualization,weave.visualization.layers.SimpleInteractiveVisualization,PLOT_LAYER_NAME,PROBE_LINE_LAYER_NAME,X_AXIS_LAYER_NAME,Y_AXIS_LAYER_NAME,axesAlpha,axesColor,axesThickness,axisFontBold,axisFontColor,axisFontFamily,axisFontItalic,axisFontSize,axisFontUnderline,bottomMarginClickCallbacks,enableAutoZoomXToNiceNumbers,enableAutoZoomYToNiceNumbers,enableXAxisProbing,enableYAxisProbing,gridLineAlpha,gridLineColor,gridLineThickness,leftMarginClickCallbacks,rightMarginClickCallbacks,topMarginClickCallbacks,xAxisTooltipPtr,yAxisTooltipPtr,showAxes,plotterClass,constrainToolTipsToStage,destroyProbeLineTooltips,disableProbelines,enableProbeLine,getDefaultPlotter,getPlotLayer,getProbeLineLayer,getXAxisLayer,getYAxisLayer,handleMouseClick,handleMouseMove,handleRollOut,linkToAxisProperties,putAxesOnBottom,setXAxisColumn,setYAxisColumn,showProbeTooltips,updateFullDataBounds,updateZoom" name="keywords">
+<meta content="SimpleInteractiveVisualization,weave.visualization.layers.SimpleInteractiveVisualization,PLOT_LAYER_NAME,PROBE_LINE_LAYER_NAME,X_AXIS_LAYER_NAME,Y_AXIS_LAYER_NAME,axesAlpha,axesColor,axesThickness,axisFontBold,axisFontColor,axisFontFamily,axisFontItalic,axisFontSize,axisFontUnderline,bottomMarginClickCallbacks,bottomMarginColumn,bottomMarginToolTip,enableAutoZoomXToNiceNumbers,enableAutoZoomYToNiceNumbers,gridLineAlpha,gridLineColor,gridLineThickness,leftMarginClickCallbacks,leftMarginColumn,leftMarginToolTip,rightMarginClickCallbacks,rightMarginColumn,rightMarginToolTip,topMarginClickCallbacks,topMarginColumn,topMarginToolTip,xAxisTooltipPtr,yAxisTooltipPtr,showAxes,plotterClass,constrainToolTipsToStage,destroyProbeLineTooltips,disableProbelines,enableProbeLine,getDefaultPlotter,getPlotLayer,getProbeLineLayer,getXAxisLayer,getYAxisLayer,handleMouseClick,handleMouseMove,handleRollOut,linkToAxisProperties,putAxesOnBottom,showProbeTooltips,updateFullDataBounds,updateZoom" name="keywords">
 <title>weave.visualization.layers.SimpleInteractiveVisualization</title>
 </head>
 <body>
@@ -70,11 +70,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="InteractiveVisualization.html">InteractiveVisualization</a></td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#enableXAxisProbing">enableXAxisProbing</a> : Boolean = false<div class="summaryTableDescription"></div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#bottomMarginColumn">bottomMarginColumn</a> : <a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>
+<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#enableYAxisProbing">enableYAxisProbing</a> : Boolean = false<div class="summaryTableDescription"></div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#bottomMarginToolTip">bottomMarginToolTip</a> : String<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="hideInheritedProperty">
@@ -84,11 +85,38 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="InteractiveVisualization.html">InteractiveVisualization</a></td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#leftMarginColumn">leftMarginColumn</a> : <a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#leftMarginToolTip">leftMarginToolTip</a> : String<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#plotterClass">plotterClass</a> : Class<div class="summaryTableDescription">[write-only]</div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#rightMarginColumn">rightMarginColumn</a> : <a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#rightMarginToolTip">rightMarginToolTip</a> : String<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#showAxes">showAxes</a> : Boolean<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#topMarginColumn">topMarginColumn</a> : <a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#topMarginToolTip">topMarginToolTip</a> : String<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="">
@@ -173,13 +201,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    Disables probe lines by removing the appropriate function from the list of callbacks
    </div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
-</tr>
-<tr class="hideInheritedMethod">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="InteractiveVisualization.html#dispose()">dispose</a>():void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="InteractiveVisualization.html">InteractiveVisualization</a></td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -279,20 +300,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This function orders the layers from top to bottom in this order: 
    probe (probe lines), plot, yAxis, xAxis
    </div>
-</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#setXAxisColumn()">setXAxisColumn</a>(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#setYAxisColumn()">setYAxisColumn</a>(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>):void</div>
-<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="hideInheritedMethod">
@@ -696,11 +703,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
-<tr class="hideInheritedConstant">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="InteractiveVisualization.html#shadowAmount">shadowAmount</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="InteractiveVisualization.html">InteractiveVisualization</a></td>
-</tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#topMarginClickCallbacks">topMarginClickCallbacks</a> : <a href="../../api/core/ICallbackCollection.html">ICallbackCollection</a>
 <div class="summaryTableDescription"></div>
@@ -760,23 +762,41 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
-<a name="enableXAxisProbing"></a>
+<a name="bottomMarginColumn"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">enableXAxisProbing</td><td class="detailHeaderType">property</td>
+<td class="detailHeaderName">bottomMarginColumn</td><td class="detailHeaderType">property</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public var enableXAxisProbing:Boolean = false</code>
+<code>public var bottomMarginColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code>
 </div>
-<a name="enableYAxisProbing"></a>
+<a name="bottomMarginToolTip"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">enableYAxisProbing</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">bottomMarginToolTip</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public var enableYAxisProbing:Boolean = false</code>
+<code>public var bottomMarginToolTip:String</code>
+</div>
+<a name="leftMarginColumn"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">leftMarginColumn</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var leftMarginColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code>
+</div>
+<a name="leftMarginToolTip"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">leftMarginToolTip</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var leftMarginToolTip:String</code>
 </div>
 <a name="plotterClass"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -789,6 +809,24 @@ showHideInherited();
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set plotterClass(value:Class):void</code>
 <br>
+</div>
+<a name="rightMarginColumn"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">rightMarginColumn</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var rightMarginColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code>
+</div>
+<a name="rightMarginToolTip"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">rightMarginToolTip</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var rightMarginToolTip:String</code>
 </div>
 <a name="showAxes"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -803,6 +841,24 @@ showHideInherited();
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set showAxes(value:Boolean):void</code>
 <br>
+</div>
+<a name="topMarginColumn"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">topMarginColumn</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var topMarginColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code>
+</div>
+<a name="topMarginToolTip"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">topMarginToolTip</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var topMarginToolTip:String</code>
 </div>
 <a name="xAxisTooltipPtr"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -1062,34 +1118,6 @@ showHideInherited();
    This function orders the layers from top to bottom in this order: 
    probe (probe lines), plot, yAxis, xAxis
    </p></div>
-<a name="setXAxisColumn()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">setXAxisColumn</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function setXAxisColumn(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">column</span>:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code></td>
-</tr>
-</table>
-</div>
-<a name="setYAxisColumn()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">setYAxisColumn</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function setYAxisColumn(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">column</span>:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code></td>
-</tr>
-</table>
-</div>
 <a name="showProbeTooltips()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>

@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="ColumnUtils,weave.utils.ColumnUtils,deriveStringFromNumber,forceFirstColumnDynamic,generateSortFunction,getBoolean,getDataSource,getDataType,getKeyType,getNorm,getNumber,getQKeys,getQKeysInNumericRange,getString,getTitle,joinColumns" name="keywords">
+<meta content="ColumnUtils,weave.utils.ColumnUtils,deriveStringFromNumber,forceFirstColumnDynamic,generateSortFunction,getBoolean,getDataSource,getDataType,getGeometry,getKeyType,getNorm,getNumber,getQKeys,getQKeysInNumericRange,getString,getTitle,joinColumns" name="keywords">
 <title>weave.utils.ColumnUtils</title>
 </head>
 <body>
@@ -97,6 +97,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#getDataType()">getDataType</a>(column:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>):String</div>
 <div class="summaryTableDescription">[static]
    This function gets the dataType of a column from its metadata.</div>
+</td><td class="summaryTableOwnerCol">ColumnUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getGeometry()">getGeometry</a>(geometryColumn:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, key:Object):Array</div>
+<div class="summaryTableDescription">[static]
+   </div>
 </td><td class="summaryTableOwnerCol">ColumnUtils</td>
 </tr>
 <tr class="">
@@ -327,6 +335,41 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>String</code> &mdash; The dataType of the column.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getGeometry()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getGeometry</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getGeometry(geometryColumn:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a>, key:Object):Array</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">geometryColumn</span>:<a href="../api/data/IAttributeColumn.html">IAttributeColumn</a></code> &mdash; A GeometryColumn which contains the geometry objects for the key.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">key</span>:Object</code> &mdash; An object with <code>keyType</code> and <code>localName</code> properties.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An array of arrays of arrays of Points.
+   For example, 
+   <code>result[0]</code> is type <code>Array of Array of Point</code>. <br>
+   <code>result[0][0]</code> is type <code>Array of Point</code> <br>
+   <code>result[0][0][0]</code> is a <code>Point</code>
    </td>
 </tr>
 </table>
