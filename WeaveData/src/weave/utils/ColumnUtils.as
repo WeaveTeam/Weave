@@ -377,6 +377,8 @@ package weave.utils
 				for (i = 0; i < n; i++)
 				{
 					column = columns[i] as IAttributeColumn;
+					if (!column)
+						continue;
 					result = ObjectUtil.compare(column.getValueFromKey(key1, Number), column.getValueFromKey(key2, Number));
 					if (result != 0)
 					{
