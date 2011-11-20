@@ -49,16 +49,16 @@ package weave.utils
 		 * @param numberOrPercent A String to verify.
 		 * @return A value of true if the String can be parsed as a finite Number or percentage value.
 		 */
-		public static function verifyNumberOrPercentage(value:String):Boolean
+		public static function verifyNumberOrPercentage(numberOrPercent:String):Boolean
 		{
 			try
 			{
 				// don't accept null or empty string
-				if (!value)
+				if (!numberOrPercent)
 					return false;
-				if (value.substr(-1) == '%')
-					return isFinite(Number(value.substr(0, -1)));
-				return isFinite(Number(value));
+				if (numberOrPercent.substr(-1) == '%')
+					return isFinite(Number(numberOrPercent.substr(0, -1)));
+				return isFinite(Number(numberOrPercent));
 			}
 			catch (e:Error)
 			{
@@ -82,8 +82,8 @@ package weave.utils
 		{
 			try
 			{
-				if (numberOrPercent.search("%") >= 0) // percentage
-					return wholeForPercentage * Number(numberOrPercent.replace("%", "")) / 100;
+				if (numberOrPercent.substr(-1) == '%') // percentage
+					return wholeForPercentage * Number(numberOrPercent.substr(0, -1)) / 100;
 				else // absolute
 					return Number(numberOrPercent);
 			}
