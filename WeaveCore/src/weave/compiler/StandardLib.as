@@ -41,7 +41,7 @@ package weave.compiler
 		public static function asNumber(value:*):Number
 		{
 			if (value == null)
-				return NaN; // return NaN, because Number(null) == 0
+				return NaN; // return NaN because Number(null) == 0
 			
 			if (value is Number)
 				return value;
@@ -49,7 +49,7 @@ package weave.compiler
 			try {
 				value = String(value);
 				if (value == '')
-					return NaN;
+					return NaN; // return NaN because Number('') == 0
 				return Number(value);
 			} catch (e:Error) { }
 

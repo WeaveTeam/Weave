@@ -90,10 +90,10 @@ package weave.visualization.layers
 		
 		//These values take a string which could be a number value or a percentage value. The string is evaluated and 
 		//the above set of margin values (marginTopNumber, margingBottomNumber...) are set with the correct numeric value
-		public const marginRight:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
-		public const marginLeft:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
-		public const marginTop:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
-		public const marginBottom:LinkableString = registerLinkableChild(this, new LinkableString(''), updateZoom, true);
+		public const marginRight:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
+		public const marginLeft:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
+		public const marginTop:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
+		public const marginBottom:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
 		
 		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
 		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);

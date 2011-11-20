@@ -45,6 +45,29 @@ package weave.utils
 		}
 		
 		/**
+		 * This function verifies that the given String can be parsed as a finite Number optionally appended with a percent sign.
+		 * @param numberOrPercent A String to verify.
+		 * @return A value of true if the String can be parsed as a finite Number or percentage value.
+		 */
+		public static function verifyNumberOrPercentage(value:String):Boolean
+		{
+			try
+			{
+				// don't accept null or empty string
+				if (!value)
+					return false;
+				if (value.substr(-1) == '%')
+					return isFinite(Number(value.substr(0, -1)));
+				return isFinite(Number(value));
+			}
+			catch (e:Error)
+			{
+				// failed to parse number
+			}
+			return false;
+		}
+		
+		/**
 		 * getNumberFromNumberOrPercent
 		 * This function will convert a String like "75%" into a Number using the calculation "whole * percent / 100".
 		 * If the String does not have a "%" sign in it, it will be treated as an absolute number.

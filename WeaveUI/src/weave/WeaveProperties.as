@@ -49,6 +49,7 @@ package weave
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
+	import weave.utils.NumberUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
 
@@ -115,7 +116,6 @@ package weave
 		private function handleLoaderErrorEvent(event:Event):void
 		{
 			//DO Nothing
-			
 		}
 		
 		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
@@ -132,6 +132,8 @@ package weave
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:String):Boolean
 		{
+			if (!NumberUtils.verifyNumberOrPercentage(value))
+				return false;
 			if (value && value.substr(-1) == '%')
 				return StandardLib.asNumber(value.substr(0, -1)) > 0;
 			return StandardLib.asNumber(value) >= 1;
@@ -351,7 +353,7 @@ package weave
 		}
 		
 		//default URL
-		public const searchServiceURLs:LinkableString = new LinkableString(WIKIPEDIA_URL+"\n"+GOOGLE_URL+"\n"+GOOGLE_IMAGES_URL+"\n"+GOOGLE_MAPS_URL);
+		public const searchServiceURLs:LinkableString = new LinkableString([WIKIPEDIA_URL, GOOGLE_URL, GOOGLE_IMAGES_URL, GOOGLE_MAPS_URL].join('\n'));
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);

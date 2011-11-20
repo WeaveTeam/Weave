@@ -141,10 +141,10 @@
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.
 			 */
-			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%"));
-			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%"));
-			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%"));
-			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%"));
+			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%", NumberUtils.verifyNumberOrPercentage));
+			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%", NumberUtils.verifyNumberOrPercentage));
+			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
+			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
 			
 			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMaximizedChange, true);
 			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange, true);
