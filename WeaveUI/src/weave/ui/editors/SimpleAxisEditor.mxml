@@ -119,13 +119,9 @@
 
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			
 			import weave.api.linkBindableProperty;
-			import weave.core.SessionManager;
-			import weave.ui.DraggablePanel;
-			import weave.utils.EventUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			private const verticalGap:int = 16;

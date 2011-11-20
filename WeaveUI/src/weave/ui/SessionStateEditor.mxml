@@ -88,11 +88,8 @@ A text editor to change the Session State on the fly.
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
 			import mx.managers.PopUpManager;
-			import mx.utils.ObjectUtil;
-			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
@@ -103,11 +100,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.getSessionState;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
-			import weave.compiler.Compiler;
-			import weave.compiler.GlobalLib;
-			import weave.compiler.ICompiledObject;
 			import weave.core.DynamicState;
-			import weave.core.ExternalSessionStateInterface;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLDecoder;
