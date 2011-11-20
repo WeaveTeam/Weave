@@ -73,7 +73,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#verifyNumberOrPercentage()">verifyNumberOrPercentage</a>(value:String):Boolean</div>
+<a class="signatureLink" href="#verifyNumberOrPercentage()">verifyNumberOrPercentage</a>(numberOrPercent:String):Boolean</div>
 <div class="summaryTableDescription">[static]
    This function verifies that the given String can be parsed as a finite Number optionally appended with a percent sign.</div>
 </td><td class="summaryTableOwnerCol">NumberUtils</td>
@@ -164,12 +164,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function verifyNumberOrPercentage(value:String):Boolean</code><p>
+<code>public static function verifyNumberOrPercentage(numberOrPercent:String):Boolean</code><p>
    This function verifies that the given String can be parsed as a finite Number optionally appended with a percent sign.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">value</span>:String</code> &mdash; A String to verify.
+<td width="20px"></td><td><code><span class="label">numberOrPercent</span>:String</code> &mdash; A String to verify.
    </td>
 </tr>
 </table>
