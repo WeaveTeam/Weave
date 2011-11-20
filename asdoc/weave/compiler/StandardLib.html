@@ -105,9 +105,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#formatNumber()">formatNumber</a>(number:Number, formatterOrPrecision:Object = null):String</div>
+<a class="signatureLink" href="#formatNumber()">formatNumber</a>(number:Number, precision:Number):String</div>
 <div class="summaryTableDescription">[static]
-   </div>
+   This function will use a default NumberFormatter object to format a Number to a String.</div>
 </td><td class="summaryTableOwnerCol">StandardLib</td>
 </tr>
 <tr class="">
@@ -434,7 +434,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function formatNumber(number:Number, formatterOrPrecision:Object = null):String</code><p>
+<code>public static function formatNumber(number:Number, precision:Number):String</code><p>
+   This function will use a default NumberFormatter object to format a Number to a String.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -445,7 +446,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">formatterOrPrecision</span>:Object</code> (default = <code>null</code>)<code></code> &mdash; The NumberFormatter to use, or a precision value to use for the default NumberFormatter.
+<td width="20px"></td><td><code><span class="label">precision</span>:Number</code> &mdash; A precision value to pass to the default NumberFormatter.
    </td>
 </tr>
 </table>
@@ -456,6 +457,10 @@ showHideInherited();
 <td width="20"></td><td><code>String</code></td>
 </tr>
 </table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">mx.formatters.NumberFormatter.format</div>
 </div>
 <a name="getNiceNumber()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
