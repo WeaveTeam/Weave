@@ -38,13 +38,13 @@
 			<mx:Text text="{fileStatus.text}" id="fileStatus"/>
 		</mx:HBox>
 		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
-			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" indent="{indent}"/>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
 		<mx:HBox>
-			<mx:Label text="{Strings.TABLE_DISPLAY_NAME}"/>
-			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{Strings.CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TIP}"/>
+			<mx:Label text="{Strings.table_display_name}"/>
+			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{Strings.tip_csv_table_display_name}"/>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</mx:HBox>
 		<mx:HBox toolTip="Specify flag values to treat as missing data, separated by commas">
@@ -58,7 +58,7 @@
 			<mx:VBox visible="{!generateKeyColumn.selected}">
 				<mx:HBox>
 					<mx:Label text="Key column"/>
-					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.SELECT_KEY_COLUMN_TIP}"/><!-- editable because user may have typed in a file name manually -->
+					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.tip_key_column_dropdown}"/><!-- editable because user may have typed in a file name manually -->
 				</mx:HBox>
 				<mx:Label text="What do these keys correspond to?"/>
 				<ui:Indent>
@@ -95,12 +95,8 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.core.Container;
-			import mx.core.mx_internal;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
-			import mx.rpc.AsyncResponder;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Strings;
@@ -110,7 +106,7 @@
 			import weave.services.WeaveAdminService;
 			import weave.ui.admin.ServerCSVFileViewer;
 			
-			private static const indent:int = 145;
+			private static const indent:int = 128;
 			
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerCSVFileViewer = null;
@@ -230,22 +226,28 @@
 						(generateFilterColumns.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
 					);
 				
-				query.addAsyncResponder(handleImportCSV);
+				controlBarEnabled = false;
+				query.addAsyncResponder(handleImportCSV, handleFault);
 				function handleImportCSV(event:ResultEvent, token:Object = null):void
 				{
 					selectedChild = dublinCorePage;
 					commitDublinCoreElements();
+					controlBarEnabled = true;
+				}
+				function handleFault(event:FaultEvent, token:Object = null):void
+				{
+					controlBarEnabled = true;
 				}
 			}
 			
 			private function commitDublinCoreElements():void
 			{
 				var elements:Object = new Object();
-				if(dcTitleTextInput.text.length != 0)
+				if (dcTitleTextInput.text)
 					elements["title"] = dcTitleTextInput.text;
-				if(dcSubjectTextInput.text.length != 0)
+				if (dcSubjectTextInput.text)
 					elements["subject"] = dcSubjectTextInput.text;
-				if(dcDescriptionTextInput.text.length != 0)
+				if (dcDescriptionTextInput.text)
 					elements["description"] = dcDescriptionTextInput.text;
 				
 				//An assumtion is made that this text (dataTableNameInput.text) will not change,

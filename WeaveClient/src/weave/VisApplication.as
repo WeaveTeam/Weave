@@ -202,6 +202,10 @@ package weave
 			
 			setStyle("verticalGap", 0);
 			setStyle("horizingalGap", 0);
+			
+			// make it so the menu bar does not get hidden if the workspace size is too small.
+			clipContent = false;
+			setStyle('horizontalAlign', 'left');
 
 			// default has menubar and taskbar unless specified otherwise in config file
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);

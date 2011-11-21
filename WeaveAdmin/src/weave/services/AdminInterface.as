@@ -369,18 +369,24 @@ package weave.services
 
 		// code for managing GeometryCollection entries
 		
-		public function getGeometryCollectionNames():void
+		/**
+		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
+		 */		
+		public function getGeometryCollectionNames():DelayedAsyncInvocation
 		{
 			geometryCollectionNames = [];
 			if (userHasAuthenticated)
 			{
-				service.getGeometryCollectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetGeometryCollectionNames);
+				var query:DelayedAsyncInvocation = service.getGeometryCollectionNames(activeConnectionName, activePassword);
+				query.addAsyncResponder(handleGetGeometryCollectionNames);
 				function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
 						geometryCollectionNames = event.result as Array || [];
 				}
+				return query;
 			}
+			return null;
 		}
 		public function getGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
 		{
@@ -419,18 +425,24 @@ package weave.services
 
 
 
-		public function getKeyTypes():void
+		/**
+		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
+		 */
+		public function getKeyTypes():DelayedAsyncInvocation
 		{
 			keyTypes = [];
 			if (userHasAuthenticated)
 			{
-				service.getKeyTypes(activeConnectionName, activePassword).addAsyncResponder(handleGetKeyTypes);
+				var query:DelayedAsyncInvocation = service.getKeyTypes(activeConnectionName, activePassword);
+				query.addAsyncResponder(handleGetKeyTypes);
 				function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
 						keyTypes = event.result as Array || [];
 				}
+				return query;
 			}
+			return null;
 		}
 
 
@@ -674,7 +686,7 @@ package weave.services
 		 */ 
 		public function addDCElements(datasetName:String,elements:Object):DelayedAsyncInvocation
 		{
-			return service.addDCElements(activeConnectionName,activePassword,datasetName,elements);
+			return service.addDCElements(activeConnectionName, activePassword, datasetName, elements);
 		}
 
 		/**

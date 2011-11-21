@@ -36,34 +36,52 @@
 			
 			[Event(name="close", type="mx.events.CloseEvent")]
 			
-			// This tells the WizardPanel when to enable the "Back" button.
+			/**
+			 * This tells the WizardPanel when to enable the "Back" button.
+			 */
 			[Bindable] public var backEnabled:Boolean = true;
-			// This tells the WizardPanel when to enable the "Next" button.
+			/**
+			 * This tells the WizardPanel when to enable the "Next" button.
+			 */
 			[Bindable] public var nextEnabled:Boolean = true;
-			// This tells the WizardPanel when to enable the "Finish" button.
+			/**
+			 * This tells the WizardPanel when to enable the "Finish" button.
+			 */
 			[Bindable] public var finishEnabled:Boolean = true;
+			/**
+			 * This tells the WizardPanel when to enable the control bar with all the buttons.
+			 */
+			[Bindable] public var controlBarEnabled:Boolean = true;
 			
-			// This function gets called when the "Back" button is clicked.
+			/**
+			 * This function gets called when the "Back" button is clicked.
+			 */
 			public function back():void
 			{
 				if (selectedIndex > 0)
 					selectedIndex--;
 			}
 			
-			// This function gets called when the "Next" button is clicked.
+			/**
+			 * This function gets called when the "Next" button is clicked.
+			 */
 			public function next():void
 			{
 				if (selectedIndex >= 0 && selectedIndex < numChildren - 1)
 					selectedIndex++;
 			}
 			
-			// This function gets called when the "Finish" button is clicked.
+			/**
+			 * This function gets called when the "Finish" button is clicked.
+			 */
 			public function finish():void
 			{
 				// to be implemented by subclasses
 			}
 			
-			// This function gets called when the "Cancel" button is clicked.
+			/**
+			 * This function gets called when the "Cancel" button is clicked.
+			 */
 			public function cancel():void
 			{
 				// to be implemented by subclasses

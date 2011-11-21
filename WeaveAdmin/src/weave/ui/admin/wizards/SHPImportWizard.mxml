@@ -52,7 +52,7 @@
 			</mx:HBox>
 		</mx:HBox>
 		<ui:Indent id="keyType" enabled="false" label="Key type" indent="{indent}">
-			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.SHAPE_KEY_TYPE_DROPDOWNBOX_TIP}"/>
+			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_shp_key_type_dropdown}"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
 			<ui:HelpComponent helpText="{helpForKeyType}"/>
 		</ui:Indent>
@@ -65,6 +65,7 @@
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Strings;
@@ -195,13 +196,7 @@
 					Alert.show("You must specify the name of the GeometryCollection to be visible by users.", alertTitle);
 				else
 				{
-//					importSHPButton.enabled = false;
-//					var enableImportSHPButton:Function = function(...args):void
-//					{
-//						importSHPButton.enabled = true;
-//					};
-					
-					AdminInterface.instance.convertShapefileToSQLStream(
+					var query:DelayedAsyncInvocation = AdminInterface.instance.convertShapefileToSQLStream(
 							shpFileNameInput.text,
 							dbfKeyColumnsCombo.text.split(","),
 							tableSelector.activeSchema,
@@ -213,6 +208,17 @@
 							srsProjectionTxtInput.text,
 							nullFlagInput.text
 						);
+					
+					controlBarEnabled = false;
+					query.addAsyncResponder(handleResult, handleFault);
+					function handleResult(event:ResultEvent, token:Object = null):void
+					{
+						controlBarEnabled = true;
+					}
+					function handleFault(event:FaultEvent, token:Object = null):void
+					{
+						controlBarEnabled = true;
+					}
 				}
 			}
 			

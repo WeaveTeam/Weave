@@ -502,7 +502,7 @@
 				setStyle('highlightAlphas', enableBorders.value ? undefined : [0,0]);
 				
 				updateForceEnableBorders();
-				_resizeable = (!Weave.properties.dashboardMode.value && resizeable.value) || forceEnableBorders.value;
+				_resizeable = (!Weave.properties.dashboardMode.value && resizeable.value) || forceEnableBorders.value || showRollOverBorders;
 				
 				if (!maximizable.value)
 					maximized.value = false;

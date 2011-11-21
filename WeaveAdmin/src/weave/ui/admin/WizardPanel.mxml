@@ -39,7 +39,7 @@
 			verticalScrollPolicy="off"
 			horizontalScrollPolicy="off"/>
 	
-	<mx:ControlBar paddingTop="5" paddingBottom="5">
+	<mx:ControlBar paddingTop="5" paddingBottom="5" enabled="{viewStack.controlBarEnabled}">
 		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}{viewStack.selectedChild.label ? ': ' + viewStack.selectedChild.label : ''}"/>
 		<mx:Spacer width="100%"/>
 		<mx:Button id="backButton" label="Back" enabled="{viewStack.backEnabled &amp;&amp; (viewStack.selectedIndex &gt; 0)}" click="viewStack.back()"/>
@@ -62,7 +62,7 @@
 			import mx.managers.PopUpManager;
 			
 			[Bindable] private var viewStack:WizardViewStack = null;
-			[Bindable] private var viewStackNumChildren:int = 0;
+			[Bindable] private var viewStackNumChildren:int = 0; // this is used because numChildren is not bindable
 
 			/**
 			 * This function must be called to initialize the WizardViewStack used by the WizardPanel.
