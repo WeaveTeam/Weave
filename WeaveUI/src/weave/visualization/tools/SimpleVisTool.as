@@ -143,7 +143,7 @@ package weave.visualization.tools
 			//TODO: hide axis controls when axis isn't enabled
 
 			simpleAxisEditor = new SimpleAxisEditor();
-			simpleAxisEditor.target = this;
+			simpleAxisEditor.setTargets(this, visualization, enableTitle);
 			
 			windowSettingsEditor = new WindowSettingsEditor();
 			windowSettingsEditor.target = this;
