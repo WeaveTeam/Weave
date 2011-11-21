@@ -133,6 +133,15 @@
 						   creationComplete="linkBindableProperty(Weave.properties.probeToolTipBackgroundAlpha, event.target, 'value' );"
 						   />
 	</mx:HBox>
+	<mx:HBox>
+		<mx:Label width="200"	
+				  textAlign="right"
+				  text="Probe Tooltip Maximum Width"/>
+		<mx:TextInput id="tooltipMaximumWidthInput" 
+					  width="100"
+					  creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text' );"
+					  />
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.ToolTip;

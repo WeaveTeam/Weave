@@ -30,6 +30,7 @@ package weave.visualization.layers
 	import flash.ui.Keyboard;
 	
 	import mx.containers.Canvas;
+	import mx.controls.ToolTip;
 	import mx.core.Application;
 	
 	import weave.Weave;
@@ -37,6 +38,7 @@ package weave.visualization.layers
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -107,6 +109,7 @@ package weave.visualization.layers
 		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableProbe:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		
 		
 		private var activeKeyType:String = null;
 		private var mouseDragActive:Boolean = false;
@@ -802,6 +805,8 @@ package weave.visualization.layers
 				else
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
+					if(Weave.properties.probeToolTipMaxWidth.value)
+						ToolTip.maxWidth = Weave.properties.probeToolTipMaxWidth.value;
 					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}

@@ -335,6 +335,7 @@ package weave
 		public const probeToolTipBackgroundAlpha:LinkableNumber = new LinkableNumber(1.0, verifyAlpha);
 		public const probeToolTipBackgroundColor:LinkableNumber = new LinkableNumber(NaN);
 		public const probeToolTipFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
+		public const probeToolTipMaxWidth:LinkableNumber = new LinkableNumber(400);
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
