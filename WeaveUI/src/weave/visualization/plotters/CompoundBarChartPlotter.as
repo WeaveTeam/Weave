@@ -22,6 +22,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import mx.utils.ObjectUtil;
 	
@@ -130,12 +131,13 @@ package weave.visualization.plotters
 		
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 
-		public const valueLabelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const valueLabelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const valueLabelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const valueLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(30, verifyLabelMaxWidth));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
@@ -143,7 +145,8 @@ package weave.visualization.plotters
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const labelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		
+		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(30, verifyLabelMaxWidth));
+
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -157,6 +160,10 @@ package weave.visualization.plotters
 		private function verifyGroupingMode(mode:String):Boolean
 		{
 			return [GROUP, STACK, PERCENT_STACK].indexOf(mode) >= 0;
+		}
+		private function verifyLabelMaxWidth(value:Number):Boolean
+		{
+			return value > 0;
 		}
 		
 		private function heightColumnsGroupCallback():void
@@ -513,49 +520,36 @@ package weave.visualization.plotters
 					if (shouldDrawValueLabel && !heightMissing)
 					{
 						_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
+						
 						var valueLabelPos:Number = valueLabelDataCoordinate.value;
-						if (isNaN(valueLabelPos))
+						if(!(valueLabelPos <= Infinity)) // alternative to isNaN
 						{
 							valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
 						}
+						
 						if (!_horizontalMode)
 						{
 							tempPoint.x = (barStart + barEnd) / 2;
-							if (height >= 0)
-							{
-								tempPoint.y = valueLabelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-							}
-							else
-							{
-								tempPoint.y = valueLabelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-							}
+							tempPoint.y = valueLabelPos;
 							_bitmapText.angle = 270;
 						}
 						else
 						{
+							tempPoint.x = valueLabelPos;
 							tempPoint.y = (barStart + barEnd) / 2;
-							if (height >= 0)
-							{
-								tempPoint.x = valueLabelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-							}
-							else
-							{
-								tempPoint.x = valueLabelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-							}
 							_bitmapText.angle = 0;
 						}
+						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
-						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; // this line makes some code above uselss...
+						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; 
 						if (isFinite(valueLabelRelativeAngle.value))
 							_bitmapText.angle += valueLabelRelativeAngle.value;
+						
 						_bitmapText.textFormat.color = valueLabelColor.value;
+						_bitmapText.maxWidth = valueLabelMaxWidth.value;						
 						_bitmapText.draw(destination);
 					}
 					//------------------------------------
@@ -571,49 +565,34 @@ package weave.visualization.plotters
 							_bitmapText.text = ColumnUtils.getTitle(heightColumn);
 						else
 							_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
-						_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+
 						var labelPos:Number = labelDataCoordinate.value;
 						if (_horizontalMode)
 						{
-							if (isNaN(labelPos))
+							if (!(labelPos <= Infinity)) // alternative to isNaN
 								labelPos = (height >= 0) ? dataBounds.getXMin(): dataBounds.getXMax();
+							
+							tempPoint.x = labelPos;
 							tempPoint.y = (barStart + barEnd) / 2;
-							if (height >= 0)
-							{
-								tempPoint.x = labelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-							}
-							else
-							{
-								tempPoint.x = labelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-							}
 							_bitmapText.angle = 0;
 						}
 						else
 						{
-							if (isNaN(labelPos))
+							if (!(labelPos <= Infinity)) // alternative to isNaN
 								labelPos = (height >= 0) ? dataBounds.getYMin(): dataBounds.getYMax();
 							tempPoint.x = (barStart + barEnd) / 2;
-							if (height >= 0)
-							{
-								tempPoint.y = labelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
-							}
-							else
-							{
-								tempPoint.y = labelPos;
-								_bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-							}
+							tempPoint.y = labelPos;
 							_bitmapText.angle = 270;
 						}
+						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
+						_bitmapText.maxWidth = labelMaxWidth.value;
 						if (isFinite(labelRelativeAngle.value))
 							_bitmapText.angle += labelRelativeAngle.value;
 						_bitmapText.verticalAlign = labelVerticalAlign.value;
-						_bitmapText.horizontalAlign = labelHorizontalAlign.value; // this line makes some code above useless..
+						_bitmapText.horizontalAlign = labelHorizontalAlign.value; 
 						_bitmapText.textFormat.color = labelColor.value;
 						_bitmapText.draw(destination);
 					}
