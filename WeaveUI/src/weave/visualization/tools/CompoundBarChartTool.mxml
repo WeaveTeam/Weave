@@ -427,8 +427,8 @@
 									creationComplete="linkBindableProperty(_plotter.labelRelativeAngle, event.target, 'value')"/>
 						</ui:Indent>
 						<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.labelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.labelHorizontalAlign, event.target, 'horizontalAlign');"/>
-						<ui:Indent label="Label Width">
-							<mx:NumericStepper minimum="0" maximum="200" stepSize="10"
+						<ui:Indent label="Label width">
+							<mx:NumericStepper minimum="0" maximum="2000" stepSize="50"
 									creationComplete="linkBindableProperty(_plotter.labelMaxWidth, event.target, 'value')"/>
 						</ui:Indent>
 					</mx:VBox>
@@ -449,8 +449,8 @@
 									creationComplete="linkBindableProperty(_plotter.valueLabelRelativeAngle, event.target, 'value')"/>
 						</ui:Indent>
 						<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.valueLabelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.valueLabelHorizontalAlign, event.target, 'horizontalAlign');"/>
-						<ui:Indent label="Label Width">
-							<mx:NumericStepper minimum="0" maximum="200" stepSize="10"
+						<ui:Indent label="Label width">
+							<mx:NumericStepper minimum="0" maximum="2000" stepSize="50"
 									creationComplete="linkBindableProperty(_plotter.valueLabelMaxWidth, event.target, 'value')"/>
 						</ui:Indent>
 					</mx:VBox>
