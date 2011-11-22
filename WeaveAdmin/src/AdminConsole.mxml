@@ -49,7 +49,7 @@
 						<managers:GeometryCollectionManager/>
 						<managers:SQLConnectionManager id="sqlConnectionManager"/>
 					</mx:TabNavigator>
-					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false" fontSize="13"/>
+					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false"/>
 				</mx:VDividedBox>
 			</mx:VBox>
 			
