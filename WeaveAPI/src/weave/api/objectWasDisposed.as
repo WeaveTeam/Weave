@@ -34,16 +34,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.core
+package weave.api
 {
 	/**
-	 * An object that implements this empty interface has an associated ICallbackCollection and session state,
-	 * accessible through the global functions in the weave.api package. In order for an ILinkableObject to
-	 * be created dynamically at runtime, it must not require any constructor parameters.
-	 * 
-	 * @author adufilie
+	 * @see weave.api.core.ISessionManager#objectWasDisposed
 	 */
-	public interface ILinkableObject
+	public function objectWasDisposed(object:Object):Boolean
 	{
+		return WeaveAPI.SessionManager.objectWasDisposed(object);
 	}
 }

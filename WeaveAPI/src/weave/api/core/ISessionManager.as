@@ -212,5 +212,12 @@ package weave.api.core
 		 * @param moreObjects More objects to clean up.
 		 */
 		function disposeObjects(object:Object, ...moreObjects):void;
+
+		/**
+		 * This function checks if an object has been disposed of by the ISessionManager.
+		 * @param object An object to check.
+		 * @return A value of true if disposeObjects() was called for the specified object.
+		 */
+		function objectWasDisposed(object:Object):Boolean;
 	}
 }

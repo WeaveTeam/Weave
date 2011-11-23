@@ -190,7 +190,7 @@ package weave.core
 					else if (entry.context is CallbackCollection) // special case
 						shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
 					else
-						shouldRemoveEntry = (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(entry.context);
+						shouldRemoveEntry = WeaveAPI.SessionManager.objectWasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
 						if (debug && entry.callback != null)
@@ -413,7 +413,7 @@ package weave.core
 						{
 							var context:Object = allContexts[i];
 							// if there is a null context, it means the callback should never be removed.
-							if (context != null && (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(context))
+							if (context != null && WeaveAPI.SessionManager.objectWasDisposed(context))
 								allContexts.splice(i--, 1);
 						}
 						// if there are no more relevant contexts for this callback, don't run it.
