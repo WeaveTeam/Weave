@@ -144,7 +144,7 @@ package weave.core
 		 */
 		public static function get shouldCallLater():Boolean
 		{
-			return currentFrameElapsedTime > maxComputationTimePerFrame;
+			return getTimer() - _currentFrameStartTime > maxComputationTimePerFrame;
 		}
 		
 		/**
