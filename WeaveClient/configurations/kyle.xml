@@ -26,7 +26,7 @@
               <hierarchy>
                 <category name="Data Tables" title="Data Tables">
                   <category name="issue_relations" title="issue_relations">
-                    <attribute dataTable="issue_relations" dataType="string" keyType="Issue Relation ID" name="relation_type" id="165143" title="relation_type"/>
+                    <attribute dataType="string" dataTable="issue_relations" keyType="Issue Relation ID" name="relation_type" id="165143" title="relation_type"/>
                   </category>
                 </category>
               </hierarchy>
@@ -314,28 +314,28 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="new_world_borders" title="new_world_borders"/>
           <category name="nhpn" title="nhpn"/>
           <category name="obesity" title="obesity">
-            <attribute dataTable="obesity" keyType="obesity" name="US State FIPS Code" dataType="string" title="US State FIPS Code"/>
-            <attribute dataTable="obesity" keyType="obesity" name="State" dataType="string" title="State"/>
-            <attribute dataTable="obesity" dataType="number" keyType="obesity" name="Percent Obese 2007" string="number * 100 + &quot;%&quot;" title="Percent Obese 2007"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 2006" dataType="number" title="Percent Obese 2006"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 2005" dataType="number" title="Percent Obese 2005"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 2004" dataType="number" title="Percent Obese 2004"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 2003" dataType="number" title="Percent Obese 2003"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 2002" dataType="number" title="Percent Obese 2002"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 2001" dataType="number" title="Percent Obese 2001"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 2000" dataType="number" title="Percent Obese 2000"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 1999" dataType="number" title="Percent Obese 1999"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 1998" dataType="number" title="Percent Obese 1998"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 1997" dataType="number" title="Percent Obese 1997"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 1996" dataType="number" title="Percent Obese 1996"/>
-            <attribute dataTable="obesity" keyType="obesity" name="Percent Obese 1995" dataType="number" title="Percent Obese 1995"/>
+            <attribute dataType="string" keyType="obesity" dataTable="obesity" name="US State FIPS Code" title="US State FIPS Code"/>
+            <attribute dataType="string" keyType="obesity" dataTable="obesity" name="State" title="State"/>
+            <attribute dataType="number" dataTable="obesity" keyType="obesity" name="Percent Obese 2007" string="number * 100 + &quot;%&quot;" title="Percent Obese 2007"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 2006" title="Percent Obese 2006"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 2005" title="Percent Obese 2005"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 2004" title="Percent Obese 2004"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 2003" title="Percent Obese 2003"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 2002" title="Percent Obese 2002"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 2001" title="Percent Obese 2001"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 2000" title="Percent Obese 2000"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 1999" title="Percent Obese 1999"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 1998" title="Percent Obese 1998"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 1997" title="Percent Obese 1997"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 1996" title="Percent Obese 1996"/>
+            <attribute dataType="number" keyType="obesity" dataTable="obesity" name="Percent Obese 1995" title="Percent Obese 1995"/>
           </category>
           <category name="obesity-cube" title="obesity-cube">
             <attribute number=" " keyType="obesity-cube" name="ID" dataType="number" dataTable="obesity-cube" string="&quot;ID&quot; + asString(number)" title="ID"/>
             <attribute number=" " keyType="obesity-cube" name="FIPS2" dataType="string" dataTable="obesity-cube" string=" " title="FIPS2"/>
             <attribute number="string.length" keyType="obesity-cube" name="State" dataType="string" dataTable="obesity-cube" string="&quot;# num characters &quot; + asString(number)" title="State"/>
             <attribute number=" " keyType="obesity-cube" name="Year" dataType="number" dataTable="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" title="Year"/>
-            <attribute dataTable="obesity-cube" dataType="number" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" title="PercentObese"/>
+            <attribute dataType="number" dataTable="obesity-cube" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" title="PercentObese"/>
           </category>
           <category name="obesity-cube2" title="obesity-cube2"/>
           <category name="obesity-cube3" title="obesity-cube3"/>
@@ -1154,36 +1154,36 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
           <category name="iris_dataset" title="iris_dataset"/>
           <category name="IrisDataset" title="IrisDataset"/>
           <category name="issue_relations" title="issue_relations">
-            <attribute dataTable="issue_relations" dataType="number" keyType="Issue Relation ID" name="delay" id="165139" title="delay"/>
-            <attribute dataTable="issue_relations" dataType="Issue Relation ID" keyType="Issue Relation ID" name="id" id="165140" title="id"/>
-            <attribute dataTable="issue_relations" dataType="Issue ID" keyType="Issue Relation ID" name="issue_from_id" id="165141" title="issue_from_id"/>
-            <attribute dataTable="issue_relations" dataType="Issue ID" keyType="Issue Relation ID" name="issue_to_id" id="165142" title="issue_to_id"/>
-            <attribute dataTable="issue_relations" dataType="string" keyType="Issue Relation ID" name="relation_type" id="165143" title="relation_type"/>
+            <attribute dataType="number" dataTable="issue_relations" keyType="Issue Relation ID" name="delay" id="165139" title="delay"/>
+            <attribute dataType="Issue Relation ID" dataTable="issue_relations" keyType="Issue Relation ID" name="id" id="165140" title="id"/>
+            <attribute dataType="Issue ID" dataTable="issue_relations" keyType="Issue Relation ID" name="issue_from_id" id="165141" title="issue_from_id"/>
+            <attribute dataType="Issue ID" dataTable="issue_relations" keyType="Issue Relation ID" name="issue_to_id" id="165142" title="issue_to_id"/>
+            <attribute dataType="string" dataTable="issue_relations" keyType="Issue Relation ID" name="relation_type" id="165143" title="relation_type"/>
           </category>
           <category name="Issues" title="Issues">
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="assigned_to_id" id="165167" title="assigned_to_id"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="author_id" id="165168" title="author_id"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="category_id" id="165169" title="category_id"/>
-            <attribute dataTable="Issues" dataType="string" keyType="Issue ID" name="created_on" id="165170" title="created_on"/>
-            <attribute dataTable="Issues" dataType="string" keyType="Issue ID" name="description" id="165171" title="description"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="done_ratio" id="165172" title="done_ratio"/>
-            <attribute dataTable="Issues" dataType="string" keyType="Issue ID" name="due_date" id="165173" title="due_date"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="estimated_hours" id="165174" title="estimated_hours"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="fixed_version_id" id="165175" title="fixed_version_id"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="id" id="165176" title="id"/>
-            <attribute dataTable="Issues" dataType="string" keyType="Issue ID" name="is_private" id="165177" title="is_private"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="lft" id="165178" title="lft"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="lock_version" id="165179" title="lock_version"/>
-            <attribute dataTable="Issues" dataType="Issue ID" keyType="Issue ID" name="parent_id" id="165180" title="parent_id"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="priority_id" id="165181" title="priority_id"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="project_id" id="165182" title="project_id"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="rgt" id="165183" title="rgt"/>
-            <attribute dataTable="Issues" dataType="Issue ID" keyType="Issue ID" name="root_id" id="165184" title="root_id"/>
-            <attribute dataTable="Issues" dataType="string" keyType="Issue ID" name="start_date" id="165185" title="start_date"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="status_id" id="165186" title="status_id"/>
-            <attribute dataTable="Issues" dataType="string" keyType="Issue ID" name="subject" id="165187" title="subject"/>
-            <attribute dataTable="Issues" dataType="number" keyType="Issue ID" name="tracker_id" id="165188" title="tracker_id"/>
-            <attribute dataTable="Issues" dataType="string" keyType="Issue ID" name="updated_on" id="165189" title="updated_on"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="assigned_to_id" id="165167" title="assigned_to_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="author_id" id="165168" title="author_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="category_id" id="165169" title="category_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="created_on" id="165170" title="created_on"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="description" id="165171" title="description"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="done_ratio" id="165172" title="done_ratio"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="due_date" id="165173" title="due_date"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="estimated_hours" id="165174" title="estimated_hours"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="fixed_version_id" id="165175" title="fixed_version_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="id" id="165176" title="id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="is_private" id="165177" title="is_private"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="lft" id="165178" title="lft"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="lock_version" id="165179" title="lock_version"/>
+            <attribute dataType="Issue ID" dataTable="Issues" keyType="Issue ID" name="parent_id" id="165180" title="parent_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="priority_id" id="165181" title="priority_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="project_id" id="165182" title="project_id"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="rgt" id="165183" title="rgt"/>
+            <attribute dataType="Issue ID" dataTable="Issues" keyType="Issue ID" name="root_id" id="165184" title="root_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="start_date" id="165185" title="start_date"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="status_id" id="165186" title="status_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="subject" id="165187" title="subject"/>
+            <attribute dataType="number" dataTable="Issues" keyType="Issue ID" name="tracker_id" id="165188" title="tracker_id"/>
+            <attribute dataType="string" dataTable="Issues" keyType="Issue ID" name="updated_on" id="165189" title="updated_on"/>
           </category>
           <category name="Jiayan_All_Construction_emp_4_30_2011" title="Jiayan_All_Construction_emp_4_30_2011"/>
           <category name="Jiayan_Construction_emp_4_30_2011" title="Jiayan_Construction_emp_4_30_2011"/>
@@ -2982,11 +2982,11 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLineDataBounds>
                   <xMax>-0.5</xMax>
                   <xMin>-0.5</xMin>
-                  <yMax>1419.7</yMax>
-                  <yMin>-871.7</yMin>
+                  <yMax>1410.7</yMax>
+                  <yMin>-880.7</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>1419.7</axisLineMaxValue>
-                <axisLineMinValue>-871.7</axisLineMinValue>
+                <axisLineMaxValue>1410.7</axisLineMaxValue>
+                <axisLineMinValue>-880.7</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic"/>
@@ -3027,8 +3027,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                 <axisLineDataBounds>
                   <xMax>20.5</xMax>
                   <xMin>-0.5</xMin>
-                  <yMax>-871.7</yMax>
-                  <yMin>-871.7</yMin>
+                  <yMax>-880.7</yMax>
+                  <yMin>-880.7</yMin>
                 </axisLineDataBounds>
                 <axisLineMaxValue>20.5</axisLineMaxValue>
                 <axisLineMinValue>-0.5</axisLineMinValue>
@@ -3167,7 +3167,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
                           <hierarchy>
                             <category name="Data Tables" title="Data Tables">
                               <category name="obesity-cube" title="obesity-cube">
-                                <attribute dataTable="obesity-cube" title="PercentObese" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" dataType="number"/>
+                                <attribute title="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" dataType="number"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -3357,8 +3357,8 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         <zoomBounds>
           <xMax>20.5</xMax>
           <xMin>-0.5</xMin>
-          <yMax>1419.7</yMax>
-          <yMin>-871.7</yMin>
+          <yMax>1410.7</yMax>
+          <yMin>-880.7</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
       <PenTool name="penTool">
@@ -3398,4 +3398,307 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showCloseDialog>false</showCloseDialog>
     <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
   </CompoundBarChartTool>
+  <BarChartLegendTool name="BarChartLegendTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>0</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <axisFontBold>true</axisFontBold>
+        <axisFontColor>0</axisFontColor>
+        <axisFontFamily>Sophia Nubian</axisFontFamily>
+        <axisFontItalic>false</axisFontItalic>
+        <axisFontSize>11</axisFontSize>
+        <axisFontUnderline>false</axisFontUnderline>
+        <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableFixedAspectRatio>false</enableFixedAspectRatio>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>0</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+        <layers encoding="dynamic">
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <plotter encoding="dynamic">
+              <BarChartLegendPlotter>
+                <chartColors encoding="xml">
+                  <colorRamp category="aesthetic" name="Doppler Radar" source="OIC" dataFormat="qualitative">
+                    <node color="0x04E9E7" position="0"/>
+                    <node color="0x009DF4" position="0.08"/>
+                    <node color="0x0201F4" position="0.16"/>
+                    <node color="0x01FC01" position="0.24"/>
+                    <node color="0x00C400" position="0.32"/>
+                    <node color="0x008C00" position="0.4"/>
+                    <node color="0x0FDF801" position="0.48"/>
+                    <node color="0xF99200" position="0.56"/>
+                    <node color="0xFD0000" position="0.64"/>
+                    <node color="0xBC0000" position="0.72"/>
+                    <node color="0xBC0000" position="0.8"/>
+                    <node color="0xF800FD" position="0.88"/>
+                    <node color="0x9854C6" position="1.0"/>
+                  </colorRamp>
+                </chartColors>
+                <columns encoding="dynamic">
+                  <ReferencedColumn name="ReferencedColumn">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute number=" " keyType="obesity-cube" string="&quot;ID&quot; + asString(number)" title="ID" dataTable="obesity-cube" name="ID" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn4">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute number=" " keyType="obesity-cube" string=" " title="FIPS2" dataTable="obesity-cube" name="FIPS2" dataType="string"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn6">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute number="string.length" keyType="obesity-cube" string="&quot;# num characters &quot; + asString(number)" title="State" dataTable="obesity-cube" name="State" dataType="string"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn7">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute number=" " keyType="obesity-cube" string="&quot;01/01/&quot; + asString(number) % 100" title="Year" dataTable="obesity-cube" name="Year" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn8">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category name="Data Tables" title="Data Tables">
+                              <category name="obesity-cube" title="obesity-cube">
+                                <attribute title="PercentObese" dataTable="obesity-cube" keyType="obesity-cube" string="asString(number) + &quot;%&quot;" name="PercentObese" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </columns>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>false</reverseOrder>
+                <shapeSize>12</shapeSize>
+              </BarChartLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="color legend">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>false</layerIsVisible>
+            <plotter encoding="dynamic">
+              <ColorBinLegendPlotter>
+                <dynamicColorColumn encoding="dynamic">
+                  <GlobalObjectReference name="defaultColorColumn"/>
+                </dynamicColorColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <lineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </lineStyle>
+                <maxColumns>1</maxColumns>
+                <reverseOrder>false</reverseOrder>
+                <shapeSize>20</shapeSize>
+              </ColorBinLegendPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>true</useTextBitmapFilters>
+          </SelectablePlotLayer>
+        </layers>
+        <marginBottom>5</marginBottom>
+        <marginLeft>5</marginLeft>
+        <marginRight>5</marginRight>
+        <marginTop>25</marginTop>
+        <maxZoomLevel>16</maxZoomLevel>
+        <minScreenSize>128</minScreenSize>
+        <minZoomLevel>0</minZoomLevel>
+        <overrideXMax>NaN</overrideXMax>
+        <overrideXMin>NaN</overrideXMin>
+        <overrideYMax>NaN</overrideYMax>
+        <overrideYMin>NaN</overrideYMin>
+        <zoomBounds>
+          <xMax>1</xMax>
+          <xMin>0</xMin>
+          <yMax>1</yMax>
+          <yMin>0</yMin>
+        </zoomBounds>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <draggable>true</draggable>
+    <dynamicBarChartTool encoding="dynamic">
+      <GlobalObjectReference name="CompoundBarChartTool"/>
+    </dynamicBarChartTool>
+    <enableBorders>true</enableBorders>
+    <enableTitle>false</enableTitle>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>50%</panelHeight>
+    <panelStyleList/>
+    <panelTitle/>
+    <panelWidth>20%</panelWidth>
+    <panelX>2%</panelX>
+    <panelY>25%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>true</pinned>
+    <pinnedToBack>false</pinnedToBack>
+    <resizeable>true</resizeable>
+    <showCloseDialog>false</showCloseDialog>
+  </BarChartLegendTool>
 </Weave>
