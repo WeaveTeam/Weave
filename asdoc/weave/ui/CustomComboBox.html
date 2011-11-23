@@ -45,7 +45,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  BUG FIX: set dataProvider() now updates drop-down list.
   Added functionality: set selectedLabel()
   
   <p></p>
@@ -61,8 +60,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataProvider">dataProvider</a> : Object<div class="summaryTableDescription">[write-only]
-   This function fixes the notorious combo box bug where the
-   drop-down list is out of sync with the dataProvider.</div>
+   </div>
 </td><td class="summaryTableOwnerCol">CustomComboBox</td>
 </tr>
 <tr class="">
@@ -103,8 +101,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>dataProvider:Object</code>&nbsp;&nbsp;[write-only]<p>
-   This function fixes the notorious combo box bug where the
-   drop-down list is out of sync with the dataProvider.
    </p><span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set dataProvider(value:Object):void</code>
