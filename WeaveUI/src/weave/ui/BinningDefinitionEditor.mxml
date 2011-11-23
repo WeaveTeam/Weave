@@ -20,10 +20,10 @@
 */
 -->
 
-<!--
-BinningDefinitionEditor
-
-@sanbalagan
+<!---
+@author sanbalagan
+@author adufilie
+@author skolman
 -->
 <mx:HBox xmlns:ui ="weave.ui.*"
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
@@ -31,261 +31,173 @@ BinningDefinitionEditor
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject"
 		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
-	<!-- NOTE: setting the panel's width and height to NaN will force it to resize to the children... -->
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
 				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
 			
-			<mx:Label fontWeight="bold" text="Binning Type:"/>
-			<mx:RadioButtonGroup id="typeGroup"/>
+			<mx:Label fontWeight="bold" text="Binning type:"/>
+			<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
 			
-			<mx:HBox styleName="group-hbox-style" width="50%">
-				<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="130"/>
-				<mx:HBox enabled="{simpleRadio.selected}">
-					<mx:Label text="Number of Bins:" width="120"/>
-					<mx:NumericStepper minimum="2" maximum="20" stepSize="1" id="numOfBins"/>
-				</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="100%" data="{_simple}"/>
+				<ui:Indent enabled="{simpleRadio.selected}" label="Number of bins:" indent="{indent}">
+					<mx:NumericStepper minimum="1" maximum="25" stepSize="1" id="numOfBins" width="{inputWidth}"/>
+				</ui:Indent>
 				<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox styleName="group-hbox-style" width="100%">
-				<mx:RadioButton id="ncRadio" label="Custom Split" groupName="typeGroup" width="130"/>
-				<ui:CustomSplitBinningEditor id="csEditor" enableComponent="{ncRadio.selected}" width="200"/>
+			<mx:HBox width="100%">
+				<mx:RadioButton id="customRadio" label="Custom breaks" groupName="typeGroup" width="100%" data="{_customSplit}"/>
+				<mx:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
+				<HelpComponent helpText="Enter comma-separated custom break values for dividing the data into bins.  Example: &quot;0,50,100&quot; will create two bins: [0,50] and [50,100]"/>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox styleName="group-hbox-style" width="100%">
-				<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="130"/>
-				<mx:HBox enabled="{quantileRadio.selected}">
-					<mx:Label text="Reference Quantile:" width="120"/>
-					<mx:TextInput id="refQuantile" width="40"/>	
-				</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:RadioButton id="quantileRadio" label="Quantile" groupName="typeGroup" width="100%" data="{_quantile}"/>
+				<ui:Indent enabled="{quantileRadio.selected}" label="Reference quantile:" indent="{indent}">
+					<mx:TextInput id="refQuantile" width="{inputWidth}"/>
+				</ui:Indent>
 				<ui:HelpComponent helpText="Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order"/>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox styleName="group-hbox-style" width="100%">
-				<mx:RadioButton  id="equalIntervalRadio" label="Equal Interval" groupName="typeGroup" width="130"/>
-				<mx:HBox enabled="{equalIntervalRadio.selected}">
-					<mx:Label text="Data Interval:" width="120"/>				 
-					<mx:TextInput id="dataInterval" width="40"/>				
-				</mx:HBox>	
+			<mx:HBox width="100%">
+				<mx:RadioButton id="equalIntervalRadio" label="Equal interval" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
+				<ui:TextBox id="dataInterval" enabled="{equalIntervalRadio.selected}" label="Data interval:" indent="{indent}" inputWidth="{inputWidth}"/>
 				<ui:HelpComponent helpText="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox styleName="group-hbox-style" width="100%">	
-				<mx:RadioButton id="sdRadio" label="Standard Deviation" groupName="typeGroup" width="130"/>
-				<mx:HBox enabled="{sdRadio.selected}">
-					<mx:Label text="SD Number:" width="120"/>				 
-					<mx:TextInput id="SD" width="40"/>
-				</mx:HBox>
+			<mx:HBox width="100%">	
+				<mx:RadioButton id="sdRadio" label="Standard deviation" groupName="typeGroup" width="100%" data="{_stdDev}"/>
+				<ui:Indent enabled="{sdRadio.selected}" label="SD number:" indent="{indent}">
+					<mx:NumericStepper id="SD" minimum="1" maximum="3" width="{inputWidth}"/>
+				</ui:Indent>
 				<ui:HelpComponent helpText="One bin will be created for each standard deviation above and below the mean value.  Specifying 'SD Number' as 3 will create 6 bins."/>
 			</mx:HBox>
 		
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox styleName="group-hbox-style" width="100%">	
-				<mx:RadioButton id="catRadio" label="All categories (string values)" groupName="typeGroup" width="200"/>
+			<mx:HBox width="100%">	
+				<mx:RadioButton id="catRadio" label="All categories (string values)" groupName="typeGroup" width="100%" data="{_category}"/>
 				<ui:HelpComponent helpText="One bin will be created for each unique string value in the column."/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
-			<mx:DataGrid id="binNameEditor" draggableColumns="false" sortableColumns="false" width="100%" height="100%" minWidth="0" editable="{overrideNamesCheckBox.selected}" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}"/>
-			<mx:CheckBox id="overrideNamesCheckBox" label="Edit and Override Names" change="handleOverrideCheckbox()"/>
+			<mx:DataGrid id="binNameEditor" draggableColumns="false" sortableColumns="false" width="100%" height="100%" minWidth="0" selectable="{overrideNamesCheckBox.selected}" editable="{overrideNamesCheckBox.selected}" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}">
+				<mx:columns>
+					<mx:DataGridColumn headerText="Bin Names"/>
+				</mx:columns>
+			</mx:DataGrid>
+			<mx:CheckBox id="overrideNamesCheckBox" label="Edit and override names" change="handleOverrideCheckbox()"/>
 		</mx:VBox>
-	<!--<mx:ControlBar>
-		<mx:Button label="Apply" click="saveSessionState()"/>
-	</mx:ControlBar>-->
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.clearInterval;
-			import flash.utils.setInterval;
-			import flash.utils.setTimeout;
-			
 			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
-			import mx.controls.ToolTip;
 			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.core.Application;
-			import mx.core.IFlexDisplayObject;
 			import mx.events.DataGridEvent;
-			import mx.events.FlexEvent;
-			import mx.managers.PopUpManager;
-			import mx.utils.StringUtil;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IBinningDefinition;
-			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
-			import weave.api.reportError;
-			import weave.core.LinkableDynamicObject;
-			import weave.core.LinkableNumber;
-			import weave.core.SessionManager;
-			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.BinClassifiers.BinClassifierCollection;
 			import weave.data.BinningDefinitions.AbstractBinningDefinition;
 			import weave.data.BinningDefinitions.CategoryBinningDefinition;
 			import weave.data.BinningDefinitions.CustomSplitBinningDefinition;
-			import weave.data.BinningDefinitions.DynamicBinningDefinition;
 			import weave.data.BinningDefinitions.EqualIntervalBinningDefinition;
-			import weave.data.BinningDefinitions.ExplicitBinningDefinition;
 			import weave.data.BinningDefinitions.QuantileBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
-			import weave.data.CSVParser;
-			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			
-			/**make UI to access this for things using a binned column**/
+			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn);
 			
-			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn); 
+			private const indent:int = 120;
+			private const inputWidth:int = 64;
+			private const gridSource:ArrayCollection = new ArrayCollection();
+			private const _simple:SimpleBinningDefinition = newLinkableChild(this, SimpleBinningDefinition);
+			private const _customSplit:CustomSplitBinningDefinition = newLinkableChild(this, CustomSplitBinningDefinition);
+			private const _quantile:QuantileBinningDefinition = newLinkableChild(this, QuantileBinningDefinition);
+			private const _equalInterval:EqualIntervalBinningDefinition = newLinkableChild(this, EqualIntervalBinningDefinition);
+			private const _stdDev:StandardDeviationBinningDefinition = newLinkableChild(this, StandardDeviationBinningDefinition);
+			private const _category:CategoryBinningDefinition = newLinkableChild(this, CategoryBinningDefinition);
+			
+			private function getAbstractDef():AbstractBinningDefinition
+			{
+				return binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition;
+			}
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				binnedColumn.addGroupedCallback(this,handleBinnedColumnChange,true);
-				
-				var delayedCallback:Function = EventUtils.generateDelayedCallback(saveSessionState, []);
-				for each (var obj:IEventDispatcher in [numOfBins, csEditor.splitValues, refQuantile, dataInterval, SD, typeGroup])
-					obj.addEventListener(Event.CHANGE, delayedCallback);
-					
-				var cols:Array = []
-				
-				var col:DataGridColumn = new DataGridColumn();
-				col.headerText = "Bin Names";
-				cols.push(col);
-				
-				binNameEditor.columns = cols;
-				
-				(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.addGroupedCallback(this,handleOverrideBinNamesChange,true);
+				binnedColumn.addGroupedCallback(this, handleBinnedColumnChange, true);
+
+				var delay:int = 500;
+				linkBindableProperty(_simple.numberOfBins, numOfBins, 'value', delay);
+				linkBindableProperty(_customSplit.splitValues, splitValues, 'text', delay);
+				linkBindableProperty(_quantile.refQuantile, refQuantile, 'text', delay);
+				linkBindableProperty(_equalInterval.dataInterval, dataInterval, 'text', delay);
+				linkBindableProperty(_stdDev.sdNumber, SD, 'value', delay);
 			}
 			
+			// called when a radio button is selected
+			private function handleTypeRadio():void
+			{
+				// from the selected radio button, get the local binning definition
+				var localDef:IBinningDefinition = typeGroup.selection.data as IBinningDefinition;
+				// create a copy of the selected local binning definition
+				binnedColumn.binningDefinition.requestLocalObjectCopy(localDef);
+			}
 			
+			// called when the binned column changes
 			private function handleBinnedColumnChange():void
 			{
-				if(!initialized)
-				{
-					callLater(handleBinnedColumnChange);
-					return;
-				}
-				
+				// find the radio button with the same binning definition type
 				var def:IBinningDefinition = binnedColumn.binningDefinition.internalBinningDefinition;
-				
-				if(def is SimpleBinningDefinition)
+				for (var i:int = 0; i < typeGroup.numRadioButtons; i++)
 				{
-					var _sBD:SimpleBinningDefinition = def as SimpleBinningDefinition;
-					typeGroup.selection = simpleRadio;
-					numOfBins.value = _sBD.numberOfBins.value;
-				}
-				else if(def is CustomSplitBinningDefinition)
-				{
-					var _eBD:CustomSplitBinningDefinition = def as CustomSplitBinningDefinition;
-					typeGroup.selection = ncRadio;
-					csEditor.splitValues.text = _eBD.splitValues.value;
-				}
-				else if(def is QuantileBinningDefinition)
-				{
-					var _qb:QuantileBinningDefinition = def as QuantileBinningDefinition;
-					typeGroup.selection = quantileRadio;
-					refQuantile.text = _qb.refQuantile.value.toString();
-				}
-				else if(def is EqualIntervalBinningDefinition)
-				{
-					var _eiBD:EqualIntervalBinningDefinition = def as EqualIntervalBinningDefinition;
-					typeGroup.selection = equalIntervalRadio;
-					dataInterval.text = _eiBD.dataInterval.value.toString();
-				}
-				else if(def is StandardDeviationBinningDefinition)
-				{
-					var _sdBD:StandardDeviationBinningDefinition = def as StandardDeviationBinningDefinition;
-					typeGroup.selection = sdRadio;
-					SD.text = _sdBD.sdNumber.value.toString();
-				}
-				else if(def is CategoryBinningDefinition)
-				{
-					var _catBD:CategoryBinningDefinition = def as CategoryBinningDefinition;
-					typeGroup.selection = catRadio;
+					var radioButton:RadioButton = typeGroup.getRadioButtonAt(i);
+					var localDef:IBinningDefinition = radioButton.data as IBinningDefinition;
+					if (getQualifiedClassName(localDef) == getQualifiedClassName(def))
+					{
+						// link the session state, giving priority to the binned column binning definition
+						linkSessionState(def, localDef);
+						// select the radio button
+						typeGroup.selection = radioButton;
+						break;
+					}
 				}
 				
-				var bins:BinClassifierCollection =  binnedColumn.getDerivedBins();
-				
-				var names:Array = bins.getNames();
-				
-				gridSource.removeAll();
-				for (var i:int = 0; i <names.length; i++)
-					gridSource.addItem(names[i]);
-			}
-			
-			public function saveSessionState():void
-			{
-				binnedColumn.delayCallbacks();
-				switch (typeGroup.selection)
-				{
-					case simpleRadio:
-						var _sBD:SimpleBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
-						_sBD.numberOfBins.value =  numOfBins.value;
-						break;
-					case ncRadio:
-						var _eBD:CustomSplitBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(CustomSplitBinningDefinition, false);
-						_eBD.splitValues.value = csEditor.splitValues.text;
-						break;
-					case quantileRadio:
-						var _qBD:QuantileBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(QuantileBinningDefinition, false);
-						_qBD.refQuantile.value = Number(refQuantile.text);
-						break;
-					case equalIntervalRadio:
-						var _eiBD:EqualIntervalBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(EqualIntervalBinningDefinition, false);
-						_eiBD.dataInterval.value = Number(dataInterval.text);
-						break;
-					case sdRadio:
-						var _sdBD:StandardDeviationBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(StandardDeviationBinningDefinition, false);
-						_sdBD.sdNumber.value = Number(SD.text);
-						break;
-					case catRadio:
-						var _catBD:CategoryBinningDefinition = binnedColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, false);
-						break;
-					
-				}
-				binnedColumn.resumeCallbacks();
-			}
-			
-			private function handleOverrideBinNamesChange():void
-			{
-				if ((binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value)
+				// update bin names
+				gridSource.source = binnedColumn.getDerivedBins().getNames();
+				if (getAbstractDef().overrideBinNames.value)
 					overrideNamesCheckBox.selected = true;
 				else
 					overrideNamesCheckBox.selected = false;
 			}
 			
+			// called when the 'bin name override' checkbox is clicked
 			private function handleOverrideCheckbox():void
 			{
-				if (overrideNamesCheckBox.selected)
+				// when unchecked, erase existing override names
+				if (!overrideNamesCheckBox.selected)
 				{
-				}
-				else
-				{
-					(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value = '';
+					getAbstractDef().overrideBinNames.value = '';
+					// clear any existing list selection
+					binNameEditor.selectedIndex = -1;
 				}
 			}
 			
-			
-			
-			[Bindable]
-			private var gridSource:ArrayCollection = new ArrayCollection();
-			
-			
-			private var csvParser:CSVParser = new CSVParser();
 			private function handleItemEdited(event:DataGridEvent):void
 			{
 				var input:TextInput = binNameEditor.itemEditorInstance as TextInput;
@@ -293,9 +205,7 @@ BinningDefinitionEditor
 				var names:Array = [];
 				
 				if (input.text == event.itemRenderer.data as String)
-				{
 					return;
-				}
 				
 				if (binnedColumn.getDerivedBins().getObject(input.text))
 				{
@@ -309,17 +219,13 @@ BinningDefinitionEditor
 				for (var i:int = 0; i < source.length; i++)
 				{
 					if (event.rowIndex == i)
-					{
 						names.push(input.text);
-					}
 					else
 						names.push(source[i] as String);
 				}
 				
-				(binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition).overrideBinNames.value = WeaveAPI.CSVParser.createCSVFromArrays([names]);
+				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSVFromArrays([names]);
 			}
 		]]>
 	</mx:Script>
-	
-
-	</mx:HBox>
+</mx:HBox>
