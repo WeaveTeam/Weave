@@ -160,7 +160,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#objectWasDisposed()">objectWasDisposed</a>(object:Object):Boolean</div>
 <div class="summaryTableDescription">
-   This function checks if an object has been disposed of by SessionManager.</div>
+   This function checks if an object has been disposed of by the ISessionManager.</div>
 </td><td class="summaryTableOwnerCol">SessionManager</td>
 </tr>
 <tr class="">
@@ -709,7 +709,7 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function objectWasDisposed(object:Object):Boolean</code><p>
-   This function checks if an object has been disposed of by SessionManager.
+   This function checks if an object has been disposed of by the ISessionManager.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -721,8 +721,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Boolean</code> &mdash; true if SessionManager.dispose() was called for the specified object.
-   
+<td width="20"></td><td><code>Boolean</code> &mdash; A value of true if disposeObjects() was called for the specified object.
    </td>
 </tr>
 </table>

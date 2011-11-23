@@ -104,7 +104,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getNewInstance()">getNewInstance</a>(classQName:String):Object</div>
+<a class="signatureLink" href="#getNewInstance()">getNewInstance</a>(classQName:String, params:Array = null):Object</div>
 <div class="summaryTableDescription">[static]
    Returns a new instance of a class.</div>
 </td><td class="summaryTableOwnerCol">ClassUtils</td>
@@ -301,13 +301,20 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getNewInstance(classQName:String):Object</code><p>
+<code>public static function getNewInstance(classQName:String, params:Array = null):Object</code><p>
    Returns a new instance of a class.
    
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">classQName</span>:String</code> &mdash; The qualified name of the class.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">params</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; Parameters to pass to the constructor of the class.
    </td>
 </tr>
 </table>
