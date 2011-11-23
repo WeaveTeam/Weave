@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.data.QKeyManager;
@@ -84,13 +85,39 @@ package weave.visualization.plotters
 		private var _columnToBounds:Dictionary = new Dictionary();
 		private var _columnToTitle:Dictionary = new Dictionary();
 		private var _maxBoxSize:Number = 8;
+		
+		/**
+		 * This is the maximum number of items to draw in a single row.
+		 * @default 1 
+		 */		
 		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createColumnHashes);
+		
+		/**
+		 * This is an option to reverse the item order.
+		 * @default false 
+		 */		
 		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
+		
+		/**
+		 * This is the compiled function to apply to the item labels.
+		 * 
+		 * @default string
+		 */		
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['string']), createColumnHashes);
+
+		// TODO This should go somewhere else...
+		/**
+		 * This is the compiled function to apply to the title of the tool.
+		 * 
+		 * @default string  
+		 */		
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			return getReusableBounds(0, 0, 1, 1);
 		}
+		
 		private function createColumnHashes():void
 		{
 			_columnOrdering = [];
@@ -105,7 +132,14 @@ package weave.visualization.plotters
 				var b:IBounds2D = new Bounds2D();
 				
 				_columnOrdering.push(column);
-				_columnToTitle[column] = colTitle;
+				try
+				{
+					_columnToTitle[column] = itemLabelFunction.apply(null, [colTitle]);
+				}
+				catch (e:Error)
+				{
+					_columnToTitle[column] = colTitle;
+				}
 			}
 			
 			if (reverseOrder.value)

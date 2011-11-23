@@ -95,10 +95,17 @@
 				super.childrenCreated();
 				visualization.marginTopNumber.addGroupedCallback(this, handleMarginChange);
 				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
-				linkBindableProperty(_barLegendPlotter.maxColumns, maxCols, 'value');
-				linkBindableProperty(_colorLegendPlotter.maxColumns, maxCols, 'value');
-				linkBindableProperty(_colorLegendPlotter.reverseOrder, chkReverseOrder, 'selected');
-				linkBindableProperty(_barLegendPlotter.reverseOrder, chkReverseOrder, 'selected');
+				linkBindableProperty(_barLegendPlotter.maxColumns, legendControls.numColumns, 'value');
+				linkBindableProperty(_colorLegendPlotter.maxColumns, legendControls.numColumns, 'value');
+				linkBindableProperty(_barLegendPlotter.reverseOrder, legendControls.chkReverseItemOrder, 'selected');
+				linkBindableProperty(_colorLegendPlotter.reverseOrder, legendControls.chkReverseItemOrder, 'selected');
+				linkBindableProperty(_barLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
+				linkBindableProperty(_colorLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
+				linkBindableProperty(_barLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+				linkBindableProperty(_colorLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+				
+				_barLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
+				//_colorLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
 			}
 			
 			public const dynamicBarChartTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(CompoundBarChartTool), handleBarChartChange, true);
@@ -150,13 +157,29 @@
 				if (_barLegendPlotter.columns.getObjects().length <= 1 || barChart == null)
 				{
 					visualization.topMarginToolTip = null;
-					marginLabel.text = ColumnUtils.getTitle(_colorLegendPlotter.dynamicColorColumn);
+					var colTitle:String = ColumnUtils.getTitle(_colorLegendPlotter.dynamicColorColumn);
+					try
+					{
+						marginLabel.text = _barLegendPlotter.legendTitleFunction.apply(null, [colTitle]);
+					}
+					catch (e:Error)
+					{
+						marginLabel.text = colTitle;
+					}
 					visualization.additionalProbeColumns = WeaveAPI.SessionManager.getLinkableDescendants(_colorLegendPlotter.dynamicColorColumn, ReferencedColumn);
 				}
 				else
 				{
 					visualization.topMarginToolTip = "Click to select the attribute(s) used for the bars.";
-					marginLabel.text = "Bar Segment Colors";
+					try
+					{
+						var newTitle:String = _barLegendPlotter.legendTitleFunction.apply();
+						marginLabel.text = newTitle ? newTitle : "Bar Segment Colors";						
+					}
+					catch (e:Error)
+					{
+						marginLabel.text = "Bar Segment Colors";
+					}
 					visualization.additionalProbeColumns = null;
 				}
 				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
@@ -180,16 +203,16 @@
 				if (visualization.marginTopNumber.value != 0)
 				{
 					_prevMarginTop = visualization.marginTop.value;
-					showAttributeNameCheck.selected = true;
+					legendControls.chkShowLegendAttrName.selected = true;
 				}
 				else
 				{
-					showAttributeNameCheck.selected = false;
+					legendControls.chkShowLegendAttrName.selected = false;
 				}
 			}
 			private function toggleShowAttributeName():void
 			{
-				visualization.marginTop.value = showAttributeNameCheck.selected ? _prevMarginTop : '0';
+				visualization.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
 			}
 		]]>
 	</mx:Script>
@@ -203,6 +226,8 @@
 			borderThickness="0" backgroundAlpha="0"/>
 	
 	<ui:ControlPanel>
+		<ui:LegendControls id="legendControls"/>
+		<!--
 		<mx:VBox id="attributesPanel" label="Attributes for Color Bin Legend">
 			<mx:CheckBox id="showAttributeNameCheck" 
 						 label="Show legend attribute name" 
@@ -216,5 +241,6 @@
 			<mx:CheckBox label="Reverse item order" id="chkReverseOrder"
 						 toolTip="Check this box to reverse the ordering of the items in this legend."/>
 		</mx:VBox>
+		-->
 	</ui:ControlPanel>
 </SimpleVisTool>

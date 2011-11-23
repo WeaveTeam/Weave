@@ -82,8 +82,12 @@
 				visualization.marginTopNumber.addImmediateCallback(this, handleMarginChange);
 				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
 				
-				linkBindableProperty(_plotter.maxColumns, maxCols, 'value');
-				linkBindableProperty(_plotter.reverseOrder, chkReverseOrder, 'selected');
+				linkBindableProperty(_plotter.maxColumns, legendControls.numColumns, 'value');
+				linkBindableProperty(_plotter.reverseOrder, legendControls.chkReverseItemOrder, 'selected');
+				linkBindableProperty(_plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
+				linkBindableProperty(_plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+				
+				_plotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
 			}
 			
 			private var _prevBinnedColumn:BinnedColumn;
@@ -154,7 +158,15 @@
 				visualization.additionalProbeColumns = WeaveAPI.SessionManager.getLinkableDescendants(_plotter.dynamicColorColumn, ReferencedColumn);
 				
 				visualization.topMarginColumn = _plotter.dynamicColorColumn;
-				marginLabel.text = ColumnUtils.getTitle(_plotter.dynamicColorColumn);
+				var colTitle:String = ColumnUtils.getTitle(_plotter.dynamicColorColumn);
+				try
+				{
+					marginLabel.text = _plotter.legendTitleFunction.apply(null, [colTitle]);   
+				}
+				catch (e:Error)
+				{
+					marginLabel.text = colTitle;
+				}
 				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
 				marginLabel.setStyle("color", Weave.properties.axisFontColor.value);
 				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
@@ -178,14 +190,14 @@
 				if (visualization.marginTopNumber.value != 0)
 				{
 					_prevMarginTop = visualization.marginTop.value;
-					showAttributeNameCheck.selected = true;
+					legendControls.chkShowLegendAttrName.selected = true;
 				}
 				else
-					showAttributeNameCheck.selected = false;
+					legendControls.chkShowLegendAttrName.selected = false;
 			}
 			private function toggleShowAttributeName():void
 			{
-				visualization.marginTop.value = showAttributeNameCheck.selected ? _prevMarginTop : '0';
+				visualization.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
 			}
 		]]>
 	</mx:Script>
@@ -202,6 +214,12 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
+		<mx:VBox>
+			<ui:LegendControls id="legendControls"/>
+			<ui:ColorRampEditor id="cRampEditor"/>
+		</mx:VBox>
+			
+		<!--
 		<mx:VBox label="Advanced">
 			<mx:CheckBox id="showAttributeNameCheck" label="Show legend attribute name" change="toggleShowAttributeName()" toolTip="Click to hide the title of the Legend."/>
 			<mx:HBox>
@@ -218,6 +236,7 @@
 			<mx:CheckBox label="Reverse item order" id="chkReverseOrder"
 						 toolTip="Check this box to reverse the ordering of the items in this legend."/>
 		</mx:VBox>
+		-->
 	</ui:ControlPanel>
 
 </SimpleVisTool>

@@ -37,6 +37,7 @@ package weave.visualization.plotters
 	import weave.compiler.StandardLib;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -103,9 +104,31 @@ package weave.visualization.plotters
 		 */
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
+		/**
+		 * This is the maximum number of items to draw in a single row.
+		 * @default 1 
+		 */		
 		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createHashMaps);
+		
+		/**
+		 * This is an option to reverse the item order.
+		 * @default false 
+		 */		
 		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
 
+		/**
+		 * This is the compiled function to apply to the item labels.
+		 */		
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['string']), createHashMaps);
+		
+		// TODO This should go somewhere else...
+		/**
+		 * This is the compiled function to apply to the title of the tool.
+		 * 
+		 * @default string  
+		 */		
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		
 		private const _binsOrdering:Array = [];
 		private var _binToBounds:Array = [];
 		private var _binToString:Array = [];
@@ -150,7 +173,15 @@ package weave.visualization.plotters
 				LegendUtils.getBoundsFromItemID(getBackgroundDataBounds(), adjustedIBin, b, maxNumBins, maxCols, true);
 				
 				_binToBounds[iBin] = b;
-				_binToString[iBin] = binnedColumn.deriveStringFromNumber(iBin);
+				var binString:String = binnedColumn.deriveStringFromNumber(iBin);
+				try
+				{
+					_binToString[iBin] = itemLabelFunction.apply(null, [binString]);
+				}
+				catch (e:Error)
+				{
+					_binToString[iBin] = binString;
+				}
 			}
 		}
 		

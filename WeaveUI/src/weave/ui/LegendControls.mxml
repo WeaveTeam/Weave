@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	This is a component for setting legend attributes such as number of columns, item reversal, 
+	labeling and title functions.
+
+	@author kmonico
+-->
+
+<mx:VBox xmlns="weave.ui.*"
+		 xmlns:mx="http://www.adobe.com/2006/mxml"
+		 creationPolicy="all" clipContent="false"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		 label="Legend settings">
+	
+	<mx:CheckBox id="chkReverseItemOrder" label="Reverse item order"/>
+	<mx:HBox id="columnsBox">
+		<mx:Label text="Number of columns"/>
+		<mx:NumericStepper id="numColumns" minimum="1"/>
+	</mx:HBox>
+
+
+	<mx:CheckBox id="chkShowLegendAttrName"
+				 label="Show legend attribute name"/>
+	<mx:HBox enabled="{chkShowLegendAttrName.selected}" 
+			 visible="{chkShowLegendAttrName.selected}">
+		<TextBox id="txtLegendAttrNameFunc"
+				 label="Title label function:"/>
+	</mx:HBox>
+	
+	<TextBox id="txtLegendValuesFunction"
+			 label="Item label function:"/>
+</mx:VBox>
