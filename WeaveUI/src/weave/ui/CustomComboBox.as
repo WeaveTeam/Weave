@@ -50,25 +50,29 @@ package weave.ui
 		 */		
 		override public function set dataProvider(value:Object):void
 		{
-			// The dropdown will not be properly reset unless it is currently shown.
-			
-			if (Capabilities.isDebugger)
+			// Before calling validateNow, make sure the component is initialized.
+			// This prevents triggering creationComplete before initialization is finished.
+			if (initialized)
 			{
-				// when running debug player, allow the code to crash so developers take notice.
-				// If this ever crashes, please send the stack trace to andy.dufilie@gmail.com
-				validateNow();
-				downArrowButton_buttonDownHandler(null);
-			}
-			else
-			{
-				// when not running debug player, ignore error
-				try
+				// The dropdown will not be properly reset unless it is currently shown.
+				if (Capabilities.isDebugger)
 				{
+					// when running debug player, allow the code to crash so developers take notice.
+					// If this ever crashes, please send the stack trace to andy.dufilie@gmail.com
 					validateNow();
 					downArrowButton_buttonDownHandler(null);
 				}
-				catch (e:Error)
+				else
 				{
+					// when not running debug player, ignore error
+					try
+					{
+						validateNow();
+						downArrowButton_buttonDownHandler(null);
+					}
+					catch (e:Error)
+					{
+					}
 				}
 			}
 			super.dataProvider = value;
