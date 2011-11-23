@@ -39,7 +39,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  VectorUtils
   This class contains static functions that manipulate Vector objects.
   
   <p></p>
@@ -76,7 +75,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#copy()">copy</a>(source:*, destination:*):*</div>
 <div class="summaryTableDescription">[static]
-   copyList
    This function copies the contents of the source to the destination.</div>
 </td><td class="summaryTableOwnerCol">VectorUtils</td>
 </tr>
@@ -95,7 +93,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#flatten()">flatten</a>(source:Array, destination:* = null):*</div>
 <div class="summaryTableDescription">[static]
-   flatten
    This will flatten an Array of Arrays into a flat Array.</div>
 </td><td class="summaryTableOwnerCol">VectorUtils</td>
 </tr>
@@ -104,7 +101,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#getMedianIndex()">getMedianIndex</a>(list:*, compareFunction:Function, firstIndex:int = 0, lastIndex:int = -1):int</div>
 <div class="summaryTableDescription">[static]
-   getMedianIndex
    See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
    </div>
 </td><td class="summaryTableOwnerCol">VectorUtils</td>
@@ -114,7 +110,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#mergeSorted()">mergeSorted</a>(sortedInputA:*, sortedInputB:Function, mergedOutput:*, comparator:*):void</div>
 <div class="summaryTableDescription">[static]
-   mergeSorted
    Merges two previously-sorted arrays or vectors.</div>
 </td><td class="summaryTableOwnerCol">VectorUtils</td>
 </tr>
@@ -123,7 +118,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#randomSort()">randomSort</a>(vector:*):*</div>
 <div class="summaryTableDescription">[static]
-   randomSort
    randomizes the order of the elements in the vector in O(n) time by modifying the given array.</div>
 </td><td class="summaryTableOwnerCol">VectorUtils</td>
 </tr>
@@ -220,7 +214,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static function copy(source:*, destination:*):*</code><p>
-   copyList
    This function copies the contents of the source to the destination.
    Either parameter may be either an Array or a Vector.
    </p><span class="label">Parameters</span>
@@ -282,7 +275,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static function flatten(source:Array, destination:* = null):*</code><p>
-   flatten
    This will flatten an Array of Arrays into a flat Array.
    Items will be appended to the destination Array.
    </p><span class="label">Parameters</span>
@@ -316,7 +308,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static function getMedianIndex(list:*, compareFunction:Function, firstIndex:int = 0, lastIndex:int = -1):int</code><p>
-   getMedianIndex
    See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -363,7 +354,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static function mergeSorted(sortedInputA:*, sortedInputB:Function, mergedOutput:*, comparator:*):void</code><p>
-   mergeSorted
    Merges two previously-sorted arrays or vectors.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -402,7 +392,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public static function randomSort(vector:*):*</code><p>
-   randomSort
    randomizes the order of the elements in the vector in O(n) time by modifying the given array.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
