@@ -497,7 +497,7 @@ package weave
 			}
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
-			fileSaveDialogBox.textInput = getFlashVarConfigFileName();
+			fileSaveDialogBox.textInput = getFlashVarConfigFileName().split("/").pop();
 			fileSaveDialogBox.title = "Save File";
 			fileSaveDialogBox.message = "Enter a filename";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);

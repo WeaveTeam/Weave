@@ -30,6 +30,7 @@ package weave.services.beans
 		[Bindable] public var database:String = "";
 		[Bindable] public var user:String = "";
 		[Bindable] public var pass:String = "";
+		[Bindable] public var folderName:String = "" ;
 		[Bindable] public var is_superuser:Boolean = false;
 		
 		public function ConnectionInfo(obj:Object)
