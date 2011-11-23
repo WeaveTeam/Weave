@@ -32,8 +32,8 @@ package weave.utils
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.reportError;
 	import weave.core.StageUtils;
-	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
@@ -55,6 +55,8 @@ package weave.utils
 	 */
 	public class GeometryStreamDecoder implements ILinkableObject
 	{
+		public static var debug:Boolean = false;
+		
 		public function GeometryStreamDecoder()
 		{
 		}
@@ -241,27 +243,10 @@ package weave.utils
 		public function decodeMetadataTileList(stream:ByteArray):void
 		{
 			decodeTileList(metadataTiles, metadataTileIDToKDNodeMapping, stream);
-			// generate checklist for debugging
-			metadataTilesChecklist.length = 0;
-			while (metadataTilesChecklist.length < metadataTileIDToKDNodeMapping.length)
-				metadataTilesChecklist.push(metadataTilesChecklist.length);
-			// include bounds of all metadata tiles in collecteBounds
-			var node:KDNode;
-			var kdKey:Array;
-			for each (node in metadataTileIDToKDNodeMapping)
-			{
-				kdKey = node.key;
-				collectiveBounds.includeCoords(kdKey[XMIN_INDEX], kdKey[YMIN_INDEX]);
-				collectiveBounds.includeCoords(kdKey[XMAX_INDEX], kdKey[YMAX_INDEX]);
-			}
 		}
 		public function decodeGeometryTileList(stream:ByteArray):void
 		{
 			decodeTileList(geometryTiles, geometryTileIDToKDNodeMapping, stream);
-			// generate checklist for debugging
-			geometryTilesChecklist.length = 0;
-			while (geometryTilesChecklist.length < geometryTileIDToKDNodeMapping.length)
-				geometryTilesChecklist.push(geometryTilesChecklist.length);
 		}
 		private function decodeTileList(tileTree:KDTree, tileIDToKDNodeMapping:Vector.<KDNode>, stream:ByteArray):void
 		{
@@ -286,7 +271,7 @@ package weave.utils
 					kdKey[XMAX_INDEX] = stream.readDouble();
 					kdKey[YMAX_INDEX] = stream.readDouble();
 					//trace((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
-					tileDescriptors.push({kdKey: kdKey, tileID: tileID});
+					tileDescriptors.push(new TileDescriptor(kdKey, tileID));
 					collectiveBounds.includeCoords(kdKey[XMIN_INDEX], kdKey[YMIN_INDEX]);
 					collectiveBounds.includeCoords(kdKey[XMAX_INDEX], kdKey[YMAX_INDEX]);
 					tileID++;
@@ -300,20 +285,33 @@ package weave.utils
 			tileIDToKDNodeMapping.length = tileDescriptors.length;
 			// insert tileDescriptors into tree
 			var node:KDNode;
-			var tileDescriptor:Object;
+			var tileDescriptor:TileDescriptor;
 			for (var i:int = tileDescriptors.length - 1; i >= 0; i--)
 			{
-				tileDescriptor = tileDescriptors[i];
+				tileDescriptor = tileDescriptors[i] as TileDescriptor;
 				// insert a new node in the tree, mapping kdKey to tileID
 				node = tileTree.insert(tileDescriptor.kdKey, tileDescriptor.tileID);
 				// save mapping from tile ID to KDNode so the node can be deleted from the tree later
 				tileIDToKDNodeMapping[tileDescriptor.tileID] = node;
 			}
-			//trace("decodeTileList(): tile counts: ",metadataTiles.nodeCount,geometryTiles.nodeCount);
 
 			// remove this stream from the processing list
 			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
+			
+			if (debug)
+			{
+				trace("decodeTileList(): tile counts: ",metadataTiles.nodeCount,geometryTiles.nodeCount);
+				
+				// generate checklists for debugging
+				geometryTilesChecklist.length = 0;
+				while (geometryTilesChecklist.length < geometryTileIDToKDNodeMapping.length)
+					geometryTilesChecklist.push(geometryTilesChecklist.length);
+				
+				metadataTilesChecklist.length = 0;
+				while (metadataTilesChecklist.length < metadataTileIDToKDNodeMapping.length)
+					metadataTilesChecklist.push(metadataTilesChecklist.length);
+			}
 			
 			getCallbackCollection(this).triggerCallbacks();
 		}
@@ -380,14 +378,17 @@ package weave.utils
 						{
 							// remove tile from tree
 							metadataTiles.remove(metadataTileIDToKDNodeMapping[tileID]);
-							//trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.bytesAvailable);
 
-							/*flag = metadataTilesChecklist.indexOf(tileID);
-							if (flag >= 0)
+							if (debug)
 							{
-								metadataTilesChecklist.splice(flag, 1);
-								trace("remaining metadata tiles: "+metadataTilesChecklist);
-							}*/
+								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.length);
+								flag = metadataTilesChecklist.indexOf(tileID);
+								if (flag >= 0)
+								{
+									metadataTilesChecklist.splice(flag, 1);
+									trace("remaining metadata tiles: "+metadataTilesChecklist);
+								}
+							}
 						}
 						else
 						{
@@ -558,21 +559,24 @@ package weave.utils
 						{
 							// remove tile from tree
 							geometryTiles.remove(geometryTileIDToKDNodeMapping[tileID]);
-							//trace("got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.bytesAvailable);
 
-							/*flag = geometryTilesChecklist.indexOf(tileID);
-							if (flag >= 0)
+							if (debug)
 							{
-								geometryTilesChecklist.splice(flag, 1);
-								trace("remaining geometry tiles: "+geometryTilesChecklist);
-							}*/
+								trace("got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.length);
+								flag = geometryTilesChecklist.indexOf(tileID);
+								if (flag >= 0)
+								{
+									geometryTilesChecklist.splice(flag, 1);
+									trace("remaining geometry tiles: "+geometryTilesChecklist);
+								}
+							}
 						}
 						else
 						{
 							// something went wrong
 							// either the tileDescriptors were not requested yet,
 							// or the service is returning incorrect data.
-							trace("ERROR! decodeGeometryStream(): tileID is out of range ("+tileID+" >= "+geometryTileIDToKDNodeMapping.length+")");
+							reportError("ERROR! decodeGeometryStream(): tileID is out of range ("+tileID+" >= "+geometryTileIDToKDNodeMapping.length+")");
 							break;
 						}
 						if (StageUtils.shouldCallLater)
@@ -662,10 +666,16 @@ package weave.utils
 			bytes.position = p;
 			return result;
 		}
-		
-		private function trace(...args):void
-		{
-			DebugUtils.debug_trace(this, args);
-		}
 	}
+}
+
+internal class TileDescriptor
+{
+	public function TileDescriptor(kdKey:Array, tileID:int)
+	{
+		this.kdKey = kdKey;
+		this.tileID = tileID;
+	}
+	public var kdKey:Array;
+	public var tileID:int;
 }

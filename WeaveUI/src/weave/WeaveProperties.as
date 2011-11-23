@@ -45,6 +45,7 @@ package weave
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.CSSUtils;
@@ -197,6 +198,7 @@ package weave
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
+		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
 		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
