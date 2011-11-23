@@ -19,18 +19,14 @@
 
 package weave.ui
 {
+	import flash.events.Event;
 	import flash.system.Capabilities;
 	
 	import mx.collections.CursorBookmark;
-	import mx.controls.Alert;
 	import mx.controls.ComboBox;
-	
-	import weave.core.ErrorManager;
-	import weave.core.SessionManager;
-	import weave.core.StageUtils;
+	import mx.events.FlexEvent;
 
 	/**
-	 * BUG FIX: set dataProvider() now updates drop-down list.
 	 * Added functionality: set selectedLabel()
 	 * 
 	 * @author adufilie
@@ -40,41 +36,42 @@ package weave.ui
 		public function CustomComboBox()
 		{
 			super();
-			super.dataProvider = null; // this prevents open() from crashing
 		}
 		
+//		/**
+//		 * This function fixes the notorious combo box bug where the
+//		 * drop-down list is out of sync with the dataProvider.
+//		 * @param value The new dataProvider.
+//		 */		
+//		private function fixDropDown():void
+//		{
+//			// The dropdown will not be properly reset unless it is currently shown.
+//			if (Capabilities.isDebugger)
+//			{
+//				// when running debug player, allow the code to crash so developers take notice.
+//				// If this ever crashes, please send the stack trace to andy.dufilie@gmail.com
+//				validateNow();
+//				downArrowButton_buttonDownHandler(null);
+//			}
+//			else
+//			{
+//				// when not running debug player, ignore error
+//				try
+//				{
+//					validateNow();
+//					downArrowButton_buttonDownHandler(null);
+//				}
+//				catch (e:Error)
+//				{
+//				}
+//			}
+//		}
+		
 		/**
-		 * This function fixes the notorious combo box bug where the
-		 * drop-down list is out of sync with the dataProvider.
-		 * @param value The new dataProvider.
-		 */		
+		 * @inheritDoc
+		 */
 		override public function set dataProvider(value:Object):void
 		{
-			// Before calling validateNow, make sure the component is initialized.
-			// This prevents triggering creationComplete before initialization is finished.
-			if (initialized)
-			{
-				// The dropdown will not be properly reset unless it is currently shown.
-				if (Capabilities.isDebugger)
-				{
-					// when running debug player, allow the code to crash so developers take notice.
-					// If this ever crashes, please send the stack trace to andy.dufilie@gmail.com
-					validateNow();
-					downArrowButton_buttonDownHandler(null);
-				}
-				else
-				{
-					// when not running debug player, ignore error
-					try
-					{
-						validateNow();
-						downArrowButton_buttonDownHandler(null);
-					}
-					catch (e:Error)
-					{
-					}
-				}
-			}
 			super.dataProvider = value;
 		}
 		
