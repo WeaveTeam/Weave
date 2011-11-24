@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="BarChartLegendPlotter,weave.visualization.plotters.BarChartLegendPlotter,chartColors,columns,lineStyle,maxColumns,numColumns,reverseOrder,shapeSize,drawBackground,drawPlot,getBackgroundDataBounds" name="keywords">
+<meta content="BarChartLegendPlotter,weave.visualization.plotters.BarChartLegendPlotter,ascendingOrder,chartColors,columns,itemLabelFunction,legendTitleFunction,lineStyle,maxColumns,numColumns,shapeSize,drawBackground,drawPlot,getBackgroundDataBounds" name="keywords">
 <title>weave.visualization.plotters.BarChartLegendPlotter</title>
 </head>
 <body>
@@ -234,6 +234,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#ascendingOrder">ascendingOrder</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription">
+   This is an option to reverse the item order.</div>
+</td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#chartColors">chartColors</a> : <a href="../../primitives/ColorRamp.html">ColorRamp</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
@@ -244,18 +250,26 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#itemLabelFunction">itemLabelFunction</a> : <a href="../../core/LinkableFunction.html">LinkableFunction</a>
+<div class="summaryTableDescription">
+   This is the compiled function to apply to the item labels.</div>
+</td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#legendTitleFunction">legendTitleFunction</a> : <a href="../../core/LinkableFunction.html">LinkableFunction</a>
+<div class="summaryTableDescription">
+   This is the compiled function to apply to the title of the tool.</div>
+</td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lineStyle">lineStyle</a> : <a href="styles/SolidLineStyle.html">SolidLineStyle</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxColumns">maxColumns</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#reverseOrder">reverseOrder</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This is the maximum number of items to draw in a single row.</div>
 </td><td class="summaryTableOwnerCol">BarChartLegendPlotter</td>
 </tr>
 <tr class="">
@@ -402,10 +416,21 @@ showHideInherited();
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
+<a name="ascendingOrder"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">ascendingOrder</td><td class="detailHeaderType">constant</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const ascendingOrder:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code><p>
+   This is an option to reverse the item order.
+   </p><p>The default value is <code>true</code>.</p>
+</div>
 <a name="chartColors"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">chartColors</td><td class="detailHeaderType">constant</td>
+<td class="detailHeaderName">chartColors</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -419,6 +444,30 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const columns:<a href="../../api/core/ILinkableHashMap.html">ILinkableHashMap</a></code>
+</div>
+<a name="itemLabelFunction"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">itemLabelFunction</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const itemLabelFunction:<a href="../../core/LinkableFunction.html">LinkableFunction</a></code><p>
+   This is the compiled function to apply to the item labels.
+   
+   </p><p>The default value is <code>string</code>.</p>
+</div>
+<a name="legendTitleFunction"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">legendTitleFunction</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const legendTitleFunction:<a href="../../core/LinkableFunction.html">LinkableFunction</a></code><p>
+   This is the compiled function to apply to the title of the tool.
+   
+   </p><p>The default value is <code>string</code>.</p>
 </div>
 <a name="lineStyle"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -436,16 +485,9 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public const maxColumns:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
-</div>
-<a name="reverseOrder"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">reverseOrder</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const reverseOrder:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
+<code>public const maxColumns:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
+   This is the maximum number of items to draw in a single row.
+   </p><p>The default value is <code>1</code>.</p>
 </div>
 <a name="shapeSize"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

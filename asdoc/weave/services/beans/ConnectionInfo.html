@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="ConnectionInfo,weave.services.beans.ConnectionInfo,database,dbms,ip,is_superuser,name,pass,port,user,dbmsList,getDefaultPort" name="keywords">
+<meta content="ConnectionInfo,weave.services.beans.ConnectionInfo,database,dbms,folderName,ip,is_superuser,name,pass,port,user,dbmsList,getDefaultPort" name="keywords">
 <title>weave.services.beans.ConnectionInfo</title>
 </head>
 <body>
@@ -61,6 +61,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dbmsList">dbmsList</a> : Array<div class="summaryTableDescription">[static][read-only]
    This is a list of supported DBMS values.</div>
+</td><td class="summaryTableOwnerCol">ConnectionInfo</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#folderName">folderName</a> : String = ""<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">ConnectionInfo</td>
 </tr>
 <tr class="">
@@ -153,6 +157,16 @@ showHideInherited();
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get dbmsList():Array</code>
 <br>
+</div>
+<a name="folderName"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">folderName</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var folderName:String = ""</code>
+<p>This property can be used as the source for data binding.</p>
 </div>
 <a name="ip"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
