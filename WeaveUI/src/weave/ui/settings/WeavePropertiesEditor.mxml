@@ -57,7 +57,7 @@
 			public static function openGlobalEditor():void
 			{
 				if (!_instance)
-					_instance = new GlobalUISettings();
+					_instance = new WeavePropertiesEditor();
 				
 				if (!_instance.parent)
 					PopUpManager.addPopUp(_instance, Application.application as Application);

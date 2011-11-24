@@ -305,14 +305,14 @@ package weave
 		
 		public const panelTitleFontColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
 		public const panelTitleFontSize:LinkableNumber = new LinkableNumber(10, verifyFontSize);
-		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana");
+		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana", StandardLib.isDefined);
 		public const panelTitleFontBold:LinkableBoolean = new LinkableBoolean(false);
 		public const panelTitleFontItalic:LinkableBoolean = new LinkableBoolean(false);
 		public const panelTitleFontUnderline:LinkableBoolean = new LinkableBoolean(false);
 				
 		public const axisFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
 		public const axisFontSize:LinkableNumber = new LinkableNumber(DEFAULT_AXIS_FONT_SIZE, verifyFontSize);
-		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY);
+		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY, StandardLib.isDefined);
 		public const axisFontBold:LinkableBoolean = new LinkableBoolean(true);
 		public const axisFontItalic:LinkableBoolean = new LinkableBoolean(false);
 		public const axisFontUnderline:LinkableBoolean = new LinkableBoolean(false);

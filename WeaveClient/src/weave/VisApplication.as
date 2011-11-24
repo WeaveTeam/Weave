@@ -107,7 +107,7 @@ package weave
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
-	import weave.ui.settings.GlobalUISettings;
+	import weave.ui.settings.WeavePropertiesEditor;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
 	import weave.utils.PopUpUtils;
@@ -720,13 +720,10 @@ package weave
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session state to server", saveSessionStateToServer));
 				
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				
-				if (Weave.properties.enableUserPreferences.value || adminService)
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("User interface preferences", GlobalUISettings.openGlobalEditor));
 			}
 			
-			if (Weave.properties.enableWindowMenu.value)
-			{	
+			if (Weave.properties.enableWindowMenu.value || adminService)
+			{
 				_windowMenu = _weaveMenu.addMenuToMenuBar("Window", true);
 				setupWindowMenu();
 			}
@@ -924,7 +921,11 @@ package weave
 			if (_windowMenu.children)
 				_windowMenu.children.removeAll();
 			
+			if (Weave.properties.enableUserPreferences.value || adminService)
+				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Preferences", WeavePropertiesEditor.openGlobalEditor));
 			
+			_weaveMenu.addSeparatorToMenu(_windowMenu);
+
 			var label:*;
 			var click:Function;
 			var enable:*;
