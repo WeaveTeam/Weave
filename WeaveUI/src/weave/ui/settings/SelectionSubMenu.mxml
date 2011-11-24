@@ -74,7 +74,7 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.utils.DashedLine;
+			import com.cartogrammar.drawing.DashedLine;
 			override protected function childrenCreated():void
 			{
 				Weave.properties.dashedSelectionBox.addGroupedCallback(this, drawDashedLinePreview, true);

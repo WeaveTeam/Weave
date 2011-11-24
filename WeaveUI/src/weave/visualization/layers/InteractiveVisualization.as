@@ -19,6 +19,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.visualization.layers
 {
+	import com.cartogrammar.drawing.DashedLine;
+	
 	import flash.display.Graphics;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
@@ -46,7 +48,6 @@ package weave.visualization.layers
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.CustomCursorManager;
-	import weave.utils.DashedLine;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
