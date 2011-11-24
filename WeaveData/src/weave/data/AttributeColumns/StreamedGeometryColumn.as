@@ -47,6 +47,8 @@ package weave.data.AttributeColumns
 	 */
 	public class StreamedGeometryColumn extends AbstractAttributeColumn
 	{
+		private static var _debug:Boolean = false;
+		
 		public function StreamedGeometryColumn(tileService:IWeaveGeometryTileService, metadata:XML = null)
 		{
 			super(metadata);
@@ -158,7 +160,7 @@ package weave.data.AttributeColumns
 			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance, true);
 			geometryTileIDs.sort(Array.NUMERIC);
 
-			if (debug)
+			if (_debug)
 			{
 				if (metadataTileIDs.length > 0)
 					trace("requesting metadata tiles: " + metadataTileIDs);

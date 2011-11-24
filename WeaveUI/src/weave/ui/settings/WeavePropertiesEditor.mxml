@@ -33,9 +33,7 @@
 	<settings:SelectionSubMenu label="Selection"/>
 	<mx:VBox label="Advanced" width="100%" height="100%">
 		<Indent label="Streaming geometry bounding box request mode">
-			<CustomComboBox
-					dataProvider="{StreamedGeometryColumn.metadataRequestModeEnum}"
-					creationComplete="linkBindableProperty(StreamedGeometryColumn.metadataRequestMode, event.target, 'selectedItem');"/>
+			<CustomComboBox id="geometryMetadataRequestMode"/>
 			<HelpComponent helpText='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
 		</Indent>
 	</mx:VBox>
@@ -48,6 +46,14 @@
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
 			import weave.data.AttributeColumns.StreamedGeometryColumn;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				geometryMetadataRequestMode.dataProvider = StreamedGeometryColumn.metadataRequestModeEnum;
+				linkBindableProperty(StreamedGeometryColumn.metadataRequestMode, geometryMetadataRequestMode, 'selectedItem');
+			}
 			
 			private static var _instance:ControlPanel;
 			
