@@ -32,7 +32,7 @@
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 		 label="Legend settings">
 	
-	<mx:CheckBox id="chkReverseItemOrder" label="Reverse item order"/>
+	<mx:CheckBox id="ascendingOrderCheck" label="Ascending item order"/>
 	<mx:HBox id="columnsBox">
 		<mx:Label text="Number of columns"/>
 		<mx:NumericStepper id="numColumns" minimum="1"/>

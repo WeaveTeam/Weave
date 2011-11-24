@@ -143,7 +143,6 @@ package weave
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
-//		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Views TabBar
 		public const windowSnapGridSize:LinkableString = new LinkableString("1%", verifyWindowSnapGridSize); // window snap grid size in pixels
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL

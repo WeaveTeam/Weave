@@ -74,11 +74,8 @@
 			<mx:HRule width="100%"/>
 			
 			<mx:HBox width="100%">	
-				<mx:RadioButton id="sdRadio" label="Standard deviation" groupName="typeGroup" width="100%" data="{_stdDev}"/>
-				<ui:Indent enabled="{sdRadio.selected}" label="SD number:" indent="{indent}">
-					<mx:NumericStepper id="SD" minimum="1" maximum="3" width="{inputWidth}"/>
-				</ui:Indent>
-				<ui:HelpComponent helpText="One bin will be created for each standard deviation above and below the mean value.  Specifying 'SD Number' as 3 will create 6 bins."/>
+				<mx:RadioButton id="sdRadio" label="Standard deviations" groupName="typeGroup" width="100%" data="{_stdDev}"/>
+				<ui:HelpComponent helpText="Six bins will be created for standard deviations above and below the mean value."/>
 			</mx:HBox>
 		
 			<mx:HRule width="100%"/>
@@ -147,7 +144,6 @@
 				linkBindableProperty(_customSplit.splitValues, splitValues, 'text', delay);
 				linkBindableProperty(_quantile.refQuantile, refQuantile, 'text', delay);
 				linkBindableProperty(_equalInterval.dataInterval, dataInterval, 'text', delay);
-				linkBindableProperty(_stdDev.sdNumber, SD, 'value', delay);
 			}
 			
 			// called when a radio button is selected

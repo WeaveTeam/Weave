@@ -112,10 +112,10 @@ package weave.visualization.plotters
 		
 		/**
 		 * This is an option to reverse the item order.
-		 * @default false 
-		 */		
-		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
-
+		 * @default true
+		 */
+		public const ascendingOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true), createHashMaps);
+		
 		/**
 		 * This is the compiled function to apply to the item labels.
 		 */		
@@ -164,7 +164,7 @@ package weave.visualization.plotters
 			for (var iBin:int = 0; iBin < numBins; ++iBin)
 			{
 				// get the adjusted position and transpose inside the row
-				var adjustedIBin:int = (reverseOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
+				var adjustedIBin:int = (ascendingOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
 				var row:int = adjustedIBin / maxCols;
 				var col:int = adjustedIBin % maxCols;
 				var b:IBounds2D = new Bounds2D();
@@ -261,7 +261,7 @@ package weave.visualization.plotters
 				);
 
 				// draw circle
-				var iColorIndex:int = reverseOrder.value ? iBin : (binCount - 1 - iBin);
+				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
 				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
 				var xMin:Number = tempBounds.getXNumericMin(); 
 				var yMin:Number = tempBounds.getYNumericMin();
@@ -303,7 +303,10 @@ package weave.visualization.plotters
 		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			return getReusableBounds(0, 0, 1, 1);
+			return getReusableBounds(0, 1, 1, 0);
 		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="ascendingOrder")] public function set reverseOrder(value:Boolean):void { ascendingOrder.value = value; }
 	}
 }

@@ -83,7 +83,7 @@
 				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
 				
 				linkBindableProperty(_plotter.maxColumns, legendControls.numColumns, 'value');
-				linkBindableProperty(_plotter.reverseOrder, legendControls.chkReverseItemOrder, 'selected');
+				linkBindableProperty(_plotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
 				linkBindableProperty(_plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 				linkBindableProperty(_plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
 				
@@ -210,11 +210,11 @@
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
-		<mx:VBox label="Visualization Controls">
+		<mx:VBox label="Binning">
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
-		<mx:VBox>
+		<mx:VBox label="Appearance">
 			<ui:LegendControls id="legendControls"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>

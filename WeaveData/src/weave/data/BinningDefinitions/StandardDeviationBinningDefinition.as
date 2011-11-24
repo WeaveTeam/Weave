@@ -19,6 +19,8 @@
 
 package weave.data.BinningDefinitions
 {
+	import mx.utils.StringUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
@@ -43,13 +45,6 @@ package weave.data.BinningDefinitions
 		{
 		}
 		
-		public const sdNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, verifySDNumber));
-		
-		private function verifySDNumber(value:Number):Boolean
-		{
-			return [1,2,3].indexOf(value) >= 0;
-		}
-		
 		/**
 		 * @inheritDoc
 		 */
@@ -60,26 +55,42 @@ package weave.data.BinningDefinitions
 			
 			var mean:Number = WeaveAPI.StatisticsCache.getMean(column);
 			var stdDev:Number = WeaveAPI.StatisticsCache.getStandardDeviation(column);
-			
-			for (var i:int = -sdNumber.value; i < sdNumber.value; i++)
+			var binNumber:int = 0;
+			for (var i:int = -MAX_SD; i <= MAX_SD; i++)
+				if (i != 0)
+					addBin(output, Math.abs(i), i < 0, stdDev, mean, getNameFromOverrideString(binNumber++));
+		}
+		
+		private static const MAX_SD:int = 3;
+		
+		private function addBin(output:ILinkableHashMap, absSDNumber:Number, belowMean:Boolean, stdDev:Number, mean:Number, overrideName:String):void
+		{
+			var name:String = overrideName;
+			if (!name)
 			{
-				//first get name from overrideBinNames
-				var name:String = getNameFromOverrideString(sdNumber.value + i);
-				//if it is empty string set it from generateBinLabel
-				if (!name)
-				{
-					if (i < 0)
-						name = -i + ' below';
-					else
-						name = (i + 1) + ' above';
-				}
-				
-				var bin:NumberClassifier = output.requestObject(name, NumberClassifier, false);
-				bin.min.value = mean + i * stdDev;
-				bin.max.value = mean + (i + 1) * stdDev;
-				bin.minInclusive.value = true;
-				bin.maxInclusive.value = (i == sdNumber.value - 1);
+				var nameFormat:String = (absSDNumber < MAX_SD) ? "{0} - {1} SD {2} mean" : "> {0} SD {2} mean"; 
+				name = StringUtil.substitute(nameFormat, absSDNumber - 1, absSDNumber, belowMean ? "below" : "above");
 			}
+			var bin:NumberClassifier = output.requestObject(name, NumberClassifier, false);
+			if (belowMean)
+			{
+				if (absSDNumber == MAX_SD)
+					bin.min.value = -Infinity;
+				else
+					bin.min.value = mean - (absSDNumber + 1) * stdDev;
+				bin.max.value = mean - absSDNumber * stdDev;
+			}
+			else // above mean
+			{
+				bin.min.value = mean + absSDNumber * stdDev;
+				if (absSDNumber == MAX_SD)
+					bin.max.value = Infinity;
+				else
+					bin.max.value = mean + (absSDNumber + 1) * stdDev;
+			}
+			bin.minInclusive.value = true;
+			bin.maxInclusive.value = true;
 		}
 	}
 }
+

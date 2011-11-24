@@ -97,8 +97,8 @@
 				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
 				linkBindableProperty(_barLegendPlotter.maxColumns, legendControls.numColumns, 'value');
 				linkBindableProperty(_colorLegendPlotter.maxColumns, legendControls.numColumns, 'value');
-				linkBindableProperty(_barLegendPlotter.reverseOrder, legendControls.chkReverseItemOrder, 'selected');
-				linkBindableProperty(_colorLegendPlotter.reverseOrder, legendControls.chkReverseItemOrder, 'selected');
+				linkBindableProperty(_barLegendPlotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
+				linkBindableProperty(_colorLegendPlotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
 				linkBindableProperty(_barLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 				linkBindableProperty(_colorLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 				linkBindableProperty(_barLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);

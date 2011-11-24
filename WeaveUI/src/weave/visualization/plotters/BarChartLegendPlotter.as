@@ -21,19 +21,12 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
-	import flash.geom.Matrix;
-	import flash.geom.Point;
-	import flash.text.TextField;
-	import flash.text.TextFieldAutoSize;
-	import flash.text.TextLineMetrics;
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -41,10 +34,8 @@ package weave.visualization.plotters
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LegendUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -94,9 +85,9 @@ package weave.visualization.plotters
 		
 		/**
 		 * This is an option to reverse the item order.
-		 * @default false 
+		 * @default true
 		 */		
-		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
+		public const ascendingOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true), createColumnHashes);
 		
 		/**
 		 * This is the compiled function to apply to the item labels.
@@ -142,7 +133,7 @@ package weave.visualization.plotters
 				}
 			}
 			
-			if (reverseOrder.value)
+			if (ascendingOrder.value)
 				_columnOrdering = _columnOrdering.reverse(); 
 		}
 
@@ -166,7 +157,7 @@ package weave.visualization.plotters
 				// draw the rectangle
 				// if we have reversed the order of the columns, iColumn should match the colors (this has always been backwards?)
 				// otherwise, we reverse the iColorIndex
-				var iColorIndex:int = reverseOrder.value ? (numColumns - 1 - iColumn) : iColumn;
+				var iColorIndex:int = ascendingOrder.value ? (numColumns - 1 - iColumn) : iColumn;
 				var color:Number = chartColors.getColorFromNorm(iColorIndex / (numColumns - 1));
 				if (color <= Infinity) // alternative to !isNaN()
 					g.beginFill(color, 1.0);
@@ -192,5 +183,8 @@ package weave.visualization.plotters
 		{
 			// draw nothing -- everything is in the background layer
 		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="ascendingOrder")] public function set reverseOrder(value:Boolean):void { ascendingOrder.value = value; }
 	}
 }
