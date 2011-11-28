@@ -32,9 +32,9 @@ package weave.visualization.plotters.styles
 	 *  
 	 * @author abaumann
 	 */
-	public class ExtendedSolidLineStyle extends SolidLineStyle
+	public class ExtendedLineStyle extends SolidLineStyle
 	{
-		public function ExtendedSolidLineStyle()
+		public function ExtendedLineStyle()
 		{
 			super();
 			color.defaultValue.value = NaN;

@@ -64,8 +64,8 @@ package weave.visualization.plotters
 	import weave.utils.PlotterUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
-	import weave.visualization.plotters.styles.ExtendedSolidFillStyle;
-	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
+	import weave.visualization.plotters.styles.ExtendedFillStyle;
+	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	import weave.visualization.tools.MapTool;
@@ -106,11 +106,11 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
-		public const line:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle, invalidateCachedBitmaps);
+		public const line:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle, invalidateCachedBitmaps);
 		/**
 		 * This is the fill style used to fill the geometries.
 		 */
-		public const fill:ExtendedSolidFillStyle = newLinkableChild(this, ExtendedSolidFillStyle, invalidateCachedBitmaps);
+		public const fill:ExtendedFillStyle = newLinkableChild(this, ExtendedFillStyle, invalidateCachedBitmaps);
 
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.

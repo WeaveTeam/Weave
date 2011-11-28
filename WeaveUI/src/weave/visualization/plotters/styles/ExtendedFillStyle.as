@@ -39,9 +39,9 @@ package weave.visualization.plotters.styles
 	 * @author abaumann
 	 * @author adufilie
 	 */
-	public class ExtendedSolidFillStyle extends SolidFillStyle
+	public class ExtendedFillStyle extends SolidFillStyle
 	{
-		public function ExtendedSolidFillStyle()
+		public function ExtendedFillStyle()
 		{
 			super();
 			_matrix = new Matrix();
