@@ -44,12 +44,17 @@ package weave.visualization.plotters.styles
 		 * @param recordKey The record key to initialize the fill style for.
 		 * @param graphics The Graphics object to initialize.
 		 */
-		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):void
+		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):Boolean
 		{
 			if (internalObject is IFillStyle)
-				(internalObject as IFillStyle).beginFillStyle(recordKey, target);
+			{
+				return (internalObject as IFillStyle).beginFillStyle(recordKey, target);
+			}
 			else
+			{
 				target.endFill();
+				return false;
+			}
 		}
 	}
 }

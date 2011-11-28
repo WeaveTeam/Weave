@@ -19,20 +19,25 @@
 
 package weave.visualization.plotters.styles
 {
+	import flash.display.BitmapData;
 	import flash.display.GradientType;
 	import flash.display.Graphics;
 	import flash.display.SpreadMethod;
 	import flash.geom.Matrix;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.ImageColumn;
 
 	/**
 	 * Draws a fill pattern when no color is specified.
 	 * 
 	 * @author abaumann
+	 * @author adufilie
 	 */
 	public class ExtendedSolidFillStyle extends SolidFillStyle
 	{
@@ -43,21 +48,48 @@ package weave.visualization.plotters.styles
  			_matrix.createGradientBox(10, 10, 45, 0, 0);
 		}
 		
-		public const enableMissingDataFillPattern:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		private var _matrix:Matrix = null;
+		
+		/**
+		 * Private column that downloads the images.
+		 */
+		private var _imageColumn:ImageColumn;
+		private function getImageColumn():ImageColumn
+		{
+			if (!_imageColumn)
+				_imageColumn = newLinkableChild(this, ImageColumn);
+			return _imageColumn;
+		}
+		
+		/**
+		 * set image URL on a per-record basis
+		 */
+		public const imageURL:AlwaysDefinedColumn = registerLinkableChild(this, getImageColumn().requestLocalObject(AlwaysDefinedColumn, true));
+		
+		public const enableMissingDataGradient:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		/**
 		 * This function sets the fill on a Graphics object using the saved fill properties.
 		 * @param recordKey The record key to initialize the fill style for.
 		 * @param graphics The Graphics object to initialize.
+		 * @return A value of true if this function began a fill, or false if it did not.
 		 */
-		private var _matrix:Matrix = null;
-		override public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):void
+		override public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):Boolean
 		{
-			if (enableMissingDataFillPattern.value)
+			if (super.beginFillStyle(recordKey, target))
+				return true;
+			
+			var _enabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
+			if (_enabled)
 			{
-				var fillEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
-				var fillColor:Number = color.getValueFromKey(recordKey, Number);
-				if (fillEnabled && isNaN(fillColor))
+				var _bitmapData:BitmapData = _imageColumn.getValueFromKey(recordKey, BitmapData);
+				if (_bitmapData)
+				{
+					target.beginBitmapFill(_bitmapData);
+					return true;
+				}
+			
+				if (enableMissingDataGradient.value)
 				{
 					target.beginGradientFill(
 							GradientType.LINEAR,
@@ -67,10 +99,18 @@ package weave.visualization.plotters.styles
 							_matrix,
 							SpreadMethod.REFLECT//.REPEAT
 						);
-					return;
+					return true;
 				}
 			}
-			super.beginFillStyle(recordKey, target);
+			target.endFill();
+			return false;
+		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="enableMissingDataGradient")] public function set enableMissingDataFillPattern(value:Boolean):void
+		{
+			if (value == false)
+				enableMissingDataGradient.value = value;
 		}
 	}
 }

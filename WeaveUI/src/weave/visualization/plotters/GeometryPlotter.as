@@ -84,7 +84,6 @@ package weave.visualization.plotters
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
 
-			fill.enableMissingDataFillPattern.value = false;
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
 
 			setKeySource(geometryColumn);
@@ -254,15 +253,7 @@ package weave.visualization.plotters
 				// draw graphics on cached bitmap
 				var g:Graphics = tempShape.graphics;
 				g.clear();
-				if (isNaN(color))
-				{
-					if (fill.enableMissingDataFillPattern.value)
-						fill.beginFillStyle(null, g);
-				}
-				else if (fill.enabled.defaultValue.value)
-				{
-					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
-				}
+				fill.beginFillStyle(null, g);
 				line.beginLineStyle(null, g);
 				g.drawCircle(pointOffset, pointOffset, pointShapeSize.value);
 				g.endFill();
