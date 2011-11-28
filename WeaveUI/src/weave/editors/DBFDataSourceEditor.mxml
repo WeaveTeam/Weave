@@ -21,11 +21,11 @@
 -->
 <mx:VBox 
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns="weave.ui.*"
+	xmlns="weave.editors.*"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	implements="weave.api.ui.ILinkableObjectEditor"
-	creationComplete="handleCreationComplete()"
+	creationPolicy="all"
 	>
 	<mx:Script>
 		<![CDATA[
@@ -47,6 +47,7 @@
 				var checkObj:String  = Weave.root.getName(_dbfDataSource);
 				if(checkObj !=null)
 				{
+					initialize();
 					editorTitle.text = "Edit";
 					uniqueName = Weave.root.getName(_dbfDataSource);
 					dbfURL.text = _dbfDataSource.dbfUrl.value;
@@ -58,12 +59,6 @@
 				}
 
 			}
-			
-			
-			private function handleCreationComplete():void
-			{
-				
-			}			
 			public function applyChanges():void
 			{
 				try{

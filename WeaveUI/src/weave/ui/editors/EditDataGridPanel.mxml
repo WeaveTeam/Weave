@@ -19,10 +19,10 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<ui:DraggablePanel xmlns="weave.ui.editors.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="672" height="410"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				visible="true" title="View/Edit Data">
+				visible="true" title="View/Edit Data" xmlns:ui="weave.ui.*">
 	<mx:VBox width="100%" height="100%">
 		<mx:DataGrid id="tableEditor"
 					 width="100%" height="100%"
@@ -40,31 +40,12 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			import com.as3xls.xls.Cell;
-			import com.as3xls.xls.ExcelFile;
-			import com.as3xls.xls.Sheet;
-			
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
-			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.events.IndexChangedEvent;
-			import mx.events.ListEvent;
-			import mx.events.MetadataEvent;
-			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
-			import weave.Weave;
-			import weave.core.SessionManager;
-			import weave.api.data.IAttributeColumn;
-			import weave.data.AttributeColumns.NumberColumn;
-			import weave.data.AttributeColumns.ProxyColumn;
-			import weave.data.AttributeColumns.StringColumn;
-			import weave.data.DataSources.CSVDataSource;
-			import weave.api.data.IDataSource;
-			import weave.data.KeySets.KeySet;
-			import weave.utils.VectorUtils;
+			import weave.api.WeaveAPI;
 			
 			[Bindable]
 			private var dataValueRows:Array = [];
@@ -178,4 +159,4 @@
 			
 		]]>
 	</mx:Script>
-</DraggablePanel>
+</ui:DraggablePanel>

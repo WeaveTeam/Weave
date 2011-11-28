@@ -32,12 +32,10 @@ package weave
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
 	import flash.system.System;
-	import flash.text.Font;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.binding.utils.BindingUtils;
 	import mx.containers.HBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
@@ -47,15 +45,12 @@ package weave
 	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
-	import mx.core.UIComponentGlobals;
 	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	
-	import ru.etcs.utils.FontLoader;
 	
 	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
@@ -65,7 +60,6 @@ package weave
 	import weave.api.getSessionState;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
-	import weave.core.ClassUtils;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionStateLog;
@@ -105,12 +99,10 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-	import weave.ui.editors.AddDataSourceComponent;
-	import weave.ui.editors.EditDataSourceComponent;
+	import weave.ui.editors.AddDataSourcePanel;
+	import weave.ui.editors.EditDataSourcePanel;
 	import weave.ui.settings.WeavePropertiesEditor;
-	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
-	import weave.utils.PopUpUtils;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -622,10 +614,10 @@ package weave
 				);
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu,new WeaveMenuItem("Add New Datasource",AddDataSourceComponent.showAsPopup));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu,new WeaveMenuItem("Edit Datasources",EditDataSourceComponent.showAsPopup));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Edit Datasources", EditDataSourcePanel.showAsPopup));
 			}
 			
 			

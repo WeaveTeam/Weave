@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="500" height="300" xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.editors.*" width="500" height="300" xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor">
 	<mx:HBox id="wmsPlotterControls" width="100%" horizontalAlign="center" paddingTop="3" verticalAlign="middle">
 		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="left">
 			<mx:CheckBox id="wmsPreferLowerQuality"

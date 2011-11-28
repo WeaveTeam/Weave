@@ -21,11 +21,11 @@
 -->
 <mx:VBox 
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns="weave.ui.*"
+	xmlns="weave.editors.*"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	implements="weave.api.ui.ILinkableObjectEditor"
-	creationComplete="handleCreationComplete()"
+	creationPolicy="all"
 	>
 	<mx:Script>
 		<![CDATA[
@@ -46,17 +46,13 @@
 				var checkObj:String  = Weave.root.getName(_wfsDataSource);
 				if(checkObj !=null)
 				{
+					initialize();
 					editorTitle.text = "Edit";
 					uniqueName = Weave.root.getName(_wfsDataSource);
 					url.text = _wfsDataSource.url.value;
 					sourceName.editable = false;
 					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
 				}
-			}
-			
-			
-			private function handleCreationComplete():void
-			{
 			}
 			
 			public function applyChanges():void
