@@ -78,6 +78,7 @@
 				else
 					_linkableObjectName = null;
 				
+				verticalScrollPosition = 0;
 				handleRootObjectChange();	
 			}
 			public function get rootObject():ILinkableObject
