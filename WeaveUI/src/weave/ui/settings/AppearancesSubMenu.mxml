@@ -95,6 +95,7 @@
 -->
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
 			import mx.events.ListEvent;
 			
 			import weave.Weave;
@@ -105,9 +106,9 @@
 			[Bindable]
 			public var selectedColor:uint;
 			
-			override protected function createChildren():void
+			override protected function childrenCreated():void
 			{
-				super.createChildren();
+				super.childrenCreated();
 				
 				windowTitleFontControl.initialize();
 				windowTitleFontControl.fontFamilyCombo.selectedLabel = Weave.properties.panelTitleFontFamily.value;

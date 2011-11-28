@@ -90,6 +90,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
+			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -139,7 +140,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(layoutMode, targetLayoutCombo, 'selectedItem');
 				
 				// when the tool is created and nothing is selected, show the control panel
-				if (!targetTool.value && !targetAttribute.value)
+				if (!targetTool.value && !targetAttribute.value && !StageUtils.mouseButtonDown)
 					toggleControlPanel();
 			}
 			
@@ -211,6 +212,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				targetAttributeCombo.selectedItem = targetAttribute.value;
 				// clear the choice
 				choiceCombo.selectedIndex = -1;
+				choiceList.selectedIndex = -1;
+				choiceSlider.value = -1;
 			}
 			
 			// called when the admin alters the choices through the control panel
@@ -220,11 +223,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				choiceCombo.dataProvider = choices.getObjects();
 				choiceList.dataProvider = choices.getObjects();
 				
-				// special case for slider -- reverse order
-				var names:Array = choices.getObjects().reverse();
+				var names:Array = choices.getObjects();
 				for( var i:uint = 0; i < names.length; i++ )
 					names[i] = ColumnUtils.getTitle(names[i]);
-				choiceSlider.labels = names;
+				// special case for slider -- reverse order
+				choiceSlider.labels = names.reverse();
 				choiceSlider.maximum = names.length-1;
 			}
 			
@@ -292,6 +295,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					reportError('This option is not supported for the attribute "' + targetAttribute.value + '"');
 				}
+			}
+			
+			private function selectActiveAttribute():void
+			{
+				
 			}
 			
 		]]>
