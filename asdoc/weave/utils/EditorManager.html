@@ -53,7 +53,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getEditorClass()">getEditorClass</a>(obj:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):Class</div>
+<a class="signatureLink" href="#getEditorClass()">getEditorClass</a>(linkableObjectOrClass:Object):Class</div>
 <div class="summaryTableDescription">[static]
    </div>
 </td><td class="summaryTableOwnerCol">EditorManager</td>
@@ -90,11 +90,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getEditorClass(obj:<a href="../api/core/ILinkableObject.html">ILinkableObject</a>):Class</code><p>
+<code>public static function getEditorClass(linkableObjectOrClass:Object):Class</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">obj</span>:<a href="../api/core/ILinkableObject.html">ILinkableObject</a></code> &mdash; An ILinkableObject.
+<td width="20px"></td><td><code><span class="label">linkableObjectOrClass</span>:Object</code> &mdash; An object or Class implementing ILinkableObject.
    </td>
 </tr>
 </table>

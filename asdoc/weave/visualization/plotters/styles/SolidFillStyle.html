@@ -41,7 +41,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Implements</td><td><a href="../../../api/ui/IFillStyle.html">IFillStyle</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Subclasses</td><td><a href="../styles/ExtendedSolidFillStyle.html">ExtendedSolidFillStyle</a></td>
+<td class="classHeaderTableLabel">Subclasses</td><td><a href="../styles/ExtendedFillStyle.html">ExtendedFillStyle</a></td>
 </tr>
 </table>
 <p></p>
@@ -68,7 +68,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#beginFillStyle()">beginFillStyle</a>(recordKey:<a href="../../../api/data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):void</div>
+<a class="signatureLink" href="#beginFillStyle()">beginFillStyle</a>(recordKey:<a href="../../../api/data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):Boolean</div>
 <div class="summaryTableDescription">
    This function sets the fill on a Graphics object using the saved fill properties.</div>
 </td><td class="summaryTableOwnerCol">SolidFillStyle</td>
@@ -126,7 +126,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function beginFillStyle(recordKey:<a href="../../../api/data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):void</code><p>
+<code>public function beginFillStyle(recordKey:<a href="../../../api/data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):Boolean</code><p>
    This function sets the fill on a Graphics object using the saved fill properties.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -139,6 +139,14 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">target</span>:Graphics</code> &mdash; The Graphics object to initialize.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Boolean</code> &mdash; A value of true if this function began a fill, or false if it did not.
    </td>
 </tr>
 </table>

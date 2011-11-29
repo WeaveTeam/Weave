@@ -38,7 +38,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IFillStyle extends <a href="../core/ILinkableObject.html">ILinkableObject</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Implementors</td><td><a href="../../visualization/plotters/styles/BitmapFillStyle.html">BitmapFillStyle</a>, <a href="../../visualization/plotters/styles/DynamicFillStyle.html">DynamicFillStyle</a>, <a href="../../visualization/plotters/styles/SolidFillStyle.html">SolidFillStyle</a></td>
+<td class="classHeaderTableLabel">Implementors</td><td><a href="../../visualization/plotters/styles/DynamicFillStyle.html">DynamicFillStyle</a>, <a href="../../visualization/plotters/styles/SolidFillStyle.html">SolidFillStyle</a></td>
 </tr>
 </table>
 <p></p>
@@ -59,7 +59,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#beginFillStyle()">beginFillStyle</a>(recordKey:<a href="../data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):void</div>
+<a class="signatureLink" href="#beginFillStyle()">beginFillStyle</a>(recordKey:<a href="../data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):Boolean</div>
 <div class="summaryTableDescription">
    This will set the fill style on the specified Graphics object using the properties saved in this class.</div>
 </td><td class="summaryTableOwnerCol">IFillStyle</td>
@@ -80,7 +80,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function beginFillStyle(recordKey:<a href="../data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):void</code><p>
+<code>public function beginFillStyle(recordKey:<a href="../data/IQualifiedKey.html">IQualifiedKey</a>, target:Graphics):Boolean</code><p>
    This will set the fill style on the specified Graphics object using the properties saved in this class.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -93,6 +93,14 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">target</span>:Graphics</code> &mdash; The Graphics object to initialize.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Boolean</code> &mdash; A value of true if this function began a fill, or false if it did not.
    </td>
 </tr>
 </table>
