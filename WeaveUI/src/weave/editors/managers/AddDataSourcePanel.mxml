@@ -21,7 +21,7 @@
 -->
 <ui:DraggablePanel
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns="weave.ui.editors.*"
+	xmlns="weave.editors.managers.*"
 	layout="absolute"
 	title="Add New Data Source"
 	borderAlpha="1"
@@ -34,6 +34,22 @@
 	width="184"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
 	<mx:HBox height="100%">
+		<mx:VBox borderThickness="5" borderStyle="solid" borderColor="#C5C3A8" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
+			<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
+			<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
+			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="CSV Data Source"/>
+			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="XLS Data Source"/>
+			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="DBF Data Source"/>
+			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="Weave Data Source"/>
+		</mx:VBox>
+		<mx:Box width="100%" height="100%" id="container" cornerRadius="5">
+			
+		</mx:Box>
+	</mx:HBox>
+	<mx:ControlBar paddingTop="5" paddingBottom="5">
+		<mx:Button id="addButton" label="Add this data source" click="addSource()"/>
+		<mx:Button id="cancelButton" label="Close" click="removePanel()"/>
+	</mx:ControlBar>
 	
 	<mx:Script>
 		<![CDATA[
@@ -205,20 +221,4 @@
 			
 		]]>
 	</mx:Script>
-	<mx:VBox borderThickness="5" borderStyle="solid" borderColor="#C5C3A8" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
-		<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
-		<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
-		<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="CSV Data Source"/>
-		<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="XLS Data Source"/>
-		<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="DBF Data Source"/>
-		<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="Weave Data Source"/>
-	</mx:VBox>
-	<mx:Box width="100%" height="100%" id="container" cornerRadius="5">
-		
-	</mx:Box>
-</mx:HBox>
-	<mx:ControlBar paddingTop="5" paddingBottom="5">
-		<mx:Button id="addButton" label="Add this data source" click="addSource()"/>
-		<mx:Button id="cancelButton" label="Close" click="removePanel()"/>
-	</mx:ControlBar>
 </ui:DraggablePanel>

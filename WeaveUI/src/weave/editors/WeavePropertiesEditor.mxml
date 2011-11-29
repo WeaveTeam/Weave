@@ -20,22 +20,22 @@
 */
 -->
 
-<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
-			  xmlns:settings="weave.ui.settings.*" 
-			  backgroundColor="#EFF4BC"
-			  title="User Interface Preferences"
-			  targets="{[Weave.properties]}"
-			  >
-	<settings:AppearancesSubMenu label="Appearance"/>
-	<settings:Main_ToolbarSubMenu label="Menus"/>
-	<settings:InteractivitySubMenu label="Interactivity"/>
-	<settings:ProbingSubMenu label="Probing"/>
-	<settings:SelectionSubMenu label="Selection"/>
+<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml"
+			xmlns="weave.editors.*"
+			backgroundColor="#EFF4BC"
+			title="User Interface Preferences"
+			targets="{[Weave.properties]}" xmlns:ui="weave.ui.*"
+			>
+	<WeavePropertiesAppearanceEditor label="Appearance"/>
+	<WeavePropertiesMenuEditor label="Menus"/>
+	<WeavePropertiesInteractivityEditor label="Interactivity"/>
+	<WeavePropertiesProbingEditor label="Probing"/>
+	<WeavePropertiesSelectionEditor label="Selection"/>
 	<mx:VBox label="Advanced" width="100%" height="100%">
-		<Indent label="Streaming geometry bounding box request mode">
-			<CustomComboBox id="geometryMetadataRequestMode"/>
-			<HelpComponent helpText='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
-		</Indent>
+		<ui:Indent label="Streaming geometry bounding box request mode">
+			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
+			<ui:HelpComponent helpText='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
+		</ui:Indent>
 	</mx:VBox>
 	
 	<mx:Script>
@@ -72,4 +72,4 @@
 			}
 		]]>
 	</mx:Script>
-</ControlPanel>
+</ui:ControlPanel>

@@ -20,17 +20,17 @@
 */
 -->
 
-<!--
+<!---
 LayerListComponent
 
 
 @kmanohar
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 xmlns="weave.ui.*"
+		 xmlns="weave.editors.managers.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 label="Layers (Beta)">
+		 label="Layers (Beta)" xmlns:ui="weave.ui.*">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -39,7 +39,7 @@ LayerListComponent
 			<mx:Button label="Open editor..." click="openSelector()"/>
 		</mx:HBox>
 	</mx:HBox>
-	<LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}"/>
+	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}"/>
 	<mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button
@@ -56,12 +56,12 @@ LayerListComponent
 	-->
 	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
 		<mx:Label text="Override auto zoom:"/>
-		<TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
+		<ui:TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
 		<mx:VBox>
-			<TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
-			<TextInputWithPrompt id="overrideYMin" prompt="yMin" width="{boundsInputWidth}"/>
+			<ui:TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
+			<ui:TextInputWithPrompt id="overrideYMin" prompt="yMin" width="{boundsInputWidth}"/>
 		</mx:VBox>
-		<TextInputWithPrompt id="overrideXMax" prompt="xMax" width="{boundsInputWidth}"/>
+		<ui:TextInputWithPrompt id="overrideXMax" prompt="xMax" width="{boundsInputWidth}"/>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
@@ -75,6 +75,7 @@ LayerListComponent
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.SessionStateEditor;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			private static const boundsInputWidth:int = 64;

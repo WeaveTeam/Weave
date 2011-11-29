@@ -19,7 +19,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<ui:DraggablePanel xmlns="weave.ui.editors.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<ui:DraggablePanel xmlns="weave.editors.managers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="672" height="410"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				visible="true" title="View/Edit Data" xmlns:ui="weave.ui.*">

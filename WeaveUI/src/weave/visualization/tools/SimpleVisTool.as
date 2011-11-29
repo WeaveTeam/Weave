@@ -47,7 +47,7 @@ package weave.visualization.tools
 	import weave.editors.SimpleAxisEditor;
 	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
-	import weave.ui.LayerListComponent;
+	import weave.editors.managers.LayerListComponent;
 	import weave.ui.PenTool;
 	import weave.editors.WindowSettingsEditor;
 	import weave.utils.ColumnUtils;

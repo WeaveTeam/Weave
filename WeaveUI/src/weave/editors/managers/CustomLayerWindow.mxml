@@ -23,13 +23,13 @@
 	This component enlists custom layers available 
 	@author kmanohar
 -->
-<DraggablePanel xmlns="weave.ui.*" 
+<ui:DraggablePanel xmlns="weave.editors.managers.*" 
 				xmlns:mx="http://www.adobe.com/2006/mxml" title="Add a new layer"
 				creationPolicy="all"
 				backgroundColor="0xcccccc"
 				percentWidth="NaN" percentHeight="NaN"
 				sessionPanelCoordsAsPercentages="false"
-				layout="vertical">
+				layout="vertical" xmlns:ui="weave.ui.*">
 	<mx:VBox borderStyle="solid"
 			 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
 			 backgroundAlpha="0.8" backgroundColor="white"
@@ -57,6 +57,7 @@
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IPlotLayer;
 			import weave.api.ui.IPlotter;
+			import weave.ui.ControlPanel;
 			import weave.utils.EditorManager;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -122,4 +123,4 @@
 			
 		]]>
 	</mx:Script>
-</DraggablePanel>
+</ui:DraggablePanel>

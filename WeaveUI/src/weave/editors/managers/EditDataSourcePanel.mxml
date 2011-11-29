@@ -21,7 +21,7 @@
 -->
 <ui:DraggablePanel
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns="weave.ui.editors.*"
+	xmlns="weave.editors.managers.*"
 	layout="absolute"
 	title="Edit Data Sources"
 	borderAlpha="1"
