@@ -160,7 +160,7 @@ package weave.visualization.plotters
 				bitMapper.x = tempPoint.x;
 				bitMapper.y = tempPoint.y;
 				bitMapper.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
-				bitMapper.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				bitMapper.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				bitMapper.getUnrotatedBounds( tempBounds );
 				//findOpeningLeft will check to make sure there is no overlapping, and adjust as necessary.
 				findOpeningLeft();

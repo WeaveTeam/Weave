@@ -26,4 +26,5 @@
 	wordWrap="true"
 	backgroundAlpha="0"
 	selectable="false"
+	focusEnabled="false"
 	/>

@@ -31,11 +31,9 @@ package weave.core
 	[ExcludeClass]
 	public final class GlobalObjectReference implements ILinkableObject
 	{
-		public function GlobalObjectReference()
-		{
-			throw new Error("GlobalObjectReference should not be instantiated.");
-		}
-		
 		public static const qualifiedClassName:String = getQualifiedClassName(GlobalObjectReference);
+		
+		public function GlobalObjectReference(Please:_do_not_call_this_constructor) { }
 	}
 }
+internal class _do_not_call_this_constructor { }

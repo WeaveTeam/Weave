@@ -52,7 +52,7 @@ package weave.compiler
 		private var _set:Function = super.flash_proxy::setProperty as Function;
 		
 		/**
-		 * @see flash.utils.Proxy
+		 * @inheritDoc
 		 */
 		override flash_proxy function hasProperty(name:*):Boolean
 		{
@@ -60,7 +60,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * @see flash.utils.Proxy
+		 * @inheritDoc
 		 */
 		override flash_proxy function getProperty(name:*):*
 		{
@@ -68,7 +68,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * @see flash.utils.Proxy
+		 * @inheritDoc
 		 */
 		override flash_proxy function setProperty(name:*, value:*):void
 		{

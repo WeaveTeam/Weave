@@ -67,14 +67,14 @@ package weave.visualization.plotters
 		
 		public const horizontal:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const font:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const font:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
 		public const size:LinkableNumber = registerLinkableChild(this, new LinkableNumber(WeaveProperties.DEFAULT_FONT_SIZE));
 		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		public const bold:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const italic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const underline:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const hAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER));
-		public const vAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const vAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const angle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);

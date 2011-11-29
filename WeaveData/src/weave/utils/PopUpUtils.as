@@ -20,9 +20,14 @@ package weave.utils
 {
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
+	import flash.events.TimerEvent;
+	import flash.geom.Point;
+	import flash.utils.Timer;
 	
 	import mx.controls.Alert;
+	import mx.controls.ToolTip;
 	import mx.core.IFlexDisplayObject;
+	import mx.core.UIComponent;
 	import mx.events.CloseEvent;
 	import mx.managers.PopUpManager;
 	
@@ -73,6 +78,31 @@ package weave.utils
 			Alert.yesLabel = null;
 			Alert.noLabel = null;
 			Alert.buttonWidth = prevButtonWidth;
+		}
+
+		
+		/**
+		 * This will show a tooltip below a component that will disappear after a set duration.
+		 * @param component The component below which a tooltip should be placed.
+		 * @param text The text to display in the tooltip.
+		 * @param duration The amount of time the tooltip will be displayed.
+		 */
+		public static function showTemporaryTooltip(component:UIComponent, text:String, duration:int = 1500):void
+		{
+			// create tooltip underneath editor
+			var coords:Point = component.localToGlobal(new Point(0,0));
+			var tip:ToolTip = PopUpManager.createPopUp(component, ToolTip) as ToolTip;
+			tip.text = text;
+			tip.x = coords.x;
+			tip.y = coords.y + component.height;
+			// show tooltip only temporarily
+			var interval:int = 200;
+			var timer:Timer = new Timer(interval, duration / interval);
+			// bring tooltip to front so user sees it -- this is required in case the user clicks on another popup that obscures the tooltip
+			timer.addEventListener(TimerEvent.TIMER, function(_:*):void { PopUpManager.bringToFront(tip); });
+			// remove tooltip
+			timer.addEventListener(TimerEvent.TIMER_COMPLETE, function(_:*):void { PopUpManager.removePopUp(tip); });
+			timer.start();
 		}
 	}
 }

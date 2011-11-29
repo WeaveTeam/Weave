@@ -162,7 +162,7 @@ package weave.services
 					(responders[i] as IResponder).fault(event);
 		}
 		
-		protected var truncateToStringOutput:Boolean = true
+		protected var truncateToStringOutput:Boolean = true; // set to true to prevent toString() from returning lengthy strings
 		
 		override public function toString():String
 		{

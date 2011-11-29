@@ -75,16 +75,15 @@
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				
 				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
-				visualization.enableXAxisProbing = true;
 
-				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
@@ -170,7 +169,7 @@
 			{
 				handlePanelTitleChange();
 				
-				visualization.setXAxisColumn(plotter.dynamicColorColumn);
+				visualization.bottomMarginColumn = plotter.dynamicColorColumn;
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
@@ -185,8 +184,8 @@
 					xAxisLayer.axisPlotter.setLabelFunction(null);
 				}
 				
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName("Number of Records", -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisLayer.axisPlotter.setSideAxisName("Number of Records", -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>

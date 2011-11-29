@@ -143,7 +143,7 @@
 				PopUpManager.centerPopUp(settingsPanel);
 				
 				settingsPanel.plotter = plotter;
-				settingsPanel.targets = [plotter.radius, plotter.dataX, plotter.dataY, plotter.color, plotter.thickness];
+				settingsPanel.targets = [plotter.radius, plotter.dataX, plotter.dataY, plotter.lineColor, plotter.thickness];
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 				
@@ -152,7 +152,7 @@
 				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText, "text");
 				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText, "text");
 				linkBindableProperty(settingsPanel.plotter.radius, settingsPanel.radiusText, "text");
-				linkBindableProperty(settingsPanel.plotter.color, settingsPanel.colorPicker, "selectedColor");
+				linkBindableProperty(settingsPanel.plotter.lineColor, settingsPanel.colorPicker, "selectedColor");
 				linkBindableProperty(settingsPanel.plotter.thickness,settingsPanel.thicknessText, "text");
 			}
 			

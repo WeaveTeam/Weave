@@ -50,6 +50,6 @@ package weave.api.data
 		public static const DATA_TYPE:String = "dataType";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
-		public static const PROJECTION_SRS:String = 'projectionSRS';
+		public static const PROJECTION:String = 'projection';
 	}
 }

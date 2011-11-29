@@ -1,4 +1,21 @@
-// ActionScript file
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 package weave.ui.settings
 {
@@ -8,27 +25,28 @@ package weave.ui.settings
 	import mx.collections.Sort;
 	import mx.collections.SortField;
 	import mx.core.ClassFactory;
-	import mx.events.DropdownEvent;
 	import mx.events.FlexEvent;
 	
-	import weave.Weave;
-	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.ui.CustomComboBox;
 
 	public class FontStyleList extends CustomComboBox
 	{
-		private var fontList:ArrayCollection;
-		
 		public function FontStyleList()
 		{
 			super();
-			addEventListener(FlexEvent.CREATION_COMPLETE, listCreated);
+			addEventListener(FlexEvent.CREATION_COMPLETE, creationComplete);
 		}
-
-		private function listCreated(e:FlexEvent):void
+		
+		private function creationComplete(e:*):void
 		{
-			fontList = new ArrayCollection(Font.enumerateFonts(true));
+			dropdown.variableRowHeight = true;
+		}
+		
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+			var fontList:ArrayCollection = new ArrayCollection(Font.enumerateFonts(true));
 			labelField = "fontName";
 			setStyle("fontSize",10);
 			setStyle('textDecoration','none');
@@ -39,7 +57,6 @@ package weave.ui.settings
 			fontList.sort = fontSort;
 			dataProvider = fontList;
 			itemRenderer = new ClassFactory(FontStyleRenderer);
-			dropdown.variableRowHeight = true;
 		}
 	}
 }

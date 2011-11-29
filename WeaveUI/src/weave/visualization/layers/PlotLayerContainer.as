@@ -19,34 +19,33 @@
 
 package weave.visualization.layers
 {
-	import flash.events.Event;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
-	import mx.utils.ObjectUtil;
+	import mx.core.UIComponent;
 	
-	import weave.api.core.ICallbackCollection;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
-	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
-	import weave.api.ui.IPlotterWithGeometries;
+	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
-	import weave.core.StageUtils;
+	import weave.core.LinkableString;
+	import weave.core.SessionManager;
 	import weave.core.UIUtils;
 	import weave.primitives.Bounds2D;
-	import weave.primitives.LinkableBounds2D;
 	import weave.primitives.ZoomBounds;
+	import weave.utils.NumberUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
 	import weave.visualization.plotters.DynamicPlotter;
@@ -61,10 +60,7 @@ package weave.visualization.layers
 		public function PlotLayerContainer()
 		{
 			super();
-			init();
-		}
-		private function init():void
-		{
+			
 			this.horizontalScrollPolicy = "off";
 			this.verticalScrollPolicy = "off";
 
@@ -75,15 +71,30 @@ package weave.visualization.layers
 			UIUtils.linkDisplayObjects(this, layers);
 			
 			layers.addImmediateCallback(this, updateZoom);
+			
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginBottomNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginTopNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginLeftNumber);
+			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginRightNumber);
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));
 		public const zoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, updateZoom, false); // must be immediate callback to avoid displaying a stretched map, for example
 		
-		public const marginRight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const marginLeft:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const marginTop:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const marginBottom:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		//These variables hold the numeric values of the margins. They are removed from the session state after the values are set
+		//This was done to support percent values
+		public const marginRightNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginLeftNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginTopNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		public const marginBottomNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
+		
+		//These values take a string which could be a number value or a percentage value. The string is evaluated and 
+		//the above set of margin values (marginTopNumber, margingBottomNumber...) are set with the correct numeric value
+		public const marginRight:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
+		public const marginLeft:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
+		public const marginTop:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
+		public const marginBottom:LinkableString = registerLinkableChild(this, new LinkableString('0', NumberUtils.verifyNumberOrPercentage), updateZoom, true);
+		
 		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
 		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
 		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateZoom, true);
@@ -153,6 +164,12 @@ package weave.visualization.layers
 			getCallbackCollection(this).delayCallbacks();
 			//trace('begin updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
 			
+			// make sure numeric margin values are correct
+			marginBottomNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginBottom.value, unscaledHeight));
+			marginTopNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginTop.value, unscaledHeight));
+			marginLeftNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginLeft.value, unscaledWidth));
+			marginRightNumber.value = Math.round(NumberUtils.getNumberFromNumberOrPercent(marginRight.value, unscaledWidth));
+			
 			var layer:IPlotLayer;
 			var plotLayer:PlotLayer;
 			var selectablePlotLayer:SelectablePlotLayer;
@@ -161,10 +178,10 @@ package weave.visualization.layers
 			
 			// calculate new screen bounds in temp variable
 			// default behaviour is to set screenBounds beginning from lower-left corner and ending at upper-right corner
-			var left:Number = marginLeft.value;
-			var top:Number = marginTop.value;
-			var right:Number = unscaledWidth - marginRight.value;
-			var bottom:Number = unscaledHeight - marginBottom.value;
+			var left:Number = marginLeftNumber.value;
+			var top:Number = marginTopNumber.value;
+			var right:Number = unscaledWidth - marginRightNumber.value;
+			var bottom:Number = unscaledHeight - marginBottomNumber.value;
 			// set screenBounds beginning from lower-left corner and ending at upper-right corner
 			//TODO: is other behavior required?
 			tempScreenBounds.setBounds(left, bottom, right, top);
@@ -236,6 +253,11 @@ package weave.visualization.layers
 			getCallbackCollection(this).resumeCallbacks();
 		}
 		
+		/**
+		 * This function gets the current zoom level as defined in ZoomUtils.
+		 * @return The current zoom level.
+		 * @see weave.utils.ZoomUtils#getZoomLevel
+		 */
 		public function getZoomLevel():Number
 		{
 			zoomBounds.getDataBounds(tempDataBounds);
@@ -246,6 +268,11 @@ package weave.visualization.layers
 			return zoomLevel;
 		}
 		
+		/**
+		 * This function sets the zoom level as defined in ZoomUtils.
+		 * @param newZoomLevel The new zoom level.
+		 * @see weave.utils.ZoomUtils#getZoomLevel
+		 */
 		public function setZoomLevel(newZoomLevel:Number):void
 		{
 			var currentZoomLevel:Number = getZoomLevel();
@@ -263,20 +290,6 @@ package weave.visualization.layers
 			}
 		}
 		
-		public function invalidateGraphics():void
-		{
-			for each (var layer:IPlotLayer in layers.getObjects(IPlotLayer))
-			{
-				layer.invalidateGraphics();
-			}
-		}
-		
-		/**
-		 * This function checks if the unscaled size of the UIComponent changed.
-		 * If so, the graphics are invalidated.
-		 * If the graphics are invalid, this function will call validateGraphics().
-		 * This is the only function that should call validateGraphics() directly.
-		 */
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			// detect size change
@@ -289,9 +302,14 @@ package weave.visualization.layers
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 		
+		/**
+		 * This function will get all the unique keys that overlap each geometry specified by
+		 * simpleGeometries. 
+		 * @param simpleGeometries
+		 * @return An array of keys.
+		 */		
 		public function getKeysOverlappingGeometry(simpleGeometries:Array):Array
 		{
-			var container:PlotLayerContainer = owner as PlotLayerContainer;
 			var key:IQualifiedKey;
 			var keys:Dictionary = new Dictionary();
 			var _layers:Array = layers.getObjects();
@@ -318,6 +336,37 @@ package weave.visualization.layers
 				result.push(keyObj as IQualifiedKey);
 			
 			return result;
+		}
+		
+		/**
+		 * This function projects data coordinates to stage coordinates.
+		 * @return The point containing the stageX and stageY.
+		 */		
+		public function getStageCoordinates(dataX:Number, dataY:Number):Point
+		{
+			tempPoint.x = dataX;
+			tempPoint.y = dataY;
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			zoomBounds.getDataBounds(tempDataBounds);
+			tempDataBounds.projectPointTo(tempPoint, tempScreenBounds);
+			
+			return localToGlobal(tempPoint);
+		}
+
+		/**
+		 * Get the <code>mouseX</code> and <code>mouseY</code> properties of the container
+		 * projected into data coordinates for the container. 
+		 * @return The point containing the projected mouseX and mouseY.
+		 */
+		public function getMouseDataCoordinates():Point
+		{
+			tempPoint.x = mouseX;
+			tempPoint.y = mouseY;
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			zoomBounds.getDataBounds(tempDataBounds);
+			tempScreenBounds.projectPointTo(tempPoint, tempDataBounds);
+			
+			return tempPoint;
 		}
 		
 		// these variables are used to detect a change in size

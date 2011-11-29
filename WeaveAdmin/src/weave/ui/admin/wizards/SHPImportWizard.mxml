@@ -25,54 +25,50 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*" 
 			label="Import shape data"
-			width="640" height="300"
 			creationComplete="handleCreationComplete()"
 			>
 	<mx:VBox width="100%" height="100%">
-		<mx:HBox width="100%">
-			<mx:Label text="Load Shape files" width="{indent}"/>
+		<ui:Indent width="100%" label="Load Shape files" indent="{indent}">
 			<mx:TextInput id="shpFileNameInput" enabled="true"/>
 			<mx:Button label="Upload ..." click="browseAndUploadShapeFiles();"/>
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
 			<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
-		</mx:HBox>
-		<mx:HBox id="dbfColumnNames" enabled="false">
-			<mx:Label text="DBF Key column names" width="{indent}"/>
+		</ui:Indent>
+		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" indent="{indent}">
 			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" editable="true"/>
-			<mx:Button label="?" click="Alert.show('Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.', 'Shape Converter Help')"/>
-		</mx:HBox>
-		<admin:SQLTableSelectorDialog indent="{indent}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableLabel.text = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+			<ui:HelpComponent helpText="Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file."/>
+		</ui:Indent>
+		<admin:SQLTableSelectorDialog indent="{indent}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%">
-		<mx:HBox id="nullReplacement" enabled="false" toolTip="Specify flag values to treat as missing data, separated by commas">
-			<mx:Label enabled="true" text="Null flag values" width="{indent}"/>
-			<mx:TextInput enabled="true" id="nullFlagInput" editable="true"/>
-		</mx:HBox>
+		<ui:TextBox indent="{indent}" label="Null flag values" enabled="false" id="nullFlagInput"
+				toolTip="Specify flag values to treat as missing data, separated by commas"/>
 		<mx:HBox id="geoCol" enabled="false">
-			<mx:TextArea width="{indent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name"/>
-			<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
-			<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false"/>
-			<mx:Button label="?" click="Alert.show('Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here.', 'Shape Converter Help')"/>
+			<mx:TextArea width="{indent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name" textAlign="right"/>
+			<mx:HBox verticalAlign="middle">
+				<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
+				<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false"/>
+				<ui:HelpComponent helpText="Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here."/>
+			</mx:HBox>
 		</mx:HBox>
-		<mx:HBox id="keyType" enabled="false">
-			<mx:Label text="Key type" width="{indent}"/>
-			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{StringDefinition.DEFAULT_SHAPE_KEY_TYPE_DROPDOWNBOX_TOOLTIP}"/>
+		<ui:Indent id="keyType" enabled="false" label="Key type" indent="{indent}">
+			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_shp_key_type_dropdown}"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
-			<mx:Button label="?" click="showHelpForKeyType()"/>
-		</mx:HBox>
-		<mx:HBox id="projectionCode" enabled="false">
-			<mx:Label text="Projection SRS" width="{indent}"/>
+			<ui:HelpComponent helpText="{helpForKeyType}"/>
+		</ui:Indent>
+		<ui:Indent id="projectionCode" enabled="false" label="Projection SRS" indent="{indent}">
 			<mx:TextInput id="srsProjectionTxtInput" text="EPSG:4326"/>  <!-- is it a good idea to use the standard lat/long as the default? -->
 			<mx:Button id="srsProjectionValidateBtn" label="Validate" click="validateProjectionSRS()"/>
-		</mx:HBox>
+		</ui:Indent>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
@@ -200,13 +196,7 @@
 					Alert.show("You must specify the name of the GeometryCollection to be visible by users.", alertTitle);
 				else
 				{
-//					importSHPButton.enabled = false;
-//					var enableImportSHPButton:Function = function(...args):void
-//					{
-//						importSHPButton.enabled = true;
-//					};
-					
-					AdminInterface.instance.convertShapefileToSQLStream(
+					var query:DelayedAsyncInvocation = AdminInterface.instance.convertShapefileToSQLStream(
 							shpFileNameInput.text,
 							dbfKeyColumnsCombo.text.split(","),
 							tableSelector.activeSchema,
@@ -218,24 +208,29 @@
 							srsProjectionTxtInput.text,
 							nullFlagInput.text
 						);
+					
+					controlBarEnabled = false;
+					query.addAsyncResponder(handleResult, handleFault);
+					function handleResult(event:ResultEvent, token:Object = null):void
+					{
+						controlBarEnabled = true;
+					}
+					function handleFault(event:FaultEvent, token:Object = null):void
+					{
+						controlBarEnabled = true;
+					}
 				}
 			}
 			
-			private function showHelpForKeyType():void
-			{
-				Alert.show(
-					'If two tables have compatible keys, you should give them the same key type.  ' +
-					'If two tables have incompatible keys, they should not have the same key type.  ' +
-					'Weave only allows two columns to be compared if they have the same key type.',
-					'Admin Console Help'
-				);
-			}
+			private static const helpForKeyType:String = 'If two tables have compatible keys, you should give them the same key type.'
+					+ '  If two tables have incompatible keys, they should not have the same key type.'
+					+ '  Weave only allows two columns to be compared if they have the same key type.';
 			
 			private function enableAllWidgets(enable:Boolean = true):void
 			{
 				dbfColumnNames.enabled = enable;
 				geoCol.enabled = enable;
-				nullReplacement.enabled = enable;
+				nullFlagInput.enabled = enable;
 				keyType.enabled = enable;
 				tableSelector.enabled = enable;
 				nextEnabled = enable;

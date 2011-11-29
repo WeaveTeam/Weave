@@ -99,7 +99,7 @@ package weave.visualization.plotters
 				f.bold = Weave.properties.axisFontBold.value;
 				f.italic = Weave.properties.axisFontItalic.value;
 				f.underline = Weave.properties.axisFontUnderline.value;
-				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				
 				// grab a bounds object to store the screen size of the bitmap text
 				bounds = reusableBoundsObjects[i] = ObjectPool.borrowObject(Bounds2D);

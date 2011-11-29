@@ -565,7 +565,7 @@
 									var column:ReprojectedGeometryColumn = (plotter as GeometryPlotter).geometryColumn as ReprojectedGeometryColumn;
 									if (column)
 									{
-										projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
+										projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
 										if (projString != null)
 											projLabel = ' (' + projString + ')';
 									}

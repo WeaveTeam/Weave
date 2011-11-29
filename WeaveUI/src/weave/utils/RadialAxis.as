@@ -91,7 +91,7 @@ package weave.utils
 			tickMarkLabel.textFormat.color = Weave.properties.axisFontColor.value;
 			tickMarkLabel.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
 			tickMarkLabel.textFormat.align = TextFormatAlign.CENTER;
-			tickMarkLabel.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+			tickMarkLabel.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			tickMarkLabel.angle = 0;
 			tickMarkLabel.width = 80;
 		}

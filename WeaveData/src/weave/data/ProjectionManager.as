@@ -44,27 +44,32 @@ package weave.data
 	 */	
 	public class ProjectionManager implements IProjectionManager
 	{
+		public function ProjectionManager()
+		{
+			if (!projectionsInitialized)
+				initializeProjections();
+		}
+		
 		[Embed(source="/weave/resources/ProjDatabase.dat", mimeType="application/octet-stream")]
 		private static const ProjDatabase:Class;
+		private static var projectionsInitialized:Boolean = false;
 
-		{ /** begin static code block **/
-			ProjProjection.defs['EPSG:26986'] = "+title=NAD83 / Massachusetts Mainland +proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs";
-			ProjProjection.defs["EPSG:3638"] = "+title=NAD83(NSRS2007) / Ohio South +proj=lcc +lat_1=40.03333333333333 +lat_2=38.73333333333333 +lat_0=38 +lon_0=-82.5 +x_0=600000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
-			ProjProjection.defs['VANDG'] = "+title=Van Der Grinten +proj=vandg +x_0=0 +y_0=0 +lon_0=0";
-			
-			initializeProjections();
-		} /** end static code block **/
-		
 		/**
 		 * This function decompresses the projection database and loads the definitions into ProjProjection.defs.
 		 */
 		private static function initializeProjections():void
 		{
+			ProjProjection.defs['EPSG:26986'] = "+title=NAD83 / Massachusetts Mainland +proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs";
+			ProjProjection.defs["EPSG:3638"] = "+title=NAD83(NSRS2007) / Ohio South +proj=lcc +lat_1=40.03333333333333 +lat_2=38.73333333333333 +lat_0=38 +lon_0=-82.5 +x_0=600000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+			ProjProjection.defs['VANDG'] = "+title=Van Der Grinten +proj=vandg +x_0=0 +y_0=0 +lon_0=0";
+			
 			var ba:ByteArray = (new ProjDatabase()) as ByteArray;
 			ba.uncompress();
 			var defs:Object = ba.readObject();
 			for(var key:String in defs)
 				ProjProjection.defs[key] = defs[key];
+			
+			projectionsInitialized = true;
 		}
 
 
@@ -343,7 +348,7 @@ internal class WorkerThread
 		// if the source and destination projection are the same, we don't need to reproject.
 		// if we don't know the projection of the original column, we can't reproject.
 		// if there is no destination projection, don't reproject.
-		var sourceProjSRS:String = unprojectedColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
+		var sourceProjSRS:String = unprojectedColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
 		if (sourceProjSRS == destinationProjSRS ||
 			!projectionManager.projectionExists(sourceProjSRS) ||
 			!projectionManager.projectionExists(destinationProjSRS))
@@ -363,11 +368,12 @@ internal class WorkerThread
 
 		// set metadata on proxy column
 		//TODO: this metadata may not be sufficient... IAttributeColumn may need a way to list available metadata property names
+		// or provide another column to get metadata from
 		var metadata:XML = <attribute
 				title={ ColumnUtils.getTitle(unprojectedColumn) }
 				keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
 				dataType={ DataTypes.GEOMETRY }
-				projectionSRS={ destinationProjSRS }
+				projection={ destinationProjSRS }
 			/>;
 		proxyColumn.setMetadata(metadata);
 

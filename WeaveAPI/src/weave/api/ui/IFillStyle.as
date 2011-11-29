@@ -53,7 +53,8 @@ package weave.api.ui
 		 * This will set the fill style on the specified Graphics object using the properties saved in this class.
 		 * @param recordKey The record key to initialize the fill style for.
 		 * @param graphics The Graphics object to initialize.
+		 * @return A value of true if this function began a fill, or false if it did not.
 		 */
-		function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):void;
+		function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):Boolean;
 	}
 }

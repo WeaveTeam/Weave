@@ -166,7 +166,7 @@ package weave.visualization.plotters
 				bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
 				bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 				bitmapText.text = value.toString();
-				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				bitmapText.x = xMin + margin + maxScreenRadius.value * 2 + margin;
 				bitmapText.y = tempPoint.y;
 				bitmapText.draw(destination);

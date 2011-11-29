@@ -30,8 +30,8 @@ A text editor to change the Session State on the fly.
     xmlns:mx="http://www.adobe.com/2006/mxml"
     width="800" height="600"
     title="Session State Editor"
-	backgroundColor="#EFF4BC" 
-    xmlns:sessioning="weave.core.*">
+	backgroundColor="#EFF4BC"
+    >
 	<mx:VDividedBox id="vDividedBox" width="100%" height="100%">
 	    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
 				 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
@@ -55,23 +55,27 @@ A text editor to change the Session State on the fly.
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
 					<mx:HBox width="100%" horizontalAlign="right">
-						<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText()" change="searchTermChanged()" width="100%" minWidth="100"/>
-						<mx:Button label="Search" click="highlightSearchText()" repeatDelay="1"/>
+						<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText(false)" change="searchTermChanged()" width="100%" minWidth="100"/>
+						<mx:Button label="Search" click="highlightSearchText(true)" repeatDelay="1"/>
 					</mx:HBox>
 					<mx:Canvas id="editorBox" width="100%" height="100%">
-						<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11" 
-									 fontFamily="Courier New" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
+						<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
+									 fontFamily="_typewriter" change="handleTextAreaChange()" width="100%" height="100%" visible="true"/>
 						<mx:DataGrid id="sessionStateDataGrid" wordWrap="false" enabled="true" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
-									 fontFamily="Courier New" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
+									 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
 									 horizontalScrollPolicy="auto" visible="true" variableRowHeight="false" rowHeight="24"> 
 						</mx:DataGrid>
 					</mx:Canvas>
-					<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
-								 selected="true"/>
+					<mx:HBox width="100%">
+						<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
+									 selected="true"/>
+						<mx:Spacer width="100%"/>
+						<mx:Button id="showConsole" label="Show console" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
+					</mx:HBox>
 				</mx:VBox>
 			</mx:HDividedBox>
 		</mx:VBox>
-		<ui:Console context="{sessionNav.selectedItem.object}" height="0"/>
+		<ui:Console id="console" context="{null}" height="0"/>
 	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
@@ -80,14 +84,12 @@ A text editor to change the Session State on the fly.
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
+			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
 			import mx.managers.PopUpManager;
-			import mx.utils.ObjectUtil;
-			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
@@ -98,11 +100,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.getSessionState;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
-			import weave.compiler.Compiler;
-			import weave.compiler.GlobalLib;
-			import weave.compiler.ICompiledObject;
 			import weave.core.DynamicState;
-			import weave.core.ExternalSessionStateInterface;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLDecoder;
@@ -111,6 +109,7 @@ A text editor to change the Session State on the fly.
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			use namespace weave_internal;
+			use namespace mx_internal;
 
 		    private var selectors:Array = null;
 
@@ -121,7 +120,7 @@ A text editor to change the Session State on the fly.
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
-			}			
+			}
 			
 			override protected function childrenCreated():void
 			{
@@ -142,6 +141,7 @@ A text editor to change the Session State on the fly.
 				_nameColumn.width = 192;
 				loadSelectedSessionObjectInView();
 				
+				sessionStateTextArea.getTextField().alwaysShowSelection = true;
 		    }
 			
 			override public function dispose():void
@@ -255,12 +255,32 @@ A text editor to change the Session State on the fly.
 
 				if (sessionNav.selectedItem == null && sessObj == null)
 				{
-					clearAndDisableView();
+					// clear and disable view
+					if (_editor == TEXT_EDITOR)
+					{
+						sessionStateTextArea.text = '';
+						sessionStateTextArea.enabled = false;
+					}
+					else if (_editor == DATA_GRID)
+					{
+						sessionStateDataGrid.dataProvider = [ {Name: '', Value: ' '} ];
+						sessionStateDataGrid.enabled = false;
+					}
 					return;
 				}
 
-				enableView();
-				if(sessObj != null)
+				// enable view
+				if (_editor == TEXT_EDITOR)
+				{
+					sessionStateTextArea.enabled = true;
+					sessionStateTextArea.visible = true;
+				}
+				else if (_editor == DATA_GRID)
+				{
+					sessionStateDataGrid.enabled = true;
+					sessionStateDataGrid.visible = true;
+				}
+				if (sessObj != null)
 					_currentSelectedObject = sessObj;
 				else
 					_currentSelectedObject = sessionNav.selectedItem.object;
@@ -280,6 +300,10 @@ A text editor to change the Session State on the fly.
 		    }
 			private function handleSessionNavSelect():void
 			{
+				var vsp:Number = sessionStateDataGrid.verticalScrollPosition;
+				if (sessionNav.selectedItem)
+					console.context = sessionNav.selectedItem.object;
+				
 				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedSessionedObject() as ILinkableDynamicObject;
 				if (dynamicObject)
 				{
@@ -292,10 +316,12 @@ A text editor to change the Session State on the fly.
 					linkControls.enabled = false;
 				}
 				
-				if(_textModified)
+				if (_textModified)
 					refresh();
 				else
 					loadSelectedSessionObjectInView();
+				
+				sessionStateDataGrid.verticalScrollPosition = vsp;
 			}
 			
 		    private function alertError(e:Error):void
@@ -309,7 +335,7 @@ A text editor to change the Session State on the fly.
 				refresh();
 		    }
 
-			private function highlightSearchText():Boolean
+			private function highlightSearchText(switchFocus:Boolean):Boolean
 			{
 				var i:int;
 				var searchTerm:String = search.text.toLowerCase();
@@ -323,7 +349,8 @@ A text editor to change the Session State on the fly.
 						if (_textStartSearchIndex >= 0)
 						{
 							sessionStateTextArea.setSelection(_textStartSearchIndex, _textStartSearchIndex+searchTerm.length);
-							sessionStateTextArea.setFocus();
+							if (switchFocus)
+								sessionStateTextArea.setFocus();
 							return true;
 						}
 						//end of file reached. start search again.
@@ -379,14 +406,14 @@ A text editor to change the Session State on the fly.
 			{
 				var node:XML = XML(item);
 				
-				if(node.@name.toString() != "")
+				if (node.@name.toString() != "")
 					return node.@name.toString();
 				else
 					return node.name().toString();
 			}
 			private function confirmDeleteSelectedItem(event:KeyboardEvent):void
 			{
-				if(event.keyCode == 46)
+				if (event.keyCode == 46)
 				{
 					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
 					if (!parent)
@@ -400,7 +427,7 @@ A text editor to change the Session State on the fly.
 			
 			private function deleteSelectedItem(event:CloseEvent):void
 			{
-				if(event.detail == Alert.YES)
+				if (event.detail == Alert.YES)
 				{
 					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
 					if (!parent)
@@ -430,7 +457,7 @@ A text editor to change the Session State on the fly.
 				newValue = newValue.replace(/(\r\n)|\r/gm, "\n");
 				sessionStateDataGrid.itemEditorInstance[sessionStateDataGrid.columns[event.columnIndex].editorDataField] = newValue;
 
-				if( oldValue != newValue ) 
+				if ( oldValue != newValue ) 
 					_textModified = true;
 			}
 
@@ -441,6 +468,8 @@ A text editor to change the Session State on the fly.
 				loadSelectedSessionObjectInView();
 			}
 			
+			private static const DATA_GRID:String = 'DataGrid';
+			private static const TEXT_EDITOR:String = 'TextArea';
 			private function changeView(newValue:String = null):void
 			{
 				var oldValue:String;
@@ -486,44 +515,15 @@ A text editor to change the Session State on the fly.
 				//loadSelectedSessionObjectInView();
 			}
 			
-			private function clearAndDisableView():void
-			{
-				if (_editor == TEXT_EDITOR)
-				{
-					sessionStateTextArea.text = '';
-					sessionStateTextArea.enabled = false;
-				}
-				else if (_editor == DATA_GRID)
-				{
-					sessionStateDataGrid.dataProvider = [ {Name: '', Value: ' '} ];
-					sessionStateDataGrid.enabled = false;
-				}
-			}
-			private function enableView():void
-			{
-				if (_editor == TEXT_EDITOR)
-				{
-					sessionStateTextArea.text = '';
-					sessionStateTextArea.enabled = true;
-					sessionStateTextArea.visible = true;
-				}
-				else if (_editor == DATA_GRID)
-				{
-					sessionStateDataGrid.dataProvider = [ {Name: '', Value: ' '} ];
-					sessionStateDataGrid.enabled = true;
-					sessionStateDataGrid.visible = true;
-				}
-			}
-			
 			private var _editor:String = DATA_GRID;
 			private var _oldEditor:String = null;
 			private var _lastLoadChangedEditor:Boolean = false;
 			private const _nameColumn:DataGridColumn = new DataGridColumn("Name");
 			private const _valueColumn:DataGridColumn = new DataGridColumn("Value");
-			public static const TEXT_EDITOR:String = WeaveProperties.TEXT_EDITOR;
-			public static const DATA_GRID:String = WeaveProperties.DATA_GRID;
 			private function loadSessionStateInView():void
 			{
+				var vsp:Number;
+				var hsp:Number;
 				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
 				if (_prevSelectedObject != _currentSelectedObject)
 				{
@@ -553,8 +553,8 @@ A text editor to change the Session State on the fly.
 				
 				if (_editor == TEXT_EDITOR)
 				{
-					var vsp:Number = sessionStateTextArea.verticalScrollPosition;
-					var hsp:Number = sessionStateTextArea.horizontalScrollPosition;
+					vsp = sessionStateTextArea.verticalScrollPosition;
+					hsp = sessionStateTextArea.horizontalScrollPosition;
 
 					if (_currentSelectedObject is LinkableString)
 					{
@@ -631,6 +631,7 @@ A text editor to change the Session State on the fly.
 						}
 					}
 
+					vsp = sessionStateDataGrid.verticalScrollPosition;
 					_currentSessionStateDataProvider = dataGridProvider;
 					sessionStateDataGrid.columns = [ _nameColumn, _valueColumn ];
 					sessionStateDataGrid.dataProvider = dataGridProvider;
@@ -639,6 +640,7 @@ A text editor to change the Session State on the fly.
 					sessionStateDataGrid.variableRowHeight = false;
 					sessionStateDataGrid.wordWrap = false;
 					sessionStateDataGrid.validateNow();
+					sessionStateDataGrid.verticalScrollPosition = vsp;
 				}
 			}
 			
@@ -754,6 +756,19 @@ A text editor to change the Session State on the fly.
 					super.removePanel();
 			}
 			
+			private function toggleShowConsole():void
+			{
+				if (showConsole.selected)
+				{
+					console.percentHeight = 100;
+					console.input.setFocus();
+				}
+				else
+				{
+					console.percentHeight = 0;
+				}
+			}
+			
 			private static var _instance:SessionStateEditor;
 			public static function getInstance():SessionStateEditor
 			{
@@ -772,7 +787,7 @@ A text editor to change the Session State on the fly.
 					rootObject = Weave.root;
 				
 				defaultEditor.sessionNav.rootObject = rootObject;
-				//defaultEditor.refresh();
+				defaultEditor.refresh();
 				defaultEditor.restorePanel();
 			}
 		]]>

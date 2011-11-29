@@ -35,7 +35,9 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
@@ -118,7 +120,8 @@ package weave.data.DataSources
 			convertOldHierarchyFormat(root, "attribute", {
 				attributeColumnName: "name",
 				dataTableName: "dataTable",
-				dataType: _convertOldDataType
+				dataType: _convertOldDataType,
+				projectionSRS: AttributeColumnMetadata.PROJECTION
 			});
 			for each (var node:XML in root.descendants())
 			{
@@ -208,6 +211,8 @@ package weave.data.DataSources
 		 */
 		private function handleHierarchyURLDownload(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
 			_attributeHierarchy.value = XML(event.result); // this will run callbacks
 		}
 
@@ -222,6 +227,9 @@ package weave.data.DataSources
 		
 		private function handleGetDataServiceMetadata(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
+			
 			try
 			{
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
@@ -285,6 +293,9 @@ package weave.data.DataSources
 		
 		private function handleGetDataTableMetadata(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
+
 			var hierarchyNode:XML = token as XML; // the node to add the list of columns to
 			try
 			{
@@ -301,7 +312,7 @@ package weave.data.DataSources
 							name={ geomName }
 							dataType={ DataTypes.GEOMETRY }
 							keyType={ result.geometryCollectionKeyType }
-							projectionSRS={ result.geometryCollectionProjectionSRS }
+							projection={ result.geometryCollectionProjectionSRS }
 						/>
 					);
 				}
@@ -381,7 +392,7 @@ package weave.data.DataSources
 				return;
 			
 			request.proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
-			reportError(event, null, ObjectUtil.toString(request.pathInHierarchy));
+			reportError(event, null, token);
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{

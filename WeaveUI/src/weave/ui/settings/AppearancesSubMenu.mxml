@@ -28,21 +28,18 @@
 		 creationComplete="handleCreationComplete()"
 		 >
 	<mx:VBox verticalGap="8">
-		<mx:HBox>
-			<mx:Label text="Window title font:"/>
+		<ui:Indent label="Window title font:">
 			<FontControl id="windowTitleFontControl"/> 
-		</mx:HBox>
+		</ui:Indent>
 		
-		<mx:HBox>
-			<mx:Label text="Visualization font:"/>
+		<ui:Indent label="Visualization font:">
 			<FontControl id="toolFontControl"/>
-		</mx:HBox>
+		</ui:Indent>
 		
-		<mx:HBox>
+		<ui:Indent label="Background color:">
 			<mx:ColorPicker id="swatches" 
 							creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
-			<mx:Label text="Background Color"/>
-		</mx:HBox>
+		</ui:Indent>
 		
 		<mx:CheckBox label="Enable dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
@@ -57,15 +54,13 @@
 		<mx:CheckBox label="Enable the minimize tray"
 					 creationComplete="linkBindableProperty(Weave.properties.enableTaskbar, event.target, 'selected');"/>
 
-		<mx:HBox>
-			<mx:Label text="Fixed workspace size:"/>
+		<ui:Indent label="Fixed workspace size:">
 			<ui:TextInputWithPrompt prompt="width" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceWidth, event.target, 'text', 500);"/>
 			<ui:TextInputWithPrompt prompt="height" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceHeight, event.target, 'text', 500);"/>
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label text="Grid snapping:"/>
+		</ui:Indent>
+		<ui:Indent label="Window grid snapping:">
 			<ui:TextInputWithPrompt prompt="pixel or percent" width="100" creationComplete="linkBindableProperty(Weave.properties.windowSnapGridSize, event.target, 'text', 500);"/>
-		</mx:HBox>
+		</ui:Indent>
 		
 		<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
 		id="viewsTabBar"
@@ -100,36 +95,30 @@
 -->
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-			import mx.core.ClassFactory;
-			import mx.core.IFlexDisplayObject;
-			import mx.effects.effectClasses.HideShowEffectTargetFilter;
-			import mx.events.FlexEvent;
+			import mx.collections.ArrayCollection;
 			import mx.events.ListEvent;
-			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.WeaveProperties;
 			import weave.api.linkBindableProperty;
-			import weave.core.LinkableBoolean;
-			import weave.core.SessionManager;
-			import weave.ui.DraggablePanel;
-			import weave.utils.EventUtils;
-			import weave.visualization.tools.SimpleVisTool;
+			
 			
 			[Bindable]
 			public var selectedColor:uint;
 			
-			override protected function createChildren():void
+			override protected function childrenCreated():void
 			{
-				super.createChildren();
+				super.childrenCreated();
 				
 				windowTitleFontControl.initialize();
+				windowTitleFontControl.fontFamilyCombo.selectedLabel = Weave.properties.panelTitleFontFamily.value;
 				windowTitleFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleFontListChange );
 
 				toolFontControl.initialize();
-				toolFontControl.removeChild(toolFontControl.fontFamilyCombo);
+				toolFontControl.fontFamilyCombo.dataProvider = WeaveProperties.embeddedFonts;
+				toolFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleToolFontListChange );
 				toolFontControl.removeChild(toolFontControl.underlineButton);
-				toolFontControl.removeChild(toolFontControl.boldButton);
+//				toolFontControl.removeChild(toolFontControl.boldButton);
 				toolFontControl.removeChild(toolFontControl.italicButton);
 			}
 			
@@ -142,15 +131,23 @@
 				linkBindableProperty(Weave.properties.panelTitleFontItalic, windowTitleFontControl.italicButton, "selected");
 				linkBindableProperty(Weave.properties.panelTitleFontUnderline, windowTitleFontControl.underlineButton, "selected");
 				
+				linkBindableProperty(Weave.properties.axisFontFamily, toolFontControl.fontFamilyCombo, "selectedLabel");
 				linkBindableProperty(Weave.properties.axisFontSize, toolFontControl.fontSizeCombo, "selectedItem");
 				linkBindableProperty(Weave.properties.axisFontColor, toolFontControl.colorPicker, "selectedColor");
 				linkBindableProperty(Weave.properties.axisFontUnderline, toolFontControl.underlineButton, "selected" );
+				linkBindableProperty(Weave.properties.axisFontBold, toolFontControl.boldButton, "selected" );
 			}
 			
 			private function handleFontListChange(event:ListEvent):void
 			{
 				Weave.properties.panelTitleFontFamily.value = event.target.selectedLabel;
 			}
+			
+			private function handleToolFontListChange(event:ListEvent):void
+			{
+				Weave.properties.axisFontFamily.value = event.target.selectedLabel;
+			}
+			
 		]]>
 	</mx:Script>
 </mx:VBox>	

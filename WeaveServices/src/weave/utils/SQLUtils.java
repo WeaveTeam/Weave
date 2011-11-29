@@ -899,8 +899,6 @@ public class SQLUtils
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
 				columns.add(rs.getString(4)); // column_name
-			
-			Collections.sort(columns, String.CASE_INSENSITIVE_ORDER);
 		}
 		finally
 		{
@@ -1333,11 +1331,14 @@ public class SQLUtils
 		}		
 	}
 
-	public static String quoteString(Connection conn, String symbol)
+	/**
+	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 */
+	public static String quoteString(Connection conn, String string)
 	{
 		try 
 		{
-			return quoteString(conn.getMetaData().getDatabaseProductName(), symbol);
+			return quoteString(conn.getMetaData().getDatabaseProductName(), string);
 		} 
 		catch (SQLException e) 
 		{
@@ -1346,15 +1347,15 @@ public class SQLUtils
 		}
 	}
 	
-	public static String quoteString(String dbms, String symbol)
+	/**
+	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 */
+	public static String quoteString(String dbms, String string)
 	{
-		if (MYSQL.equalsIgnoreCase(dbms))
-			return "`" + symbol + "`";
-		if (POSTGRESQL.equalsIgnoreCase(dbms))
-			return "\"" + symbol + "\"";
-		if (SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
-			return "'" + symbol + "'";
-		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
+		String quote = "'";
+		
+		// make sure to escape matching quotes in the actual string
+		return quote + string.replace("\\","\\\\").replace(quote, "\\" + quote) + quote;
 	}
 	
 	/**

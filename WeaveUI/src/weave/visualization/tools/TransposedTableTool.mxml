@@ -25,7 +25,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute"
-				   title="Transposed Data Table" xmlns:editors="weave.ui.editors.*"
+				   title="Transposed Data Table" xmlns:editors="weave.editors.*"
 				   >
 	
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
@@ -36,13 +36,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						   width="100%" height="100%"
 						   allowMultipleSelection="true"
 						   dataProvider="{sourceArrayCollection}"
-						   minWidth="0"
 						   paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
 						   fontWeight="normal"
 						   alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
 						   rollOverColor="0xDADAFF"
 						   selectionColor="0xFFAAAA"
 						   lockedColumnCount="1"
+						   columnStretch="handlerHeaderRelease(event)"
 						   />
 		
 	</mx:VBox>
@@ -53,11 +53,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.DataGridEvent;
 			
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.utils.ColumnUtils;
@@ -68,9 +73,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const filterKeySet:KeySet = newLinkableChild(this,KeySet,handleHeaderColumnChange,true);
 			
+			public const fontSize:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),updateFontSize);
+			
+			public const headerText:LinkableString = registerLinkableChild(this,new LinkableString(""),updateHeaderText);
+			
 			override protected function childrenCreated():void
 			{
 				columnsList.hashMap = columns;
+				linkBindableProperty(fontSize,fontSizeInput,"text");
+				linkBindableProperty(headerText,headerTextInput,"text");
+			}
+			
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				handleColumnWidthChange();
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+			}
+			/**
+			 * @private updateFontSize
+			 * This function is called when the value of the fontSize linkable is changed.
+			 * It updates the font size of the text in the grid cells.
+			 **/
+			private function updateFontSize():void
+			{
+				table.setStyle("fontSize",fontSize.value);
 			}
 			
 			/**
@@ -94,11 +121,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var columnObjects:Array = columns.getObjects();
 				sourceArrayCollection.removeAll();
 				
-				//table.columns.length is zero if DataGridColumns are not added to the Felx's DataGrid Component
-				//Even if the dataprovider is set, the length can still be zero if DataGridColumns are not used. 
-				//So here,if table.columns.length is zero then the headerAttributeColumn is not set.
-				//So we use the first attribute column added to the columns hashmap as the header column
-				if(table.columns.length ==0 && columnObjects.length !=0)
+				//if header column is not set, then assign the first column from columnObjects as header column
+				if(columnObjects.length !=0 && !headerAttributeColumn.internalObject)
 					createHeaderColumns(columnObjects[0]);
 				for (var i:int = 0; i<columnObjects.length; i++)
 				{
@@ -112,11 +136,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					for(var k:int=0; k<keys.length; k++ )
 					{
 						var keyName:String = (keys[k] as IQualifiedKey).localName;
-						rowObject[keyName] = columnObjects[i].getValueFromKey((keys[k] as IQualifiedKey));
+						rowObject[keyName] = columnObjects[i].getValueFromKey((keys[k] as IQualifiedKey),String);
 					}
 					
 					sourceArrayCollection.addItem(rowObject);
 				}
+				
+				handleColumnWidthChange();
 			}
 			
 			/**
@@ -151,7 +177,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						var colName:String = " ";
 						if(!emtpyHeader)
-							colName = col.getValueFromKey((keys[i] as IQualifiedKey));							
+							colName = col.getValueFromKey((keys[i] as IQualifiedKey),String);							
 						var gridColumn:DataGridColumn = new DataGridColumn(colName);
 						
 						gridColumn.dataField = (keys[i] as IQualifiedKey).localName;
@@ -159,8 +185,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					
 					//the first column is the list of the attribute column names
-					//the header text is left empty
-					var nameGridColumn:DataGridColumn = new DataGridColumn(" ");
+					var headerColName:String = headerText.value
+					//if headerText is an empty string we set the header text of the first column to a string a single whitespace
+					//because if we set it to empty string it defaults to the dataField value which is "_name_"
+					if(!headerColName)
+						headerColName = " ";
+					var nameGridColumn:DataGridColumn = new DataGridColumn(headerColName);
 					nameGridColumn.dataField = "_name_";
 					
 					columnsToAdd.unshift(nameGridColumn);
@@ -172,15 +202,88 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if(table.columns.length != 0)
 						table.lockedColumnCount= 1;
 					
+					handleColumnWidthChange();
 					
+				}else{
+					//if headerAttribute Column is not set, remove the header text
 					
+					for each(var headerCol:DataGridColumn in table.columns)
+					{
+						headerCol.headerText = " ";
+						headerText.value = " ";
+					}
 				}
 			}
+			
+			private function updateHeaderText():void
+			{
+				var col:Array = table.columns;
+				
+				if(col.length <1)
+					return;
+				
+				//if headerText is an empty string we set the header text of the first column to a string a single whitespace
+				//because if we set it to empty string it defaults to the dataField value which is "_name_"
+				if(headerText.value)
+					(col[0] as DataGridColumn).headerText = headerText.value;
+				else
+					(col[0] as DataGridColumn).headerText = " ";
+			}
+			
+			/**
+			 * @public headerColumnWidth
+			 * 
+			 * */
+			public const headerColumnPercentWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleColumnWidthChange,true);
+			public const dataColumnPercentWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleColumnWidthChange,true);
+			
+			
+			private function handlerHeaderRelease(event:DataGridEvent):void
+			{
+				if(event.columnIndex == 0)
+					headerColumnPercentWidth.value = (table.columns[0] as DataGridColumn).width/unscaledWidth * 100;
+				else
+					dataColumnPercentWidth.value = (table.columns[event.columnIndex] as DataGridColumn).width/unscaledWidth * 100;
+			}
+			
+			private function handleColumnWidthChange():void
+			{
+				if(table.columnCount == 0)
+					return;
+				
+				(table.columns[0] as DataGridColumn).width = headerColumnPercentWidth.value/100 * unscaledWidth;
+				
+				for(var i:int =1; i<table.columnCount; i++)
+				{
+					(table.columns[i] as DataGridColumn).width = dataColumnPercentWidth.value/100 * unscaledWidth; 
+				}
+				
+			}
+			
+			[Deprecated(replacement="headerColumnPercentWidth")] public function set headerColumnWidth(value:Number):void
+			{
+				headerColumnPercentWidth.value = value;
+			}
+			
+			[Deprecated(replacement="dataColumnPercentWidth")] public function set dataColumnWidth(value:Number):void
+			{
+				dataColumnPercentWidth.value = value;
+			}
+			
+			
 			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Data Table">
+			<mx:HBox>
+				<mx:Label text="Font Size: " fontWeight="bold"/>
+				<mx:TextInput id="fontSizeInput" width="35" cornerRadius="5" borderStyle="solid"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Header Text: " fontWeight="bold"/>
+				<mx:TextInput id="headerTextInput" width="300"/>
+			</mx:HBox>
 			<ui:DynamicColumnComponent id="headerColumn" label="Header Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
 			<ui:ColumnListComponent id="columnsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
 		</mx:VBox>

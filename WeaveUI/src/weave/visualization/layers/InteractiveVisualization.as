@@ -19,6 +19,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.visualization.layers
 {
+	import com.cartogrammar.drawing.DashedLine;
+	
 	import flash.display.Graphics;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
@@ -28,26 +30,24 @@ package weave.visualization.layers
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
-	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
+	import mx.controls.ToolTip;
 	import mx.core.Application;
 	
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.core.LinkableString;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.CustomCursorManager;
-	import weave.utils.DashedLine;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
@@ -57,7 +57,7 @@ package weave.visualization.layers
 	 * 
 	 * @author adufilie
 	 */
-	public class InteractiveVisualization extends PlotLayerContainer implements IDisposableObject
+	public class InteractiveVisualization extends PlotLayerContainer
 	{
 		public function InteractiveVisualization()
 		{
@@ -65,7 +65,6 @@ package weave.visualization.layers
 			init();
 		}
 		
-		private var plotShadow:DropShadowFilter 	= new DropShadowFilter(1, 45, 0x000000, 0.2, 0, 0, 1);
 		private function init():void
 		{
 			doubleClickEnabled = true;
@@ -76,8 +75,6 @@ package weave.visualization.layers
 			enableAutoZoomToExtent.value = true;
 			// adding a canvas as child gets the selection rectangle on top of the vis
 			addChild(selectionRectangleCanvas);
-			
-			shadowAmount.value = 0;
 			
 			addContextMenuEventListener();
 			
@@ -98,15 +95,6 @@ package weave.visualization.layers
 			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, null, true);
 		}
 		
-		public function dispose():void
-		{
-			removeEventListener(MouseEvent.CLICK, handleMouseClick);
-			removeEventListener(MouseEvent.DOUBLE_CLICK, handleDoubleClick);
-			removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
-			removeEventListener(MouseEvent.ROLL_OUT, handleRollOut);
-			removeEventListener(MouseEvent.ROLL_OVER, handleRollOver);
-		}
-		
 		private function addContextMenuEventListener():void
 		{
 			var contextMenu:ContextMenu = (Application.application as Application).contextMenu;
@@ -119,34 +107,16 @@ package weave.visualization.layers
 			CustomCursorManager.removeCurrentCursor();
 		}
 		
-		public const shadowAmount:LinkableNumber = newLinkableChild(this, LinkableNumber, updateShadow);
-		private function updateShadow():void
-		{
-			if (shadowAmount.value == 0)
-			{
-				filters = null;
-				return;
-			}
-			
-			var amount:Number = shadowAmount.value / 100;
-			
-			plotShadow.distance = 1 + (1 * amount);
-			plotShadow.alpha = amount;
-			plotShadow.blurX = 2 * amount;
-			plotShadow.blurY = 2 * amount;
-			
-			filters = [plotShadow];
-		}
-		
 		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableProbe:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
-		protected var activeKeyType:String = null;
-		protected var mouseDragActive:Boolean = false;
-		protected var selectionRectangleCanvas:Canvas = new Canvas();
 		
-		protected const mouseDragStageCoords:IBounds2D = new Bounds2D();
+		private var activeKeyType:String = null;
+		private var mouseDragActive:Boolean = false;
+		private const selectionRectangleCanvas:Canvas = new Canvas();
+		
+		private const mouseDragStageCoords:IBounds2D = new Bounds2D();
 		
 
 		private var _mouseMode:String = null;
@@ -167,7 +137,7 @@ package weave.visualization.layers
 		}
 		
 		
-		protected function updateMouseMode(mouseEventType:String = null):void
+		private function updateMouseMode(mouseEventType:String = null):void
 		{
 			if (mouseEventType)
 				_mouseMode = Weave.properties.toolInteractions.determineMouseAction(mouseEventType);
@@ -218,7 +188,7 @@ package weave.visualization.layers
 			}
 		}
 		
-		protected function handleKeyboardEvent():void
+		private function handleKeyboardEvent():void
 		{
 			// if the escape key was hit, stop whatever mouse drag operation is in progress
 			if (StageUtils.keyboardEvent && StageUtils.keyboardEvent.keyCode == Keyboard.ESCAPE)
@@ -303,8 +273,8 @@ package weave.visualization.layers
 		
 		protected var mouseIsRolledOver:Boolean = false; // start this at false because we don't want tools probing when mouse is not rolled over
 		
-		private var _tempBounds:IBounds2D = new Bounds2D();
-		private var _screenBounds:IBounds2D = new Bounds2D();
+		private const _tempBounds:IBounds2D = new Bounds2D();
+		private const _screenBounds:IBounds2D = new Bounds2D();
 		protected function handleMouseWheel(event:MouseEvent):void
 		{
 			if (Weave.properties.enableMouseWheel.value)
@@ -331,6 +301,8 @@ package weave.visualization.layers
 					break;
 				}
 				case MouseEvent.MOUSE_MOVE:
+				case MouseEvent.ROLL_OVER:
+				case MouseEvent.ROLL_OUT:
 				{
 					if (event.buttonDown)
 						eventType = InteractionController.DRAG;
@@ -794,18 +766,9 @@ package weave.visualization.layers
 				// NOTE: this code is hacked to work with only one global probe KeySet
 				if (lastActiveLayer)
 					setProbeKeys(lastActiveLayer, []);
-				_lastProbedQKey = null;
 			}
-		}
-		
-		private var _lastSelectedKeys:Array = null;
-		public function set lastSelectedKeys(a:Array):void
-		{
-			_lastSelectedKeys = a;
-		}
-		public function get lastSelectedKeys():Array
-		{
-			return _lastSelectedKeys ? _lastSelectedKeys.concat() : [];
+			// either not rolled over or nothing was probed
+			_lastProbedQKey = null;
 		}
 		
 		protected function setSelectionKeys(layer:SelectablePlotLayer, keys:Array, useMouseMode:Boolean = false):void
@@ -823,7 +786,6 @@ package weave.visualization.layers
 					keySet.removeKeys(keys);
 				else
 					keySet.replaceKeys(keys);
-				_lastSelectedKeys = keySet.keys.concat();
 			}
 		}
 		
@@ -843,7 +805,8 @@ package weave.visualization.layers
 				}
 				else
 				{
-					var text:String = ProbeTextUtils.getProbeText(keySet, additionalProbeColumns);
+					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
+					ToolTip.maxWidth = Weave.properties.probeToolTipMaxWidth.value;
 					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}

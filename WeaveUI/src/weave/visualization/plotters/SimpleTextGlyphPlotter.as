@@ -80,7 +80,7 @@ package weave.visualization.plotters
 		public function get xData():DynamicColumn { return (internalPlotter as TextGlyphPlotter).dataX; }
 		public function get yData():DynamicColumn { return (internalPlotter as TextGlyphPlotter).dataY; }
 
-		public const font:LinkableString = new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily);
+		public const font:LinkableString = new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY);
 		public const size:LinkableNumber = new LinkableNumber();
 		public const color:LinkableNumber = new LinkableNumber();
 

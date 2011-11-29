@@ -60,8 +60,8 @@ public class CSVParser
 	private char quote = '"'; // this gets set in the constructor and should not change
 	private char delimiter = ','; // this gets set in the constructor and should not change
 
-	private static final char CR = '\r';
-	private static final char LF = '\n';
+	public static final char CR = '\r';
+	public static final char LF = '\n';
 	
 	/**
 	 * This function will decode a CSV token, removing quotes and un-escaping quotes where applicable.
@@ -399,5 +399,24 @@ public class CSVParser
 			rows[i + 1] = row;
 		}
 		return rows;
+	}
+	
+	/**
+	 * This function will convert a table of objects to a table of Strings using Object.toString() on each object.
+	 * @param rows A two-dimensional array of objects.
+	 * @return A two-dimensional array of Strings corresponding to the objects.
+	 */
+	public String[][] convertObjectTableToStringTable(Object[][] rows)
+	{
+		String[][] result = new String[rows.length][];
+		for (int i = 0; i < rows.length; i++)
+		{
+			result[i] = new String[rows[i].length];
+			Object[] row = rows[i];
+			for (int j = 0; j < row.length; j++)
+				if (row[j] != null)
+					result[i][j] = row[j].toString();
+		}
+		return result;	
 	}
 }

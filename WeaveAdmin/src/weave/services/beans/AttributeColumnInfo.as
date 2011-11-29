@@ -31,7 +31,9 @@ package weave.services.beans
 			connection = o.connection;
 			sqlQuery = o.sqlQuery;
 			metadata = o.metadata;
-			
+			for (var name:String in metadata)
+				if (metadata[name] == null)
+					metadata[name] = '';
 		}
 	}
 }

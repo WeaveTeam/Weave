@@ -41,7 +41,7 @@ package weave.compiler
 		public static function asNumber(value:*):Number
 		{
 			if (value == null)
-				return NaN; // return NaN, because Number(null) == 0
+				return NaN; // return NaN because Number(null) == 0
 			
 			if (value is Number)
 				return value;
@@ -49,7 +49,7 @@ package weave.compiler
 			try {
 				value = String(value);
 				if (value == '')
-					return NaN;
+					return NaN; // return NaN because Number('') == 0
 				return Number(value);
 			} catch (e:Error) { }
 
@@ -152,34 +152,31 @@ package weave.compiler
 		}
 		
 		/**
+		 * This function will use a default NumberFormatter object to format a Number to a String.
 		 * @param number The number to format.
-		 * @param formatterOrPrecision The NumberFormatter to use, or a precision value to use for the default NumberFormatter.
+		 * @param precision A precision value to pass to the default NumberFormatter.
+		 * @see mx.formatters.NumberFormatter#format
 		 */
-		public static function formatNumber(number:Number, formatterOrPrecision:Object = null):String
+		public static function formatNumber(number:Number, precision:Number = NaN):String
 		{
-			var formatter:NumberFormatter = formatterOrPrecision as NumberFormatter;
-			if (formatter)
-				return formatter.format(number);
-			
-			var precision:Number = asNumber(formatterOrPrecision);
 			if (isFinite(precision))
 			{
-				_defaultNumberFormatter.precision = uint(precision);
+				_numberFormatter.precision = uint(precision);
 			}
 			else
 			{
 				if (Math.abs(number) < 1)
 					return String(number); // this fixes the bug where "0.1" gets converted to ".1" (we don't want the "0" to be lost)
-				_defaultNumberFormatter.precision = -1;
+				_numberFormatter.precision = -1;
 			}
 			
-			return _defaultNumberFormatter.format(number);
+			return _numberFormatter.format(number);
 		}
 		
 		/**
 		 * This is the default NumberFormatter to use inside the formatNumber() function.
 		 */
-		private static const _defaultNumberFormatter:NumberFormatter = new NumberFormatter();
+		private static const _numberFormatter:NumberFormatter = new NumberFormatter();
 
 		/**
 		 * This function returns -1 if the given value is negative, and 1 otherwise.

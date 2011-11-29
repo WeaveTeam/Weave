@@ -65,7 +65,7 @@ package weave.data.AttributeColumns
 			switch (propertyName)
 			{
 				case AttributeColumnMetadata.TITLE:
-					if (value != null && secondaryKeyFilter.value)
+					if (value != null && secondaryKeyFilter.value && !allKeysHack)
 						return value + ' (' + secondaryKeyFilter.value + ')';
 					break;
 				case AttributeColumnMetadata.KEY_TYPE:
@@ -114,11 +114,13 @@ package weave.data.AttributeColumns
 		protected const _uniqueKeysAB:Array = new Array();
 		override public function get keys():Array
 		{
-			if (secondaryKeyFilter.value == null) // when no secondary key specified, use the real unique keys
+			if (secondaryKeyFilter.value == null || allKeysHack) // when no secondary key specified, use the real unique keys
 				return _uniqueKeysAB;
 			return _uniqueKeysA;
 		}
-
+		
+		public static var allKeysHack:Boolean = false; // used by DataTableTool
+		
 		/**
 		 * @param key A key to test.
 		 * @return true if the key exists in this IKeySet.

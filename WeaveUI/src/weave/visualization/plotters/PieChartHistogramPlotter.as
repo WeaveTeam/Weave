@@ -176,7 +176,7 @@ package weave.visualization.plotters
 				
 				_bitmapText.text = binKey.localName;
 				
-				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				
 				_bitmapText.angle = screenBounds.getYDirection() * (midRadians * 180 / Math.PI);
 				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
@@ -194,6 +194,7 @@ package weave.visualization.plotters
 				}
 				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+				_bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
 				_bitmapText.x = _tempPoint.x;
 				_bitmapText.y = _tempPoint.y;
 				_bitmapText.draw(destination);

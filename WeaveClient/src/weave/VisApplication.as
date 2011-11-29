@@ -36,7 +36,6 @@ package weave
 	import flash.ui.ContextMenuItem;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.binding.utils.BindingUtils;
 	import mx.containers.HBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
@@ -46,7 +45,6 @@ package weave
 	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
-	import mx.core.UIComponentGlobals;
 	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
@@ -75,6 +73,7 @@ package weave
 	import weave.services.LocalAsyncService;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
+	import weave.ui.AttributeMenuTool;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorBinEditor;
@@ -100,10 +99,9 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-	import weave.ui.editors.AddDataSourceComponent;
-	import weave.ui.editors.EditDataSourceComponent;
-	import weave.ui.settings.GlobalUISettings;
-	import weave.utils.CSSUtils;
+	import weave.ui.editors.AddDataSourcePanel;
+	import weave.ui.editors.EditDataSourcePanel;
+	import weave.ui.settings.WeavePropertiesEditor;
 	import weave.utils.DebugUtils;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
@@ -196,6 +194,10 @@ package weave
 			
 			setStyle("verticalGap", 0);
 			setStyle("horizingalGap", 0);
+			
+			// make it so the menu bar does not get hidden if the workspace size is too small.
+			clipContent = false;
+			setStyle('horizontalAlign', 'left');
 
 			// default has menubar and taskbar unless specified otherwise in config file
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
@@ -227,53 +229,51 @@ package weave
 			Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
 			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange, true);
+			
 		}
 
+		
 		/**
 		 * This needed to be a function because FlashVars can't be fetched till the application loads.
 		 */
-		private function applicationComplete( e:FlexEvent ):void
+		private function applicationComplete(event:FlexEvent = null):void
 		{
-			getFlashVars();
-			if (getFlashVarAdminConnectionName() != null)
+			if (event != null)
 			{
-				// disable interface until connected to admin console
-				var _this:VisApplication = this;
-				_this.enabled = false;
-				var errorHandler:Function = function(..._):void
+				getFlashVars();
+				// disable application until it's ready
+				enabled = false;
+				
+				if (getFlashVarAdminConnectionName() != null)
 				{
-					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
-					_this.enabled = true;
-				};
-				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
-				pendingAdminService.errorCallbacks.addGroupedCallback(this, errorHandler);
-				// when admin console responds, set adminService
-				DelayedAsyncResponder.addResponder(
-					pendingAdminService.invokeAsyncMethod("ping"),
-					function(..._):*
+					// disable interface until connected to admin console
+					var _this:VisApplication = this;
+					_this.enabled = false;
+					var resultHandler:Function = function(..._):void
 					{
-						//Alert.show("Connected to Admin Console");
 						_this.enabled = true;
 						adminService = pendingAdminService;
-						toggleMenuBar();
-						StageUtils.callLater(this,setupVisMenuItems,null,false);
-					},
-					errorHandler
-				);
+						applicationComplete();
+					};
+					var faultHandler:Function = function(..._):void
+					{
+						_this.enabled = true;
+						Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
+						applicationComplete();
+					};
+					var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
+					pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
+					// when admin console responds, set adminService
+					DelayedAsyncResponder.addResponder(
+						pendingAdminService.invokeAsyncMethod("ping"),
+						resultHandler,
+						faultHandler
+					);
+					
+					// do nothing until admin console is connected.
+					return;
+				}
 			}
-			else
-			{
-				enabled = false;
-			}
-			// handle dynamic changes to the session state that change what CSS file to use
-			Weave.properties.cssStyleSheetName.addGroupedCallback(
-				this,
-				function():void
-				{
-					CSSUtils.loadStyleSheet(Weave.properties.cssStyleSheetName.value);
-				},
-				true
-			);
 			
 			// load the session state file
 			var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
@@ -347,8 +347,6 @@ package weave
 		public static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 		public static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
 
-		private function get _application():Application { return application as Application; }
-		
 		private var _maxProgressBarValue:int = 0;
 		private var _progressBar:ProgressBar = new ProgressBar;
 		private function handleProgressIndicatorCounterChange():void
@@ -406,10 +404,10 @@ package weave
 		{
 			super.createChildren();
 
-			UIComponentGlobals.catchCallLaterExceptions = true;
-			systemManager.addEventListener("callLaterError", reportError);
+			//UIComponentGlobals.catchCallLaterExceptions = true;
+			//systemManager.addEventListener("callLaterError", reportError);
 
-			_application.addChild(visDesktop);
+			this.addChild(visDesktop);
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;
 			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
@@ -444,19 +442,18 @@ package weave
 		}
 		private function updateWorkspaceSize(..._):void
 		{
-			var visDesktop:Application = _application;
-			if (!visDesktop.parent)
+			if (!this.parent)
 				return;
 			var w:Number = Weave.properties.workspaceWidth.value;
 			var h:Number = Weave.properties.workspaceHeight.value;
 			if (isFinite(w))
-				visDesktop.width = w;
+				this.width = w;
 			else
-				visDesktop.width = visDesktop.parent.width;
+				this.width = this.parent.width;
 			if (isFinite(h))
-				visDesktop.height = h;
+				this.height = h;
 			else
-				visDesktop.height = visDesktop.parent.height;
+				this.height = this.parent.height;
 		}
 
 		private var adminService:LocalAsyncService = null;
@@ -492,7 +489,7 @@ package weave
 			}
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
-			fileSaveDialogBox.textInput = getFlashVarConfigFileName();
+			fileSaveDialogBox.textInput = getFlashVarConfigFileName().split("/").pop();
 			fileSaveDialogBox.title = "Save File";
 			fileSaveDialogBox.message = "Enter a filename";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
@@ -548,10 +545,11 @@ package weave
 					_weaveMenu.percentWidth = 100;
 					StageUtils.callLater(this,setupVisMenuItems,null,false);
 					
-					_application.addChildAt(_weaveMenu, 0);
+					//PopUpManager.addPopUp(_weaveMenu, this);
+					this.addChildAt(_weaveMenu, 0);
 					
-					if (_application == _oicLogoPane.parent)
-						_application.removeChild(_oicLogoPane);
+					if (this == _oicLogoPane.parent)
+						this.removeChild(_oicLogoPane);
 				}
 				
 				// always show menu bar when admin service is present
@@ -562,18 +560,18 @@ package weave
 			{
 				try
 				{
-		   			if (_weaveMenu && _application == _weaveMenu.parent)
-						_application.removeChild(_weaveMenu);
+		   			if (_weaveMenu && this == _weaveMenu.parent)
+						this.removeChild(_weaveMenu);
 
 		   			_weaveMenu = null;
 					
 					if (Weave.properties.showCopyright.value)
 					{
-						_application.addChildAt(_oicLogoPane, _application.numChildren);
-						_application.setStyle("horizontalAlign", "right");
+						this.addChildAt(_oicLogoPane, this.numChildren);
+						this.setStyle("horizontalAlign", "right");
 					}
-					else if (_application == _oicLogoPane.parent)
-						_application.removeChild(_oicLogoPane);
+					else if (this == _oicLogoPane.parent)
+						this.removeChild(_oicLogoPane);
 				}
 				catch(error:Error)
 				{
@@ -616,10 +614,10 @@ package weave
 				);
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu,new WeaveMenuItem("Add New Datasource",AddDataSourceComponent.showAsPopup));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu,new WeaveMenuItem("Edit Datasources",EditDataSourceComponent.showAsPopup));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Edit Datasources", EditDataSourcePanel.showAsPopup));
 			}
 			
 			
@@ -647,6 +645,7 @@ package weave
 
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				
+				createToolMenuItem(Weave.properties.enableAddAttributeMenuTool, "Add Attribute Menu Tool", createGlobalObject, [AttributeMenuTool]);
 				createToolMenuItem(Weave.properties.enableAddBarChart, "Add Bar Chart", createGlobalObject, [CompoundBarChartTool]);
 				createToolMenuItem(Weave.properties.enableAddColormapHistogram, "Add Color Histogram", createColorHistogram);
 				createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
@@ -713,13 +712,10 @@ package weave
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session state to server", saveSessionStateToServer));
 				
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				
-				if (Weave.properties.enableUserPreferences.value || adminService)
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("User interface preferences", GlobalUISettings.openGlobalEditor));
 			}
 			
-			if (Weave.properties.enableWindowMenu.value)
-			{	
+			if (Weave.properties.enableWindowMenu.value || adminService)
+			{
 				_windowMenu = _weaveMenu.addMenuToMenuBar("Window", true);
 				setupWindowMenu();
 			}
@@ -917,7 +913,11 @@ package weave
 			if (_windowMenu.children)
 				_windowMenu.children.removeAll();
 			
+			if (Weave.properties.enableUserPreferences.value || adminService)
+				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Preferences", WeavePropertiesEditor.openGlobalEditor));
 			
+			_weaveMenu.addSeparatorToMenu(_windowMenu);
+
 			var label:*;
 			var click:Function;
 			var enable:*;

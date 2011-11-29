@@ -247,20 +247,28 @@ public class GenericServlet extends HttpServlet
 
     		try
     		{
-    			Object obj = deseriaizeCompressedAmf3(request.getInputStream());
+    	    	InflaterInputStream inflaterInputStream = new InflaterInputStream(request.getInputStream());
+    			Object obj = deseriaizeAmf3(inflaterInputStream);
     			
 	    		String methodName = (String) ((ASObject)obj).get(METHOD_PARAM_NAME);
 	    		Object methodParameters = ((ASObject)obj).get("methodParameters");
-	    		
-	    		if(methodParameters instanceof Object[])
+	    		Number streamParameterIndex = (Number) ((ASObject)obj).get("streamParameterIndex");
+	    		if (methodParameters instanceof Object[])
+	    		{
+	    			int index = streamParameterIndex.intValue();
+	    			if (index >= 0)
+	    				((Object[])methodParameters)[index] = inflaterInputStream;
 	    			invokeMethod(methodName, (Object[])methodParameters, request, response);
+	    		}
 	    		else
+	    		{
 	    			invokeMethod(methodName, (Map)methodParameters, request, response);
+	    		}
 	    	}
 	    	catch (Exception e)
 	    	{
 	    		e.printStackTrace();
-	    		sendError(response, e.getMessage());
+	    		sendError(response, e);
 	    	}
     	}
     	finally
@@ -325,7 +333,7 @@ public class GenericServlet extends HttpServlet
 	{	
 		if(!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
 		{
-			sendError(response, String.format("Method \"%s\" not supported.", methodName));
+			sendError(response, new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)));
 			return;
 		}
 		
@@ -401,7 +409,7 @@ public class GenericServlet extends HttpServlet
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		if (exposedMethod == null)
 		{
-			sendError(response, "Unknown method: "+methodName);
+			sendError(response, new IllegalArgumentException("Unknown method: "+methodName));
 		}
 		
 		// cast input values to appropriate types if necessary
@@ -431,6 +439,7 @@ public class GenericServlet extends HttpServlet
 				}
 				else if (value != null)
 				{
+					// additional parameter type casting
 					if (value instanceof Boolean && expectedArgTypes[index] == boolean.class)
 					{
 						value = (boolean)(Boolean)value;
@@ -502,23 +511,22 @@ public class GenericServlet extends HttpServlet
 		{
 			System.out.println(methodName + (List)Arrays.asList(methodParameters));
 			e.getCause().printStackTrace();
-			sendError(response, e.getCause().getMessage());
+			sendError(response, e.getCause());
 		}
 		catch (IllegalArgumentException e)
 		{
-			String error = e.getMessage() + "\n" +
+			String moreInfo = 
 				"Expected: " + formatFunctionSignature(methodName, expectedArgTypes, exposedMethod.paramNames) + "\n" +
 				"Received: " + formatFunctionSignature(methodName, methodParameters, null);
+			System.out.println(e.getMessage() + '\n' + moreInfo);
 			
-			System.out.println(error);
-			
-			sendError(response, error);
+			sendError(response, e, moreInfo);
 		}
 		catch (Exception e)
 		{
 			System.out.println(methodName + (List)Arrays.asList(methodParameters));
 			e.printStackTrace();
-			sendError(response, e.getMessage());
+			sendError(response, e);
 		}
     }
     
@@ -538,11 +546,12 @@ public class GenericServlet extends HttpServlet
     	List<String> names = new Vector<String>(paramValuesOrTypes.length);
     	for (int i = 0; i < paramValuesOrTypes.length; i++)
     	{
+    		Object valueOrType = paramValuesOrTypes[i];
     		String name = "null";
-    		if (paramValuesOrTypes[i] instanceof Class)
-    			name = ((Class<?>)paramValuesOrTypes[i]).getName();
-    		else 
-    			name = paramValuesOrTypes[i].getClass().getName();
+    		if (valueOrType instanceof Class)
+    			name = ((Class<?>)valueOrType).getName();
+    		else if (valueOrType != null)
+    			name = valueOrType.getClass().getName();
     		
     		// decode output of Class.getName()
     		while (name.charAt(0) == '[') // array type
@@ -582,16 +591,23 @@ public class GenericServlet extends HttpServlet
     	return String.format("%s(%s)", methodName, result.substring(1, result.length() - 1));
     }
     
-    private void sendError(HttpServletResponse response, String message) throws IOException
+    private void sendError(HttpServletResponse response, Throwable exception) throws IOException
+    {
+    	sendError(response, exception, null);
+    }
+    private void sendError(HttpServletResponse response, Throwable exception, String moreInfo) throws IOException
 	{
     	//response.setHeader("Cache-Control", "no-cache");
     	//response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
     	
+    	String message = exception.getMessage();
+    	if (moreInfo != null)
+    		message += "\n" + moreInfo;
     	System.out.println("Serializing ErrorMessage: "+message);
     	
     	ServletOutputStream servletOutputStream = response.getOutputStream();
     	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
-    	errorMessage.faultCode = "Error";
+    	errorMessage.faultCode = exception.getClass().getSimpleName();
     	seriaizeCompressedAmf3(errorMessage, servletOutputStream);
 	}
     
@@ -641,18 +657,16 @@ public class GenericServlet extends HttpServlet
     }
 
     //  De-serialize a ByteArray/AMF3/Flex object to a Java object  
-    protected Object deseriaizeCompressedAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
+    protected Object deseriaizeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
     {
     	Object deSerializedObj = null;
 
     	SerializationContext context = getSerializationContext();
 		
-    	InflaterInputStream inflaterInputStream = new InflaterInputStream(inputStream);
-    	
     	Amf3Input amf3Input = new Amf3Input(context);
-		amf3Input.setInputStream(inflaterInputStream); // uncompress
+		amf3Input.setInputStream(inputStream); // uncompress
 		deSerializedObj = amf3Input.readObject();
-		amf3Input.close();
+		//amf3Input.close();
     	
 		return deSerializedObj;
     }    

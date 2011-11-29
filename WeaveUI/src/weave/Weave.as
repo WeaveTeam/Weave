@@ -51,6 +51,7 @@ package weave
 	import weave.data.ProjectionManager;
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
+	import weave.editors._registerAllLinkableObjectEditors;
 	import weave.services.ProgressIndicator;
 	import weave.services.URLRequestUtils;
 	import weave.utils.DebugTimer;
@@ -88,6 +89,8 @@ package weave
 			WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
 			
+			_registerAllLinkableObjectEditors();
+			
 			// initialize the session state interface to point to Weave.root
 			(WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).setLinkableObjectRoot(root);
 			
@@ -113,7 +116,7 @@ package weave
 				"weave.Reports",
 				"weave.test",
 				"weave.ui",
-				"weave.ui.vistools",
+				"weave.ui.editors",
 				"weave.visualization",
 				"weave.visualization.tools",
 				"weave.visualization.layers",

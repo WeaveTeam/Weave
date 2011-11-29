@@ -19,10 +19,18 @@
 
 package weave
 {
+	import flash.events.Event;
+	import flash.events.IOErrorEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
+	import flash.net.URLRequest;
+	import flash.text.Font;
 	import flash.utils.ByteArray;
 	
+	import mx.collections.ArrayCollection;
 	import mx.utils.StringUtil;
+	
+	import ru.etcs.utils.FontLoader;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
@@ -32,14 +40,19 @@ package weave
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
+	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
+	import weave.utils.NumberUtils;
 	import weave.visualization.layers.InteractionController;
+	import weave.visualization.layers.LinkableEventListener;
 
 	use namespace weave_internal;
 	
@@ -61,78 +74,119 @@ package weave
 			// register all properties as children of this object
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
+			
+			enableWeaveFonts.addGroupedCallback(this,loadEmbeddedFonts,true);
+
+			// handle dynamic changes to the session state that change what CSS file to use
+			cssStyleSheetName.addGroupedCallback(
+				this,
+				function():void
+				{
+					CSSUtils.loadStyleSheet(cssStyleSheetName.value);
+				}
+			);
+
+		}
+		
+		private function loadEmbeddedFonts():void
+		{
+			if(Weave.properties.enableWeaveFonts.value)
+			{
+				fontLoader.autoRegister = true;
+				fontLoader.addEventListener(Event.COMPLETE,weaveFontsLoaded);
+				fontLoader.addEventListener(IOErrorEvent.IO_ERROR,handleLoaderErrorEvent);
+				fontLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleLoaderErrorEvent);
+				fontLoader.load(new URLRequest("WeaveFonts.swf"));
+			}			
+		}
+		
+		private var fontLoader:FontLoader = new FontLoader();
+		
+		public static const embeddedFonts:ArrayCollection = new ArrayCollection([EmbeddedFonts.SophiaNubian]);
+		private function weaveFontsLoaded(event:Event):void
+		{
+			var fonts:Array = fontLoader.fonts;
+			
+			
+			for each (var font:Font in fonts)
+			{
+				if(!embeddedFonts.contains(font.fontName))
+					embeddedFonts.addItem(font.fontName);
+			}
+			
+		}
+		
+		private function handleLoaderErrorEvent(event:Event):void
+		{
+			//DO Nothing
 		}
 		
 		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
 		public static const DEFAULT_FONT_SIZE:Number = 10;
 		public static const DEFAULT_AXIS_FONT_SIZE:Number = 11;
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
-		public static const DATA_GRID:String = "DataGrid";
-		public static const TEXT_EDITOR:String = "TextArea";
 		
 		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
 		private static const GOOGLE_URL:String = "Google|http://www.google.com/search?q=";
 		private static const GOOGLE_MAPS_URL:String = "Google Maps|http://maps.google.com/maps?t=h&q=";
 		private static const GOOGLE_IMAGES_URL:String = "Google Images|http://images.google.com/images?q=";
 		
-		//TEMPORARY SOLUTION -- only embedded fonts work on axis, and there is only one embedded font right now.
-		public static function verifyFontFamily(value:String):Boolean { return value == DEFAULT_FONT_FAMILY; }
 		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:String):Boolean
 		{
-			if (value.substr(-1) == '%')
+			if (!NumberUtils.verifyNumberOrPercentage(value))
+				return false;
+			if (value && value.substr(-1) == '%')
 				return StandardLib.asNumber(value.substr(0, -1)) > 0;
 			return StandardLib.asNumber(value) >= 1;
 		}
-		private function verifySessionStateEditor(value:String):Boolean { return value == DATA_GRID || value == TEXT_EDITOR; }
 		private function verifyMaxTooltipRecordsShown(value:Number):Boolean { return 0 <= value && value <= 20; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
-//		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Views TabBar
 		public const windowSnapGridSize:LinkableString = new LinkableString("1%", verifyWindowSnapGridSize); // window snap grid size in pixels
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
 		
+		public const enableWeaveFonts:LinkableBoolean = new LinkableBoolean(true);
+		
 		
 		// enable/disable advanced features
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
+		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const showAttributeSelector:LinkableBoolean = new LinkableBoolean(true); // Show Attribute Selector tools menu
-		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
-		public const enableAddScatterplot:LinkableBoolean = new LinkableBoolean(true); // Add Scatterplot option tools menu
-		public const enableAddMap:LinkableBoolean = new LinkableBoolean(true); // Add Map option tools menu
+		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
+		
+		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
+		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
+		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
 		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
+		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
+		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
+		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu
 		public const enableAdd2DHistogram:LinkableBoolean = new LinkableBoolean(true); // Add 2D Histogram option tools menu
-		public const enableAddTimeSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Time Slider Tool option tools menu
 		public const enableAddGraphTool:LinkableBoolean = new LinkableBoolean(true); // Add Graph Tool option tools menu
+		public const enableAddLineChart:LinkableBoolean = new LinkableBoolean(true); // Add Line Chart option tools menu
+		public const enableAddDimensionSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Dimension Slider Tool option tools menu		
+		public const enableAddMap:LinkableBoolean = new LinkableBoolean(true); // Add Map option tools menu
 		public const enableAddPieChart:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
 		public const enableAddPieChartHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
-		public const enableAddLineChart:LinkableBoolean = new LinkableBoolean(true); // Add Line Chart option tools menu
-		public const enableAddThermometerTool:LinkableBoolean = new LinkableBoolean(true); // Add Thermometer Tool option tools menu
-		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
-		public const enableAddDimensionSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Dimension Slider Tool option tools menu		
-		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
-		public const enableAddRScriptEditor:LinkableBoolean = new LinkableBoolean(true); // Add R Script Editor option tools menu		
-		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
-		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
-		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
-		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
-		
-//		public const enableAddStickFigurePlot:LinkableBoolean = new LinkableBoolean(true); // Add Stick Figure Plot option tools menu
 		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu		
-		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
-//		public const enableAddSP2:LinkableBoolean = new LinkableBoolean(true); // Add SP2 option tools menu
-//		public const enableAddWordle:LinkableBoolean = new LinkableBoolean(true); // Add Wordle option tools menu		
 		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(false); // Add RamachandranPlot option tools menu		
-//		public const enableAddSurfacePlotter:LinkableBoolean = new LinkableBoolean(true); // Add Surface Plotter option tools menu
+		public const enableAddRScriptEditor:LinkableBoolean = new LinkableBoolean(true); // Add R Script Editor option tools menu		
+		public const enableAddScatterplot:LinkableBoolean = new LinkableBoolean(true); // Add Scatterplot option tools menu
+		public const enableAddThermometerTool:LinkableBoolean = new LinkableBoolean(true); // Add Thermometer Tool option tools menu
+		public const enableAddTimeSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Time Slider Tool option tools menu
 		
 		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
@@ -145,6 +199,7 @@ package weave
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
+		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
 		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
@@ -211,12 +266,21 @@ package weave
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
-
-		// dashed lines for the perimeter of the rectangle used for selection and zooming
+		
+		/**
+		 * This is an array of LinkableEventListeners which specify a function to run on an event.
+		 */
+		public const eventListeners:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
+		
+		/**
+		 * Parameters for the DashedLine selection box.
+		 * @default "5,5"
+		 */
 		public const dashedSelectionBox:LinkableString = new LinkableString("5,5", verifyDashedSelectionBox);
 		public function verifyDashedSelectionBox(csv:String):Boolean
 		{
-			if (csv === null) return false;
+			if (csv === null) 
+				return false;
 			
 			var parser:CSVParser = new CSVParser();
 			var rows:Array = parser.parseCSV(csv);
@@ -224,26 +288,20 @@ package weave
 			if (rows.length == 0)
 				return false;
 			
+			// Only the first row will be used
 			var values:Array = rows[0];
-/*			if (values.length % 2 == 1) // length is odd with at least 1 element--push last element
-			{
-				var lastValue:String = values[values.length - 1];
-				if (lastValue == 0)
-					lastValue = 1;
-				else
-					lastValue = 0;
-				
-				values.push(lastValue);
-			}
-*/			
 			var foundNonZero:Boolean = false;
 			for (var i:int = 0; i < values.length; ++i)
 			{
+				// We want every value >= 0 with at least one value > 0 
+				// Undefined and negative numbers are invalid.
 				var value:int = int(values[i]);
-				if (isNaN(value)) return false;
-				if (value < 0) return false;
+				if (isNaN(value)) 
+					return false;
+				if (value < 0) 
+					return false;
 				if (value != 0)
-					foundNonZero = true;
+					foundNonZero = true; 
 			}
 			
 			return foundNonZero;
@@ -251,14 +309,14 @@ package weave
 		
 		public const panelTitleFontColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
 		public const panelTitleFontSize:LinkableNumber = new LinkableNumber(10, verifyFontSize);
-		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana");
+		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana", StandardLib.isDefined);
 		public const panelTitleFontBold:LinkableBoolean = new LinkableBoolean(false);
 		public const panelTitleFontItalic:LinkableBoolean = new LinkableBoolean(false);
 		public const panelTitleFontUnderline:LinkableBoolean = new LinkableBoolean(false);
 				
 		public const axisFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
 		public const axisFontSize:LinkableNumber = new LinkableNumber(DEFAULT_AXIS_FONT_SIZE, verifyFontSize);
-		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY, verifyFontFamily);
+		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY, StandardLib.isDefined);
 		public const axisFontBold:LinkableBoolean = new LinkableBoolean(true);
 		public const axisFontItalic:LinkableBoolean = new LinkableBoolean(false);
 		public const axisFontUnderline:LinkableBoolean = new LinkableBoolean(false);
@@ -282,6 +340,7 @@ package weave
 		public const probeToolTipBackgroundAlpha:LinkableNumber = new LinkableNumber(1.0, verifyAlpha);
 		public const probeToolTipBackgroundColor:LinkableNumber = new LinkableNumber(NaN);
 		public const probeToolTipFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
+		public const probeToolTipMaxWidth:LinkableNumber = new LinkableNumber(400);
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 
@@ -300,7 +359,7 @@ package weave
 		}
 		
 		//default URL
-		public const searchServiceURLs:LinkableString = new LinkableString(WIKIPEDIA_URL+"\n"+GOOGLE_URL+"\n"+GOOGLE_IMAGES_URL+"\n"+GOOGLE_MAPS_URL);
+		public const searchServiceURLs:LinkableString = new LinkableString([WIKIPEDIA_URL, GOOGLE_URL, GOOGLE_IMAGES_URL, GOOGLE_MAPS_URL].join('\n'));
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);
@@ -337,8 +396,21 @@ package weave
 			}
 		}
 		
-		public function get macroLibraries():LinkableString { return LinkableFunction.libraries; }
+		/**
+		 * @see weave.core.LinkableFunction#macros
+		 */
 		public function get macros():ILinkableHashMap { return LinkableFunction.macros; }
+		/**
+		 * @see weave.core.LinkableFunction#macroLibraries
+		 */
+		public function get macroLibraries():LinkableString { return LinkableFunction.macroLibraries; }
+		/**
+		 * @see weave.core.LinkableFunction#includeMacroLibrary
+		 */
+		public function includeMacroLibrary(libraryName:String):void
+		{
+			LinkableFunction.includeMacroLibrary(libraryName);
+		}
 		
 		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
 		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);

@@ -216,6 +216,30 @@
 					outerVBox.removeChild(paramSelector);
 			}
 			
+			/**
+			 * This function is a temporary hack.
+			 */
+			public static function hack_findInternalDynamicColumn(columnWrapper:IColumnWrapper):DynamicColumn
+			{
+				var columnWrapper:IColumnWrapper = columnWrapper as IColumnWrapper;
+				if (columnWrapper)
+				{
+					// temporary solution - find internal dynamic column
+					while (true)
+					{
+						if (columnWrapper.internalColumn is DynamicColumn)
+							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
+						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
+							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
+						else
+							break;
+					}
+					if (columnWrapper is ExtendedDynamicColumn)
+						columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
+				}
+				return columnWrapper as DynamicColumn;
+			}
+			
 			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
 			{
 				var index:int = selectableAttributes.indexOf(columnOrHashMap);
@@ -234,24 +258,7 @@
 					showOrHideParamSelector(false);
 				}
 				
-				var columnWrapper:IColumnWrapper = columnOrHashMap as IColumnWrapper;
-				if (columnWrapper)
-				{
-					// temporary solution - find internal dynamic column
-					while (true)
-					{
-						if (columnWrapper.internalColumn is DynamicColumn)
-							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
-						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
-							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
-						else
-							break;
-					}
-					if (columnWrapper is ExtendedDynamicColumn)
-						columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
-				}
-				
-				linkToDynamicColumn(columnWrapper as DynamicColumn);
+				linkToDynamicColumn(hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
 				
 				if (columnOrHashMap is ILinkableHashMap)
 				{

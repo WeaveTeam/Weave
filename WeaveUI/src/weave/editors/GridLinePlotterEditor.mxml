@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+Editor for custom layers using GridLinePlotters
+@author kmanohar
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 implements="weave.api.ui.ILinkableObjectEditor"
+		 xmlns="weave.editors.*"
+		 label="Grid Line Settings" xmlns:ui="weave.ui.*">
+	<mx:HBox>
+		<mx:RadioButtonGroup id="hv"/>
+		<mx:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
+		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
+					 label="Horizontal lines"
+					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
+	</mx:HBox>
+	
+	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Start:"
+				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
+	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="End:"
+				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
+	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Interval:"
+				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
+	<mx:Spacer/>
+	<ui:Indent indent="{indent}" label="Thickness:">
+		<mx:NumericStepper id="gridLineThicknessStepper" minimum="1" maximum="10"
+						   creationComplete="linkBindableProperty(_plotter.lineStyle.weight.defaultValue, event.target, 'value')"/>
+	</ui:Indent>
+	<ui:Indent indent="{indent}" label="Color:">
+		<mx:ColorPicker toolTip="Select a color for the grid lines of this visualization" id="gridColorPicker" 
+						creationComplete="linkBindableProperty(_plotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"/>
+	</ui:Indent>
+	<ui:Indent indent="{indent}" label="Opacity:">
+		<mx:HSlider id="gridLineAlphaSlider" 
+					snapInterval="0.1"
+					tickInterval="0.5" labels="{['0%','50%','100%']}" 
+					dataTipFormatFunction="alphaSliderFormatFunction"
+					minimum="0.0" maximum="1.0" 
+					liveDragging="true"
+					creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
+	</ui:Indent>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.utils.EditorManager;
+			import weave.visualization.plotters.GridLinePlotter;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			[Bindable] private var indent:int = 80;
+			[Bindable] private var inputWidth:int = 64;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				_plotter = object as GridLinePlotter;
+			}
+			public function applyChanges():void
+			{
+				
+			}
+
+			private var _plotter:GridLinePlotter = null;
+		
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
+			private function alphaSliderFormatFunction(value:Number):String {
+				//return int(100 - (value * 100)) + "% Transparent";
+				return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
+			}
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

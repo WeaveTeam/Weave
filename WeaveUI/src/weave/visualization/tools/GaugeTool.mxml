@@ -61,7 +61,7 @@
 				super.childrenCreated();
 				cRampEditor.colorRamp = _plotter.colorRamp;
 				
-				visualization.marginBottom.addGroupedCallback(this, handleMarginChange);
+				visualization.marginBottomNumber.addGroupedCallback(this, handleMarginChange);
 			}
 			
 			override protected function constructor():void
@@ -88,7 +88,7 @@
 				Weave.properties.axisFontColor.addGroupedCallback(this,updateMarginLabel);
 				Weave.properties.axisFontSize.addGroupedCallback(this,updateMarginLabel);
 				
-				visualization.marginBottom.value    = DEFAULT_MARGIN_BOTTOM;
+				visualization.marginBottom.value    = DEFAULT_MARGIN_BOTTOM.toString();
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -142,8 +142,8 @@
 			private static const DEFAULT_MARGIN_BOTTOM:int = 35;
 			private function handleMarginChange():void
 			{
-				marginLabelCheckBox.selected = visualization.marginBottom.value != 0;
-				marginLabel.height = visualization.marginBottom.value;
+				marginLabelCheckBox.selected = visualization.marginBottomNumber.value != 0;
+				marginLabel.height = visualization.marginBottomNumber.value;
 			}
 			
 		]]>
@@ -165,7 +165,7 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="Gauge column:" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="Advanced">
-			<mx:CheckBox id="marginLabelCheckBox" label="Show attribute name" change="visualization.marginBottom.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="Click to hide the title."/>
+			<mx:CheckBox id="marginLabelCheckBox" label="Show attribute name" change="visualization.marginBottomNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="Click to hide the title."/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>

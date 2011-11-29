@@ -92,12 +92,15 @@ package weave.core
 		 */
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
+			delayCallbacks(); // make sure callbacks only trigger once
 			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
 			var object:ILinkableObject = requestLocalObject(classDef, false);
-			if (object == null || objectToCopy == null)
-				return;
-			var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
-			WeaveAPI.SessionManager.setSessionState(object, state, true);
+			if (object != null && objectToCopy != null)
+			{
+				var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
+				WeaveAPI.SessionManager.setSessionState(object, state, true);
+			}
+			resumeCallbacks();
 		}
 		
 		/**
@@ -226,7 +229,10 @@ package weave.core
 			if (newGlobalName == null) // local object
 			{
 				// initialize the local object -- this may trigger childListCallback()
-				_localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
+				var result:ILinkableObject = _localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
+				// if the object fails to be created, remove any existing object (may be a global one).
+				if (!result)
+					removeObject();
 			}
 			else // global object
 			{

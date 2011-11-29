@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:DraggablePanel
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="weave.ui.editors.*"
+	layout="absolute"
+	title="Edit Data Sources"
+	borderAlpha="1"
+	borderColor="#C5C3A8"
+	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	roundedBottomCorners="true"
+	height="564"
+	creationComplete="handleCreationComplete()" width="184" xmlns:ui="weave.ui.*">
+	<mx:HBox height="100%">
+		<mx:VBox cornerRadius="10" borderThickness="5" borderStyle="solid" borderColor="#C5C3A8" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
+			<mx:List id="sourceList" change="handleSourceSelect()" borderThickness="0" dataProvider="{sources}" labelFunction="getLabel"/>
+		</mx:VBox>
+		<mx:Box width="100%" height="100%" id="sourceEditor" cornerRadius="5">
+			
+		</mx:Box>
+	</mx:HBox>
+	<mx:ControlBar paddingTop="5" paddingBottom="5">
+		<mx:Button label="New data source..." click="addSource()"/>
+		<mx:Button label="Remove selected" click="removeSelected()"/>
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Apply changes to selected" click="save()"/>
+		<mx:Button label="Close" click="removePanel()"/>
+	</mx:ControlBar>
+		
+		<mx:Script>
+			<![CDATA[
+				import mx.core.Application;
+				import mx.managers.PopUpManager;
+				
+				import weave.Weave;
+				import weave.api.core.ILinkableObject;
+				import weave.api.data.IDataSource;
+				import weave.api.ui.ILinkableObjectEditor;
+				import weave.utils.EditorManager;
+				
+				[Bindable]
+				private var sources:Array = new Array();
+				
+				private function handleCreationComplete():void
+				{
+					sources = Weave.root.getObjects(IDataSource);
+					Weave.root.childListCallbacks.addGroupedCallback(this, updateSources);
+				}
+				
+				private function updateSources():void
+				{
+					sourceList.selectedItem = null;
+					sources = Weave.root.getObjects(IDataSource);
+					handleSourceSelect();
+				}
+				
+				private static var _staticInstance:EditDataSourcePanel = null;
+				public static function showAsPopup():void
+				{
+					if (_staticInstance == null)
+						_staticInstance = new EditDataSourcePanel();
+					_staticInstance = PopUpManager.createPopUp(Application.application as DisplayObject, EditDataSourcePanel, false) as EditDataSourcePanel;
+					
+					PopUpManager.centerPopUp(_staticInstance);
+				}	
+				
+				private var editor:ILinkableObjectEditor = null;
+				private function handleSourceSelect():void
+				{
+					sourceEditor.removeAllChildren();
+					editor = null;
+					var dataSource:IDataSource = sourceList.selectedItem as IDataSource;
+					if (dataSource)
+					{
+						editor = EditorManager.getNewEditor(dataSource);
+						sourceEditor.addChild(editor as DisplayObject);
+					}
+				}
+				private function addSource():void
+				{
+					AddDataSourcePanel.showAsPopup();
+				}
+				private function removeSelected():void
+				{
+					Weave.root.removeObject(Weave.root.getName(sourceList.selectedItem as ILinkableObject));
+				}
+				
+				private function save():void
+				{
+					if (editor != null)
+						editor.applyChanges();
+				}
+				
+				private function getLabel(item:Object):String
+				{
+					return Weave.root.getName(item as ILinkableObject);
+				}
+			]]>
+		</mx:Script>
+</ui:DraggablePanel>

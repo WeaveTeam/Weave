@@ -73,10 +73,6 @@ package weave.visualization.layers
 		public function SimpleInteractiveVisualization()
 		{
 			super();
-			init();
-		}
-		private function init():void
-		{
 			linkSessionState(Weave.properties.axisFontSize, axisFontSize);
 			linkSessionState(Weave.properties.axisFontFamily, axisFontFamily);
 			linkSessionState(Weave.properties.axisFontUnderline, axisFontUnderline);
@@ -104,7 +100,7 @@ package weave.visualization.layers
 		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		
-		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
+		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
 		public const axisFontBold:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const axisFontItalic:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const axisFontUnderline:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
@@ -174,7 +170,7 @@ package weave.visualization.layers
 				_xAxisLayer = layers.requestObject(X_AXIS_LAYER_NAME, AxisLayer, true);
 				_xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
 				_xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
-				linkSessionState(marginBottom, _xAxisLayer.axisPlotter.labelWordWrapSize);
+				linkSessionState(marginBottomNumber, _xAxisLayer.axisPlotter.labelWordWrapSize);
 				
 				linkToAxisProperties(_xAxisLayer);
 				
@@ -185,7 +181,7 @@ package weave.visualization.layers
 				_yAxisLayer = layers.requestObject(Y_AXIS_LAYER_NAME, AxisLayer, true);
 				_yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				_yAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
-				linkSessionState(marginLeft, _yAxisLayer.axisPlotter.labelWordWrapSize);
+				linkSessionState(marginLeftNumber, _yAxisLayer.axisPlotter.labelWordWrapSize);
 				
 				linkToAxisProperties(_yAxisLayer);
 				
@@ -312,55 +308,76 @@ package weave.visualization.layers
 			
 			if (mouseIsRolledOver)
 			{
-				zoomBounds.getScreenBounds(tempScreenBounds);
-				
-				// handle clicking above the visualization
-				queryBounds.copyFrom(tempScreenBounds);
-				queryBounds.setYRange(0, tempScreenBounds.getYNumericMin());
-				if (queryBounds.contains(event.localX, event.localY))
-					topMarginClickCallbacks.triggerCallbacks();
-
-				// handle clicking below the visualization
-				queryBounds.copyFrom(tempScreenBounds);
-				queryBounds.setYRange(tempScreenBounds.getYNumericMax(), height);
-				//queryBounds.yMin = queryBounds.yMax - (_xAxisLayer ? _xAxisLayer.axisPlotter.getLabelHeight() : 0);
-				if (queryBounds.contains(event.localX, event.localY))
-					bottomMarginClickCallbacks.triggerCallbacks();
-
-				// handle clicking to the left of the visualization
-				queryBounds.copyFrom(tempScreenBounds);
-				queryBounds.setXRange(0, tempScreenBounds.getXNumericMin());
-				//queryBounds.xMax =  queryBounds.xMax + (_yAxisLayer ? _yAxisLayer.axisPlotter.getLabelHeight() : 0);
-				if (queryBounds.contains(event.localX, event.localY))
-					leftMarginClickCallbacks.triggerCallbacks();
-
-				// handle clicking to the right of the visualization
-				queryBounds.copyFrom(tempScreenBounds);
-				queryBounds.setXRange(tempScreenBounds.getXNumericMax(), width);
-				if (queryBounds.contains(event.localX, event.localY))
-					rightMarginClickCallbacks.triggerCallbacks();
+				var theMargin:LinkableString = getMarginAndSetQueryBounds(event.localX, event.localY, false);
+				var index:int = [marginTop, marginBottom, marginLeft, marginRight].indexOf(theMargin);
+				if (index >= 0)
+				{
+					var ccs:Array = [topMarginClickCallbacks, bottomMarginClickCallbacks, leftMarginClickCallbacks, rightMarginClickCallbacks];
+					var cc:ICallbackCollection = getCallbackCollection(ccs[index]);
+					cc.triggerCallbacks();
+				}
 			}
-				
 		}
 		
-		//private var _marginCallbackOffset:int = 10;
 		
-		public var enableXAxisProbing:Boolean = false;
-		public var enableYAxisProbing:Boolean = false;
-		
-		private var _xAxisColumn:IAttributeColumn = null;
-		public function setXAxisColumn(column:IAttributeColumn):void
+		/**
+		 * This function checks which margin the mouse is over and sets queryBounds to be the bounds of the margin.
+		 * @param x X mouse coordinate.
+		 * @param y Y mouse coordinate.
+		 * @param outerHalf If true, only check the outer half of the margins.
+		 * @return marginTop, marginBottom, marginLeft, or marginRight 
+		 */		
+		private function getMarginAndSetQueryBounds(x:Number, y:Number, outerHalf:Boolean):LinkableString
 		{
-			_xAxisColumn = column;
+			var sb:IBounds2D = tempScreenBounds;
+			var qb:IBounds2D = queryBounds;
+			zoomBounds.getScreenBounds(sb);
+			sb.makeSizePositive();
+			
+			// TOP MARGIN
+			qb.copyFrom(sb);
+			qb.setYMax(0);
+			if (outerHalf)
+				qb.setYMin(qb.getYCenter());
+			if (qb.contains(x, y))
+				return marginTop;
+
+			// BOTTOM MARGIN
+			qb.copyFrom(sb);
+			qb.setYMin(height);
+			if (outerHalf)
+				qb.setYMax(qb.getYCenter());
+			if (qb.contains(x, y))
+				return marginBottom;
+
+			// LEFT MARGIN
+			qb.copyFrom(sb);
+			qb.setXMax(0);
+			if (outerHalf)
+				qb.setXMin(qb.getXCenter());
+			if (qb.contains(x, y))
+				return marginLeft;
+
+			// RIGHT MARGIN
+			qb.copyFrom(sb);
+			qb.setXMin(width);
+			if (outerHalf)
+				qb.setXMax(qb.getXCenter());
+			if (qb.contains(x, y))
+				return marginRight;
+			
+			return null;
 		}
-		private var _yAxisColumn:IAttributeColumn = null;
-		public function setYAxisColumn(column:IAttributeColumn):void
-		{
-			_yAxisColumn = column;
-		}
 		
+		public var topMarginToolTip:String;
+		public var bottomMarginToolTip:String;
+		public var leftMarginToolTip:String;
+		public var rightMarginToolTip:String;
 		
-		
+		public var topMarginColumn:IAttributeColumn;
+		public var bottomMarginColumn:IAttributeColumn;
+		public var leftMarginColumn:IAttributeColumn;
+		public var rightMarginColumn:IAttributeColumn;
 		
 		private var _axisToolTip:IToolTip = null;
 		override protected function handleMouseMove():void
@@ -370,87 +387,48 @@ package weave.visualization.layers
 			
 			if (mouseIsRolledOver)
 			{
-				if(_axisToolTip)
+				if (_axisToolTip)
 					ToolTipManager.destroyToolTip(_axisToolTip);
 				_axisToolTip = null;
 
 				
 				if (!StageUtils.mouseEvent.buttonDown)
 				{
-					
-					zoomBounds.getScreenBounds(tempScreenBounds);
-				
-					var ttPoint:Point;
+					var theMargin:LinkableString = getMarginAndSetQueryBounds(mouseX, mouseY, true);
+					var index:int = [marginTop, marginBottom, marginLeft, marginRight].indexOf(theMargin);
+					var axisColumn:IAttributeColumn = null;
+					var toolTip:String
+					if (index >= 0)
+					{
+						var columns:Array = [topMarginColumn, bottomMarginColumn, leftMarginColumn, rightMarginColumn];
+						var toolTips:Array = [topMarginToolTip, bottomMarginToolTip, leftMarginToolTip, rightMarginToolTip];
+						axisColumn = columns[index];
+						toolTip = toolTips[index];
+						if (!axisColumn)
+							theMargin = null;
+					}
 					
 					var stageWidth:int  = stage.stageWidth;
 					var stageHeight:int = stage.stageHeight ; //stage.height returns incorrect values
-					var createXTooltip:Boolean = false;
-					var createYTooltip:Boolean = false;
 					
-					if(enableXAxisProbing)
-					{
-						// handle probing below the visualization
-						queryBounds.copyFrom(tempScreenBounds);
-						queryBounds.setYRange((tempScreenBounds.getYNumericMax() + height) / 2, height);
-						//queryBounds.yMin = queryBounds.yMax - _xAxisLayer.axisPlotter.getLabelHeight();
-						
-						if(queryBounds.contains(StageUtils.mouseEvent.localX, StageUtils.mouseEvent.localY))
-						{
-							ttPoint = localToGlobal( new Point(queryBounds.getXCoverage()/2, queryBounds.getYMax()) ); 
-											
-							createXTooltip = true;
-						}
-					}
-	
-					if(enableYAxisProbing)
-					{
-						// handle probing on the left of the visualization
-						queryBounds.copyFrom(tempScreenBounds);
-						queryBounds.setXRange(0, (tempScreenBounds.getXNumericMin() + 0) / 2);
-						//queryBounds.xMin =  queryBounds.xMax + _yAxisLayer.axisPlotter.getLabelHeight();
-						
-						if(queryBounds.contains(StageUtils.mouseEvent.localX,StageUtils.mouseEvent.localY))
-						{
-							ttPoint = localToGlobal(new Point(queryBounds.getXMax(), queryBounds.getYCoverage() / 2));
-	
-							createYTooltip = true;
-						}						
-					}
-					
-					
+					if (theMargin && Weave.properties.enableToolControls.value)
+						CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 					// if we should be creating a tooltip
-					if (createXTooltip || createYTooltip)
+					if (axisColumn)
 					{
-						if (Weave.properties.enableToolControls.value)
-							CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
-
-						var toolTip:String;
-						
-						// if we are creating the x tooltip and a column is specified for this axis, then show its keyType and dataSource
-						if(createXTooltip && _xAxisColumn)
+						if (!toolTip)
 						{
-							// by default, just show that you can click the axis to change attribute
+							toolTip = ColumnUtils.getTitle(axisColumn);
+							toolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
+							toolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getCount(axisColumn);
+							toolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
 							if (Weave.properties.enableToolControls.value)
-								toolTip = "Click \"" + ColumnUtils.getTitle(_xAxisColumn) + "\" to select a different attribute. ";
-							else
-								toolTip = ColumnUtils.getTitle(_xAxisColumn);
-							toolTip += "\n Key Type: "   + ColumnUtils.getKeyType(_xAxisColumn);
-							toolTip += "\n # of Records: " + WeaveAPI.StatisticsCache.getCount(_xAxisColumn);
-							toolTip += "\n Data Source:" + ColumnUtils.getDataSource(_xAxisColumn);
-						}
-						// otherwise show this for the y axis
-						else if(createYTooltip && _yAxisColumn)
-						{
-							if (Weave.properties.enableToolControls.value)
-								toolTip = "Click \"" + ColumnUtils.getTitle(_yAxisColumn) + "\" to select a different attribute. ";
-							else
-								toolTip = ColumnUtils.getTitle(_yAxisColumn);
-							toolTip += "\n Key Type: "   + ColumnUtils.getKeyType(_yAxisColumn);
-							toolTip += "\n # of Records: " + WeaveAPI.StatisticsCache.getCount(_yAxisColumn);
-							toolTip += "\n Data Source:" + ColumnUtils.getDataSource(_yAxisColumn);
+								toolTip += "\n Click to select a different attribute.";
 						}
 						
 						// create the actual tooltip
+						// queryBounds was set above in getMarginAndSetQueryBounds().
+						var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
 						_axisToolTip = ToolTipManager.createToolTip(toolTip, ttPoint.x, ttPoint.y);
 						
 						// constrain the tooltip to fall within the bounds of the application											
@@ -467,42 +445,38 @@ package weave.visualization.layers
 		private var _probePlotter:ProbeLinePlotter = null ;
 		
 		/**
-		 * This function should be called by a tool to initialize a probe line layer and its ProbeLinePlotter
-		 * @param xAxisToPlot set to true if xAxis needs a probe line and tooltip
-		 * @param yAxisToPlot set to true if yAxis needs a probe line and tooltip
-		 * @param labelFunction optional function to convert number values to string 
-		 * @param labelFunctionX optional function to convert xAxis number values to string
+		 * This function should be called by a tool to initialize a probe line layer and its ProbeLinePlotter.
+		 * To disable probe lines, call this function with both parameters set to false.
+		 * @param xToolTipEnabled set to true if xAxis needs a probe line and tooltip
+		 * @param yToolTipEnabled set to true if yAxis needs a probe line and tooltip
+		 * @param xLabelFunction optional function to convert xAxis number values to string
+		 * @param yLabelFunction optional function to convert yAxis number values to string
 		 */	
-		public function enableProbeLine(xAxisToPlot:Boolean, yAxisToPlot:Boolean, labelFunction:Function = null, labelFunctionX:Function = null):void
+		public function enableProbeLine(xToolTipEnabled:Boolean, yToolTipEnabled:Boolean):void
 		{
+			if (!xToolTipEnabled && !yToolTipEnabled)
+			{
+				getCallbackCollection(_plotLayer.probeFilter).removeCallback(updateProbeLines);
+				return;
+			}
 			if (!_probeLineLayer)
 			{
 				_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
 				_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
 			}
-			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xAxisToPlot, yAxisToPlot, labelFunction, labelFunctionX], false);
-		}
-		
-		/**
-		 * Disables probe lines by removing the appropriate function from the list of callbacks
-		 */
-		public function disableProbelines():void 
-		{
-			getCallbackCollection(_plotLayer.probeFilter).removeCallback(updateProbeLines);
+			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xToolTipEnabled, yToolTipEnabled], false);
 		}
 		
 		/**
 		 * Draws the probe lines using _probePlotter and the corresponding axes tooltips
-		 * @param xAxisToPlot set to true if xAxis needs a probe line and tooltip
-		 * @param yAxisToPlot set to true if yAxis needs a probe line and tooltip
+		 * @param xToolTipEnabled set to true if xAxis needs a probe line and tooltip
+		 * @param yToolTipEnabled set to true if yAxis needs a probe line and tooltip
 		 * @param labelFunction optional function to convert number values to string 
 		 * @param labelFunctionX optional function to convert xAxis number values to string 
 		 * 
 		 */	
-		private function updateProbeLines(xAxisToPlot:Boolean, yAxisToPlot:Boolean, labelFunctionY:Function, labelFunctionX:Function):void
+		private function updateProbeLines(xToolTipEnabled:Boolean, yToolTipEnabled:Boolean):void
 		{
-			// TODO: why is this called when the drag select reaches another window?
-			
 			destroyProbeLineTooltips();
 			if (!Weave.properties.enableProbeLines.value)
 				return;
@@ -535,7 +509,7 @@ package weave.visualization.layers
 			var yExists:Boolean = isFinite(bounds.getYMin());
 			var xExists:Boolean = isFinite(bounds.getXMin());
 			
-			if( yAxisToPlot && !xAxisToPlot && xExists && yExists) // bar charts, histograms
+			if( yToolTipEnabled && !xToolTipEnabled && xExists && yExists) // bar charts, histograms
 			{
 				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				y_yAxis = bounds.getYMax();
@@ -543,11 +517,11 @@ package weave.visualization.layers
 				xPlot = bounds.getXCenter();
 				yPlot = bounds.getYMax();
 				
-				 showProbeTooltips(y_yAxis, bounds, labelFunctionY);
-				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yAxisToPlot, xAxisToPlot);
+				 showProbeTooltips(y_yAxis, bounds, _yAxisLayer.axisPlotter.getLabel);
+				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yToolTipEnabled, xToolTipEnabled);
 				
 			}
-			else if(yAxisToPlot && xAxisToPlot) //scatterplot
+			else if (yToolTipEnabled && xToolTipEnabled) //scatterplot
 			{
 				var xAxisMin:Number = _xAxisLayer.axisPlotter.axisLineMinValue.value;
 				var yAxisMin:Number = _yAxisLayer.axisPlotter.axisLineMinValue.value;
@@ -567,13 +541,13 @@ package weave.visualization.layers
 					y_xAxis = yAxisMin;
 
 					if (yExists)
-						showProbeTooltips(y_yAxis, bounds, labelFunctionY);
+						showProbeTooltips(y_yAxis, bounds, _yAxisLayer.axisPlotter.getLabel);
 					if (xExists)
-						showProbeTooltips(x_xAxis, bounds, labelFunctionX, true);
+						showProbeTooltips(x_xAxis, bounds, _xAxisLayer.axisPlotter.getLabel, true);
 					_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yExists, xExists);
 				}
 			}
-			else if(!yAxisToPlot && xAxisToPlot) // special case for horizontal bar chart
+			else if (!yToolTipEnabled && xToolTipEnabled) // special case for horizontal bar chart
 			{
 				xPlot = bounds.getXMax();
 				yPlot = bounds.getYCenter();
@@ -581,7 +555,7 @@ package weave.visualization.layers
 				x_xAxis = xPlot;
 				y_xAxis = _yAxisLayer.axisPlotter.axisLineMinValue.value;
 				
-				showProbeTooltips(xPlot, bounds, labelFunctionY,false, true);
+				showProbeTooltips(xPlot, bounds, _xAxisLayer.axisPlotter.getLabel, false, true);
 				
 				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, false, true);
 			}
@@ -598,10 +572,12 @@ package weave.visualization.layers
 		public function showProbeTooltips(displayValue:Number, bounds:IBounds2D, labelFunction:Function, xAxis:Boolean = false, useXMax:Boolean = false):void
 		{
 			var yPoint:Point = new Point();
-			var text1:String = "";
+			var text:String = "";
 			if (labelFunction != null)
-				text1 = labelFunction(displayValue);
-			else text1 = displayValue.toString();
+				text = labelFunction(displayValue);
+			
+			if (!text)
+				text = StandardLib.formatNumber(displayValue);
 			
 			if (xAxis || useXMax)
 			{
@@ -620,13 +596,13 @@ package weave.visualization.layers
 			
 			if (xAxis || useXMax)
 			{
-				xAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
+				xAxisTooltip = ToolTipManager.createToolTip(text, yPoint.x, yPoint.y);
 				xAxisTooltip.move(xAxisTooltip.x - (xAxisTooltip.width / 2), xAxisTooltip.y);
 				xAxisTooltipPtr = xAxisTooltip;
 			}
 			else
 			{
-				yAxisTooltip = ToolTipManager.createToolTip(text1, yPoint.x, yPoint.y);
+				yAxisTooltip = ToolTipManager.createToolTip(text, yPoint.x, yPoint.y);
 				yAxisTooltip.move(yAxisTooltip.x - yAxisTooltip.width, yAxisTooltip.y - (yAxisTooltip.height / 2));
 				yAxisTooltipPtr = yAxisTooltip
 			}

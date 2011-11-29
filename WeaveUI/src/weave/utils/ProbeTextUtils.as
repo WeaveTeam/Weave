@@ -29,13 +29,11 @@ package weave.utils
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
-	import weave.visualization.layers.InteractiveVisualization;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
 	
 	/**
@@ -63,15 +61,16 @@ package weave.utils
 		 * @param additionalColumns An array of additional columns (other than global probed columns) to be displayed in the probe tooltip
 		 * @param maxRecordsShown Maximum no. of records shown in one probe tooltip
 		 * @return A string to be displayed on a tooltip while probing 
-		 */		
-		public static function getProbeText(keySet:IKeySet, additionalColumns:Array = null):String
+		 */
+		public static function getProbeText(keys:Array, additionalColumns:Array = null):String
 		{
 			var result:String = '';
-			var columns:Array = probedColumns.getObjects(IAttributeColumn);
+			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
+			// include headers in list of columns so that those appearing in the headers won't be duplicated.
+			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
 			if (additionalColumns != null)
 				columns = columns.concat(additionalColumns);
-			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
-			var keys:Array = keySet.keys.concat().sort(ObjectUtil.compare);
+			var keys:Array = keys.concat().sort(ObjectUtil.compare);
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
 			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;
@@ -102,12 +101,15 @@ package weave.utils
 						continue;
 					var title:String = ColumnUtils.getTitle(column);
 					var line:String = StandardLib.lpad(value, 8) + ' (' + title + ')\n';
-					if(lookup[line]  == undefined )
+					// prevent duplicate lines from being added
+					if (lookup[line] == undefined)
 					{
 						if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
 						{
-							record += line;
-							lookup[line] = true;
+							lookup[line] = true; // this prevents the line from being duplicated
+							// the headers are only included so that the information will not be duplicated
+							if (iColumn >= headers.length)
+								record += line;
 						}
 					}
 				}

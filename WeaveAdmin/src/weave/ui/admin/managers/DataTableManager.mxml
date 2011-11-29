@@ -27,7 +27,7 @@
 				creationComplete="handleCreationComplete()">
 	<mx:VBox height="100%">
 		<mx:HBox width="100%">
-			<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SQL_DATA_BUTTON_TOOLTIP}"/>
+			<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
 			<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())"/>
 		</mx:HBox>
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search data tables" click="handleTableSelectionChange()"/>
@@ -40,7 +40,7 @@
 		<mx:Canvas id="tableView" label="Table View" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox>
-					<mx:Button label="Apply changes" click="overwrite()" />
+					<mx:Button label="Apply changes" click="applyChanges()" />
 					<mx:Button id="deleteSelectionButton" label="Delete selected line(s)" click="deleteSelectedRows()" enabled="false" />
 					<mx:Button label="Delete entire data table" click="deleteDataTable()" />
 					<mx:Button id="testQueryButton" label="Test query" click="testQueryButtonHandler()" enabled="false"/>
@@ -60,7 +60,7 @@
 		<mx:Canvas id="textView" label="Text View" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox>
-					<mx:Button label="Apply changes" click="overwrite()" />
+					<mx:Button label="Apply changes" click="applyChanges()" />
 					<mx:Button label="Delete this DataTable entry" click="deleteDataTable()" />
 				</mx:HBox>
 				<mx:TextArea id="textEditor" wordWrap="false" editable="true" width="100%" height="100%" change="metaDataChangeHandler()" />
@@ -99,10 +99,12 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
+			import mx.collections.ListCollectionView;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.List;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.controls.listClasses.IListItemRenderer;
 			import mx.core.IFlexDisplayObject;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
@@ -113,8 +115,9 @@
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
@@ -200,7 +203,7 @@
 			{
 				var metadataArray:Array = new Array();
 				var result:Array = event.result as Array;
-				if( result != null )
+				if ( result != null )
 				{
 					for( var i:int = 0; i < result.length; i++ )
 					{
@@ -279,7 +282,7 @@
 				return dataTableName;
 			}
 			
-			private function overwrite():void
+			private function applyChanges():void
 			{
 				var dataTableName:String = getActiveDataTableName();
 				if (dataTableName == null)
@@ -325,7 +328,7 @@
 			{
 				var metadata:Object = new Object();
 				var selectedItem:Array = tableEditor.selectedItems.concat();
-				if(selectedItem.length > 0)
+				if (selectedItem.length > 0)
 				{
 					metadata = ObjectUtil.copy(selectedItem[0]);
 					delete metadata["mx_internal_uid"];
@@ -446,7 +449,7 @@
 			
 			private function tabIndexChangeHandler(event:Event):void
 			{
-				if( tabNavigator.selectedIndex == tabNavigator.getChildIndex(tableView) )
+				if ( tabNavigator.selectedIndex == tabNavigator.getChildIndex(tableView) )
 				{
 					// switch tab: TEXT VIEW -> TABLE VIEW
 					handleTableSelectionChange();
@@ -454,14 +457,14 @@
 					if (metaDataChanged)
 						loadData(textEditor.text);
 				}
-				else if( tabNavigator.selectedIndex == tabNavigator.getChildIndex(textView) )
+				else if ( tabNavigator.selectedIndex == tabNavigator.getChildIndex(textView) )
 				{
 					// switch tab: TABLE VIEW -> TEXT VIEW
 					// load changes from tableEditor
 					if (metaDataChanged)
 						loadData(metadataArray);
 				}
-				else if( tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView) )
+				else if ( tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView) )
 				{
 					// switch tab: (TABLE VIEW | TEXT VIEW -> Metadata tab)
 					// load changes from tableEditor
@@ -481,17 +484,20 @@
 			
 			private function metaDataChangeHandler(event:DataGridEvent=null):void
 			{
-				
-				if(event != null) 
+				if (event != null)
 				{
-					var row:Number = Number(event.rowIndex);
 					var tableName:String = getSelectedTableName();
-					var editedObject:Object = tableEditor.dataProvider.getItemAt(row);
+					
+					var editedObject:Object = (tableEditor.dataProvider as ListCollectionView).getItemAt(event.rowIndex);
 					var editedField:String = event.dataField;
 					var oldValue:String = editedObject[editedField];
-					var newValue:String = tableEditor.itemEditorInstance[tableEditor.columns[event.columnIndex].editorDataField];
+					
+					var editorDataField:String = tableEditor.columns[event.columnIndex].editorDataField;
+					var newValue:String = StringUtil.trim(tableEditor.itemEditorInstance[editorDataField]);
+					
+					tableEditor.itemEditorInstance[editorDataField] = newValue;
 				}
-				if(oldValue != newValue || event==null)
+				if (oldValue != newValue || event == null)
 				{
 					metaDataChanged = true;
 				}
@@ -506,13 +512,13 @@
 
 			private function tableEditorKeyDownHandler(event:KeyboardEvent):void
 			{
-				if( ( event.keyCode == Keyboard.SHIFT ) ||
+				if ( ( event.keyCode == Keyboard.SHIFT ) ||
 					( event.keyCode == Keyboard.CONTROL ) )
 					tableEditor.editable = false;
 			}
 			private function tableEditorKeyUpHandler(event:KeyboardEvent):void
 			{
-				if( ( event.keyCode == Keyboard.SHIFT ) ||
+				if ( ( event.keyCode == Keyboard.SHIFT ) ||
 					( event.keyCode == Keyboard.CONTROL ) )
 					tableEditor.editable = true;
 			}

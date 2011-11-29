@@ -67,11 +67,6 @@ package weave.data.AttributeColumns
 
 		public function EquationColumn()
 		{
-			init();
-		}
-		
-		private function init():void
-		{
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			equation.value = 'undefined';
 			variables.childListCallbacks.addImmediateCallback(this, handleVariablesListChange);

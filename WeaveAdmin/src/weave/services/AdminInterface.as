@@ -28,7 +28,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
-	import weave.StringDefinition;
+	import weave.Strings;
 	import weave.Weave;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
@@ -369,18 +369,24 @@ package weave.services
 
 		// code for managing GeometryCollection entries
 		
-		public function getGeometryCollectionNames():void
+		/**
+		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
+		 */		
+		public function getGeometryCollectionNames():DelayedAsyncInvocation
 		{
 			geometryCollectionNames = [];
 			if (userHasAuthenticated)
 			{
-				service.getGeometryCollectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetGeometryCollectionNames);
+				var query:DelayedAsyncInvocation = service.getGeometryCollectionNames(activeConnectionName, activePassword);
+				query.addAsyncResponder(handleGetGeometryCollectionNames);
 				function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
 						geometryCollectionNames = event.result as Array || [];
 				}
+				return query;
 			}
+			return null;
 		}
 		public function getGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
 		{
@@ -419,18 +425,24 @@ package weave.services
 
 
 
-		public function getKeyTypes():void
+		/**
+		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
+		 */
+		public function getKeyTypes():DelayedAsyncInvocation
 		{
 			keyTypes = [];
 			if (userHasAuthenticated)
 			{
-				service.getKeyTypes(activeConnectionName, activePassword).addAsyncResponder(handleGetKeyTypes);
+				var query:DelayedAsyncInvocation = service.getKeyTypes(activeConnectionName, activePassword);
+				query.addAsyncResponder(handleGetKeyTypes);
 				function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
 						keyTypes = event.result as Array || [];
 				}
+				return query;
 			}
+			return null;
 		}
 
 
@@ -513,7 +525,8 @@ package weave.services
 								  dataTableOverwriteCheck:Boolean,
 								  geometryCollectionName:String,
 								  keyType:String,
-								  nullValues:String	):DelayedAsyncInvocation
+								  nullValues:String, 
+								  filterColumnNames:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.importCSV(
 				activeConnectionName,
@@ -528,7 +541,8 @@ package weave.services
 				dataTableOverwriteCheck,
 				geometryCollectionName,
 				keyType,
-				nullValues
+				nullValues,
+				filterColumnNames
 			);
 			
 			query.addAsyncResponder(handler);
@@ -541,7 +555,7 @@ package weave.services
 			return query;
 		}
 		
-		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):DelayedAsyncInvocation
+		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String, filterColumns:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.addConfigDataTableFromDatabase(
 				activeConnectionName,
@@ -553,7 +567,8 @@ package weave.services
 				tableName,
 				overwrite,
 				geometryCollection,
-				keyType
+				keyType,
+				filterColumns
 			);
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void
@@ -671,7 +686,7 @@ package weave.services
 		 */ 
 		public function addDCElements(datasetName:String,elements:Object):DelayedAsyncInvocation
 		{
-			return service.addDCElements(activeConnectionName,activePassword,datasetName,elements);
+			return service.addDCElements(activeConnectionName, activePassword, datasetName, elements);
 		}
 
 		/**

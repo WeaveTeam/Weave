@@ -39,6 +39,9 @@
 			<!-- For now, add new plotter editors here. later, there will be a way of listing them automatically. -->
 			
 			<!--<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>-->
+			<mx:Object label="Geometry Labels" plotterClass="{GeometryLabelPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="Geometry Plotter" plotterClass="{GeometryPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="WMS Plotter" plotterClass="{WMSPlotter}" layerClass="{SelectablePlotLayer}"/>
 			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
 			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
 		</mx:List>
@@ -54,26 +57,17 @@
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IPlotLayer;
 			import weave.api.ui.IPlotter;
-			import weave.ui.customLayerSettings.AxisLabelLayerControls;
-			import weave.ui.customLayerSettings.CompoundBarChartSettings;
-			import weave.ui.customLayerSettings.GridLineLayerControls;
 			import weave.utils.EditorManager;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AxisLabelPlotter;
-			import weave.visualization.plotters.CompoundBarChartPlotter;
 			import weave.visualization.plotters.DynamicPlotter;
+			import weave.visualization.plotters.GeometryLabelPlotter;
+			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
+			import weave.visualization.plotters.WMSPlotter;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			{
-				// For now, register all plotter editors here.
-				
-				//EditorManager.registerEditor(CompoundBarChartPlotter, CompoundBarChartSettings);
-				EditorManager.registerEditor(GridLinePlotter, GridLineLayerControls);
-				EditorManager.registerEditor(AxisLabelPlotter, AxisLabelLayerControls);
-			}
-
 			private var _tool:SimpleVisTool = null;
 			
 			override protected function constructor():void
@@ -125,7 +119,6 @@
 				
 				removePanel();
 			}
-			
 			
 		]]>
 	</mx:Script>

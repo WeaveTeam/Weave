@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -47,7 +48,7 @@ package weave.visualization.plotters
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.VectorUtils;
-	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
+	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
 	/**	
 	 * @author heather byrne
@@ -73,7 +74,7 @@ package weave.visualization.plotters
 		/*
 		 * This is the line style used to draw the lines.
 		 */
-		public const lineStyle:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle);
+		public const lineStyle:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		
 		public function get alphaColumn():AlwaysDefinedColumn { return lineStyle.alpha; }
 		
@@ -302,7 +303,7 @@ package weave.visualization.plotters
 				
 				if (i > 0)
 				{
-					var geometry:SimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
+					var geometry:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
 					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
 					results.push(geometry);
 				}

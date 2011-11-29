@@ -20,20 +20,29 @@
 package weave.utils
 {
 	import flash.display.BitmapData;
+	import flash.events.Event;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.text.Font;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
 	import flash.text.TextLineMetrics;
+	import flash.utils.Dictionary;
 	
+	import mx.core.Application;
+	import mx.events.CollectionEvent;
+	import mx.managers.SystemManager;
 	import mx.utils.StringUtil;
 	
+	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.primitives.IBounds2D;
+	import weave.core.LinkableHashMap;
+	import weave.resources.fonts.EmbeddedFonts;
 	
 	/**
 	 * This is a class used to draw text onto BitmapData objects.
@@ -53,6 +62,9 @@ package weave.utils
 			textFormat.underline = false;
 			textFormat.align = TextFormatAlign.LEFT;
 			textFormat.color = 0x000000;
+			
+
+			
 		}
 		
 		private var debug:Boolean = false; // set to true to draw debug graphics
@@ -61,7 +73,7 @@ package weave.utils
 		public static const HORIZONTAL_ALIGN_CENTER:String = "center";
 		public static const HORIZONTAL_ALIGN_RIGHT:String = "right";
 		public static const VERTICAL_ALIGN_TOP:String = "top";
-		public static const VERTICAL_ALIGN_CENTER:String = "middle";
+		public static const VERTICAL_ALIGN_MIDDLE:String = "middle";
 		public static const VERTICAL_ALIGN_BOTTOM:String = "bottom";
 		public static const ELLIPSIS_LOCATION_LEFT:String = "left";
 		public static const ELLIPSIS_LOCATION_CENTER:String = "center";
@@ -88,7 +100,7 @@ package weave.utils
 			_verticalAlign = value;
 			// BACKWARDS COMPATIBILITY
 			if (value == "center")
-				_verticalAlign = VERTICAL_ALIGN_CENTER;
+				_verticalAlign = VERTICAL_ALIGN_MIDDLE;
 		}
 		
 		public function get verticalAlign():String
@@ -131,6 +143,14 @@ package weave.utils
 		 */
 		private function prepareTextField():void
 		{
+			
+			if(!(Application.application as Application).systemManager.isFontFaceEmbedded(textFormat))
+				
+			{
+				textFormat.font = WeaveProperties.DEFAULT_FONT_FAMILY;
+				
+			}
+			
 			//------------------------------------------------------------
 			// Step 1:
 			// Reset text because we don't want the TextField to expand
@@ -326,7 +346,7 @@ package weave.utils
 			else if (horizontalAlign == HORIZONTAL_ALIGN_RIGHT) // x is aligned to right side of text
 				_matrix.translate(- _textField.width, 0);
 			
-			if (verticalAlign == VERTICAL_ALIGN_CENTER)
+			if (verticalAlign == VERTICAL_ALIGN_MIDDLE)
 				_matrix.translate(0, - _textField.height / 2);
 			else if (verticalAlign == VERTICAL_ALIGN_BOTTOM)
 				_matrix.translate(0, - _textField.height);
@@ -339,6 +359,7 @@ package weave.utils
 			else
 				_matrix.translate(x, y);
 		}
+
 		
 		/**
 		 * This function sets up the internal TextField and calls destination.draw() using all the given parameters.
@@ -366,7 +387,9 @@ package weave.utils
 			prepareTextField();
 
 			prepareMatrix();
-
+			
+			
+			
 			if (matrix != null)
 				_matrix.concat(matrix);
 
@@ -410,7 +433,7 @@ package weave.utils
 				case VERTICAL_ALIGN_TOP: 
 					outputBounds.setYRange(y, y + _textField.height);
 					break;
-				case VERTICAL_ALIGN_CENTER: 
+				case VERTICAL_ALIGN_MIDDLE: 
 					outputBounds.setYRange(y - _textField.height / 2, y + _textField.height / 2);
 					break;
 				case VERTICAL_ALIGN_BOTTOM:

@@ -82,9 +82,9 @@ package weave.utils
 			bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
 			bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
 			bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
-			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+//			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
+//			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			
 			bitmapText.text = text;
 			bitmapText.x = itemScreenBounds.getXNumericMin() + iconGap;
