@@ -94,12 +94,10 @@ package weave.utils
 			var w:int = Math.round(source.width * scale);
 			var h:int = Math.round(source.height * scale);
 			
-			if (w <= 0 || h <= 0)
-				return new BitmapData(0, 0);
-			
 			// upscale source width,height to the target w,h times a power of 2
-			while (w < source.width || h < source.height)
-				w *= 2, h *= 2;
+			if (w > 0 && h > 0)
+				while (w < source.width || h < source.height)
+					w *= 2, h *= 2;
 			var result:BitmapData = new BitmapData(w, h);
 			tempMatrix.identity();
 			tempMatrix.scale(w/source.width, h/source.height);
