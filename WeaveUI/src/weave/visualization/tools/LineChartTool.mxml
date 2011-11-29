@@ -29,6 +29,7 @@
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
+			import weave.WeaveProperties;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
@@ -360,13 +361,17 @@
 				labelPlotter.setBaseKeySource(_plotter.keySet);
 				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
 				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
+				labelPlotter.bold.defaultValue.value = Weave.properties.axisFontBold.value;
 				Weave.properties.axisFontColor.addGroupedCallback(this, updateLabel);
 				Weave.properties.axisFontSize.addGroupedCallback(this, updateLabel);
+				Weave.properties.axisFontBold.addGroupedCallback(this, updateLabel);
 			}
 			private function updateLabel():void
 			{
 				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
 				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
+				labelPlotter.bold.defaultValue.value = Weave.properties.axisFontBold.value;
+				
 			}
 			
 			private function updateColumns():void

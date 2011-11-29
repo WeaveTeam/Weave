@@ -238,6 +238,7 @@ package weave.visualization.plotters
 			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
 			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
 			_bitmapText.textFormat.color = valueLabelColor.value;
+			_bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------

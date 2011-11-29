@@ -118,7 +118,7 @@
 				toolFontControl.fontFamilyCombo.dataProvider = WeaveProperties.embeddedFonts;
 				toolFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleToolFontListChange );
 				toolFontControl.removeChild(toolFontControl.underlineButton);
-				toolFontControl.removeChild(toolFontControl.boldButton);
+//				toolFontControl.removeChild(toolFontControl.boldButton);
 				toolFontControl.removeChild(toolFontControl.italicButton);
 			}
 			
@@ -135,6 +135,7 @@
 				linkBindableProperty(Weave.properties.axisFontSize, toolFontControl.fontSizeCombo, "selectedItem");
 				linkBindableProperty(Weave.properties.axisFontColor, toolFontControl.colorPicker, "selectedColor");
 				linkBindableProperty(Weave.properties.axisFontUnderline, toolFontControl.underlineButton, "selected" );
+				linkBindableProperty(Weave.properties.axisFontBold, toolFontControl.boldButton, "selected" );
 			}
 			
 			private function handleFontListChange(event:ListEvent):void

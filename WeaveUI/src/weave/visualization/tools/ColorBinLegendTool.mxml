@@ -63,6 +63,7 @@
 				Weave.properties.axisFontColor.addGroupedCallback(this,updateMarginLabel);
 				Weave.properties.axisFontSize.addGroupedCallback(this,updateMarginLabel);
 				Weave.properties.axisFontUnderline.addGroupedCallback(this, updateMarginLabel);
+				Weave.properties.axisFontBold.addGroupedCallback(this, updateMarginLabel);
 				_plotter.dynamicColorColumn.addGroupedCallback(this, updateMarginLabel, true);
 
 				panelWidth.value = "20%";
@@ -170,6 +171,12 @@
 				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
 				marginLabel.setStyle("color", Weave.properties.axisFontColor.value);
 				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
+				
+				if(Weave.properties.axisFontBold.value)
+					marginLabel.setStyle("fontWeight","bold");
+				else
+					marginLabel.setStyle("fontWeight","normal");
+				
 				if (Weave.properties.axisFontUnderline.value)
 					marginLabel.setStyle("textDecoration", "underline");
 				else
@@ -204,7 +211,6 @@
 	
 	<mx:TextArea id="marginLabel"
 				 mouseChildren="false" mouseEnabled="false"
-				 fontWeight="bold" 
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				 wordWrap="true" selectable="false" editable="false"

@@ -20,20 +20,29 @@
 package weave.utils
 {
 	import flash.display.BitmapData;
+	import flash.events.Event;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.text.Font;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
 	import flash.text.TextLineMetrics;
+	import flash.utils.Dictionary;
 	
+	import mx.core.Application;
+	import mx.events.CollectionEvent;
+	import mx.managers.SystemManager;
 	import mx.utils.StringUtil;
 	
+	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.primitives.IBounds2D;
+	import weave.core.LinkableHashMap;
+	import weave.resources.fonts.EmbeddedFonts;
 	
 	/**
 	 * This is a class used to draw text onto BitmapData objects.
@@ -53,6 +62,9 @@ package weave.utils
 			textFormat.underline = false;
 			textFormat.align = TextFormatAlign.LEFT;
 			textFormat.color = 0x000000;
+			
+
+			
 		}
 		
 		private var debug:Boolean = false; // set to true to draw debug graphics
@@ -131,6 +143,14 @@ package weave.utils
 		 */
 		private function prepareTextField():void
 		{
+			
+			if(!(Application.application as Application).systemManager.isFontFaceEmbedded(textFormat))
+				
+			{
+				textFormat.font = WeaveProperties.DEFAULT_FONT_FAMILY;
+				
+			}
+			
 			//------------------------------------------------------------
 			// Step 1:
 			// Reset text because we don't want the TextField to expand
@@ -339,6 +359,7 @@ package weave.utils
 			else
 				_matrix.translate(x, y);
 		}
+
 		
 		/**
 		 * This function sets up the internal TextField and calls destination.draw() using all the given parameters.
@@ -366,7 +387,9 @@ package weave.utils
 			prepareTextField();
 
 			prepareMatrix();
-
+			
+			
+			
 			if (matrix != null)
 				_matrix.concat(matrix);
 

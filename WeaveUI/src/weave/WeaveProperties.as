@@ -107,9 +107,11 @@ package weave
 		{
 			var fonts:Array = fontLoader.fonts;
 			
+			
 			for each (var font:Font in fonts)
 			{
-				embeddedFonts.addItem(font.fontName);
+				if(!embeddedFonts.contains(font.fontName))
+					embeddedFonts.addItem(font.fontName);
 			}
 			
 		}
