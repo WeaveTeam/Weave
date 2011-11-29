@@ -21,6 +21,8 @@ package weave.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.events.Event;
+	import flash.events.EventPhase;
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
@@ -208,9 +210,9 @@ package weave.core
 				reportError("SessionManager.removeLinkableChildrenFromSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
-			if (childToParentDictionaryMap[child] != undefined)
+			if (childToParentDictionaryMap[child] !== undefined)
 				delete childToParentDictionaryMap[child][parent];
-			if (parentToChildDictionaryMap[parent] != undefined)
+			if (parentToChildDictionaryMap[parent] !== undefined)
 				delete parentToChildDictionaryMap[parent][child];
 		}
 		
@@ -223,7 +225,7 @@ package weave.core
 		weave_internal function getRegisteredChildren(parent:ILinkableObject):Array
 		{
 			var result:Array = [];
-			if (parentToChildDictionaryMap[parent] != undefined)
+			if (parentToChildDictionaryMap[parent] !== undefined)
 				for (var key:* in parentToChildDictionaryMap[parent])
 					result.push(key);
 			return result;
@@ -248,7 +250,7 @@ package weave.core
 		 */
 		weave_internal function isChildInSessionState(parent:ILinkableObject, child:ILinkableObject):Boolean
 		{
-			return childToParentDictionaryMap[child] != undefined && childToParentDictionaryMap[child][parent];
+			return childToParentDictionaryMap[child] !== undefined && childToParentDictionaryMap[child][parent];
 		}
 		
 		/**
@@ -470,7 +472,7 @@ package weave.core
 		}
 		private function internalGetDescendants(output:Array, root:ILinkableObject, filter:Class, ignoreList:Dictionary, depth:int):void
 		{
-			if (root == null || ignoreList[root] != undefined)
+			if (root == null || ignoreList[root] !== undefined)
 				return;
 			ignoreList[root] = true;
 			if (filter == null || root is filter)
@@ -619,8 +621,63 @@ package weave.core
 			{
 				objectCC = new CallbackCollection();
 				linkableObjectToCallbackCollectionMap[linkableObject] = objectCC;
+				
+				// Make sure UIComponents get registered with linkable owners because MXML developers
+				// may forget to do so, since it's not simple or intuitive in MXML.
+				if (linkableObject is UIComponent)
+				{
+					var component:UIComponent = linkableObject as UIComponent;
+					if (!_registerUIComponent(component))
+						component.addEventListener(Event.ADDED, _registerUIComponentListener);
+				}
 			}
 			return objectCC;
+		}
+		
+		/**
+		 * This function is an event listener that in turn calls _registerUIComponent.
+		 * @param event The event dispatched by the UIComponent to be passed to _registerUIComponent.
+		 */
+		private function _registerUIComponentListener(event:Event):void
+		{
+			if (event.target == event.currentTarget)
+			{
+				var component:UIComponent = event.currentTarget as UIComponent;
+				if (_registerUIComponent(component))
+					component.removeEventListener(event.type, _registerUIComponentListener, event.eventPhase == EventPhase.CAPTURING_PHASE);
+			}
+		}
+		
+		/**
+		 * This function will register a UIComponent/ILinkableObject as a disposable child of an ancestral
+		 * DisplayObjectContainer/ILinkableObject if it has no linkable owner yet.  This makes sure that the
+		 * component is disposed of when its ancestor is disposed of.
+		 * @param linkableComponent A UIComponent that implements ILinkableObject.
+		 * @return true if the component has a linkable owner, either before or after this function is called.
+		 */
+		private function _registerUIComponent(linkableComponent:UIComponent):Boolean
+		{
+			if (objectWasDisposed(linkableComponent))
+			{
+				reportError('UIComponent running event listener after being disposed');
+				return true; // so the event listener will be removed
+			}
+			var owner:ILinkableObject = childToOwnerMap[linkableComponent] as ILinkableObject;
+			if (owner == null)
+			{
+				var parent:DisplayObjectContainer = linkableComponent.parent;
+				while (parent)
+				{
+					if (parent is ILinkableObject)
+					{
+						registerDisposableChild(parent, linkableComponent);
+						return true; // component has a linkable owner now
+					}
+					parent = parent.parent;
+				}
+				return false; // component does not have a linkable owner yet
+			}
+			return true; // component already has a linkable owner
 		}
 
 		/**
@@ -658,10 +715,9 @@ package weave.core
 		private const _triggerCounterMap:Dictionary = new Dictionary(true);
 
 		/**
-		 * This function checks if an object has been disposed of by SessionManager.
+		 * This function checks if an object has been disposed of by the ISessionManager.
 		 * @param object An object to check.
-		 * @return true if SessionManager.dispose() was called for the specified object.
-		 * 
+		 * @return A value of true if disposeObjects() was called for the specified object.
 		 */
 		public function objectWasDisposed(object:Object):Boolean
 		{
@@ -717,11 +773,11 @@ package weave.core
 						disposeObjects(objectCC);
 					
 					// unregister from parents
-					if (childToParentDictionaryMap[linkableObject] != undefined)
+					if (childToParentDictionaryMap[linkableObject] !== undefined)
 					{
 						// remove the parent-to-child mappings
 						for (var parent:Object in childToParentDictionaryMap[linkableObject])
-							if (parentToChildDictionaryMap[parent] != undefined)
+							if (parentToChildDictionaryMap[parent] !== undefined)
 								delete parentToChildDictionaryMap[parent][linkableObject];
 						// remove child-to-parent mapping
 						delete childToParentDictionaryMap[linkableObject];
@@ -731,7 +787,7 @@ package weave.core
 					var owner:ILinkableObject = childToOwnerMap[linkableObject] as ILinkableObject;
 					if (owner != null)
 					{
-						if (ownerToChildDictionaryMap[owner] != undefined)
+						if (ownerToChildDictionaryMap[owner] !== undefined)
 							delete ownerToChildDictionaryMap[owner][linkableObject];
 						delete childToOwnerMap[linkableObject];
 					}
@@ -743,7 +799,7 @@ package weave.core
 								unlinkBindableProperty(linkableObject as ILinkableVariable, bindableParent, bindablePropertyName);
 					
 					// unlink this object from all other linkable objects
-					if (linkedObjectsDictionaryMap[linkableObject] != undefined)
+					if (linkedObjectsDictionaryMap[linkableObject] !== undefined)
 						for (var otherObject:Object in linkedObjectsDictionaryMap[linkableObject])
 							unlinkSessionState(linkableObject, otherObject as ILinkableObject);
 					
@@ -968,9 +1024,9 @@ package weave.core
 			}
 
 			// clear the entries that say these two objects are linked.
-			if (linkedObjectsDictionaryMap[first] != undefined)
+			if (linkedObjectsDictionaryMap[first] !== undefined)
 				delete linkedObjectsDictionaryMap[first][second];
-			if (linkedObjectsDictionaryMap[second] != undefined)
+			if (linkedObjectsDictionaryMap[second] !== undefined)
 				delete linkedObjectsDictionaryMap[second][first];
 			
 			getCallbackCollection(first).removeCallback(objectToSetterMap[second]);
@@ -1308,7 +1364,7 @@ package weave.core
 				for (var oldName:String in oldState)
 				{
 					diffValue = computeDiff(oldState[oldName], newState[oldName]);
-					if (diffValue != undefined)
+					if (diffValue !== undefined)
 					{
 						if (!diff)
 							diff = {};

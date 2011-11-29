@@ -21,23 +21,22 @@
 -->
 <mx:VBox 
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns="weave.ui.*"
+	xmlns="weave.editors.*"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
+	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor"
 	>
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
-			import mx.controls.DataGrid;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.CSVDataSource;
-			import weave.utils.EditorManager;
+			import weave.ui.editors.EditDataGridPanel;
 			
 			private var _csvDataSource:CSVDataSource= null;
 			public function setTarget(object:ILinkableObject):void
@@ -46,6 +45,7 @@
 				var checkObj:String  = Weave.root.getName(_csvDataSource);
 				if(checkObj != null)
 				{
+					initialize();
 					editorTitle.text = "Edit";
 					uniqueName = Weave.root.getName(_csvDataSource);
 					url.text = _csvDataSource.url.value;
@@ -57,11 +57,6 @@
 					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
 					showGridButton.enabled = true;
 				}
-			}
-			
-			
-			private function handleCreationComplete():void
-			{
 			}
 			
 			public function applyChanges():void
@@ -164,7 +159,7 @@
 					Alert.show("No data found");
 					return;
 				}
-				var grid:DataGridEditor = PopUpManager.createPopUp(this,DataGridEditor) as DataGridEditor;
+				var grid:EditDataGridPanel = PopUpManager.createPopUp(this,EditDataGridPanel) as EditDataGridPanel;
 				
 				//Listen for save changes in Data Grid Editor
 				grid.saveButton.addEventListener(MouseEvent.CLICK,handleSaveButtonClick);

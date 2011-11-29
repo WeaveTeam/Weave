@@ -31,17 +31,22 @@ package weave.ui.settings
 
 	public class FontStyleList extends CustomComboBox
 	{
-		private var fontList:ArrayCollection;
-		
 		public function FontStyleList()
 		{
 			super();
-			addEventListener(FlexEvent.CREATION_COMPLETE, listCreated);
+			addEventListener(FlexEvent.CREATION_COMPLETE, creationComplete);
 		}
-
-		private function listCreated(e:FlexEvent):void
+		
+		private function creationComplete(e:*):void
 		{
-			fontList = new ArrayCollection(Font.enumerateFonts(true));
+			dropdown.variableRowHeight = true;
+		}
+		
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+			var fontList:ArrayCollection = new ArrayCollection(Font.enumerateFonts(true));
 			labelField = "fontName";
 			setStyle("fontSize",10);
 			setStyle('textDecoration','none');
@@ -52,7 +57,6 @@ package weave.ui.settings
 			fontList.sort = fontSort;
 			dataProvider = fontList;
 			itemRenderer = new ClassFactory(FontStyleRenderer);
-			dropdown.variableRowHeight = true;
 		}
 	}
 }

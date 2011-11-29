@@ -21,10 +21,10 @@
 -->
 <mx:VBox 
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns="weave.ui.*"
+	xmlns="weave.editors.*"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
-	creationComplete="handleCreationComplete()"
+	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor"
 	>
 	<mx:Script>
@@ -34,19 +34,22 @@
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.WeaveDataSource;
-			import weave.utils.EditorManager;
 			
 			[Bindable]
 			private var uniqueName:String = Weave.root.generateUniqueName("WeaveDataSource");
 			
 			private var _weaveDataSource:WeaveDataSource = null;
+			
 			public function setTarget(object:ILinkableObject):void
 			{
 				_weaveDataSource = object as WeaveDataSource;
+				
 				var checkObj:String  = Weave.root.getName(_weaveDataSource);
 				
-				if(checkObj !=null)
+				if (checkObj != null)
 				{
+					initialize();
+					
 					editorTitle.text = "Edit";
 					uniqueName = Weave.root.getName(_weaveDataSource);
 					url.text = _weaveDataSource.url.value;
@@ -55,16 +58,12 @@
 				}
 			}
 			
-			
-			private function handleCreationComplete():void
-			{
-			}
-			
 			public function applyChanges():void
 			{
-				try{
-				_weaveDataSource.url.value = url.text;
-				Alert.show("Changes saved.")
+				try
+				{
+					_weaveDataSource.url.value = url.text;
+					Alert.show("Changes saved.")
 				}
 				catch(e:Error){
 					Alert.show("Changes could not be saved. " + e.message,"Error");

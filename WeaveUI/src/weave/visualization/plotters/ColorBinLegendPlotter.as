@@ -37,6 +37,7 @@ package weave.visualization.plotters
 	import weave.compiler.StandardLib;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -103,9 +104,31 @@ package weave.visualization.plotters
 		 */
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
+		/**
+		 * This is the maximum number of items to draw in a single row.
+		 * @default 1 
+		 */		
 		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createHashMaps);
-		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
-
+		
+		/**
+		 * This is an option to reverse the item order.
+		 * @default true
+		 */
+		public const ascendingOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true), createHashMaps);
+		
+		/**
+		 * This is the compiled function to apply to the item labels.
+		 */		
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['string']), createHashMaps);
+		
+		// TODO This should go somewhere else...
+		/**
+		 * This is the compiled function to apply to the title of the tool.
+		 * 
+		 * @default string  
+		 */		
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		
 		private const _binsOrdering:Array = [];
 		private var _binToBounds:Array = [];
 		private var _binToString:Array = [];
@@ -141,7 +164,7 @@ package weave.visualization.plotters
 			for (var iBin:int = 0; iBin < numBins; ++iBin)
 			{
 				// get the adjusted position and transpose inside the row
-				var adjustedIBin:int = (reverseOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
+				var adjustedIBin:int = (ascendingOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
 				var row:int = adjustedIBin / maxCols;
 				var col:int = adjustedIBin % maxCols;
 				var b:IBounds2D = new Bounds2D();
@@ -150,7 +173,15 @@ package weave.visualization.plotters
 				LegendUtils.getBoundsFromItemID(getBackgroundDataBounds(), adjustedIBin, b, maxNumBins, maxCols, true);
 				
 				_binToBounds[iBin] = b;
-				_binToString[iBin] = binnedColumn.deriveStringFromNumber(iBin);
+				var binString:String = binnedColumn.deriveStringFromNumber(iBin);
+				try
+				{
+					_binToString[iBin] = itemLabelFunction.apply(null, [binString]);
+				}
+				catch (e:Error)
+				{
+					_binToString[iBin] = binString;
+				}
 			}
 		}
 		
@@ -230,7 +261,7 @@ package weave.visualization.plotters
 				);
 
 				// draw circle
-				var iColorIndex:int = reverseOrder.value ? iBin : (binCount - 1 - iBin);
+				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
 				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
 				var xMin:Number = tempBounds.getXNumericMin(); 
 				var yMin:Number = tempBounds.getYNumericMin();
@@ -272,7 +303,10 @@ package weave.visualization.plotters
 		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			return getReusableBounds(0, 0, 1, 1);
+			return getReusableBounds(0, 1, 1, 0);
 		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="ascendingOrder")] public function set reverseOrder(value:Boolean):void { ascendingOrder.value = value; }
 	}
 }

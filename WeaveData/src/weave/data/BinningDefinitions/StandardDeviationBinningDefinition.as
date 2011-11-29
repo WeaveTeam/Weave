@@ -19,12 +19,17 @@
 
 package weave.data.BinningDefinitions
 {
+	import mx.utils.StringUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IPrimitiveColumn;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -33,83 +38,59 @@ package weave.data.BinningDefinitions
 	 * StandardDeviationBinningDefinition
 	 * 
 	 * @author adufilie
-	 * @author abaumann
-	 * @author sanbalagan
 	 */
 	public class StandardDeviationBinningDefinition extends AbstractBinningDefinition
 	{
 		public function StandardDeviationBinningDefinition()
 		{
-			this.sdNumber.value = 3;
 		}
 		
-		public const sdNumber:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		
 		/**
-		 * getBinClassifiersForColumn - implements IBinningDefinition Interface
-		 * @param column 
-		 * @param output
+		 * @inheritDoc
 		 */
 		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
 		{
-			var name:String;
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
-			var columnMean:Number = WeaveAPI.StatisticsCache.getMean(column);
-			var columnSD:Number = WeaveAPI.StatisticsCache.getStandardDeviation(column); 
-					
-			var binMin:Number;
-			var binMax:Number = columnMean - sdNumber.value * columnSD;
-			var maxInclusive:Boolean;
-			
-			var iBin:int;
-			for (iBin = sdNumber.value ; iBin > 0 ; iBin--)
-			{
-				binMin = binMax
-				binMax = columnMean - (iBin-1) * columnSD;
-				maxInclusive = false;
-				
-				tempNumberClassifier.min.value = binMin;
-				tempNumberClassifier.max.value = binMax;
-				tempNumberClassifier.minInclusive.value = true;
-				tempNumberClassifier.maxInclusive.value = maxInclusive;
-				
-				//first get name from overrideBinNames
-				name = getNameFromOverrideString(iBin - sdNumber.value);
-				//if it is empty string set it from generateBinLabel
-				if(!name)
-					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.requestObjectCopy(name, tempNumberClassifier);
-			}	
-						
-			for (iBin = 0 ; iBin < sdNumber.value ; iBin++)
-			{
-				binMin = binMax; 
-				binMax = columnMean + (iBin+1) * columnSD;
-				if (iBin == sdNumber.value - 1){
-					maxInclusive = true;
-				} else {
-					maxInclusive = false;				
-				}
-				tempNumberClassifier.min.value = binMin;
-				tempNumberClassifier.max.value = binMax;
-				tempNumberClassifier.minInclusive.value = true;
-				tempNumberClassifier.maxInclusive.value = maxInclusive;
-				
-				//first get name from overrideBinNames
-				name = getNameFromOverrideString(iBin + sdNumber.value);
-				//if it is empty string set it from generateBinLabel
-				if(!name)
-					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.requestObjectCopy(name, tempNumberClassifier);
-			}
+			var mean:Number = WeaveAPI.StatisticsCache.getMean(column);
+			var stdDev:Number = WeaveAPI.StatisticsCache.getStandardDeviation(column);
+			var binNumber:int = 0;
+			for (var i:int = -MAX_SD; i <= MAX_SD; i++)
+				if (i != 0)
+					addBin(output, Math.abs(i), i < 0, stdDev, mean, getNameFromOverrideString(binNumber++));
 		}
-		// reusable temporary object
-		private static const tempNumberClassifier:NumberClassifier = new NumberClassifier();
 		
-	
+		private static const MAX_SD:int = 3;
 		
-		
+		private function addBin(output:ILinkableHashMap, absSDNumber:Number, belowMean:Boolean, stdDev:Number, mean:Number, overrideName:String):void
+		{
+			var name:String = overrideName;
+			if (!name)
+			{
+				var nameFormat:String = (absSDNumber < MAX_SD) ? "{0} - {1} SD {2} mean" : "> {0} SD {2} mean"; 
+				name = StringUtil.substitute(nameFormat, absSDNumber - 1, absSDNumber, belowMean ? "below" : "above");
+			}
+			var bin:NumberClassifier = output.requestObject(name, NumberClassifier, false);
+			if (belowMean)
+			{
+				if (absSDNumber == MAX_SD)
+					bin.min.value = -Infinity;
+				else
+					bin.min.value = mean - (absSDNumber + 1) * stdDev;
+				bin.max.value = mean - absSDNumber * stdDev;
+			}
+			else // above mean
+			{
+				bin.min.value = mean + absSDNumber * stdDev;
+				if (absSDNumber == MAX_SD)
+					bin.max.value = Infinity;
+				else
+					bin.max.value = mean + (absSDNumber + 1) * stdDev;
+			}
+			bin.minInclusive.value = true;
+			bin.maxInclusive.value = true;
+		}
 	}
 }
+

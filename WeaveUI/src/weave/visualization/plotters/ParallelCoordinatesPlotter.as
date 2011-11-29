@@ -48,7 +48,7 @@ package weave.visualization.plotters
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.VectorUtils;
-	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
+	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
 	/**	
 	 * @author heather byrne
@@ -74,7 +74,7 @@ package weave.visualization.plotters
 		/*
 		 * This is the line style used to draw the lines.
 		 */
-		public const lineStyle:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle);
+		public const lineStyle:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		
 		public function get alphaColumn():AlwaysDefinedColumn { return lineStyle.alpha; }
 		

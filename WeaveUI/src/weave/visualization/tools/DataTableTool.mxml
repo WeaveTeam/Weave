@@ -30,7 +30,7 @@
 	     xmlns:ui="weave.ui.*" 
 	     xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 	     layout="absolute"
-		 title="Data Table" xmlns:editors="weave.ui.editors.*"
+		 title="Data Table" xmlns:editors="weave.editors.*"
 		 >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
 		<mx:HBox id="topControls" horizontalAlign="left" width="100%">

@@ -64,8 +64,8 @@ package weave.visualization.plotters
 	import weave.utils.PlotterUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
-	import weave.visualization.plotters.styles.ExtendedSolidFillStyle;
-	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
+	import weave.visualization.plotters.styles.ExtendedFillStyle;
+	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	import weave.visualization.tools.MapTool;
@@ -84,7 +84,6 @@ package weave.visualization.plotters
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
 
-			fill.enableMissingDataFillPattern.value = false;
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
 
 			setKeySource(geometryColumn);
@@ -107,11 +106,11 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
-		public const line:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle, invalidateCachedBitmaps);
+		public const line:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle, invalidateCachedBitmaps);
 		/**
 		 * This is the fill style used to fill the geometries.
 		 */
-		public const fill:ExtendedSolidFillStyle = newLinkableChild(this, ExtendedSolidFillStyle, invalidateCachedBitmaps);
+		public const fill:ExtendedFillStyle = newLinkableChild(this, ExtendedFillStyle, invalidateCachedBitmaps);
 
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
@@ -254,15 +253,7 @@ package weave.visualization.plotters
 				// draw graphics on cached bitmap
 				var g:Graphics = tempShape.graphics;
 				g.clear();
-				if (isNaN(color))
-				{
-					if (fill.enableMissingDataFillPattern.value)
-						fill.beginFillStyle(null, g);
-				}
-				else if (fill.enabled.defaultValue.value)
-				{
-					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
-				}
+				fill.beginFillStyle(null, g);
 				line.beginLineStyle(null, g);
 				g.drawCircle(pointOffset, pointOffset, pointShapeSize.value);
 				g.endFill();

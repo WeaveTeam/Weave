@@ -20,18 +20,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
-Editor for custom layers using AxisLabelPlotters
+Editor for custom layers using GridLinePlotters
 @author kmanohar
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 implements="weave.api.ui.ILinkableObjectEditor"
-		 label="Label Settings" xmlns:ui="weave.ui.*">
-
+		 xmlns="weave.editors.*"
+		 label="Grid Line Settings" xmlns:ui="weave.ui.*">
 	<mx:HBox>
 		<mx:RadioButtonGroup id="hv"/>
-		<mx:RadioButton group="{hv}" label="Vertical" selected="{!horizontalCheckBox.selected}"/>
+		<mx:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
 		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
-					 label="Horizontal"
+					 label="Horizontal lines"
 					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
 	</mx:HBox>
 	
@@ -41,64 +41,46 @@ Editor for custom layers using AxisLabelPlotters
 				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
 	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Interval:"
 				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
-	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Angle"
-				creationComplete="linkBindableProperty(_plotter.angle, event.target, 'text')"/>
 	<mx:Spacer/>
-	
-	<ui:Indent indent="{indent}" label="Color:">		
-		<mx:ColorPicker toolTip="Select a font color" id="labelColorPicker" 
-						creationComplete="linkBindableProperty(_plotter.color, event.target, 'selectedColor')"/>
+	<ui:Indent indent="{indent}" label="Thickness:">
+		<mx:NumericStepper id="gridLineThicknessStepper" minimum="1" maximum="10"
+						   creationComplete="linkBindableProperty(_plotter.lineStyle.weight.defaultValue, event.target, 'value')"/>
 	</ui:Indent>
-	<ui:Indent indent="{indent}" label="Vertical Align">
-		
-		<mx:ComboBox toolTip="Select the vertical align mode" 
-					 creationComplete="linkBindableProperty(_plotter.vAlign, event.target, 'selectedItem')">
-			<mx:ArrayCollection>
-				<mx:String>top</mx:String>
-				<mx:String>middle</mx:String>
-				<mx:String>bottom</mx:String>
-			</mx:ArrayCollection>
-		</mx:ComboBox>					 			
+	<ui:Indent indent="{indent}" label="Color:">
+		<mx:ColorPicker toolTip="Select a color for the grid lines of this visualization" id="gridColorPicker" 
+						creationComplete="linkBindableProperty(_plotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	
-	
-	<ui:Indent indent="{indent}" label="Horizontal Align">			
-		<mx:ComboBox toolTip="Select the horizontal align mode" 
-					 creationComplete="linkBindableProperty(_plotter.hAlign, event.target, 'selectedItem')">
-			<mx:ArrayCollection>
-				<mx:String>left</mx:String>
-				<mx:String>center</mx:String>
-				<mx:String>right</mx:String>
-			</mx:ArrayCollection>			
-		</mx:ComboBox>
+	<ui:Indent indent="{indent}" label="Opacity:">
+		<mx:HSlider id="gridLineAlphaSlider" 
+					snapInterval="0.1"
+					tickInterval="0.5" labels="{['0%','50%','100%']}" 
+					dataTipFormatFunction="alphaSliderFormatFunction"
+					minimum="0.0" maximum="1.0" 
+					liveDragging="true"
+					creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
 	</ui:Indent>
-	
-		<!--<mx:CheckBox label="Italic" creationComplete="linkBindableProperty(_plotter.italic, event.target, 'selected')"/>
-		<mx:CheckBox label="Bold" creationComplete="linkBindableProperty(_plotter.bold, event.target, 'selected')"/>-->
-	<ui:Indent indent="{indent}" label="Underline">
-		<mx:CheckBox creationComplete="linkBindableProperty(_plotter.underline, event.target, 'selected')"/>		
-	</ui:Indent>
-
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.ui.ILinkableObjectEditor;
-			import weave.visualization.plotters.AxisLabelPlotter;
+			import weave.utils.EditorManager;
+			import weave.visualization.plotters.GridLinePlotter;
+			import weave.visualization.tools.SimpleVisTool;
 			
 			[Bindable] private var indent:int = 80;
 			[Bindable] private var inputWidth:int = 64;
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				_plotter = object as AxisLabelPlotter;
+				_plotter = object as GridLinePlotter;
 			}
 			public function applyChanges():void
 			{
 				
 			}
 
-			private var _plotter:AxisLabelPlotter = null;
+			private var _plotter:GridLinePlotter = null;
 		
 			
 			override protected function childrenCreated():void

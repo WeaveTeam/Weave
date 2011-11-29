@@ -45,6 +45,7 @@ package weave
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.CSSUtils;
@@ -142,7 +143,6 @@ package weave
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
-//		public const showViewBar:LinkableBoolean = new LinkableBoolean(false); // show/hide Views TabBar
 		public const windowSnapGridSize:LinkableString = new LinkableString("1%", verifyWindowSnapGridSize); // window snap grid size in pixels
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
@@ -197,6 +197,7 @@ package weave
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
+		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
 		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
@@ -304,14 +305,14 @@ package weave
 		
 		public const panelTitleFontColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
 		public const panelTitleFontSize:LinkableNumber = new LinkableNumber(10, verifyFontSize);
-		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana");
+		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana", StandardLib.isDefined);
 		public const panelTitleFontBold:LinkableBoolean = new LinkableBoolean(false);
 		public const panelTitleFontItalic:LinkableBoolean = new LinkableBoolean(false);
 		public const panelTitleFontUnderline:LinkableBoolean = new LinkableBoolean(false);
 				
 		public const axisFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
 		public const axisFontSize:LinkableNumber = new LinkableNumber(DEFAULT_AXIS_FONT_SIZE, verifyFontSize);
-		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY);
+		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY, StandardLib.isDefined);
 		public const axisFontBold:LinkableBoolean = new LinkableBoolean(true);
 		public const axisFontItalic:LinkableBoolean = new LinkableBoolean(false);
 		public const axisFontUnderline:LinkableBoolean = new LinkableBoolean(false);

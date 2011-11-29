@@ -316,11 +316,6 @@
 									 id="editCurrentSessionState"
 									 label="Copy/edit/import/export current session state"
 									 creationComplete="linkBindableProperty(Weave.properties.enableSessionEdit,event.target,'selected')"/>  
-						<mx:CheckBox toolTip="Checking this box will allow the user to open the User Interface Preferences Panel"
-									 enabled="{sessionMenu.selected == true}"
-									 id="userInterfacePreferences"
-									 label="User Interface Preferences"
-									 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences,event.target,'selected')"/>  
 					</mx:VBox>
 				</mx:HBox>	
 			</mx:VBox>	
@@ -334,6 +329,11 @@
 				<mx:HBox>
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
+						<mx:CheckBox toolTip="Checking this box will allow the user to open the User Interface Preferences Panel"
+									 enabled="{windowMenu.selected == true}"
+									 id="userInterfacePreferences"
+									 label="Preferences"
+									 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences,event.target,'selected')"/>  
 						<mx:CheckBox toolTip="Checking this box will allow the user to go fullscreen"
 									 enabled="{windowMenu.selected == true}"
 									 id="goFullscreen"

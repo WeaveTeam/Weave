@@ -20,7 +20,7 @@
 */
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
-		 xmlns="weave.ui.editors.*"
+		 xmlns="weave.editors.*"
 		 xmlns:ui="weave.ui.*"
 		 label=""
 		 enabled="{_panel != null}"

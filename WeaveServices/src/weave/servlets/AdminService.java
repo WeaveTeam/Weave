@@ -234,9 +234,14 @@ public class AdminService extends GenericServlet
 	 */
 	synchronized public String[] getWeaveFileNames(String configConnectionName, String password) throws RemoteException
 	{
-		checkPasswordAndGetConfig(configConnectionName, password);
+		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
+		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
 
-		File docrootFolder = new File(docrootPath);
+		String path = docrootPath;
+		if(info.folderName.length() > 0)
+			path = path + info.folderName + "/";
+		
+		File docrootFolder = new File(path);
 		FilenameFilter xmlFilter = new FilenameFilter()
 		{
 			public boolean accept(File dir, String fileName)
@@ -249,13 +254,14 @@ public class AdminService extends GenericServlet
 
 		try
 		{
+			docrootFolder.mkdirs();
 			files = docrootFolder.listFiles(xmlFilter);
 			for (File file : files)
 			{
 				if (file.isFile())
 				{
 					// System.out.println(file.getName());
-					listOfFiles.add(file.getName().toString());
+					listOfFiles.add(((info.folderName.length() > 0) ? info.folderName + "/" : "") + file.getName().toString());
 				}
 			}
 		}
@@ -281,13 +287,17 @@ public class AdminService extends GenericServlet
 			if (!xmlFile.toLowerCase().endsWith(".xml"))
 				xmlFile += ".xml";
 			
-			File file = new File(docrootPath + xmlFile);
+			String path = docrootPath;
+			if(info.folderName.length() > 0)
+				path = path + info.folderName + "/";
+			
+			File file = new File(path + xmlFile);
 			
 			if (file.exists())
 			{
 				if (!overwriteFile)
 					return String.format("File already exists and was not changed: \"%s\"", xmlFile);
-				if (!info.is_superuser)
+				if (!info.is_superuser && info.folderName.length() == 0)
 					return String.format("User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.", connectionName);
 			}
 			
@@ -315,10 +325,16 @@ public class AdminService extends GenericServlet
 	synchronized public String removeWeaveFile(String configConnectionName, String password, String fileName) throws RemoteException, IllegalArgumentException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
+		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
+		
 		if (!config.getConnectionInfo(configConnectionName).is_superuser)
 			return String.format("User \"%s\" does not have permission to remove configuration files.", configConnectionName);
 
-		File f = new File(docrootPath + fileName);
+		String path = docrootPath;
+		if(info.folderName.length() > 0)
+			path = path + info.folderName + "/";
+		
+		File f = new File(path + fileName);
 		try
 		{
 			// Make sure the file or directory exists and isn't write protected
@@ -391,7 +407,7 @@ public class AdminService extends GenericServlet
 		return info;
 	}
 
-	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
+	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, String folderName, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
 	{
 		if (newConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
@@ -404,6 +420,7 @@ public class AdminService extends GenericServlet
 		newConnectionInfo.database = database;
 		newConnectionInfo.user = sqlUser;
 		newConnectionInfo.pass = password;
+		newConnectionInfo.folderName = folderName;
 		newConnectionInfo.is_superuser = true;
 		
 		// if the config file doesn't exist, create it
@@ -488,7 +505,7 @@ public class AdminService extends GenericServlet
 		{
 			e.printStackTrace();
 			throw new RemoteException(
-					String.format("Unable to create connection entry named \"%s\": %s", newConnectionInfo.name, e.getMessage())
+					String.format("Unable to create connection entry named \"%s\": %s", newConnectionInfo.name, e.getMessage()),e
 				);
 		}
 
@@ -847,7 +864,7 @@ public class AdminService extends GenericServlet
 	{
 		checkPasswordAndGetConfig(configConnectionName, password);
 		List<String> tablesList = getTablesList(configConnectionName, schemaName);
-		;
+		
 		return ListUtils.toStringArray(getSortedUniqueValues(tablesList, false));
 	}
 

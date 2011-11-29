@@ -22,23 +22,51 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				title="Attribute menu"
 				width="25%" height="10%"
-				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.ui.editors.*">
+				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:Canvas id="canvas" width="100%" height="100%">
-		<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
-						width="100%" height="100%"
-						labelFunction="choiceComboLabelFunction"
-						valueCommit="handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
-						/>
+		<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(targetLayoutCombo.selectedItem)}">
+			<mx:Canvas id="viewStackCombo" width="100%" height="100%">
+				<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
+								width="100%" height="100%"
+								labelFunction="choiceComboLabelFunction"
+								valueCommit="handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
+								/>
+			</mx:Canvas>
+			<mx:Canvas id="viewStackList" width="100%" height="100%">
+				<mx:List id="choiceList" width="100%" height="100%"
+						 labelFunction="choiceComboLabelFunction"
+						 change="handleAttrSelected(choiceList, choiceList.selectedIndex);"
+						 />
+			</mx:Canvas>
+			<mx:Canvas id="viewStackSlider" width="100%" height="100%">
+				<mx:VSlider id="choiceSlider" liveDragging="true" tickInterval="1"
+							width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
+							change="handleAttrSelected(choiceSlider, choiceSlider.maximum - choiceSlider.value);"
+							/>
+			</mx:Canvas>
+		</mx:ViewStack>
 	</mx:Canvas>
 	<ControlPanel>
-		<mx:VBox label="Settings">
-			<Indent label="Visualization tool:" indent="120">
-				<CustomComboBox prompt="Select a tool..." id="targetToolCombo" valueCommit="handleComboChange(targetToolCombo, targetTool);" />
-			</Indent>
-			<Indent label="Attribute to modify:" indent="120" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
-				<CustomComboBox prompt="Select an attribute..." id="targetAttributeCombo" valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
-			</Indent>
+		<mx:VBox width="100%" label="Settings">
+			<mx:HBox>
+				<mx:VBox>
+					<Indent label="Visualization tool:" indent="120">
+						<CustomComboBox prompt="Select a tool..." id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
+										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
+					</Indent>
+					<Indent label="Attribute to modify:" indent="120" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
+						<CustomComboBox prompt="Select an attribute..." id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
+										valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
+					</Indent>
+				</mx:VBox>
+				<mx:HBox>
+					<mx:Spacer width="100%" />
+					<mx:Label text="Layout:" />
+					<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
+								dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
+				</mx:HBox>
+			</mx:HBox>
 			<ColumnListComponent id="choicesComponent" label="Attributes to appear in the drop-down" />
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
@@ -47,6 +75,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -58,17 +87,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
+			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
+			public const targetTool:LinkableString 		= newLinkableChild(this, LinkableString);
 			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
-			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public const choices:LinkableHashMap 		= registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public const layoutMode:LinkableString 		= registerLinkableChild(this, new LinkableString(layouts[0]));
+			
+			private static const layouts:Array = [ "ComboBox", "List", "VSlider" ];
+			private static const layoutLabels:Array = [ "Combo Box", "List", "Slider" ];
+
+			private function targetLayoutLabelFunction(inputString:String):String
+			{
+				return layoutLabels[layouts.indexOf(inputString)];
+			}
 			
 			override protected function constructor():void
 			{
@@ -97,8 +137,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				choicesComponent.hashMap = choices;
 				
+				linkBindableProperty(layoutMode, targetLayoutCombo, 'selectedItem');
+				
 				// when the tool is created and nothing is selected, show the control panel
-				if (!targetTool.value && !targetAttribute.value)
+				if (!targetTool.value && !targetAttribute.value && !StageUtils.mouseButtonDown)
 					toggleControlPanel();
 			}
 			
@@ -170,6 +212,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				targetAttributeCombo.selectedItem = targetAttribute.value;
 				// clear the choice
 				choiceCombo.selectedIndex = -1;
+				choiceList.selectedIndex = -1;
+				choiceSlider.value = -1;
 			}
 			
 			// called when the admin alters the choices through the control panel
@@ -177,6 +221,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				// update the list of column objects available through the main window combo box
 				choiceCombo.dataProvider = choices.getObjects();
+				choiceList.dataProvider = choices.getObjects();
+				
+				var names:Array = choices.getObjects();
+				for( var i:uint = 0; i < names.length; i++ )
+					names[i] = ColumnUtils.getTitle(names[i]);
+				// special case for slider -- reverse order
+				choiceSlider.labels = names.reverse();
+				choiceSlider.maximum = names.length-1;
 			}
 			
 			// used to label the combo box items
@@ -244,6 +296,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					reportError('This option is not supported for the attribute "' + targetAttribute.value + '"');
 				}
 			}
+			
+			private function selectActiveAttribute():void
+			{
+				
+			}
+			
 		]]>
 	</mx:Script>
 </DraggablePanel>

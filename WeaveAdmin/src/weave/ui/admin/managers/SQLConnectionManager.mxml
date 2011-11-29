@@ -55,6 +55,7 @@
 				</ui:Indent>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" inputWidth="130"/>
 				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" inputWidth="130"/>
+				<ui:TextBox indent="{_indent}" label="User Folder Name" text="" id="folderNameInput" inputWidth="130" toolTip="Specify the folder in docroot to store user-created configurations"/>
 				<ui:Indent indent="{_indent}">
 					<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>					
 				</ui:Indent>
@@ -180,6 +181,8 @@
 					connectionPasswordInput.text = info.pass;
 					// is superuser
 					superuserCheckbox.selected = info.is_superuser;
+					// user folder name
+					folderNameInput.text = info.folderName;
 				}
 				
 				dataChanged = false;
@@ -204,6 +207,7 @@
 				connectionDatabaseInput.text = "";
 				connectionUserInput.text = "";
 				connectionPasswordInput.text = "";
+				folderNameInput.text = "";
 				configOverwrite.selected = false;
 				superuserCheckbox.selected = (AdminInterface.instance.connectionNames.length == 0);
 			}
@@ -219,6 +223,7 @@
 				info.user = connectionUserInput.text;
 				info.pass = connectionPasswordInput.text;
 				info.is_superuser = superuserCheckbox.selected;
+				info.folderName = folderNameInput.text;
 				
 				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected).addAsyncResponder(handleSave);
 				function handleSave(..._):void

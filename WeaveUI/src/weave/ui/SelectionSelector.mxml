@@ -22,7 +22,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				title="Saved Selections"
 				width="25%" height="10%"
-				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.ui.editors.*">
+				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:Canvas width="100%" height="100%">
 		

@@ -144,7 +144,7 @@ package weave.core
 		 */
 		public static function get shouldCallLater():Boolean
 		{
-			return currentFrameElapsedTime > maxComputationTimePerFrame;
+			return getTimer() - _currentFrameStartTime > maxComputationTimePerFrame;
 		}
 		
 		/**
@@ -181,7 +181,7 @@ package weave.core
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args];
 					// don't call the function if the relevantContext was disposed of.
-					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(args[0]))
+					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
 				}
 			}
@@ -210,7 +210,7 @@ package weave.core
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
 					// don't call the function if the relevantContext was disposed of.
-					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(args[0]))
+					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
 				}
 			}

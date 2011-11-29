@@ -219,13 +219,14 @@ public interface ISQLConfig
 		public static final String DATABASE = "database";
 		public static final String USER = "user";
 		public static final String PASS = "pass";
-		public static final String IS_SUPERUSER = "is_superuser";
+		public static final String IS_SUPERUSER = "is_superuser";		
+		public static final String FOLDERNAME = "folderName"; 
 
 		public ConnectionInfo()
 		{
 		}
 
-		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "";
+		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "", folderName = "";
 		public boolean is_superuser = false;
 
 		public String getConnectString()

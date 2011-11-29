@@ -184,12 +184,29 @@ package weave.core
 		 * Returns a new instance of a class.
 		 * 
 		 * @param classQName The qualified name of the class.
+		 * @param params Parameters to pass to the constructor of the class.
 		 * @return A new instance of the class.
 		 */		
-		public static function getNewInstance(classQName:String):Object
+		public static function getNewInstance(classQName:String, params:Array = null):Object
 		{
 			var classDef:Class = getClassDefinition(classQName);
-			return new classDef();
+			if (!params)
+				return new classDef();
+			switch (params.length)
+			{
+				case 0: return new classDef();
+				case 1: return new classDef(params[0]);
+				case 2: return new classDef(params[0], params[1]);
+				case 3: return new classDef(params[0], params[1], params[2]);
+				case 4: return new classDef(params[0], params[1], params[2], params[3]);
+				case 5: return new classDef(params[0], params[1], params[2], params[3], params[4]);
+				case 6: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5]);
+				case 7: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
+				case 8: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
+				case 9: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]);
+				case 10: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9]);
+				default: throw new Error("Too many constructor parameters (maximum 10)");
+			}
 		}
 		/*
 		private function typeEquals(o:*, cls:Class):Boolean

@@ -35,6 +35,7 @@ package weave.data.AttributeColumns
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.ErrorManager;
+	import weave.core.LinkableString;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.ColumnUtils;
 	import weave.utils.GeometryStreamDecoder;
@@ -46,6 +47,8 @@ package weave.data.AttributeColumns
 	 */
 	public class StreamedGeometryColumn extends AbstractAttributeColumn
 	{
+		private static var _debug:Boolean = false;
+		
 		public function StreamedGeometryColumn(tileService:IWeaveGeometryTileService, metadata:XML = null)
 		{
 			super(metadata);
@@ -133,30 +136,37 @@ package weave.data.AttributeColumns
 			if (dataBounds.isUndefined() || dataBounds.isEmpty())
 				return;
 			
-			var metadataTileIDs:Array;
-			if (true)
+			var metaRequestBounds:IBounds2D;
+			var metaRequestImportance:Number;
+			switch (metadataRequestMode.value)
 			{
-				// request ALL metadata tiles
-				metadataTileIDs = _geometryStreamDecoder.getRequiredMetadataTileIDs(
-					_geometryStreamDecoder.collectiveBounds, 0, true
-				).sort(Array.NUMERIC);
+				case METADATA_REQUEST_MODE_ALL:
+					metaRequestBounds = _geometryStreamDecoder.collectiveBounds;
+					metaRequestImportance = 0;
+					break;
+				case METADATA_REQUEST_MODE_XY:
+					metaRequestBounds = dataBounds;
+					metaRequestImportance = 0;
+					break;
+				case METADATA_REQUEST_MODE_XYZ:
+					metaRequestBounds = dataBounds;
+					metaRequestImportance = lowestImportance;
+					break;
 			}
-			else
-			{
-				// request only those metadata tiles containing shapes visible at current zoom
-				metadataTileIDs = _geometryStreamDecoder.getRequiredMetadataTileIDs(
-					dataBounds, lowestImportance, true
-				).sort(Array.NUMERIC);
-			}
-			// request geometry tiles needed for desired dataBounds and zoom level
-			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(
-				dataBounds, lowestImportance, true
-			).sort(Array.NUMERIC);
+			// request metadata tiles
+			var metadataTileIDs:Array = _geometryStreamDecoder.getRequiredMetadataTileIDs(metaRequestBounds, metaRequestImportance, true);
+			metadataTileIDs.sort(Array.NUMERIC);
+			// request geometry tiles needed for desired dataBounds and zoom level (filter by XYZ)
+			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance, true);
+			geometryTileIDs.sort(Array.NUMERIC);
 
-//			if (metadataTileIDs.length > 0)
-//				trace("requesting metadata tiles: " + metadataTileIDs);
-//			if (geometryTileIDs.length > 0)
-//				trace("requesting geometry tiles: " + geometryTileIDs);
+			if (_debug)
+			{
+				if (metadataTileIDs.length > 0)
+					trace("requesting metadata tiles: " + metadataTileIDs);
+				if (geometryTileIDs.length > 0)
+					trace("requesting geometry tiles: " + geometryTileIDs);
+			}
 			
 			var query:AsyncToken;
 			// make requests for groups of tiles
@@ -261,6 +271,27 @@ package weave.data.AttributeColumns
 
 			// when decoding finishes, run callbacks
 			_geometryStreamDecoder.decodeGeometryStream(result);
+		}
+		
+		/**
+		 * This mode determines which metadata tiles will be requested based on what geometry data is requested.
+		 * Possible request modes are:<br>
+		 *    all -> All metadata tiles, regardless of requested X-Y-Z range <br>
+		 *    xy -> Metadata tiles contained in the requested X-Y range, regardless of Z range <br>
+		 *    xyz -> Metadata tiles contained in the requested X-Y-Z range only <br>
+		 */
+		public static const metadataRequestMode:LinkableString = new LinkableString(METADATA_REQUEST_MODE_XYZ, verifyMetadataRequestMode);
+		
+		public static const METADATA_REQUEST_MODE_ALL:String = 'all';
+		public static const METADATA_REQUEST_MODE_XY:String = 'xy';
+		public static const METADATA_REQUEST_MODE_XYZ:String = 'xyz';
+		public static function get metadataRequestModeEnum():Array
+		{
+			return [METADATA_REQUEST_MODE_ALL, METADATA_REQUEST_MODE_XY, METADATA_REQUEST_MODE_XYZ];
+		}
+		private static function verifyMetadataRequestMode(value:String):Boolean
+		{
+			return metadataRequestModeEnum.indexOf(value) >= 0;
 		}
 	}
 }
