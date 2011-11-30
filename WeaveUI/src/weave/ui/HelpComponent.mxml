@@ -27,9 +27,7 @@
 <mx:Image
 	xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	source="@Embed(source='/weave/resources/images/menu_help.png')"
-	width="15"
-	height="15"
+	source="@Embed(source='/weave/resources/images/info.png')"
 	horizontalAlign="center" verticalAlign="middle"
 	buttonMode="{showPopup}" scaleContent="true"
 	mouseDown="if (showPopup) toggleHelpPanel();"
@@ -53,7 +51,7 @@
 			
 			[Bindable][Inspectable]
 			public var showPopup:Boolean = true;
-			private var _helpText:Object = new Object();
+			private var _helpText:Object = '';
 			[Inspectable]
 			public function set helpText(value:*):void
 			{

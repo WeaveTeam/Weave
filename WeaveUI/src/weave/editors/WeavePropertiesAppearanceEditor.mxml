@@ -25,15 +25,15 @@
 		 width="100%" 
 		 height="100%"
 		 creationPolicy="all"
-		 creationComplete="handleCreationComplete()" xmlns:settings="weave.ui.settings.*"
+		 creationComplete="handleCreationComplete()"
 		 >
 	<mx:VBox verticalGap="8">
 		<ui:Indent label="Window title font:">
-			<settings:FontControl id="windowTitleFontControl"/> 
+			<ui:FontControl id="windowTitleFontControl"/> 
 		</ui:Indent>
 		
 		<ui:Indent label="Visualization font:">
-			<settings:FontControl id="toolFontControl"/>
+			<ui:FontControl id="toolFontControl"/>
 		</ui:Indent>
 		
 		<ui:Indent label="Background color:">
