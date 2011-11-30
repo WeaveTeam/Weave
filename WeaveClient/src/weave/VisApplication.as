@@ -101,6 +101,7 @@ package weave
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.ui.editors.AddDataSourcePanel;
 	import weave.ui.editors.EditDataSourcePanel;
+	import weave.ui.infomap.InfoMapLoader;
 	import weave.ui.settings.WeavePropertiesEditor;
 	import weave.utils.DebugUtils;
 	import weave.visualization.tools.CollaborationTool;
@@ -668,6 +669,7 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
 				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
 				createToolMenuItem(Weave.properties.enableAddCustomTool, "Add Custom Tool", createGlobalObject, [EmptyTool]);
+				createToolMenuItem(Weave.properties.enableInfoMap, "Add InfoMap Tool",InfoMapLoader.openPanel);
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
