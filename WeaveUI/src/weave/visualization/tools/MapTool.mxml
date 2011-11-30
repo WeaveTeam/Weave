@@ -23,7 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*" creationPolicy="all"
-	     xmlns:mapTool="weave.visualization.tools.*"
+	     xmlns:mapTool="weave.visualization.tools.*" xmlns:managers="weave.editors.managers.*"
 	     >
 	<mx:Script>
 		<![CDATA[
@@ -428,14 +428,6 @@
 				//linkableYCenterCoord.value = yCenter; // and so does this.
 			}
 			
-			override public function dispose():void
-			{
-				super.dispose();
-				disposeObjects(layerEditor);
-				//EventUtils.removeBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
-				//EventUtils.removeBindCallback(userControlPanel, "visible", handleControlPanelToggle);
-			}
-			
 			public var overviewPanel:MapOverviewWindow;
 			private const OVERVIEW_PANEL_NAME:String = "overview";
 			
@@ -638,7 +630,7 @@
 			</mx:columns>
 			</mx:DataGrid>-->
 			
-			<ui:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
+			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>

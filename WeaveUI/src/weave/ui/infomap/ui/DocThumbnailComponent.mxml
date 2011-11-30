@@ -222,8 +222,9 @@ so that it can be moved, selected, handle filters.
 			//Solution from :http://www.flexer.info/2008/06/10/how-to-make-an-image-with-border/
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
+				
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
-				if(_doc == null)
+				if(_doc == null || parent == null || isNaN(width) || isNaN(height))
 					return;
 				
 				// clear graphics
@@ -231,13 +232,13 @@ so that it can be moved, selected, handle filters.
 				graphics.clear();
 				// set line style with with 0 and alpha 0
 				if(_doc.selected.value)
-					graphics.lineStyle(4,highlightedBorderColor.value,
+					graphics.lineStyle(2,highlightedBorderColor.value,
 					1,true);
 				else if(_mouseOver || _mouseDown) 
 					graphics.lineStyle(0,0,
 						0,true);
 				else
-					graphics.lineStyle(4,defaultBorderColor.value,
+					graphics.lineStyle(2,defaultBorderColor.value,
 						1,true);
 				// draw rectangle
 				graphics.drawRoundRect(-0.5,
@@ -251,10 +252,14 @@ so that it can be moved, selected, handle filters.
 			{
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
-				this.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,imageWidth.value,imageHeight.value));
+				try{
+					this.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,imageWidth.value,imageHeight.value));
+				}catch(e:Error){
+					
+				}
 			}
 			
-			[@Embed(source='/weave/resources/images/no-image.gif')]
+			[Embed(source='/weave/resources/images/no-image.gif')]
 			private var _noImage:Class;
 			private function handleImageFaultRequest(event:FaultEvent,token:Object=null):void
 			{

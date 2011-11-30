@@ -24,7 +24,6 @@ package weave.editors
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
-	import weave.ui.settings.WeavePropertiesEditor;
 	import weave.utils.EditorManager;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;

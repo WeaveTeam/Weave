@@ -75,7 +75,7 @@ package weave.ui.infomap
 			var keys:Array = _selectedKeySet.keys;
 			var probeString:String = "";
 			var temp:Array = [];
-			probeString = ProbeTextUtils.getProbeText(_selectedKeySet);
+			probeString = ProbeTextUtils.getProbeText(keys);
 			
 			//TODO: May want to consider removing numbers
 			var regEx:RegExp = /[a-zA-Z]+/g;				

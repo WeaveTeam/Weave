@@ -132,8 +132,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 
 					 
 					 linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text");
-					 nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,null,true);
-					 nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,null,true);
+					 nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,null,false);
+					 nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,null,false);
 					 
 					startDateStr.addGroupedCallback(this,handleDateChange);
 					endDateStr.addGroupedCallback(this,handleDateChange);

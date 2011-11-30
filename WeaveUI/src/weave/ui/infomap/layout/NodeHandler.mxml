@@ -172,7 +172,7 @@
 			public function checkForNewDocuments():void
 			{
 				highlightNewDocuments = true;
-				createAndSendQuery();
+				createAndSendQuery(false);
 			}
 		
 				
@@ -185,10 +185,11 @@
 			 * @private
 			 * This functions creates a query based on the keywords,operator and filters applied and sends a request to the Solr server
 			 **/
-			private function createAndSendQuery():void
+			private function createAndSendQuery(clearDocuments:Boolean=true):void
 			{
 				
-//				thumbnails.removeAllObjects();
+				if(clearDocuments)
+					thumbnails.removeAllObjects();
 				
 				nodeBase.keywordTextArea.text = node.keywords.value;
 				nodeBase.keywordTextArea.toolTip = node.keywords.value;

@@ -8,7 +8,7 @@
 			<mx:DataGridColumn width="50" dataField="0" sortDescending="false" headerText="Select">
 			<mx:itemRenderer>
 				<mx:Component>
-					<mx:CheckBox paddingLeft="5" selected="{data[0]}" change="outerDocument.handleCheckBoxChange(event,data)"/>
+					<mx:CheckBox paddingLeft="5" dataChange="selected=data[0]" change="outerDocument.handleCheckBoxChange(event,data)"/>
 				</mx:Component>
 			</mx:itemRenderer>
 			</mx:DataGridColumn>

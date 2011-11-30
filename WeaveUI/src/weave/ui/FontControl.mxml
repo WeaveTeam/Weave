@@ -20,17 +20,15 @@
 */
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
-		xmlns="*"
-		xmlns:settings="weave.ui.settings.*"
-		xmlns:ui="weave.ui.*"
+		xmlns="weave.ui.*"
 		creationPolicy="all"
 		horizontalGap="4">
 	
 	<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 
-	<settings:FontStyleList id="fontFamilyCombo" width="150" />
+	<FontFamilyCombo id="fontFamilyCombo" width="150" />
 
-	<ui:CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"
+	<CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"
 					   fontSize="10"
 					   textDecoration="none"
 					   fontStyle="normal"

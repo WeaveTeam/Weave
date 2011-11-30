@@ -38,6 +38,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
@@ -416,7 +417,7 @@
 				else{
 					var columnNodes:XMLList = xml.descendants();					
 					var numOfColumns:int = columnNodes.length();					
-					var hashMap:LinkableHashMap = ProbeTextUtils.probedColumns;
+					var hashMap:ILinkableHashMap = ProbeTextUtils.probedColumns;
 					
 					//adding phi and psi column to plotter x and y columns
 					var column1:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[5]);

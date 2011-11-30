@@ -121,8 +121,6 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			import weave.api.getSessionState;
 			import com.as3xls.xls.Cell;
 			import com.as3xls.xls.ExcelFile;
 			import com.as3xls.xls.Sheet;
@@ -137,15 +135,18 @@
 			import mx.utils.XMLUtil;
 			
 			import weave.Weave;
-			import weave.core.LinkableHashMap;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.getSessionState;
+			import weave.core.LinkableHashMap;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.CSVParser;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.resources.helpfiles.NewUserWizardHelpFile;
-			import weave.data.CSVParser;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.HierarchyUtils;
 			import weave.utils.NumberUtils;
@@ -266,7 +267,7 @@
 				
 				var numOfColumns:int = columnNodes.length();
 				
-				var hashMap:LinkableHashMap = ProbeTextUtils.probedColumns;
+				var hashMap:ILinkableHashMap = ProbeTextUtils.probedColumns;
 				
 				//adding first and last column to probed columns
 				var column1:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[0]);

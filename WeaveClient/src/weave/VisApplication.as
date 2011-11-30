@@ -99,10 +99,10 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-	import weave.ui.editors.AddDataSourcePanel;
-	import weave.ui.editors.EditDataSourcePanel;
 	import weave.ui.infomap.InfoMapLoader;
-	import weave.ui.settings.WeavePropertiesEditor;
+	import weave.editors.managers.AddDataSourcePanel;
+	import weave.editors.managers.EditDataSourcePanel;
+	import weave.editors.WeavePropertiesEditor;
 	import weave.utils.DebugUtils;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;

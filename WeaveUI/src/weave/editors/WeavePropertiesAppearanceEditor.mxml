@@ -19,7 +19,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns="weave.ui.settings.*" 
+<mx:VBox xmlns="weave.editors.*" 
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns:ui="weave.ui.*" 
 		 width="100%" 
@@ -29,11 +29,11 @@
 		 >
 	<mx:VBox verticalGap="8">
 		<ui:Indent label="Window title font:">
-			<FontControl id="windowTitleFontControl"/> 
+			<ui:FontControl id="windowTitleFontControl"/> 
 		</ui:Indent>
 		
 		<ui:Indent label="Visualization font:">
-			<FontControl id="toolFontControl"/>
+			<ui:FontControl id="toolFontControl"/>
 		</ui:Indent>
 		
 		<ui:Indent label="Background color:">

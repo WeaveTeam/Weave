@@ -51,6 +51,7 @@ package weave
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
 	import weave.utils.NumberUtils;
+	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
 
@@ -343,6 +344,7 @@ package weave
 		public const probeToolTipMaxWidth:LinkableNumber = new LinkableNumber(400);
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
+		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }
 
 		public const toolInteractions:InteractionController = new InteractionController();
 		

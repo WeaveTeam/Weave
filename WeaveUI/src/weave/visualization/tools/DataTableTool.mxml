@@ -132,8 +132,8 @@
 
 				registerLinkableChild(this, columns);
 				
-				var probeHeaderColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
-				var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects();
+				var probeHeaderColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
+				var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
 				var allColumns:Array = (probeHeaderColumns.concat as Function).apply(null, probedColumns);
 				for (var i:int = 0; i < allColumns.length; i++)
 				{
