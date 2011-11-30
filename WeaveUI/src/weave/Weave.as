@@ -20,6 +20,7 @@
 package weave
 {
 	import flash.external.ExternalInterface;
+	import flash.text.TextFormat;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
@@ -55,6 +56,7 @@ package weave
 	import weave.services.ProgressIndicator;
 	import weave.services.URLRequestUtils;
 	import weave.utils.DebugTimer;
+	import weave.utils.LinkableTextFormat;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -106,17 +108,17 @@ package weave
 				"weave.core",
 				"weave.data",
 				"weave.data.AttributeColumns",
-				"weave.data.ColumnReferences",
 				"weave.data.BinClassifiers",
 				"weave.data.BinningDefinitions",
+				"weave.data.ColumnReferences",
 				"weave.data.DataSources",
 				"weave.data.KeySets",
-				"weave.data.Units",
+				"weave.editors",
 				"weave.primitives",
 				"weave.Reports",
 				"weave.test",
 				"weave.ui",
-				"weave.ui.editors",
+				"weave.utils",
 				"weave.visualization",
 				"weave.visualization.tools",
 				"weave.visualization.layers",

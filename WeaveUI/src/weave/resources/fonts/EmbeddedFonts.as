@@ -20,7 +20,7 @@ package weave.resources.fonts
 {
 	public class EmbeddedFonts
 	{
-		public static var SophiaNubian:String = "Sophia Nubian"; 
+		public static const SophiaNubian:String = "Sophia Nubian"; 
 		[Embed(source="/weave/resources/fonts/SophiaNubian/SNR.ttf", fontName="Sophia Nubian", mimeType="application/x-font-truetype")]
 		private static const SophiaNubianFont:Class;
 		

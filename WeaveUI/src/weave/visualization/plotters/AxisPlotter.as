@@ -26,12 +26,9 @@ package weave.visualization.plotters
 	import mx.formatters.NumberFormatter;
 	import mx.utils.NameUtil;
 	
-	import weave.Weave;
-	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
-	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -46,22 +43,13 @@ package weave.visualization.plotters
 	import weave.primitives.LinkableNumberFormatter;
 	import weave.primitives.LooseAxisDescription;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 	
 	public class AxisPlotter extends AbstractPlotter
 	{
 		public function AxisPlotter()
 		{
-			init();
-		}
-		
-		private function init():void
-		{
-			linkSessionState(Weave.properties.axisFontFamily, axisFontFamily);
-			linkSessionState(Weave.properties.axisFontColor, axisFontColor);
-			linkSessionState(Weave.properties.axisFontSize, axisFontSize);
-			linkSessionState(Weave.properties.axisFontBold, axisFontBold);
-			linkSessionState(Weave.properties.axisFontItalic, axisFontItalic);
-			linkSessionState(Weave.properties.axisFontUnderline, axisFontUnderline);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 			spatialCallbacks.addImmediateCallback(this, updateLabels);
 
 			// set defaults so something will show if these values are not set
@@ -73,12 +61,6 @@ package weave.visualization.plotters
 		}
 		
 		//TODO: put this huge list of properties into a separate object instead
-		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
-		public const axisFontBold:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const axisFontItalic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const axisFontUnderline:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const axisFontSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10));
-		public const axisFontColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		public const axisLabelDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10));
 		public const axisLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-45));
 		public const axisGridLineThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
@@ -377,12 +359,7 @@ package weave.visualization.plotters
 		
 		protected function setupBitmapText():void
 		{
-			_bitmapText.textFormat.font = axisFontFamily.value;
-			_bitmapText.textFormat.size = axisFontSize.value;
-			_bitmapText.textFormat.color = axisFontColor.value;
-			_bitmapText.textFormat.bold = axisFontBold.value;
-			_bitmapText.textFormat.italic = axisFontItalic.value;
-			_bitmapText.textFormat.underline = axisFontUnderline.value;
+			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
 			try {
 				_bitmapText.textFormat.align = labelTextAlignment.value;
 			} catch (e:Error) { }

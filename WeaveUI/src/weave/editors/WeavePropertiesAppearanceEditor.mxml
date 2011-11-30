@@ -95,12 +95,12 @@
 -->
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
 			import mx.events.ListEvent;
 			
 			import weave.Weave;
 			import weave.WeaveProperties;
 			import weave.api.linkBindableProperty;
+			import weave.utils.LinkableTextFormat;
 			
 			
 			[Bindable]
@@ -111,41 +111,43 @@
 				super.childrenCreated();
 				
 				windowTitleFontControl.initialize();
-				windowTitleFontControl.fontFamilyCombo.selectedLabel = Weave.properties.panelTitleFontFamily.value;
+				windowTitleFontControl.fontFamilyCombo.selectedLabel = Weave.properties.panelTitleTextFormat.font.value;
 				windowTitleFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleFontListChange );
 
 				toolFontControl.initialize();
 				toolFontControl.fontFamilyCombo.dataProvider = WeaveProperties.embeddedFonts;
+				toolFontControl.fontFamilyCombo.selectedLabel = LinkableTextFormat.defaultTextFormat.font.value;
 				toolFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleToolFontListChange );
-				toolFontControl.removeChild(toolFontControl.underlineButton);
-//				toolFontControl.removeChild(toolFontControl.boldButton);
+				
+				//toolFontControl.removeChild(toolFontControl.boldButton);
 				toolFontControl.removeChild(toolFontControl.italicButton);
+				toolFontControl.removeChild(toolFontControl.underlineButton);
 			}
 			
 			private function handleCreationComplete():void
 			{
-				linkBindableProperty(Weave.properties.panelTitleFontFamily, windowTitleFontControl.fontFamilyCombo, "selectedLabel");
-				linkBindableProperty(Weave.properties.panelTitleFontSize,windowTitleFontControl.fontSizeCombo, "selectedItem");
-				linkBindableProperty(Weave.properties.panelTitleFontColor, windowTitleFontControl.colorPicker, "selectedColor");
-				linkBindableProperty(Weave.properties.panelTitleFontBold, windowTitleFontControl.boldButton, "selected");
-				linkBindableProperty(Weave.properties.panelTitleFontItalic, windowTitleFontControl.italicButton, "selected");
-				linkBindableProperty(Weave.properties.panelTitleFontUnderline, windowTitleFontControl.underlineButton, "selected");
+				linkBindableProperty(Weave.properties.panelTitleTextFormat.font, windowTitleFontControl.fontFamilyCombo, "selectedLabel");
+				linkBindableProperty(Weave.properties.panelTitleTextFormat.size, windowTitleFontControl.fontSizeCombo, "selectedItem");
+				linkBindableProperty(Weave.properties.panelTitleTextFormat.color, windowTitleFontControl.colorPicker, "selectedColor");
+				linkBindableProperty(Weave.properties.panelTitleTextFormat.bold, windowTitleFontControl.boldButton, "selected");
+				linkBindableProperty(Weave.properties.panelTitleTextFormat.italic, windowTitleFontControl.italicButton, "selected");
+				linkBindableProperty(Weave.properties.panelTitleTextFormat.underline, windowTitleFontControl.underlineButton, "selected");
 				
-				linkBindableProperty(Weave.properties.axisFontFamily, toolFontControl.fontFamilyCombo, "selectedLabel");
-				linkBindableProperty(Weave.properties.axisFontSize, toolFontControl.fontSizeCombo, "selectedItem");
-				linkBindableProperty(Weave.properties.axisFontColor, toolFontControl.colorPicker, "selectedColor");
-				linkBindableProperty(Weave.properties.axisFontUnderline, toolFontControl.underlineButton, "selected" );
-				linkBindableProperty(Weave.properties.axisFontBold, toolFontControl.boldButton, "selected" );
+				linkBindableProperty(LinkableTextFormat.defaultTextFormat.font, toolFontControl.fontFamilyCombo, "selectedLabel");
+				linkBindableProperty(LinkableTextFormat.defaultTextFormat.size, toolFontControl.fontSizeCombo, "selectedItem");
+				linkBindableProperty(LinkableTextFormat.defaultTextFormat.color, toolFontControl.colorPicker, "selectedColor");
+				linkBindableProperty(LinkableTextFormat.defaultTextFormat.underline, toolFontControl.underlineButton, "selected" );
+				linkBindableProperty(LinkableTextFormat.defaultTextFormat.bold, toolFontControl.boldButton, "selected" );
 			}
 			
 			private function handleFontListChange(event:ListEvent):void
 			{
-				Weave.properties.panelTitleFontFamily.value = event.target.selectedLabel;
+				Weave.properties.panelTitleTextFormat.font.value = event.target.selectedLabel;
 			}
 			
 			private function handleToolFontListChange(event:ListEvent):void
 			{
-				Weave.properties.axisFontFamily.value = event.target.selectedLabel;
+				LinkableTextFormat.defaultTextFormat.font.value = event.target.selectedLabel;
 			}
 			
 		]]>

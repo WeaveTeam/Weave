@@ -23,23 +23,23 @@
     verticalScrollPolicy="off" horizontalScrollPolicy="off"
     resize="resetHeight()"
     change="resetHeight()"
-    initialize="init()" 
     >
 
     <mx:Script>
         <![CDATA[
+			import weave.core.StageUtils;
         	private function init():void
         	{
 				textField.height = 0;
-            	textField.autoSize = "center";
         	}
-        
+			
         	private function resetHeight():void
         	{
     			if (parent && !editable)
     			{
 					styleChanged("headerHeight");
 					notifyStyleChangeInChildren("headerHeight", true);
+					validateSize(true);
     			}
         	}
         
@@ -57,9 +57,12 @@
             override public function validateSize(recursive:Boolean=false):void
             {
             	super.validateSize(recursive);
+				var text:String = textField.text;
+				textField.height = 0;
+				textField.autoSize = 'center';
             	if (wordWrap)
             	{
-	            	//this.textField.width;
+	            	textField.width;
             	}
             	else
             	{

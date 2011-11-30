@@ -25,6 +25,8 @@ package weave
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
 	import flash.text.Font;
+	import flash.text.FontStyle;
+	import flash.text.TextFormat;
 	import flash.utils.ByteArray;
 	
 	import mx.collections.ArrayCollection;
@@ -50,6 +52,7 @@ package weave
 	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.InteractionController;
@@ -87,6 +90,9 @@ package weave
 				}
 			);
 
+			panelTitleTextFormat.font.value = "Verdana";
+			panelTitleTextFormat.size.value = 10;
+			panelTitleTextFormat.color.value = 0xFFFFFF;
 		}
 		
 		private function loadEmbeddedFonts():void
@@ -122,9 +128,6 @@ package weave
 			//DO Nothing
 		}
 		
-		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
-		public static const DEFAULT_FONT_SIZE:Number = 10;
-		public static const DEFAULT_AXIS_FONT_SIZE:Number = 11;
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
 		
 		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
@@ -132,7 +135,6 @@ package weave
 		private static const GOOGLE_MAPS_URL:String = "Google Maps|http://maps.google.com/maps?t=h&q=";
 		private static const GOOGLE_IMAGES_URL:String = "Google Images|http://images.google.com/images?q=";
 		
-		private function verifyFontSize(value:Number):Boolean { return value > 2; }
 		private function verifyAlpha(value:Number):Boolean { return 0 <= value && value <= 1; }
 		private function verifyWindowSnapGridSize(value:String):Boolean
 		{
@@ -306,19 +308,8 @@ package weave
 			return foundNonZero;
 		}
 		
-		public const panelTitleFontColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
-		public const panelTitleFontSize:LinkableNumber = new LinkableNumber(10, verifyFontSize);
-		public const panelTitleFontFamily:LinkableString = new LinkableString("Verdana", StandardLib.isDefined);
-		public const panelTitleFontBold:LinkableBoolean = new LinkableBoolean(false);
-		public const panelTitleFontItalic:LinkableBoolean = new LinkableBoolean(false);
-		public const panelTitleFontUnderline:LinkableBoolean = new LinkableBoolean(false);
-				
-		public const axisFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
-		public const axisFontSize:LinkableNumber = new LinkableNumber(DEFAULT_AXIS_FONT_SIZE, verifyFontSize);
-		public const axisFontFamily:LinkableString = new LinkableString(DEFAULT_FONT_FAMILY, StandardLib.isDefined);
-		public const axisFontBold:LinkableBoolean = new LinkableBoolean(true);
-		public const axisFontItalic:LinkableBoolean = new LinkableBoolean(false);
-		public const axisFontUnderline:LinkableBoolean = new LinkableBoolean(false);
+		public const panelTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
+		public function get defaultTextFormat():LinkableTextFormat { return LinkableTextFormat.defaultTextFormat; }
 		
 		public const probeInnerGlowColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
 		public const probeInnerGlowAlpha:LinkableNumber = new LinkableNumber(1, verifyAlpha);
@@ -363,7 +354,6 @@ package weave
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);
-
 		
 		/**
 		 * This field contains JavaScript code that will run when Weave is loaded, immediately after the session state
@@ -418,34 +408,27 @@ package weave
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
-		[Deprecated(replacement="panelTitleFontFamily")] public function set panelTitleFontStyle(value:String):void
-		{
-			panelTitleFontFamily.value = value;
-		}
-		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void
-		{
-			dashboardMode.value = !value;
-		}
-		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void
-		{
-			dashboardMode.value = !value;
-		}
-		[Deprecated(replacement="enableSessionBookmarks")] public function set enableSavePoint(value:Boolean):void
-		{
-			enableSessionBookmarks.value = value;
-		}
-		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void
-		{
-			showProbeToolTipEditor.value = value;
-		}
-		[Deprecated(replacement="enableAddWeaveDataSource")] public function set enableAddOpenIndicatorsDataSource(value:Boolean):void
-		{
-			enableAddWeaveDataSource.value = value;
-		}
-		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void
-		{
-			enablePanelCoordsPercentageMode.value = value;
-		}
+		[Deprecated(replacement="panelTitleTextFormat.color")] public function set panelTitleFontColor(value:Number):void { panelTitleTextFormat.color.value = value; }
+		[Deprecated(replacement="panelTitleTextFormat.size")] public function set panelTitleFontSize(value:Number):void { panelTitleTextFormat.size.value = value; }
+		[Deprecated(replacement="panelTitleTextFormat.font")] public function set panelTitleFontStyle(value:String):void { panelTitleTextFormat.font.value = value; }
+		[Deprecated(replacement="panelTitleTextFormat.font")] public function set panelTitleFontFamily(value:String):void { panelTitleTextFormat.font.value = value; }
+		[Deprecated(replacement="panelTitleTextFormat.bold")] public function set panelTitleFontBold(value:Boolean):void { panelTitleTextFormat.bold.value = value; }
+		[Deprecated(replacement="panelTitleTextFormat.italic")] public function set panelTitleFontItalic(value:Boolean):void { panelTitleTextFormat.italic.value = value; }
+		[Deprecated(replacement="panelTitleTextFormat.underline")] public function set panelTitleFontUnderline(value:Boolean):void { panelTitleTextFormat.underline.value = value; }
+		
+		[Deprecated(replacement="defaultTextFormat.color")] public function set axisFontFontColor(value:Number):void { defaultTextFormat.color.value = value; }
+		[Deprecated(replacement="defaultTextFormat.size")] public function set axisFontFontSize(value:Number):void { defaultTextFormat.size.value = value; }
+		[Deprecated(replacement="defaultTextFormat.font")] public function set axisFontFontFamily(value:String):void { defaultTextFormat.font.value = value; }
+		[Deprecated(replacement="defaultTextFormat.bold")] public function set axisFontFontBold(value:Boolean):void { defaultTextFormat.bold.value = value; }
+		[Deprecated(replacement="defaultTextFormat.italic")] public function set axisFontFontItalic(value:Boolean):void { defaultTextFormat.italic.value = value; }
+		[Deprecated(replacement="defaultTextFormat.underline")] public function set axisFontFontUnderline(value:Boolean):void { defaultTextFormat.underline.value = value; }
+		
+		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
+		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }
+		[Deprecated(replacement="enableSessionBookmarks")] public function set enableSavePoint(value:Boolean):void { enableSessionBookmarks.value = value; }
+		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void { showProbeToolTipEditor.value = value; }
+		[Deprecated(replacement="enableAddWeaveDataSource")] public function set enableAddOpenIndicatorsDataSource(value:Boolean):void { enableAddWeaveDataSource.value = value; }
+		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void { enablePanelCoordsPercentageMode.value = value; }
 		[Deprecated(replacement="rServiceURL")] public function set rServicesURL(value:String):void
 		{
 			if (value != '/OpenIndicatorsRServices')

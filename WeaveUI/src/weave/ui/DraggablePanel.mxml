@@ -185,12 +185,12 @@
 				panelWidth.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelWidth]);
 				panelHeight.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelHeight]);
 				
-				Weave.properties.panelTitleFontFamily.addGroupedCallback(this, handleTitleFamilyChange);
-				Weave.properties.panelTitleFontColor.addGroupedCallback(this, handleTitleColorChange);
-				Weave.properties.panelTitleFontSize.addGroupedCallback(this, handleTitleSizeChange);
-				Weave.properties.panelTitleFontBold.addGroupedCallback(this,handleTitleWeightChange);
-				Weave.properties.panelTitleFontItalic.addGroupedCallback(this, handleTitleStyleChange);
-				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
+				Weave.properties.panelTitleTextFormat.font.addGroupedCallback(this, handleTitleFamilyChange);
+				Weave.properties.panelTitleTextFormat.color.addGroupedCallback(this, handleTitleColorChange);
+				Weave.properties.panelTitleTextFormat.size.addGroupedCallback(this, handleTitleSizeChange);
+				Weave.properties.panelTitleTextFormat.bold.addGroupedCallback(this,handleTitleWeightChange);
+				Weave.properties.panelTitleTextFormat.italic.addGroupedCallback(this, handleTitleStyleChange);
+				Weave.properties.panelTitleTextFormat.underline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
@@ -271,7 +271,7 @@
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
 				
-				titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
+				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 				
 				panelNeedsUpdate();
 			}
@@ -312,32 +312,32 @@
 			private function handleTitleColorChange():void
 			{			
 				if (titleBar)
-					titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
+					titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 			}
 			private function handleTitleWeightChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontWeight", (Weave.properties.panelTitleFontBold.value) ? "bold" : "normal" ) ;	
+					titleBar.setStyle("fontWeight", (Weave.properties.panelTitleTextFormat.bold.value) ? "bold" : "normal" ) ;	
 			}
 			private function handleTitleDecorationChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("textDecoration", (Weave.properties.panelTitleFontUnderline.value)? "underline" : "none");	
+					titleBar.setStyle("textDecoration", (Weave.properties.panelTitleTextFormat.underline.value)? "underline" : "none");	
 			}
 			private function handleTitleStyleChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontStyle", (Weave.properties.panelTitleFontItalic.value) ? "italic" : "normal");
+					titleBar.setStyle("fontStyle", (Weave.properties.panelTitleTextFormat.italic.value) ? "italic" : "normal");
 			}			
 			private function handleTitleFamilyChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontFamily", Weave.properties.panelTitleFontFamily.value);
+					titleBar.setStyle("fontFamily", Weave.properties.panelTitleTextFormat.font.value);
 			}			
 			private function handleTitleSizeChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
+					titleBar.setStyle("fontSize", Weave.properties.panelTitleTextFormat.size.value);
 			}
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;

@@ -114,6 +114,7 @@
 			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
@@ -127,7 +128,7 @@
 				//getCallbackCollection(dataGrid.filteredKeySet).addGroupedCallback(this, handleKeySetChange);
 				getCallbackCollection(_selection).addGroupedCallback(this, handleGlobalSelectionChange);
 				getCallbackCollection(_subset).addGroupedCallback(this, handleSubsetChange);
-				Weave.properties.axisFontSize.addGroupedCallback(this, handleFontChange, true);
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, handleFontChange, true);
 				
 
 				registerLinkableChild(this, columns);
@@ -208,7 +209,8 @@
 			{
 				if (!dataGrid)
 					return callLater(handleFontChange);
-				dataGrid.setStyle("fontSize", Weave.properties.axisFontSize.value);
+				
+				LinkableTextFormat.defaultTextFormat.copyToStyle(dataGrid);
 			}
 			
 			private var attColumns:Array;

@@ -73,12 +73,6 @@ package weave.visualization.layers
 		public function SimpleInteractiveVisualization()
 		{
 			super();
-			linkSessionState(Weave.properties.axisFontSize, axisFontSize);
-			linkSessionState(Weave.properties.axisFontFamily, axisFontFamily);
-			linkSessionState(Weave.properties.axisFontUnderline, axisFontUnderline);
-			linkSessionState(Weave.properties.axisFontItalic, axisFontItalic);
-			linkSessionState(Weave.properties.axisFontBold, axisFontBold);
-			linkSessionState(Weave.properties.axisFontColor, axisFontColor);
 		}
 
 		public static const PROBE_LINE_LAYER_NAME:String = "probeLine";
@@ -99,13 +93,6 @@ package weave.visualization.layers
 		
 		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
-		
-		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
-		public const axisFontBold:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const axisFontItalic:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const axisFontUnderline:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const axisFontSize:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const axisFontColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		public const gridLineThickness:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const gridLineColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -131,12 +118,6 @@ package weave.visualization.layers
 				throw new Error("linkToAxisProperties(): given axisLayer is not one of this visualization's layers");
 			var p:SimpleAxisPlotter = axisLayer.axisPlotter;
 			var list:Array = [
-				[axisFontFamily,     p.axisFontFamily],
-				[axisFontBold,       p.axisFontBold],
-				[axisFontItalic,     p.axisFontItalic],
-				[axisFontUnderline,  p.axisFontUnderline],
-				[axisFontSize,       p.axisFontSize],
-				[axisFontColor,      p.axisFontColor],
 				[gridLineThickness,  p.axisGridLineThickness],
 				[gridLineColor,      p.axisGridLineColor],
 				[gridLineAlpha,      p.axisGridLineAlpha],

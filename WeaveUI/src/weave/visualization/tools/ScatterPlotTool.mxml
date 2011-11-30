@@ -51,6 +51,7 @@
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
@@ -393,23 +394,14 @@
 				visualization.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				
-				Weave.properties.axisFontFamily.addGroupedCallback(this,updateEquationStyle);
-				Weave.properties.axisFontColor.addGroupedCallback(this,updateEquationStyle);
-				Weave.properties.axisFontSize.addGroupedCallback(this,updateEquationStyle);
-				Weave.properties.axisFontUnderline.addGroupedCallback(this, updateEquationStyle, true);
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
 				
 				setUndefinedLayerScreenBounds();
 			}
 			
 			private function updateEquationStyle():void
 			{
-				equationText.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
-				equationText.setStyle("color", Weave.properties.axisFontColor.value);
-				equationText.setStyle("fontSize", Weave.properties.axisFontSize.value);
-				if (Weave.properties.axisFontUnderline.value)
-					equationText.setStyle("textDecoration", "underline");
-				else
-					equationText.setStyle("textDecoration", "none");
+				LinkableTextFormat.defaultTextFormat.copyToStyle(equationText);
 			}
 			
 			private function updateEquation():void
