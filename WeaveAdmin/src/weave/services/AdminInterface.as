@@ -22,10 +22,12 @@ package weave.services
 	import flash.external.ExternalInterface;
 	import flash.net.FileReference;
 	import flash.utils.Dictionary;
+	import flash.utils.setTimeout;
 	
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
 	import weave.Strings;
@@ -599,7 +601,11 @@ package weave.services
 			if (fileName)
 				url += 'file=' + fileName + '&'
 			url += 'adminSession=' + createWeaveService();
-			ExternalInterface.call('window.open', url, '_blank', 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1');
+			var target:String = '_blank';
+			var params:String = 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1';
+			// use setTimeout so it will call later without blocking ActionScript
+			var script:String = StringUtil.substitute('setTimeout(function(){ window.open("{0}", "{1}", "{2}"); }, 0)', url, target, params);
+			ExternalInterface.call(script);
 		}
 		
 		public function saveWeaveFile(sessionState:String, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
