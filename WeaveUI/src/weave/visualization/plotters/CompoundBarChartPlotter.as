@@ -132,7 +132,7 @@ package weave.visualization.plotters
 		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const valueLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN, verifyLabelMaxWidth));
+		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
@@ -140,7 +140,7 @@ package weave.visualization.plotters
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const labelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN, verifyLabelMaxWidth));
+		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
 
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -536,7 +536,7 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
-						_bitmapText.maxWidth = (valueLabelMaxWidth.value <= Infinity) ? valueLabelMaxWidth.value : Infinity;
+						_bitmapText.maxWidth = valueLabelMaxWidth.value;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
 						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; 
 						if (isFinite(valueLabelRelativeAngle.value))
@@ -581,7 +581,7 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
-						_bitmapText.maxWidth = (labelMaxWidth.value <= Infinity) ? labelMaxWidth.value : Infinity;
+						_bitmapText.maxWidth = labelMaxWidth.value;
 						if (isFinite(labelRelativeAngle.value))
 							_bitmapText.angle += labelRelativeAngle.value;
 						_bitmapText.verticalAlign = labelVerticalAlign.value;

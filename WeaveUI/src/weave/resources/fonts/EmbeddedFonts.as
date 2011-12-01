@@ -21,8 +21,12 @@ package weave.resources.fonts
 	public class EmbeddedFonts
 	{
 		public static const SophiaNubian:String = "Sophia Nubian"; 
-		[Embed(source="/weave/resources/fonts/SophiaNubian/SNR.ttf", fontName="Sophia Nubian", mimeType="application/x-font-truetype")]
+		
+		[Embed(source="/weave/resources/fonts/SophiaNubian/SNR.ttf", fontName="Sophia Nubian", mimeType="application/x-font-truetype", fontWeight="normal")]
 		private static const SophiaNubianFont:Class;
+		
+		[Embed(source="/weave/resources/fonts/SophiaNubian/SNB.ttf", fontName="Sophia Nubian", mimeType="application/x-font-truetype", fontWeight="bold")]
+		private static const SophiaNubianBoldFont:Class;
 		
 //		public var ARIAL:String = "Arial"; 
 //		[Embed(source="Arial.ttf", fontName="Arial", mimeType="application/x-font-truetype")]
