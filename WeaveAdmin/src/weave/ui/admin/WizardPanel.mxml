@@ -30,14 +30,18 @@
 		title="{viewStack.label}"
 		borderAlpha="1"
 		borderColor="#C5C3A8"
-		borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
+		borderThicknessBottom="0" borderThicknessLeft="8" borderThicknessRight="8" borderThicknessTop="0"
+		backgroundColor="#C5C3A8"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
 		roundedBottomCorners="true">
 
-	<mx:Box id="viewStackContainer"
+	<!-- This box is where the viewStack and messageLog will be placed -->
+	<mx:VDividedBox id="viewStackContainer"
 			verticalScrollPolicy="off"
-			horizontalScrollPolicy="off"/>
+			horizontalScrollPolicy="off"
+			width="100%"
+			height="100%"/>
 	
 	<mx:ControlBar paddingTop="5" paddingBottom="5" enabled="{viewStack.controlBarEnabled}">
 		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}{viewStack.selectedChild.label ? ': ' + viewStack.selectedChild.label : ''}"/>
@@ -54,12 +58,16 @@
 			
 			import mx.containers.ViewStack;
 			import mx.controls.Alert;
+			import mx.controls.TextArea;
 			import mx.core.Container;
 			import mx.core.IFlexDisplayObject;
 			import mx.core.IUIComponent;
+			import mx.core.ScrollPolicy;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
+			
+			import weave.services.WeaveAdminService;
 			
 			[Bindable] private var viewStack:WizardViewStack = null;
 			[Bindable] private var viewStackNumChildren:int = 0; // this is used because numChildren is not bindable
@@ -71,8 +79,41 @@
 			public function setWizardViewStack(viewStack:WizardViewStack):void
 			{
 				this.viewStack = viewStack;
-				viewStackContainer.addChild(viewStack);
+				viewStack.setStyle("backgroundColor", 0xFFFFFF);
+				viewStackContainer.addChildAt(viewStack, 0);
 				viewStack.addEventListener(FlexEvent.CREATION_COMPLETE, function(..._):void { viewStackNumChildren = viewStack.numChildren; });
+				
+				// The TextArea log needs the logging messages from the AdminConsole.
+				// This currently pushes all new logging messages since this panel was instantiated.
+				// It should only display logging messages for DelayedAsyncInvocations which were created 
+				// in this instance.
+				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessage);
+			}
+			
+			private var _isLogAdded:Boolean = false;
+			public var messageLog:TextArea = new TextArea();
+			private function handleMessage():void
+			{
+				if (!_isLogAdded)
+				{	
+					var tempHeight:Number = viewStackContainer.height;
+					messageLog.opaqueBackground = 0xFFFFFF;
+					messageLog.editable = false;
+					messageLog.percentWidth = 100;
+					messageLog.horizontalScrollPolicy = ScrollPolicy.OFF;
+					messageLog.verticalScrollPolicy = ScrollPolicy.AUTO;
+					messageLog.setStyle("borderSkin", null);
+					
+					viewStackContainer.addChild(messageLog);
+					viewStackContainer.moveDivider(0, -(viewStackContainer.height / 5));
+					_isLogAdded = true;
+					
+					viewStackContainer.height = tempHeight;
+				}
+
+				messageLog.text += "\n\n" + WeaveAdminService.messageLog[WeaveAdminService.messageLog.length - 1];
+				messageLog.validateProperties();
+				messageLog.verticalScrollPosition = messageLog.maxVerticalScrollPosition;
 			}
 			
 			/**
