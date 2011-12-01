@@ -27,6 +27,7 @@ import org.w3c.dom.Document;
 
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.SQLUtils;
+import weave.utils.SQLResult;
 
 /**
  * DatabaseConfig This class reads from an SQL database and provides an interface to retrieve strings.
@@ -45,17 +46,20 @@ public class SQLConfig
 	private final String SUFFIX_META_PRIVATE = "attr_meta_private";
 	private final String SUFFIX_META_PUBLIC = "attr_meta_public";
 	private final String SUFFIX_HIERARCHY = "hierarchy";
+        private final String SUFFIX_CATEGORIES = "categories";
 	private final String WEAVE_TABLE_PREFIX = "weave_";
 	
 	private final String ID = "id";
+        private final String NAME = "name";
 	private final String DESCRIPTION = "description";
 	private final String PROPERTY = "property";
 	private final String VALUE = "value";
+        private final String PARENT_ID = "parent_id";
 	
 	private String table_desc = WEAVE_TABLE_PREFIX + SUFFIX_DESC;
 	private String table_meta_private = WEAVE_TABLE_PREFIX + SUFFIX_META_PRIVATE;
 	private String table_meta_public = WEAVE_TABLE_PREFIX + SUFFIX_META_PUBLIC;
-	private String table_hierarchy = WEAVE_TABLE_PREFIX + SUFFIX_HIERARCHY;
+        private String table_categories = WEAVE_TABLE_PREFIX + SUFFIX_CATEGORIES;
 	
 	private DatabaseConfigInfo dbInfo = null;
 	private ISQLConfig connectionConfig = null;
@@ -127,29 +131,14 @@ public class SQLConfig
 		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, ID, table_desc, ID);
 		
 		// Category table
-		columnNames = Arrays.asList(ID, "name", "parent_id");
-		columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TEXT", "INT");
-		SQLUtils.createTable(conn, dbInfo.schema, table_hierarchy, columnNames, columnTypes);
+		columnNames = Arrays.asList(ID, NAME, PARENT_ID);
+		columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TEXT", "BIGINT UNSIGNED");
+		SQLUtils.createTable(conn, dbInfo.schema, table_categories, columnNames, columnTypes);
 	}
-//	private void initCategoryIDSQLTable() throws SQLException, RemoteException
-//	{
-//		List<String> columnNames = new Vector<String>();
-//		List<String> columnTypes = new Vector<String>();
-//		/* Create a table for hierarchy (id, parent_id, title) */
-//		
-//		columnNames.clear();
-//		columnNames.add(ID);
-//		columnNames.add(PARENT_ID);
-//		columnNames.add(TITLE);
-//		columnTypes.clear();
-//		columnTypes.add(SQLTYPE_VARCHAR);
-//		SQLUtils.createTable(getConnection(), dbInfo.schema, TABLE_CATEGORY, columnNames, columnTypes);
-//		
-//	}
-    public boolean isConnectedToDatabase()
-    {
-            return true;
-    }
+        public boolean isConnectedToDatabase()
+        {
+                return true;
+        }
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();
@@ -216,19 +205,11 @@ public class SQLConfig
             return ids;
         }
         /**
-         * @param id ID of an attribute column
+         * @param ids List of IDs to be queried
          * @param properties A list of metadata property names to return
-         * @return A map of the requested property names to values
+         * @return A map of the requested IDs to maps of property names to values
          * @throws RemoteException
          */
-//        private Map<String,String> getProperties(Integer id, Collection<String> properties) throws RemoteException
-//        {
-//            List<Integer> ids = new LinkedList<Integer>();
-//            Map<Integer,Map<String,String>> retval;
-//            ids.add(id);
-//            retval = getProperties(ids, properties);
-//            return retval.get(id);
-//        }
         @Deprecated
         private Map<Integer,Map<String,String>> getAllMetadata(Collection<Integer> ids, Collection<String> properties) throws RemoteException
         {
@@ -548,14 +529,94 @@ public class SQLConfig
 	{
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
         Map<Integer,Map<String,String>> attr_cols;
-        List<Integer> col_ids = getIdsFromMetadata(table_meta_public, metadataQueryParams);
-        
+        List<Integer> col_ids = getIdsFromMetadata(table_meta_public, metadataQueryParams); 
         attr_cols = getAllMetadata(col_ids, null);
 		for (Entry<Integer,Map<String,String>> entry : attr_cols.entrySet())
 			results.add(new AttributeColumnInfo(entry.getKey(), null, entry.getValue()));
 		return results;
 	}
+        /* Code regarding the new category table and logic */
+        public void setAttributeColumnParent(int col_id, int parent_id) throws RemoteException
+        {
+            setProperty(col_id, PARENT_ID, String.format("%d", parent_id));
+        }
+        public int addCategory(String category) throws RemoteException
+        {
+            return addCategory(category, null);
+        }
+        public int addCategory(String category, Integer parent) throws RemoteException
+        {
+            Connection conn;
+            int id; 
+            try
+            {
+                Map<String,Object> row = new HashMap<String,Object>();
+                row.put(NAME, category);
+                row.put(PARENT_ID, parent);
+
+                conn = getConnection();
+                id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_categories, row);
+            }
+            catch (SQLException sql_e)
+            {
+                throw new RemoteException(String.format("Failed to add category %s.", category), sql_e);
+            }
+            return id;
+        }
+        public void setCategoryParent(int child_id, int parent_id) throws RemoteException
+        {
+            Connection conn;
+            try 
+            {
+                conn = getConnection();
+                Map<String,Object> row = new HashMap<String,Object>();
+                Map<String,Object> whereParams = new HashMap<String,Object>();
+                whereParams.put(ID, child_id);
+                row.put(PARENT_ID, parent_id);
+                SQLUtils.updateRows(conn, dbInfo.schema, table_categories, whereParams, row);
+            }
+            catch (SQLException sql_e)
+            {
+                throw new RemoteException(String.format("Failed to set child %d's parent as %d.", child_id, parent_id), sql_e);
+            }
+        }
+        public Collection<Integer> getChildColumns(int parent_id) throws RemoteException
+        {
+            Map<String,String> query = new HashMap<String,String>();
+
+            query.put(PARENT_ID, (new Integer(parent_id)).toString());
+            return getIdsFromMetadata(table_categories, query);
+        }
+        public Map<Integer,String> getCategories() throws RemoteException
+        {
+            return getChildCategories(-1);
+        }
+        public Map<Integer,String> getChildCategories(int parent_id) throws RemoteException
+        {
+            Connection conn;
+            Map<Integer,String> children = new HashMap<Integer,String>();
+            Map<String,Object> whereParams = new HashMap<String,Object>();
+            List<String> columns = Arrays.asList(ID, NAME, PARENT_ID);
+            try
+            {
+                SQLResult sqlres;
+                conn = getConnection();
+                if (parent_id > -1)
+                {
+                    whereParams.put("parent", parent_id);
+                }
+                sqlres = SQLUtils.getRowSetFromQuery(conn, columns, dbInfo.schema, table_categories, whereParams);
+                for (Object[] row : sqlres.rows)
+                {
+                    int id = SQLResult.objAsInt(row[0]);
+                    String name = SQLResult.objAsString(row[1]);
+                    children.put(id, name);
+                }
+            }
+            catch (SQLException sql_e)
+            {
+                throw new RemoteException(String.format("Failed to retrieve children of parent %d.", parent_id), sql_e); 
+            }
+            return children;
+        }
 }
-
-
-

@@ -554,7 +554,6 @@ public class SQLUtils
 		}
 		return records;
 	}
-	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
@@ -570,9 +569,8 @@ public class SQLUtils
 			Map<String,String> whereParams
 		) throws SQLException
 	{
-		return getRowSetFromQuery(conn, null, fromSchema, fromTable, whereParams);
-	}
-	
+		return getRowSetFromQuery(conn, null, fromSchema, fromTable, new HashMap<String,Object>(whereParams));
+	}	
 	
 	/**
 	 * @param conn An existing SQL Connection
@@ -645,7 +643,6 @@ public class SQLUtils
 			cleanup(cstmt);
 		}
 	}
-	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param selectColumns The list of columns in the SELECT statement.
@@ -660,7 +657,7 @@ public class SQLUtils
 			List<String> selectColumns,
 			String fromSchema,
 			String fromTable,
-			Map<String,String> whereParams
+			Map<String,Object> whereParams
 		) throws SQLException
 	{
 		DebugTimer t = new DebugTimer();
@@ -697,12 +694,12 @@ public class SQLUtils
 			
 			// set query parameters
 			int i = 1;
-			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
+			Iterator<Entry<String, Object>> paramsIter = whereParams.entrySet().iterator();
 			while (paramsIter.hasNext())
 			{
-				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
-				String value = pairs.getValue();
-				cstmt.setString( i, value );
+				Map.Entry<String, Object> pairs = (Map.Entry<String, Object>)paramsIter.next();
+				Object value = pairs.getValue();
+				cstmt.setObject( i, value );
 				i++;
 			}
 			
@@ -1049,9 +1046,9 @@ public class SQLUtils
                 }
                 return buildWhereClause(conn, whereClauses);
         }
-	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
+	private static <T> String buildWhereClause(Connection conn, Map<String,T> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
 	{
-		return buildWhereClause(conn, whereClauses, false, true);
+		return buildWhereClause(conn, whereClauses.keySet());
 	}
 	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted, boolean preparedStatement) throws IllegalArgumentException, SQLException
 	{ 
@@ -1130,6 +1127,34 @@ public class SQLUtils
                 orderedEntries.add(pair);
             }
             return orderedEntries;
+        }
+
+	public static int updateRows(Connection conn, String fromSchema, String fromTable, Map<String,Object> whereParams, Map<String,Object> dataUpdate) throws SQLException
+        {
+                String query, updateBlock, whereBlock;
+                /* Build the update block */
+                List<String> updateBlockList = new LinkedList<String>();
+                List<Object> argList = new LinkedList<Object>();
+                for (Entry<String,Object> data : dataUpdate.entrySet())
+                {
+                    updateBlockList.add(String.format("%s=?", data.getKey()));
+                    argList.add(data.getValue());
+                }
+                for (Entry<String,Object> where : whereParams.entrySet())
+                {
+                    argList.add(where.getValue());
+                }
+                whereBlock = buildWhereClause(conn, whereParams);
+                updateBlock = stringJoin(",", updateBlockList);
+                query = String.format("UPDATE %s SET %s WHERE %s", fromTable, updateBlock, whereBlock);
+                PreparedStatement stmt = conn.prepareStatement(query);
+                int i = 1;
+                for (Object o : argList)
+                {
+                    stmt.setObject(i++, o);
+                }
+                i = stmt.executeUpdate();
+                return i;
         }
         public static Map<Integer,Map<String,String>> idInSelect(Connection conn, String schemaName, String table, String idColumn, String propColumn, String dataColumn, Collection<Integer> ids, Collection<String> props) throws SQLException
         {
@@ -1284,76 +1309,6 @@ public class SQLUtils
             rs.first();
             return rs.getInt(1);
         }
-	/**
-	 * This function performs a join on two tables.
-	 * The parameters to this function should be qualified like t1."columnName" instead of just "columnName".
-	 * @param conn A SQL connection
-	 * @param tableAliases Two variable names corresponding to the tables
-	 * @param qualifiedColumnNames Any number of qualified column names to select 
-	 * @param qualifiedTables Two SQL table names qualified with the schema they belong to
-	 * @param qualifiedJoinCols Two qualified columns to assert as equal when joining rows
-	 * @param qualifiedWhereClauses Additional conditions on the select which use qualified column names
-	 * @return The result of the join
-	 * @throws SQLException
-	 */
-	public static List<Map<String,String>> joinedSelectQuery( Connection conn, String[] tableAliases, String[] qualifiedColumnNames,  String[] qualifiedTables,  String[] qualifiedJoinCols, Map<String, String> qualifiedWhereClauses) throws SQLException
-	{
-		PreparedStatement stmt = null;
-		List<Map<String, String>> rows = new LinkedList<Map<String,String>>();
-		ResultSet rs;
-		
-		String query = String.format(
-				"SELECT %s FROM %s AS %s JOIN %s AS %s ON %s=%s %s",
-				stringJoin(",", Arrays.asList(qualifiedColumnNames)),
-				qualifiedTables[0],
-				tableAliases[0],
-				qualifiedTables[1],
-				tableAliases[1],
-				qualifiedJoinCols[0],
-				qualifiedJoinCols[1],
-				buildWhereClause(conn, qualifiedWhereClauses, true, false));
-		try
-		{
-			stmt = conn.prepareCall(query);
-			rs = stmt.executeQuery();
-			java.sql.ResultSetMetaData rsmeta = rs.getMetaData();
-			while (rs.next())
-			{
-				HashMap<String,String> row = new HashMap<String,String>();
-				for (int i = 1; i <= rsmeta.getColumnCount(); i++)
-				{
-					String colName;
-					String colValue;
-					int colType;
-					
-					colName = rsmeta.getColumnName(i);
-					colType = rsmeta.getColumnType(i);
-					switch (colType)
-					{
-						case java.sql.Types.BLOB:
-						case java.sql.Types.BINARY:
-						case java.sql.Types.CHAR:
-						case java.sql.Types.VARCHAR:
-						default:
-							colValue = rs.getString(i); break;
-					}
-					row.put(colName, colValue);
-				}
-				rows.add(row);
-			}
-		}
-		
-		catch (SQLException e)
-		{
-			System.out.println(query);
-			throw e;
-		}
-		finally
-		{
-			SQLUtils.cleanup(stmt);
-		}
-		return rows;
-	}
 	
 	
 	/**

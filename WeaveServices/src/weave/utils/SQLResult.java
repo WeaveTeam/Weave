@@ -54,7 +54,14 @@ public class SQLResult
 		}
 		rows = linkedRows.toArray(new Object[linkedRows.size()][]);
 	}
-	
+        public static int objAsInt(Object obj)
+        {
+            return (Integer)obj;
+        }
+	public static String objAsString(Object obj)
+        {
+            return (String)obj;
+        }
 	public String[] columnNames;
 	public int[] columnTypes;
 	public Object[][] rows;
