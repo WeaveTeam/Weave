@@ -234,7 +234,7 @@ package weave
 
 		
 		/**
-		 * This needed to be a function because FlashVars can't be fetched till the application loads.
+		 * This needs to be a function because FlashVars can't be fetched while the application is loading.
 		 */
 		private function applicationComplete(event:FlexEvent = null):void
 		{
