@@ -39,9 +39,7 @@
 	<!-- This box is where the viewStack and messageLog will be placed -->
 	<mx:VDividedBox id="viewStackContainer"
 			verticalScrollPolicy="off"
-			horizontalScrollPolicy="off"
-			width="100%"
-			height="100%"/>
+			horizontalScrollPolicy="off"/>
 	
 	<mx:ControlBar paddingTop="5" paddingBottom="5" enabled="{viewStack.controlBarEnabled}">
 		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}{viewStack.selectedChild.label ? ': ' + viewStack.selectedChild.label : ''}"/>
@@ -99,9 +97,10 @@
 					var tempHeight:Number = viewStackContainer.height;
 					messageLog.opaqueBackground = 0xFFFFFF;
 					messageLog.editable = false;
-					messageLog.percentWidth = 100;
+					messageLog.percentWidth = 100
+					messageLog.percentHeight = 100;
 					messageLog.horizontalScrollPolicy = ScrollPolicy.OFF;
-					messageLog.verticalScrollPolicy = ScrollPolicy.AUTO;
+					messageLog.verticalScrollPolicy = ScrollPolicy.OFF;
 					messageLog.setStyle("borderSkin", null);
 					
 					viewStackContainer.addChild(messageLog);
