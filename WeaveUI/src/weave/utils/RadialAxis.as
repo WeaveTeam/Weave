@@ -24,8 +24,6 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.text.TextFormatAlign;
 	
-	import mx.formatters.NumberFormatter;
-	
 	import weave.Weave;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
@@ -63,13 +61,6 @@ package weave.utils
 		//TODO add UI for editing this
 		private var minorTickMarkLength:Number = 0.2;
 		
-		/**
-		 * The size of the tick mark label
-		 */
-		//TODO make this a sessioned variable
-		//TODO add UI for editing this
-		private var tickMarkLabelSize:Number = 12;
-		
 		private var isInitialized:Boolean = false;
 		
 		private var majorInterval:Number,firstMajorTickMarkValue:Number;
@@ -80,15 +71,9 @@ package weave.utils
 		// reusable object containing text style information for tick mark labels
 		private const tickMarkLabel:BitmapText = new BitmapText();
 		
-		// reusable object for formatting tick mark label text
-		private const formatter:NumberFormatter = new NumberFormatter();
-		
-		
 		public function RadialAxis(){
 			
 			//set the font and style for the tick mark label text
-			tickMarkLabel.textFormat.size = Weave.properties.axisFontSize.value;
-			tickMarkLabel.textFormat.color = Weave.properties.axisFontColor.value;
 			tickMarkLabel.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
 			tickMarkLabel.textFormat.align = TextFormatAlign.CENTER;
 			tickMarkLabel.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
@@ -149,11 +134,10 @@ package weave.utils
 					p.x = cos*labelsRadius;
 					p.y = sin*labelsRadius;
 					dataBounds.projectPointTo(p, screenBounds);
-					tickMarkLabel.text = ""+StandardLib.roundSignificant(value,8);//formatter.format(value);
+					tickMarkLabel.text = String(StandardLib.roundSignificant(value,8));
 					tickMarkLabel.x = p.x;
 					tickMarkLabel.y = p.y;
-					tickMarkLabel.textFormat.size = Weave.properties.axisFontSize.value;
-					tickMarkLabel.textFormat.color = Weave.properties.axisFontColor.value;
+					LinkableTextFormat.defaultTextFormat.copyTo(tickMarkLabel.textFormat);
 					tickMarkLabel.draw(destination);
 					
 					//a marker for testing whether text is centered properly

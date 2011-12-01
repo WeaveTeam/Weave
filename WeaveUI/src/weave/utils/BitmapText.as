@@ -34,6 +34,7 @@ package weave.utils
 	
 	import weave.WeaveProperties;
 	import weave.api.primitives.IBounds2D;
+	import weave.resources.fonts.EmbeddedFonts;
 	
 	/**
 	 * This is a class used to draw text onto BitmapData objects.
@@ -46,7 +47,7 @@ package weave.utils
 		{
 			_textField.embedFonts = true; // without this, rotated text is not possible.
 			
-			textFormat.font = WeaveProperties.DEFAULT_FONT_FAMILY;
+			textFormat.font = DEFAULT_FONT_FAMILY;
 			textFormat.size = 10;
 			textFormat.bold = false;
 			textFormat.italic = false;
@@ -56,6 +57,8 @@ package weave.utils
 		}
 		
 		private const debug:Boolean = false; // set to true to draw debug graphics
+		
+		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
 		
 		public static const HORIZONTAL_ALIGN_LEFT:String = "left";
 		public static const HORIZONTAL_ALIGN_CENTER:String = "center";
@@ -128,7 +131,7 @@ package weave.utils
 			// Use the default font if the specified one isn't embedded.
 			var app:Application = Application.application as Application;
 			if (app && !app.systemManager.isFontFaceEmbedded(textFormat))
-				textFormat.font = WeaveProperties.DEFAULT_FONT_FAMILY;
+				textFormat.font = DEFAULT_FONT_FAMILY;
 			
 			//------------------------------------------------------------
 			// Step 1:

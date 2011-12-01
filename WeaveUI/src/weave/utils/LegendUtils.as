@@ -78,12 +78,8 @@ package weave.utils
 		 */		
 		public static function renderLegendItemText(destination:BitmapData, text:String, itemScreenBounds:IBounds2D, iconGap:int, clipRectangle:Rectangle = null):void
 		{
-			bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-			bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-			bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
-			bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-//			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-//			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
+			
 			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			
 			bitmapText.text = text;

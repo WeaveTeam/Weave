@@ -24,10 +24,7 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
-	import mx.controls.Alert;
-	
 	import weave.Weave;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
@@ -38,9 +35,8 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.SortedColumn;
-	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
-	import weave.utils.ColumnUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -74,8 +70,7 @@ package weave.visualization.plotters
 			registerSpatialProperty(data);
 			setKeySource(_filteredData);
 			
-			registerLinkableChild(this, Weave.properties.axisFontSize);
-			registerLinkableChild(this, Weave.properties.axisFontColor);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 
 		private var _beginRadians:EquationColumn;
@@ -158,9 +153,7 @@ package weave.visualization.plotters
 					// first get values between -90 and 90, then multiply by the ratio
 					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
-				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-				_bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
+				LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
 				_bitmapText.x = _tempPoint.x;
 				_bitmapText.y = _tempPoint.y;
 				_bitmapText.draw(destination);

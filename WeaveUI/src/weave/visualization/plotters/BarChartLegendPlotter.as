@@ -23,9 +23,7 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.utils.Dictionary;
 	
-	import weave.Weave;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -38,6 +36,7 @@ package weave.visualization.plotters
 	import weave.primitives.ColorRamp;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LegendUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -49,27 +48,12 @@ package weave.visualization.plotters
 	{
 		public function BarChartLegendPlotter()
 		{
-			init();
-		}
-		private function init():void
-		{
-			shapeSize.value = 12;
-			
-			for each (var child:ILinkableObject in [
-				Weave.properties.axisFontBold,
-				Weave.properties.axisFontColor,
-				Weave.properties.axisFontFamily,
-				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontUnderline])
-			{
-				registerLinkableChild(this, child);
-			}
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
 		public const columns:ILinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), createColumnHashes);
 		public const chartColors:ColorRamp = newSpatialProperty(ColorRamp);
-		public const shapeSize:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12));
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		[Bindable] public var numColumns:int = 0;
 		private var _columnOrdering:Array = [];

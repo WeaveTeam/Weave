@@ -24,18 +24,15 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.net.getClassByAlias;
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
@@ -44,8 +41,8 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.utils.BitmapText;
 	import weave.utils.LegendUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -60,24 +57,10 @@ package weave.visualization.plotters
 	{
 		public function ColorBinLegendPlotter()
 		{
-			init();
-		}
-		private function init():void
-		{
 			dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
 			setKeySource(dynamicColorColumn);
-			
-			for each (var child:ILinkableObject in [
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor,
-				Weave.properties.axisFontFamily,
-				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontUnderline,
-				Weave.properties.axisFontBold])
-			{
-				registerLinkableChild(this, child);
-			}
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
 		/**

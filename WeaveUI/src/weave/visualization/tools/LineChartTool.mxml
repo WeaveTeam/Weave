@@ -29,7 +29,6 @@
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.WeaveProperties;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
@@ -47,6 +46,7 @@
 			import weave.ui.ColumnListComponent;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -357,21 +357,13 @@
 				labelPlotter.xScreenOffset.value=5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
-				linkSessionState(labelPlotter.dataY,labelPlotter.sortColumn);
+				linkSessionState(labelPlotter.dataY, labelPlotter.sortColumn);
 				labelPlotter.setBaseKeySource(_plotter.keySet);
-				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
-				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
-				labelPlotter.bold.defaultValue.value = Weave.properties.axisFontBold.value;
-				Weave.properties.axisFontColor.addGroupedCallback(this, updateLabel);
-				Weave.properties.axisFontSize.addGroupedCallback(this, updateLabel);
-				Weave.properties.axisFontBold.addGroupedCallback(this, updateLabel);
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabel, true);
 			}
 			private function updateLabel():void
 			{
-				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
-				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
-				labelPlotter.bold.defaultValue.value = Weave.properties.axisFontBold.value;
-				
+				labelPlotter.setDefaultTextFormat(LinkableTextFormat.defaultTextFormat);
 			}
 			
 			private function updateColumns():void

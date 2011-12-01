@@ -111,9 +111,6 @@ package weave.visualization.plotters
 			//update bins when column changes
 			meterColumn.addImmediateCallback(this, updateBins);
 			meterColumn.addImmediateCallback(this, updateAxis);
-			
-			for each (var child:ILinkableObject in [Weave.properties.axisFontSize, Weave.properties.axisFontColor])
-				registerLinkableChild(this, child);
 		}
 		
 		/**

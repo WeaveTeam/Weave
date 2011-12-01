@@ -22,13 +22,9 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.geom.Point;
-	import flash.geom.Rectangle;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
@@ -44,7 +40,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -57,6 +52,7 @@ package weave.visualization.plotters
 	import weave.primitives.Range;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -84,8 +80,7 @@ package weave.visualization.plotters
 			heightColumns.addGroupedCallback(this, heightColumnsGroupCallback);
 			registerSpatialProperty(sortColumn);
 			registerSpatialProperty(colorColumn); // because color is used for sorting
-			registerLinkableChild(this, Weave.properties.axisFontSize);
-			registerLinkableChild(this, Weave.properties.axisFontColor);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 			
 			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
 		}
@@ -137,7 +132,7 @@ package weave.visualization.plotters
 		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const valueLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN, verifyLabelMaxWidth));
+		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
@@ -145,7 +140,7 @@ package weave.visualization.plotters
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const labelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN, verifyLabelMaxWidth));
+		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
 
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -234,11 +229,8 @@ package weave.visualization.plotters
 			
 			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
 			
-			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-			_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
-			_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
+			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
 			_bitmapText.textFormat.color = valueLabelColor.value;
-			_bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
@@ -544,7 +536,7 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
-						_bitmapText.maxWidth = (valueLabelMaxWidth.value <= Infinity) ? valueLabelMaxWidth.value : Infinity;
+						_bitmapText.maxWidth = valueLabelMaxWidth.value;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
 						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; 
 						if (isFinite(valueLabelRelativeAngle.value))
@@ -589,7 +581,7 @@ package weave.visualization.plotters
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						_bitmapText.x = tempPoint.x;
 						_bitmapText.y = tempPoint.y;
-						_bitmapText.maxWidth = (labelMaxWidth.value <= Infinity) ? labelMaxWidth.value : Infinity;
+						_bitmapText.maxWidth = labelMaxWidth.value;
 						if (isFinite(labelRelativeAngle.value))
 							_bitmapText.angle += labelRelativeAngle.value;
 						_bitmapText.verticalAlign = labelVerticalAlign.value;
