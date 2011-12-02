@@ -27,6 +27,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.weave_internal;
@@ -101,7 +102,7 @@ package weave.data.AttributeColumns
 		{
 			if (keys.length > stringData.length)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Array lengths differ"));
+				reportError("Array lengths differ");
 				return;
 			}
 
@@ -161,7 +162,7 @@ package weave.data.AttributeColumns
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e);
+					reportError(e);
 				}
 			}
 			
@@ -175,7 +176,7 @@ package weave.data.AttributeColumns
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e);
+					reportError(e);
 				}
 			}
 			

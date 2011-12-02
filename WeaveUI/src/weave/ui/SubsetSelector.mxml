@@ -22,7 +22,12 @@
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 					 title="Saved Subsets"
 					 width="25%" height="10%"
-					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.ui.editors.*">
+					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+		]]>
+	</mx:Script>
 	
 	<mx:Canvas width="100%" height="100%">
 		
@@ -156,6 +161,9 @@
 		]]>
 	</mx:Script>
 	<ControlPanel>
+		<mx:VBox label="Settings">
+			<mx:CheckBox label='Include "All Records" option' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
+		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>
 </DraggablePanel>

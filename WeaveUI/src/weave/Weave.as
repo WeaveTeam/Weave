@@ -20,6 +20,7 @@
 package weave
 {
 	import flash.external.ExternalInterface;
+	import flash.text.TextFormat;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
@@ -32,12 +33,13 @@ package weave
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
+	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.SessionManager;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumnCache;
@@ -50,9 +52,11 @@ package weave
 	import weave.data.ProjectionManager;
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
+	import weave.editors._registerAllLinkableObjectEditors;
 	import weave.services.ProgressIndicator;
 	import weave.services.URLRequestUtils;
 	import weave.utils.DebugTimer;
+	import weave.utils.LinkableTextFormat;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -87,11 +91,16 @@ package weave
 			WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
 			
+			_registerAllLinkableObjectEditors();
+			
 			// initialize the session state interface to point to Weave.root
 			(WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).setLinkableObjectRoot(root);
 			
 			// FOR BACKWARDS COMPATIBILITY
-			ExternalInterface.addCallback("createObject", WeaveAPI.ExternalSessionStateInterface.requestObject);
+			ExternalInterface.addCallback("createObject", function(...args):* {
+				reportError("The Weave JavaScript API function createObject is deprecated.  Please use requestObject instead.");
+				WeaveAPI.ExternalSessionStateInterface.requestObject.apply(null, args);
+			});
 			
 			// include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 			WeaveXMLDecoder.includePackages(
@@ -99,17 +108,17 @@ package weave
 				"weave.core",
 				"weave.data",
 				"weave.data.AttributeColumns",
-				"weave.data.ColumnReferences",
 				"weave.data.BinClassifiers",
 				"weave.data.BinningDefinitions",
+				"weave.data.ColumnReferences",
 				"weave.data.DataSources",
 				"weave.data.KeySets",
-				"weave.data.Units",
+				"weave.editors",
 				"weave.primitives",
 				"weave.Reports",
 				"weave.test",
 				"weave.ui",
-				"weave.ui.vistools",
+				"weave.utils",
 				"weave.visualization",
 				"weave.visualization.tools",
 				"weave.visualization.layers",
@@ -171,6 +180,7 @@ package weave
 		public static const DEFAULT_SUBSET_KEYFILTER:String = "defaultSubsetKeyFilter";
 		public static const DEFAULT_SELECTION_KEYSET:String = "defaultSelectionKeySet";
 		public static const DEFAULT_PROBE_KEYSET:String = "defaultProbeKeySet";
+		public static const ALWAYS_HIGHLIGHT_KEYSET:String = "alwaysHighlightKeySet";
 		public static const SAVED_SELECTION_KEYSETS:String = "savedSelections";
 		public static const SAVED_SUBSETS_KEYFILTERS:String = "savedSubsets";
 		
@@ -181,14 +191,6 @@ package weave
 		{
 			target.requestObject(DEFAULT_WEAVE_PROPERTIES, WeaveProperties, true);
 
-			initializeColorColumns(target);
-
-			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
-			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
-		}
-		
-		private static function initializeColorColumns(target:ILinkableHashMap):void
-		{
 			// default color column
 			var cc:ColorColumn = target.requestObject(DEFAULT_COLOR_COLUMN, ColorColumn, true);
 			var bc:BinnedColumn = cc.internalDynamicColumn.requestGlobalObject(DEFAULT_COLOR_BIN_COLUMN, BinnedColumn, true);
@@ -199,7 +201,18 @@ package weave
 			var subset:KeyFilter = target.requestObject(DEFAULT_SUBSET_KEYFILTER, KeyFilter, true);
 			subset.includeMissingKeys.value = true; // default subset should include all keys
 			target.requestObject(DEFAULT_SELECTION_KEYSET, KeySet, true);
-			target.requestObject(DEFAULT_PROBE_KEYSET, KeySet, true);
+			var probe:KeySet = target.requestObject(DEFAULT_PROBE_KEYSET, KeySet, true);
+			var always:KeySet = target.requestObject(ALWAYS_HIGHLIGHT_KEYSET, KeySet, true);
+			probe.addImmediateCallback(always, addKeys, [always, probe]);
+			always.addImmediateCallback(probe, addKeys, [always, probe]);
+
+			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
+			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
+		}
+		
+		private static function addKeys(source:KeySet, destination:KeySet):void
+		{
+			destination.addKeys(source.keys);
 		}
 	}
 }

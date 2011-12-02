@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:DraggablePanel xmlns="weave.editors.managers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="672" height="410"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				visible="true" title="View/Edit Data" xmlns:ui="weave.ui.*">
+	<mx:VBox width="100%" height="100%">
+		<mx:DataGrid id="tableEditor"
+					 width="100%" height="100%"
+					 dataProvider="{dataValueRows}" 
+					 editable="true"
+					 itemEditEnd="updateData()"
+					 horizontalScrollPolicy="auto" verticalScrollPolicy="auto"/>
+	</mx:VBox>
+	
+	<mx:ControlBar>
+		<mx:Spacer width="100%"/>
+		<mx:Button id="saveButton" click="removePanel();" label="Save &amp; Close"/>
+		<mx:Button id="cancelButton" label="Cancel" click="removePanel();"/>
+	</mx:ControlBar>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.utils.ObjectUtil;
+			
+			import weave.api.WeaveAPI;
+			
+			[Bindable]
+			private var dataValueRows:Array = [];
+			[Bindable]
+			private var columnNames:Array = [];
+			
+			public var dataArray:Array = []
+			
+			/**
+			 * this function loads the data into the grid. 
+			 * @param is an array of arrays with all the data including  the header
+			 * @header is array with the header values. This will be the order of columns in the grid.
+			 **/
+			public function loadData(param:Array,header:Array):void
+			{
+				dataArray = param;				
+				
+				tableEditor.dataProvider = dataArray;
+				(tableEditor.dataProvider as ICollectionView).refresh();
+				tableEditor.validateNow();
+				
+				// fix bug that occurs after validateNow(): it puts in mx_internal_uid values
+				for each (var item:Object in dataArray)
+				delete item['mx_internal_uid'];
+				
+				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(dataArray, header, true)
+				
+				// We want to re-order the columns in the DataGrid so the 'name' column appears first.
+				// The problem is, once we set the tableEditor.columns, they will never be generated automatically again.
+				// So, we have to generate them here.
+				var columns:Array = [];
+				for (var i:int = 0; i < header.length; i++)
+					columns.push(new DataGridColumn(header[i]));
+				tableEditor.columns = columns;
+				
+			}
+			
+			/**
+			 * this function loads the data into the grid. 
+			 * @param is an array of arrays with all the data including  the header
+			 * @header is array with the header values. This will be the order of columns in the grid.
+			 **/
+			public function loadXLSData(param:Array,header:Array):void
+			{
+				tableEditor.editable = false;
+				
+				saveButton.visible = false;
+				cancelButton.visible = false;
+				this.title ="View Data";
+				
+				
+				
+				loadData(param,header);
+			}
+			
+			/**
+			 * This function compares two DataGridColumn objects by comparing the dataField property.
+			 * If Strings are given as parameters, it compares them directly.
+			 * This compare function will put "name" in front of any other String.
+			 * @param a The first value to compare, either a DataGridColumn or a String.
+			 * @param b The second value to compare, either a DataGridColumn or a String.
+			 * @return A value of -1, 0, or 1, which is used by Array.sort().
+			 */
+			private function columnSort(a:Object, b:Object):int
+			{
+				if (a is DataGridColumn)	
+					a = (a as DataGridColumn).dataField;
+				if (b is DataGridColumn)
+					b = (b as DataGridColumn).dataField;
+				
+//				// we want the 'name' column to appear first in the list.
+//				if (a == "name")
+//					return -1;
+//				if (b == "name")
+//					return 1;
+				return ObjectUtil.stringCompare(a as String, b as String, true);
+			}
+			
+			
+			private function removeLeadingAndTrailingQuotes(element:*, index:int, arr:Array):void
+			{
+				var string:String = String(element);
+				
+				// if the first character is a quote and last character is a quote
+				if(string.charAt(0) == "\"" && string.charAt(string.length-1) == "\"")
+				{
+					// set this value in the array to be the string with the first character and last character removed
+					arr[index] = string.substr(1, string.length-2);
+				}
+			}
+			
+			private function trimCommas(value:String):String
+			{
+				if (value == null || value == "\\N" || value == "NaN" )
+					return "";
+				var trimmedString:String = "";
+				var temp:Array = value.split(",");
+				for(var i:int; i <temp.length; i++)
+				{
+					trimmedString += temp[i];
+				}
+				return trimmedString;
+			}
+			
+			
+			
+			private function updateData():void
+			{
+				dataArray = (tableEditor.dataProvider as ArrayCollection).source;
+			}
+			
+		]]>
+	</mx:Script>
+</ui:DraggablePanel>

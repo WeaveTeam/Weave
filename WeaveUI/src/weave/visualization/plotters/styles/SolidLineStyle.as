@@ -23,6 +23,7 @@ package weave.visualization.plotters.styles
 	import flash.utils.Dictionary;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.ui.ILineStyle;
 	import weave.compiler.StandardLib;
@@ -46,36 +47,16 @@ package weave.visualization.plotters.styles
 		// this maps an AlwaysDefinedColumn to the default value for that column.
 		// if there is an internal column in the AlwaysDefinedColumn, the default value is not stored
 		private const _defaultValues:Dictionary = new Dictionary();
-		private var _dirty:Boolean = true; // true when defaultValues are invalid
 
 		/**
 		 * @private
 		 */
 		private function createColumn(valueType:Class, defaultValue:*):AlwaysDefinedColumn
 		{
-			var column:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn, handleColumnChange);
+			var column:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 			_typesMap[column] = valueType;
 			column.defaultValue.value = defaultValue;
 			return column;
-		}
-
-		// this invalidates the default values
-		private function handleColumnChange():void
-		{
-			_dirty = true;
-		}
-		// this updates the default values
-		private function validateDefaultValues():void
-		{
-			for (var col:* in _typesMap)
-			{
-				var column:AlwaysDefinedColumn = col as AlwaysDefinedColumn;
-				if (column.internalColumn != null)
-					delete _defaultValues[column];
-				else
-					_defaultValues[column] = EquationColumnLib.cast(column.defaultValue.value, _typesMap[column]);
-			}
-			_dirty = false;
 		}
 
 		/**
@@ -104,8 +85,18 @@ package weave.visualization.plotters.styles
 		 */
 		public function beginLineStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
-			if (_dirty)
-				validateDefaultValues();
+			if (detectLinkableObjectChange(this, this))
+			{
+				// update the default values
+				for (var col:* in _typesMap)
+				{
+					var column:AlwaysDefinedColumn = col as AlwaysDefinedColumn;
+					if (column.internalColumn != null)
+						delete _defaultValues[column];
+					else
+						_defaultValues[column] = EquationColumnLib.cast(column.defaultValue.value, _typesMap[column]);
+				}
+			}
 			
 			var _enabled:* = _defaultValues[enabled];
 			var _color:* = _defaultValues[color];

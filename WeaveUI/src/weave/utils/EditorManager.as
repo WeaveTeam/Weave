@@ -44,13 +44,13 @@ package weave.utils
 		}
 		
 		/**
-		 * @param obj An ILinkableObject.
+		 * @param obj An object or Class implementing ILinkableObject.
 		 * @return The Class implementing ILinkableObjectEditor that was previously registered for the given type of object or one of its superclasses.
 		 */
-		public static function getEditorClass(obj:ILinkableObject):Class
+		public static function getEditorClass(linkableObjectOrClass:Object):Class
 		{
 			var interfaceQName:String = getQualifiedClassName(ILinkableObjectEditor);
-			var classQName:String = getQualifiedClassName(obj);
+			var classQName:String = linkableObjectOrClass as String || getQualifiedClassName(linkableObjectOrClass);
 			var superClasses:Array = ClassUtils.getClassExtendsList(classQName);
 			superClasses.unshift(classQName);
 			for (var i:int = 0; i < superClasses.length; i++)

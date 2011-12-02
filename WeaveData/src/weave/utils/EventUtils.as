@@ -26,15 +26,9 @@ package weave.utils
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
-	import mx.core.UIComponent;
-	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableVariable;
-	import weave.api.getCallbackCollection;
-	import weave.core.SessionManager;
 	
 	/**
-	 * 
+	 * Static functions related to event callbacks.
 	 * @author adufilie
 	 */
 	public class EventUtils
@@ -70,9 +64,46 @@ package weave.utils
 			delete callbackMap[callback];
 		}
 		
+		public static function addEventCallback(eventDispatcher:Object, event:String, callback:Function, params:Array = null):void
+		{
+			eventDispatcher.addEventListener(event, function(event:Event):void { callback.apply(null, params); } );
+		}
+		
 		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
 		{
-			eventDispatcher.addEventListener(event, (WeaveAPI.SessionManager as SessionManager).generateDelayedCallback(callback, [], delay));
+			eventDispatcher.addEventListener(event, generateDelayedCallback(callback, [], delay));
+		}
+		
+		/**
+		 * This function generates a delayed version of a callback.
+		 * @param callback The callback function
+		 * @param callbackParams If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
+		 * @param delay The number of milliseconds to delay before running the callback.
+		 * @return A wrapper around the callback that remembers the parameters and delays calling the original callback.
+		 */
+		public static function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function
+		{
+			var _timer:Timer = new Timer(delay, 1);
+			var _delayedThisArg:Object;
+			var _delayedParams:Array;
+			// this function gets called immediately and delays calling the original callback
+			var delayedCallback:Function = function(...params):void
+			{
+				_timer.stop();
+				_timer.start();
+				// remember the params passed to this delayedCallback
+				_delayedThisArg = this;
+				_delayedParams = params;
+			};
+			// this function gets called when the timer completes
+			var callback_apply:Function = function(..._):void
+			{
+				// call the original callback with the params passed to delayedCallback
+				callback.apply(_delayedThisArg, callbackParams || _delayedParams);
+			};
+			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
+			
+			return delayedCallback;
 		}
 	}
 }

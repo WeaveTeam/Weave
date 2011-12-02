@@ -22,13 +22,15 @@ package weave.services
 	import flash.external.ExternalInterface;
 	import flash.net.FileReference;
 	import flash.utils.Dictionary;
+	import flash.utils.setTimeout;
 	
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
-	import weave.StringDefinition;
+	import weave.Strings;
 	import weave.Weave;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
@@ -205,32 +207,6 @@ package weave.services
 			}
 			return query;
 		}
-		public function initWeaveFileAndOpenWeave(fileName:String = ""):DelayedAsyncInvocation
-		{
-			if ( fileName == "" )
-			{
-				fileName = "newClientConfig.xml";
-			}
-			// initialize the file on the server
-			var sessionStateXML:XML = <weave encoding="dynamic">
-					<WeaveDataSource name="WeaveDataSource"/>
-					<ProbeToolTipEditor name="ProbeToolTipEditor"/>
-				</weave>;
-			// save new file if it doesn't exist (no overwrite)
-			var query:DelayedAsyncInvocation = saveWeaveFile(
-					sessionStateXML.toXMLString(),
-					fileName,
-					false
-				);
-			query.addAsyncResponder(handleSaveWeaveFile);
-			// when file is initialized, load Weave to edit the session state.
-			function handleSaveWeaveFile(e:ResultEvent, token:Object = null):void
-			{
-				getWeaveFileNames();
-				openWeavePreview(fileName);
-			}
-			return query;
-		}
 
 
 
@@ -395,18 +371,24 @@ package weave.services
 
 		// code for managing GeometryCollection entries
 		
-		public function getGeometryCollectionNames():void
+		/**
+		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
+		 */		
+		public function getGeometryCollectionNames():DelayedAsyncInvocation
 		{
 			geometryCollectionNames = [];
 			if (userHasAuthenticated)
 			{
-				service.getGeometryCollectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetGeometryCollectionNames);
+				var query:DelayedAsyncInvocation = service.getGeometryCollectionNames(activeConnectionName, activePassword);
+				query.addAsyncResponder(handleGetGeometryCollectionNames);
 				function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
 						geometryCollectionNames = event.result as Array || [];
 				}
+				return query;
 			}
+			return null;
 		}
 		public function getGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
 		{
@@ -445,18 +427,24 @@ package weave.services
 
 
 
-		public function getKeyTypes():void
+		/**
+		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
+		 */
+		public function getKeyTypes():DelayedAsyncInvocation
 		{
 			keyTypes = [];
 			if (userHasAuthenticated)
 			{
-				service.getKeyTypes(activeConnectionName, activePassword).addAsyncResponder(handleGetKeyTypes);
+				var query:DelayedAsyncInvocation = service.getKeyTypes(activeConnectionName, activePassword);
+				query.addAsyncResponder(handleGetKeyTypes);
 				function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
 						keyTypes = event.result as Array || [];
 				}
+				return query;
 			}
+			return null;
 		}
 
 
@@ -539,7 +527,8 @@ package weave.services
 								  dataTableOverwriteCheck:Boolean,
 								  geometryCollectionName:String,
 								  keyType:String,
-								  nullValues:String	):DelayedAsyncInvocation
+								  nullValues:String, 
+								  filterColumnNames:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.importCSV(
 				activeConnectionName,
@@ -554,7 +543,8 @@ package weave.services
 				dataTableOverwriteCheck,
 				geometryCollectionName,
 				keyType,
-				nullValues
+				nullValues,
+				filterColumnNames
 			);
 			
 			query.addAsyncResponder(handler);
@@ -567,7 +557,7 @@ package weave.services
 			return query;
 		}
 		
-		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String):DelayedAsyncInvocation
+		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String, filterColumns:Array):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.addConfigDataTableFromDatabase(
 				activeConnectionName,
@@ -579,7 +569,8 @@ package weave.services
 				tableName,
 				overwrite,
 				geometryCollection,
-				keyType
+				keyType,
+				filterColumns
 			);
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void
@@ -604,12 +595,17 @@ package weave.services
 		// this function is for verifying the local connection between Weave and the AdminConsole.
 		public function ping():String { return "pong"; }
 		
-		public function openWeavePreview(fileName:String):void
+		public function openWeavePopup(fileName:String = null):void
 		{
-			var connectionName:String = createWeaveService();
-			ExternalInterface.call(
-					'function(){ window.open("weave.html?file='+fileName+'&adminSession='+connectionName+'","_blank","width=800,height=600,location=0,toolbar=0,menubar=0,resizable=1") }'
-				);
+			var url:String = 'weave.html?';
+			if (fileName)
+				url += 'file=' + fileName + '&'
+			url += 'adminSession=' + createWeaveService();
+			var target:String = '_blank';
+			var params:String = 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1';
+			// use setTimeout so it will call later without blocking ActionScript
+			var script:String = StringUtil.substitute('setTimeout(function(){ window.open("{0}", "{1}", "{2}"); }, 0)', url, target, params);
+			ExternalInterface.call(script);
 		}
 		
 		public function saveWeaveFile(sessionState:String, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
@@ -696,7 +692,7 @@ package weave.services
 		 */ 
 		public function addDCElements(datasetName:String,elements:Object):DelayedAsyncInvocation
 		{
-			return service.addDCElements(activeConnectionName,activePassword,datasetName,elements);
+			return service.addDCElements(activeConnectionName, activePassword, datasetName, elements);
 		}
 
 		/**

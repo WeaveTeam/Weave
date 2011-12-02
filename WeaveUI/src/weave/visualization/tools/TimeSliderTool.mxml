@@ -103,6 +103,7 @@
 			var attr:XML = path..attribute[0];
 			if (String(attr.@year) != '')
 			{
+				delete attr.@title;
 				attr.@year = newTime;
 				if (attr.@csvColumn)
 				{

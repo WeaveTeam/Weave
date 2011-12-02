@@ -32,6 +32,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.utils.EquationColumnLib;
@@ -64,7 +65,7 @@ package weave.data.AttributeColumns
 			switch (propertyName)
 			{
 				case AttributeColumnMetadata.TITLE:
-					if (value != null && secondaryKeyFilter.value)
+					if (value != null && secondaryKeyFilter.value && !allKeysHack)
 						return value + ' (' + secondaryKeyFilter.value + ')';
 					break;
 				case AttributeColumnMetadata.KEY_TYPE:
@@ -113,11 +114,13 @@ package weave.data.AttributeColumns
 		protected const _uniqueKeysAB:Array = new Array();
 		override public function get keys():Array
 		{
-			if (secondaryKeyFilter.value == null) // when no secondary key specified, use the real unique keys
+			if (secondaryKeyFilter.value == null || allKeysHack) // when no secondary key specified, use the real unique keys
 				return _uniqueKeysAB;
 			return _uniqueKeysA;
 		}
-
+		
+		public static var allKeysHack:Boolean = false; // used by DataTableTool
+		
 		/**
 		 * @param key A key to test.
 		 * @return true if the key exists in this IKeySet.
@@ -134,7 +137,9 @@ package weave.data.AttributeColumns
 		public function updateRecords(keysA:Vector.<IQualifiedKey>, keysB:Vector.<String>, data:Array):void
 		{
 			if (_uniqueStrings.length > 0)
-				throw new Error("Replacing existing records is not supported");
+			{
+				reportError("Replacing existing records is not supported");
+			}
 			
 			var index:int, qkeyA:IQualifiedKey, keyB:String, qkeyAB:IQualifiedKey;
 			var _key:*;
@@ -142,7 +147,7 @@ package weave.data.AttributeColumns
 
 			if (keysA.length != data.length || keysB.length != data.length)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Array lengths differ"));
+				reportError("Array lengths differ");
 				return;
 			}
 			
@@ -255,6 +260,8 @@ package weave.data.AttributeColumns
 						)
 					);
 		}
+		
+		private var _qkeyCache:Dictionary = new Dictionary(true);
 
 		/**
 		 * get data from key value
@@ -272,10 +279,16 @@ package weave.data.AttributeColumns
 			
 			if (dataType == IQualifiedKey)
 			{
-				var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
-				if (type == '')
-					type = DataTypes.STRING;
-				return WeaveAPI.QKeyManager.getQKey(type, deriveStringFromNumber(value));
+				if (_qkeyCache[qkey] === undefined)
+				{
+					var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
+					if (type == DataTypes.NUMBER)
+						return null;
+					if (type == '')
+						type = DataTypes.STRING;
+					_qkeyCache[qkey] = WeaveAPI.QKeyManager.getQKey(type, deriveStringFromNumber(value));
+				}
+				return _qkeyCache[qkey];
 			}
 			
 			if (dataType == String)

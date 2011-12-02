@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.editors.*" width="500" height="300" xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor">
+	<mx:HBox id="wmsPlotterControls" width="100%" horizontalAlign="center" paddingTop="3" verticalAlign="middle">
+		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="left">
+			<mx:CheckBox id="wmsPreferLowerQuality"
+						 selected="false"
+						 label="Prefer Lower Quality"
+						 labelPlacement="right" 
+						 toolTip="{'Check this box to download lower quality images from the WMS service. This option may be '
+						 + 'preferred when using the OpenStreetMap service.'}"
+						 creationComplete="linkBindableProperty(_plotter.preferLowerQuality,event.target,'selected')"/>
+			<mx:CheckBox id="wmsDisplayMissing"
+						 selected="true"
+						 label="Show Failed Downloads"
+						 labelPlacement="right" 
+						 toolTip="{'Check this box to enable drawing of the missing image for failed requests. If this is unchecked, '
+						 + 'the plotter will fill missing images with lower quality images which cover the same area.'}"
+						 creationComplete="linkBindableProperty(_plotter.displayMissingImage,event.target,'selected')"/>
+			<mx:HBox width="100%" horizontalAlign="center" verticalAlign="middle">
+				<mx:Label text="Service:"/>
+				<!-- for each provider's name, append '(SRS_CODE)' to the end -->
+				<ui:CustomComboBox editable="false" id="wmsLayerService"
+								prompt="Select a service"
+								dataProvider="{WMSProviders.providers}"
+								width="200"
+								toolTip="Select the WMS provider to use." 
+								creationComplete="linkBindableProperty(_plotter.serviceName,event.target,'selectedItem')"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
+			<mx:HBox width="100%" horizontalAlign="center">
+				<mx:Label text="Month:"/>
+				<ui:CustomComboBox enabled="{(wmsLayerService.selectedItem as String) == WMSProviders.NASA}" visible="{enabled == true}" editable="false" 
+								dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}" 
+								change="handleStyleInputChange()" id="requestStyles" width="80" 
+								toolTip="Enter the month of the NASA images."/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:HBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.services.wms.WMSProviders;
+			import weave.visualization.plotters.WMSPlotter;
+			
+			private var _plotter:WMSPlotter = null;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				_plotter = object as WMSPlotter;
+			}
+			
+			public function applyChanges():void
+			{
+				
+			}			
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
+			private function handleStyleInputChange():void
+			{
+				
+				if (_plotter == null)
+					return;
+				
+				if (requestStyles.selectedLabel == null || requestStyles.selectedLabel == '')
+					return;
+				
+				if (requestStyles.selectedLabel == 'Jan ')
+					requestStyles.selectedIndex = 1;
+				if (requestStyles.selectedLabel == 'Dec ')
+					requestStyles.selectedIndex = 12;
+				
+				requestStyles.text = requestStyles.text.replace(' ','');
+				
+				_plotter.styles.value = requestStyles.text;
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

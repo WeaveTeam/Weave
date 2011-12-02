@@ -157,6 +157,14 @@ LinkableObjectList
 					view.refresh();
 			}
 			
+			public function removeAllItems():void
+			{
+				if (hashMap)
+					hashMap.removeAllObjects();
+				else if (dynamicObject)
+					dynamicObject.removeObject();
+			}
+				
 			public function removeSelectedItem():void
 			{
 				if (hashMap && selectedIndex >= 0)

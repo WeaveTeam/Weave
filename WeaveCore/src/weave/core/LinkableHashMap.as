@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.debugger.enterDebugger;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -30,7 +31,7 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.core.weave_internal;
+	import weave.api.reportError;
 	
 	use namespace weave_internal;
 	
@@ -196,14 +197,16 @@ package weave.core
 		{
 			if (objectToCopy == null)
 				return null;
-			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
+			
+			delayCallbacks(); // make sure callbacks only trigger once
+			var className:String = getQualifiedClassName(objectToCopy);
+			var classDef:Class = ClassUtils.getClassDefinition(className);
 			var object:ILinkableObject = requestObject(name, classDef, false);
-			if (object is classDef)
-			{
+			if (object != null)
 				copySessionState(objectToCopy, object);
-				return object;
-			}
-			return null;
+			resumeCallbacks();
+			
+			return object;
 		}
 		
 		/**
@@ -242,7 +245,8 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
+						enterDebugger();
 					}
 				}
 				else
@@ -300,8 +304,8 @@ package weave.core
 				_nameIsLocked[name] = true;
 		}
 		/**
-		 * @see weave.api.core.ILinkableHashMap.removeObject
 		 * @param name The identifying name of an object previously saved with setObject().
+		 * @see weave.api.core.ILinkableHashMap#removeObject
 		 */
 		public function removeObject(name:String):void
 		{

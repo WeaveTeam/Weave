@@ -134,6 +134,7 @@ JRITextEditor
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.core.DynamicState;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableHashMap;
@@ -293,8 +294,7 @@ JRITextEditor
 				var RresultArray:Array = new Array();
 				trace('Robj:',ObjectUtil.toString(Robj));
 				if (Robj == null){
-					var error:Error = new Error("R Servlet did not return an Array of results as expected.");
-					WeaveAPI.ErrorManager.reportError(error);
+					reportError("R Servlet did not return an Array of results as expected.");
 					return;
 				}
 				for (var i:int = 0; i < (event.result).length; i++)	{
@@ -377,8 +377,7 @@ JRITextEditor
 				trace('Robj:',ObjectUtil.toString(Robj));
 				if (Robj == null)
 				{
-					var error:Error = new Error("R Servlet did not return an Array of results as expected.");
-				 	WeaveAPI.ErrorManager.reportError(error);
+					reportError("R Servlet did not return an Array of results as expected.");
 					return;
 				}
 				
@@ -456,7 +455,7 @@ JRITextEditor
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
 			{
 				trace(["fault", token, event.message].join('\n'));
-				WeaveAPI.ErrorManager.reportError(event.fault);
+				reportError(event);
 			}
 			
 			

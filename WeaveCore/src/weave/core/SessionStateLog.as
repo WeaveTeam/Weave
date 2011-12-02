@@ -37,6 +37,8 @@ package weave.core
 	 */
 	public class SessionStateLog implements ILinkableObject, IDisposableObject
 	{
+		public static var debug:Boolean = false;
+		
 		public function SessionStateLog(subject:ILinkableObject)
 		{
 			_subject = subject;
@@ -57,8 +59,6 @@ package weave.core
 			_undoHistory = null;
 			_redoHistory = null;
 		}
-		
-		private var debug:Boolean = false;
 		
 		private var _subject:ILinkableObject;
 		private var _prevState:Object = null;
@@ -186,7 +186,7 @@ package weave.core
 			{
 				var logEntry:LogEntry;
 				var diff:Object;
-				var debug:Boolean = this.debug && stepsRemaining == 1;
+				var debug:Boolean = debug && stepsRemaining == 1;
 				
 				// if something changed and we're not currently undoing/redoing, save the diff now
 				if (_savePending && !_undoActive && !_redoActive)

@@ -19,12 +19,13 @@
 
 package weave.services
 {
+	import flash.utils.ByteArray;
+	
 	import mx.rpc.AsyncToken;
 	
 	import weave.utils.ByteArrayUtils;
 
 	/**
-	 * AMF3Servlet
 	 * This is an extension of Servlet that deserializes AMF3 result objects and handles special cases where an ErrorMessage is returned.
 	 * 
 	 * @author adufilie
@@ -42,7 +43,10 @@ package weave.services
 		}
 		
 		/**
-		 * This function makes a remote procedure call.
+		 * This function makes a remote procedure call to a Weave AMF3 servlet.  As a special case, if
+		 * methodParameters is an Array and the last item is a ByteArray, the bytes will be appended after
+		 * the initial AMF3 serialization of the preceeding parameters to allow additional content that can
+		 * be treated as a stream in Java.
 		 * @param methodName The name of the method to call.
 		 * @param methodParameters The parameters to use when calling the method.
 		 * @return An AsyncToken generated for the call.
@@ -63,12 +67,18 @@ package weave.services
 		}
 	}
 }
+
+import flash.utils.ByteArray;
+
 /**
  * This class is a wrapper for a parameters object and serves as a flag to say
  * that the parameters are being passed from a DelayedAsyncInvocation object.
  */
 internal class DelayedParameters
 {
+	/**
+	 * @param methodParameters The parameters to be sent to an AMF3 servlet method.
+	 */
 	public function DelayedParameters(methodParameters:Object)
 	{
 		this.methodParameters = methodParameters;

@@ -27,6 +27,8 @@ package weave.core
 	/**
 	 * This contains an ordered list of name-to-object mappings.
 	 * 
+	 * @TODO implement this class
+	 * 
 	 * @author adufilie
 	 */
 	public class LinkableProxyObject extends Proxy implements ILinkableObject

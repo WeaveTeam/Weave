@@ -65,7 +65,10 @@
 			 */
 			protected var controlPanelControls:ControlPanelControls = new ControlPanelControls();
 			
-			public function get tabNavigator():TabNavigator { return controlPanelControls ? controlPanelControls.tabNavigator : null; }
+			public function get tabNavigator():TabNavigator
+			{
+				return controlPanelControls ? controlPanelControls.tabNavigator : null;
+			}
 			
 			override public function set layout(value:String):void
 			{

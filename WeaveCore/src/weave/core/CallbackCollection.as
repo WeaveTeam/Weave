@@ -34,6 +34,11 @@ package weave.core
 	public class CallbackCollection implements ICallbackCollection, IDisposableObject
 	{
 		/**
+		 * Set this to true to enable stack traces for debugging.
+		 */
+		public static var debug:Boolean = false;
+
+		/**
 		 * If specified, the preCallback function will be called immediately before running each callback.
 		 * This means if there are five callbacks added, preCallback() gets called five times whenever
 		 * _runCallbacksImmediately() is called.  An example usage of this is to make sure a relevant
@@ -74,6 +79,14 @@ package weave.core
 		private var _runCallbacksIsPending:Boolean = false;
 		
 		/**
+		 * This value keeps track of how many times callbacks were triggered, and is returned by the public triggerCounter accessor function.
+		 * The value starts at 1 to simplify code that compares the counter to a previous value.
+		 * This allows the previous value to be set to zero so change will be detected the first time the counter is compared.
+		 * This fixes potential bugs where the base case of zero is not considered.
+		 */
+		private var _triggerCounter:uint = 1;
+		
+		/**
 		 * If this is true, it means _runCallbacksImmediately() is currently executing.
 		 */
 		private var _callbacksAreRunning:Boolean = false;
@@ -105,8 +118,8 @@ package weave.core
 			if (alwaysTriggerLast)
 				entry.schedule = 1;
 			
-			// UNCOMMENT THIS LINE FOR DEBUGGING
-			entry.addCallback_stackTrace = new Error().getStackTrace();
+			if (debug)
+				entry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
 
 			// run callback now if requested
 			if (runCallbackNow)
@@ -126,6 +139,7 @@ package weave.core
 		{
 			if (_delayCount > 0)
 			{
+				_triggerCounter++;
 				_runCallbacksIsPending = true;
 				return;
 			}
@@ -144,6 +158,7 @@ package weave.core
 		 */		
 		protected final function _runCallbacksImmediately(...preCallbackParams):void
 		{
+			_triggerCounter++;
 			_runCallbacksIsPending = false;
 			
 			// save current value of this variable to prevent recursive calls from making it incorrect.
@@ -175,10 +190,10 @@ package weave.core
 					else if (entry.context is CallbackCollection) // special case
 						shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
 					else
-						shouldRemoveEntry = (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(entry.context);
+						shouldRemoveEntry = WeaveAPI.SessionManager.objectWasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
-						if (entry.callback != null)
+						if (debug && entry.callback != null)
 							entry.removeCallback_stackTrace = new Error("context disposed").getStackTrace();
 						// help the garbage-collector a bit
 						entry.context = null;
@@ -227,7 +242,8 @@ package weave.core
 					entry.context = null;
 					entry.callback = null;
 					entry.parameters = null;
-					entry.removeCallback_stackTrace = new Error("removeCallback called").getStackTrace();
+					if (debug)
+						entry.removeCallback_stackTrace = new Error("removeCallback called").getStackTrace();
 					// done removing the callback
 					return;
 				}
@@ -235,12 +251,12 @@ package weave.core
 		}
 		
 		/**
-		 * This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.
-		 * It is necessary in some situations to check this flag to determine if cached data should be used.
+		 * This counter gets incremented at the time that callbacks are triggered and before they are actually called.
+		 * It is necessary in some situations to check this counter to determine if cached data should be used.
 		 */
-		public final function get callbacksWereTriggered():Boolean
+		public final function get triggerCounter():uint
 		{
-			return _runCallbacksIsPending || _callbacksAreRunning;
+			return _triggerCounter;
 		}
 		
 		/**
@@ -384,7 +400,8 @@ package weave.core
 				_groupedCallbackToTriggerEntryMap[groupedCallback] = triggerEntry;
 				triggerEntry.recursionLimit = recursionLimit;
 				triggerEntry.context = [relevantContext]; // the context in this entry will be an array of contexts
-				triggerEntry.addCallback_stackTrace = new Error().getStackTrace();
+				if (debug)
+					triggerEntry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
 				triggerEntry.callback = function():void
 				{
 					if (_runningGroupedCallbacksNow)
@@ -396,14 +413,15 @@ package weave.core
 						{
 							var context:Object = allContexts[i];
 							// if there is a null context, it means the callback should never be removed.
-							if (context != null && (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(context))
+							if (context != null && WeaveAPI.SessionManager.objectWasDisposed(context))
 								allContexts.splice(i--, 1);
 						}
 						// if there are no more relevant contexts for this callback, don't run it.
 						if (allContexts.length == 0)
 						{
 							triggerEntry.callback = null; // help the garbage-collector a bit
-							triggerEntry.removeCallback_stackTrace = new Error("all contexts disposed").getStackTrace();
+							if (debug)
+								triggerEntry.removeCallback_stackTrace = new Error("All contexts disposed").getStackTrace();
 							delete _groupedCallbackToTriggerEntryMap[groupedCallback];
 							return;
 						}

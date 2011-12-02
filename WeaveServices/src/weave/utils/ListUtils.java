@@ -19,6 +19,7 @@
 
 package weave.utils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -161,6 +162,10 @@ public class ListUtils
 			if (needle.equals(haystack.get(index)))
 				return index;
 		return -1;
+	}
+	public static int findIgnoreCase(String needle, String[] haystack)
+	{
+		return findIgnoreCase(needle, Arrays.asList(haystack));
 	}
 	/**
 	 * findIgnoreCase

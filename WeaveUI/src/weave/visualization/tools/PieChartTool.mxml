@@ -73,10 +73,10 @@
 
 				_plotter.data.addImmediateCallback(this, updateProbeColumns, null, true);
 				
-				visualization.marginTop.value = 65;
-				visualization.marginBottom.value = 65;
-				visualization.marginLeft.value = 85;
-				visualization.marginRight.value = 85;
+				visualization.marginTop.value = "65";
+				visualization.marginBottom.value = "65";
+				visualization.marginLeft.value = "85";
+				visualization.marginRight.value = "85";
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);

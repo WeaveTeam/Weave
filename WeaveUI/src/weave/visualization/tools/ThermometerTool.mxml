@@ -64,15 +64,15 @@
 				plotLayer.probeFilter.removeObject();
 
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeft.addImmediateCallback(this, updateAxisLabels);
-				visualization.marginBottom.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
 				// END TEMPORARY SOLUTION
 				
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 30;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "30";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				
 				yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 90;
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.meterColumn])
@@ -115,7 +115,7 @@
 	*/			
 				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.meterColumn), 
 																-90, 
-																-visualization.marginLeft.value, 0, 
+																-visualization.marginLeftNumber.value, 0, 
 																BitmapText.VERTICAL_ALIGN_TOP);
 			}
 

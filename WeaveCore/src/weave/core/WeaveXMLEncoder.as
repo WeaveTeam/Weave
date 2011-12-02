@@ -27,6 +27,7 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.reportError;
 	
 	/**
 	 * XMLEncoder
@@ -60,7 +61,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("XMLEncoder: Unable to convert XMLNode to XML: "+ObjectUtil.toString(result)));
+				reportError(e, "XMLEncoder: Unable to convert XMLNode to XML: "+ObjectUtil.toString(result));
 			}
 			return null; // unreachable
 		}
@@ -87,7 +88,7 @@ package weave.core
 			{
 				if (typedState.className == null)
 				{
-					WeaveAPI.ErrorManager.reportError(new Error("invalid TypedSessionState: class="+typedState.className+", name="+typedState.objectName));
+					reportError("invalid TypedSessionState: class="+typedState.className+", name="+typedState.objectName);
 				}
 				//trace(ObjectUtil.toString(typedState));
 				var qualifiedClassName:Array = typedState.className.split("::");

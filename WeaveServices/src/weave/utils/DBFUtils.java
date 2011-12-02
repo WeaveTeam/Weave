@@ -31,7 +31,6 @@ import java.util.Vector;
 
 import org.geotools.data.shapefile.dbf.DbaseFileHeader;
 import org.geotools.data.shapefile.dbf.DbaseFileReader;
-import weave.utils.SQLUtils;
 
  
 /**
@@ -77,48 +76,29 @@ public class DBFUtils
 		// read records from each file
 		List<String> fieldNames = new Vector<String>(); // order corresponds to fieldTypes order
 		List<String> fieldTypes = new Vector<String>(); // order corresponds to fieldNames order
-		List<Map<String,Object>> records = new Vector<Map<String,Object>>();
-		for (File dbfFile : dbfFiles)
+		
+		FileInputStream[] inputStreams = new FileInputStream[dbfFiles.length];
+		DbaseFileHeader[] headers = new DbaseFileHeader[dbfFiles.length];
+		DbaseFileReader[] readers = new DbaseFileReader[dbfFiles.length];
+		
+		// open each file, read each header, get the complete list of field names and types
+		for (int i = 0; i < dbfFiles.length; i++)
 		{
-			FileInputStream fis = new FileInputStream(dbfFile);
-			DbaseFileReader dbfReader = new DbaseFileReader(fis.getChannel(), false, Charset.forName("ISO-8859-1"));
-			DbaseFileHeader dbfHeader = dbfReader.getHeader();
-			int numFields = dbfHeader.getNumFields();
-			int numRecords = dbfHeader.getNumRecords();
+			inputStreams[i] = new FileInputStream(dbfFiles[i]);
+			readers[i] = new DbaseFileReader(inputStreams[i].getChannel(), false, Charset.forName("ISO-8859-1"));
+			headers[i] = readers[i].getHeader();
+			
+			int numFields = headers[i].getNumFields();
 			// keep track of the full set of field names
 			for (int col = 0; col < numFields; col++)
 			{
-				String newFieldName = dbfHeader.getFieldName(col);
-				boolean foundFieldName = false;
-				for (String fieldName : fieldNames)
-					if (fieldName.equals(newFieldName))
-						foundFieldName = true;
-				if (!foundFieldName)
+				String newFieldName = headers[i].getFieldName(col);
+				if (ListUtils.findString(newFieldName, fieldNames) < 0)
 				{
 					fieldNames.add(newFieldName);
-					fieldTypes.add(getSQLDataType(conn, dbfHeader, col));
+					fieldTypes.add(getSQLDataType(conn, headers[i], col));
 				}
 			}
-			// append records from this file to the full list of records
-			for (int row = 0; row < numRecords; row++)
-			{
-				Map<String,Object> record = new HashMap<String, Object>();
-				Object[] entry = dbfReader.readEntry();
-				for (int col = 0; col < numFields; col++){
-					Object thisEntry = entry[col];
-					for( String value : nullValues )
-						if( value.equalsIgnoreCase(entry[col].toString())) 
-						{
-							thisEntry = null;
-							break;
-						}
-					record.put(dbfHeader.getFieldName(col), thisEntry);
-				}
-				records.add(record);
-			}
-			// close the file
-			dbfReader.close();
-			fis.close();
 		}
 		
 		// begin SQL code
@@ -126,26 +106,47 @@ public class DBFUtils
 		{
 			conn.setAutoCommit(false);
 			
+			// create the table
 			if (overwriteTables)
 				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
-			
-			//Create Table
 			fieldNames.add(0, "the_geom_id");
 			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeyTypeString(conn));
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes);
 			
-			//Insert Data
-			for (int i = 0; i < records.size(); i++)
+			// import data from each file
+			for (int f = 0; f < dbfFiles.length; f++)
 			{
-				try
+				int numFields = headers[f].getNumFields();
+				int numRecords = headers[f].getNumRecords();
+				// insert records from this file
+				for (int r = 0; r < numRecords; r++)
 				{
-					SQLUtils.insertRow(conn, sqlSchema, sqlTable, records.get(i));
+					Map<String,Object> record = new HashMap<String, Object>();
+					Object[] entry = readers[f].readEntry();
+					for (int c = 0; c < numFields; c++)
+					{
+						if (ListUtils.findIgnoreCase(entry[c].toString(), nullValues) < 0)
+							record.put(headers[f].getFieldName(c), entry[c]);
+					}
+					
+					// insert the record in the table
+					try
+					{
+						SQLUtils.insertRow(conn, sqlSchema, sqlTable, record);
+					}
+					catch (SQLException e)
+					{
+						System.out.println(String.format("Insert failed on row %s of %s: %s", r, dbfFiles[f].getName(), record));
+						throw e;
+					}
 				}
-				catch (SQLException e)
-				{
-					System.out.println(String.format("Insert failed on row %s: %s", i, records.get(i)));
-					throw e;
-				}
+				// close the file
+				readers[f].close();
+				inputStreams[f].close();
+				// clean up pointers
+				readers[f] = null;
+				inputStreams[f] = null;
+				headers[f] = null;
 			}
 		}
 		finally

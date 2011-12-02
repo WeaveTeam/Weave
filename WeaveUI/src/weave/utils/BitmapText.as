@@ -28,12 +28,13 @@ package weave.utils
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
-	import flash.text.TextLineMetrics;
 	
+	import mx.core.Application;
 	import mx.utils.StringUtil;
 	
 	import weave.WeaveProperties;
 	import weave.api.primitives.IBounds2D;
+	import weave.resources.fonts.EmbeddedFonts;
 	
 	/**
 	 * This is a class used to draw text onto BitmapData objects.
@@ -46,7 +47,7 @@ package weave.utils
 		{
 			_textField.embedFonts = true; // without this, rotated text is not possible.
 			
-			textFormat.font = WeaveProperties.DEFAULT_FONT_FAMILY;
+			textFormat.font = DEFAULT_FONT_FAMILY;
 			textFormat.size = 10;
 			textFormat.bold = false;
 			textFormat.italic = false;
@@ -55,20 +56,24 @@ package weave.utils
 			textFormat.color = 0x000000;
 		}
 		
-		private var debug:Boolean = false; // set to true to draw debug graphics
+		private const debug:Boolean = false; // set to true to draw debug graphics
+		
+		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
 		
 		public static const HORIZONTAL_ALIGN_LEFT:String = "left";
 		public static const HORIZONTAL_ALIGN_CENTER:String = "center";
 		public static const HORIZONTAL_ALIGN_RIGHT:String = "right";
+		
 		public static const VERTICAL_ALIGN_TOP:String = "top";
-		public static const VERTICAL_ALIGN_CENTER:String = "middle";
+		public static const VERTICAL_ALIGN_MIDDLE:String = "middle";
 		public static const VERTICAL_ALIGN_BOTTOM:String = "bottom";
+		
 		public static const ELLIPSIS_LOCATION_LEFT:String = "left";
 		public static const ELLIPSIS_LOCATION_CENTER:String = "center";
 		public static const ELLIPSIS_LOCATION_RIGHT:String = "right";
 		
-		private var _textField:TextField = new TextField(); // private, used to render the text
-		private var _matrix:Matrix = new Matrix(); // private, used to move & rotate the graphics
+		private const _textField:TextField = new TextField(); // private, used to render the text
+		private const _matrix:Matrix = new Matrix(); // private, used to move & rotate the graphics
 		private var _width:Number = NaN; // exposed through public set/get functions
 		private var _maxWidth:Number = NaN; // exposed through public set/get functions
 		private var _height:Number = NaN; // exposed through public set/get functions
@@ -81,20 +86,7 @@ package weave.utils
 		public var roundCoords:Boolean = true; // round x,y values to integers
 		public var trim:Boolean = true; // trim leading/trailing whitespace
 		public var horizontalAlign:String = HORIZONTAL_ALIGN_LEFT; // default: align x to left side of text
-		
-		private var _verticalAlign:String = VERTICAL_ALIGN_TOP; // default: align y to top of text
-		public function set verticalAlign(value:String):void
-		{
-			_verticalAlign = value;
-			// BACKWARDS COMPATIBILITY
-			if (value == "center")
-				_verticalAlign = VERTICAL_ALIGN_CENTER;
-		}
-		
-		public function get verticalAlign():String
-		{
-			return _verticalAlign;
-		}
+		public var verticalAlign:String = VERTICAL_ALIGN_TOP; // default: align y to top of text
 		
 		public var ellipsisLocation:String = ELLIPSIS_LOCATION_CENTER; // location of '...' when text gets truncated
 		public var textFormat:TextFormat = new TextFormat(); // This is the TextFormat that will be used when rendering text.
@@ -131,6 +123,16 @@ package weave.utils
 		 */
 		private function prepareTextField():void
 		{
+			// backwards compatibility
+			if (verticalAlign == "center")
+				verticalAlign = VERTICAL_ALIGN_MIDDLE;
+			
+			// If the font isn't embedded, we won't see anything.
+			// Use the default font if the specified one isn't embedded.
+			var app:Application = Application.application as Application;
+			if (app && !app.systemManager.isFontFaceEmbedded(textFormat))
+				textFormat.font = DEFAULT_FONT_FAMILY;
+			
 			//------------------------------------------------------------
 			// Step 1:
 			// Reset text because we don't want the TextField to expand
@@ -326,7 +328,7 @@ package weave.utils
 			else if (horizontalAlign == HORIZONTAL_ALIGN_RIGHT) // x is aligned to right side of text
 				_matrix.translate(- _textField.width, 0);
 			
-			if (verticalAlign == VERTICAL_ALIGN_CENTER)
+			if (verticalAlign == VERTICAL_ALIGN_MIDDLE)
 				_matrix.translate(0, - _textField.height / 2);
 			else if (verticalAlign == VERTICAL_ALIGN_BOTTOM)
 				_matrix.translate(0, - _textField.height);
@@ -339,6 +341,7 @@ package weave.utils
 			else
 				_matrix.translate(x, y);
 		}
+
 		
 		/**
 		 * This function sets up the internal TextField and calls destination.draw() using all the given parameters.
@@ -355,8 +358,7 @@ package weave.utils
 				colorTransform:ColorTransform=null,
 				blendMode:String=null,
 				clipRect:Rectangle=null,
-				smoothing:Boolean=false,
-				wordWrap:Boolean=false 
+				smoothing:Boolean=false
 			):void
 		{
 			// if text is empty, do nothing
@@ -366,7 +368,7 @@ package weave.utils
 			prepareTextField();
 
 			prepareMatrix();
-
+			
 			if (matrix != null)
 				_matrix.concat(matrix);
 
@@ -410,7 +412,7 @@ package weave.utils
 				case VERTICAL_ALIGN_TOP: 
 					outputBounds.setYRange(y, y + _textField.height);
 					break;
-				case VERTICAL_ALIGN_CENTER: 
+				case VERTICAL_ALIGN_MIDDLE: 
 					outputBounds.setYRange(y - _textField.height / 2, y + _textField.height / 2);
 					break;
 				case VERTICAL_ALIGN_BOTTOM:
@@ -432,24 +434,5 @@ package weave.utils
 					break;
 			}
 		}
-		
-		/**
-		 * This function will get the TextLineMetrics of the text at a specified line.
-		 * @param lineIndex The index of the line.
-		 * @return The TextLineMetrics of the specified line in the text. 
-		 */			
-		public function getLineMetrics(lineIndex:uint):TextLineMetrics
-		{
-			return _textField.getLineMetrics(lineIndex);
-		}
-		
-//		public function set wordWrap(val:Boolean):void
-//		{
-//			_textField.wordWrap = val;
-//		}
-//		public function get wordWrap():Boolean
-//		{
-//			return _textField.wordWrap;
-//		}
 	}
 }

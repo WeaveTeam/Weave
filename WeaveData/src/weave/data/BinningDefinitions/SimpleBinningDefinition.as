@@ -40,7 +40,7 @@ package weave.data.BinningDefinitions
 	 * @author adufilie
 	 * @author abaumann
 	 */
-	public class SimpleBinningDefinition implements IBinningDefinition
+	public class SimpleBinningDefinition extends AbstractBinningDefinition
 	{
 		public function SimpleBinningDefinition()
 		{
@@ -58,7 +58,7 @@ package weave.data.BinningDefinitions
 		 * deriveExplicitBinningDefinition
 		 * From this simple definition, derive an explicit definition.
 		 */
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
 		{
 			var name:String;
 			// clear any existing bin classifiers
@@ -127,8 +127,13 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.max.value = binMax;
 				tempNumberClassifier.minInclusive.value = true;
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
+				
+				//first get name from overrideBinNames
+				name = getNameFromOverrideString(iBin);
+				//if it is empty string set it from generateBinLabel
+				if(!name)
+					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
 
-				name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 		}

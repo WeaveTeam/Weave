@@ -266,15 +266,6 @@ package weave.visualization.layers
 		}
 		
 		
-		public function invalidateGraphics():void
-		{
-			//trace(name,'invalidateGraphics');
-			// invalidate the graphics of all the layers in SelectablePlotLayer
-			_plotLayer.invalidateGraphics();
-			_selectionLayer.invalidateGraphics();
-			_probeLayer.invalidateGraphics();
-		}
-		
 		private function get probeExists():Boolean
 		{
 			return (
@@ -379,7 +370,7 @@ package weave.visualization.layers
 		public function showMissingRecords(show:Boolean = false):void
 		{
 			for each (var layer:PlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
-			layer.showMissingRecords = true;
+				layer.showMissingRecords = true;
 		}
 		
 		private function handleBlurringFilterChange():void
@@ -398,7 +389,7 @@ package weave.visualization.layers
 		
 		// TODO: make sessioned filters that do all this linkable properties for each filter property
 		// made the list of filters each layer uses a linkableHashMap
-		private var selectionBlur:BlurFilter 	= new BlurFilter(Weave.properties.selectionBlurringAmount.value,Weave.properties.selectionBlurringAmount.value);
+		private var selectionBlur:BlurFilter = new BlurFilter(Weave.properties.selectionBlurringAmount.value,Weave.properties.selectionBlurringAmount.value);
 		
 		private var probeGlowInner:GlowFilter = new GlowFilter(0xff0000, 0.9, 5,5,10);
 		

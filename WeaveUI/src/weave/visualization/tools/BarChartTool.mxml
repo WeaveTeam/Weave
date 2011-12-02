@@ -52,15 +52,15 @@
 				_plotter = initDefaultPlotter(BarChartPlotter) as BarChartPlotter;
 				
 				showAxes = true;
-				visualization.marginBottom.value = 50;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "50";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				visualization.enableZoomAndPan.value = false;
 				
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeft.addImmediateCallback(this, updateAxisLabels);
-				visualization.marginBottom.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
 				// END TEMPORARY SOLUTION
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.sortColumn])
@@ -94,8 +94,8 @@
 			{
 				if (!panelTitle.value)
 					title = "Bar Chart of " + ColumnUtils.getTitle(_plotter.yBarEnd) + " sorted by " + ColumnUtils.getTitle(_plotter.sortColumn);
-				xAxisLayer.axisPlotter.setSideAxisName("Sorted by: "+ColumnUtils.getTitle(_plotter.sortColumn), 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yBarEnd), -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisLayer.axisPlotter.setSideAxisName("Sorted by: "+ColumnUtils.getTitle(_plotter.sortColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yBarEnd), -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 			
 			private function get colorColumn():DynamicColumn

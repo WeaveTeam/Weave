@@ -62,10 +62,10 @@
 				
 				var objects:Array = [
 						visualization.zoomBounds,
-						visualization.marginLeft,
-						visualization.marginBottom,
-						visualization.marginTop,
-						visualization.marginRight,
+						visualization.marginLeftNumber,
+						visualization.marginBottomNumber,
+						visualization.marginTopNumber,
+						visualization.marginRightNumber,
 						_plotter
 					];
 				for each (var object:ILinkableObject in objects)
@@ -102,10 +102,10 @@
 				xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
 				xAxisLayer.axisPlotter.labelDistanceIsVertical.value = false;
 				
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				
 				visualization.includeNonSelectableLayersInAutoZoom.value = false;
 
@@ -186,11 +186,11 @@
 						title = "";
 					axisPlotter.setSideAxisName(
 						title, 0,
-						0, visualization.marginBottom.value - 5,
+						0, visualization.marginBottomNumber.value - 5,
 						BitmapText.VERTICAL_ALIGN_BOTTOM,
 						AxisPlotter.LABEL_POSITION_AT_AXIS_MIN,
 						AxisPlotter.LABEL_CENTERED,
-						Math.min(visualization.marginLeft.value*2, visualization.marginRight.value*2)
+						Math.min(visualization.marginLeftNumber.value*2, visualization.marginRightNumber.value*2)
 					);
 					(axisLayers[i] as AxisLayer).visible = ((i == 0) || _plotter.normalize.value);
 				}

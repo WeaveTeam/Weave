@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -160,8 +161,7 @@ package weave.data.DataSources
 		 */
 		private function handleCSVDownloadError(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
-			trace(event.type, event.message + '\n' + event.fault);
+			reportError(event);
 		}
 		
 		/**

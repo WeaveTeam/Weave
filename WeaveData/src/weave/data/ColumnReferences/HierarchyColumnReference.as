@@ -72,11 +72,38 @@ package weave.data.ColumnReferences
 			return _hash;
 		}
 		
-		// this function removes unwanted attributes from the path leaf node, and name of hierarchy
 		private function handlePathChange():void
 		{
 			if (hierarchyPath.value && String(hierarchyPath.value.localName()) == 'hierarchy')
 				delete hierarchyPath.value["@name"]; // for backwards compatibility
+			
+			var leaf:XML = HierarchyUtils.getLeafNodeFromPath(hierarchyPath.value);
+			if (leaf)
+			{
+				var mapping:Object = {
+					dataType: convertOldDataType as Function,
+					'projectionSRS': 'projection'
+				};
+				for (var oldName:String in mapping)
+				{
+					var value:String = leaf.attribute(oldName);
+					if (value)
+					{
+						delete leaf['@'+oldName];
+						if (mapping[oldName] is Function)
+							value = (mapping[oldName] as Function).call(null, value);
+						var newName:String = mapping[oldName] as String || oldName;
+						leaf['@'+newName] = value;
+					}
+				}
+			}
+			hierarchyPath.detectChanges();
+		}
+		private function convertOldDataType(oldValue:String):String
+		{
+			if (['String','Number','Geometry'].indexOf(oldValue) >= 0)
+				return oldValue.toLowerCase();
+			return oldValue;
 		}
 	}
 }

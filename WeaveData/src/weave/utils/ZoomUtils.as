@@ -26,13 +26,16 @@ package weave.utils
 	import weave.primitives.Bounds2D;
 	
 	/**
-	 * all-static class containing functions to aid in performing zooming calculations
+	 * A static library containing functions to aid in performing zooming calculations
 	 * 
 	 * @author adufilie
 	 */
 	public class ZoomUtils
 	{
 		/**
+		 * This function calculates the zoom level.  If dataBounds is scaled to fit into screenBounds,
+		 * the screen size of fullDataBounds would be 2^zoomLevel * minSize.  Zoom level is defined this way
+		 * to be compatible with the zoom level used by Google Maps and other tiled WMS services.
 		 * @param dataBounds The visible data coordinates.
 		 * @param screenBounds The visible screen coordinates.
 		 * @param fullDataBounds The full extent in data coordinates.
@@ -116,8 +119,14 @@ package weave.utils
 		
 		private static var tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		
-		// panSpecifiedDataBoundsByScreenCoordinates: pans specified dataBounds by the specified screen coordinates
-		private static function panSpecifiedDataBoundsByScreenCoordinates(dataBounds:IBounds2D,screenBounds:IBounds2D, deltaScreenX:Number, deltaScreenY:Number):void
+		/**
+		 * pans specified dataBounds by the specified screen coordinates
+		 * @param dataBounds The visible data bounds
+		 * @param screenBounds The screen bounds that the data bounds is scaled to fit in
+		 * @param deltaScreenX The screen distance to pan the data bounds along the x axis
+		 * @param deltaScreenY The screen distance to pan the data bounds along the y axis
+		 */
+		private static function panDataBoundsByScreenCoordinates(dataBounds:IBounds2D, screenBounds:IBounds2D, deltaScreenX:Number, deltaScreenY:Number):void
 		{
 			// project offset min screen point to data point
 			screenBounds.getMinPoint(tempMinPoint);
@@ -136,8 +145,16 @@ package weave.utils
 		}
 		
 		
-		// zoomDataBoundsByRelativeScreenScale: scale greater than 1 will zoom in, scale less than 1 will zoom out
-		public static function zoomDataBoundsByRelativeScreenScale(dataBounds:IBounds2D,screenBounds:IBounds2D,xScreenOrigin:Number, yScreenOrigin:Number, relativeScale:Number, repositionCenter:Boolean):void
+		/**
+		 * scale greater than 1 will zoom in, scale less than 1 will zoom out
+		 * @param dataBounds The visible data bounds
+		 * @param screenBounds The screen bounds that the data bounds is scaled to fit in
+		 * @param xScreenOrigin The x screen coordinate used as the scale origin
+		 * @param yScreenOrigin The y screen coordinate used as the scale origin
+		 * @param relativeScale The relative scale value used to scale the data bounds
+		 * @param repositionCenter If true, this causes the data coordinates to be associated with the screen origin to be moved to the center of the screen bounds after scaling.
+		 */
+		public static function zoomDataBoundsByRelativeScreenScale(dataBounds:IBounds2D, screenBounds:IBounds2D, xScreenOrigin:Number, yScreenOrigin:Number, relativeScale:Number, repositionCenter:Boolean):void
 		{
 			// copy dataBounds to tempBounds
 			tempBounds.copyFrom(dataBounds);
@@ -153,7 +170,7 @@ package weave.utils
 			var deltaScreenY:Number = yScreenOrigin - screenBounds.getYCenter();
 			
 			// pan the tempBounds origin to the center of the screenBounds
-			panSpecifiedDataBoundsByScreenCoordinates(tempBounds, screenBounds,-deltaScreenX, -deltaScreenY);
+			panDataBoundsByScreenCoordinates(tempBounds, screenBounds, -deltaScreenX, -deltaScreenY);
 			
 			// constrain width,height independently
 			tempBounds.setWidth(tempBounds.getWidth() * dataBoundsSizeChange);
@@ -162,7 +179,7 @@ package weave.utils
 			if (!repositionCenter)
 			{
 				// pan the tempBounds origin back to its original screen position
-				panSpecifiedDataBoundsByScreenCoordinates(tempBounds,screenBounds, deltaScreenX, deltaScreenY);
+				panDataBoundsByScreenCoordinates(tempBounds, screenBounds, deltaScreenX, deltaScreenY);
 			}
 			
 			dataBounds.copyFrom(tempBounds);

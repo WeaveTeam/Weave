@@ -24,9 +24,7 @@ package weave.visualization.plotters
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.text.TextFormat;
 	
-	import weave.WeaveProperties;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -35,10 +33,10 @@ package weave.visualization.plotters
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 	
 	/**
 	 * AxisLabelPlotter
@@ -54,6 +52,7 @@ package weave.visualization.plotters
 			yScreenOffset.value = 0;
 			setKeySource(text);
 			horizontal.value = true;
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 				
 		private const bitmapText:BitmapText = new BitmapText();
@@ -65,16 +64,11 @@ package weave.visualization.plotters
 		public const end:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const interval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
+		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		public const horizontal:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const font:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
-		public const size:LinkableNumber = registerLinkableChild(this, new LinkableNumber(WeaveProperties.DEFAULT_FONT_SIZE));
-		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
-		public const bold:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const italic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const underline:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const hAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER));
-		public const vAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const vAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const angle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -102,21 +96,13 @@ package weave.visualization.plotters
 			var i:int;
 			var numLines:Number = Math.abs((_end - _start) / _interval);
 			var array:Array = StandardLib.getNiceNumbersInRange(_start, _end, numLines);
-						
+			
+			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			bitmapText.textFormat.color = color.value;
 			bitmapText.angle = angle.value;
 			bitmapText.verticalAlign = vAlign.value;
 			bitmapText.horizontalAlign = hAlign.value;
 			bitmapText.maxWidth = maxWidth.value - xScreenOffset.value;
-			
-			// init text format			
-			var f:TextFormat = bitmapText.textFormat;
-			f.font = font.value;
-			f.size = size.value;
-			f.color = color.value;
-			f.bold = bold.value;
-			f.italic = italic.value;
-			f.underline = underline.value;
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			

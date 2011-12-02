@@ -46,7 +46,7 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.PROJECTION_SRS)
+			if (propertyName == AttributeColumnMetadata.PROJECTION)
 			{
 				var srs:String = projectionSRS.value;
 				if (srs != null && srs != '')

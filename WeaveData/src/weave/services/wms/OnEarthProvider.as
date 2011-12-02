@@ -32,6 +32,7 @@ package weave.services.wms
 	
 	import weave.api.WeaveAPI;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.reportError;
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
@@ -430,7 +431,7 @@ package weave.services.wms
 			var tile:WMSTile = token as WMSTile;
 			
 			tile.bitmapData = null; // a plotter should handle this
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 			
 			/** 
 			 * @TODO This may not be appropriate because a download with a valid URL may fail.
