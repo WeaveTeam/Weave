@@ -185,12 +185,7 @@
 				panelWidth.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelWidth]);
 				panelHeight.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelHeight]);
 				
-				Weave.properties.panelTitleTextFormat.font.addGroupedCallback(this, handleTitleFamilyChange);
-				Weave.properties.panelTitleTextFormat.color.addGroupedCallback(this, handleTitleColorChange);
-				Weave.properties.panelTitleTextFormat.size.addGroupedCallback(this, handleTitleSizeChange);
-				Weave.properties.panelTitleTextFormat.bold.addGroupedCallback(this,handleTitleWeightChange);
-				Weave.properties.panelTitleTextFormat.italic.addGroupedCallback(this, handleTitleStyleChange);
-				Weave.properties.panelTitleTextFormat.underline.addGroupedCallback(this, handleTitleDecorationChange);
+				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
@@ -309,35 +304,10 @@
 				}
 			}
 
-			private function handleTitleColorChange():void
-			{			
-				if (titleBar)
-					titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
-			}
-			private function handleTitleWeightChange():void
+			private function handleTitleTextFormatChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontWeight", (Weave.properties.panelTitleTextFormat.bold.value) ? "bold" : "normal" ) ;	
-			}
-			private function handleTitleDecorationChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("textDecoration", (Weave.properties.panelTitleTextFormat.underline.value)? "underline" : "none");	
-			}
-			private function handleTitleStyleChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("fontStyle", (Weave.properties.panelTitleTextFormat.italic.value) ? "italic" : "normal");
-			}			
-			private function handleTitleFamilyChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("fontFamily", Weave.properties.panelTitleTextFormat.font.value);
-			}			
-			private function handleTitleSizeChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("fontSize", Weave.properties.panelTitleTextFormat.size.value);
+					Weave.properties.panelTitleTextFormat.copyToStyle(titleBar);
 			}
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
