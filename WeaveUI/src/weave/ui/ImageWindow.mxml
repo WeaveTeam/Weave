@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" width="400" height="300" resize="draggablepanel1_resizeHandler(event)">
+	<mx:Image id="windowImage"/>
+	<mx:Script>
+		<![CDATA[
+			import com.as3xls.biff.Record;
+			
+			import mx.events.ResizeEvent;
+			import mx.graphics.codec.JPEGEncoder;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableContainer;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableBoolean;
+			import weave.utils.ByteArrayUtils;
+			
+			private var _fileLoader:FileReference = null;
+			public const resize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			
+			override protected function childrenCreated():void
+			{
+				linkBindableProperty(resize, resizeImageCheckBox, "selected");
+				windowImage.height = this.height + 425;
+				windowImage.width = this.width + 425;
+			}		
+			
+			private function browseImage():void
+			{
+				if(_fileLoader == null)
+				{
+					
+					_fileLoader = new FileReference();
+					_fileLoader.addEventListener(Event.SELECT, handleImageSelected);
+					_fileLoader.addEventListener(Event.COMPLETE, handleImageLoaded);
+				}
+				
+				_fileLoader.browse([new FileFilter("JPG/PNG/GIF", "*.jpg;*.png;*.gif;*.jpeg")]);
+			}
+			
+			private function handleImageSelected(e:Event):void
+			{
+				uploadStatus.text = "Status: Image uploading...";
+				_fileLoader.load();
+			}
+			
+			private function handleImageLoaded(e:Event):void
+			{
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageDataLoad);
+				loader.loadBytes(_fileLoader.data);
+					
+			}
+			
+			private function imageDataLoad(e:Event):void
+			{
+				try
+				{
+					if( resizeImageCheckBox.selected == true )
+					{
+					
+						this.windowImage.data = e.target.content;
+						var matrix:Matrix = windowImage.transform.matrix;
+						matrix.a = this.width/windowImage.contentWidth;
+						matrix.d = this.height/windowImage.contentHeight;
+						
+						windowImage.transform.matrix = matrix; 
+						windowImage.height = this.height + 425;
+						windowImage.width = this.width + 425;
+						
+					}
+					else
+						this.windowImage.data = _fileLoader.data;
+					uploadStatus.text = "Status: Image uploaded.";
+				}
+				catch(event:Error)
+				{
+					uploadStatus.text = "Status: Error uploading" + event.message.toString();
+				}
+			}
+			
+			protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
+			{
+				if( resizeImageCheckBox.selected == true )
+				{
+					if( this.windowImage.data != null )
+					{	
+						if( (this.height == event.oldHeight) && (this.width == event.oldWidth) )
+						return;
+						try
+						{
+	 						var matrix:Matrix = windowImage.transform.matrix;
+							matrix.a = this.width/windowImage.contentWidth;
+							matrix.d = this.height/windowImage.contentHeight;
+				
+							windowImage.transform.matrix = matrix; 
+							windowImage.height = this.height + 425;
+							windowImage.width = this.width + 425;
+						}
+						catch(e:Error)
+						{
+						trace("didn't work");
+						}
+					}
+				}
+			}
+			
+			/*************************************************
+			 *                static section                 *
+			 *************************************************/
+			
+			
+			
+			/**
+			 * This function is called whenever the context menu is opened.
+			 * The function will change the caption displayed depending upon where the context menu was opened.
+			 */
+			private static var _imageEditContextMenuItem:ContextMenuItem 	= null;
+			private static var _imageAddRemoveContextMenuItem:ContextMenuItem = null;
+			private static const ADD_CAPTION:String           = "Add Image"
+			private static const REMOVE_CAPTION:String        = "Remove Image"
+			private static const EDIT_TEXT_CAPTION:String     = "Edit Image"
+			
+			private static function handleContextMenuOpened(e:ContextMenuEvent):void
+			{	
+				var imageArea:ImageWindow = getImageFromTarget(e.mouseTarget);	
+				
+				if( getLinkableContainer(e.mouseTarget) )
+				{
+					_imageAddRemoveContextMenuItem.enabled = true;
+				}
+				else
+				{
+					_imageAddRemoveContextMenuItem.enabled = false;
+				}
+				
+				if ( imageArea == null)
+				{ 
+					_imageAddRemoveContextMenuItem.caption = ADD_CAPTION;
+					_imageEditContextMenuItem.enabled = false;
+				}
+				else
+				{
+					_imageAddRemoveContextMenuItem.caption = REMOVE_CAPTION;
+					_imageEditContextMenuItem.enabled = true;
+				}
+			}
+			
+			public static function createContextMenuItems(destination:DisplayObject):Boolean
+			{
+				if(!destination.hasOwnProperty("contextMenu") )
+					return false;
+				
+				
+				// Add a listener to this destination context menu for when it is opened
+				var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
+				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+				
+				// Create a context menu item for printing of a single tool with title and logo
+				_imageAddRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddRemove,"2.1 textBoxMenuItem");
+				_imageEditContextMenuItem        = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
+				
+				return true;
+			}
+			
+			
+			/**
+			 * This function is called by ChangeWindows.
+			 * This will add a Text Box to whatever parent has been indicated.
+			 * If the container passed is not an ILinkableContainer the Text Box is automatically placed on the visdesktop.
+			 */
+			private static function addImageToLocation(container:*, x:Number=0, y:Number=0):void
+			{	
+				var linkableContainer:ILinkableContainer = container as ILinkableContainer;
+				
+				if ( linkableContainer )
+				{
+					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Label");
+					var newImage:ImageWindow = linkableContainer.getLinkableChildren().requestObject(name, ImageWindow,false);
+					newImage.toggleControlPanel();
+				}
+			}
+			
+			/**
+			 * This function is called when Remove is selected in the Context Menu.
+			 * It checks for a TextArea, and if found will attempt to remove the TextArea and associated TextBox. 
+			 */
+			private static function removeWindows(e:ContextMenuEvent):void
+			{
+				var parent:ILinkableContainer = getLinkableContainer(getImageFromTarget(e.mouseTarget));
+				
+				if ( getImageFromTarget(e.mouseTarget) != null ) {				
+					if ( parent is ILinkableContainer ) {
+						var image:ImageWindow = getImageFromTarget(e.mouseTarget);
+						
+						var name:String = parent.getLinkableChildren().getName(image);
+						parent.getLinkableChildren().removeObject(name);
+					}
+				}
+			}
+			/**
+			 * This function is passed a target and checks to see if the target was a TextBox.
+			 * Either a TextBox or null will be returned.
+			 */
+			private static function getImageFromTarget(target:*):ImageWindow
+			{
+				var targetComponent:* = target;
+				
+				while(targetComponent)
+				{
+					if(targetComponent is ImageWindow)
+						return targetComponent as ImageWindow;
+					targetComponent = targetComponent.parent;
+				}
+				
+				return targetComponent;
+			}
+			
+			/**
+			 * This function is passed a target and checks to see if the target is an ILinkableContainer.
+			 * Either a ILinkableContainer or null will be returned.
+			 */
+			private static function getLinkableContainer(target:*):*
+			{
+				var targetComponent:* = target;
+				
+				while(targetComponent)
+				{
+					if(targetComponent is ILinkableContainer)
+						return targetComponent as ILinkableContainer;
+					
+					targetComponent = targetComponent.parent;
+				}
+				
+				return targetComponent;
+			}
+			
+			/**
+			 * This function handles what occurs when an option in the context menu involving the Text Box tool is selected.
+			 * It is linked to the Text Box tool options by the createContextMenuItems function.
+			 */
+			private static function handleAddRemove(e:ContextMenuEvent):void
+			{
+				var parent:ILinkableContainer = getLinkableContainer(e.mouseTarget);
+				var image:ImageWindow = getImageFromTarget(e.mouseTarget);
+				
+				// if the user did not right click on a TextBox or the editor for one
+				if ( image == null) 
+				{
+					// add text area to this container
+					addImageToLocation(parent, e.mouseTarget.mouseX, e.mouseTarget.mouseY);
+				}
+				else
+				{
+					image.removePanel();
+				}
+			}
+			
+			private static function handleEdit(e:ContextMenuEvent):void
+			{
+				var image:ImageWindow = getImageFromTarget(e.mouseTarget);
+				if (image)
+				{
+					image.sendWindowToForeground();
+					image.toggleControlPanel();
+				}
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL.text), handleImageDownload, handleFault, imageURL.text);
+				
+			}
+			
+			private function handleImageDownload(event:ResultEvent, token:Object = null):void
+			{
+				var bitmap:Bitmap = event.result as Bitmap;
+				windowImage.data = bitmap.bitmapData;
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			/**
+			 * This function is called when there is an error downloading an image.
+			 */
+			private function handleFault(event:FaultEvent, token:Object=null):void
+			{
+				trace("Error downloading image:", ObjectUtil.toString(event.message), token);
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox label="Image Tool Options">
+			<mx:HBox>
+				<mx:Button label="Upload Image" click="browseImage()"/>
+				<mx:Label id="uploadStatus" text="Status: No image uploaded."/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Resize image to fit image window:" />
+				<mx:CheckBox id="resizeImageCheckBox" selected="true"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Picture link:" />
+				<mx:TextInput id="imageURL" width="300" />
+				<mx:Button label="Load Image" click="button1_clickHandler(event)" />
+			</mx:HBox>
+		</mx:VBox>
+	</ui:ControlPanel>
+</ui:DraggablePanel>
