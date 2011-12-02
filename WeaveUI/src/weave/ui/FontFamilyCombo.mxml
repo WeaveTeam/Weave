@@ -21,7 +21,7 @@
 -->
 <CustomComboBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*"
-		creationComplete="creationComplete();">
+		creationComplete="creationComplete();" rowCount="12" dropdownWidth="250">
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
@@ -37,17 +37,11 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
-				var fontList:ArrayCollection = new ArrayCollection(Font.enumerateFonts(true));
+				dataProvider = Font.enumerateFonts(true).sortOn("fontName");
 				labelField = "fontName";
-				setStyle("fontSize",10);
-				setStyle('textDecoration','none');
-				setStyle('fontStyle','normal');
-				setStyle('fontWeight','normal');
-				var fontSort:Sort = new Sort();
-				fontSort.fields = [new SortField("fontName")];
-				fontList.sort = fontSort;
-				dataProvider = fontList;
+				setStyle('textDecoration','none'); // no underline
+				setStyle('fontStyle','normal'); // no italic
+				setStyle('fontWeight','normal'); // no bold
 			}
 		]]>
 	</mx:Script>
@@ -61,6 +55,7 @@
 							var font:Font = value as Font;
 							var fontName:String = font ? font.fontName : String(value);
 							setStyle("fontFamily", fontName);
+							setStyle("fontSize", 15);
 							text = fontName;
 							super.data = value;
 						}

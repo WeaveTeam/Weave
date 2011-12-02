@@ -48,6 +48,7 @@
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.core.ClassUtils;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.core.StageUtils;
 			import weave.core.weave_internal;
@@ -140,7 +141,8 @@
 				'clear': consoleClear,
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
-				'trace': consoleTrace
+				'trace': consoleTrace,
+				'getNewInstance': ClassUtils.getNewInstance as Function
 			};
 			private function runCommand():void
 			{

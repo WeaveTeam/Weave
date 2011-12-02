@@ -327,7 +327,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
 		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
 		
-		if (!config.getConnectionInfo(configConnectionName).is_superuser)
+		if (!config.getConnectionInfo(configConnectionName).is_superuser && info.folderName.length() == 0)
 			return String.format("User \"%s\" does not have permission to remove configuration files.", configConnectionName);
 
 		String path = docrootPath;
