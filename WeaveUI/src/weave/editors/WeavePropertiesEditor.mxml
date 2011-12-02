@@ -22,9 +22,10 @@
 
 <ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml"
 			xmlns="weave.editors.*"
+			xmlns:ui="weave.ui.*"
 			backgroundColor="#EFF4BC"
-			title="User Interface Preferences"
-			targets="{[Weave.properties]}" xmlns:ui="weave.ui.*"
+			title="Preferences"
+			targets="{[Weave.properties]}"
 			>
 	<WeavePropertiesAppearanceEditor label="Appearance"/>
 	<WeavePropertiesMenuEditor label="Menus"/>
@@ -34,7 +35,7 @@
 	<mx:VBox label="Advanced" width="100%" height="100%">
 		<ui:Indent label="Streaming geometry bounding box request mode">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
-			<ui:HelpComponent helpText='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
+			<ui:HelpComponent content='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
 		</ui:Indent>
 	</mx:VBox>
 	

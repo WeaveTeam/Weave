@@ -32,7 +32,7 @@
 		<!--Image from http://www.iconeden.com/icon/milky-a-free-vector-iconset.html-->
 		<mx:HBox>
 		<mx:Label text="Load local file"/>
-		<ui:HelpComponent id="loadFileHelp" helpText="Accepts XLS,CSV or Text file. Data should be delimited (by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step."/>			
+		<ui:HelpComponent id="loadFileHelp" content="Accepts XLS,CSV or Text file. Data should be delimited (by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step."/>			
 		</mx:HBox>
 		<mx:HBox>
 			<mx:Image click="browseForFiles()" id="uploadImage" source="@Embed(source= '/weave/resources/images/add_file_large.png')"/>
@@ -46,15 +46,28 @@
 		</mx:HBox>-->
 		<mx:Label text="OR" fontWeight="bold" />
 		<mx:HBox>
-		<mx:Label text="Paste your data below"/>
-		<ui:HelpComponent id="pasteDataHelp" helpText="Paste a delimited data set (delimited by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step."/>			
+			<mx:Label text="Paste your data below"/>
+			<ui:HelpComponent id="pasteDataHelp" content="Paste a delimited data set (delimited by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step."/>			
 		</mx:HBox>
 		<mx:TextArea id="dataTextArea" change="handleTextAreaChange()" width="400" height="250" borderStyle="solid" cornerRadius="5"/>
 	</mx:VBox>
 	<mx:VBox id="gridBox" width="100%" height="100%">
 		<mx:HBox width="100%">
-		<mx:Text text="Check your data!"/>
-		<ui:HelpComponent horizontalAlign="right" id="checkDataHelp" helpText="{NewUserWizardHelpFile}"/>			
+			<mx:Text text="Check your data!"/>
+			<ui:HelpComponent id="checkDataHelp">
+				<mx:TextArea>
+					<mx:htmlText>
+						<![CDATA[
+							<b>Check your data!</b>
+							The Grid shows you how we interpret your data. Check the rows and columns to confirm that they are in the correct format. Check the Unique Identifier Column and the Delimiter Combo Box. Click next if your data is in the right format.
+							<b>Unique Identifier Column</b>
+							<p> This is the name of the column header that uniquely identifies each	row of your dataset. We have computed the columns that contain unique values and set the Unique Column Identifier to the first option. You can set it any other available option within the Combo Box. If you are not sure which column to select or <u>if you don't see this combo box</u> you can ignore for now.</p>
+							<b>Delimiter</b>
+							<p>We assume that your data is delimited so that we can correctly identify the columns within the dataset. When you load the data, we do a quick check to compute the delmiter and then parse the data. Use the grid to check if the data has been parsed correctly. If the wrong delimiter is user you can select from the combo box the commonly used delimiters (Space, Comma, Semi Colon, Tab). <u>You can also type a single character delimiter</u>. The grid displays the parsed data every time you change the delimiter</p>
+						]]>
+					</mx:htmlText>
+				</mx:TextArea>
+			</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox visible="{uniqueColumns.length != 0}">
 		<mx:Label text="Unique Identifier Column" />
@@ -128,28 +141,19 @@
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.events.CloseEvent;
-			import mx.events.IndexChangedEvent;
-			import mx.managers.CursorManager;
-			import mx.rpc.events.HeaderEvent;
-			import mx.utils.XMLUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.getSessionState;
-			import weave.core.LinkableHashMap;
-			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.CSVParser;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
-			import weave.resources.helpfiles.NewUserWizardHelpFile;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.HierarchyUtils;
-			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.CompoundBarChartTool;
 			import weave.visualization.tools.GaugeTool;
