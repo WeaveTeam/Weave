@@ -27,7 +27,6 @@
 
     <mx:Script>
         <![CDATA[
-			import weave.core.StageUtils;
         	private function init():void
         	{
 				textField.height = 0;

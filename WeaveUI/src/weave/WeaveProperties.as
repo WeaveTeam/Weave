@@ -25,8 +25,6 @@ package weave
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
 	import flash.text.Font;
-	import flash.text.FontStyle;
-	import flash.text.TextFormat;
 	import flash.utils.ByteArray;
 	
 	import mx.collections.ArrayCollection;
@@ -79,7 +77,7 @@ package weave
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
 			
-			enableWeaveFonts.addGroupedCallback(this,loadEmbeddedFonts,true);
+			loadEmbeddedFonts();
 
 			// handle dynamic changes to the session state that change what CSS file to use
 			cssStyleSheetName.addGroupedCallback(
@@ -97,14 +95,11 @@ package weave
 		
 		private function loadEmbeddedFonts():void
 		{
-			if(Weave.properties.enableWeaveFonts.value)
-			{
-				fontLoader.autoRegister = true;
-				fontLoader.addEventListener(Event.COMPLETE,weaveFontsLoaded);
-				fontLoader.addEventListener(IOErrorEvent.IO_ERROR,handleLoaderErrorEvent);
-				fontLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleLoaderErrorEvent);
-				fontLoader.load(new URLRequest("WeaveFonts.swf"));
-			}			
+			fontLoader.autoRegister = true;
+			fontLoader.addEventListener(Event.COMPLETE,weaveFontsLoaded);
+			fontLoader.addEventListener(IOErrorEvent.IO_ERROR,handleLoaderErrorEvent);
+			fontLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleLoaderErrorEvent);
+			fontLoader.load(new URLRequest("WeaveFonts.swf"));
 		}
 		
 		private var fontLoader:FontLoader = new FontLoader();
@@ -152,9 +147,6 @@ package weave
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
-		
-		public const enableWeaveFonts:LinkableBoolean = new LinkableBoolean(true);
-		
 		
 		// enable/disable advanced features
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);

@@ -19,132 +19,253 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<!--	HelpComponent
-*  @author skolman
-*  
+<!---
+@author skolman
+@author adufilie
 -->
 
-<mx:Image
-	xmlns:ui ="weave.ui.*"
+<mx:Box label="Help"
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	source="@Embed(source='/weave/resources/images/info.png')"
-	horizontalAlign="center" verticalAlign="middle"
-	buttonMode="{showPopup}" scaleContent="true"
-	mouseDown="if (showPopup) toggleHelpPanel();"
-	rollOver="mouseOver = true; ToolTipManager.showDelay = 0;"
-	rollOut="mouseOver = false; ToolTipManager.showDelay = _tipDelay;"
-	>
+	xmlns:ui ="weave.ui.*"
+	width="18" height="18"
+	verticalAlign="middle" horizontalAlign="center">
+	<mx:Metadata>
+		[DefaultProperty("content")]
+	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.TitleWindow;
-			import mx.controls.TextArea;
-			import mx.controls.ToolTip;
+			import mx.controls.Alert;
+			import mx.controls.Button;
+			import mx.controls.Image;
 			import mx.core.UIComponent;
+			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
-			import mx.events.ToolTipEvent;
 			import mx.managers.PopUpManager;
 			import mx.managers.ToolTipManager;
-			import mx.skins.halo.TitleBackground;
 			
+			use namespace mx_internal;
 			
-			[Bindable] private var mouseOver:Boolean = false;
+			[Embed(source='/weave/resources/images/info.png')]
+			private static const InfoImage:Class;
 			
-			[Bindable][Inspectable]
-			public var showPopup:Boolean = true;
-			private var _helpText:Object = '';
-			[Inspectable]
-			public function set helpText(value:*):void
+			private var _button:Button;
+			private var _helpChildren:Array;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				// move any existing children to the _helpText variable
+				if (numChildren > 0)
+					_helpChildren = getChildren();
+				removeAllChildren();
+				
+				// create the image and add that as the only child
+				_button = new Button();
+				//_button.toggle = true;
+				_button.width = 14;
+				_button.height = 14;
+				_button.setStyle('cornerRadius', _button.width / 2);
+				_button.setStyle('icon', InfoImage);
+				_button.buttonMode = true;
+				addChild(_button);
+				
+				// add event listeners
+				addEventListener(
+					MouseEvent.MOUSE_DOWN,
+					function(event:Event):void
+					{
+						toggleHelpWindow(event.currentTarget as HelpComponent);
+					}
+				);
+				addEventListener(
+					MouseEvent.ROLL_OVER,
+					function(event:Event):void
+					{
+						ToolTipManager.showDelay = 0;
+					}
+				);
+				addEventListener(
+					MouseEvent.ROLL_OUT,
+					function(event:Event):void
+					{
+						ToolTipManager.showDelay = _tipDelay;
+					}
+				);
+				var focusOut:Function = function(event:Event):void
+				{
+					if (event is KeyboardEvent && (event as KeyboardEvent).keyCode != Keyboard.ESCAPE)
+						return;
+					
+					if (_lastClickedHelpComponent == event.currentTarget)
+					{
+						var focus:DisplayObject = focusManager.getFocus() as DisplayObject;
+						if (focus && _helpWindow.contains(focus))
+						{
+							setFocus();
+							_button.drawFocus(true);
+						}							
+						else
+						{
+							removeHelpWindow();
+						}
+					}
+				};
+				addEventListener(FocusEvent.FOCUS_OUT, focusOut);
+				addEventListener(KeyboardEvent.KEY_DOWN, focusOut);
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				
+				// draw invisible rectangle to capture mouse events
+				graphics.clear();
+				graphics.beginFill(0, 0);
+				graphics.lineStyle(0, 0, 0);
+				graphics.drawRect(0, 0, unscaledWidth, unscaledHeight);
+				graphics.endFill();
+			}
+			
+			/**
+			 * This specifies the content of the help popup and possibly the tooltip.
+			 */
+			public function set content(value:*):void
 			{
 				if (value == null)
 					return;
 				
+				toolTip = "Click for help";
 				
 				if (value is String)
 				{
-					_helpText = value;
-					setToolTip(_helpText as String);
-					return;
+					toolTip = value as String; // show the actual text
+					
+					var textArea:AutoResizingTextArea = new AutoResizingTextArea();
+					textArea.editable = false;
+					textArea.height = NaN;
+					textArea.setStyle("borderStyle", "none");
+					textArea.text = value as String;
+					
+					value = [textArea];
 				}
 				else if (value is Class)
 				{
-					_helpText = new value();
+					value = [new value()];
 				}
 				else if (value is DisplayObject)
 				{
-					var par:DisplayObjectContainer = (value as DisplayObject).parent;
-					if (par)
-						par.removeChild(value);
-					_helpText = value;
+					var displayObject:DisplayObject = value as DisplayObject;
+					if (displayObject.parent)
+						displayObject.parent.removeChild(displayObject);
+					value = [value];
 				}
-				toolTip = "Click for help";
+				_helpChildren = value as Array;
 			}
 			
-			/**
-			 * function setToolTip: sets a tool tip on the help image.
-			 * @param helpText The text you want to show in the tool tip. 
-			 * If the text is too large create a help file and use the setHelpFile function.
-			 * */
-			private function setToolTip(helpText:String):void
-			{
-				this.toolTip = helpText;
-			}
+			/************************************************************************************
+			 * 
+			 * The stuff below is static because we only want one help window shown at a time.
+			 * 
+			 ************************************************************************************/
 			
-			private var _tipDelay:Number = ToolTipManager.showDelay; 
-
-			[Bindable] private var _helpWindow:TitleWindow;
-			//TODO:Define a text area package and call components from there.
-			private function toggleHelpPanel():void
+			private static var _tipDelay:Number = ToolTipManager.showDelay; 
+			private static var _helpWindow:TitleWindow;
+			private static var _lastClickedHelpComponent:HelpComponent;
+			private static function toggleHelpWindow(helpComponent:HelpComponent):void
 			{
 				if (_helpWindow && _helpWindow.parent)
 				{
-					PopUpManager.removePopUp(_helpWindow);
-					_helpWindow = null;
+					// remove existing window
+					// if the same help component was clicked, don't reopen the window
+					if (removeHelpWindow() == helpComponent)
+						return;
+				}
+				
+				_lastClickedHelpComponent = helpComponent;
+				
+				// draw focus
+				helpComponent.setFocus();
+				helpComponent._button.drawFocus(true);
+				
+				var helpChildren:Array = helpComponent._helpChildren;
+				
+				// show error if no children available
+				if (!helpChildren || helpChildren.length == 0)
+				{
+					Alert.show("No help available.", "Error");
 					return;
 				}
-				_helpWindow = PopUpManager.createPopUp(this, TitleWindow) as TitleWindow;
-				_helpWindow.title = "Help";
-				_helpWindow.width = 400;
 				
-				var component:UIComponent = _helpText as UIComponent;
-				if (_helpText is String)
+				// create the popup
+				var window:TitleWindow = PopUpManager.createPopUp(helpComponent, TitleWindow) as TitleWindow;
+				_helpWindow = window;
+				window.title = helpComponent.label;
+				window.width = 400;
+				window.height = NaN;
+				window.showCloseButton = true;
+				window.setStyle("borderAlpha", 1.0);
+				window.setStyle("borderThicknessTop", 2);
+				window.setStyle("borderThicknessBottom", 2);
+				window.setStyle("borderThicknessLeft", 2);
+				window.setStyle("borderThicknessRight", 2);
+				window.setStyle("cornerRadius", 0);
+				window.getTitleBar().setStyle("headerHeight", 20);
+				
+				// add the children to the popup
+				for (var i:int = 0; i < helpChildren.length; i++)
 				{
-					component = new AutoResizingTextArea();
-					(component as AutoResizingTextArea).text = _helpText as String;
+					var component:UIComponent = helpChildren[i] as UIComponent;
+					if (!component)
+						continue;
+					component.percentWidth = 100;
+					component.percentHeight = 100;
+					
+					window.addChild(component);
 				}
 				
-				_helpWindow.addChild(component);
-				component.percentWidth = 100;
-				component.percentHeight = 100;
-				
-				if (component is AutoResizingTextArea)
-				{
-					(component as AutoResizingTextArea).editable = false;
-					component.height = NaN;
-				}
-				
-				_helpWindow.showCloseButton = true;
-				_helpWindow.setStyle("borderAlpha", 0.7);
-				
-				_helpWindow.addEventListener(CloseEvent.CLOSE, function(..._):void { PopUpManager.removePopUp(_helpWindow); });
-			
-				PopUpManager.centerPopUp(_helpWindow);
+				var padding:int = 5;
 				
 				// align upper-left corner of popup with lower-right corner of HelpComponent
-				var point:Point = localToGlobal(new Point(this.width, this.height));
-				//adjust positon if help panel goes beyond the browser borders
-				if (point.x + _helpWindow.width > stage.stageWidth)
-					point.x = Math.max(0, point.x - this.width - _helpWindow.width);
-				if (point.y + _helpWindow.height > stage.stageHeight)
-					point.y = Math.max(0, point.y - this.height - _helpWindow.height);
-
-				_helpWindow.move(point.x, point.y);
-				_helpWindow.addEventListener(CloseEvent.CLOSE, handleHelpPanelClose);
-			}
-			private function handleHelpPanelClose(e:Event):void
-			{
-				_helpWindow = null;
+				var point:Point = helpComponent.localToGlobal(new Point(helpComponent.width, helpComponent.height));
+				point.x += padding;
+				point.y += padding;
+				// adjust positon if help panel goes beyond the browser borders
+				if (point.x + window.width > helpComponent.stage.stageWidth) // too far to the right
+					point.x = Math.max(0, point.x - helpComponent.width - window.width - padding);
+				if (point.y + window.height > helpComponent.stage.stageHeight) // too far down
+					point.y = Math.max(0, point.y - helpComponent.height - window.height - padding);
+				window.move(point.x, point.y);
+				
+				// when the user clicks the close button, remove the popup
+				window.addEventListener(CloseEvent.CLOSE, removeHelpWindow);
 			}
 			
+			/**
+			 * This will remove the existing help window and clean up the static variables.
+			 * @return The HelpComponent corresponding to the window that was removed.
+			 */
+			private static function removeHelpWindow(event:Event = null):HelpComponent
+			{
+				var window:TitleWindow = _helpWindow;
+				var helpComponent:HelpComponent = _lastClickedHelpComponent;
+				
+				// clean up variables first in case of recursive calls
+				_helpWindow = null;
+				_lastClickedHelpComponent = null;
+				
+				if (window)
+					PopUpManager.removePopUp(window);
+				
+				if (helpComponent)
+				{
+					helpComponent.focusManager.hideFocus();
+					helpComponent._button.drawFocus(false);
+				}
+
+				return helpComponent;
+			}
 		]]>
 	</mx:Script>
-</mx:Image>
+</mx:Box>
