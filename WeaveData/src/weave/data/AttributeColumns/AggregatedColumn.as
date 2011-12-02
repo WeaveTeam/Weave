@@ -39,10 +39,6 @@ package weave.data.AttributeColumns
 	{
 		public function AggregatedColumn()
 		{
-			init();
-		}
-		private function init():void
-		{
 		}
 		public const keyMapping:DynamicColumn = newLinkableChild(this, DynamicColumn, invalidateCache);
 		public const aggregationType:LinkableString = newLinkableChild(this, LinkableString, invalidateCache);

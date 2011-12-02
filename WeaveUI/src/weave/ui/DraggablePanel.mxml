@@ -48,82 +48,54 @@
 	       		>
 	<mx:Script>
 		<![CDATA[
-			import flash.events.Event;
-			import flash.events.MouseEvent;
-			import flash.text.engine.EastAsianJustifier;
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.collections.ArrayCollection;
 			import mx.containers.Canvas;
-			import mx.containers.Panel;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
-			import mx.controls.Image;
 			import mx.core.Application;
 			import mx.core.BitmapAsset;
-			import mx.core.Container;
-			import mx.core.DragSource;
-			import mx.core.IContainer;
-			import mx.core.IUIComponent;
 			import mx.core.SpriteAsset;
-			import mx.core.UIComponent;
 			import mx.effects.AnimateProperty;
-			import mx.effects.Effect;
 			import mx.effects.Move;
 			import mx.effects.Parallel;
-			import mx.effects.Resize;
-			import mx.effects.Tween;
 			import mx.effects.easing.Circular;
-			import mx.effects.easing.Cubic;
-			import mx.effects.easing.Elastic;
 			import mx.effects.easing.Exponential;
-			import mx.effects.easing.Linear;
 			import mx.effects.easing.Sine;
-			import mx.events.ChildExistenceChangedEvent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.EffectEvent;
-			import mx.events.FlexEvent;
-			import mx.events.IndexChangedEvent;
-			import mx.events.MoveEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
-			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
-			import weave.api.getLinkableRoot;
-			import weave.api.linkBindableProperty;
-			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
-			import weave.compiler.Compiler;
+			import weave.api.reportError;
 			import weave.compiler.StandardLib;
-			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.StageUtils;
-			import weave.core.weave_internal;
 			import weave.primitives.ImageFactory;
 			import weave.ui.controlBars.VisTaskbar;
-			import weave.utils.BitmapUtils;
 			import weave.utils.DebugUtils;
 			import weave.utils.NumberUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			public static var showRollOverBorders:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
+			public static function get activePanelName():String
+			{
+				return Weave.root.getName(activePanel);
+			}
 			
 			public static const CIRCULAR_MINIMIZE_EFFECT:String  = "CIRCULAR_MINIMIZE_EFFECT";
 			public static const LINEAR_MINIMIZE_EFFECT:String    = "LINEAR_MINIMIZE_EFFECT";
@@ -136,10 +108,10 @@
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.
 			 */
-			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%"));
-			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%"));
-			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%"));
-			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%"));
+			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%", NumberUtils.verifyNumberOrPercentage));
+			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%", NumberUtils.verifyNumberOrPercentage));
+			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
+			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
 			
 			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMaximizedChange, true);
 			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleMinimizedChange, true);
@@ -213,12 +185,12 @@
 				panelWidth.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelWidth]);
 				panelHeight.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelHeight]);
 				
-				Weave.properties.panelTitleFontFamily.addGroupedCallback(this, handleTitleFamilyChange);
-				Weave.properties.panelTitleFontColor.addGroupedCallback(this, handleTitleColorChange);
-				Weave.properties.panelTitleFontSize.addGroupedCallback(this, handleTitleSizeChange);
-				Weave.properties.panelTitleFontBold.addGroupedCallback(this,handleTitleWeightChange);
-				Weave.properties.panelTitleFontItalic.addGroupedCallback(this, handleTitleStyleChange);
-				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
+				Weave.properties.panelTitleTextFormat.font.addGroupedCallback(this, handleTitleFamilyChange);
+				Weave.properties.panelTitleTextFormat.color.addGroupedCallback(this, handleTitleColorChange);
+				Weave.properties.panelTitleTextFormat.size.addGroupedCallback(this, handleTitleSizeChange);
+				Weave.properties.panelTitleTextFormat.bold.addGroupedCallback(this,handleTitleWeightChange);
+				Weave.properties.panelTitleTextFormat.italic.addGroupedCallback(this, handleTitleStyleChange);
+				Weave.properties.panelTitleTextFormat.underline.addGroupedCallback(this, handleTitleDecorationChange);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
@@ -248,8 +220,8 @@
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
 				setupControlButton(helpButton, null, toggleHelpPanel, "Click here to show help on how to use this component.");
-				setupControlButton(pinToBackButton, pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
-				setupControlButton(pinButton, pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
+				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
+				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
@@ -299,7 +271,7 @@
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
 				
-				titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
+				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 				
 				panelNeedsUpdate();
 			}
@@ -332,7 +304,7 @@
 				}
 				catch (e:Error)
 				{
-					//WeaveAPI.ErrorManager.reportError(e);
+					//reportError(e);
 					title = panelTitle.value;
 				}
 			}
@@ -340,32 +312,32 @@
 			private function handleTitleColorChange():void
 			{			
 				if (titleBar)
-					titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
+					titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 			}
 			private function handleTitleWeightChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontWeight", (Weave.properties.panelTitleFontBold.value) ? "bold" : "normal" ) ;	
+					titleBar.setStyle("fontWeight", (Weave.properties.panelTitleTextFormat.bold.value) ? "bold" : "normal" ) ;	
 			}
 			private function handleTitleDecorationChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("textDecoration", (Weave.properties.panelTitleFontUnderline.value)? "underline" : "none");	
+					titleBar.setStyle("textDecoration", (Weave.properties.panelTitleTextFormat.underline.value)? "underline" : "none");	
 			}
 			private function handleTitleStyleChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontStyle", (Weave.properties.panelTitleFontItalic.value) ? "italic" : "normal");
+					titleBar.setStyle("fontStyle", (Weave.properties.panelTitleTextFormat.italic.value) ? "italic" : "normal");
 			}			
 			private function handleTitleFamilyChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontFamily", Weave.properties.panelTitleFontFamily.value);
+					titleBar.setStyle("fontFamily", Weave.properties.panelTitleTextFormat.font.value);
 			}			
 			private function handleTitleSizeChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
+					titleBar.setStyle("fontSize", Weave.properties.panelTitleTextFormat.size.value);
 			}
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
@@ -530,7 +502,7 @@
 				setStyle('highlightAlphas', enableBorders.value ? undefined : [0,0]);
 				
 				updateForceEnableBorders();
-				_resizeable = (!Weave.properties.dashboardMode.value && resizeable.value) || forceEnableBorders.value;
+				_resizeable = (!Weave.properties.dashboardMode.value && resizeable.value) || forceEnableBorders.value || showRollOverBorders;
 				
 				if (!maximizable.value)
 					maximized.value = false;
@@ -719,23 +691,21 @@
     			return value;
     		}
 			
-			[Embed(source= "/weave/resources/images/tinyWrench2.png")]
+			[Embed(source="/weave/resources/images/tinyWrench2.png")]
 			private var _userControlIcon:Class;
-			
 			[Embed(source="/weave/resources/images/pushpin.png")]
-			private var pinIcon:Class;
+			private var _pinIcon:Class;
 			[Embed(source="/weave/resources/images/pushpinback.png")]
-			private var pinToBackIcon:Class;
-			[Embed(source= "/weave/resources/images/maximize_icon.png")]
+			private var _pinToBackIcon:Class;
+			[Embed(source="/weave/resources/images/maximize_icon.png")]
 			private var _maximizeIcon:Class;
-			[Embed(source= "/weave/resources/images/unmaximize_icon.png")]
+			[Embed(source="/weave/resources/images/unmaximize_icon.png")]
 			private var _unmaximizeIcon:Class;
-			[Embed(source= "/weave/resources/images/minimize_icon.png")]
+			[Embed(source="/weave/resources/images/minimize_icon.png")]
 			private var _minimizeIcon:Class;
-			[Embed(source= "/weave/resources/images/minimize_down_icon.png")]
+			[Embed(source="/weave/resources/images/minimize_down_icon.png")]
 			private var _minimizeDownIcon:Class;
 			
-			private var _userControlBitmap:BitmapData = new _userControlIcon().bitmapData;
 			[Embed(source="/weave/resources/images/resize_TB.png")]
        		private var _resizeTBCursor:Class;
        		private var _resizeTBBitmap:BitmapAsset = new _resizeTBCursor() as BitmapAsset;
@@ -856,7 +826,7 @@
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
 					}
 				}
 			}
@@ -1055,7 +1025,7 @@
 					return;
 				if (!parent)
 				{
-					WeaveAPI.ErrorManager.reportError(new Error("DraggablePanel.playRestorePanelEffect() called when parent is null"));
+					reportError("DraggablePanel.playRestorePanelEffect() called when parent is null");
 					return;
 				}
 
@@ -1376,7 +1346,7 @@
 						catch (e:Error)
 						{
 							draggablePanelCursorID = -1;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 					}
 				}

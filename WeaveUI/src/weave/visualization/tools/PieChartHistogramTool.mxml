@@ -59,10 +59,10 @@
 				initColumnDefaults(_plotter.unfilteredData);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,null,true);
 				
-				visualization.marginTop.value = 65;
-				visualization.marginBottom.value = 65;
-				visualization.marginLeft.value = 85;
-				visualization.marginRight.value = 85;
+				visualization.marginTop.value = "65";
+				visualization.marginBottom.value = "65";
+				visualization.marginLeft.value = "85";
+				visualization.marginRight.value = "85";
 			}
 			
 			override protected function childrenCreated():void

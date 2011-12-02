@@ -32,6 +32,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -65,11 +66,6 @@ package weave.data.AttributeColumns
 		
 
 		public function EquationColumn()
-		{
-			init();
-		}
-		
-		private function init():void
 		{
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			equation.value = 'undefined';
@@ -127,7 +123,7 @@ package weave.data.AttributeColumns
 						if (_lastError != e.message)
 						{
 							_lastError = e.message;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 					}
 				}
@@ -372,7 +368,7 @@ package weave.data.AttributeColumns
 						if (_lastError != e.message)
 						{
 							_lastError = e.message;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 						//value = e;
 					}

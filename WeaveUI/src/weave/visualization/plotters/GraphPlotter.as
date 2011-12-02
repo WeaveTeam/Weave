@@ -25,7 +25,6 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.text.TextFormat;
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
@@ -40,18 +39,15 @@ package weave.visualization.plotters
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.graphs.DynamicGraphAlgorithm;
 	import weave.graphs.ForceDirectedLayout;
 	import weave.graphs.GridForceDirectedLayout;
 	import weave.graphs.KamadaKawaiLayout;
 	import weave.graphs.LargeGraphLayout;
 	import weave.primitives.Bounds2D;
-	import weave.utils.BitmapText;
-	import weave.utils.ObjectPool;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -69,9 +65,7 @@ package weave.visualization.plotters
 			lineStyle.weight.defaultValue.value = 1.5;
 
 			fillStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
-			registerLinkableChild(this, Weave.properties.axisFontUnderline);
-			registerLinkableChild(this, Weave.properties.axisFontSize);
-			registerLinkableChild(this, Weave.properties.axisFontColor);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 			setKeySource(nodesColumn);
 
 			layoutAlgorithm.requestLocalObject(ForceDirectedLayout, true);

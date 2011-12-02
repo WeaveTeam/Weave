@@ -92,12 +92,15 @@ package weave.core
 		 */
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
+			delayCallbacks(); // make sure callbacks only trigger once
 			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
 			var object:ILinkableObject = requestLocalObject(classDef, false);
-			if (object == null || objectToCopy == null)
-				return;
-			var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
-			WeaveAPI.SessionManager.setSessionState(object, state, true);
+			if (object != null && objectToCopy != null)
+			{
+				var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
+				WeaveAPI.SessionManager.setSessionState(object, state, true);
+			}
+			resumeCallbacks();
 		}
 		
 		/**
@@ -226,7 +229,10 @@ package weave.core
 			if (newGlobalName == null) // local object
 			{
 				// initialize the local object -- this may trigger childListCallback()
-				_localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
+				var result:ILinkableObject = _localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
+				// if the object fails to be created, remove any existing object (may be a global one).
+				if (!result)
+					removeObject();
 			}
 			else // global object
 			{
@@ -269,7 +275,6 @@ package weave.core
 		 */
 		private static function handleGlobalListChange():void
 		{
-			//trace(ObjectUtil.toString(_globalHashMap.getSessionState()));
 			var name:String;
 			var links:Array;
 			var link:LinkableDynamicObject;
@@ -288,9 +293,9 @@ package weave.core
 					{
 						// sanity checks
 						if (link._globalName != name)
-							throw new Error("Error!: LinkableDynamicObject did not link to expected global name.");
+							throw new Error("LinkableDynamicObject did not link to expected global name.");
 						if (link._internalObject != null)
-							throw new Error("Error!: LinkableDynamicObject was not pointing to a null global object as expected.");
+							throw new Error("LinkableDynamicObject was not pointing to a null global object as expected.");
 						
 						// enforce each link's type restriction separately
 						if (link._typeRestrictionClass == null || newObject is link._typeRestrictionClass)
@@ -315,15 +320,15 @@ package weave.core
 					{
 						// sanity check
 						if (link._globalName != name)
-							throw new Error("Error!: LinkableDynamicObject did not link to expected global name.");
+							throw new Error("LinkableDynamicObject did not link to expected global name.");
 						
 						if (link._internalObject != null)
 						{
 							// sanity checks
 							if (link._locked)
-								throw new Error("Error!: LinkableDynamicObject was locked while referenced global object was disposed of.");
+								throw new Error("LinkableDynamicObject was locked while referenced global object was disposed of.");
 							if (link._internalObject != oldObject)
-								throw new Error("Error!: LinkableDynamicObject was pointing to the wrong global object.");
+								throw new Error("LinkableDynamicObject was pointing to the wrong global object.");
 							
 							// clean up pointers
 							link._internalObject = null;
@@ -451,29 +456,28 @@ package weave.core
 		private var _internalObject:ILinkableObject = null;
 
 		// this is the local object factory
-		private var _localHashMap:LinkableHashMap = null;
+		private var _localHashMap:ILinkableHashMap = null;
 		// this is the name of the local object created inside _localHashMap
 		private static const LOCAL_OBJECT_NAME:String = 'localObject';
 
 		// this is the name of the linked global object
 		private var _globalName:String = null;
 		// this is the global object factory
-		private static var _globalHashMap:LinkableHashMap = null;
+		private static var _globalHashMap:ILinkableHashMap = null;
 		// this maps a global name to an Array of LinkableDynamicObjects
 		private static const _globalNameToLinksMap:Object = new Object();
 		
 		/**
 		 * This is the mapping from global names to objects.
 		 */
-		public static function get globalHashMap():LinkableHashMap
+		public static function get globalHashMap():ILinkableHashMap
 		{
 			if (!_globalHashMap)
+			{
 				_globalHashMap = new LinkableHashMap();
+				_globalHashMap.childListCallbacks.addImmediateCallback(null, handleGlobalListChange);
+			}
 			return _globalHashMap;
 		}
-		
-		{ /** begin static code block **/
-			globalHashMap.childListCallbacks.addImmediateCallback(null, handleGlobalListChange);
-		} /** end static code block **/
 	}
 }

@@ -43,6 +43,6 @@ package weave.api
 	 */
 	public function getLinkableDescendants(object:ILinkableObject, filter:Class = null):Array
 	{
-		return WeaveAPI.SessionManager.getLinkableDescendants(object);
+		return WeaveAPI.SessionManager.getLinkableDescendants(object, filter);
 	}
 }

@@ -321,6 +321,8 @@ public class SQLConfigXML implements ISQLConfig
 			tag.setAttribute(ConnectionInfo.USER, info.user);
 		if (info.pass != null)
 			tag.setAttribute(ConnectionInfo.PASS, info.pass);
+		if (info.folderName != null)
+			tag.setAttribute(ConnectionInfo.FOLDERNAME, info.folderName);
 		tag.setAttribute(ConnectionInfo.IS_SUPERUSER, Boolean.toString(info.is_superuser));
 
 		// add to document with formatting
@@ -413,6 +415,7 @@ public class SQLConfigXML implements ISQLConfig
 		info.user = getNonNullValue(map, ConnectionInfo.USER);
 		info.pass = getNonNullValue(map, ConnectionInfo.PASS);
 		info.is_superuser = Boolean.parseBoolean(getNonNullValue(map, ConnectionInfo.IS_SUPERUSER));
+		info.folderName = getNonNullValue(map, ConnectionInfo.FOLDERNAME);
 		return info;
 	}
 

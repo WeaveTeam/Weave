@@ -46,7 +46,7 @@
 			   
 	<mx:Button icon="@Embed(source='/weave/resources/images/trashCan.png')" 
 			   width="25" height="25" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" 
-			   click="internalList.removeSelectedItem()"
+			   click="clearAttribute()"
 			   cornerRadius="20"
 			   toolTip="Click here to remove the column used for this property."/>
 	<mx:Script>
@@ -83,7 +83,14 @@
 					AttributeSelectorPanel.openToolSelector(_visTool, internalList.dynamicObject);
 				else
 					AttributeSelectorPanel.openDefaultSelector(internalList.dynamicObject, label);
-			} 	
+			}
+			
+			private function clearAttribute():void
+			{
+				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(internalList.dynamicObject as DynamicColumn);
+				if (dc)
+					dc.removeObject();
+			}
 		]]>
 	</mx:Script>
 </mx:HBox>

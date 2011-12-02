@@ -26,16 +26,16 @@
 		width="100%"
 		height="100%"
 		borderAlpha="0.5" backgroundColor="#DBDBDB" cornerRadius="0"
-		bottom="20" top="20" right="20" left="20"
+		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
 		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? 0 : (AdminInterface.instance.sqlConfigExists ? 1 : 2)}">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox width="100%">
 					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->
-					<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SQL_DATA_BUTTON_TOOLTIP}"/>
-					<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="open dialog with wizard to import data from csv files, etc"/>
-					<!--mx:Button label="Import shape data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="open dialog with wizard to import shape data (shapes and raw data like dbf)"/-->
-					<mx:Button label="Import shape data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SHAPEFILE_DATA_BUTTON_LABEL}"/>
+					<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
+					<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="open dialog with wizard to import data from csv files"/>
+					<mx:Button label="Import SHP and DBF data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{Strings.tip_import_shp_and_dbf}"/>
+					<mx:Button label="Open Weave" click="AdminInterface.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
 					<mx:Spacer width="100%"/>
 					<mx:Label text="{'Active Connection Name: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
 					<mx:Button label="Sign out" enabled="{AdminInterface.instance.sqlConfigExists == true}"
@@ -86,7 +86,7 @@
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.Weave;
 			import weave.services.AdminInterface;
 			import weave.services.WeaveAdminService;

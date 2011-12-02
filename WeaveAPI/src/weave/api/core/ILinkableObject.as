@@ -38,8 +38,8 @@ package weave.api.core
 {
 	/**
 	 * An object that implements this empty interface has an associated ICallbackCollection and session state,
-	 * accessible through the global functions in the weave.api package. In order for an
-	 * ILinkableObject to be created dynamically at runtime, it must not require any constructor parameters.
+	 * accessible through the global functions in the weave.api package. In order for an ILinkableObject to
+	 * be created dynamically at runtime, it must not require any constructor parameters.
 	 * 
 	 * @author adufilie
 	 */

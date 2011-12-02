@@ -23,15 +23,13 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -41,19 +39,16 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
-	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
-	import weave.utils.EquationColumnLib;
 	import weave.utils.VectorUtils;
-	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
+	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
 	/**	
 	 * @author heather byrne
@@ -79,7 +74,7 @@ package weave.visualization.plotters
 		/*
 		 * This is the line style used to draw the lines.
 		 */
-		public const lineStyle:ExtendedSolidLineStyle = newLinkableChild(this, ExtendedSolidLineStyle);
+		public const lineStyle:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		
 		public function get alphaColumn():AlwaysDefinedColumn { return lineStyle.alpha; }
 		
@@ -308,7 +303,7 @@ package weave.visualization.plotters
 				
 				if (i > 0)
 				{
-					var geometry:SimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
+					var geometry:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
 					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
 					results.push(geometry);
 				}

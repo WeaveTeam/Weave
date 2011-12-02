@@ -27,14 +27,18 @@
 
 	<mx:RadioButtonGroup id="shapeOrKey"/>
 	<mx:HBox>
-		<mx:RadioButton id="geometryCollectionRadio" group="{shapeOrKey}" label="{StringDefinition.DEFAULT_GEOMETRY_COLLECTION_RADIOBUTTON_LABEL}" textAlign="left" width="{_indent}"/>
-		<ui:CustomComboBox id="geometryCollectionCombo" enabled="{geometryCollectionRadio.selected}" prompt="Select a geometry collection..." dataProvider="{AdminInterface.instance.geometryCollectionNames}" toolTip="{StringDefinition.DEFAULT_GEOMETRY_COLLECTION_DROPDOWNBOX_TOOLTIP}"/>
-		<mx:Button label="Refresh" enabled="{geometryCollectionRadio.selected}" click="AdminInterface.instance.getGeometryCollectionNames()" toolTip="{StringDefinition.DEFAULT_GEOMETRY_COLLECTIONS_REFRESH_BUTTON_TOOLTIP}"/>
+		<mx:RadioButton id="geometryCollectionRadio" group="{shapeOrKey}" label="{Strings.geometry_collection}" textAlign="left" width="{_indent}"/>
+		<mx:HBox enabled="{geometryCollectionRadio.selected &amp;&amp; !refreshingGeoms}">
+			<ui:CustomComboBox id="geometryCollectionCombo" enabled="{geometryCollectionCombo.dataProvider.length > 0}" prompt="Select a geometry collection..." dataProvider="{AdminInterface.instance.geometryCollectionNames}" toolTip="{Strings.tip_geometry_collection_dropdown}"/>
+			<mx:Button id="geomRefresh" label="Refresh" click="getGeometryCollectionNames()" toolTip="{Strings.tip_refresh_geometry_collections}"/>
+		</mx:HBox>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_LABEL}" textAlign="left" width="{_indent}" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_RADIOBUTTON_TOOLTIP}"/> 
-		<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{keyType}" enabled="{keyTypeRadio.selected}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{StringDefinition.DEFAULT_KEY_TYPE_DROPDOWNBOX_TOOLTIP}" valueCommit="keyType = keyTypeCombo.text"/>
-		<mx:Button label="Refresh" enabled="{keyTypeRadio.selected}" click="AdminInterface.instance.getKeyTypes()" toolTip="{StringDefinition.DEFAULT_KEY_TYPES_REFRESH_BUTTON_TOOLTIP}"/>
+		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{Strings.key_type}" textAlign="left" width="{_indent}" toolTip="{Strings.tip_key_type_radiobutton}"/>
+		<mx:HBox enabled="{keyTypeRadio.selected &amp;&amp; !refreshingKeyTypes}">
+			<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{keyType}" enabled="{keyTypeCombo.dataProvider.length > 0}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_key_type_dropdown}" valueCommit="keyType = keyTypeCombo.text"/>
+			<mx:Button id="keyTypeRefresh" label="Refresh" click="getKeyTypes()" toolTip="{Strings.tip_refresh_key_types}"/>
+		</mx:HBox>
 		<!--mx:Button label="?" click="showHelpForKeyType()"/-->
 	</mx:HBox>
 	
@@ -46,7 +50,7 @@
 			import mx.events.CollectionEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.services.*;
 			import weave.utils.ByteArrayUtils;
 			
@@ -55,8 +59,8 @@
 			
 			private function creationComplete():void
 			{
-				AdminInterface.instance.getGeometryCollectionNames();
-				AdminInterface.instance.getKeyTypes();
+				getGeometryCollectionNames();
+				getKeyTypes();
 			}
 			
 //			private function showHelpForKeyType():void
@@ -87,6 +91,29 @@
 			
 			[Bindable] public var keyType:String = "";
 			
+			[Bindable] private var refreshingGeoms:Boolean = false;
+			[Bindable] private var refreshingKeyTypes:Boolean = false;
+			
+			private function getGeometryCollectionNames():void
+			{
+				var query:DelayedAsyncInvocation = AdminInterface.instance.getGeometryCollectionNames();
+				if (query)
+				{
+					refreshingGeoms = true;
+					var handler:Function = function(..._):void { refreshingGeoms = false; };
+					query.addAsyncResponder(handler, handler);
+				}
+			}
+			private function getKeyTypes():void
+			{
+				var query:DelayedAsyncInvocation = AdminInterface.instance.getKeyTypes();
+				if (query)
+				{
+					refreshingKeyTypes = true;
+					var handler:Function = function(..._):void { refreshingKeyTypes = false; };
+					query.addAsyncResponder(handler, handler);
+				}
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

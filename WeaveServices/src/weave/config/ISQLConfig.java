@@ -216,20 +216,21 @@ public interface ISQLConfig
 	 */
 	static public class ConnectionInfo
 	{
-		static public final String NAME = "name";
-		static public final String DBMS = "dbms";
-		static public final String IP = "ip";
-		static public final String PORT = "port";
-		static public final String DATABASE = "database";
-		static public final String USER = "user";
-		static public final String PASS = "pass";
-		static public final String IS_SUPERUSER = "is_superuser";
-		
+		public static final String NAME = "name";
+		public static final String DBMS = "dbms";
+		public static final String IP = "ip";
+		public static final String PORT = "port";
+		public static final String DATABASE = "database";
+		public static final String USER = "user";
+		public static final String PASS = "pass";
+		public static final String IS_SUPERUSER = "is_superuser";		
+		public static final String FOLDERNAME = "folderName"; 
+
 		public ConnectionInfo()
 		{
 		}
 
-		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "";
+		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "", folderName = "";
 		public boolean is_superuser = false;
 
 		public String getConnectString()

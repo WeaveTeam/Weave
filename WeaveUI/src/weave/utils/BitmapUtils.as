@@ -95,8 +95,9 @@ package weave.utils
 			var h:int = Math.round(source.height * scale);
 			
 			// upscale source width,height to the target w,h times a power of 2
-			while (w < source.width || h < source.height)
-				w *= 2, h *= 2;
+			if (w > 0 && h > 0)
+				while (w < source.width || h < source.height)
+					w *= 2, h *= 2;
 			var result:BitmapData = new BitmapData(w, h);
 			tempMatrix.identity();
 			tempMatrix.scale(w/source.width, h/source.height);
@@ -157,29 +158,28 @@ package weave.utils
 			return encoder.drain();
 		}
 		
-		// note: use ImageSnapshot.captureImage().data instead of these functions
-		
 //		/**
 //		 * This generates a JPEG screenshot of a component.
 //		 * @param component The component from which to get a screenshot.
 //		 * @param quality A quality value between 0 and 100.
 //		 * @return A JPEG version of the screenshot, stored in a ByteArray.
-//		 * @see JPEGEncoder
+//		 * @see mx.graphics.codec.JPEGEncoder
 //		 */
 //		public static function getJPEGFromComponent(component:UIComponent, quality:int = 100):ByteArray
 //		{		
 //			var bitmap:BitmapData = getBitmapDataFromComponent(component);
 //			return new JPEGEncoder(quality).encode(bitmap);
 //		}
-//		/**
-//		 * This generates a PNG screenshot of a component.
-//		 * @param component The component from which to get a screenshot.
-//		 * @return A PNG version of the screenshot, stored in a ByteArray.
-//		 */
-//		public static function getPNGFromComponent(component:UIComponent):ByteArray
-//		{		
-//			var bitmap:BitmapData = getBitmapDataFromComponent(component);
-//			return new PNGEncoder().encode(bitmap);
-//		}
+		
+		/**
+		 * This generates a PNG screenshot of a component.
+		 * @param component The component from which to get a screenshot.
+		 * @return A PNG version of the screenshot, stored in a ByteArray.
+		 */
+		public static function getPNGFromComponent(component:UIComponent):ByteArray
+		{		
+			var bitmap:BitmapData = getBitmapDataFromComponent(component);
+			return new PNGEncoder().encode(bitmap);
+		}
 	}
 }

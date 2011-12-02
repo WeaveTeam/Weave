@@ -24,18 +24,16 @@
 		 width="100%"
 		 creationComplete="getSchemas()"
 		 xmlns:ui="weave.ui.*">
-	<mx:HBox>
-		<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_SQL_SCHEMA_LABEL}" textAlign="left"/>
-		<ui:CustomComboBox id="schemaInput" toolTip="{StringDefinition.DEFAULT_SQL_SCHEMA_DROPDOWNBOX_TOOLTIP}" text="{activeSchema}" prompt="Select a schema..." dataProvider="{schemas}" change="activeSchema = schemaInput.text;"/>
-		<mx:Button label="Refresh" click="getSchemas()" toolTip="{StringDefinition.DEFAULT_SCHEMAS_REFRESH_BUTTON_TOOLTIP}"/>
-	</mx:HBox>
-	<mx:HBox id="tableControls">
-		<mx:Label width="{indent}" id="tableLabel" text="{StringDefinition.DEFAULT_SQL_TABLE_LABEL}" textAlign="left"/>
-		<ui:CustomComboBox id="_tableCombo" editable="true" text="{activeTable}" dataProvider="{tables}" prompt="Select a SQL table..." change="activeTable = _tableCombo.text;" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DROPDOWNBOX_TOOLTIP}"/>
-		<ui:TextInputWithPrompt id="_tableInput" editable="true" text="{activeTable}" prompt="Enter a SQL table name" change="activeTable = _tableInput.text;"/>
-		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}" width="{tableOverwriteCheckVisible ? NaN : 0}" toolTip="{StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP}"/>
-		<mx:Button id="tablesRefreshButton" label="Refresh" click="getTables()" toolTip="{StringDefinition.DEFAULT_TABLES_REFRESH_BUTTON_TOOLTIP}" visible="{_showTableCombo}" width="{_showTableCombo ? NaN : 0}"/>
-	</mx:HBox>
+	<ui:Indent indent="{indent}" label="{Strings.sql_schema}">
+		<ui:CustomComboBox id="schemaInput" enabled="{schemaInput.dataProvider.length > 0}" prompt="Select a schema..." toolTip="{Strings.tip_sql_schema_dropdown}" text="{activeSchema}" dataProvider="{schemas}" change="activeSchema = schemaInput.text;"/>
+		<mx:Button id="schemasRefreshButton" label="Refresh" click="getSchemas()" toolTip="{Strings.tip_refresh_schemas}"/>
+	</ui:Indent>
+	<ui:Indent id="tableControls" indent="{indent}" label="{Strings.sql_table}">
+		<ui:CustomComboBox id="_tableCombo" enabled="{_tableCombo.dataProvider.length > 0}" prompt="Select a table..." text="{activeTable}" dataProvider="{tables}" change="activeTable = _tableCombo.text;" toolTip="{Strings.tip_sql_table_dropdown}"/>
+		<mx:Button id="tablesRefreshButton" label="Refresh" enabled="{schemaInput.selectedIndex >= 0 &amp;&amp; !refreshingTables}" click="getTables()" toolTip="{Strings.tip_refresh_tables}"/>
+		<ui:TextInputWithPrompt id="_tableInput" editable="true" text="{activeTable}" prompt="Enter a table name" change="activeTable = _tableInput.text;"/>
+		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}" width="{tableOverwriteCheckVisible ? NaN : 0}" toolTip="{Strings.tip_overwrite_sql_table}"/>
+	</ui:Indent>
 	<mx:Metadata>
 		[Exclude(name="_tableCombo", kind="property")]
 		[Exclude(name="_tableInput", kind="property")]
@@ -43,40 +41,41 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
 			import mx.events.CollectionEvent;
 			import mx.events.ListEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.services.*;
 			import weave.utils.ByteArrayUtils;
 			
-			[Bindable]
-			public var indent:int = 145;
-			
-			[Bindable]
-			public var tableOverwriteCheckVisible:Boolean = true;
-
 			// values returned by the server that depend on the active selected values
 			[Bindable] public var schemas:Array = [];
 			[Bindable] public var tables:Array = [];
 			[Bindable] public var columns:Array = [];
+			
+			[Bindable] public var indent:int = 128;
+			[Bindable] public var tableOverwriteCheckVisible:Boolean = true;
+			[Bindable] public var showTableCombo:Boolean = true;
+
+			private var _activeSchema:String = ""; // has corresponding public setter/getter
+			private var _activeTable:String = ""; // has corresponding public setter/getter
+			[Bindable] private var refreshingTables:Boolean = false;
 
 			override protected function initializationComplete():void
 			{
 				super.initializationComplete();
 				
-				if (_showTableCombo)
+				if (showTableCombo)
+				{
 					tableControls.removeChild(_tableInput);
+				}
 				else
+				{
 					tableControls.removeChild(_tableCombo);
-			}
-			
-			[Bindable]
-			private var _showTableCombo:Boolean = true;
-			[Inspectable] public function set showTableCombo(value:Boolean):void
-			{
-				_showTableCombo = value;
+					tableControls.removeChild(tablesRefreshButton);
+				}
 			}
 
 			public function getSchemas():void
@@ -87,16 +86,17 @@
 				AdminInterface.instance.service.getSchemas(
 					AdminInterface.instance.activeConnectionName,
 					AdminInterface.instance.activePassword
-				).addAsyncResponder(handleGetSchemas);
+				).addAsyncResponder(handler, handler);
 				
-				function handleGetSchemas(event:ResultEvent, token:Object = null):void
+				schemasRefreshButton.enabled = false;
+				function handler(event:Event, token:Object = null):void
 				{
-					schemas = event.result as Array;
+					if (event is ResultEvent)
+						schemas = (event as ResultEvent).result as Array;
+					schemasRefreshButton.enabled = true;
 				}
 			}
 			
-			
-			private var _activeSchema:String = "";
 			[Bindable] public function get activeSchema():String
 			{
 				return _activeSchema;
@@ -112,25 +112,30 @@
 			
 			public function getTables():void
 			{
-				if (!_showTableCombo)
+				if (!showTableCombo)
 					return;
 				activeTable = '';
 				// clear current list, then request new list
 				tables = [];
 				if (activeSchema != '')
+				{
 					AdminInterface.instance.service.getTables(
 						AdminInterface.instance.activeConnectionName,
 						AdminInterface.instance.activePassword,
 						activeSchema
-					).addAsyncResponder(handleGetTables);
-				
-				function handleGetTables(event:ResultEvent, token:Object = null):void
-				{
-					tables = event.result as Array;
+					).addAsyncResponder(handler, handler);
+					
+					refreshingTables = true;
+					function handler(event:Event, token:Object = null):void
+					{
+						if (event is ResultEvent)
+							tables = (event as ResultEvent).result as Array;
+						refreshingTables = false;
+					}
 				}
+				
 			}
 			
-			private var _activeTable:String = "";
 			[Bindable] public function get activeTable():String
 			{
 				return _activeTable;

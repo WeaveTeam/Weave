@@ -25,6 +25,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.reportError;
 	import weave.core.ClassUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableDynamicObject;
@@ -50,8 +51,7 @@ package weave.data.AttributeColumns
 				var baseQName:String = getQualifiedClassName(IAttributeColumn);
 				if (!ClassUtils.classIs(columnTypeQName, baseQName))
 				{
-					var error:Error = new Error("DynamicColumn(): columnTypeRestriction does not implement IAttributeColumn: " + columnTypeQName);
-					WeaveAPI.ErrorManager.reportError(error);
+					reportError("DynamicColumn(): columnTypeRestriction does not implement IAttributeColumn: " + columnTypeQName);
 					columnTypeRestriction = IAttributeColumn;
 				}
 			}

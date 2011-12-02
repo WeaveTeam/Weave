@@ -154,10 +154,11 @@ package weave.utils
 					var val:Object = getValueFromKey(data, cubekey, dataType);
 					return val;
 				}
-			}			
+			}
 			return cast(NaN, dataType);
 		}
 		
+		private static var _reverseKeyLookupTriggerCounter:Dictionary = new Dictionary(true);
 		private static var _reverseKeyLookupCache:Dictionary = new Dictionary(true);
 		
 		/**
@@ -169,8 +170,10 @@ package weave.utils
 		public static function getAssociatedKeys(column:IAttributeColumn, keyValue:IQualifiedKey):Array
 		{
 			var lookup:Dictionary = _reverseKeyLookupCache[column] as Dictionary;
-			if (lookup == null || column.callbacksWereTriggered) // if cache is invalid, validate it now
+			if (lookup == null || column.triggerCounter != _reverseKeyLookupTriggerCounter[column]) // if cache is invalid, validate it now
 			{
+				_reverseKeyLookupTriggerCounter[column] = column.triggerCounter;
+				
 				// make sure when the column changes, the cache gets invalidated.
 				if (_reverseKeyLookupCache[column] === undefined)
 					column.addImmediateCallback(null, clearReverseLookupCache, [column]);

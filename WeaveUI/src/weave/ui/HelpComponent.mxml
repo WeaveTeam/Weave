@@ -27,10 +27,9 @@
 <mx:Image
 	xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	source="@Embed(source='/weave/resources/images/menu_help.png')"
-	width="12"
-	height="12"
-	buttonMode="{showPopup}"
+	source="@Embed(source='/weave/resources/images/info.png')"
+	horizontalAlign="center" verticalAlign="middle"
+	buttonMode="{showPopup}" scaleContent="true"
 	mouseDown="if (showPopup) toggleHelpPanel();"
 	rollOver="mouseOver = true; ToolTipManager.showDelay = 0;"
 	rollOut="mouseOver = false; ToolTipManager.showDelay = _tipDelay;"
@@ -52,7 +51,7 @@
 			
 			[Bindable][Inspectable]
 			public var showPopup:Boolean = true;
-			private var _helpText:Object = new Object();
+			private var _helpText:Object = '';
 			[Inspectable]
 			public function set helpText(value:*):void
 			{
@@ -103,27 +102,27 @@
 					return;
 				}
 				_helpWindow = PopUpManager.createPopUp(this, TitleWindow) as TitleWindow;
-				
 				_helpWindow.title = "Help";
+				_helpWindow.width = 400;
 				
 				var component:UIComponent = _helpText as UIComponent;
 				if (_helpText is String)
 				{
-					component = new TextArea();
-					(component as TextArea).text = _helpText as String;
+					component = new AutoResizingTextArea();
+					(component as AutoResizingTextArea).text = _helpText as String;
 				}
-				if (component)
-				{
-					component.percentWidth = 100;
-					component.percentHeight = 100;
-				}
-				if (component is TextArea)
-					(component as TextArea).editable = false;
 				
 				_helpWindow.addChild(component);
+				component.percentWidth = 100;
+				component.percentHeight = 100;
+				
+				if (component is AutoResizingTextArea)
+				{
+					(component as AutoResizingTextArea).editable = false;
+					component.height = NaN;
+				}
+				
 				_helpWindow.showCloseButton = true;
-				_helpWindow.height = 400;
-				_helpWindow.width = 400;
 				_helpWindow.setStyle("borderAlpha", 0.7);
 				
 				_helpWindow.addEventListener(CloseEvent.CLOSE, function(..._):void { PopUpManager.removePopUp(_helpWindow); });

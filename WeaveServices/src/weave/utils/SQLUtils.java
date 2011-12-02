@@ -177,6 +177,18 @@ public class SQLUtils
 				stmt = conn.prepareStatement("SELECT 0;");
 			stmt.execute(); // this will throw an exception if the connection is invalid
 		}
+		catch (RuntimeException e) // This is important for catching unexpected errors.
+		{
+			/*
+				java.lang.NullPointerException
+				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2484)
+				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2460)
+				at com.mysql.jdbc.PreparedStatement.execute(PreparedStatement.java:1298)
+				at weave.utils.SQLUtils.testConnection(SQLUtils.java:173)
+				[...]
+			 */
+			throw new SQLException("Connection is invalid", e);
+		}
 		finally
 		{
 			cleanup(stmt);
@@ -200,7 +212,6 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-//			e.printStackTrace();
 			SQLUtils.cleanup(conn);
 		}
 		
@@ -868,8 +879,6 @@ public class SQLUtils
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
 				columns.add(rs.getString(4)); // column_name
-			
-			Collections.sort(columns, String.CASE_INSENSITIVE_ORDER);
 		}
 		finally
 		{
@@ -1420,9 +1429,13 @@ public class SQLUtils
 			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(ORACLE))
 				return true;
 		}
-		catch (SQLException e)
+		catch (SQLException e) // This is expected to be thrown if the connection is invalid.
 		{
 			e.printStackTrace();
+		}
+		catch (RuntimeException e) // This is important for catching unexpected errors.
+		{
+			return false;
 		}
 
 		return false;
@@ -1718,11 +1731,14 @@ public class SQLUtils
 		}		
 	}
 
-	public static String quoteString(Connection conn, String symbol)
+	/**
+	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 */
+	public static String quoteString(Connection conn, String string)
 	{
 		try 
 		{
-			return quoteString(conn.getMetaData().getDatabaseProductName(), symbol);
+			return quoteString(conn.getMetaData().getDatabaseProductName(), string);
 		} 
 		catch (SQLException e) 
 		{
@@ -1731,15 +1747,15 @@ public class SQLUtils
 		}
 	}
 	
-	public static String quoteString(String dbms, String symbol)
+	/**
+	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 */
+	public static String quoteString(String dbms, String string)
 	{
-		if (MYSQL.equalsIgnoreCase(dbms))
-			return "`" + symbol + "`";
-		if (POSTGRESQL.equalsIgnoreCase(dbms))
-			return "\"" + symbol + "\"";
-		if (SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
-			return "'" + symbol + "'";
-		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
+		String quote = "'";
+		
+		// make sure to escape matching quotes in the actual string
+		return quote + string.replace("\\","\\\\").replace(quote, "\\" + quote) + quote;
 	}
 	
 	/**

@@ -74,7 +74,7 @@
 			}
 			
 			[Bindable] private var viewStack:WizardViewStack = null;
-			[Bindable] private var viewStackNumChildren:int = 0;
+			[Bindable] private var viewStackNumChildren:int = 0; // this is used because numChildren is not bindable
 
 			/**
 			 * This function must be called to initialize the WizardViewStack used by the WizardPanel.

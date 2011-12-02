@@ -70,11 +70,6 @@ package weave.api.ui
 		//function get selectionFilter():IDynamicKeyFilter;
 
 
-		/**
-		 * This will cause a given plot layer re-render itself the next frame
-		 */
-		function invalidateGraphics():void
-
 		//-------------------------------------
 		
 		/**

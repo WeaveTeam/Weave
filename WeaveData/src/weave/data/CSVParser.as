@@ -19,6 +19,8 @@
 
 package weave.data
 {
+	import mx.utils.StringUtil;
+	
 	import weave.api.data.ICSVParser;
 
 	/**
@@ -92,7 +94,9 @@ package weave.data
 				&& str.indexOf(quote) < 0
 				&& str.indexOf(delimiter) < 0
 				&& str.indexOf(LF) < 0
-				&& str.indexOf(CR) < 0 )
+				&& str.indexOf(CR) < 0
+				&& !StringUtil.isWhitespace(str.charAt(0))
+				&& !StringUtil.isWhitespace(str.charAt(str.length - 1)) )
 			{
 				return str;
 			}
@@ -102,7 +106,7 @@ package weave.data
 			{
 				var currentChar:String = str.charAt(i);
 				if (currentChar == quote)
-					token += quote+quote;
+					token += quote + quote;
 				else
 					token += currentChar; 
 			}

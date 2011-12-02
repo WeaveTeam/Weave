@@ -25,14 +25,12 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
@@ -41,6 +39,7 @@ package weave.visualization.plotters
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -94,8 +93,7 @@ package weave.visualization.plotters
 			registerSpatialProperty(_binnedData);
 			setKeySource(_filteredData);
 			
-			registerLinkableChild(this, Weave.properties.axisFontSize);
-			registerLinkableChild(this, Weave.properties.axisFontColor);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
 		/**
@@ -176,7 +174,7 @@ package weave.visualization.plotters
 				
 				_bitmapText.text = binKey.localName;
 				
-				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				
 				_bitmapText.angle = screenBounds.getYDirection() * (midRadians * 180 / Math.PI);
 				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
@@ -192,8 +190,7 @@ package weave.visualization.plotters
 					// first get values between -90 and 90, then multiply by the ratio
 					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
-				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
+				LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
 				_bitmapText.x = _tempPoint.x;
 				_bitmapText.y = _tempPoint.y;
 				_bitmapText.draw(destination);

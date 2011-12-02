@@ -173,7 +173,7 @@ package weave.primitives
 		public function insert(key:Array, obj:Object):KDNode
 		{
 			if (key.length != dimensionality)
-				throw "KDTree.insert key parameter must have same dimensionality as tree";
+				throw new Error("KDTree.insert key parameter must have same dimensionality as tree");
 
 			if (autoBalance)
 			{
@@ -279,7 +279,7 @@ package weave.primitives
 		{
 			var queryResult:Array = new Array();
 			if (minKey.length != dimensionality || maxKey.length != dimensionality)
-				throw "KDTree.queryRange parameters must have same dimensionality as tree";
+				throw new Error("KDTree.queryRange parameters must have same dimensionality as tree");
 			
 			// if tree needs to be balanced before querying, balance it now
 			if (needsBalancing)

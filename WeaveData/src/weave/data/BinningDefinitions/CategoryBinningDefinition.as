@@ -35,7 +35,7 @@ package weave.data.BinningDefinitions
 	 * 
 	 * @author adufilie
 	 */
-	public class CategoryBinningDefinition implements IBinningDefinition
+	public class CategoryBinningDefinition extends AbstractBinningDefinition
 	{
 		public function CategoryBinningDefinition()
 		{
@@ -55,7 +55,7 @@ package weave.data.BinningDefinitions
 		/**
 		 * derive an explicit definition.
 		 */
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
 		{
 			// clear any existing bin classifiers
 			output.removeAllObjects();
@@ -79,7 +79,11 @@ package weave.data.BinningDefinitions
 			var n:int = strArray.length;
 			for (i = 0; i < n; i++)
 			{
-				str = strArray[i] as String;
+				//first get name from overrideBinNames
+				str = getNameFromOverrideString(i);
+				//if it is empty string set it from generateBinLabel
+				if(!str)
+					str = strArray[i] as String;
 				var svc:SingleValueClassifier = output.requestObject(str, SingleValueClassifier, false);
 				svc.value = str;
 			}

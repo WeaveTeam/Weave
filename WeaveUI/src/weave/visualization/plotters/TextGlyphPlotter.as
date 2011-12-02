@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 	import weave.utils.ObjectPool;
 	import weave.utils.ProbeTextUtils;
 	
@@ -71,14 +72,25 @@ package weave.visualization.plotters
 		public const sortColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const font:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
-		public const size:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(WeaveProperties.DEFAULT_FONT_SIZE));
+		
+		public function setDefaultTextFormat(ltf:LinkableTextFormat):void
+		{
+			font.defaultValue.value = ltf.font.value;
+			size.defaultValue.value = ltf.size.value;
+			color.defaultValue.value = ltf.color.value;
+			bold.defaultValue.value = ltf.bold.value;
+			italic.defaultValue.value = ltf.italic.value;
+			underline.defaultValue.value = ltf.underline.value;
+		}
+		public const font:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(LinkableTextFormat.DEFAULT_FONT));
+		public const size:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(LinkableTextFormat.DEFAULT_SIZE));
 		public const color:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0x000000));
 		public const bold:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
 		public const italic:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
 		public const underline:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(false));
+		
 		public const hAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.HORIZONTAL_ALIGN_CENTER));
-		public const vAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.VERTICAL_ALIGN_CENTER));
+		public const vAlign:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const angle:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);

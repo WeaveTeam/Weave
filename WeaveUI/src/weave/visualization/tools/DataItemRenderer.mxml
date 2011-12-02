@@ -2,17 +2,15 @@
 	<mx:Image source="{new Bitmap(null,'auto',true)}" id="img"/>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.data.IQualifiedKey;
 			import weave.data.AttributeColumns.ImageColumn;
 			
 			public var imageColumn:ImageColumn = null;
-			
-			
-			override public function set data(value:Object):void{
-				
-				super.data = value;
-				if( imageColumn != null ){
-					(img.source as Bitmap).bitmapData  = (imageColumn.getValueFromKey( value.key, null ));
-				}
+			override public function set data(item:Object):void
+			{
+				super.data = item;
+				if (imageColumn)
+					(img.source as Bitmap).bitmapData = imageColumn.getValueFromKey(item as IQualifiedKey) as BitmapData;
 			}
 		]]>
 	</mx:Script>

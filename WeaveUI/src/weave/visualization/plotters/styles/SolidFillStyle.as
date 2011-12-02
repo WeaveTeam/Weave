@@ -53,24 +53,27 @@ package weave.visualization.plotters.styles
 		 * This function sets the fill on a Graphics object using the saved fill properties.
 		 * @param recordKey The record key to initialize the fill style for.
 		 * @param graphics The Graphics object to initialize.
+		 * @return A value of true if this function began a fill, or false if it did not.
 		 */
-		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):void
+		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):Boolean
 		{
 			var fillEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			var fillColor:Number = color.getValueFromKey(recordKey, Number);
 			if (!fillEnabled)
 			{
 				target.endFill();
+				return false;
 			}
 			else if (!isNaN(fillColor)) // if color is defined, use basic Graphics.beginFill() function
 			{
 				var fillAlpha:Number = alpha.getValueFromKey(recordKey, Number);
 				target.beginFill(fillColor, fillAlpha);
-				//trace("beginFill(",fillColor, fillAlpha,");");
+				return true;
 			}
 			else
 			{
 				target.endFill();
+				return false;
 			}
 		}
 	}

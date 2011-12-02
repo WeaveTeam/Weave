@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---	
+@author adufilie
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:ui ="weave.ui.*"
+    xmlns:sessioning="weave.core.*"
+	label="Console"
+	fontSize="11" fontFamily="_typewriter"
+	width="100%" height="100%"
+	paddingLeft="{padding}" paddingRight="{padding}" paddingBottom="{padding}" paddingTop="{padding}" verticalGap="{padding}"
+	minHeight="0"
+	verticalScrollPolicy="off">
+	<mx:TextArea id="log" click="handleConsoleLogClick()" mouseDown="handleConsoleLogClick()" width="100%" height="100%" minHeight="0" editable="false" borderStyle="{innerBorderStyle}"/>
+	<mx:TextInput id="input" width="100%" enter="runCommand()" borderStyle="{innerBorderStyle}"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.containers.VBox;
+			import mx.core.Application;
+			import mx.core.mx_internal;
+			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.compiler.Compiler;
+			import weave.compiler.GlobalLib;
+			import weave.compiler.ICompiledObject;
+			import weave.core.ExternalSessionStateInterface;
+			import weave.core.StageUtils;
+			import weave.core.weave_internal;
+			use namespace weave_internal;
+			use namespace mx_internal;
+			
+			[Bindable] public var padding:int = 5;
+			[Bindable] public var innerBorderStyle:String = 'inset';
+			
+			/**
+			 * This is the context in which expressions will be evaluated (The "this" argument passed to Function.apply).
+			 */
+			public function set context(value:Object):void
+			{
+				_context = value;
+			}
+			private var _context:Object = null;
+
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager);
+				input.getTextField().alwaysShowSelection = true;
+		    }
+			
+			private const compiler:Compiler = new Compiler();
+			private function getObject(target:Object):ILinkableObject
+			{
+				if (target is String)
+					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
+				if (target is Array)
+					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
+				return ILinkableObject(target);
+			}
+			private function consoleWatch(target:Object, debugString:String):void
+			{
+				var linkableTarget:ILinkableObject = getObject(target);
+				getCallbackCollection(linkableTarget).addImmediateCallback(null, consoleTraceEval, [linkableTarget, debugString]);
+			}
+			private function consoleUnwatch(target:Object):void
+			{
+				var linkableTarget:ILinkableObject = getObject(target);
+				getCallbackCollection(linkableTarget).removeCallback(consoleTraceEval);
+			}
+			private function consoleTraceEval(thisArg:Object, script:String):void
+			{
+				try
+				{
+					var script:String = '`' + script.split('`').join('\\`') + '`';
+					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
+					consoleTrace(result);
+				}
+				catch (e:Error)
+				{
+					consoleTrace(script, e);
+				}
+			}
+			private function consoleTrace(...args):void
+			{
+				log.text += '\r\r' + args.join('\r');
+				log.validateNow();
+				log.verticalScrollPosition = log.maxVerticalScrollPosition;
+			}
+			private function consoleClear(now:Boolean = false):void
+			{
+				if (now)
+					log.text = '';
+				else
+					StageUtils.callLater(this, consoleClear, [true], false);
+			}
+			
+			private const symbolTable:Object = {
+				'javaScript': function(...args):*
+				{
+					var prev:Boolean = ExternalInterface.marshallExceptions;
+					try
+					{
+						ExternalInterface.marshallExceptions = true;
+						ExternalInterface.call.apply(this, args);
+					}
+					finally
+					{
+						ExternalInterface.marshallExceptions = prev;
+					}
+				},
+				'application': Application.application,
+				'print': ObjectUtil.toString as Function,
+				'getObject': getObject,
+				'clear': consoleClear,
+				'watch': consoleWatch,
+				'unwatch': consoleUnwatch,
+				'trace': consoleTrace
+			};
+			private function runCommand():void
+			{
+				if (!input.text)
+					return;
+				
+				var result:*;
+				var decompiled:String;
+				try
+				{
+					var obj:ICompiledObject = compiler.compileToObject(input.text);
+					//decompiled = compiler.decompileObject(obj);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
+					result = func.apply(_context);
+					try
+					{
+						if (typeof result == 'object' && !(result is DisplayObject))
+						{
+							result = ObjectUtil.toString(result);
+							var max:int = 1024;
+							var text:String = result;
+							if (text.length > max)
+								text = text.substr(0, max) + '...';
+							result = StringUtil.trim(text);
+						}
+						else
+							result = String(result);
+					}
+					catch (e:Error)
+					{
+						result = String(result)
+					}
+				}
+				catch (e:Error)
+				{
+					result = e;
+				}
+				
+				log.text += StringUtil.substitute('\r\r{0}\r{1}', input.text, result);
+				input.setSelection(0, int.MAX_VALUE);
+				log.validateNow();
+				log.verticalScrollPosition = log.maxVerticalScrollPosition;
+			}
+			private function handleConsoleLogClick():void
+			{
+				if (input.selectionBeginIndex == 0 && (input.selectionEndIndex == input.text.length || input.selectionEndIndex == 0))
+				{
+					var clickedIndex:int = log.selectionEndIndex;
+					if (clickedIndex == log.selectionBeginIndex && clickedIndex < log.text.length)
+					{
+						var beginIndex:int = log.text.lastIndexOf('\r', clickedIndex) + 1; // find the last \r BEFORE the clicked position
+						var endIndex:int = log.text.indexOf('\r', clickedIndex); // find the first \r AFTER the clicked position
+						log.selectionBeginIndex = beginIndex;
+						log.selectionEndIndex = endIndex < 0 ? log.text.length : endIndex;
+						log.validateNow();
+					}
+					input.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join('; ');
+					input.setSelection(0, input.text.length);
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

@@ -74,9 +74,9 @@ package weave.api.core
 		function removeCallback(callback:Function):void;
 		
 		/**
-		 * This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.
-		 * It is necessary in some situations to check this flag to determine if cached data should be used.
+		 * This counter gets incremented at the time that callbacks are triggered and before they are actually called.
+		 * It is necessary in some situations to check this counter to determine if cached data should be used.
 		 */
-		function get callbacksWereTriggered():Boolean;
+		function get triggerCounter():uint;
 	}
 }

@@ -22,9 +22,9 @@
 <DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*" 
 		borderColor="#C5C3A8"
-		title="Error log"
+		title="Error Log"
 		>
-	<mx:TextArea id="textArea" width="100%" height="100%" editable="false" minHeight="0"/>
+	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>
 <!--
 	<mx:List id="list" variableRowHeight="true"  width="100%" height="100%">
 		<mx:itemRenderer>
@@ -62,6 +62,7 @@
 			{
 				super.childrenCreated();
 				
+				pinnable.value = false;
 				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, handleError, true);
 			}
 			
@@ -71,46 +72,62 @@
 				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
 					if (errorIndex > 0)
-						textArea.text += '\n\n';
+						console.log.text += '\r\r';
 					
 					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
 					if (error is Fault)
 					{
 						var f:Fault = error as Fault;
-						var errorString:String = f.faultCode;
-						if (f.faultString)
-							errorString += ': ' + f.faultString;
-						if (f.faultDetail)
-							errorString += ': ' + f.faultDetail;
-						if (errorString == 'Error')
-							errorString = "Communication error";
+						var errorString:String = '';
+						if (f.faultDetail && [IOErrorEvent.IO_ERROR, SecurityErrorEvent.SECURITY_ERROR].indexOf(f.faultCode) >= 0)
+						{
+							errorString = f.faultDetail;
+						}
+						else
+						{
+							errorString = f.faultCode;
+							if (f.faultString)
+								errorString += ': ' + f.faultString;
+							if (f.faultDetail)
+								errorString += ': ' + f.faultDetail;
+							if (errorString == 'Error')
+								errorString = "Communication error";
+						}
 						
-						textArea.text += errorString;
+						console.log.text += errorString;
 					}
 					else if (Capabilities.isDebugger)
 					{
 						// get partial stack trace
-						textArea.text += error.message + '\nStack trace: ' + DebugUtils.getCompactStackTrace(error).join('; ');
+						console.log.text += error.message + '\rStack trace: ' + DebugUtils.getCompactStackTrace(error).join('; ');
 					}
 					else
 					{
-						textArea.text += error.toString();
+						console.log.text += error.toString();
 					}
 				}
-				textArea.validateProperties();
-				textArea.verticalScrollPosition = textArea.maxVerticalScrollPosition;
+				console.log.validateProperties();
+				console.log.verticalScrollPosition = console.log.maxVerticalScrollPosition;
 			}
 			
-			private static const instance:ErrorLogPanel = new ErrorLogPanel();
+			private static var _instance:ErrorLogPanel;
+			public static function getInstance():ErrorLogPanel
+			{
+				if (!_instance)
+					_instance = new ErrorLogPanel();
+				return _instance;
+			}
 			public static function openErrorLog():void
 			{
-				instance.panelX.value = "0%";
-				instance.panelY.value = "80%";
-				instance.panelWidth.value = "100%";
-				instance.panelHeight.value = "20%";
-
+				var instance:ErrorLogPanel = getInstance();
 				if (!instance.parent)
+				{
+					instance.panelX.value = "0%";
+					instance.panelY.value = "80%";
+					instance.panelWidth.value = "100%";
+					instance.panelHeight.value = "20%";
 					PopUpManager.addPopUp(instance, Application.application as Application);
+				}
 				instance.restorePanel();
 			}
 		]]>

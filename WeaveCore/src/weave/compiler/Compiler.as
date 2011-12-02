@@ -21,7 +21,9 @@ package weave.compiler
 {
 	import flash.system.ApplicationDomain;
 	import flash.utils.Dictionary;
+	import flash.utils.Proxy;
 	import flash.utils.describeType;
+	import flash.utils.flash_proxy;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
@@ -48,7 +50,7 @@ package weave.compiler
 		
 		/**
 		 * Set this to true to enable trace statements for debugging.
-		 */		
+		 */
 		public var debug:Boolean = false;
 		
 		/**
@@ -241,7 +243,7 @@ package weave.compiler
 
 			/** operators **/
 			// first, make sure all special characters are defined as operators whether or not they have functions associated with them
-			var specialChars:String = "~!#%^&*()-+=[{]}\\;:'\",<.>/?";
+			var specialChars:String = "`~!#%^&*()-+=[{]}\\|;:'\",<.>/?";
 			for (var i:int = 0; i < specialChars.length; i++)
 				operators[specialChars.charAt(i)] = true;
 			// now define the functions
@@ -250,6 +252,13 @@ package weave.compiler
 				for (var i:int = 0; i < chain.length; i++)
 					object = object[chain[i]];
 				return object;
+			};
+			operators[".."] = function(object:*, propertyName:*):* {
+				if (object is XML)
+					return (object as XML).descendants(propertyName);
+				if (object is XMLList)
+					return (object as XMLList).descendants(propertyName);
+				return object.flash_proxy::getDescendants(propertyName);
 			};
 			// array creation
 			operators["[]"] = function(...args):* { return args; };
@@ -749,7 +758,7 @@ package weave.compiler
 					compiledObjects.push(compileTokens(tokens, false));
 				}
 			}
-			return null; // unreachable
+			throw new Error("unreachable");
 		}
 		
 		/**
@@ -771,16 +780,16 @@ package weave.compiler
 			{
 				// find first closing bracket or '.'
 				for (close = 0; close < tokens.length; close++)
-					if ('.])}'.indexOf(tokens[close]) >= 0)
+					if ('..])}'.indexOf(tokens[close]) >= 0)
 						break;
 				if (close == tokens.length || close == 0)
-					break; // possible error
+					break; // possible error, or no operator found
 				// work backwards to the preceeding opening bracket or stop if '.'
 				for (open = close; open >= 0; open--)
-					if ('.[({'.indexOf(tokens[open]) >= 0)
+					if ('..[({'.indexOf(tokens[open]) >= 0)
 						break;
 				if (open < 0 || open + 1 == tokens.length)
-					break; // possible error
+					break; // possible error, or no operator found
 				
 				// unless it's an operator, compile the token to the left
 				token = open > 0 ? tokens[open - 1] : null;
@@ -794,8 +803,8 @@ package weave.compiler
 						compiledToken = compileVariable(token as String);
 				}
 
-				// handle access operator
-				if (tokens[open] == '.')
+				// handle access and descendants operators
+				if (tokens[open] == '.' || tokens[open] == '..')
 				{
 					var propertyToken:String = tokens[open + 1] as String;
 					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
@@ -803,7 +812,7 @@ package weave.compiler
 					
 					// the token on the right is a variable name, but we will store it as a String because it's a property lookup
 					compiledParams = [compiledToken, new CompiledConstant(encodeString(propertyToken), propertyToken)];
-					tokens.splice(open - 1, 3, compileOperator('.', compiledParams));
+					tokens.splice(open - 1, 3, compileOperator(tokens[open], compiledParams));
 					continue;
 				}
 				
@@ -864,7 +873,7 @@ package weave.compiler
 			}
 			for each (token in tokens)
 				if (token is String && '.[](){}'.indexOf(token as String) >= 0)
-					new Error("Misplaced '" + token + "'");
+					throw new Error("Misplaced '" + token + "'");
 		}
 		
 		/**

@@ -33,6 +33,7 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.reportError;
 	
 	/**
 	 * This is an all-static class that allows you to add callbacks that will be called when an event occurs on the stage.
@@ -143,7 +144,7 @@ package weave.core
 		 */
 		public static function get shouldCallLater():Boolean
 		{
-			return currentFrameElapsedTime > maxComputationTimePerFrame;
+			return getTimer() - _currentFrameStartTime > maxComputationTimePerFrame;
 		}
 		
 		/**
@@ -180,7 +181,7 @@ package weave.core
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args];
 					// don't call the function if the relevantContext was disposed of.
-					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(args[0]))
+					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
 				}
 			}
@@ -207,9 +208,9 @@ package weave.core
 					}
 					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
 					args = calls[i] as Array;
-					stackTrace = _stackTraceMap[args];
+					stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
 					// don't call the function if the relevantContext was disposed of.
-					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(args[0]))
+					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
 				}
 			}
@@ -232,7 +233,7 @@ package weave.core
 			else
 				_callLaterSingleFrameDelayArray.push(arguments);
 			
-			_stackTraceMap[arguments] = new Error().getStackTrace();
+			_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
 		}
 		
 		private static const _stackTraceMap:Dictionary = new Dictionary(true);
@@ -270,6 +271,11 @@ package weave.core
 				cc.triggerCallbacks();
 				cc.resumeCallbacks(true);
 			}
+		}
+		
+		public static function getSupportedEventTypes():Array
+		{
+			return _eventTypes.concat();
 		}
 		
 		/**
@@ -434,7 +440,7 @@ package weave.core
 			}
 			else
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("(StageUtils) Unsupported event: "+eventType));
+				reportError("(StageUtils) Unsupported event: "+eventType);
 			}
 		}
 		
@@ -468,6 +474,6 @@ package weave.core
 		 * This is a special pseudo-event supported by StageUtils.
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
-		public static const POINT_CLICK_EVENT:String = "StageUtils.POINT_CLICK_EVENT";
+		public static const POINT_CLICK_EVENT:String = "pointClick";
 	}
 }

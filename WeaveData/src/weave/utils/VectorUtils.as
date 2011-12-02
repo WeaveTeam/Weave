@@ -22,7 +22,6 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	/**
-	 * VectorUtils
 	 * This class contains static functions that manipulate Vector objects.
 	 * 
 	 * @author adufilie
@@ -31,8 +30,8 @@ package weave.utils
 	public class VectorUtils
 	{
 		// Vector.<*> causes compiler errors, so use *
+		
 		/**
-		 * copyList
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
 		 * @return A pointer to the destination Array (or Vector)
@@ -65,12 +64,12 @@ package weave.utils
 		{
 			try
 			{
-				if(vector1.length != vector2.length)
+				if (vector1.length != vector2.length)
 					return false;	
 			
 				for (var i:int = 0; i < vector1.length; i++)
 				{
-					if(vector1[i] != vector2[i])
+					if (vector1[i] !== vector2[i])
 						return false;	
 				}
 				
@@ -89,7 +88,7 @@ package weave.utils
 		 */
 		public static function copyXMLListToVector(xmlList:*, vector:*=null):*
 		{
-			if(vector == null)
+			if (vector == null)
 				vector = new Vector.<String>();
 			
 			if (xmlList == null)
@@ -137,7 +136,6 @@ package weave.utils
 			return 0;
 		}
 		/**
-		 * randomSort
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
 		 * @param the vector to randomize
 		 * @return the input vector
@@ -161,7 +159,6 @@ package weave.utils
 		}
 
 		/**
-		 * partition
 		 * See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
 		 * @param list An Array or Vector to be re-organized
 		 * @param firstIndex The index of the first element in the list to partition.
@@ -201,7 +198,6 @@ package weave.utils
 		}
 
 		/**
-		 * getMedianIndex
 		 * See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
 		 * @param list An Array or Vector to be re-organized.
 		 * @param compareFunction A function that takes two array elements a,b and returns -1 if a<b, 1 if a>b, or 0 if a==b.
@@ -234,7 +230,6 @@ package weave.utils
 		}
 
 		/**
-		 * mergeSorted
 		 * Merges two previously-sorted arrays or vectors.
 		 * @param sortedInputA The first sorted array or vector.
 		 * @param sortedInputB The second sorted array or vector.
@@ -264,7 +259,6 @@ package weave.utils
 		}
 
 		/**
-		 * flatten
 		 * This will flatten an Array of Arrays into a flat Array.
 		 * Items will be appended to the destination Array.
 		 * @param source An Array to flatten.
