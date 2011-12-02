@@ -37,10 +37,12 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.disposeObjects;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
@@ -52,6 +54,8 @@
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
 			import weave.data.CSVParser;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
 			import weave.ui.infomap.core.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
@@ -113,6 +117,7 @@
 			}
 			
 			private var _parentPanel:InfoMapPanel;
+			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			override protected function childrenCreated():void
 			{
 				
@@ -166,6 +171,8 @@
 				
 				
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
+				
+				getCallbackCollection(_subset).addGroupedCallback(this,handleSubsetChange);
 			}
 			
 			private var highlightNewDocuments:Boolean = false;
@@ -294,6 +301,7 @@
 			{
 				
 				var response:ArrayCollection = new ArrayCollection();
+				var docsArray:Array = [];
 				var docObject:SelectableInfoMapDocument;
 				for each(var doc:XML in result.result.doc)
 				{
@@ -315,16 +323,35 @@
 
 						//each document retrived is added to the docs map in the parent infomap panel
 						docObject = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);					
-						docObject.url.value = link;
+						var currentDoc:Array = []
+						
 						docObject.title.value = doc.str.(@name=="title").text().toXMLString();
+						currentDoc.push(doc.str.(@name=="title").text().toXMLString());
+						
+						docObject.url.value = link;
+						currentDoc.push(link);
+						
 						//TODO:right now limiting to 500 characters. Need to change this later to a better solution
 						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,500);
-						docObject.date.value = doc.date.text().toXMLString();
+						currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,500));
+						
 						var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
-
+						
 						docObject.imageURL.value = "http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension;					
+						currentDoc.push("http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension);
+						
+						docObject.date.value = doc.date.text().toXMLString();
+						currentDoc.push(doc.date.text().toXMLString());
+						
+						docsArray.push(currentDoc);
 						response.addItem(link);
 				}
+				
+				var csvDataString:String = parser.createCSVFromArrays(docsArray);
+				csvDataString = _parentPanel.docsInCSV.csvDataString.value + '\n' + csvDataString;
+				
+				_parentPanel.docsInCSV.csvDataString.value = csvDataString;
+				
 				handleParsedResult(response);
 			}
 			
@@ -377,6 +404,17 @@
 				
 			}
 			
+			private function handleSubsetChange():void
+			{
+//				var currentThumbnails:Array = thumbnails.getNames();
+//				for each (var link:String in currentThumbnails)
+//				{
+//					if(!_subset.containsKey(WeaveAPI.QKeyManager.getQKey("infomapDocURL",link)))
+//						thumbnails.removeObject(link);
+//				}
+				
+				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails();
+			}
 			
 			
 			private function handleLayoutChange():void

@@ -90,6 +90,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * When a query is made by each node, the documents retrieved are stored in this map.
 			 * */
 			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+			public var docsInCSV:CSVDataSource = new CSVDataSource();
 			
 			/**
 			 * @public
@@ -120,10 +121,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 	if it alreadt exists we will use the existing data source 
 				*/
 				
-				var docsDataSource:CSVDataSource = Weave.root.requestObject("docs",CSVDataSource, false);
-				docsDataSource.csvDataString.value = "title,url,summary, image url, date";
-				docsDataSource.keyColName.value = "url";
-				docsDataSource.keyType.value = "url";
+				docsInCSV = Weave.root.requestObject("docs",CSVDataSource, false);
+				docsInCSV.csvDataString.value = "title,url,summary,image url,date";
+				docsInCSV.keyColName.value = "url";
+				docsInCSV.keyType.value = "infomapDocURL";
+				
+				
 				
 				refreshTimer.start();
 				//call event for each tick of refreshTimer

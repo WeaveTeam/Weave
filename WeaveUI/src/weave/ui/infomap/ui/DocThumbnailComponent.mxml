@@ -21,9 +21,12 @@ so that it can be moved, selected, handle filters.
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -34,6 +37,7 @@ so that it can be moved, selected, handle filters.
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
+			import weave.data.KeySets.KeySet;
 			import weave.services.URLRequestUtils;
 			import weave.ui.infomap.core.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
@@ -99,13 +103,19 @@ so that it can be moved, selected, handle filters.
 			 * The document object whose imageURL is used as the source for this image.
 			 * */
 			private var _doc:SelectableInfoMapDocument;
+			private var _key:IQualifiedKey;
 			public function set doc(value:SelectableInfoMapDocument):void
 			{
 				_doc = value;
 				_doc.selected.addImmediateCallback(this,highlight);
+				_key = WeaveAPI.QKeyManager.getQKey("infomapDocURL",_doc.url.value);
 				handleImage();
 			}
 			
+			public function get doc():SelectableInfoMapDocument
+			{
+				return _doc;
+			}
 			
 			override protected function childrenCreated():void
 			{
@@ -123,7 +133,7 @@ so that it can be moved, selected, handle filters.
 				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,null,true);
 				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
 				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
-				
+				getCallbackCollection(_selection).addGroupedCallback(this, highlight);
 			}
 			
 			
@@ -231,15 +241,16 @@ so that it can be moved, selected, handle filters.
 				// we want only one rectangle
 				graphics.clear();
 				// set line style with with 0 and alpha 0
-				if(_doc.selected.value)
-					graphics.lineStyle(2,highlightedBorderColor.value,
-					1,true);
+//				if(_doc.selected.value || _selection.containsKey(_key))
+				if(_selection.containsKey(_key))
+						graphics.lineStyle(2,highlightedBorderColor.value,
+							imageAlpha.value,true);
 				else if(_mouseOver || _mouseDown) 
 					graphics.lineStyle(0,0,
 						0,true);
 				else
 					graphics.lineStyle(2,defaultBorderColor.value,
-						1,true);
+						imageAlpha.value,true);
 				// draw rectangle
 				graphics.drawRoundRect(-0.5,
 					-0.5,
@@ -314,7 +325,7 @@ so that it can be moved, selected, handle filters.
 					handleMouseUp();
 				}
 			}
-			
+			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			private function handleMouseUp(event:MouseEvent=null):void
 			{
 				//if the mouse is not down on this do nothing
@@ -335,9 +346,13 @@ so that it can be moved, selected, handle filters.
 
 				//toggling selection
 				if(_doc.selected.value)
+				{
+					_selection.removeKeys([_key]);
 					_doc.selected.value = false;
+				}
 				else
 				{
+					_selection.addKeys([_key]);
 					_doc.selected.value = true;
 				}
 				
@@ -373,7 +388,10 @@ so that it can be moved, selected, handle filters.
 			{
 				if(_doc == null)
 					return;
-				
+				if(_selection.containsKey(_key) || _selection.keys.length == 0)
+					imageAlpha.value = 1.0;
+				else
+					imageAlpha.value = 0.3;
 				//this will force a call to the updateDisplayList which will draw a border around this image
 				this.invalidateDisplayList();
 			}
