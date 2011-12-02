@@ -77,16 +77,16 @@ package weave.data.BinningDefinitions
 				if (absSDNumber == MAX_SD)
 					bin.min.value = -Infinity;
 				else
-					bin.min.value = mean - (absSDNumber + 1) * stdDev;
-				bin.max.value = mean - absSDNumber * stdDev;
+					bin.min.value = mean - absSDNumber * stdDev;
+				bin.max.value = mean - (absSDNumber - 1) * stdDev;
 			}
 			else // above mean
 			{
-				bin.min.value = mean + absSDNumber * stdDev;
+				bin.min.value = mean + (absSDNumber - 1) * stdDev;
 				if (absSDNumber == MAX_SD)
 					bin.max.value = Infinity;
 				else
-					bin.max.value = mean + (absSDNumber + 1) * stdDev;
+					bin.max.value = mean + absSDNumber * stdDev;
 			}
 			bin.minInclusive.value = true;
 			bin.maxInclusive.value = true;
