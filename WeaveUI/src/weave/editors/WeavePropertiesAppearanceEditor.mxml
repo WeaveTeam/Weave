@@ -58,6 +58,9 @@
 			<ui:TextInputWithPrompt prompt="width" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceWidth, event.target, 'text', 500);"/>
 			<ui:TextInputWithPrompt prompt="height" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceHeight, event.target, 'text', 500);"/>
 		</ui:Indent>
+		<ui:Indent label="Scale workspace resolution">
+			<ui:TextInputWithPrompt prompt="scale" width="64" creationComplete="linkBindableProperty(Weave.properties.scaleResolution, event.target, 'text', 500);"/>
+		</ui:Indent>
 		<ui:Indent label="Window grid snapping:">
 			<ui:TextInputWithPrompt prompt="pixel or percent" width="100" creationComplete="linkBindableProperty(Weave.properties.windowSnapGridSize, event.target, 'text', 500);"/>
 		</ui:Indent>
@@ -122,7 +125,7 @@
 				//toolFontControl.removeChild(toolFontControl.boldButton);
 				toolFontControl.removeChild(toolFontControl.italicButton);
 				toolFontControl.removeChild(toolFontControl.underlineButton);
-			}
+			}			
 			
 			private function handleCreationComplete():void
 			{

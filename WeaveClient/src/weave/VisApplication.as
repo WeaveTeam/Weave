@@ -68,6 +68,9 @@ package weave
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.WeavePropertiesEditor;
+	import weave.editors.managers.AddDataSourcePanel;
+	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
@@ -99,9 +102,6 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-	import weave.editors.managers.AddDataSourcePanel;
-	import weave.editors.managers.EditDataSourcePanel;
-	import weave.editors.WeavePropertiesEditor;
 	import weave.utils.DebugUtils;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
@@ -412,7 +412,9 @@ package weave
 			visDesktop.percentHeight = 100;
 			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
 			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize, null, true);
-
+			
+			Weave.properties.scaleResolution.addImmediateCallback(this, updateWorkspaceResolution);
+			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
@@ -440,6 +442,18 @@ package weave
 			
 			visDesktop.addEventListener(ChildExistenceChangedEvent.CHILD_REMOVE, function(e:Event):void { setupWindowMenu() } );
 		}
+		
+		private function updateWorkspaceResolution():void
+		{
+			if(!this.parent)
+				return;
+			
+			var scale:Number = Weave.properties.scaleResolution.value;
+						
+			if(isFinite(scale) && scale)
+				this.scaleY = this.scaleX = 1 / scale;
+		}
+		
 		private function updateWorkspaceSize(..._):void
 		{
 			if (!this.parent)

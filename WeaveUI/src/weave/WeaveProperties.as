@@ -396,6 +396,8 @@ package weave
 		
 		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
 		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);
+		
+		public const scaleResolution:LinkableNumber = new LinkableNumber(NaN);
 
 
 		//--------------------------------------------
