@@ -46,7 +46,6 @@ package weave
 	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
-	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
@@ -96,7 +95,6 @@ package weave
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
-	import weave.ui.SessionStatesDisplay;
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
@@ -700,32 +698,16 @@ package weave
 			if (Weave.properties.enableSessionMenu.value || adminService)
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar("Session", false);
-				
-				if (Weave.properties.enableSessionBookmarks.value)
-				{
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Create session state save point", saveAction));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Show saved session states", SessionStatesDisplay.openDefaultEditor, [sessionStates]));
-				}
-				
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				
-				if (Weave.properties.enableSessionEdit.value || adminService)
-				{
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
-					
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
-				}
-
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
 				if (adminService)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session state to server", saveSessionStateToServer));
-				
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				}
 			}
 			
 			if (Weave.properties.enableWindowMenu.value || adminService)
@@ -1188,7 +1170,6 @@ package weave
 			{
 				Weave.properties.enableMenuBar.value = true;
 				Weave.properties.enableSessionMenu.value = true;
-				Weave.properties.enableSessionEdit.value = true;
 				Weave.properties.enableUserPreferences.value = true;
 			}
 			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined

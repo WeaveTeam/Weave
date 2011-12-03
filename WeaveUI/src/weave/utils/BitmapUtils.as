@@ -125,7 +125,7 @@ package weave.utils
 		 */
 		public static function getBitmapDataFromComponent(component:UIComponent, desiredWidth:int = 0, desiredHeight:int = 0):BitmapData
 		{
-			var screenshot:BitmapData = new BitmapData(component.width / Math.abs(component.scaleX), component.height / Math.abs(component.scaleY), true, 0x00000000);
+			var screenshot:BitmapData = new BitmapData(component.width, component.height, true, 0x00000000);
 			screenshot.draw(component);
 			
 			if (desiredWidth > 0 && desiredHeight > 0)

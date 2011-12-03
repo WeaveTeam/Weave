@@ -74,11 +74,17 @@
 		public function set componentToScreenshot(component:UIComponent):void
 		{
 			_componentToScreenshot = component;
-			
-			_imageSource = BitmapUtils.getPNGFromComponent(component);
-			
-			// the following will crash when component is the application. 
-			//_imageSource = ImageSnapshot.captureImage(component).data;
+			try
+			{
+				// the following will crash when component is the application.
+				_imageSource = ImageSnapshot.captureImage(component).data;
+			}
+			catch (e:Error)
+			{
+				trace(e.getStackTrace());
+				trace("ImageSnapshot.captureImage() failed, falling back to BitmapUtils.getPNGFromComponent()");
+				_imageSource = BitmapUtils.getPNGFromComponent(component);
+			}
 		}
 		
 		//handle when close button of TitleWindow is clicked
