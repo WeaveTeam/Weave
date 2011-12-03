@@ -128,9 +128,22 @@
 			}
 			
 			/**
+			 * This specifies an XML string for the content of the help popup and the tooltip.
+			 */
+			public function set htmlText(value:String):void
+			{
+				setContent(value, true);
+			}
+			
+			/**
 			 * This specifies the content of the help popup and possibly the tooltip.
 			 */
 			public function set content(value:*):void
+			{
+				setContent(value, false);
+			}
+				
+			private function setContent(value:*, asXML:Boolean):void
 			{
 				if (value == null)
 					return;
@@ -139,10 +152,16 @@
 				
 				if (value is String)
 				{
-					toolTip = value as String; // show the actual text
-					
 					var textArea:AutoResizingTextArea = new AutoResizingTextArea();
-					textArea.text = value as String;
+					if (asXML)
+					{
+						textArea.htmlText = value as String;
+					}
+					else
+					{
+						textArea.text = value as String;
+						toolTip = value as String;
+					}
 					textArea.editable = false;
 					textArea.height = NaN;
 					textArea.width = 400;

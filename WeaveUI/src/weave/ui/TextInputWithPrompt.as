@@ -38,6 +38,8 @@ package weave.ui
 		public function TextInputWithPrompt()
 		{
 			super();
+			addEventListener(FocusEvent.FOCUS_IN, captureFocusIn, true);
+			addEventListener(FocusEvent.FOCUS_OUT, captureFocusOut, true);
 		}
 		
 		public function asTextInput():TextInput { return this; }
@@ -174,7 +176,7 @@ package weave.ui
 		/**
 		 * This function hides the prompt if it is shown, and selects all if autoSelect is true.
 		 */
-		override protected function focusInHandler(event:FocusEvent):void
+		protected function captureFocusIn(event:FocusEvent):void
 		{
 			_hasFocus = true;
 			hidePrompt();
@@ -184,20 +186,16 @@ package weave.ui
 				selectionBeginIndex = 0;
 				selectionEndIndex = text.length;
 			}
-			
-			super.focusInHandler(event);
 		}
 		
 		/**
 		 * This function makes the prompt reappear if the text is empty.
 		 */
-		override protected function focusOutHandler(event:FocusEvent):void
+		protected function captureFocusOut(event:FocusEvent):void
 		{
 			_hasFocus = false;
 			if (!text)
 				showPrompt();
-
-			super.focusOutHandler(event);
 		}
 		
 		/**

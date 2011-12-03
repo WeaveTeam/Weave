@@ -396,9 +396,12 @@ package weave
 		
 		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
 		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);
-		
-		public const scaleResolution:LinkableNumber = new LinkableNumber(NaN);
+		public const workspaceMultiplier:LinkableNumber = new LinkableNumber(1, verifyWorkspaceMultiplier);
 
+		private function verifyWorkspaceMultiplier(value:Number):Boolean
+		{
+			return value >= 1 && value <= 4;
+		}
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY

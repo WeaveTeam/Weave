@@ -36,6 +36,7 @@ package weave
 	import flash.ui.ContextMenuItem;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.containers.Canvas;
 	import mx.containers.HBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
@@ -411,9 +412,8 @@ package weave
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;
 			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
-			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize, null, true);
-			
-			Weave.properties.scaleResolution.addImmediateCallback(this, updateWorkspaceResolution);
+			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize);
+			Weave.properties.workspaceMultiplier.addImmediateCallback(this, updateWorkspaceSize);
 			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
@@ -439,25 +439,17 @@ package weave
 			_progressBar.minWidth = 135; // constant
 
 			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
-			
-			visDesktop.addEventListener(ChildExistenceChangedEvent.CHILD_REMOVE, function(e:Event):void { setupWindowMenu() } );
 		}
 		
 		private function updateWorkspaceResolution():void
 		{
-			if(!this.parent)
-				return;
-			
-			var scale:Number = Weave.properties.scaleResolution.value;
-						
-			if(isFinite(scale) && scale)
-				this.scaleY = this.scaleX = 1 / scale;
 		}
 		
 		private function updateWorkspaceSize(..._):void
 		{
 			if (!this.parent)
 				return;
+			
 			var w:Number = Weave.properties.workspaceWidth.value;
 			var h:Number = Weave.properties.workspaceHeight.value;
 			if (isFinite(w))
@@ -468,6 +460,14 @@ package weave
 				this.height = h;
 			else
 				this.height = this.parent.height;
+			
+			var workspace:Canvas = visDesktop.internalCanvas;
+			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
+			var scale:Number = 1 / multiplier;
+			workspace.scaleX = scale;
+			workspace.scaleY = scale;
+			workspace.width = workspace.parent.width * multiplier;
+			workspace.height = workspace.parent.height * multiplier;
 		}
 
 		private var adminService:LocalAsyncService = null;
@@ -639,7 +639,7 @@ package weave
 			{
 				_exportMenu = _weaveMenu.addMenuToMenuBar("Export", false);
 				if (Weave.properties.enableExportApplicationScreenshot.value)
-					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [this]));
+					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [visDesktop.internalCanvas]));
 			}
 			
 			if (Weave.properties.enableDynamicTools.value)
@@ -1436,12 +1436,6 @@ package weave
 			if (!component)
 				return;
 			
-			var visMenuVisible:Boolean    = (_weaveMenu ? _weaveMenu.visible : false);
-			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
-			
-			if (_weaveMenu)    _weaveMenu.visible    = false;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;
-
 			//initialize the print format
 			var printPopUp:PrintPanel = new PrintPanel();
    			printPopUp = PopUpManager.createPopUp(this,PrintPanel,true) as PrintPanel;
@@ -1449,9 +1443,6 @@ package weave
    			printPopUp.applicationTitle = Weave.properties.pageTitle.value;
    			//add current snapshot to Print Format
 			printPopUp.componentToScreenshot = component;
-			
-			if (_weaveMenu)  _weaveMenu.visible    = visMenuVisible;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
 
 		/**
@@ -1480,7 +1471,7 @@ package weave
 		{
 			if (event.currentTarget == _printToolMenuItem)
    			{
-   				printOrExportImage(this);
+   				printOrExportImage(visDesktop.internalCanvas);
    			}
    			
 		}

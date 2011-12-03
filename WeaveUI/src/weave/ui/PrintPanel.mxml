@@ -195,10 +195,8 @@
 		
 		private function scalePrintVbox():void
 		{
-			var scale:Number = Weave.properties.scaleResolution.value;
-			
-			if(isFinite(scale) && scale)
-				printVbox.scaleY = printVbox.scaleX = 1 / (scale+1);
+			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
+			printVbox.scaleY = printVbox.scaleX = 1 / (multiplier+1);
 		}
 		
    		]]>
