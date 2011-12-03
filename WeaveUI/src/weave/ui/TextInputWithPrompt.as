@@ -22,6 +22,7 @@ package weave.ui
 	
 	import mx.controls.TextInput;
 	import mx.core.mx_internal;
+	import mx.utils.ObjectUtil;
 	
 	import weave.compiler.StandardLib;
 
@@ -38,8 +39,6 @@ package weave.ui
 		public function TextInputWithPrompt()
 		{
 			super();
-			addEventListener(FocusEvent.FOCUS_IN, captureFocusIn, true);
-			addEventListener(FocusEvent.FOCUS_OUT, captureFocusOut, true);
 		}
 		
 		public function asTextInput():TextInput { return this; }
@@ -168,6 +167,11 @@ package weave.ui
 				super.text = newText;
 				
 				updateTextColor();
+				
+				// Validate now to make sure the inner UITextField text is updated as well.
+				// This fixes a bug where the prompt text would remain if a character is typed
+				// immediately after clicking in the text input.
+				validateNow();
 			}
 		}
 		
@@ -176,26 +180,36 @@ package weave.ui
 		/**
 		 * This function hides the prompt if it is shown, and selects all if autoSelect is true.
 		 */
-		protected function captureFocusIn(event:FocusEvent):void
+		override protected function focusInHandler(event:FocusEvent):void
 		{
-			_hasFocus = true;
-			hidePrompt();
-			
-			if (autoSelect)
+			if (!_hasFocus)
 			{
-				selectionBeginIndex = 0;
-				selectionEndIndex = text.length;
+				_hasFocus = true;
+				hidePrompt();
+
+				if (autoSelect)
+				{
+					selectionBeginIndex = 0;
+					selectionEndIndex = text.length;
+				}
 			}
+			
+			super.focusInHandler(event);
 		}
 		
 		/**
 		 * This function makes the prompt reappear if the text is empty.
 		 */
-		protected function captureFocusOut(event:FocusEvent):void
+		override protected function focusOutHandler(event:FocusEvent):void
 		{
-			_hasFocus = false;
-			if (!text)
-				showPrompt();
+			if (_hasFocus)
+			{
+				_hasFocus = false;
+				if (!text)
+					showPrompt();
+			}
+			
+			super.focusOutHandler(event);
 		}
 		
 		/**
