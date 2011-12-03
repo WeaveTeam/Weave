@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="DynamicKeyFilter,weave.data.KeySets.DynamicKeyFilter,containsKey" name="keywords">
+<meta content="DynamicKeyFilter,weave.data.KeySets.DynamicKeyFilter,getInternalKeyFilter" name="keywords">
 <title>weave.data.KeySets.DynamicKeyFilter</title>
 </head>
 <body>
@@ -166,13 +166,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This function will add a callback using the given function and parameters.</div>
 </td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
 </tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#containsKey()">containsKey</a>(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>):Boolean</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">DynamicKeyFilter</td>
-</tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
@@ -188,6 +181,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">
    This function gets called by SessionManager.dispose().</div>
 </td><td class="summaryTableOwnerCol"><a href="../../core/LinkableDynamicObject.html">LinkableDynamicObject</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getInternalKeyFilter()">getInternalKeyFilter</a>():<a href="../../api/data/IKeyFilter.html">IKeyFilter</a>
+</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DynamicKeyFilter</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -322,24 +323,19 @@ showHideInherited();
 </div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="containsKey()"></a>
+<a name="getInternalKeyFilter()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">containsKey</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">getInternalKeyFilter</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function containsKey(key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>):Boolean</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">key</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code></td>
-</tr>
-</table>
+<code>public function getInternalKeyFilter():<a href="../../api/data/IKeyFilter.html">IKeyFilter</a></code>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Boolean</code></td>
+<td width="20"></td><td><code><a href="../../api/data/IKeyFilter.html">IKeyFilter</a></code></td>
 </tr>
 </table>
 </div>

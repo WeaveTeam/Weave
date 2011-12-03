@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="IDynamicKeyFilter,weave.api.data.IDynamicKeyFilter" name="keywords">
+<meta content="IDynamicKeyFilter,weave.api.data.IDynamicKeyFilter,getInternalKeyFilter" name="keywords">
 <title>weave.api.data.IDynamicKeyFilter</title>
 </head>
 <body>
@@ -35,7 +35,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.api.data</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IDynamicKeyFilter extends <a href="IKeyFilter.html">IKeyFilter</a>, <a href="../core/ILinkableDynamicObject.html">ILinkableDynamicObject</a>, <a href="../core/ILinkableCompositeObject.html">ILinkableCompositeObject</a>, <a href="../core/ILinkableObject.html">ILinkableObject</a></td>
+<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IDynamicKeyFilter extends <a href="../core/ILinkableDynamicObject.html">ILinkableDynamicObject</a>, <a href="../core/ILinkableCompositeObject.html">ILinkableCompositeObject</a>, <a href="../core/ILinkableObject.html">ILinkableObject</a></td>
 </tr>
 <tr>
 <td class="classHeaderTableLabel">Implementors</td><td><a href="../../data/KeySets/DynamicKeyFilter.html">DynamicKeyFilter</a></td>
@@ -87,17 +87,17 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <a onclick="javascript:setInheritedVisible(true,'Method');" href="#methodSummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Public Methods</a>
 </div>
 </div>
-<table id="summaryTableMethod" class="summaryTable hideInheritedMethod" cellpadding="3" cellspacing="0">
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
-<tr class="hideInheritedMethod">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="IKeyFilter.html#containsKey()">containsKey</a>(key:<a href="../data/IQualifiedKey.html">IQualifiedKey</a>):Boolean</div>
-<div class="summaryTableDescription">
-   This function tests if a IQualifiedKey object is contained in this IKeySet.</div>
-</td><td class="summaryTableOwnerCol"><a href="IKeyFilter.html">IKeyFilter</a></td>
+<a class="signatureLink" href="#getInternalKeyFilter()">getInternalKeyFilter</a>():<a href="../data/IKeyFilter.html">IKeyFilter</a>
+</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">IDynamicKeyFilter</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -162,6 +162,24 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 showHideInherited();
 --></script>
 <div class="MainContent">
+<a name="methodDetail"></a>
+<div class="detailSectionHeader">Method detail</div>
+<a name="getInternalKeyFilter()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getInternalKeyFilter</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function getInternalKeyFilter():<a href="../data/IKeyFilter.html">IKeyFilter</a></code>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../data/IKeyFilter.html">IKeyFilter</a></code></td>
+</tr>
+</table>
+</div>
 <br>
 <br>
 <hr>
