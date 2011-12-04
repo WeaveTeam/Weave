@@ -52,7 +52,7 @@
 				// lock dynamic objects into place
 				
 				// create size bin legend
-				_sizeBinLegendPlotter = initDefaultPlotter(SizeBinLegendPlotter);
+				_sizeBinLegendPlotter = initializePlotters(SizeBinLegendPlotter, false);
 				_sizeBinLegendLayerName = visualization.layers.getName(plotLayer);
 				plotLayer.useTextBitmapFilters.value = true;
 				

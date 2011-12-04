@@ -45,7 +45,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ColorBinLegendPlotter) as ColorBinLegendPlotter;
+				_plotter = initializePlotters(ColorBinLegendPlotter, false);
 
 				plotLayer.useTextBitmapFilters.value = true;
 				

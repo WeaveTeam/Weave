@@ -125,7 +125,6 @@
 			import weave.core.LinkableBoolean;
 			import weave.ui.DraggablePanel;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			private const verticalGap:int = 16;
 			private const indent:int = 150;
@@ -155,7 +154,7 @@
 				_panel.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
 				_panel.addEventListener(FlexEvent.UPDATE_COMPLETE, function(..._):void { backgroundColorCallback(); });
 				
-				if (_visualization.showAxes)
+				if (_visualization.getXAxisLayer())
 				{
 					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.overrideAxisName, xAxisTitle, 'text');
 					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.labelFunction, xAxisLabelFunction, 'text');

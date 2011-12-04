@@ -81,9 +81,7 @@
 				bg.getDynamicPlotter().requestLocalObject(RamachandranBackgroundPlotter, true);
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ScatterPlotPlotter) as ScatterPlotPlotter;
-				showAxes = true;
-				
+				_plotter = initializePlotters(ScatterPlotPlotter, true);
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				yAxisLayer.axisPlotter.forceTickCount.value = true;

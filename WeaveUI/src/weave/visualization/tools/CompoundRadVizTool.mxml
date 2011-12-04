@@ -79,7 +79,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(CompoundRadVizPlotter) as CompoundRadVizPlotter;
+				_plotter = initializePlotters(CompoundRadVizPlotter, false);
 				getCallbackCollection(_plotter).addGroupedCallback(this, handlePanelTitleChange);
 				
 				visualization.enableAutoZoomToExtent.value = true;

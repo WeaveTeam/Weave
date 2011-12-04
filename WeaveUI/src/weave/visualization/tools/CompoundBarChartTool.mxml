@@ -70,15 +70,13 @@
 				super.constructor();
 
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(CompoundBarChartPlotter) as CompoundBarChartPlotter;
+				_plotter = initializePlotters(CompoundBarChartPlotter, true);
 				_plotter.groupingMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
 				
 				_plotter.sortColumn.addGroupedCallback(this, handleSortColumnChange);
 				_plotter.heightColumns.addGroupedCallback(this, handleHeightColumnsChange);
-				
-				showAxes = true;
 				
 				var objects:Array = [
 						xAxisLayer.axisPlotter,

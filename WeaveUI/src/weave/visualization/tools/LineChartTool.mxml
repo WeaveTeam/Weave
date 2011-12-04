@@ -65,11 +65,10 @@
 				visualization.marginRight.value  = "80";
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ParallelCoordinatesPlotter) as ParallelCoordinatesPlotter;
+				_plotter = initializePlotters(ParallelCoordinatesPlotter, true);
 				// add this callback first because it needs to be called for each column that is removed
 				_plotter.columns.childListCallbacks.addImmediateCallback(this, handleColumnAddRemoveReorder);
 				
-				showAxes = true;
 				visualization.includeNonSelectableLayersInAutoZoom.lock();
 				visualization.enableZoomAndPan.value = false;
 

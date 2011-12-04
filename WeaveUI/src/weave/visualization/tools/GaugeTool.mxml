@@ -50,7 +50,7 @@
 			override protected function constructor():void
 			{
 				super.constructor();
-				_plotter = initDefaultPlotter(GaugePlotter) as GaugePlotter;
+				_plotter = initializePlotters(GaugePlotter, false);
 				
 			
 				//_plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange);

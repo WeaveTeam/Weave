@@ -63,7 +63,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(GraphPlotter) as GraphPlotter;
+				_plotter = initializePlotters(GraphPlotter, false);
 				var layers:Array = visualization.layers.getObjects(SelectablePlotLayer);
 				// create new label layer
 				var labelLayer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("label"), SelectablePlotLayer, true);
