@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SimpleInteractiveVisualization,weave.visualization.layers.SimpleInteractiveVisualization,PLOT_LAYER_NAME,PROBE_LINE_LAYER_NAME,X_AXIS_LAYER_NAME,Y_AXIS_LAYER_NAME,axesAlpha,axesColor,axesThickness,bottomMarginClickCallbacks,bottomMarginColumn,bottomMarginToolTip,enableAutoZoomXToNiceNumbers,enableAutoZoomYToNiceNumbers,gridLineAlpha,gridLineColor,gridLineThickness,leftMarginClickCallbacks,leftMarginColumn,leftMarginToolTip,rightMarginClickCallbacks,rightMarginColumn,rightMarginToolTip,topMarginClickCallbacks,topMarginColumn,topMarginToolTip,xAxisTooltipPtr,yAxisTooltipPtr,showAxes,plotterClass,constrainToolTipsToStage,destroyProbeLineTooltips,enableProbeLine,getDefaultPlotter,getPlotLayer,getProbeLineLayer,getXAxisLayer,getYAxisLayer,handleMouseClick,handleMouseMove,handleRollOut,linkToAxisProperties,putAxesOnBottom,showProbeTooltips,updateFullDataBounds,updateZoom" name="keywords">
+<meta content="SimpleInteractiveVisualization,weave.visualization.layers.SimpleInteractiveVisualization,PLOT_LAYER_NAME,PROBE_LINE_LAYER_NAME,X_AXIS_LAYER_NAME,Y_AXIS_LAYER_NAME,axesAlpha,axesColor,axesThickness,bottomMarginClickCallbacks,bottomMarginColumn,bottomMarginToolTip,enableAutoZoomXToNiceNumbers,enableAutoZoomYToNiceNumbers,gridLineAlpha,gridLineColor,gridLineThickness,leftMarginClickCallbacks,leftMarginColumn,leftMarginToolTip,rightMarginClickCallbacks,rightMarginColumn,rightMarginToolTip,topMarginClickCallbacks,topMarginColumn,topMarginToolTip,xAxisTooltipPtr,yAxisTooltipPtr,constrainToolTipsToStage,destroyProbeLineTooltips,enableProbeLine,getDefaultPlotter,getPlotLayer,getProbeLineLayer,getXAxisLayer,getYAxisLayer,handleMouseClick,handleMouseMove,handleRollOut,initializePlotters,linkToAxisProperties,putAxesOnBottom,showProbeTooltips,updateFullDataBounds,updateZoom" name="keywords">
 <title>weave.visualization.layers.SimpleInteractiveVisualization</title>
 </head>
 <body>
@@ -94,20 +94,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#plotterClass">plotterClass</a> : Class<div class="summaryTableDescription">[write-only]</div>
-</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#rightMarginColumn">rightMarginColumn</a> : <a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#rightMarginToolTip">rightMarginToolTip</a> : String<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#showAxes">showAxes</a> : Boolean<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="">
@@ -274,6 +266,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">
    This function gets the current zoom level as defined in ZoomUtils.</div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayerContainer.html">PlotLayerContainer</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#initializePlotters()">initializePlotters</a>(mainPlotterClass:Class, showAxes:Boolean):*</div>
+<div class="summaryTableDescription">
+   </div>
+</td><td class="summaryTableOwnerCol">SimpleInteractiveVisualization</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
@@ -758,18 +758,6 @@ showHideInherited();
 <div class="detailBody">
 <code>public var leftMarginToolTip:String</code>
 </div>
-<a name="plotterClass"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">plotterClass</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>plotterClass:Class</code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set plotterClass(value:Class):void</code>
-<br>
-</div>
 <a name="rightMarginColumn"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -787,20 +775,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public var rightMarginToolTip:String</code>
-</div>
-<a name="showAxes"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">showAxes</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>showAxes:Boolean</code>&nbsp;&nbsp;[read-write]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get showAxes():Boolean</code>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set showAxes(value:Boolean):void</code>
-<br>
 </div>
 <a name="topMarginColumn"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -1027,6 +1001,37 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">event</span>:MouseEvent</code></td>
+</tr>
+</table>
+</div>
+<a name="initializePlotters()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">initializePlotters</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">mainPlotterClass</span>:Class</code> &mdash; The main plotter class definition.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">showAxes</span>:Boolean</code> &mdash; Set to true if axes should be added.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>*</code> &mdash; The main plotter.
+   </td>
 </tr>
 </table>
 </div>
