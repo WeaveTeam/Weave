@@ -302,8 +302,8 @@
 				var _heightColumns:Array = _plotter.heightColumns.getObjects();
 				if (_plotter.getActualGroupingMode() == CompoundBarChartPlotter.PERCENT_STACK && _heightColumns.length > 1)
 					return value + '%';
-				else if (_heightColumns.length == 1)
-					return ColumnUtils.deriveStringFromNumber(_heightColumns[0], value);
+				else if (_heightColumns.length > 0)
+					return ColumnUtils.deriveStringFromNumber(_heightColumns[0], value); // always use the first column to format the axis labels
 				return null;
 			}
 			
