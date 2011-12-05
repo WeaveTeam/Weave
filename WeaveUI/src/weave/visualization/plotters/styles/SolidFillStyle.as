@@ -64,7 +64,7 @@ package weave.visualization.plotters.styles
 				target.endFill();
 				return false;
 			}
-			else if (!isNaN(fillColor)) // if color is defined, use basic Graphics.beginFill() function
+			else if (fillColor <= Infinity) // if color is defined, use basic Graphics.beginFill() function
 			{
 				var fillAlpha:Number = alpha.getValueFromKey(recordKey, Number);
 				target.beginFill(fillColor, fillAlpha);
