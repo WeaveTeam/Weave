@@ -797,7 +797,7 @@ package weave.visualization.layers
 				
 				if (keys.length == 0)
 				{
-					ProbeTextUtils.destroyProbeToolTip();
+					ProbeTextUtils.hideProbeToolTip();
 				}
 				else
 				{
