@@ -41,6 +41,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -398,12 +399,16 @@
 					
 				}
 				
+				handleSubsetChange();
+				
 				//we now have all the required thumbnails, so we use the layout to plot them
-				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails();
+				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 				
 				
 			}
 			
+			private var thumbNailsToPlot:Dictionary = new Dictionary();
+			private var thumbnailsToPlotArray:Array = [];
 			private function handleSubsetChange():void
 			{
 //				var currentThumbnails:Array = thumbnails.getNames();
@@ -413,8 +418,69 @@
 //						thumbnails.removeObject(link);
 //				}
 				
-				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails();
+				var includedKeys:Array = _subset.included.keys;
+				var excludedKeys:Array = _subset.excluded.keys;
+				
+				var dictKey:*;
+				
+				//add all thumbanils to dictionary and set it all to false
+				for each(var t:DocThumbnailComponent in thumbnails.getObjects())
+				{
+					thumbNailsToPlot[t] = false;
+					t.visible = false;
+				}
+				
+				//add only included keys from subset
+				if(includedKeys.length>0)
+				{
+					for each (var iKey:IQualifiedKey in includedKeys)
+					{
+						var includedThumbnail:DocThumbnailComponent = thumbnails.getObject(iKey.localName) as DocThumbnailComponent;
+						
+						if(includedThumbnail)
+						{
+							thumbNailsToPlot[includedThumbnail] = true;
+							includedThumbnail.visible = true;						
+						}
+					}
+				}else //else set all thumbnails to be added
+				{
+					for (dictKey in thumbNailsToPlot)
+					{
+						thumbNailsToPlot[dictKey] = true;
+						(dictKey as DocThumbnailComponent).visible = true;
+					}
+				}
+				
+				//remove excluded keys if any
+				if(excludedKeys.length >0)
+				{
+					for each(var xKey:IQualifiedKey in excludedKeys)
+					{
+						var excludedThumbnail:DocThumbnailComponent = thumbnails.getObject(xKey.localName) as DocThumbnailComponent;
+						
+						if(excludedThumbnail)
+						{
+							thumbNailsToPlot[excludedThumbnail] = false;
+							excludedThumbnail.visible = false;
+						}
+						
+					}
+				}
+				
+				thumbnailsToPlotArray = [];
+				//add all thumbnails to be plotted to an array
+				for (dictKey in thumbNailsToPlot)
+				{
+					if(thumbNailsToPlot[dictKey])
+						thumbnailsToPlotArray.push(dictKey);
+				}
+				
+				
+				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 			}
+			
+			
 			
 			
 			private function handleLayoutChange():void
@@ -423,7 +489,7 @@
 					return;
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
-				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails();
+				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 			}
 			
 //			private function handleMouseOver():void

@@ -43,13 +43,12 @@ package weave.ui.infomap.layout
 		private var thumbnailSize:int = 50;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
-		public function plotThumbnails():void
+		public function plotThumbnails(thumbnails:Array):void
 		{
 			//don't plot thumbnails till the base layout has been drawn
 			if(!baseLayoutDrawn)
 				return;
 			
-			var thumbNailsToPlot:Dictionary = new Dictionary();
 			
 			//this image is used to a show a tooltip of information about the node. 
 			//For now it shows the number of documents found.
@@ -63,68 +62,9 @@ package weave.ui.infomap.layout
 			startY = startY + _parentNodeHandler.nodeBase.height;
 			
 						
-			var includedKeys:Array = _subset.included.keys;
-			var excludedKeys:Array = _subset.excluded.keys;
 			
 			
-			var dictKey:*;
-			
-			//add all thumbanils to dictionary and set it all to false
-			for each(var t:DocThumbnailComponent in _parentNodeHandler.thumbnails.getObjects())
-			{
-				thumbNailsToPlot[t] = false;
-				t.visible = false;
-			}
-			
-			//add only included keys from subset
-			if(includedKeys.length>0)
-			{
-				for each (var iKey:IQualifiedKey in includedKeys)
-				{
-					var includedThumbnail:DocThumbnailComponent = _parentNodeHandler.thumbnails.getObject(iKey.localName) as DocThumbnailComponent;
-					
-					if(includedThumbnail)
-					{
-						thumbNailsToPlot[includedThumbnail] = true;
-						includedThumbnail.visible = true;						
-					}
-				}
-			}else //else set all thumbnails to be added
-			{
-				for (dictKey in thumbNailsToPlot)
-				{
-					thumbNailsToPlot[dictKey] = true;
-					(dictKey as DocThumbnailComponent).visible = true;
-				}
-			}
-			
-			//remove excluded keys if any
-			if(excludedKeys.length >0)
-			{
-				for each(var xKey:IQualifiedKey in excludedKeys)
-				{
-					var excludedThumbnail:DocThumbnailComponent = _parentNodeHandler.thumbnails.getObject(xKey.localName) as DocThumbnailComponent;
-					
-					if(excludedThumbnail)
-					{
-						thumbNailsToPlot[excludedThumbnail] = false;
-						excludedThumbnail.visible = false;
-					}
-					
-				}
-			}
-			
-			
-			var thumbnailsToPlotArray:Array = [];
-			//add all thumbnails to be plotted to an array
-			for (dictKey in thumbNailsToPlot)
-			{
-				if(thumbNailsToPlot[dictKey])
-					thumbnailsToPlotArray.push(dictKey);
-			}
-			
-			
-			var gridSize:Number = Math.ceil(Math.sqrt(thumbnailsToPlotArray.length));
+			var gridSize:Number = Math.ceil(Math.sqrt(thumbnails.length));
 			
 			var count:int = 0;
 			
@@ -134,9 +74,9 @@ package weave.ui.infomap.layout
 				var nextX:int = startX;
 				for(var col:int=0; col<gridSize; col++)
 				{
-					if(count>=thumbnailsToPlotArray.length)
+					if(count>=thumbnails.length)
 						return;
-					var thumbnail:DocThumbnailComponent = thumbnailsToPlotArray[count];
+					var thumbnail:DocThumbnailComponent = thumbnails[count];
 					
 					count++;
 					
@@ -145,7 +85,6 @@ package weave.ui.infomap.layout
 					{
 						thumbnail.imageWidth.value = thumbnailSize;
 						thumbnail.imageHeight.value = thumbnailSize;
-						thumbnail.imageAlpha.value = 0.75;
 						
 						thumbnail.y = nextY;			
 						thumbnail.x = nextX;

@@ -115,7 +115,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				UIUtils.linkDisplayObjects(map,nodes,false);
 				sortByTitle();
-				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text");
+				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text",500);
 				
 				/*	we will create a CSVDataSource named docs which will hold all the doucments
 				 	if it alreadt exists we will use the existing data source 

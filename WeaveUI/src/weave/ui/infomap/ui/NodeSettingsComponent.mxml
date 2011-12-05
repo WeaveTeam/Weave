@@ -108,6 +108,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.ui.infomap.layout.RadialLayout;
 				 import weave.ui.infomap.layout.VerticalLayout;
 				 import weave.ui.infomap.utils.DateUtils;
+				 import weave.utils.EventUtils;
 				 
 				 [Inspectable]
 				 public var nodeHandler:NodeHandler= null;
@@ -131,7 +132,9 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 keyword.text = nodeHandler.node.keywords.value;
 					 
 					 
-					 linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text");
+					 linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
+					 
+					 
 					 nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,null,false);
 					 nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,null,false);
 					 
@@ -250,7 +253,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 						 return;
 					 }
 					 
-					 nodeHandler.searchFilter.value = searchTextInput.text;
+//					 nodeHandler.searchFilter.value = searchTextInput.text;
 				 }
 				 
 				 private function handleDateFilterComboBoxChange():void

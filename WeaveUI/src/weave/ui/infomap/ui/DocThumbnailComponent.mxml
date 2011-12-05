@@ -2,7 +2,11 @@
 <!--This is a Flex Image component modified to adjust to act as a thumbnail for infomap
 so that it can be moved, selected, handle filters.
 -->
-<mx:Image xmlns:mx="http://www.adobe.com/2006/mxml"
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	   			paddingBottom="2"
+				paddingLeft="2"
+				paddingRight="2"
+				paddingTop="2"
 				implements="weave.api.core.ILinkableObject"
 				doubleClickEnabled="true"
 				doubleClick="handleDoubleClick(event)"
@@ -10,8 +14,12 @@ so that it can be moved, selected, handle filters.
 				mouseUp="handleMouseUp(event)"
 				mouseOver="handleMouseOver(event)"
 				mouseOut="handleMouseOut()"
+				borderStyle="solid"
+				borderThickness="1"
+				cornerRadius="5"
+				borderColor="black"
 				>
-		
+	<mx:Image id="img" width="100%" height="100%"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.events.DragEvent;
@@ -63,7 +71,7 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets the alpha/transparency of this image.
 			 * */
-			public const imageAlpha:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const imageAlpha:LinkableNumber = registerLinkableChild(this,new LinkableNumber(1.0));
 			/**
 			 * @public
 			 * This variable sets default border color of this image when it is not selected. Not currently Used.
@@ -157,18 +165,21 @@ so that it can be moved, selected, handle filters.
 				var searchKey:String = (this.parent as NodeHandler).searchFilter.value;
 				if(searchKey == "" || searchKey == null)
 				{
-					this.visible = true;
+					_selection.removeKeys([_key]);
+					doc.selected.value = false;
 					return;
 				}
 				
-				if(_doc.title.value.search(searchKey) == -1)
-					if(_doc.summary.value.search(searchKey) == -1)
+				if(_doc.title.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
+					if(_doc.summary.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
 					{
-						this.visible = false;
+						_selection.removeKeys([_key]);
+						doc.selected.value = false;
 						return;
 					}
 				
-				this.visible = true;
+				_selection.addKeys([_key]);
+				doc.selected.value = true;
 				
 			}
 			
@@ -212,10 +223,10 @@ so that it can be moved, selected, handle filters.
 			private function handleImage():void
 			{
 				//temporary fix. Fault event is not called when thumnail is not found.
-				this.source = _noImage;
+				img.source = _noImage;
 				token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_doc.imageURL.value),handleImageRequest,handleImageFaultRequest);
-				this.width = imageWidth.value;
-				this.height = imageHeight.value;
+//				this.width = imageWidth.value;
+//				this.height = imageHeight.value;
 				
 					
 			}
@@ -234,29 +245,29 @@ so that it can be moved, selected, handle filters.
 			{
 				
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
-				if(_doc == null || parent == null || isNaN(width) || isNaN(height))
-					return;
-				
-				// clear graphics
-				// we want only one rectangle
-				graphics.clear();
-				// set line style with with 0 and alpha 0
-//				if(_doc.selected.value || _selection.containsKey(_key))
-				if(_selection.containsKey(_key))
-						graphics.lineStyle(2,highlightedBorderColor.value,
-							imageAlpha.value,true);
-				else if(_mouseOver || _mouseDown) 
-					graphics.lineStyle(0,0,
-						0,true);
-				else
-					graphics.lineStyle(2,defaultBorderColor.value,
-						imageAlpha.value,true);
-				// draw rectangle
-				graphics.drawRoundRect(-0.5,
-					-0.5,
-					this.width+0.5,
-					this.height+0.5,10,10);
-					graphics.endFill();	
+//				if(_doc == null || parent == null || isNaN(width) || isNaN(height))
+//					return;
+//				
+//				// clear graphics
+//				// we want only one rectangle
+//				graphics.clear();
+//				// set line style with with 0 and alpha 0
+////				if(_doc.selected.value || _selection.containsKey(_key))
+//				if(_selection.containsKey(_key))
+//						graphics.lineStyle(2,highlightedBorderColor.value,
+//							imageAlpha.value,true);
+//				else if(_mouseOver || _mouseDown) 
+//					graphics.lineStyle(0,0,
+//						0,true);
+//				else
+//					graphics.lineStyle(2,defaultBorderColor.value,
+//						imageAlpha.value,true);
+//				// draw rectangle
+//				graphics.drawRoundRect(-0.5,
+//					-0.5,
+//					this.width+0.5,
+//					this.height+0.5,10,10);
+//					graphics.endFill();	
 			}
 			
 			private function handleImageRequest(event:ResultEvent,token:Object=null):void
@@ -264,7 +275,7 @@ so that it can be moved, selected, handle filters.
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
 				try{
-					this.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,imageWidth.value,imageHeight.value));
+					img.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,imageWidth.value,imageHeight.value));
 				}catch(e:Error){
 					
 				}
@@ -276,7 +287,7 @@ so that it can be moved, selected, handle filters.
 			{
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
-				this.source = _noImage;
+				img.source = _noImage;
 			}
 			
 			private var _mouseOver:Boolean = false;
@@ -388,10 +399,20 @@ so that it can be moved, selected, handle filters.
 			{
 				if(_doc == null)
 					return;
-				if(_selection.containsKey(_key) || _selection.keys.length == 0)
+				if(_selection.keys.length == 0)
+				{
 					imageAlpha.value = 1.0;
+					setStyle("borderColor",defaultBorderColor.value);
+				} else if(_selection.containsKey(_key))
+				{
+					imageAlpha.value = 1.0;
+					setStyle("borderColor",highlightedBorderColor.value);
+				}
 				else
+				{
 					imageAlpha.value = 0.3;
+					setStyle("borderColor",defaultBorderColor.value);
+				}
 				//this will force a call to the updateDisplayList which will draw a border around this image
 				this.invalidateDisplayList();
 			}
@@ -401,4 +422,4 @@ so that it can be moved, selected, handle filters.
 	</mx:Script>
 	
 	<!--<mx:Image id="img"/>-->
-</mx:Image>
+</mx:HBox>
