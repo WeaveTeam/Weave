@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="100%" height="25"
+		 backgroundAlpha="0"
+		 backgroundColor="0x8a8a8a"
+		 cornerRadius="7"
+		 bottom="0" horizontalGap="0"
+		 verticalAlign="middle"
+		 horizontalScrollPolicy="off"
+		 verticalScrollPolicy="off">
+	
+	<mx:Spacer width="100%" />
+	<mx:Button label="Connect" cornerRadius="0" icon="{iCon}" height="100%" />
+	<mx:Button label="Disconnect" cornerRadius="0" icon="{iDis}" height="100%" />
+	<mx:Button label="Settings" cornerRadius="0" icon="{iSet}" height="100%" />
+	<mx:Button label="Chat" cornerRadius="0" icon="{iChat}" width="{this.width/2}" height="100%" />
+	
+	<mx:Script>
+		<![CDATA[
+			
+			import mx.events.MenuEvent;
+			
+			import weave.Weave;
+			import weave.api.registerDisposableChild;
+			import weave.services.collaboration.CollaborationEvent;
+			import weave.services.collaboration.CollaborationService;
+			
+			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
+			
+			[Embed(source="../../resources/images/connect.png")] private var iCon:Class;
+			[Embed(source="../../resources/images/denied.png")]  private var iDis:Class;
+			[Embed(source="../../resources/images/settings.png")]private var iSet:Class;
+			[Embed(source="../../resources/images/chat.png")]	 private var iChat:Class;
+			
+			private var _isChatOpen:Boolean;
+			
+//			override protected function createChildren():void
+//			{
+//Pops up the control panel when a user opens the tool
+//so that they can type in the server to connect to.
+//				toggleControlPanel();
+
+//Callbakcs to be heard from the collabService, this is how the collabservice
+//can talk back to the Collaboration tool
+//				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
+//				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
+//				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
+//				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
+//				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
+//			}
+			
+//			override public function toggleControlPanel():void
+//			{
+//				super.toggleControlPanel();
+//				updateEnabledSettings();
+//			}
+//			private function updateEnabledSettings():void
+//			{
+//				connectButton.enabled = !collabService.isConnected;
+//				disconnectButton.enabled = collabService.isConnected;
+//				input.enabled = collabService.isConnected;
+//				sendButton.enabled = collabService.isConnected;
+//			}
+//			
+		]]>
+	</mx:Script>
+</mx:HBox>
