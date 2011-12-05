@@ -98,6 +98,7 @@ package weave
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
+	import weave.ui.controlBars.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
@@ -152,6 +153,12 @@ package weave
 		private var _weaveMenu:WeaveMenuBar = null;
 		
 		/**
+		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
+		 * between users.
+		 */
+		private var _collabMenu:CollaborationMenuBar = null;
+		
+		/**
 		 * The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
 		 */
 		private var _configFileXML:XML = null;
@@ -201,6 +208,7 @@ package weave
 			// default has menubar and taskbar unless specified otherwise in config file
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
+			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
 			Weave.properties.enableTaskbar.addGroupedCallback(this, toggleTaskBar, true);
 			
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
@@ -544,6 +552,29 @@ package weave
 			ExternalInterface.call("window.close()");
 		}
 
+		private function toggleCollaborationMenuBar():void
+		{
+			if( Weave.properties.enableCollaborationBar.value )
+			{
+				if( !_collabMenu )
+				{
+					_collabMenu = new CollaborationMenuBar();
+					
+					_collabMenu.percentWidth = 100;
+					this.addChild(_collabMenu);
+				}
+			} else {
+				try
+				{
+					if( _collabMenu && this == _collabMenu.parent )
+						this.removeChild(_collabMenu);
+					
+					_collabMenu = null;
+				} catch( error:Error ) {
+					reportError(error);
+				}
+			}
+		}
 		private function toggleMenuBar():void
 		{
 			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
