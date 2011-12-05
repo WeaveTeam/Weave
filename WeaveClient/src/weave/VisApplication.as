@@ -1313,6 +1313,7 @@ package weave
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
 				
+				createExportCSVContextMenuItem();
 				
 				// Add context menu items for handling search queries
 				SearchEngineUtils.createContextMenuItems(this);
