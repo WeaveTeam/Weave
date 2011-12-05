@@ -54,8 +54,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ThermometerPlotter) as ThermometerPlotter;
-				showAxes = true;
+				_plotter = initializePlotters(ThermometerPlotter, true);
 				visualization.getXAxisLayer().layerIsVisible.value = false;
 				
 				// by default this tool only displays the probed records.

@@ -32,7 +32,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ImageGlyphPlotter) as ImageGlyphPlotter;
+				_plotter = initializePlotters(ImageGlyphPlotter, false);
 				visualization.marginBottom.value = "50";
 				visualization.marginTop.value    = "10";
 				visualization.marginLeft.value   = "80";

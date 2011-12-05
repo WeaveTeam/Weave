@@ -21,7 +21,6 @@ package weave.data.KeySets
 {
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IKeyFilter;
-	import weave.api.data.IQualifiedKey;
 	import weave.core.LinkableDynamicObject;
 	
 	/**
@@ -36,11 +35,9 @@ package weave.data.KeySets
 			super(IKeyFilter);
 		}
 		
-		public function containsKey(key:IQualifiedKey):Boolean
+		public function getInternalKeyFilter():IKeyFilter
 		{
-			if (internalObject == null)
-				return false;
-			return (internalObject as IKeyFilter).containsKey(key);
+			return internalObject as IKeyFilter;
 		}
 	}
 }

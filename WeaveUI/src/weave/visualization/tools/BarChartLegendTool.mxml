@@ -51,7 +51,7 @@
 				// lock dynamic objects into place
 				
 				// create bar segment legend
-				_barLegendPlotter = initDefaultPlotter(BarChartLegendPlotter);
+				_barLegendPlotter = initializePlotters(BarChartLegendPlotter, false);
 				_barLegendLayerName = visualization.layers.getName(plotLayer);
 				
 				// create global color ramp legend

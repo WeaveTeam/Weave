@@ -196,8 +196,6 @@ package weave
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
-		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
-		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
 		
@@ -398,7 +396,12 @@ package weave
 		
 		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
 		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);
+		public const workspaceMultiplier:LinkableNumber = new LinkableNumber(1, verifyWorkspaceMultiplier);
 
+		private function verifyWorkspaceMultiplier(value:Number):Boolean
+		{
+			return value >= 1 && value <= 4;
+		}
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
@@ -419,7 +422,6 @@ package weave
 		
 		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }
-		[Deprecated(replacement="enableSessionBookmarks")] public function set enableSavePoint(value:Boolean):void { enableSessionBookmarks.value = value; }
 		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void { showProbeToolTipEditor.value = value; }
 		[Deprecated(replacement="enableAddWeaveDataSource")] public function set enableAddOpenIndicatorsDataSource(value:Boolean):void { enableAddWeaveDataSource.value = value; }
 		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void { enablePanelCoordsPercentageMode.value = value; }

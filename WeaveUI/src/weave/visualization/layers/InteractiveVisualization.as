@@ -26,7 +26,6 @@ package weave.visualization.layers
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
-	import flash.filters.DropShadowFilter;
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
@@ -36,14 +35,11 @@ package weave.visualization.layers
 	import mx.core.Application;
 	
 	import weave.Weave;
-	import weave.api.core.IDisposableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
@@ -801,7 +797,7 @@ package weave.visualization.layers
 				
 				if (keys.length == 0)
 				{
-					ProbeTextUtils.destroyProbeToolTip();
+					ProbeTextUtils.hideProbeToolTip();
 				}
 				else
 				{

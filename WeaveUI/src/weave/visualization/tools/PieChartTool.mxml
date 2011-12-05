@@ -49,7 +49,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(PieChartPlotter) as PieChartPlotter;
+				_plotter = initializePlotters(PieChartPlotter, false);
 				
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableFixedAspectRatio.value = true;

@@ -51,7 +51,6 @@ package weave.core
 		 * @param name This is the name of the object that was just added or removed from the hash map.
 		 * @param objectAdded This is the object that was just added to the hash map.
 		 * @param objectRemoved This is the object that was just removed from the hash map.
-		 * @param orderChanged This is true if the order of the entries in the hash map changed.
 		 */
 		public function setCallbackVariables(name:String = null, objectAdded:ILinkableObject = null, objectRemoved:ILinkableObject = null):void
 		{

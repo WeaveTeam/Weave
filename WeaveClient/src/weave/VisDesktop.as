@@ -31,7 +31,16 @@ package weave
 	{
 		public function VisDesktop()
 		{
-			UIUtils.linkDisplayObjects(this, LinkableDynamicObject.globalHashMap);
+			internalCanvas.percentWidth = 100;
+			internalCanvas.percentHeight = 100;
+			addChild(internalCanvas);
+			UIUtils.linkDisplayObjects(internalCanvas, LinkableDynamicObject.globalHashMap);
+		}
+		
+		private var _internalCanvas:Canvas = new Canvas();
+		internal function get internalCanvas():Canvas
+		{
+			return _internalCanvas;
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -52,7 +61,8 @@ package weave
 		
 		public function dispose():void
 		{
-			UIUtils.unlinkDisplayObjects(this, LinkableDynamicObject.globalHashMap);
+			UIUtils.unlinkDisplayObjects(internalCanvas, LinkableDynamicObject.globalHashMap);
+			_internalCanvas = null;
 		}
 	}
 }

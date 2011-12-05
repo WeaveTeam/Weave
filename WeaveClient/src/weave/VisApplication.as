@@ -36,6 +36,7 @@ package weave
 	import flash.ui.ContextMenuItem;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.containers.Canvas;
 	import mx.containers.HBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
@@ -45,7 +46,6 @@ package weave
 	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
-	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
@@ -68,6 +68,9 @@ package weave
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.WeavePropertiesEditor;
+	import weave.editors.managers.AddDataSourcePanel;
+	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
@@ -92,17 +95,18 @@ package weave
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
-	import weave.ui.SessionStatesDisplay;
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
+
 	import weave.ui.infomap.InfoMapLoader;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.editors.WeavePropertiesEditor;
+
 	import weave.utils.DebugUtils;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
@@ -412,8 +416,9 @@ package weave
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;
 			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
-			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize, null, true);
-
+			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize);
+			Weave.properties.workspaceMultiplier.addImmediateCallback(this, updateWorkspaceSize);
+			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
@@ -438,13 +443,17 @@ package weave
 			_progressBar.minWidth = 135; // constant
 
 			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
-			
-			visDesktop.addEventListener(ChildExistenceChangedEvent.CHILD_REMOVE, function(e:Event):void { setupWindowMenu() } );
 		}
+		
+		private function updateWorkspaceResolution():void
+		{
+		}
+		
 		private function updateWorkspaceSize(..._):void
 		{
 			if (!this.parent)
 				return;
+			
 			var w:Number = Weave.properties.workspaceWidth.value;
 			var h:Number = Weave.properties.workspaceHeight.value;
 			if (isFinite(w))
@@ -455,6 +464,14 @@ package weave
 				this.height = h;
 			else
 				this.height = this.parent.height;
+			
+			var workspace:Canvas = visDesktop.internalCanvas;
+			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
+			var scale:Number = 1 / multiplier;
+			workspace.scaleX = scale;
+			workspace.scaleY = scale;
+			workspace.width = workspace.parent.width * multiplier;
+			workspace.height = workspace.parent.height * multiplier;
 		}
 
 		private var adminService:LocalAsyncService = null;
@@ -626,7 +643,7 @@ package weave
 			{
 				_exportMenu = _weaveMenu.addMenuToMenuBar("Export", false);
 				if (Weave.properties.enableExportApplicationScreenshot.value)
-					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [this]));
+					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [visDesktop.internalCanvas]));
 			}
 			
 			if (Weave.properties.enableDynamicTools.value)
@@ -688,32 +705,16 @@ package weave
 			if (Weave.properties.enableSessionMenu.value || adminService)
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar("Session", false);
-				
-				if (Weave.properties.enableSessionBookmarks.value)
-				{
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Create session state save point", saveAction));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Show saved session states", SessionStatesDisplay.openDefaultEditor, [sessionStates]));
-				}
-				
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				
-				if (Weave.properties.enableSessionEdit.value || adminService)
-				{
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
-					
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
-				}
-
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
 				if (adminService)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session state to server", saveSessionStateToServer));
-				
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				}
 			}
 			
 			if (Weave.properties.enableWindowMenu.value || adminService)
@@ -1176,7 +1177,6 @@ package weave
 			{
 				Weave.properties.enableMenuBar.value = true;
 				Weave.properties.enableSessionMenu.value = true;
-				Weave.properties.enableSessionEdit.value = true;
 				Weave.properties.enableUserPreferences.value = true;
 			}
 			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
@@ -1424,12 +1424,6 @@ package weave
 			if (!component)
 				return;
 			
-			var visMenuVisible:Boolean    = (_weaveMenu ? _weaveMenu.visible : false);
-			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
-			
-			if (_weaveMenu)    _weaveMenu.visible    = false;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;
-
 			//initialize the print format
 			var printPopUp:PrintPanel = new PrintPanel();
    			printPopUp = PopUpManager.createPopUp(this,PrintPanel,true) as PrintPanel;
@@ -1437,9 +1431,6 @@ package weave
    			printPopUp.applicationTitle = Weave.properties.pageTitle.value;
    			//add current snapshot to Print Format
 			printPopUp.componentToScreenshot = component;
-			
-			if (_weaveMenu)  _weaveMenu.visible    = visMenuVisible;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
 
 		/**
@@ -1468,7 +1459,7 @@ package weave
 		{
 			if (event.currentTarget == _printToolMenuItem)
    			{
-   				printOrExportImage(this);
+   				printOrExportImage(visDesktop.internalCanvas);
    			}
    			
 		}
