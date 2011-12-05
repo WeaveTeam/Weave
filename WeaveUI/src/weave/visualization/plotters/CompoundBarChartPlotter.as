@@ -413,14 +413,18 @@ package weave.visualization.plotters
 						
 						// if there is one column, act like a regular bar chart and color in with a chosen color
 						if (_heightColumns.length == 1)
-							fillStyle.beginFillStyle(recordKey, graphics);
-						// otherwise use a pre-defined set of colors for each bar segment
-						else
+						{
+							// this might introduce a little overhead...
+							color = fillStyle.color.getValueFromKey(recordKey, Number) as Number;
+							
+							fillStyle.beginFillStyle(recordKey, graphics); 
+						}
+						else // otherwise use a pre-defined set of colors for each bar segment
 							graphics.beginFill(color, 1);
 						
 						
 						lineStyle.beginLineStyle(recordKey, graphics);
-						if(tempBounds.getHeight() == 0)
+						if (tempBounds.getHeight() == 0)
 							graphics.lineStyle(0,0,0);
 						
 						graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
