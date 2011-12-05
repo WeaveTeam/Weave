@@ -133,6 +133,7 @@ package weave.visualization.plotters
 		public const valueLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
+		public const recordValueLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
@@ -141,7 +142,8 @@ package weave.visualization.plotters
 		public const labelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
-
+		public const recordLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -230,7 +232,6 @@ package weave.visualization.plotters
 			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
 			
 			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
-			_bitmapText.textFormat.color = valueLabelColor.value;
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
@@ -542,7 +543,10 @@ package weave.visualization.plotters
 						if (isFinite(valueLabelRelativeAngle.value))
 							_bitmapText.angle += valueLabelRelativeAngle.value;
 						
-						_bitmapText.textFormat.color = valueLabelColor.value;
+						if (recordValueLabelColoring.value)
+							_bitmapText.textFormat.color = color;
+						else
+							_bitmapText.textFormat.color = valueLabelColor.value;
 						_bitmapText.draw(destination);
 					}
 					//------------------------------------
@@ -585,8 +589,13 @@ package weave.visualization.plotters
 						if (isFinite(labelRelativeAngle.value))
 							_bitmapText.angle += labelRelativeAngle.value;
 						_bitmapText.verticalAlign = labelVerticalAlign.value;
-						_bitmapText.horizontalAlign = labelHorizontalAlign.value; 
-						_bitmapText.textFormat.color = labelColor.value;
+						_bitmapText.horizontalAlign = labelHorizontalAlign.value;
+						
+						if (recordLabelColoring.value)
+							_bitmapText.textFormat.color = color;
+						else
+							_bitmapText.textFormat.color = labelColor.value;
+						
 						_bitmapText.draw(destination);
 					}
 					//------------------------------------

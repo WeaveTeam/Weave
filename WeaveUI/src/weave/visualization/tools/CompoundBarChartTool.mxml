@@ -415,10 +415,18 @@
 					<mx:CheckBox label="Show record labels" id="labelsChkBx" toolTip="This option enables bar labels that use the Label column"							 
 								 creationComplete="linkBindableProperty(_plotter.showLabels, event.target, 'selected')"/>
 					<mx:VBox paddingLeft="20" enabled="{labelsChkBx.selected}">
-						<mx:HBox>
-							<mx:Label text="Color"/>
-							<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
-						</mx:HBox>
+						<mx:VBox>
+							<ui:Indent label="Color by record">
+								<mx:CheckBox id="colorRecordLabelsChk"
+											 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
+							</ui:Indent>
+							<mx:HBox id="colorRecordLabelsBox" 
+									 visible="{!colorRecordLabelsChk.selected}"
+									 enabled="{!colorRecordLabelsChk.selected}">
+								<mx:Label text="Color"/>
+								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
+							</mx:HBox>
+						</mx:VBox>
 						<ui:TextBox inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
 						<ui:Indent label="Angle">
 							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
@@ -436,10 +444,20 @@
 					<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
 								 toolTip="This option will show a value label for each bar."/>
 					<mx:VBox paddingLeft="20" enabled="{showValueLabelsCheckBox.selected}">
-						<mx:HBox>
-							<mx:Label text="Color"/>
-							<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
-						</mx:HBox>
+						<mx:VBox>
+							<ui:Indent label="Color by record">
+								<mx:CheckBox id="colorValueLabelsChk"
+											 creationComplete="linkBindableProperty(_plotter.recordValueLabelColoring, event.target, 'selected')"/>
+							</ui:Indent>
+							<mx:HBox id="colorValueLabelColorBox"
+									 visible="{!colorValueLabelsChk.selected}"
+									 enabled="{!colorValueLabelsChk.selected}">
+								<mx:Label text="Color"/>
+								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
+							</mx:HBox>
+						</mx:VBox>
+						<mx:VBox>
+						</mx:VBox>
 						<ui:TextBox inputWidth="64" label="Position" 
 									creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>							  
 						<ui:Indent label="Angle">
