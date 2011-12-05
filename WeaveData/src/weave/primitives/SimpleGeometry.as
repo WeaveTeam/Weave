@@ -19,6 +19,8 @@
 
 package weave.primitives
 {
+	import flash.geom.Point;
+	
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 
@@ -48,13 +50,36 @@ package weave.primitives
 		public function isLine():Boolean { return _type == LINE; }
 		public function isPoint():Boolean { return _type == POINT; }
 		
+		public const bounds:IBounds2D = new Bounds2D(); 
+		
 		private var _vertices:Array = null; // [object with x and y fields, another object with x and y fields, ...]
 		private var _type:String = '';
 		public static const CLOSED_POLYGON:String = "CLOSED_POLYGON";
 		public static const LINE:String = "LINE";
 		public static const POINT:String = "POINT";
 		
-		public const bounds:IBounds2D = new Bounds2D(); 
 		
+		/**
+		 * A static helper function to convert a bounds object into an ISimpleGeometry object.
+		 *  
+		 * @param bounds The bounds to transform.
+		 * @return A new ISimpleGeometry object.
+		 */		
+		public static function getNewGeometryFromBounds(bounds:IBounds2D):ISimpleGeometry
+		{
+			var xMin:Number = bounds.getXMin();
+			var xMax:Number = bounds.getXMax();
+			var yMin:Number = bounds.getYMin();
+			var yMax:Number = bounds.getYMax();
+			
+			var p1:Point = new Point(xMin, yMin);
+			var p2:Point = new Point(xMax, yMin);
+			var p3:Point = new Point(xMax, yMax);
+			var p4:Point = new Point(xMin, yMax);
+			var simpleGeometry:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.CLOSED_POLYGON);
+			(simpleGeometry as SimpleGeometry).setVertices([p1, p2, p3, p4]);
+			
+			return simpleGeometry;
+		}
 	}
 }

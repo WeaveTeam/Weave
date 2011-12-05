@@ -99,8 +99,13 @@ package weave.visualization.plotters
 		protected function newSpatialProperty(linkableChildClass:Class, callback:Function = null):*
 		{
 			var child:ILinkableObject = newLinkableChild(this, linkableChildClass, callback);
-			getCallbackCollection(child).removeCallback(getCallbackCollection(this).triggerCallbacks); // avoid unnecessary duplicate trigger
-			registerLinkableChild(spatialCallbacks, child, callback);
+			
+			var thisCC:ICallbackCollection = getCallbackCollection(this);
+			var childCC:ICallbackCollection = getCallbackCollection(child);
+			// instead of triggering parent callbacks, trigger spatialCallbacks which will in turn trigger parent callbacks.
+			childCC.removeCallback(thisCC.triggerCallbacks);
+			registerLinkableChild(spatialCallbacks, child);
+			
 			return child;
 		}
 		
@@ -112,52 +117,16 @@ package weave.visualization.plotters
 		protected function registerSpatialProperty(child:ILinkableObject, callback:Function = null):*
 		{
 			registerLinkableChild(this, child, callback);
-			getCallbackCollection(child).removeCallback(getCallbackCollection(this).triggerCallbacks); // avoid unnecessary duplicate trigger
-			registerLinkableChild(spatialCallbacks, child, callback);
+
+			var thisCC:ICallbackCollection = getCallbackCollection(this);
+			var childCC:ICallbackCollection = getCallbackCollection(child);
+			// instead of triggering parent callbacks, trigger spatialCallbacks which will in turn trigger parent callbacks.
+			childCC.removeCallback(thisCC.triggerCallbacks);
+			registerLinkableChild(spatialCallbacks, child);
+			
 			return child;
 		}
 		
-		/**
-		 * This function will cause the spatialCallbacks and plotter callbacks to trigger when the given sessioned properties run their callbacks.
-		 * @param firstProperty A sessioned object that is a spatial property of the plotter.
-		 * @param moreProperties More sessioned objects that are spatial properties of the plotter.
-		 */
-		protected function registerSpatialProperties(firstProperty:ILinkableObject, ...moreProperties):void
-		{
-			(moreProperties as Array).unshift(firstProperty);
-			for each (firstProperty in moreProperties)
-				registerSpatialProperty(firstProperty);
-		}
-
-		/**
-		 * This function creates a new registered linkable child of the plotter.
-		 */
-		protected function newNonSpatialProperty(linkableChildClass:Class, callback:Function = null, useGroupedCallback:Boolean = false):*//, callbackParameters:Array = null):*
-		{
-			return newLinkableChild(this, linkableChildClass, callback, useGroupedCallback);//, callbackParameters);
-		}
-		
-		/**
-		 * This function registers a linkable child of the plotter.
-		 * @param child A sessioned object that is a non-spatial property of the plotter.
-		 */
-		protected function registerNonSpatialProperty(child:ILinkableObject, callback:Function = null):*
-		{
-			return registerLinkableChild(this, child, callback);
-		}
-		
-		/**
-		 * This function will cause the spatialCallbacks and plotter callbacks to trigger when the given sessioned properties run their callbacks.
-		 * @param firstProperty A sessioned object that is a spatial property of the plotter.
-		 * @param moreProperties More sessioned objects that are spatial properties of the plotter.
-		 */
-		protected function registerNonSpatialProperties(firstProperty:ILinkableObject, ...moreProperties):void
-		{
-			(moreProperties as Array).unshift(firstProperty);
-			for each (firstProperty in moreProperties)
-				registerNonSpatialProperty(firstProperty);
-		}
-
 		/**
 		 * This function gets called when the SessionManager disposes of this sessioned object.
 		 */
@@ -219,7 +188,7 @@ package weave.visualization.plotters
 			return [];
 		}
 		
-		protected static const recordsPerDraw:int = 200; // for use with the template drawPlot code
+		protected var recordsPerDraw:int = 100; // for use with the template drawPlot code
 		
 		/**
 		 * This function must be defined with override by classes that extend AbstractPlotter.
@@ -249,7 +218,7 @@ package weave.visualization.plotters
 				addRecordGraphicsToTempShape(recordKey, dataBounds, screenBounds, tempShape);
 				
 				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > AbstractPlotter.recordsPerDraw)
+				if (++count > recordsPerDraw)
 				{
 					destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
 					graphics.clear();

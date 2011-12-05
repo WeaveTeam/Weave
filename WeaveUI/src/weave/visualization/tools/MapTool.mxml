@@ -23,12 +23,11 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*" creationPolicy="all"
-	     xmlns:mapTool="weave.visualization.tools.*"
+	     xmlns:mapTool="weave.visualization.tools.*" xmlns:managers="weave.editors.managers.*"
 	     >
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
-			import mx.events.ResizeEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -37,7 +36,6 @@
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -57,7 +55,6 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
-			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.GeometryLabelPlotter;
@@ -80,8 +77,7 @@
 				visualization.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
 				
-				colorColumn.addGroupedCallback(this, updateTitle);
-				toolTitle.addGroupedCallback(this, updateTitle);
+				colorColumn.addGroupedCallback(this, handlePanelTitleChange);
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
@@ -167,7 +163,7 @@
 				for each (var column:ReprojectedGeometryColumn in reprojectedColumns)
 				{
 					linkProjection(column.projectionSRS);
-					projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION_SRS);
+					projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);					
 				}
@@ -199,12 +195,11 @@
 					visualization.additionalProbeColumns = null;
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if(toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Map " + (colorColumn.internalColumn == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
-				else
-					title = toolTitle.value;
 			}
 			
 			override protected function createChildren():void
@@ -214,9 +209,9 @@
 				var backgroundImageCheck:CheckBox = new CheckBox();
 				backgroundImageCheck.label = "Enable ocean background image";
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				_userWindowSettings.initialize();
-				_userWindowSettings.visBackgroundProperties.addChild(backgroundImageCheck);
-				_userWindowSettings.marginProperties.parent.removeChild(_userWindowSettings.marginProperties);
+				simpleAxisEditor.initialize();
+				simpleAxisEditor.addChild(backgroundImageCheck);
+				simpleAxisEditor.marginProperties.parent.removeChild(simpleAxisEditor.marginProperties);
 				
 				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
 				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
@@ -341,22 +336,12 @@
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
+				visualization.graphics.clear();
 				if (enableBackground.value)
 				{
-					if (_userWindowSettings && _userWindowSettings.backgroundColorPicker)
-						_userWindowSettings.backgroundColorPicker.enabled = false;
-					
 					visualization.graphics.lineStyle(0,0,0);
-					visualization.graphics.clear();
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
-				}
-				else
-				{
-					if (_userWindowSettings && _userWindowSettings.backgroundColorPicker)
-						_userWindowSettings.backgroundColorPicker.enabled = true;
-					
-					visualization.graphics.clear();
 				}
 			}
 			
@@ -397,7 +382,7 @@
 						{
 							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
 							{
-								plotter.text.copyLocalObject(headers[i]);
+								plotter.text.requestLocalObjectCopy(headers[i]);
 								break;
 							}
 						}
@@ -433,14 +418,6 @@
 				//linkableYCenterCoord.value = yCenter; // and so does this.
 			}
 			
-			override public function dispose():void
-			{
-				super.dispose();
-				disposeObjects(layerEditor);
-				//EventUtils.removeBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
-				//EventUtils.removeBindCallback(userControlPanel, "visible", handleControlPanelToggle);
-			}
-			
 			public var overviewPanel:MapOverviewWindow;
 			private const OVERVIEW_PANEL_NAME:String = "overview";
 			
@@ -467,9 +444,9 @@
 			
 			public function addMarker(name:String,url:String,x:Number,y:Number,width:Number=NaN,height:Number=NaN):void
 			{
-				var plotLayer:PlotLayer = visualization.layers.requestObject(name,PlotLayer,false);
+				var plotLayer:PlotLayer = visualization.layers.requestObject(name, PlotLayer, false);
 				
-				var marker:SingleImagePlotter = plotLayer.getDynamicPlotter().requestLocalObject(SingleImagePlotter,false);
+				var marker:SingleImagePlotter = plotLayer.getDynamicPlotter().requestLocalObject(SingleImagePlotter, false);
 				
 				marker.imageURL.value = url;
 				
@@ -480,18 +457,27 @@
 				marker.dataHeight.value = height;
 			}
 
+
+
+			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			
+			private const _tempArray:Array = [];
+			
 		]]>
 	</mx:Script>
 
 	<mx:VBox	id="mapControls"
-				horizontalAlign="center" verticalGap="2" 
+				horizontalAlign="center"
+				verticalGap="{zoomControlsToggle.selected ? 2 : 0}"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 				right="2" bottom="2"
 				backgroundColor="white" backgroundAlpha="0.01">
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				 height="{zoomControlsToggle.selected ? 0 : NaN}"
-				 verticalGap="2">
+				height="{zoomControlsToggle.selected ? NaN : 0}"
+				visible="{zoomControlsToggle.selected}"
+				verticalGap="2">
 			
 			<mx:VBox id="panControls" horizontalAlign="center" verticalGap="1" height="100%">
 				<mx:Button id="north"
@@ -534,9 +520,9 @@
 		</mx:VBox>
 		
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				height="{zoomControlsToggle.selected ? 0 : NaN}"
 				verticalGap="2"
-				visible="{!zoomControlsToggle.selected}"
+				height="{zoomControlsToggle.selected ? NaN : 0}"
+				visible="{zoomControlsToggle.selected}"
 				backgroundColor="white" backgroundAlpha="0.5" borderStyle="outset">
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
@@ -555,10 +541,12 @@
 					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 		</mx:VBox>
 		
-		<mx:Spacer height="{zoomControlsToggle.selected ? 0 : 5}"/>
+		<mx:Spacer height="{zoomControlsToggle.selected ? 5 : 0}"/>
 	
 		<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
 		<mx:HBox id="mouseModeBox" horizontalGap="1" right="2" bottom="2"  
+				 height="{mouseModeControlsToggle.selected ? NaN : 0}"
+				 visible="{mouseModeControlsToggle.selected}"
 				 backgroundColor="white" backgroundAlpha="0.01"
 				 alpha="1"> 
 			<mx:Button id="panModeButton" 
@@ -606,9 +594,10 @@
 				toggle="true"
 				toolTip="Select this mode to enable zooming on the map using the mouse to create a box around the area you want to zoom into."
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
-			<mx:Button id="zoomControlsToggle"
-					   icon="@Embed(source='/weave/resources/images/minimize_icon.png')"
-					   width="17" height="17" toggle="true" selected="false"/>
+			<mx:Button id="zoomControlsMinimizeCheck" icon="@Embed(source='/weave/resources/images/minimize_icon.png')"
+					   width="17" height="17" toggle="true"
+					   selected="{!zoomControlsToggle.selected}"
+					   change="zoomControlsToggle.selected = !zoomControlsMinimizeCheck.selected"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -631,15 +620,15 @@
 			</mx:columns>
 			</mx:DataGrid>-->
 			
-			<ui:PlotLayerEditor id="layerEditor" initialize="layerEditor.visualization = visualization"/>
+			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<ui:DynamicColumnComponent label="color" visTool="{this}" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Advanced" verticalGap="10">
 			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
-						 creationComplete="linkBindableProperty(enableOverview,overviewCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(enableOverview,event.target,'selected')"/>
 			<mx:HBox verticalAlign="bottom">
 				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
 				<mx:VBox verticalGap="1">
@@ -659,14 +648,14 @@
 				<mx:Label text="Projection"/> 
 				<ui:CustomComboBox id="projComboBox"
 								   dataProvider="{_projComboBoxData}"
-								   initialize="linkBindableProperty(projectionSRS, projComboBox, 'text');"
+								   creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
 								   change="projValidLabel.text = projectionVerifier(projComboBox.text) ? 'Valid' : 'Invalid';"
 								   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
 								   editable="true"
 								   width="120"
 								   />
 				<!--<mx:TextInput id="projTextInput"
-					initialize="linkBindableProperty(projectionSRS, projTextInput, 'text');"
+				creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
 					change="projValidLabel.text = projectionVerifier(projTextInput.text) ? 'Valid' : 'Invalid';"
 					focusOut="projTextInput.text = projectionSRS.value; projValidLabel.text = '';"
 					/>-->
@@ -674,7 +663,13 @@
 			</mx:HBox>
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
-						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+			<mx:CheckBox id="zoomControlsToggle" label="Show zoom and pan controls"
+						 toolTip="This option enables the zoom slider and pan buttons"
+						 creationComplete="linkBindableProperty(showZoomControls,event.target,'selected')"/>
+			<mx:CheckBox id="mouseModeControlsToggle" label="Show mouse mode controls"
+						 toolTip="This option enables the mouse mode buttons"
+						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

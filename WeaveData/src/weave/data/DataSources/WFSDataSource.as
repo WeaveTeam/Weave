@@ -33,6 +33,7 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.reportError;
 	import weave.core.ErrorManager;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -81,6 +82,7 @@ package weave.data.DataSources
 						tag.@dataType = _convertOldDataType(tag.@dataType);
 					}
 				}
+				super.convertOldHierarchyFormat(_attributeHierarchy.value, 'attribute', {'projectionSRS': AttributeColumnMetadata.PROJECTION});
 			}
 			
 			super.initialize();
@@ -165,7 +167,7 @@ package weave.data.DataSources
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("Received invalid XML from WFS service at "+url.value));
+				reportError("Received invalid XML from WFS service at "+url.value);
 				if (xml)
 					trace(xml.toXMLString());
 				return;
@@ -177,7 +179,7 @@ package weave.data.DataSources
 		 */
 		private function handleGetCapabilitiesError(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 		
 		/**
@@ -249,7 +251,7 @@ package weave.data.DataSources
 						altProj += ':' + array[1];
 					if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
 						proj = altProj;
-					attrNode['@'+AttributeColumnMetadata.PROJECTION_SRS] = proj;
+					attrNode['@'+AttributeColumnMetadata.PROJECTION] = proj;
 				}
 				node.appendChild(attrNode);
 			}
@@ -261,7 +263,7 @@ package weave.data.DataSources
 		 */
 		private function handleDescribeFeatureError(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 
 		/**
@@ -430,7 +432,7 @@ package weave.data.DataSources
 			catch (e:Error)
 			{
 				//var detail:String = ObjectUtil.toString(request.request) + '\n\nResult: ' + (result && result.toXMLString());
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 
 		}
@@ -441,7 +443,7 @@ package weave.data.DataSources
 		 */
 		private function handleColumnDownloadFail(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 	}
 }

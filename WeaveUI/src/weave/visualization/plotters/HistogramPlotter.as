@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
@@ -69,7 +70,7 @@ package weave.visualization.plotters
 			linkSessionState(keySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
-			registerSpatialProperties(dynamicColorColumn);
+			registerSpatialProperty(dynamicColorColumn);
 
 			setKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
@@ -101,9 +102,9 @@ package weave.visualization.plotters
 		{
 			return fillStyle.color.internalDynamicColumn;
 		}
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newNonSpatialProperty(SolidFillStyle);
-		public const drawPartialBins:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		public const drawPartialBins:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
 		 * This function returns the collective bounds of all the bins.
@@ -158,7 +159,7 @@ package weave.visualization.plotters
 			var binNames:Array = [];
 			for (binName in _tempBinKeyToSingleRecordKeyMap)
 				binNames.push(binName);
-			var allBinNames:Array = binCol.derivedBins.getNames();
+			var allBinNames:Array = binCol.getDerivedBins().getNames();
 			
 			// draw the bins
 			// BEGIN template code for defining a drawPlot() function.
@@ -191,7 +192,7 @@ package weave.visualization.plotters
 				graphics.endFill();
 				
 				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > AbstractPlotter.recordsPerDraw)
+				if (++count > recordsPerDraw)
 				{
 					destination.draw(tempShape);
 					graphics.clear();

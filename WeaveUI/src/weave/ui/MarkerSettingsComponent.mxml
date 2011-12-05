@@ -9,11 +9,11 @@
 				
 				 >
 	
-	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
+	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="Marker Settings">
 		<mx:HBox>
 			<mx:Label width="100" fontWeight="bold" text="Image URL:"/>
 			<mx:TextInput id="imageURLText" borderStyle="solid" cornerRadius="5" width="200"/>
-			<ui:HelpComponent showPopup="false" helpText="Enter a URL to an image. If the URL empty it defaults to a red circle."/>
+			<ui:HelpComponent content="Enter a URL to an image. If the URL empty it defaults to a red circle."/>
 		</mx:HBox>
 		<mx:HBox>
 			<mx:Label width="100" fontWeight="bold" text="X Coordinate: "/>
@@ -34,7 +34,7 @@
 			<mx:TextInput id="dataWidthText" borderStyle="solid" cornerRadius="5"  width="100"/>
 			<mx:Label width="120" fontWeight="bold" text="Data Height:"/>
 			<mx:TextInput id="dataHeightText" borderStyle="solid" cornerRadius="5"  width="100"/>
-			<ui:HelpComponent showPopup="false" helpText="Enter the width and height in data coordinates. The image will adjust to the width and height of the data coordinates."/>
+			<ui:HelpComponent content="Enter the width and height in data coordinates. The image will adjust to the width and height of the data coordinates."/>
 		</mx:HBox>		
 	</mx:VBox>
 	<mx:Script>
@@ -151,7 +151,7 @@
 			
 				settingsPanel.title = "Edit " + markerName;
 				
-				EventUtils.delayedLinkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText,"text",1000);
+				linkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText, "text", 1000);
 				
 				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText,"text");
 				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText,"text");

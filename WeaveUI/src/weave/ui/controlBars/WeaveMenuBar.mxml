@@ -20,16 +20,29 @@
 */
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-    	 
+		 xmlns="weave.ui.controlBars.*"
+		 xmlns:ui="weave.ui.*"
+	     width="100%"
     	 backgroundColor="0x8a8a8a" backgroundAlpha="1.0"
     	 cornerRadius="7"
-    	 
     	 verticalAlign="middle"
-    	 
-	     width="100%"
 	     styleName="weave-menu-bar-style"
-	     horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ui="weave.ui.*" xmlns="weave.ui.controlBars.*">
-
+	     horizontalScrollPolicy="off"
+		 verticalScrollPolicy="off"
+		 >
+	<mx:MenuBar id="menubar"
+				change="handleMenuItemChosen(event)"
+				height="24"
+				width="100%"
+				dataProvider="{_menuList}"
+				labelField="weaveLabel"
+				iconField="iconURL"
+				
+				menuShow="handleMenuShow(event)"
+				
+				menuStyleName="weave-menu-style"
+				styleName="weave-menu-bar-style"
+				/>
 	<mx:Style>
 		.weave-menu-style {
 			color: #000000;
@@ -67,33 +80,6 @@
 			paddingTop: 0;
 			paddingBottom: 0;
 		}
-	</mx:Style>
-
-	<mx:XML format="e4x" id="dp2"> 
-        <root>
-            <editItem label="Cut"/> 
-            <editItem label="Copy"/> 
-            <editItem label="Paste"/> 
-            <separator type="separator"/>
-            <editItem label="Delete"/> 
-        </root>
-    </mx:XML>
-
-
-	<mx:MenuBar id="menubar"
-	        change="handleMenuItemChosen(event)"
-	        height="22"
-			width="100%"
-	        dataProvider="{_menuList}"
-	        labelField="weaveLabel"
-			iconField="iconURL"
-				        
-	        menuShow="handleMenuShow(event)"
-	        
-	        menuStyleName="weave-menu-style"
-	       	styleName="weave-menu-bar-style"
-	        />
-	<mx:Style>
 		.menu-button-style {
 			padding-left: 0;
 			padding-right: 0;
@@ -160,6 +146,7 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.reportError;
 			import weave.core.ErrorManager;
 			import weave.ui.DraggablePanel;
 			import weave.ui.OICLogoPane;
@@ -266,7 +253,7 @@
     			var itemIndex:int = _menuList.getItemIndex(menu);
     			if (itemIndex == -1)
     			{
-					WeaveAPI.ErrorManager.reportError(new Error("addMenuItemToMenu(): menu not found: "+menu.name));
+					reportError("addMenuItemToMenu(): menu not found: "+menu.name);
     				return;
     			}
     			var menuToModify:WeaveMenuItem = (_menuList.getItemAt( itemIndex ) as WeaveMenuItem);
@@ -284,7 +271,7 @@
 				var n:int = parentMenu.children.getItemIndex(menuItemToRemove);
 				if (n < 0)
 				{
-					trace(new Error("removeMenuItemFromMenu: item not found").getStackTrace());
+					reportError("removeMenuItemFromMenu: item not found");
 					return;
 				}
 				
@@ -320,9 +307,9 @@
     				
     				targetMenuItem.runClickFunction();
     			}
-    			catch(error:Error)
+    			catch (error:Error)
     			{
-					WeaveAPI.ErrorManager.reportError(error);
+					reportError(error);
     			}
     		}
     	]]>

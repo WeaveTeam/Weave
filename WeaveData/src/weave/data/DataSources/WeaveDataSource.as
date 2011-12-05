@@ -22,24 +22,26 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	
 	import mx.rpc.AsyncToken;
+	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.services.IURLRequestUtils;
+	import weave.api.objectWasDisposed;
+	import weave.api.reportError;
 	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
-	import weave.core.LinkableXML;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -47,14 +49,12 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.services.DelayedAsyncResponder;
-	import weave.services.URLRequestUtils;
 	import weave.services.WeaveDataServlet;
 	import weave.services.beans.AttributeColumnDataWithKeys;
 	import weave.services.beans.DataServiceMetadata;
 	import weave.services.beans.DataTableMetadata;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * WeaveDataSource is an interface for retrieving columns from Weave data servlets.
@@ -120,12 +120,17 @@ package weave.data.DataSources
 			convertOldHierarchyFormat(root, "attribute", {
 				attributeColumnName: "name",
 				dataTableName: "dataTable",
-				dataType: _convertOldDataType
+				dataType: _convertOldDataType,
+				projectionSRS: AttributeColumnMetadata.PROJECTION
 			});
 			for each (var node:XML in root.descendants())
 			{
 				if (!String(node.@title))
+				{
 					node.@title = node.@name;
+					if (String(node.@year))
+						node.@title += ' (' + node.@year + ')';
+				}
 			}
 		}
 		
@@ -206,6 +211,8 @@ package weave.data.DataSources
 		 */
 		private function handleHierarchyURLDownload(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
 			_attributeHierarchy.value = XML(event.result); // this will run callbacks
 		}
 
@@ -215,12 +222,14 @@ package weave.data.DataSources
 		 */
 		private function handleHierarchyURLDownloadError(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
-			trace(event.type, event.message + '\n' + event.fault);
+			reportError(event);
 		}
 		
 		private function handleGetDataServiceMetadata(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
+			
 			try
 			{
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
@@ -272,20 +281,21 @@ package weave.data.DataSources
 			}
 			catch (e:Error)
 			{
-				trace(e.getStackTrace());
-				var msg:String = "Unable to process result from servlet: "+ObjectUtil.toString(event.result);
-				WeaveAPI.ErrorManager.reportError(new Error(msg));
+				reportError(e, "Unable to process result from servlet: "+ObjectUtil.toString(event.result));
 			}
 		}
 
 		private function handleGetDataServiceMetadataFault(event:FaultEvent, token:Object = null):void
 		{
 			//trace("handleGetDataServiceMetadataFault", event.fault, event.message);
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 		
 		private function handleGetDataTableMetadata(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
+
 			var hierarchyNode:XML = token as XML; // the node to add the list of columns to
 			try
 			{
@@ -302,7 +312,7 @@ package weave.data.DataSources
 							name={ geomName }
 							dataType={ DataTypes.GEOMETRY }
 							keyType={ result.geometryCollectionKeyType }
-							projectionSRS={ result.geometryCollectionProjectionSRS }
+							projection={ result.geometryCollectionProjectionSRS }
 						/>
 					);
 				}
@@ -313,7 +323,11 @@ package weave.data.DataSources
 					var metadata:Object = result.columnMetadata[i];
 					// fill in title if missing
 					if (!metadata['title'])
+					{
 						metadata['title'] = metadata['name'];
+						if (metadata['year'])
+							metadata['title'] += ' (' + metadata['year'] + ')';
+					}
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
 						if (metadata[property])
@@ -323,9 +337,7 @@ package weave.data.DataSources
 			}
 			catch (e:Error)
 			{
-				trace(e.getStackTrace());
-				var msg:String = "Unable to process result from servlet: "+ObjectUtil.toString(event.result);
-				WeaveAPI.ErrorManager.reportError(new Error(msg));
+				reportError(e, "Unable to process result from servlet: "+ObjectUtil.toString(event.result));
 			}
 			finally
 			{
@@ -337,7 +349,7 @@ package weave.data.DataSources
 		{
 			trace("handleGetDataTableMetadataFault", (token as XML).toXMLString(), event.fault, event.message);
 			// TODO: should fill in pending column requests under this hierarchy path to ProxyColumn.undefinedColumn
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 		
 		/**
@@ -380,8 +392,7 @@ package weave.data.DataSources
 				return;
 			
 			request.proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
-			trace("handleGetAttributeColumnFault", ObjectUtil.toString(request.pathInHierarchy), event.fault, event.message);
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event, null, token);
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{
@@ -402,7 +413,7 @@ package weave.data.DataSources
 				{
 					var msg:String = "Did not receive any data from service for attribute column: "
 						+ HierarchyUtils.getLeafNodeFromPath(request.pathInHierarchy).toXMLString();
-					WeaveAPI.ErrorManager.reportError(new Error(msg));
+					reportError(msg);
 					return;
 				}
 				var result:AttributeColumnDataWithKeys = new AttributeColumnDataWithKeys(event.result);
@@ -420,34 +431,27 @@ package weave.data.DataSources
 				// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
 				if (hierarchyNode == null)
 					hierarchyNode = <attribute/>;
-				hierarchyNode.@keyType = result.keyType;
-				hierarchyNode.@dataType = result.dataType;
-				hierarchyNode.@name = result.attributeColumnName;
-
-				hierarchyNode.@year = result.year;
+				for (var metadataName:String in result.metadata)
+				{
+					var metadataValue:String = result.metadata[metadataName];
+					if (metadataValue)
+						hierarchyNode['@' + metadataName] = metadataValue;
+				}
 				
 				if (!String(hierarchyNode.@title))
 				{
-					hierarchyNode.@title = result.attributeColumnName;
+					hierarchyNode.@title = result.metadata.name; // temporary hack
 					
 					// year hack -- this could be replaced by a global "default title formatting function" like "title (year)"
 					var year:String = hierarchyNode.@year;
 					if (year)
 						hierarchyNode.@title += ' (' + year + ')';
 				}
+				
+				var keyType:String = hierarchyNode['@' + AttributeColumnMetadata.KEY_TYPE];
+				var dataType:String = hierarchyNode['@' + AttributeColumnMetadata.DATA_TYPE];
 
-				if (result.min)
-					hierarchyNode.@min = result.min;
-				else
-					delete hierarchyNode["@min"];
-
-				if (result.max)
-					hierarchyNode.@max = result.max;
-				else
-					delete hierarchyNode["@max"];
-
-				var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(result.keyType, result.keys)
-				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
+				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(keyType, result.keys));
 				if (result.secKeys != null)
 				{
 					var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
@@ -456,7 +460,7 @@ package weave.data.DataSources
 					proxyColumn.internalColumn = newColumn;
 					proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
 				}
-				else if (ObjectUtil.stringCompare(result.dataType, DataTypes.NUMBER, true) == 0)
+				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
 					var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
 					newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
@@ -491,8 +495,7 @@ package weave.data.DataSources
 		
 		public function handleCreateReportFault(event:FaultEvent, token:Object = null):void
 		{
-			trace("Fault creating report: " + event.fault.name, event.message);
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event, "Fault creating report: " + event.fault.name, event.message);
 		}
 	}
 }

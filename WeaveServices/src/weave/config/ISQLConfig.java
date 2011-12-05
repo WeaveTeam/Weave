@@ -38,6 +38,10 @@ import org.w3c.dom.Document;
  * @author Administrator
  *
  */
+/**
+ * @author Andy
+ *
+ */
 public interface ISQLConfig
 {
 	/**
@@ -172,6 +176,12 @@ public interface ISQLConfig
 	 */
 	List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException;
 
+	
+	/**
+	 * @return true if this ISQLConfig object is successfully connected to the database using DatabaseConfigInfo.
+	 */
+	boolean isConnectedToDatabase();
+	
 	/**
 	 * @return A DatabaseConfigInfo object, or null if this ISQLConfig is not configured to store info in a database.
 	 */
@@ -209,13 +219,14 @@ public interface ISQLConfig
 		public static final String DATABASE = "database";
 		public static final String USER = "user";
 		public static final String PASS = "pass";
-		public static final String IS_SUPERUSER = "is_superuser";
+		public static final String IS_SUPERUSER = "is_superuser";		
+		public static final String FOLDERNAME = "folderName"; 
 
 		public ConnectionInfo()
 		{
 		}
 
-		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "";
+		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "", folderName = "";
 		public boolean is_superuser = false;
 
 		public String getConnectString()
@@ -264,6 +275,8 @@ public interface ISQLConfig
 		// this information should not be made available to client programs
 		public static final String CONNECTION = "connection";
 		public static final String SQLQUERY = "sqlQuery";
+		public static final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
+		public static final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
 
 		// Metadata includes everything that end-users are allowed to see.
 		// Metadata should not contain any information related to the SQL
@@ -278,7 +291,9 @@ public interface ISQLConfig
 			YEAR("year"),
 			MIN("min"),
 			MAX("max"),
-			TITLE("title");
+			TITLE("title"),
+			NUMBER("number"),
+			STRING("string");
 
 			Metadata(String name)
 			{
@@ -330,8 +345,7 @@ public interface ISQLConfig
 					case Types.DOUBLE:
 					case Types.REAL:
 					case Types.NUMERIC:
-						// case Types.ROWID: // produces compiler error in some
-						// environments
+					/* case Types.ROWID: // produces compiler error in some environments */
 						return DataType.NUMBER;
 					default:
 						return DataType.STRING;

@@ -26,10 +26,10 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
-	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -37,6 +37,7 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 
 	/**
 	 * AnchorPlotter
@@ -50,8 +51,8 @@ package weave.visualization.plotters
 		private var _keySet:KeySet;
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
-		public const enableWedgeColoring:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false), fillColorMap);
-		public const colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
@@ -61,13 +62,7 @@ package weave.visualization.plotters
 		
 		public function AnchorPlotter()	
 		{
-			registerNonSpatialProperties(
-				Weave.properties.axisFontBold,
-				Weave.properties.axisFontColor,
-				Weave.properties.axisFontFamily,
-				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontUnderline);			
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
 		public function handleAnchorsChange():void
@@ -134,7 +129,7 @@ package weave.visualization.plotters
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";
 				
-				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				
 				_bitmapText.angle = screenBounds.getYDirection() * (radians * 180 / Math.PI);
 				_bitmapText.angle = (_bitmapText.angle % 360 + 360) % 360;
@@ -151,9 +146,7 @@ package weave.visualization.plotters
 					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
 				
-				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;				
-				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+				LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);				
 				_bitmapText.x = tempPoint.x;
 				_bitmapText.y = tempPoint.y;
 				

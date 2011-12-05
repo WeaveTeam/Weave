@@ -20,49 +20,39 @@
 */
 -->
 
-<!--
+<!---
 DragDropDimensions
 
 
 @skolman
 -->
 
-	<mx:List xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-			 dragEnabled="true"
-			 dragMoveEnabled="true"
-			 initialize="init();"
-			 width="100%" implements="weave.api.core.ILinkableObject" dropEnabled="true">
-	
+<mx:List xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 dragEnabled="true"
+		 dragMoveEnabled="true"
+		 initialize="init();"
+		 width="100%" implements="weave.api.core.ILinkableObject" dropEnabled="true">
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.newLinkableChild;
-			import flash.utils.describeType;
-			
 			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
-			import mx.controls.Image;
 			import mx.controls.List;
-			import mx.controls.Text;
-			import mx.controls.TextInput;
-			import mx.core.DragSource;
 			import mx.core.IUIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.Weave;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.api.data.IDataSource;
 			import weave.api.core.ILinkableObject;
+			import weave.api.newLinkableChild;
 			import weave.core.LinkableHashMap;
-			import weave.core.SessionManager;
+			import weave.data.AttributeColumns.DynamicColumn;
 			
 			private function init():void
 			{
-				hashMap.childListCallbacks.addGroupedCallback(this, updateDataProvider);
+				hashMap.childListCallbacks.addGroupedCallback(this, updateDataProvider, true);
 			}
 			
 			public const hashMap:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+			
 			private function updateDataProvider():void
 			{
 				this.dataProvider = hashMap.getObjects();
@@ -72,7 +62,7 @@ DragDropDimensions
 			{
 				var items:Array = event.dragSource.dataForFormat("items") as Array;
 				for each (var object:ILinkableObject in items)
-					hashMap.copyObject(null, object);
+					hashMap.requestObjectCopy(null, object);
 			}
 			
 			override protected function dragEnterHandler(event:DragEvent):void

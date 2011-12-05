@@ -40,6 +40,10 @@ package weave.visualization.plotters
 	{
 		public function AbstractGlyphPlotter()
 		{
+			init();
+		}
+		private function init():void
+		{
 			clipDrawing = false;
 			setKeySource(dataX);
 			
@@ -47,7 +51,8 @@ package weave.visualization.plotters
 			filteredDataX.filter.requestLocalObject(FilteredKeySet, true);
 			filteredDataY.filter.requestLocalObject(FilteredKeySet, true);
 			
-			registerSpatialProperties(dataX, dataY);
+			registerSpatialProperty(dataX);
+			registerSpatialProperty(dataY);
 			
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataX.filter);
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);

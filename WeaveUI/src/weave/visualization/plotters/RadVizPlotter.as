@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -40,10 +41,10 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
+	import weave.radviz.BruteForceLayoutAlgorithm;
 	import weave.radviz.GreedyLayoutAlgorithm;
 	import weave.radviz.IncrementalLayoutAlgorithm;
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
-	import weave.radviz.BruteForceLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
@@ -61,10 +62,9 @@ package weave.visualization.plotters
 		public function RadVizPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-			registerNonSpatialProperties(screenRadius, fillStyle);			
 			setNewRandomJitterColumn();		
 			iterations.value = 50;
-			
+			recordsPerDraw = 1;
 			init()
 		}		
 		
@@ -92,17 +92,17 @@ package weave.visualization.plotters
 		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
 		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
 		
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle,handleColorColumnChange);		
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
-		public const colorMap:ColorRamp = registerNonSpatialProperty(new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
 
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
 		private const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn, handleRadiusColumnChange);
 		public function get radiusColumn():DynamicColumn { return screenRadius; }
-		public const radiusConstant:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
+		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
 		private static var randomValueArray:Array = new Array();		
 		private static var randomArrayIndexMap:Dictionary;
@@ -513,7 +513,7 @@ package weave.visualization.plotters
 		
 		// algorithms
 		[Bindable] public var algorithms:Array = [RANDOM_LAYOUT, GREEDY_LAYOUT, NEAREST_NEIGHBOR, INCREMENTAL_LAYOUT, BRUTE_FORCE];
-		public const currentAlgorithm:LinkableString = registerNonSpatialProperty(new LinkableString(GREEDY_LAYOUT), changeAlgorithm);
+		public const currentAlgorithm:LinkableString = registerLinkableChild(this, new LinkableString(GREEDY_LAYOUT), changeAlgorithm);
 		public static const RANDOM_LAYOUT:String = "Random layout";
 		public static const GREEDY_LAYOUT:String = "Greedy layout";
 		public static const NEAREST_NEIGHBOR:String = "Nearest neighbor";

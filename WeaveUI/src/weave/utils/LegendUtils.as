@@ -53,19 +53,15 @@ package weave.utils
 				maxColumns = totalItemCount;
 			var maxRows:int = Math.ceil(totalItemCount / maxColumns);
 
-			var xMin:Number = fullScreenBounds.getXNumericMin();
-			var yMin:Number = fullScreenBounds.getYNumericMin();
-			var xMax:Number = fullScreenBounds.getXNumericMax();
-			var yMax:Number = fullScreenBounds.getYNumericMax();
-			var xSpacing:Number = (xMax - xMin) / maxColumns;
-			var ySpacing:Number = (yMax - yMin) / maxRows;
+			var xSpacing:Number = fullScreenBounds.getXCoverage() / maxColumns;
+			var ySpacing:Number = fullScreenBounds.getYCoverage() / maxRows;
 			var desiredColumn:int = index % maxColumns;
 			var desiredRow:int = index / maxColumns;
 			if (transposeInRow)
 				desiredColumn = (maxColumns - 1) - desiredColumn;
 			
-			var xMinDesired:Number = xMin + xSpacing * desiredColumn;
-			var yMinDesired:Number = yMin + ySpacing * desiredRow;
+			var xMinDesired:Number = fullScreenBounds.getXNumericMin() + xSpacing * desiredColumn;
+			var yMinDesired:Number = fullScreenBounds.getYNumericMin() + ySpacing * desiredRow;
 			var xMaxDesired:Number = xMinDesired + xSpacing;
 			var yMaxDesired:Number = yMinDesired + ySpacing;
 			outputScreenBounds.setBounds(xMinDesired, yMinDesired, xMaxDesired, yMaxDesired);			
@@ -82,24 +78,15 @@ package weave.utils
 		 */		
 		public static function renderLegendItemText(destination:BitmapData, text:String, itemScreenBounds:IBounds2D, iconGap:int, clipRectangle:Rectangle = null):void
 		{
-			bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-			bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-			bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
-			bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-			bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-			bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
-			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			
-			var xMin:Number = itemScreenBounds.getXNumericMin();
-			var yMin:Number = itemScreenBounds.getYNumericMin();
-			var xMax:Number = itemScreenBounds.getXNumericMax();
-			var yMax:Number = itemScreenBounds.getYNumericMax();
-			xMin += iconGap;
+			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			
 			bitmapText.text = text;
-			bitmapText.x = xMin;
-			bitmapText.y = (yMin + yMax) / 2;
-			bitmapText.maxWidth = (xMax - xMin);
+			bitmapText.x = itemScreenBounds.getXNumericMin() + iconGap;
+			bitmapText.y = itemScreenBounds.getYCenter();
+			bitmapText.maxWidth = itemScreenBounds.getXCoverage() - iconGap;
+			bitmapText.maxHeight = itemScreenBounds.getYCoverage();
 			bitmapText.draw(destination, null, null, null, clipRectangle ); 
 		}
 		

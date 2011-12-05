@@ -39,6 +39,7 @@
 	textDecoration: none;
 }
 .weave-panel-title-style {
+	color: #FFFFFF;
 	borderAlpha: 0.95;
 	alpha: 1.0;
 	backgroundAlpha: 1.0;

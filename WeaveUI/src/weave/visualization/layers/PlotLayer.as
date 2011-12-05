@@ -21,14 +21,19 @@ package weave.visualization.layers
 {
 	import flash.display.Bitmap;
 	import flash.display.PixelSnapping;
+	import flash.events.Event;
 	
 	import mx.core.UIComponent;
 	import mx.utils.NameUtil;
 	
+	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
+	import weave.api.getCallbackCollection;
+	import weave.api.linkBindableProperty;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -37,6 +42,8 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.LinkableBoolean;
+	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.DebugUtils;
@@ -57,25 +64,17 @@ package weave.visualization.layers
 			super();
 			if (externalPlotter && externalSpatialIndex)
 			{
-				_dynamicPlotter = registerLinkableChild(this, externalPlotter, invalidateGraphics);
+				_dynamicPlotter = registerLinkableChild(this, externalPlotter);
 				_spatialIndex = externalSpatialIndex;
 				usingExternalSpatialIndex = true;
 			}
 			else
 			{
-				_dynamicPlotter = newLinkableChild(this, DynamicPlotter, invalidateGraphics);
-				_spatialIndex = new SpatialIndex();
+				_dynamicPlotter = newLinkableChild(this, DynamicPlotter);
+				_spatialIndex = newLinkableChild(this, SpatialIndex);
 				usingExternalSpatialIndex = false;
+				_dynamicPlotter.spatialCallbacks.addImmediateCallback(this, _spatialIndex.clear);
 			}
-			init();
-		}
-		
-		/**
-		 * This function gets called by the constructor.
-		 * This code is in its own function because constructors do not get compiled.
-		 */
-		private function init():void
-		{
 			// generate a name for debugging
 			name = NameUtil.createUniqueName(this);
 			// default size = 100%,100%
@@ -88,17 +87,15 @@ package weave.visualization.layers
 			// make selectionFilter appear in session state.
 			registerLinkableChild(this, selectionFilter);
 
-			if (!usingExternalSpatialIndex)
-				_dynamicPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallback);
-			
 			//_filteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+			_dynamicPlotter.keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 			
 			_filteredKeys.setBaseKeySet(_dynamicPlotter.keySet);
 			isOverlay.value = false;
 			
-			layerIsVisible.value = true;
+			linkBindableProperty(layerIsVisible, this, 'visible');
 
-			_filteredKeys.addImmediateCallback(this, invalidateGraphics);
+			getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 		}
 
 		/**
@@ -151,7 +148,7 @@ package weave.visualization.layers
 			if (!_dataBounds.equals(source))
 			{
 				_dataBounds.copyFrom(source);
-				invalidateGraphics();
+				invalidateDisplayList();
 			}
 		}
 		public function setScreenBounds(source:IBounds2D):void
@@ -159,7 +156,7 @@ package weave.visualization.layers
 			if (!_screenBounds.equals(source))
 			{
 				_screenBounds.copyFrom(source);
-				invalidateGraphics();
+				invalidateDisplayList();
 			}
 		}
 		
@@ -172,7 +169,7 @@ package weave.visualization.layers
 		 * When this is true, the plot won't be drawn if there is no selection and the background will never be drawn.
 		 * This variable says whether or not this is an overlay on top of another layer with the same plotter.
 		 */
-		public const isOverlay:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidateGraphics);
+		public const isOverlay:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		// This is the key set of the plotter with a filter applied to it.
 		private const _filteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
@@ -180,7 +177,7 @@ package weave.visualization.layers
 		/**
 		 * Sets the visibility of the layer
 		 */
-		public const layerIsVisible:LinkableBoolean = newLinkableChild(this, LinkableBoolean, toggleLayer);
+		public const layerIsVisible:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 
 		/**
 		 * This will be used to filter the graphics that are drawn, but not the records that were used to calculate the graphics.
@@ -211,47 +208,11 @@ package weave.visualization.layers
 		// Array is of type BitmapFilter
 		public function set plotFilters(value:Array):void        { plotBitmap.filters = value;       }
 
-		/**
-		 * This function should be used instead of validateGraphics(), which should never be called directly.
-		 * This will invalidate the graphics and cause validateGraphics() to be called at the appropriate time.
-		 */
-		public function invalidateGraphics():void
-		{
-			//trace("invalidateGraphics");
-			_graphicsAreValid = false;
-			invalidateDisplayList();
-		}
-		
-		private function spatialCallback():void
-		{
-			_spatialIndexDirty = true;
-			_spatialIndex.clear();
-		}
-
-		private function toggleLayer():void
-		{
-			this.visible = layerIsVisible.value;
-			invalidateGraphics();
-		}
-		private var _graphicsAreValid:Boolean = false; // used as a flag to remember if the graphics need to be updated
-
-		/**
-		 * @return true if the graphics are valid.
-		 */
-		public function get graphicsAreValid():Boolean
-		{
-			return _graphicsAreValid;
-		}
-
 		public function validateSpatialIndex():void
 		{
-			if (_spatialIndexDirty)
-			{
-				//trace(this,"updating spatial index", CallbackCollection.getStackTrace());
-				_spatialIndexDirty = false;
+			// spatial index becomes invalid when spatial callbacks are triggered
+			if (detectLinkableObjectChange(validateSpatialIndex, _dynamicPlotter.spatialCallbacks))
 				_spatialIndex.createIndex(plotter, showMissingRecords);
-				//trace(this,"updated spatial index",spatialIndex.collectiveBounds);
-			}
 		}
 		public function getSelectedKeys():Array
 		{
@@ -296,16 +257,59 @@ package weave.visualization.layers
 		}
 
 		/**
-		 * This function should be defined with override by classes that extend AbstractVisLayer.
-		 * This function should never be called directly except by the protected updateDisplayList() function defined here.
+		 * This function gets called when the unscaled width or height changes.
+		 * This function will resize the BitmapData to the new unscaled width and height.
 		 */
-		protected function validateGraphics(unscaledWidth:Number, unscaledHeight:Number):void
+		private function handleSizeChange():void
 		{
-			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && layerIsVisible.value;
+			//trace("sizeChanged",unscaledWidth,unscaledHeight);
+			
+			var bitmapChanged:Boolean = PlotterUtils.setBitmapDataSize(plotBitmap, unscaledWidth, unscaledHeight);
+			if (bitmapChanged)
+				invalidateDisplayList();
+			
+			if (!isOverlay.value)
+			{
+				var bgChanged:Boolean = PlotterUtils.setBitmapDataSize(backgroundBitmap, unscaledWidth, unscaledHeight);
+				if (bgChanged)
+					invalidateDisplayList();
+			}
+			else if (backgroundBitmap.bitmapData != null)
+			{
+				backgroundBitmap.bitmapData.dispose();
+				backgroundBitmap.bitmapData = null;
+			}
+		}
+
+		// these variables are used to detect a change in size
+		private var _prevUnscaledWidth:Number = NaN;
+		private var _prevUnscaledHeight:Number = NaN;
+
+		/**
+		 * @inheritDoc
+		 */
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+		{
+			//trace("updateDisplayList",arguments);
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
+			
+			// do nothing if not visible
+			if (!layerIsVisible.value)
+				return;
+
+			// detect size change
+			var sizeChanged:Boolean = _prevUnscaledWidth != unscaledWidth || _prevUnscaledHeight != unscaledHeight;
+			_prevUnscaledWidth = unscaledWidth;
+			_prevUnscaledHeight = unscaledHeight;
+			if (sizeChanged)
+				handleSizeChange();
+
+			//trace(name,'begin updateDisplayList', _dataBounds);
+			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0);
 			//validate spatial index if necessary
 			if (shouldDraw)
 				validateSpatialIndex();
-
+			
 			// draw background if this is not an overlay
 			if (!isOverlay.value && !PlotterUtils.bitmapDataIsEmpty(backgroundBitmap))
 			{
@@ -321,75 +325,14 @@ package weave.visualization.layers
 			{
 				PlotterUtils.clear(plotBitmap.bitmapData);
 				// get keys for plot, then draw the records
-
+				
 				if (shouldDraw)
 				{
 					var keys:Array = getSelectedKeys() || []; // use empty Array if keys are null
 					plotter.drawPlot(keys, _dataBounds, _screenBounds, plotBitmap.bitmapData);
 				}
 			}
-		}
-		
-		/**
-		 * This function gets called when the unscaled width or height changes.
-		 * This function will resize the BitmapData to the new unscaled width and height.
-		 * Classes that extend PlotLayer can override this function for different behavior.
-		 */
-		protected function handleSizeChange():void
-		{
-			//trace("sizeChanged",unscaledWidth,unscaledHeight);
-			
-			var bitmapChanged:Boolean = PlotterUtils.setBitmapDataSize(plotBitmap, unscaledWidth, unscaledHeight);
-			if (bitmapChanged)
-				invalidateGraphics();
-			
-			if (!isOverlay.value)
-			{
-				var bgChanged:Boolean = PlotterUtils.setBitmapDataSize(backgroundBitmap, unscaledWidth, unscaledHeight);
-				if (bgChanged)
-					invalidateGraphics();
-			}
-			else if (backgroundBitmap.bitmapData != null)
-			{
-				backgroundBitmap.bitmapData.dispose();
-				backgroundBitmap.bitmapData = null;
-			}
-		}
-
-		// these variables are used to detect a change in size
-		private var _prevUnscaledWidth:Number = NaN;
-		private var _prevUnscaledHeight:Number = NaN;
-
-		/**
-		 * This function checks if the unscaled size of the UIComponent changed.
-		 * If so, the graphics are invalidated.
-		 * If the graphics are invalid, this function will call validateGraphics().
-		 * This is the only function that should call validateGraphics() directly.
-		 */
-		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-		{
-			//trace("updateDisplayList",arguments);
-			super.updateDisplayList(unscaledWidth, unscaledHeight);
-
-			// detect size change
-			var sizeChanged:Boolean = _prevUnscaledWidth != unscaledWidth || _prevUnscaledHeight != unscaledHeight;
-			_prevUnscaledWidth = unscaledWidth;
-			_prevUnscaledHeight = unscaledHeight;
-			if (sizeChanged)
-				handleSizeChange();
-
-			// validate graphics if necessary
-			if (!_graphicsAreValid && layerIsVisible.value)
-			{
-				//trace("validating graphics...");
-				validateGraphics(unscaledWidth, unscaledHeight);
-				_graphicsAreValid = true;
-			}
-		}
-
-		private function trace(...args):void
-		{
-			DebugUtils.debug_trace(this, selectionFilter.globalName, args);
+			//trace(name,'end updateDisplayList', _dataBounds);
 		}
 	}
 }

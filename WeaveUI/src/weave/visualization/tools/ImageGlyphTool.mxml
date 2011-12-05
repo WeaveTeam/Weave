@@ -32,11 +32,11 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ImageGlyphPlotter) as ImageGlyphPlotter;
-				visualization.marginBottom.value = 50;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				_plotter = initializePlotters(ImageGlyphPlotter, false);
+				visualization.marginBottom.value = "50";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				visualization.enableZoomAndPan.value = false;
 			}
 		]]>

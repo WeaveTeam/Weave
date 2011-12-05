@@ -193,7 +193,7 @@ package weave
 					destination,
 					function (e:Event):void
 					{
-						subset.replaceKeys(true, true, null);
+						subset.replaceKeys(true, true);
 					},
 					groupName
 				);

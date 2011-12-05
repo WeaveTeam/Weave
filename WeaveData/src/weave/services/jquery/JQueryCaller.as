@@ -33,6 +33,7 @@ package weave.services.jquery
 	import mx.utils.UIDUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.reportError;
 	import weave.core.ErrorManager;
 	import weave.utils.ByteArrayUtils;
 
@@ -76,7 +77,7 @@ package weave.services.jquery
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 		}
 		

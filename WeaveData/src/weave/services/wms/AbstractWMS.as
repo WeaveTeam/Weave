@@ -24,6 +24,7 @@ package weave.services.wms
 	
 	import weave.api.WeaveAPI;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.reportError;
 	import weave.api.services.IWMSService;
 	import weave.core.CallbackCollection;
 	import weave.core.ErrorManager;
@@ -71,7 +72,7 @@ package weave.services.wms
 		
 		/**
 		 * This function will cancel all pending requests.
-		 * @see weave.api.core.IWMSService.cancelPendingRequests
+		 * @see weave.api.core.IWMSService#cancelPendingRequests
 		 */
 		public function cancelPendingRequests():void
 		{
@@ -123,7 +124,7 @@ package weave.services.wms
 		
 		/**
 		 * Return the number of pending requests.
-		 * @see weave.api.core.IWMSService.getNumPendingRequests
+		 * @see weave.api.core.IWMSService#getNumPendingRequests
 		 */
 		public function getNumPendingRequests():int
 		{
@@ -132,7 +133,7 @@ package weave.services.wms
 		
 		/**
 		 * Return the srs code.
-		 * @see weave.api.core.IWMSService.getProjectionSRS
+		 * @see weave.api.core.IWMSService#getProjectionSRS
 		 */
 		public function getProjectionSRS():String
 		{
@@ -141,7 +142,7 @@ package weave.services.wms
 		
 		/**
 		 * Request the images.
-		 * @see weave.api.core.IWMSService.requestImages
+		 * @see weave.api.core.IWMSService#requestImages
 		 */		 
 		/* abstract */ public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array 
 		{
@@ -150,7 +151,7 @@ package weave.services.wms
 		
 		/**
 		 * Return the allowed bounds.
-		 * @see weave.api.core.IWMSService.getAllowedBounds
+		 * @see weave.api.core.IWMSService#getAllowedBounds
 		 */ 
 		/* abstract */ public function getAllowedBounds():IBounds2D
 		{
@@ -159,12 +160,12 @@ package weave.services.wms
 		
 		/* abstract */ public function setProvider(provider:String):void
 		{
-			WeaveAPI.ErrorManager.reportError(new Error("Attempt to set the provider of AbstractWMS."));
+			reportError("Attempt to set the provider of AbstractWMS.");
 		}
 		
 		/* abstract */ public function getProvider():*
 		{
-			WeaveAPI.ErrorManager.reportError(new Error("Attempt to get the provider of AbstractWMS."));
+			reportError("Attempt to get the provider of AbstractWMS.");
 			return null;
 		}
 		
@@ -184,7 +185,7 @@ package weave.services.wms
 		
 		/* abstract */ public function getCreditInfo():String
 		{
-			WeaveAPI.ErrorManager.reportError(new Error("Attempt to get copyright information of AbstractWMS."));
+			reportError("Attempt to get copyright information of AbstractWMS.");
 			return null;
 		}
 	}

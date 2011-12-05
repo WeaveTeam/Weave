@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.debugger.enterDebugger;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -30,6 +31,9 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	
+	use namespace weave_internal;
 	
 	/**
 	 * This contains an ordered list of name-to-object mappings.
@@ -184,23 +188,25 @@ package weave.core
 		}
 		
 		/**
-		 * This function will copy the session state of an ILinkableObject to an object under the given name in this LinkableHashMap.
+		 * This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.
 		 * @param newName A name for the object to be initialized in this LinkableHashMap.
 		 * @param objectToCopy An object to copy the session state from.
-		 * @return The new copy of the specified object, or null if an error occurred.
+		 * @return The new object of the same type, or null if an error occurred.
 		 */
-		public function copyObject(name:String, objectToCopy:ILinkableObject):ILinkableObject
+		public function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject
 		{
 			if (objectToCopy == null)
 				return null;
-			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
+			
+			delayCallbacks(); // make sure callbacks only trigger once
+			var className:String = getQualifiedClassName(objectToCopy);
+			var classDef:Class = ClassUtils.getClassDefinition(className);
 			var object:ILinkableObject = requestObject(name, classDef, false);
-			if (object is classDef)
-			{
+			if (object != null)
 				copySessionState(objectToCopy, object);
-				return object;
-			}
-			return null;
+			resumeCallbacks();
+			
+			return object;
 		}
 		
 		/**
@@ -239,7 +245,8 @@ package weave.core
 					}
 					catch (e:Error)
 					{
-						WeaveAPI.ErrorManager.reportError(e);
+						reportError(e);
+						enterDebugger();
 					}
 				}
 				else
@@ -297,8 +304,8 @@ package weave.core
 				_nameIsLocked[name] = true;
 		}
 		/**
-		 * @see weave.api.core.ILinkableHashMap.removeObject
 		 * @param name The identifying name of an object previously saved with setObject().
+		 * @see weave.api.core.ILinkableHashMap#removeObject
 		 */
 		public function removeObject(name:String):void
 		{

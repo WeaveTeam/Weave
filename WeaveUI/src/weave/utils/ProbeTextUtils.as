@@ -28,31 +28,32 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
-	import weave.visualization.layers.InteractiveVisualization;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
 	
 	/**
-	 * ProbeTextManager
 	 * A static class containing functions to manage a list of probed attribute columns
 	 * 
 	 * @author adufilie
 	 */
 	public class ProbeTextUtils
 	{
-		public static function get probedColumns():LinkableHashMap
+		public static const enableProbeToolTip:LinkableBoolean = new LinkableBoolean(true);
+		
+		public static function get probedColumns():ILinkableHashMap
 		{
 			// this initializes the probed columns object map if not created yet, otherwise just returns the existing one
 			return Weave.root.requestObject("Probed Columns", LinkableHashMap, true);
 		}
 		
-		public static function get probeHeaderColumns():LinkableHashMap
+		public static function get probeHeaderColumns():ILinkableHashMap
 		{
 			return Weave.root.requestObject("Probe Header Columns", LinkableHashMap, true);
 		}
@@ -63,15 +64,16 @@ package weave.utils
 		 * @param additionalColumns An array of additional columns (other than global probed columns) to be displayed in the probe tooltip
 		 * @param maxRecordsShown Maximum no. of records shown in one probe tooltip
 		 * @return A string to be displayed on a tooltip while probing 
-		 */		
-		public static function getProbeText(keySet:IKeySet, additionalColumns:Array = null):String
+		 */
+		public static function getProbeText(keys:Array, additionalColumns:Array = null):String
 		{
 			var result:String = '';
-			var columns:Array = probedColumns.getObjects(IAttributeColumn);
+			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
+			// include headers in list of columns so that those appearing in the headers won't be duplicated.
+			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
 			if (additionalColumns != null)
 				columns = columns.concat(additionalColumns);
-			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
-			var keys:Array = keySet.keys.concat().sort(ObjectUtil.compare);
+			var keys:Array = keys.concat().sort(ObjectUtil.compare);
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
 			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;
@@ -102,12 +104,15 @@ package weave.utils
 						continue;
 					var title:String = ColumnUtils.getTitle(column);
 					var line:String = StandardLib.lpad(value, 8) + ' (' + title + ')\n';
-					if(lookup[line]  == undefined )
+					// prevent duplicate lines from being added
+					if (lookup[line] == undefined)
 					{
 						if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
 						{
-							record += line;
-							lookup[line] = true;
+							lookup[line] = true; // this prevents the line from being duplicated
+							// the headers are only included so that the information will not be duplicated
+							if (iColumn >= headers.length)
+								record += line;
 						}
 					}
 				}
@@ -146,19 +151,27 @@ package weave.utils
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 				(probeToolTip as ToolTip).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
 		}
-		
+
 		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
 		{
+			if (!probeToolTip)
+				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
+			
+			hideProbeToolTip();
+			
+			if (!enableProbeToolTip.value)
+				return;
+			
 			if (bounds == null)
 			{
 				var stage:Stage = Application.application.stage;
 				tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 				bounds = tempBounds;
 			}
-			destroyProbeToolTip();
 			
 			// create new tooltip
-			probeToolTip = ToolTipManager.createToolTip(probeText, 0, 0);
+			probeToolTip.text = probeText;
+			probeToolTip.visible = true;
 			
 			// make tooltip completely opaque because text + graphics on same sprite is slow
 			setProbeToolTipAppearance() ;
@@ -183,7 +196,7 @@ package weave.utils
 			{
 				y = stageY + margin * 2;
 				if(yAxisToolTip != null)
-					y = yAxisToolTip.y+yAxisToolTip.height+margin;
+					y = yAxisToolTip.y + yAxisToolTip.height+margin;
 			}
 			
 			// flip y position if out of bounds
@@ -240,13 +253,12 @@ package weave.utils
 		private static var probeToolTip:IToolTip = null;
 		private static const tempBounds:IBounds2D = new Bounds2D();
 		
-		public static function destroyProbeToolTip():void
+		
+		
+		public static function hideProbeToolTip():void
 		{
-			if (probeToolTip != null)
-			{
-				ToolTipManager.destroyToolTip(probeToolTip);
-				probeToolTip = null;
-			}
+			if (probeToolTip)
+				probeToolTip.visible = false;
 		}
 	}
 }

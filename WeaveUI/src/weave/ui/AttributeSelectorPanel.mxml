@@ -43,7 +43,7 @@
 			<mx:Button label="Refresh" click="{sessionNavigator.refresh()}"/>
 			<ui:SessionNavigator id="sessionNavigator" height="100%"/>
 		</mx:VBox>-->
-			<HierarchyColumnSelector id="hierarchySelector" width="100%" height="100%"/>
+			<HierarchyColumnSelector id="hierarchyColumnSelector" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
 				<mx:Button label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
@@ -57,6 +57,7 @@
 			import flash.utils.getQualifiedClassName;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.ListCollectionView;
 			import mx.collections.XMLListCollection;
 			import mx.controls.Alert;
 			import mx.controls.Label;
@@ -94,6 +95,7 @@
 			import weave.core.LinkableXML;
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLEncoder;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.data.AttributeColumns.ProxyColumn;
@@ -128,7 +130,7 @@
 			override public function dispose():void
 			{
 				super.dispose();
-				disposeObjects(hierarchySelector);
+				disposeObjects(hierarchyColumnSelector);
 			}
 			
 			private function addAll():void
@@ -139,29 +141,14 @@
 					return;
 				}
 				
-				var path:XML = hierarchySelector.dimensionTreeView.selectedPath.value;
-				var depth:int = HierarchyUtils.getPathDepth(path);
-				var leaf:XML = HierarchyUtils.getLeafNodeFromPath(path);
-				if (!leaf)
-					return;
-				if (String(leaf.localName()) == 'attribute')
-					depth--;
-				if (depth < 0)
-					return;
-				var root:XML = hierarchySelector.dimensionTreeView.attributeHierarchy.value as XML;
-				var category:XML = HierarchyUtils.getNodeFromPath(root, path, depth);
-				if (!category)
-					return;
-				var children:XMLList = category.children();
-				for (var i:int = 0; i < children.length(); i++)
+				var root:XML = hierarchyColumnSelector.hierarchySelector.attributeHierarchy.value as XML;
+				var attrs:Array = (hierarchyColumnSelector.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
+				for (var i:int = 0; i < attrs.length; i++)
 				{
-					var attr:XML = children[i];
-					if (String(attr.localName()) == 'attribute')
-					{
-						var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
-						var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-						hierarchySelector.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
-					}
+					var attr:XML = attrs[i];
+					var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
+					var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+					hierarchyColumnSelector.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
 				}
 			}
 			
@@ -172,26 +159,26 @@
 					linkToObject(null);
 					return;
 				}
-				columnList.hashMap.copyObject(null, hierarchySelector.dynamicColumn.internalObject);
+				columnList.hashMap.requestObjectCopy(null, hierarchyColumnSelector.dynamicColumn.internalObject);
 			}
 			
 			private var _prevLinkedColumn:DynamicColumn = null;
 			private function linkToDynamicColumn(linkObject:DynamicColumn):void
 			{
 				if (_prevLinkedColumn != null)
-					unlinkSessionState(_prevLinkedColumn, hierarchySelector.dynamicColumn);
+					unlinkSessionState(_prevLinkedColumn, hierarchyColumnSelector.dynamicColumn);
 
 				_prevLinkedColumn = linkObject;
 				
 				if (linkObject != null)
 				{
-					linkSessionState(linkObject, hierarchySelector.dynamicColumn);
+					linkSessionState(linkObject, hierarchyColumnSelector.dynamicColumn);
 
 					// if newly linked object doesn't have an internal column,
 					// keep the currently selected path except for the leaf node
 					if(linkObject.internalColumn == null)
 					{
-						var path:LinkableXML = hierarchySelector.dimensionTreeView.selectedPath;
+						var path:LinkableXML = hierarchyColumnSelector.hierarchySelector.selectedPath;
 						if (!path.value)
 							return;
 						var attr:XMLList = path.value.descendants("attribute");
@@ -209,10 +196,34 @@
 			
 			private function showOrHideParamSelector(show:Boolean):void
 			{
-				if (show && outerVBox != paramSelector.parent)
+				if (show && !paramSelector.parent)
 					outerVBox.addChildAt(paramSelector,0);
-				if (!show && outerVBox == paramSelector.parent)
+				if (!show && paramSelector.parent)
 					outerVBox.removeChild(paramSelector);
+			}
+			
+			/**
+			 * This function is a temporary hack.
+			 */
+			public static function hack_findInternalDynamicColumn(columnWrapper:IColumnWrapper):DynamicColumn
+			{
+				var columnWrapper:IColumnWrapper = columnWrapper as IColumnWrapper;
+				if (columnWrapper)
+				{
+					// temporary solution - find internal dynamic column
+					while (true)
+					{
+						if (columnWrapper.internalColumn is DynamicColumn)
+							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
+						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
+							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
+						else
+							break;
+					}
+					if (columnWrapper is ExtendedDynamicColumn)
+						columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
+				}
+				return columnWrapper as DynamicColumn;
 			}
 			
 			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
@@ -233,40 +244,22 @@
 					showOrHideParamSelector(false);
 				}
 				
-				var columnWrapper:IColumnWrapper = columnOrHashMap as IColumnWrapper;
-				if (columnWrapper)
-				{
-					// temporary solution - find internal dynamic column
-					while (true)
-					{
-						if (columnWrapper.internalColumn is DynamicColumn)
-							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
-						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
-							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
-						else
-							break;
-					}
-					if (columnWrapper is ExtendedDynamicColumn)
-						columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
-					
-					linkToDynamicColumn(columnWrapper as DynamicColumn);
-				}
+				linkToDynamicColumn(hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
 				
 				if (columnOrHashMap is ILinkableHashMap)
 				{
-					linkToDynamicColumn(null);
 
 					// set path to first column.
 					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(DynamicColumn);
 					if (columns.length > 0)
 					{
-						copySessionState(columns[0], hierarchySelector.dynamicColumn);
+						copySessionState(columns[0], hierarchyColumnSelector.dynamicColumn);
 					}
 					else
 					{
 						columns = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
 						if (columns.length > 0)
-							hierarchySelector.dynamicColumn.copyLocalObject(columns[0]);
+							hierarchyColumnSelector.dynamicColumn.requestLocalObjectCopy(columns[0]);
 					}
 					
 					var child:DisplayObject = columnList.selectorControls;
@@ -286,7 +279,13 @@
 					targets = selectableAttributes = [];
 			}
 			
-			private static var defaultSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
+			public static function get defaultSelector():AttributeSelectorPanel
+			{
+				if (!_defaultSelector)
+					_defaultSelector = new AttributeSelectorPanel();
+				return _defaultSelector;
+			}
+			public static var _defaultSelector:AttributeSelectorPanel;
 			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
 			{
 				if (!Weave.properties.enableToolControls.value)
@@ -308,7 +307,7 @@
 				if (!defaultSelector.parent)
 					PopUpManager.addPopUp(defaultSelector, Application.application as Application);
 
-				defaultSelector.hierarchySelector.clearSearch();
+				defaultSelector.hierarchyColumnSelector.clearSearch();
 				
 				defaultSelector.linkToObject(linkTo, title);
 				defaultSelector.targets = linkTo ? [linkTo] : [];

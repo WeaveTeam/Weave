@@ -23,7 +23,7 @@
 *  @author skolman
 *  
 -->
-<mx:Tree initialize="init()" xmlns:mx="http://www.adobe.com/2006/mxml"  
+<mx:Tree xmlns:mx="http://www.adobe.com/2006/mxml"  
 		 width="100%" height="100%" 
 		 disclosureOpenIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureOpen')" 
 		 disclosureClosedIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureClosed')"
@@ -63,10 +63,6 @@
 			import weave.utils.DebugUtils;
 			use namespace weave_internal;
 
-			private function init():void
-			{
-			}
-			
 			private var _rootObject:ILinkableObject = null;
 			public function set rootObject(value:ILinkableObject):void
 			{
@@ -82,6 +78,7 @@
 				else
 					_linkableObjectName = null;
 				
+				verticalScrollPosition = 0;
 				handleRootObjectChange();	
 			}
 			public function get rootObject():ILinkableObject
@@ -236,6 +233,7 @@
 			
 			public function refresh(selectedObject:ILinkableObject = null):void
 			{
+				var vsp:int = verticalScrollPosition;
 				if (selectedObject == null)
 					selectedObject = (selectedItem && selectedItem.object) as ILinkableObject;
 				
@@ -253,6 +251,7 @@
 				if (selectedIndex >= 0)
 					scrollToIndex(selectedIndex);
 				expandItem(rootItem, true);
+				verticalScrollPosition = vsp;
 			}
 			
 			// TODO: make this function iterative (breadth first search) to improve performance

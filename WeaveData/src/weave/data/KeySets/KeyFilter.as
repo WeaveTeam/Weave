@@ -55,6 +55,8 @@ package weave.data.KeySets
 		 */
 		public function replaceKeys(includeMissingKeys:Boolean, includeMissingKeyTypes:Boolean, includeKeys:Array = null, excludeKeys:Array = null):void
 		{
+			getCallbackCollection(this).delayCallbacks();
+			
 			this.includeMissingKeys.value = includeMissingKeys;
 			this.includeMissingKeyTypes.value = includeMissingKeyTypes;
 
@@ -67,6 +69,8 @@ package weave.data.KeySets
 				excluded.replaceKeys(excludeKeys);
 			else
 				excluded.clearKeys();
+			
+			getCallbackCollection(this).resumeCallbacks();
 		}
 
 		// adds keys to include list

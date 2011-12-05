@@ -28,6 +28,7 @@ package weave.data
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IStatisticsCache;
+	import weave.api.detectLinkableObjectChange;
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -59,7 +60,8 @@ package weave.data
 				getSquareSum,
 				getVariance,
 				getStandardDeviation,
-				getRunningTotals
+				getRunningTotals,
+				validateCache
 			];
 			for each (var func:Function in functions)
 				cache[func] = new Dictionary(true);
@@ -152,22 +154,9 @@ package weave.data
 		 * Example: cache[getMin][column] is a cached value for the getMin function called for the given column.
 		 */
 		private const cache:Dictionary = new Dictionary();
-
-		/**
-		 * This maps an IAttributeColumn to a value of true or false, indicating
-		 * whether or not the cached values are valid for that column.
-		 */
-		private const cacheIsValid:Dictionary = new Dictionary(true);
-
-		/**
-		 * This function will invalidate any cached statistical values associated with the given column.
-		 * @param column A column to invalidate statistics for.
-		 */
-		private function invalidateCache(column:IAttributeColumn):void
-		{
-			cacheIsValid[column] = false;
-		}
 		
+		private static const WRAPPER_TYPES:Array = [DynamicColumn,ReferencedColumn]; // special cases for validateCache()
+
 		/**
 		 * This function will validate the cached statistical values for the given column.
 		 * @param column A column to calculate basic statistical values for.
@@ -178,11 +167,10 @@ package weave.data
 		{
 			//---
 			// special case for column wrappers that do not alter the data in any way
-			var wrapperTypes:Array = [DynamicColumn,ReferencedColumn];
 			var foundWrapper:Boolean = false;
 			do {
 				foundWrapper = false;
-				for each (var wrapperType:Class in wrapperTypes)
+				for each (var wrapperType:Class in WRAPPER_TYPES)
 				{
 					if (column is wrapperType && getQualifiedClassName(column) == getQualifiedClassName(wrapperType))
 					{
@@ -196,20 +184,15 @@ package weave.data
 			if (column == null)
 				return NaN;
 
-			// if the cacheIsValid dictionary has no entry for this column,
-			// add a callback to the column that will invalidate the cache
-			if (cacheIsValid[column] === undefined)
-				column.addImmediateCallback(column, invalidateCache, [column], true);
-			
-			// if cache is invalid, validate it now.  if callbacks are running, cache is invalid.
-			if (!cacheIsValid[column] || column.callbacksWereTriggered)
+			// the cache becomes invalid when the trigger counter has changed
+			if (uint(cache[validateCache][column]) != column.triggerCounter)
 			{
 				var min:Number = NaN;
 				var max:Number = NaN;
 				var count:Number = 0;
 				var sum:Number = 0;
 				var squareSum:Number = 0;
-				var runningTotals:Dictionary = new Dictionary();
+				var runningTotals:Dictionary = new Dictionary(true);
 				var value:Number;
 				
 				// loop through the keys for the key type associated with the column, and calculate statistics
@@ -261,9 +244,8 @@ package weave.data
 				cache[getVariance][column] = variance;
 				cache[getStandardDeviation][column] = standardDeviation;
 				cache[getRunningTotals][column] = runningTotals;
-				
-				// the cache is now valid for this column
-				cacheIsValid[column] = true;
+				// remember the trigger counter so we can detect when the cache becomes invalid
+				cache[validateCache][column] = column.triggerCounter;
 			}
 			
 			return cache[statsFunction][column];

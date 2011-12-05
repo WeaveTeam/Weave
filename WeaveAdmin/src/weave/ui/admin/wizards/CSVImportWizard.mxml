@@ -25,13 +25,12 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*" 
 			label="Import CSV data to Weave"
-			width="640" height="300"
 			creationComplete="handleCreationComplete()"
 			>
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 	<mx:VBox id="csvUploadPage" label="Import a CSV file to SQL">
 		<mx:HBox>
-			<mx:Label text="CSV file" width="{indent}" />
+			<mx:Label text="CSV file" width="{indent}" textAlign="right" />
 			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
 			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="Select a CSV file." change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
 			<mx:Button label="Upload File" click="browseAndUpload();"/>
@@ -39,13 +38,13 @@
 			<mx:Text text="{fileStatus.text}" id="fileStatus"/>
 		</mx:HBox>
 		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
-			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" initialize="tableSelector.tableOverwriteCheck.toolTip = StringDefinition.DEFAULT_CSV_TABLES_OVERWRITE_CHECKBOX_TOOLTIP"/>
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" indent="{indent}"/>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
 		<mx:HBox>
-			<mx:Label text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}"/>
-			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_CSV_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
+			<mx:Label text="{Strings.table_display_name}"/>
+			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{Strings.tip_csv_table_display_name}"/>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</mx:HBox>
 		<mx:HBox toolTip="Specify flag values to treat as missing data, separated by commas">
@@ -59,18 +58,22 @@
 			<mx:VBox visible="{!generateKeyColumn.selected}">
 				<mx:HBox>
 					<mx:Label text="Key column"/>
-					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{StringDefinition.DEFAULT_CSV_KEY_COLUMN_DROPDOWNBOX_TOOLTIP}"/><!-- editable because user may have typed in a file name manually -->
+					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.tip_key_column_dropdown}"/><!-- editable because user may have typed in a file name manually -->
 				</mx:HBox>
 				<mx:Label text="What do these keys correspond to?"/>
 				<ui:Indent>
 					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{dataTableNameInput.asTextInput().text}"/>
 				</ui:Indent>
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-				<ui:Indent>
-					<mx:HBox visible="{secondaryKeyColumnCheckBox.selected}">
+				<ui:Indent height="{secondaryKeyColumnCheckBox.selected ? NaN : 0}">
+					<mx:HBox>
 						<mx:Label text="Secondary key column"/>
-						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />				
+						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
 					</mx:HBox>
+				</ui:Indent>
+				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
+				<ui:Indent>
+					<ui:TextBox visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
 				</ui:Indent>
 			</mx:VBox>
 		</ui:Indent>
@@ -92,22 +95,18 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.core.Container;
-			import mx.core.mx_internal;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
-			import mx.rpc.AsyncResponder;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
 			import weave.ui.admin.ServerCSVFileViewer;
 			
-			private static const indent:int = 145;
+			private static const indent:int = 128;
 			
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerCSVFileViewer = null;
@@ -143,11 +142,12 @@
 				csvKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.selectedIndex = -1;
+				filterColumnsInput.text = WeaveAPI.CSVParser.createCSVFromArrays([firstRow]);
 				
 				var tableName:String = _csvFileReference.name;
 				
 				//clip the ".csv"
-				tableName = tableName.substring(0,tableName.lastIndexOf("."));
+				tableName = tableName.substring(0, tableName.lastIndexOf("."));
 				
 				tableSelector.activeTable = tableName;
 				enableAllWidgets();
@@ -222,24 +222,32 @@
 						dataTableOverwriteCheck.selected,
 						geometryCollection,
 						keyType,
-						nullFlagInput.text
+						nullFlagInput.text,
+						(generateFilterColumns.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
 					);
-				query.addAsyncResponder(handleImportCSV);
+				
+				controlBarEnabled = false;
+				query.addAsyncResponder(handleImportCSV, handleFault);
 				function handleImportCSV(event:ResultEvent, token:Object = null):void
 				{
 					selectedChild = dublinCorePage;
 					commitDublinCoreElements();
+					controlBarEnabled = true;
+				}
+				function handleFault(event:FaultEvent, token:Object = null):void
+				{
+					controlBarEnabled = true;
 				}
 			}
 			
 			private function commitDublinCoreElements():void
 			{
 				var elements:Object = new Object();
-				if(dcTitleTextInput.text.length != 0)
+				if (dcTitleTextInput.text)
 					elements["title"] = dcTitleTextInput.text;
-				if(dcSubjectTextInput.text.length != 0)
+				if (dcSubjectTextInput.text)
 					elements["subject"] = dcSubjectTextInput.text;
-				if(dcDescriptionTextInput.text.length != 0)
+				if (dcDescriptionTextInput.text)
 					elements["description"] = dcDescriptionTextInput.text;
 				
 				//An assumtion is made that this text (dataTableNameInput.text) will not change,

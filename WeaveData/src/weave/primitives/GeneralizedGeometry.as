@@ -116,8 +116,14 @@ package weave.primitives
 			// if bounds is completely contained in visibleBounds, don't pass visibleBounds to getPointVector() (faster this way)
 			if (visibleBounds && visibleBounds.containsBounds(bounds))
 				visibleBounds = null;
+			_simplifiedParts.length = 0;
 			for (var i:int = 0; i < parts.length; i++)
-				_simplifiedParts[i] = (parts[i] as BLGTree).getPointVector(minImportance, visibleBounds);
+			{
+				var simplifiedPart:Vector.<BLGNode> = (parts[i] as BLGTree).getPointVector(minImportance, visibleBounds);
+				// don't include empty parts
+				if (simplifiedPart.length > 0)
+					_simplifiedParts.push(simplifiedPart);
+			}
 			return _simplifiedParts;
 		}
 		// _simplifiedParts: A place to store results from getSimplifiedGeometry()
@@ -162,7 +168,6 @@ package weave.primitives
 			partMarkers.length = 0;
 			parts.length = 1;
 			(parts[0] as BLGTree).clear();
-			_simplifiedParts.length = 0;
 			
 			var coordinates:BLGTree = parts[0] as BLGTree;
 			var firstVertex:VertexChainLink = null;

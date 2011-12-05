@@ -41,8 +41,8 @@ package weave.api
 	/**
 	 * @see weave.api.core.ISessionManager
 	 */
-	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String):void
+	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void
 	{
-		WeaveAPI.SessionManager.linkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
+		WeaveAPI.SessionManager.linkBindableProperty(linkableVariable, bindableParent, bindablePropertyName, delay);
 	}
 }

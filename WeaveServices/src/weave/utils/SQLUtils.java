@@ -154,18 +154,14 @@ public class SQLUtils
 	 * This maps a connection string to a Connection object.  Used by getStaticReadOnlyConnection().
 	 */
 	private static Map<String, Connection> _staticReadOnlyConnections = new HashMap<String, Connection>();
-
+	
 	/**
-	 * This function tests if a given Connection is valid.
-	 * @param conn A Connection object which may or may not be valid.
-	 * @return A value of true if the given Connection is still connected.
+	 * This function will test a connection by running a simple test query.
+	 * @param conn A SQL Connection.
+	 * @throws SQLException Thrown if the test query fails.
 	 */
-	public static boolean connectionIsValid(Connection conn)
+	public static void testConnection(Connection conn) throws SQLException
 	{
-		boolean result = false;
-		if (conn == null)
-			return false;
-
 		PreparedStatement stmt = null;
 		try
 		{
@@ -175,23 +171,46 @@ public class SQLUtils
 			else
 				stmt = conn.prepareStatement("SELECT 0;");
 			stmt.execute(); // this will throw an exception if the connection is invalid
-			result = true;
 		}
-		catch (SQLException e)
+		catch (RuntimeException e) // This is important for catching unexpected errors.
 		{
-//			e.printStackTrace();
-			SQLUtils.cleanup(conn);
-		}
-		catch (NullPointerException e)
-		{
-			SQLUtils.cleanup(conn);
+			/*
+				java.lang.NullPointerException
+				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2484)
+				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2460)
+				at com.mysql.jdbc.PreparedStatement.execute(PreparedStatement.java:1298)
+				at weave.utils.SQLUtils.testConnection(SQLUtils.java:173)
+				[...]
+			 */
+			throw new SQLException("Connection is invalid", e);
 		}
 		finally
 		{
-			SQLUtils.cleanup(stmt);
+			cleanup(stmt);
+		}
+	}
+
+	/**
+	 * This function tests if a given Connection is valid.
+	 * @param conn A Connection object which may or may not be valid.
+	 * @return A value of true if the given Connection is still connected.
+	 */
+	public static boolean connectionIsValid(Connection conn)
+	{
+		if (conn == null)
+			return false;
+		
+		try
+		{
+			testConnection(conn);
+			return true;
+		}
+		catch (SQLException e)
+		{
+			SQLUtils.cleanup(conn);
 		}
 		
-		return result;
+		return false;
 	}
 	
 	/**
@@ -456,6 +475,45 @@ public class SQLUtils
 	}
 	
 	/**
+	 * @param connection An SQL Connection
+	 * @param query An SQL Query with '?' place holders for parameters
+	 * @param params Parameters for the SQL query for all '?' place holders.
+	 * @return A SQLResult object containing the result of the query
+	 * @throws SQLException
+	 */
+	public static SQLResult getRowSetFromQuery(Connection connection, String query, String[] params)
+	throws SQLException
+	{
+		CallableStatement stmt = null;
+		ResultSet rs = null;
+		SQLResult result = null;
+		try
+		{
+			stmt = connection.prepareCall(query);
+			for (int i = 0; i < params.length; i++)
+				stmt.setString(i + 1, params[i]);
+			rs = stmt.executeQuery();
+			
+			// make a copy of the query result
+			result = new SQLResult(rs);
+		}
+		catch (SQLException e)
+		{
+			//e.printStackTrace();
+			throw e;
+		}
+		finally
+		{
+			// close everything in reverse order
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+		
+		// return the copy of the query result
+		return result;
+	}
+	
+	/**
 	 * @param conn An existing SQL Connection
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
@@ -471,40 +529,6 @@ public class SQLUtils
 		) throws SQLException
 	{
 		return getRecordsFromQuery(conn, null, fromSchema, fromTable, whereParams);
-	}
-	
-	/**
-	 * @param conn An existing SQL Connection
-	 * @param selectColumns The list of column names 
-	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
-	 * @param fromTable The table to perform the SELECT statement on.
-	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
-	 * @return The resulting rows returned by the query.
-	 * @throws SQLException If the query fails.
-	 */
-	public static List<Map<String,String>> getRecordsFromQuery(
-			Connection conn,
-			List<String> selectColumns,
-			String fromSchema,
-			String fromTable,
-			Map<String,String> whereParams
-		) throws SQLException
-	{
-		CallableStatement cstmt = null;
-		ResultSet rs = null;
-		List<Map<String,String>> records = null;
-		try
-		{
-			cstmt = prepareCall(conn, selectColumns, fromSchema, fromTable, whereParams);
-			rs = cstmt.executeQuery();
-			records = getRecordsFromResultSet(rs);
-		}
-		finally
-		{
-			cleanup(rs);
-			cleanup(cstmt);
-		}
-		return records;
 	}
 	
 	/**
@@ -555,19 +579,26 @@ public class SQLUtils
 		return getRowSetFromQuery(conn, null, fromSchema, fromTable, whereParams);
 	}
 	
+	
 	/**
-	 * @param conn
-	 * @param selectColumns
-	 * @param fromSchema
-	 * @param fromTable
-	 * @param whereParams
-	 * @return
-	 * @throws SQLException
+	 * @param conn An existing SQL Connection
+	 * @param selectColumns The list of column names 
+	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
+	 * @param fromTable The table to perform the SELECT statement on.
+	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @return The resulting rows returned by the query.
+	 * @throws SQLException If the query fails.
 	 */
-	public static CallableStatement prepareCall(Connection conn, List<String> selectColumns, String fromSchema, String fromTable, Map<String,String> whereParams)
-		throws SQLException
+	public static List<Map<String,String>> getRecordsFromQuery(
+			Connection conn,
+			List<String> selectColumns,
+			String fromSchema,
+			String fromTable,
+			Map<String,String> whereParams
+		) throws SQLException
 	{
 		CallableStatement cstmt = null;
+		ResultSet rs = null;
 		String query = null;
 		try
 		{
@@ -618,14 +649,21 @@ public class SQLUtils
 				i++;
 			}
 			
+			rs = cstmt.executeQuery();
+			
+			return getRecordsFromResultSet(rs);
 		}
 		catch (SQLException e)
 		{
-			// close everything in reverse order
-			SQLUtils.cleanup(cstmt);
+			System.out.println(query);
 			throw e;
 		}
-		return cstmt;
+		finally
+		{
+			// close everything in reverse order
+			cleanup(rs);
+			cleanup(cstmt);
+		}
 	}
 	
 	/**
@@ -861,8 +899,6 @@ public class SQLUtils
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
 				columns.add(rs.getString(4)); // column_name
-			
-			Collections.sort(columns, String.CASE_INSENSITIVE_ORDER);
 		}
 		finally
 		{
@@ -1031,9 +1067,13 @@ public class SQLUtils
 			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(ORACLE))
 				return true;
 		}
-		catch (SQLException e)
+		catch (SQLException e) // This is expected to be thrown if the connection is invalid.
 		{
 			e.printStackTrace();
+		}
+		catch (RuntimeException e) // This is important for catching unexpected errors.
+		{
+			return false;
 		}
 
 		return false;
@@ -1086,7 +1126,7 @@ public class SQLUtils
 	public static void addColumn( Connection conn, String schemaName, String tableName, String columnName, String columnType)
 		throws SQLException
 	{
-		String format = "ALTER TABLE %s ADD (%s %s)";
+		String format = "ALTER TABLE %s ADD %s %s"; // Note: PostGreSQL does not accept parentheses around the new column definition.
 		String query = String.format(format, quoteSchemaTable(conn, schemaName, tableName), quoteSymbol(conn, columnName), columnType);
 		Statement stmt = null;
 		try
@@ -1291,11 +1331,14 @@ public class SQLUtils
 		}		
 	}
 
-	public static String quoteString(Connection conn, String symbol)
+	/**
+	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 */
+	public static String quoteString(Connection conn, String string)
 	{
 		try 
 		{
-			return quoteString(conn.getMetaData().getDatabaseProductName(), symbol);
+			return quoteString(conn.getMetaData().getDatabaseProductName(), string);
 		} 
 		catch (SQLException e) 
 		{
@@ -1304,15 +1347,15 @@ public class SQLUtils
 		}
 	}
 	
-	public static String quoteString(String dbms, String symbol)
+	/**
+	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 */
+	public static String quoteString(String dbms, String string)
 	{
-		if (MYSQL.equalsIgnoreCase(dbms))
-			return "`" + symbol + "`";
-		if (POSTGRESQL.equalsIgnoreCase(dbms))
-			return "\"" + symbol + "\"";
-		if (SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
-			return "'" + symbol + "'";
-		throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
+		String quote = "'";
+		
+		// make sure to escape matching quotes in the actual string
+		return quote + string.replace("\\","\\\\").replace(quote, "\\" + quote) + quote;
 	}
 	
 	/**

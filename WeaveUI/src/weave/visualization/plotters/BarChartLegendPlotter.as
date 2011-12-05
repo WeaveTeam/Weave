@@ -21,28 +21,22 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
-	import flash.geom.Matrix;
-	import flash.geom.Point;
-	import flash.text.TextField;
-	import flash.text.TextFieldAutoSize;
-	import flash.text.TextLineMetrics;
 	import flash.utils.Dictionary;
 	
-	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LegendUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -54,38 +48,51 @@ package weave.visualization.plotters
 	{
 		public function BarChartLegendPlotter()
 		{
-			init();
-		}
-		private function init():void
-		{
-			shapeSize.value = 12;
-			
-			registerNonSpatialProperties(
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor,
-				Weave.properties.axisFontFamily,
-				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontUnderline,
-				Weave.properties.axisFontBold
-			);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
 		public const columns:ILinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), createColumnHashes);
 		public const chartColors:ColorRamp = newSpatialProperty(ColorRamp);
-		public const shapeSize:LinkableNumber = newNonSpatialProperty(LinkableNumber);
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12));
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		[Bindable] public var numColumns:int = 0;
 		private var _columnOrdering:Array = [];
 		private var _columnToBounds:Dictionary = new Dictionary();
 		private var _columnToTitle:Dictionary = new Dictionary();
 		private var _maxBoxSize:Number = 8;
+		
+		/**
+		 * This is the maximum number of items to draw in a single row.
+		 * @default 1 
+		 */		
 		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createColumnHashes);
-		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
+		
+		/**
+		 * This is an option to reverse the item order.
+		 * @default true
+		 */		
+		public const ascendingOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true), createColumnHashes);
+		
+		/**
+		 * This is the compiled function to apply to the item labels.
+		 * 
+		 * @default string
+		 */		
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['string']), createColumnHashes);
+
+		// TODO This should go somewhere else...
+		/**
+		 * This is the compiled function to apply to the title of the tool.
+		 * 
+		 * @default string  
+		 */		
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			return getReusableBounds(0, 0, 1, 1);
 		}
+		
 		private function createColumnHashes():void
 		{
 			_columnOrdering = [];
@@ -100,10 +107,17 @@ package weave.visualization.plotters
 				var b:IBounds2D = new Bounds2D();
 				
 				_columnOrdering.push(column);
-				_columnToTitle[column] = colTitle;
+				try
+				{
+					_columnToTitle[column] = itemLabelFunction.apply(null, [colTitle]);
+				}
+				catch (e:Error)
+				{
+					_columnToTitle[column] = colTitle;
+				}
 			}
 			
-			if (reverseOrder.value)
+			if (ascendingOrder.value)
 				_columnOrdering = _columnOrdering.reverse(); 
 		}
 
@@ -127,7 +141,7 @@ package weave.visualization.plotters
 				// draw the rectangle
 				// if we have reversed the order of the columns, iColumn should match the colors (this has always been backwards?)
 				// otherwise, we reverse the iColorIndex
-				var iColorIndex:int = reverseOrder.value ? iColumn : (numColumns - 1 - iColumn);
+				var iColorIndex:int = ascendingOrder.value ? (numColumns - 1 - iColumn) : iColumn;
 				var color:Number = chartColors.getColorFromNorm(iColorIndex / (numColumns - 1));
 				if (color <= Infinity) // alternative to !isNaN()
 					g.beginFill(color, 1.0);
@@ -153,5 +167,8 @@ package weave.visualization.plotters
 		{
 			// draw nothing -- everything is in the background layer
 		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="ascendingOrder")] public function set reverseOrder(value:Boolean):void { ascendingOrder.value = value; }
 	}
 }

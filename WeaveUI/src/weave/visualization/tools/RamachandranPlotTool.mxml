@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
@@ -30,39 +30,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.textClasses.TextRange;
-			import mx.events.ChildExistenceChangedEvent;
-			import mx.events.FlexEvent;
-			import mx.events.IndexChangedEvent;
 			import mx.events.SliderEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
-			import weave.api.setSessionState;
-			import weave.api.ui.IPlotLayer;
+			import weave.api.reportError;
 			import weave.api.unlinkBindableProperty;
-			import weave.core.ErrorManager;
 			import weave.core.LinkableHashMap;
-			import weave.core.LinkableString;
-			import weave.core.LinkableVariable;
-			import weave.core.SessionManager;
-			import weave.core.UIUtils;
-			import weave.core.WeaveXMLDecoder;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
-			import weave.data.BinningDefinitions.DynamicBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
@@ -73,20 +62,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.WeaveStatisticsServlet;
 			import weave.services.beans.RResult;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
-			import weave.utils.DebugUtils;
 			import weave.utils.HierarchyUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.AxisPlotter;
-			import weave.visualization.plotters.CircleGlyphPlotter;
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
-			import weave.visualization.plotters.styles.SolidFillStyle;
 			
 			
 			public var _plotter:ScatterPlotPlotter = null;
@@ -98,10 +81,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				bg.getDynamicPlotter().requestLocalObject(RamachandranBackgroundPlotter, true);
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ScatterPlotPlotter) as ScatterPlotPlotter;
-				xAxisEnabled = true;
-				yAxisEnabled = true;
-				
+				_plotter = initializePlotters(ScatterPlotPlotter, true);
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				yAxisLayer.axisPlotter.forceTickCount.value = true;
@@ -113,8 +93,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				yAxisLayer.axisPlotter.tickCountRequested.lock();
 				
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeft.addImmediateCallback(this, updateAxisLabels);
-				visualization.marginBottom.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
 				// END TEMPORARY SOLUTION
 				
@@ -123,9 +103,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.enableAutoZoomToExtent.value = false;
 				visualization.enableAutoZoomToExtent.lock();
 				visualization.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
-				
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openDefaultSelector,[_plotter.xColumn])
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openDefaultSelector,[_plotter.yColumn])
@@ -140,7 +117,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				initColumnDefaults(_plotter.xColumn, _plotter.yColumn, colorColumn);
 				registerLinkableChild(this,histogramColumn);
 				
-				toolTitle.addImmediateCallback(this, updateTitle);
 			}
 			override protected function childrenCreated():void
 			{
@@ -148,10 +124,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_plotter.enabledSizeBy.value = true;
 				
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
@@ -169,22 +145,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
 			[Bindable]
 			private var rpToolTitle:String ="";
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Ramachandran Plot " + rpToolTitle;
 			}
 			
 			private function updateAxisLabels():void
 			{
-				visualization.setXAxisColumn(_plotter.xColumn);
-				visualization.setYAxisColumn(_plotter.yColumn);
+				visualization.bottomMarginColumn = _plotter.xColumn;
+				visualization.leftMarginColumn = _plotter.yColumn;
 				
 				if (_plotter == null)
 					title = "Ramachandran Plot";
@@ -193,12 +170,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				*/			
 				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn), 
 					0,   
-					0, visualization.marginBottom.value - 3, 
+					0, visualization.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM);
 				
 				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yColumn), 
 					-90, 
-					-visualization.marginLeft.value, 0, 
+					-visualization.marginLeftNumber.value, 0, 
 					BitmapText.VERTICAL_ALIGN_TOP);
 			}
 			
@@ -223,7 +200,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const xRcolumn:DynamicColumn = new DynamicColumn();
 			public const yRcolumn:DynamicColumn = new DynamicColumn();
-			private static var selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			private var selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			private var Rservice:WeaveStatisticsServlet = new WeaveStatisticsServlet(Weave.properties.rServiceURL.value);
 			private var _sessionFileLoader:FileReference = null;
 			private var _defaultsFilename:String = null;
@@ -438,7 +415,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else{
 					var columnNodes:XMLList = xml.descendants();					
 					var numOfColumns:int = columnNodes.length();					
-					var hashMap:LinkableHashMap = ProbeTextUtils.probedColumns;
+					var hashMap:ILinkableHashMap = ProbeTextUtils.probedColumns;
 					
 					//adding phi and psi column to plotter x and y columns
 					var column1:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[5]);
@@ -465,7 +442,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleGetPhiPsiValuesFault(event:FaultEvent, token:Object = null):void
 			{
 				trace(["fault", token, event.message].join('\n'));
-				WeaveAPI.ErrorManager.reportError(event.fault);
+				reportError(event);
 			}
 			
 			protected function motifSearchBtn_clickHandler(event:MouseEvent):void
@@ -623,11 +600,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 										change="handleSizeSliderChange(event)"
 										mouseDown="event.stopImmediatePropagation();"/>
 						</mx:HBox>
-						<ui:DynamicColumnComponent label="x column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
-						<ui:DynamicColumnComponent label="y column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
-						<ui:DynamicColumnComponent label="color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-						<ui:DynamicColumnComponent label="size" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
-						<ui:DynamicColumnComponent label="Histogram Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
+						<ui:DynamicColumnComponent label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
+						<ui:DynamicColumnComponent label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+						<ui:DynamicColumnComponent label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+						<ui:DynamicColumnComponent label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
+						<ui:DynamicColumnComponent label="Histogram Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
 					</mx:VBox>
 				</mx:VBox>
 				<mx:HBox width="100%">

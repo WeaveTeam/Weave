@@ -32,10 +32,10 @@
 			<mx:Spacer width="100%"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
 		</mx:HBox>
-	</mx:VBox>	
+	</mx:VBox>
 	
 	<mx:TabNavigator id="tabNavigator" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
-		<mx:Canvas id="simpleSetting" label="Add Database Connection" width="100%" height="100%">
+		<mx:Canvas id="simpleSetting" label="Add database connection{dataChanged ? '*' : ''}" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 				<mx:Label fontWeight="bold" text="Add or modify a database connection:"/>
 				<ui:Indent indent="{_indent}" label="Connection name:">
@@ -45,27 +45,28 @@
 				<ui:Indent indent="{_indent}" label="SQL Server type">
 					<ui:CustomComboBox change="{dataChanged=true}" id="connectionDBMSCombo" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 				</ui:Indent>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" textWidth="130"/>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" textWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" inputWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" inputWidth="130"/>
 				<ui:Indent indent="{_indent}" label="SQL Database name">
 					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
 					<mx:Label text="(Optional)"/>
-					<mx:Button label="?" click="Alert.show('This field is optional.  You can specify the name of a default database to connect to.\nFor SQL Server, this is an instance name.\nSimilarly in PostGreSQL, databases are different from schemas.\nMySQL does not differentiate between the two.', 'Admin Console Help')"/>
+					<ui:HelpComponent content="{'This field is optional.  You can specify the name of a default database to connect to.\nFor SQL Server, this is an instance name.\nSimilarly in PostGreSQL, databases are different from schemas.\nMySQL does not differentiate between the two.'}"/>
 					<!-- 'This field is required only for MS SQLServer connections. If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express. If there is no instance name for your server, you may leave this blank.' -->
 				</ui:Indent>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" textWidth="130"/>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" textWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" inputWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" inputWidth="130"/>
+				<ui:TextBox indent="{_indent}" label="User Folder Name" text="" id="folderNameInput" inputWidth="130" toolTip="Specify the folder in docroot to store user-created configurations"/>
 				<ui:Indent indent="{_indent}">
-					<mx:CheckBox label="Grant Superuser Permissions" id="isSuperuserCheckbox"/>					
+					<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>					
 				</ui:Indent>
 				<mx:HBox>
 					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
-					<mx:Button label="Clear fields" id="clearConnectionColumns" click="clearConnectionColumns_clickHandler(event)" />
-					<mx:Button label="Remove selected connection" click="handleRemoveConnection()"/>
+					<mx:Button label="Clear fields" click="clearConnectionFields()" />
+					<mx:Button label="Remove selected connection" click="handleRemoveConnection()" enabled="{AdminInterface.instance.userHasAuthenticated}"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:Canvas>
-		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
+		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%" enabled="{AdminInterface.instance.connectionNames.length > 0}">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 				<mx:Label fontWeight="bold" text="Set the location of the SQL tables where Weave will store configuration data:"/>
 				<ui:Indent indent="{170}" label="Connection to use">
@@ -111,25 +112,42 @@
 
 			private function handleCreationComplete():void
 			{
-				EventUtils.addBindCallback(AdminInterface.instance,"connectionNames",loadDataSource);
+				EventUtils.addBindCallback(AdminInterface.instance, "connectionNames", handleConnectionNames);
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
 			}
 			
-			public function loadDataSource():void
+			public function handleConnectionNames():void
 			{
-				treeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.connectionNames);
+				var names:Array = AdminInterface.instance.connectionNames;
+				treeWithSearch.generateFlatTreeFromLabels(names);
+				if (names.length == 0)
+				{
+					superuserCheckbox.selected = true;
+					superuserCheckbox.enabled = false;
+				}
+				else
+				{
+					superuserCheckbox.enabled = true;
+					if (!AdminInterface.instance.sqlConfigExists)
+						tabNavigator.selectedChild = migrateTab;
+				}
 			}
 			
 			private function handleItemClick(event:ListEvent):void
 			{
 				if (dataChanged)
 				{
+					function cancel():void
+					{
+						treeWithSearch.tree.selectedItem = null;
+					}
 					// ask user to confirm
 					PopUpUtils.confirm(
 						this,
-						"Leave current Database Connection",
-						'Are you sure you want to leave the current Database Connection? Any unsaved changes will be lost.',
-						loadDatabaseInfo
+						"Discard changes",
+						'Discard unsaved changes?',
+						loadDatabaseInfo, cancel,
+						'Discard', 'Cancel'
 					);
 				}
 				else
@@ -162,7 +180,9 @@
 					//Password
 					connectionPasswordInput.text = info.pass;
 					// is superuser
-					isSuperuserCheckbox.selected = info.is_superuser;
+					superuserCheckbox.selected = info.is_superuser;
+					// user folder name
+					folderNameInput.text = info.folderName;
 				}
 				
 				dataChanged = false;
@@ -178,9 +198,8 @@
 			
 			private const hostIP:String = hostUrl.split(':')[0];
 			
-			protected function clearConnectionColumns_clickHandler(event:MouseEvent):void
+			protected function clearConnectionFields():void
 			{
-
 				connectionNameInput.text = "";
 				connectionDBMSCombo.selectedIndex = 0;
 				connectionIPInput.text = "localhost";
@@ -188,8 +207,9 @@
 				connectionDatabaseInput.text = "";
 				connectionUserInput.text = "";
 				connectionPasswordInput.text = "";
+				folderNameInput.text = "";
 				configOverwrite.selected = false;
-				isSuperuserCheckbox.selected = false;
+				superuserCheckbox.selected = (AdminInterface.instance.connectionNames.length == 0);
 			}
 			
 			private function saveConnectionInfo():void
@@ -202,7 +222,8 @@
 				info.database = connectionDatabaseInput.text;
 				info.user = connectionUserInput.text;
 				info.pass = connectionPasswordInput.text;
-				info.is_superuser = isSuperuserCheckbox.selected;
+				info.is_superuser = superuserCheckbox.selected;
+				info.folderName = folderNameInput.text;
 				
 				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected).addAsyncResponder(handleSave);
 				function handleSave(..._):void
@@ -246,7 +267,8 @@
 					this,
 					"Confirm delete",
 					'Delete connection "' + connectionLabel + '"?',
-					del
+					del, null,
+					'Delete', 'Cancel'
 				);
 				function del():void
 				{

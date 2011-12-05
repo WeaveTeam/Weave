@@ -335,7 +335,7 @@
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:" width="{labelWidth}" />
-				<mx:TextInput id="port" width="{textAreaWidth}" text="5751" change="trimInput(event);"/>
+				<mx:TextInput id="port" width="{textAreaWidth}" text="5222" change="trimInput(event);"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Username:" width="{labelWidth}" />

@@ -19,53 +19,44 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<ui:DraggablePanel
-	xmlns="weave.ui.annotation.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-	xmlns:ui="weave.ui.*"
-	horizontalScrollPolicy="off" verticalScrollPolicy="off"
-	borderThickness="0"
-	width="25%" height="25%"
-	backgroundAlpha="0"
-	layout="absolute"
-	>
-	<mx:TextArea id="textArea"
-				 width="100%"
-				 height="100%"
-				 minWidth="5"
-				 minHeight="5"
-				 wordWrap="true"
-				 borderStyle="solid"
-				 editable="false"
-				 />
-	
-	<ui:ControlPanel title="Annotation Editor"
-					sessionPanelCoordsAsPercentages="false"
-					percentWidth="NaN" percentHeight="NaN"
-					added="if (event.target == controlPanel) textArea.editable = true;"
-					removed="if (event.target == controlPanel) textArea.editable = false;">
-		<mx:VBox id="toolbar" horizontalGap="7"
-				 paddingLeft="2" paddingRight="2" paddingTop="2" paddingBottom="2"
-				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 width="100%" height="100%">
+<ui:DraggablePanel xmlns="weave.ui.annotation.*"
+				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*"
+				   width="25%" height="25%" backgroundAlpha="0" borderThickness="0"
+				   horizontalScrollPolicy="off" layout="absolute" verticalScrollPolicy="off">
+	<mx:TextArea id="textArea" width="100%" height="100%" minWidth="5" minHeight="5"
+				 borderStyle="solid" editable="false" wordWrap="true"/>
+	<ui:ControlPanel added="if (event.target == controlPanel) updateTextArea()"
+					 percentHeight="NaN" percentWidth="NaN"
+					 removed="if (event.target == controlPanel) callLater(updateTextArea)"
+					 sessionPanelCoordsAsPercentages="false" title="Annotation Editor">
+		<mx:VBox id="toolbar" width="100%" height="100%" horizontalGap="7"
+				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
+				 paddingTop="2" verticalScrollPolicy="off">
 
 			<mx:CheckBox id="lockCheckBox" label="Enable window borders and resizing"/>
 			
-			<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-					 paddingLeft="2" paddingRight="2" paddingTop="2" paddingBottom="2">
+			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
+					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
 				
-				<mx:ColorPicker id="colorPicker" width="22" height="22" change="applyTextFormat(event)"/>
+				<mx:ColorPicker id="colorPicker" width="22" height="22"
+								change="applyTextFormat(event)"/>
 				
-				<ui:CustomComboBox id="fontFamilyCombo" editable="false" change="applyTextFormat(event)"
-							 dataProvider = "{fontFamilyArray}"/>
+				<ui:CustomComboBox id="fontFamilyCombo" change="applyTextFormat(event)"
+								   dataProvider="{fontFamilyArray}" editable="false"/>
 				
-				<ui:CustomComboBox id="fontSizeCombo" editable="false" change="applyTextFormat(event)"
-							 paddingLeft="2" paddingRight="2"
-							 dataProvider="{fontSizeArray}"/>
+				<ui:CustomComboBox id="fontSizeCombo" change="applyTextFormat(event)"
+								   dataProvider="{fontSizeArray}" editable="false" paddingLeft="2"
+								   paddingRight="2"/>
 				
 				<mx:HBox id="toolBar2" horizontalGap="0">
-					<mx:Button id="boldButton" toggle="true" change="applyTextFormat(event)" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="Bold"/>
-					<mx:Button id="italicButton" toggle="true" change="applyTextFormat(event)" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="Italic"/>
-					<mx:Button id="underlineButton" toggle="true" change="applyTextFormat(event)" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="Underline"/>
+					<mx:Button id="boldButton" width="30" label="B" change="applyTextFormat(event)"
+							   fontFamily="_serif" fontWeight="bold" toggle="true" toolTip="Bold"/>
+					<mx:Button id="italicButton" width="30" label="I" change="applyTextFormat(event)"
+							   fontFamily="_serif" fontStyle="italic" toggle="true" toolTip="Italic"/>
+					<mx:Button id="underlineButton" width="30" label="U"
+							   change="applyTextFormat(event)" fontFamily="_serif"
+							   textDecoration="underline" toggle="true" toolTip="Underline"/>
 				</mx:HBox>
 			</mx:HBox>
 			
@@ -75,9 +66,9 @@
 						<mx:Label text="Paragraph style:"/>
 					</mx:GridItem>
 					<mx:GridItem>
-						<ui:CustomComboBox id="paragraphCombo" selectedIndex="0"
-									 change="applyParagraphFormat(event);"
-									 dataProvider="{['Left align','Right align','Center','Justify','Bullet']}"/>
+						<ui:CustomComboBox id="paragraphCombo" change="applyParagraphFormat(event);"
+										   dataProvider="{['Left align','Right align','Center','Justify','Bullet']}"
+										   selectedIndex="0"/>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
@@ -85,10 +76,10 @@
 						<mx:Label id="roundingLabel" text="Corner rounding:"/>
 					</mx:GridItem>
 					<mx:GridItem>
-						<mx:HSlider id="cornerRadiusSlider"
-									value="0" minimum="0" maximum="30" snapInterval="1"
-									toolTip = "Change the editing text area's corner rounding."
-									width="100%" liveDragging="true"/>
+						<mx:HSlider id="cornerRadiusSlider" width="100%" liveDragging="true"
+									maximum="30" minimum="0" snapInterval="1"
+									toolTip="Change the editing text area's corner rounding."
+									value="0"/>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
@@ -96,10 +87,10 @@
 						<mx:Label id="paddingLabel" text="Padding around text:"/>
 					</mx:GridItem>
 					<mx:GridItem>
-						<mx:HSlider id="paddingSlider"
-									value="0" minimum="0" maximum="25" snapInterval="1"
-									toolTip = "Set the space between the text and the text box."
-									width="100%" liveDragging="true"/>
+						<mx:HSlider id="paddingSlider" width="100%" liveDragging="true" maximum="25"
+									minimum="0" snapInterval="1"
+									toolTip="Set the space between the text and the text box."
+									value="0"/>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
@@ -109,11 +100,11 @@
 					<mx:GridItem>
 						<mx:HBox width="100%">
 							<mx:ColorPicker id="backgroundColorPicker" selectedColor="white"
-											toolTip = "Change the editing text area's background color."/>
-							<mx:HSlider id="backgroundAlphaSlider"
-										value="1.0" minimum="0" maximum="1"
+											toolTip="Change the editing text area's background color."/>
+							<mx:HSlider id="backgroundAlphaSlider" width="100%" liveDragging="true"
+										maximum="1" minimum="0"
 										toolTip="Change the editing text area's background transparency.  A value of 1 (slider to the right) is fully opaque, 0 (slider to the left) is fully transparent."
-										width="100%" liveDragging="true"/>
+										value="1.0"/>
 						</mx:HBox>
 					</mx:GridItem>
 				</mx:GridRow>
@@ -124,8 +115,8 @@
 					<mx:GridItem>
 						<mx:HBox width="100%">
 							<mx:ColorPicker id="borderColorPicker"
-											enabled="{borderThicknessSlider.value > 0}"
-											toolTip = "Change the editing text area's border color."/>
+											enabled="{borderThicknessSlider.value &gt; 0}"
+											toolTip="Change the editing text area's border color."/>
 							
 							<mx:HSlider id="borderThicknessSlider"
 										value="1" minimum="0" maximum="25" snapInterval="1" 
@@ -139,6 +130,7 @@
 	</ui:ControlPanel>
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
 			import mx.core.Application;
 			import mx.core.IUITextField;
@@ -147,25 +139,32 @@
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableContainer;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.ui.CustomContextMenuManager;
 			import weave.utils.EventUtils;
 			
-			public const htmlText:LinkableString        = registerLinkableChild(this, new LinkableString(), validateNow, true);
+			public const htmlText:LinkableString        = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
 			public const backgroundAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite), applyStyle, true);
 			public const backgroundColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFFFFFF, isFinite), applyStyle, true);
 			public const cornerRadius:LinkableNumber    = registerLinkableChild(this, new LinkableNumber(0, isFinite), applyStyle, true);
 			public const borderColor:LinkableNumber     = registerLinkableChild(this, new LinkableNumber(0x000000, isFinite), applyStyle, true);
 			public const borderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1.0, isFinite), applyStyle, true);
 			public const padding:LinkableNumber         = registerLinkableChild(this, new LinkableNumber(10, isFinite), applyStyle, true);
+			
+			private const htmlTextFunction:LinkableFunction = newDisposableChild(this, LinkableFunction);
 			
 			override protected function constructor():void
 			{
@@ -196,12 +195,90 @@
 				linkBindableProperty(borderColor,     borderColorPicker, "selectedColor");
 				linkBindableProperty(borderThickness, borderThicknessSlider, "value");
 				linkBindableProperty(padding,         paddingSlider, "value");
-				linkBindableProperty(htmlText,        textArea, 'htmlText');
+				BindingUtils.bindSetter(handleTextAreaChange, textArea, 'htmlText');
+				getCallbackCollection(Weave.root).addGroupedCallback(this, handleWeaveRootChange);
 
-				textField.alwaysShowSelection = true;
+				getTextField().alwaysShowSelection = true;
 				textArea.setStyle("focusAlpha", 0);
 				
 				applyStyle();
+			}
+
+			private function handleTextAreaChange(value:String):void
+			{
+				// we only want to save the session state if the control panel is open (the user is editing the text).
+				if (controlPanel.parent)
+					htmlText.value = value;
+			}
+			
+			private function handleLinkableHtmlText():void
+			{
+				_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
+				// make sure the text between each pair of { and } brackets only has a single format.
+				var begin:int;
+				var end:int = 0;
+				while (true)
+				{
+					// find a pair of { and } brackets
+					begin = _tempTextField.text.indexOf("{", end);
+					if (begin < 0)
+						break;
+					end = _tempTextField.text.indexOf("}", begin);
+					if (end < 0)
+						break;
+					
+					// make sure the text between begin & end only has a single format
+					var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
+					_tempTextField.setTextFormat(f, begin, end + 1);
+					
+//					// replace the text from { to }
+//					var script:String = _tempTextField.text.substring(begin + 1, end);
+//					htmlTextFunction.value = script;
+//					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
+				}
+				
+				htmlTextFunction.value = '`' + _tempTextField.htmlText.split('`').join('\\`') + '`';
+				
+				updateTextArea();
+			}
+			
+			/**
+			 * This function gets called when anything in Weave changes so that inline code within brackets can be re-evaluated.
+			 */
+			private function handleWeaveRootChange():void
+			{
+				// while the control panel is closed, update the text area in case inline code needs to be re-evaluated
+				if (!controlPanel.parent)
+					updateTextArea();
+			}
+			
+			private function updateTextArea():void
+			{
+				if (!parent)
+				{
+					callLater(updateTextArea);
+					return;
+				}
+				
+				// if control panel is closed, evaluate inline code
+				if (!controlPanel.parent)
+				{
+					textArea.editable = false;
+					try
+					{
+						textArea.htmlText = htmlTextFunction.apply();
+					}
+					catch (e:Error)
+					{
+						reportError(e);
+						textArea.htmlText = htmlText.value; // show literally what the user has typed
+					}
+				}
+				else
+				{
+					textArea.editable = true;
+					textArea.htmlText = htmlText.value; // show literally what the user has typed
+				}
 			}
 			
 			private function applyStyle():void
@@ -225,7 +302,7 @@
 				super.toggleControlPanel();
 			}
 			
- 			private function get textField():TextField
+ 			private function getTextField():TextField
 			{
 				return textArea.mx_internal::getTextField();
 			}
@@ -237,29 +314,29 @@
 					//TODO: fix this buggy code
 					
 					// Apply the paragraph styles to the whole paragraph instead of just the selected text
-					var beginIndex:int = textField.selectionBeginIndex;
-					var endIndex:int = textField.selectionEndIndex;
+					var beginIndex:int = getTextField().selectionBeginIndex;
+					var endIndex:int = getTextField().selectionEndIndex;
 					
-					beginIndex = textField.getFirstCharInParagraph(beginIndex) - 1;
+					beginIndex = getTextField().getFirstCharInParagraph(beginIndex) - 1;
 					beginIndex = Math.max(0, beginIndex);
-					endIndex = textField.getFirstCharInParagraph(endIndex);
+					endIndex = getTextField().getFirstCharInParagraph(endIndex);
 					if (endIndex >= 0)
-						endIndex += textField.getParagraphLength(endIndex) - 1;
+						endIndex += getTextField().getParagraphLength(endIndex) - 1;
 					else
-						endIndex = beginIndex + textField.getParagraphLength(beginIndex);
+						endIndex = beginIndex + getTextField().getParagraphLength(beginIndex);
 					applyTextFormat(e, beginIndex, endIndex);
 				}
 				else
 				{
-					applyTextFormat(e, 0, textField.length);
+					applyTextFormat(e, 0, getTextField().length);
 				}
 			}
 			
 			private function applyTextFormat(e:Event, beginIndex:int = -1, endIndex:int = -1):void
 			{
 				// save selection & scroll position
-				var selectionBeginIndex:int = textField.selectionBeginIndex;
-				var selectionEndIndex:int = textField.selectionEndIndex;
+				var selectionBeginIndex:int = getTextField().selectionBeginIndex;
+				var selectionEndIndex:int = getTextField().selectionEndIndex;
 				var vsp:int = textArea.verticalScrollPosition;
 				if (beginIndex < 0)
 					beginIndex = selectionBeginIndex;
@@ -294,10 +371,10 @@
 				}
 				
 				// set text format using temporary text field
-				textField.defaultTextFormat = f;
-				if (beginIndex >= 0 && beginIndex < textField.length)
+				getTextField().defaultTextFormat = f;
+				if (beginIndex >= 0 && beginIndex < getTextField().length)
 				{
-					// compute new htmlText using temporary text field, then save
+					// compute new htmlText using temporary text field
 					_tempTextField.htmlText = textArea.htmlText;
 					// extra newline may get removed from htmlText, so make sure endIndex <= length
 					endIndex = Math.min(endIndex, _tempTextField.length);
@@ -310,8 +387,8 @@
 				textArea.validateNow();
 				
 				// restore selection & scroll position
-				selectionEndIndex = Math.min(selectionEndIndex, textField.length);
-				textField.setSelection(selectionBeginIndex, selectionEndIndex);
+				selectionEndIndex = Math.min(selectionEndIndex, getTextField().length);
+				getTextField().setSelection(selectionBeginIndex, selectionEndIndex);
 				textArea.verticalScrollPosition = vsp;
 			}
 			

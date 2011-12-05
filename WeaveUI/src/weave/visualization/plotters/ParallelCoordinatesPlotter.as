@@ -23,17 +23,16 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.ISimpleGeometry;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
@@ -44,14 +43,12 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
-	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
-	import weave.utils.EquationColumnLib;
 	import weave.utils.VectorUtils;
-	import weave.visualization.plotters.styles.ExtendedSolidLineStyle;
+	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
 	/**	
 	 * @author heather byrne
@@ -68,6 +65,7 @@ package weave.visualization.plotters
 			setKeySource(_combinedKeySet);
 			
 			zoomToSubset.value = true;
+			clipDrawing = false;
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
@@ -76,7 +74,7 @@ package weave.visualization.plotters
 		/*
 		 * This is the line style used to draw the lines.
 		 */
-		public const lineStyle:ExtendedSolidLineStyle = newNonSpatialProperty(ExtendedSolidLineStyle);
+		public const lineStyle:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		
 		public function get alphaColumn():AlwaysDefinedColumn { return lineStyle.alpha; }
 		
@@ -88,7 +86,7 @@ package weave.visualization.plotters
 		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
-		private const _combinedKeySet:KeySet = newNonSpatialProperty(KeySet);
+		private const _combinedKeySet:KeySet = newLinkableChild(this, KeySet);
 		
 		private var _columns:Array = [];
 		private function handleColumnsChange():void
@@ -186,9 +184,9 @@ package weave.visualization.plotters
 				var value:String = values[i];
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
-				col.variables.copyObject("keyCol", groupBy);
-				col.variables.copyObject("filterCol", xData);
-				col.variables.copyObject("dataCol", yData);
+				col.variables.requestObjectCopy("keyCol", groupBy);
+				col.variables.requestObjectCopy("filterCol", xData);
+				col.variables.requestObjectCopy("dataCol", yData);
 				
 				col.setMetadata(AttributeColumnMetadata.TITLE, value);
 				col.setMetadata(AttributeColumnMetadata.MIN, '{ getMin(dataCol) }');
@@ -200,13 +198,17 @@ package weave.visualization.plotters
 			
 			columns.resumeCallbacks();
 			
-		}		
+		}
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const curveType:LinkableString = registerNonSpatialProperty(new LinkableString(CURVE_NONE, curveTypeVerifier));
-		public const shapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(5));
+		public const curveType:LinkableString = registerLinkableChild(this, new LinkableString(CURVE_NONE, curveTypeVerifier));
 		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
 
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
+		public const shapeBorderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
+		public const shapeBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
+		
 		public static const CURVE_NONE:String = 'none';
 		public static const CURVE_TOWARDS:String = 'towards';
 		public static const CURVE_AWAY:String = 'away';
@@ -239,10 +241,6 @@ package weave.visualization.plotters
 		{
 			return shapesAvailable.indexOf(type) >= 0;
 		}
-		
-		public const shapeToDraw:LinkableString = registerNonSpatialProperty(new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
-		public const shapeBorderThickness:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0));
-		public const shapeBorderColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0x000000));
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
@@ -305,7 +303,7 @@ package weave.visualization.plotters
 				
 				if (i > 0)
 				{
-					var geometry:SimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
+					var geometry:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
 					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
 					results.push(geometry);
 				}
@@ -315,6 +313,11 @@ package weave.visualization.plotters
 			}
 
 			return results;
+		}
+		
+		public function getBackgroundGeometries():Array
+		{
+			return [];
 		}
 		
 		/**

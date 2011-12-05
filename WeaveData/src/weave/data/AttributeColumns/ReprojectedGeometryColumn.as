@@ -46,7 +46,7 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.PROJECTION_SRS)
+			if (propertyName == AttributeColumnMetadata.PROJECTION)
 			{
 				var srs:String = projectionSRS.value;
 				if (srs != null && srs != '')
@@ -84,7 +84,7 @@ package weave.data.AttributeColumns
 			_reprojectedColumn = newColumn;
 			
 			if (_reprojectedColumn)
-				_reprojectedColumn.addImmediateCallback(this, triggerCallbacks);
+				_reprojectedColumn.addImmediateCallback(this, triggerCallbacks, null, false, true); // parent-child relationship
 		}
 		
 		private var _reprojectedColumn:IAttributeColumn = null;

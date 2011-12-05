@@ -31,8 +31,11 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.ErrorManager;
+	import weave.core.LinkableString;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.ColumnUtils;
 	import weave.utils.GeometryStreamDecoder;
@@ -44,12 +47,14 @@ package weave.data.AttributeColumns
 	 */
 	public class StreamedGeometryColumn extends AbstractAttributeColumn
 	{
+		private static var _debug:Boolean = false;
+		
 		public function StreamedGeometryColumn(tileService:IWeaveGeometryTileService, metadata:XML = null)
 		{
 			super(metadata);
 			
 			_tileService = tileService;
-			_geometryStreamDecoder.keySet.addImmediateCallback(this, triggerCallbacks);
+			registerLinkableChild(this, _geometryStreamDecoder.keySet);
 			
 			// request a list of tiles for this geometry collection
 			var query:AsyncToken = _tileService.getTileDescriptors();
@@ -58,10 +63,16 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.PROJECTION_SRS)
-				return _geometryStreamDecoder.projectionSrsCode;
+			if (propertyName == AttributeColumnMetadata.PROJECTION)
+				return projectionSrsCode;
 			return super.getMetadata(propertyName);
 		}
+		
+		/**
+		 * This is the projection that the coordinates are in.
+		 * Note: SRS ID means "Spatial Reference System Identifier"
+		 */
+		private var projectionSrsCode:String = null;
 		
 		/**
 		 * This is a list of unique keys this column defines values for.
@@ -125,25 +136,39 @@ package weave.data.AttributeColumns
 			if (dataBounds.isUndefined() || dataBounds.isEmpty())
 				return;
 			
-			var query:AsyncToken;
-			
-			//TODO: instead of a single geometryStreamDecoder tile query, make several tile queries
-			// and make a single webservice query for each group of results.
-			
-			// request ALL metadata tiles
-			var metadataTileIDs:Array = _geometryStreamDecoder.getRequiredMetadataTileIDs(
-				_geometryStreamDecoder.collectiveBounds, 0, true
-			).sort(Array.NUMERIC);
-			// request geometry tiles needed for desired dataBounds
-			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(
-				dataBounds, lowestImportance, true
-			).sort(Array.NUMERIC);
+			var metaRequestBounds:IBounds2D;
+			var metaRequestImportance:Number;
+			switch (metadataRequestMode.value)
+			{
+				case METADATA_REQUEST_MODE_ALL:
+					metaRequestBounds = _geometryStreamDecoder.collectiveBounds;
+					metaRequestImportance = 0;
+					break;
+				case METADATA_REQUEST_MODE_XY:
+					metaRequestBounds = dataBounds;
+					metaRequestImportance = 0;
+					break;
+				case METADATA_REQUEST_MODE_XYZ:
+					metaRequestBounds = dataBounds;
+					metaRequestImportance = lowestImportance;
+					break;
+			}
+			// request metadata tiles
+			var metadataTileIDs:Array = _geometryStreamDecoder.getRequiredMetadataTileIDs(metaRequestBounds, metaRequestImportance, true);
+			metadataTileIDs.sort(Array.NUMERIC);
+			// request geometry tiles needed for desired dataBounds and zoom level (filter by XYZ)
+			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance, true);
+			geometryTileIDs.sort(Array.NUMERIC);
 
-//			if (metadataTileIDs.length > 0)
-//				trace("requesting metadata tiles: " + metadataTileIDs);
-//			if (geometryTileIDs.length > 0)
-//				trace("requesting geometry tiles: " + geometryTileIDs);
+			if (_debug)
+			{
+				if (metadataTileIDs.length > 0)
+					trace("requesting metadata tiles: " + metadataTileIDs);
+				if (geometryTileIDs.length > 0)
+					trace("requesting geometry tiles: " + geometryTileIDs);
+			}
 			
+			var query:AsyncToken;
 			// make requests for groups of tiles
 			while (metadataTileIDs.length > 0)
 			{
@@ -164,14 +189,14 @@ package weave.data.AttributeColumns
 		
 		private function handleDownloadFault(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_streamDownloadCounter--;
 		}
 
 		private function handleGetTileDescriptorsFault(event:FaultEvent, token:Object = null):void
 		{
-			WeaveAPI.ErrorManager.reportError(event.fault);
+			reportError(event);
 		}
 		
 		private function handleGetTileDescriptors(event:ResultEvent, token:Object = null):void
@@ -189,7 +214,7 @@ package weave.data.AttributeColumns
 				
 				_metadata.@keyType = result.keyType;
 				_geometryStreamDecoder.keyType = result.keyType;
-				_geometryStreamDecoder.projectionSrsCode = result.projection;
+				projectionSrsCode = result.projection;
 				
 				// handle metadata tiles
 				_geometryStreamDecoder.decodeMetadataTileList(result.metadataTileDescriptors);
@@ -200,16 +225,14 @@ package weave.data.AttributeColumns
 			}
 			catch (error:Error)
 			{
-				trace('handleGetTileDescriptors() error parsing result from server');
-				WeaveAPI.ErrorManager.reportError(error);
+				reportError(error, 'handleGetTileDescriptors() error parsing result from server');
 			}
 		}
 		
 
 		private function reportNullResult():void
 		{
-			var msg:String = "Did not receive any data from service for geometry column: " + ColumnUtils.getTitle(this);
-			WeaveAPI.ErrorManager.reportError(new Error(msg));
+			reportError("Did not receive any data from service for geometry column: " + ColumnUtils.getTitle(this));
 		}
 		
 		private var _totalDownloadedSize:int = 0;
@@ -248,6 +271,27 @@ package weave.data.AttributeColumns
 
 			// when decoding finishes, run callbacks
 			_geometryStreamDecoder.decodeGeometryStream(result);
+		}
+		
+		/**
+		 * This mode determines which metadata tiles will be requested based on what geometry data is requested.
+		 * Possible request modes are:<br>
+		 *    all -> All metadata tiles, regardless of requested X-Y-Z range <br>
+		 *    xy -> Metadata tiles contained in the requested X-Y range, regardless of Z range <br>
+		 *    xyz -> Metadata tiles contained in the requested X-Y-Z range only <br>
+		 */
+		public static const metadataRequestMode:LinkableString = new LinkableString(METADATA_REQUEST_MODE_XYZ, verifyMetadataRequestMode);
+		
+		public static const METADATA_REQUEST_MODE_ALL:String = 'all';
+		public static const METADATA_REQUEST_MODE_XY:String = 'xy';
+		public static const METADATA_REQUEST_MODE_XYZ:String = 'xyz';
+		public static function get metadataRequestModeEnum():Array
+		{
+			return [METADATA_REQUEST_MODE_ALL, METADATA_REQUEST_MODE_XY, METADATA_REQUEST_MODE_XYZ];
+		}
+		private static function verifyMetadataRequestMode(value:String):Boolean
+		{
+			return metadataRequestModeEnum.indexOf(value) >= 0;
 		}
 	}
 }

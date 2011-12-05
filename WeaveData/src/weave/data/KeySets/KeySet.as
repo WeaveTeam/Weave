@@ -65,10 +65,12 @@ package weave.data.KeySets
 			for each (var row:Array in WeaveAPI.CSVParser.parseCSV(_sessionState))
 				(newKeys.push as Function).apply(null, WeaveAPI.QKeyManager.getQKeys(row.shift(), row));
 			
-			// avoid recursion
+			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
+			delayCallbacks();
 			_currentlyUpdating = true;
 			replaceKeys(newKeys);
 			_currentlyUpdating = false;
+			resumeCallbacks();
 		}
 		
 		/**
@@ -97,10 +99,12 @@ package weave.data.KeySets
 				keyTable.push(newKeys);
 			}
 			
-			// avoid recursion
+			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
+			delayCallbacks();
 			_currentlyUpdating = true;
 			setSessionState(WeaveAPI.CSVParser.createCSVFromArrays(keyTable));
 			_currentlyUpdating = false;
+			resumeCallbacks();
 		}
 		
 		/**
@@ -127,6 +131,9 @@ package weave.data.KeySets
 		 */
 		public function replaceKeys(newKeys:Array):Boolean
 		{
+			if (_locked)
+				return false;
+			
 			if (newKeys == _keys)
 				_keys = _keys.concat();
 			
@@ -183,6 +190,9 @@ package weave.data.KeySets
 		 */
 		public function clearKeys():Boolean
 		{
+			if (_locked)
+				return false;
+			
 			// stop if there are no keys to remove
 			if (_keys.length == 0)
 				return false; // set did not change
@@ -214,6 +224,9 @@ package weave.data.KeySets
 		 */
 		public function addKeys(additionalKeys:Array):Boolean
 		{
+			if (_locked)
+				return false;
+			
 			var changeDetected:Boolean = false;
 			for each (var key:IQualifiedKey in additionalKeys)
 			{
@@ -241,6 +254,9 @@ package weave.data.KeySets
 		 */
 		public function removeKeys(unwantedKeys:Array):Boolean
 		{
+			if (_locked)
+				return false;
+			
 			if (unwantedKeys == _keys)
 				return clearKeys();
 			

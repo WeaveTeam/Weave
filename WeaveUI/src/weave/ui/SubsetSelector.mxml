@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+					 title="Saved Subsets"
+					 width="25%" height="10%"
+					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas width="100%" height="100%">
+		
+	<CustomComboBox id="subsetSelectorBox" prompt="Select a subset..."
+				 width="100%" height="100%"
+				 labelFunction="subsetsListLabelFunction"
+				 valueCommit="itemSelected()"
+				 />
+	</mx:Canvas>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.DropdownEvent;
+			import mx.events.FlexEvent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableHashMap;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			
+			
+			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
+			private var setToIndex:int = -1;
+			
+			private function get savedSubsetsMap():LinkableHashMap
+			{
+				return Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS) as LinkableHashMap;
+			}
+			private function get globalSelection():KeySet
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			}
+			private function get globalSubset():KeyFilter
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+			}
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				minimizable.value = false;
+				maximizable.value = false;
+				pinned.value = true;
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				savedSubsetsMap.addGroupedCallback(this, updateSubsets, true);
+				getCallbackCollection(globalSubset).addGroupedCallback(this, handleGlobalSubsetChange);
+			}
+			private function handleGlobalSubsetChange():void
+			{
+				if( !globalSubset.included.keys.length ) // IF SHOWING ALL RECORDS
+					subsetSelectorBox.selectedIndex = -1;
+			}
+			private function updateSubsets():void
+			{
+				var list:Array = savedSubsetsMap.getObjects();
+				if (includeAllRecordsOption.value)
+					list.unshift(false);
+				subsetSelectorBox.dataProvider = list;
+				if( setToIndex >= 0 )
+				{
+					subsetSelectorBox.selectedIndex = setToIndex;
+					setToIndex = -1;
+				}
+			}
+			public function setSubsetSelectorIndex(subsetName:String):void
+			{
+				var list:Array = savedSubsetsMap.getObjects();
+				var label:String = "";
+				var i:int = 0;
+				for( i; i < list.length; i++ ) {
+					label = savedSubsetsMap.getName(list[i]);
+					if( label == subsetName )
+						break;
+				}
+				setToIndex = i;
+			}
+			/**
+			 * Function used solely to get the label for each list item
+			 **/
+			private function subsetsListLabelFunction(item:Object):String
+			{
+				if (!item)
+					return "All records";
+				
+				// the label will be the name of the item followed by the included/excluded records count
+				var label:String = savedSubsetsMap.getName(item as ILinkableObject);
+				return label + " (" + getKeyFilterRecordsText(label) + ")";
+			}
+			
+			/**
+			 * Function used solely to get a string that says the number of records in either the included or excluded key sets
+			 **/
+			private function getKeyFilterRecordsText(keyFilterName:String):String
+			{
+				// get the subset by its name
+				var keyFilter:KeyFilter = (savedSubsetsMap.getObject(keyFilterName) as KeyFilter);
+				
+				// create a string for the number of included keys followed by " records"
+				// if the excluded keys are used instead, the string will be excluded keys followed by " excluded records"
+				if (keyFilter.includeMissingKeys.value && keyFilter.excluded.keys.length > 0)
+					return keyFilter.excluded.keys.length + ' excluded records';
+				else
+					return keyFilter.included.keys.length + ' records';
+			}
+			
+			protected function itemSelected():void
+			{
+				if (subsetSelectorBox.selectedIndex == -1) return;
+				
+				var subset:KeyFilter = subsetSelectorBox.selectedItem as KeyFilter;
+				if (subset)
+					copySessionState(subset, globalSubset);
+				else
+					globalSubset.replaceKeys(true, true); // all records
+				// reset the selected item to what it was before we set the global subset
+				subsetSelectorBox.selectedItem = subset;
+			}
+			
+		]]>
+	</mx:Script>
+	<ControlPanel>
+		<mx:VBox label="Settings">
+			<mx:CheckBox label='Include "All Records" option' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
+		</mx:VBox>
+		<editors:WindowSettingsEditor target="{this}"/>
+	</ControlPanel>
+</DraggablePanel>

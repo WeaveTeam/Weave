@@ -30,7 +30,6 @@ ColumnListComponent
 		 xmlns="weave.ui.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 borderStyle="outset"
 		 label="Attributes">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
@@ -43,6 +42,11 @@ ColumnListComponent
 	<mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button
+			label="Remove all"
+			toolTip="Click here to remove all attributes from the list."
+			click="internalList.removeAllItems()"
+			enabled="{(internalList.dataProvider as ICollectionView).length > 0}"/>
+		<mx:Button
 			label="Remove selected"
 			toolTip="Click here to remove one or more selected attributes in the list above."
 			click="internalList.removeSelectedItem()"
@@ -50,6 +54,7 @@ ColumnListComponent
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ICollectionView;
 			import mx.core.UIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;

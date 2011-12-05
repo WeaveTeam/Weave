@@ -42,6 +42,7 @@ package weave.core
 	{
 		/**
 		 * This function adds a callback to a LinkableHashMap to monitor any DisplayObjects contained in it.
+		 * @TODO check if already linked
 		 * @param uiParent A UIComponent to synchronize with the given hashMap.
 		 * @param hashMap A LinkableHashMap containing DisplayObjects to synchronize with the given uiParent.
 		 */

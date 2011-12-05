@@ -39,7 +39,6 @@ package weave.api.ui
 	import flash.display.BitmapData;
 	
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ICallbackInterface;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IQualifiedKey;

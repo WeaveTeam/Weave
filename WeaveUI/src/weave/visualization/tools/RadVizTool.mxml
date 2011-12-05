@@ -78,8 +78,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(RadVizPlotter) as RadVizPlotter;
-				getCallbackCollection(_plotter).addGroupedCallback(this, updateTitle);
+				_plotter = initializePlotters(RadVizPlotter, false);
+				getCallbackCollection(_plotter).addGroupedCallback(this, handlePanelTitleChange);
 				
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableFixedAspectRatio.value = true;
@@ -103,8 +103,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				getCallbackCollection(plotLayer.probeFilter).addImmediateCallback(this,drawProbeLines);
 				
-				visualization.marginTop.value =	visualization.marginBottom.value = 20;
-				visualization.marginLeft.value = visualization.marginRight.value = 20;				
+				visualization.marginTop.value =	visualization.marginBottom.value = "20";
+				visualization.marginLeft.value = visualization.marginRight.value = "20";				
 			}
 			
 			override protected function childrenCreated():void
@@ -217,9 +217,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 				{				
 					// try to get unique attribute names separated by commas					
 					var newTitle:String = "RadViz of ";
@@ -306,9 +307,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<userControls:ControlsSubsetBox>
 			<mx:Label text="Label angle" fontWeight="bold"/>
 			<mx:HSlider id="labelAngleSlider"
-			snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-			dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
-			initialize="linkBindableProperty(_anchorPlotter.labelAngleRatio, labelAngleSlider, 'value')"/>
+				snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+				dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
+				creationComplete="linkBindableProperty(_anchorPlotter.labelAngleRatio, event.target, 'value')"/>
 			</userControls:ControlsSubsetBox>
 			
 			
@@ -393,11 +394,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							  toolTip="Use this control to reorder the dimensional anchors"/>					
 				</mx:HBox>
 				<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
-							 initialize="linkBindableProperty(_plotter.currentAlgorithm,algorithmComboBox,'selectedItem')"/>
+							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm,event.target,'selectedItem')"/>
 				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
 					<mx:Label text="Number of Iterations"/>
 					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
-								  initialize="linkBindableProperty(_plotter.iterations, iterationsTextInput, 'text')"/>
+								  creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>

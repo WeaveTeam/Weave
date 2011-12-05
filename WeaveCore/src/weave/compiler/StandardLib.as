@@ -41,7 +41,7 @@ package weave.compiler
 		public static function asNumber(value:*):Number
 		{
 			if (value == null)
-				return NaN; // return NaN, because Number(null) == 0
+				return NaN; // return NaN because Number(null) == 0
 			
 			if (value is Number)
 				return value;
@@ -49,7 +49,7 @@ package weave.compiler
 			try {
 				value = String(value);
 				if (value == '')
-					return NaN;
+					return NaN; // return NaN because Number('') == 0
 				return Number(value);
 			} catch (e:Error) { }
 
@@ -152,28 +152,31 @@ package weave.compiler
 		}
 		
 		/**
+		 * This function will use a default NumberFormatter object to format a Number to a String.
 		 * @param number The number to format.
-		 * @param formatterOrPrecision The NumberFormatter to use, or a precision value to use for the default NumberFormatter.
+		 * @param precision A precision value to pass to the default NumberFormatter.
+		 * @see mx.formatters.NumberFormatter#format
 		 */
-		public static function formatNumber(number:Number, formatterOrPrecision:Object = null):String
+		public static function formatNumber(number:Number, precision:Number = NaN):String
 		{
-			var formatter:NumberFormatter = formatterOrPrecision as NumberFormatter;
-			if (formatter)
-				return formatter.format(number);
-			
-			var precision:Number = asNumber(formatterOrPrecision);
 			if (isFinite(precision))
-				defaultNumberFormatter.precision = uint(precision);
+			{
+				_numberFormatter.precision = uint(precision);
+			}
 			else
-				defaultNumberFormatter.precision = -1;
+			{
+				if (Math.abs(number) < 1)
+					return String(number); // this fixes the bug where "0.1" gets converted to ".1" (we don't want the "0" to be lost)
+				_numberFormatter.precision = -1;
+			}
 			
-			return defaultNumberFormatter.format(number);
+			return _numberFormatter.format(number);
 		}
 		
 		/**
 		 * This is the default NumberFormatter to use inside the formatNumber() function.
 		 */
-		private static const defaultNumberFormatter:NumberFormatter = new NumberFormatter();
+		private static const _numberFormatter:NumberFormatter = new NumberFormatter();
 
 		/**
 		 * This function returns -1 if the given value is negative, and 1 otherwise.
@@ -302,16 +305,19 @@ package weave.compiler
 				return sign * Math.round(absValue / pow10) * pow10;
 			}
 		}
-//		private static var testResult:* = testRoundSignificant();
-//		private static function testRoundSignificant():*
-//		{
-//			for (var pow:int = -5; pow <= 5; pow++)
-//			{
-//				var n:Number = 1234.5678 * Math.pow(10, pow);
-//				for (var d:int = 0; d <= 9; d++)
-//					trace('roundSignificant(',n,',',d,') =',roundSignificant(n, d));
-//			}
-//		}
+		
+//		{ /** begin static code block **/
+//			testRoundSignificant();
+//		} /** end static code block **/
+		private static function testRoundSignificant():void
+		{
+			for (var pow:int = -5; pow <= 5; pow++)
+			{
+				var n:Number = 1234.5678 * Math.pow(10, pow);
+				for (var d:int = 0; d <= 9; d++)
+					trace('roundSignificant(',n,',',d,') =',roundSignificant(n, d));
+			}
+		}
 
 		/**
 		 * @param normValue A Number between 0 and 1.
@@ -401,7 +407,7 @@ package weave.compiler
 			
 			for(x = graphmin; x < graphmax + 0.5*d; x += d)
 			{
-				values[i++] = x;
+				values[i++] = roundSignificant(x); // this fixes values like x = 0.6000000000000001 that may occur from x += d
 			}
 			
 			return values;
@@ -421,6 +427,29 @@ package weave.compiler
 			for each (var value:Number in args)
 				sum += value;
 			return sum;
+		}
+		
+		/**
+		 * This function compares each of the elements in two arrays in order.
+		 * @param a The first Array for comparison
+		 * @param b The second Array for comparison
+		 * @return The first nonzero compare value, or zero if the arrays are equal.
+		 */
+		public static function arrayCompare(a:Array, b:Array):int
+		{
+			var an:int = a.length;
+			var bn:int = b.length;
+			if (an < bn)
+				return -1;
+			if (an > bn)
+				return 1;
+			for (var i:int = 0; i < an; i++)
+			{
+				var result:int = ObjectUtil.compare(a[i], b[i]);
+				if (result != 0)
+					return result;
+			}
+			return 0;
 		}
 	}
 }

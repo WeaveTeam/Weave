@@ -48,6 +48,8 @@
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
@@ -100,7 +102,6 @@
 					Alert.show("You must specify the name of the destination SQL table.", alertTitle);
 				else
 				{
-					finishEnabled = false;
 					var query:DelayedAsyncInvocation = AdminInterface.instance.storeDBFDataToDatabase(
 						importDBFFileNameInputToStore.text,
 						tableSelector.activeSchema,
@@ -108,10 +109,16 @@
 						tableSelector.tableOverwriteCheck.selected,
 						''
 					);
-					query.addAsyncResponder(enableImportDBFButton, enableImportDBFButton);
-					function enableImportDBFButton(..._):void
+					
+					controlBarEnabled = false;
+					query.addAsyncResponder(handleResult, handleFault);
+					function handleResult(event:ResultEvent, token:Object = null):void
 					{
-						finishEnabled = true;
+						controlBarEnabled = true;
+					}
+					function handleFault(event:FaultEvent, token:Object = null):void
+					{
+						controlBarEnabled = true;
 					}
 				}
 			}

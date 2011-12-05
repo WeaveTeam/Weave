@@ -18,22 +18,21 @@
 */
 package weave.resources.fonts
 {
+	import flash.text.Font;
+
 	public class EmbeddedFonts
 	{
-		public static var SophiaNubian:String = "Sophia Nubian"; 
-		[Embed(source="/weave/resources/fonts/SophiaNubian/SNR.ttf", fontName="Sophia Nubian", mimeType="application/x-font-truetype")]
-		private static const SophiaNubianFont:Class;
+		public static const SophiaNubian:String = "Sophia Nubian"; 
 		
-//		public var ARIAL:String = "Arial"; 
-//		[Embed(source="Arial.ttf", fontName="Arial", mimeType="application/x-font-truetype")]
-//		private const ArialFont:Class;
-//		
-//		public var CETUS:String = "Cetus"; 
-//		[Embed(source="Cetus.ttf", fontName="Cetus", mimeType="application/x-font-truetype")]
-//		private const CetusFont:Class;       
-//		
-//		public var MYRIADWEBPRO:String = "Myriad Web Pro"; 
-//		[Embed(source="MyriadWebPro.ttf", fontName="Myriad Web Pro", mimeType="application/x-font-truetype")]
-//		private const MyriadWebProFont:Class;    
+		[Embed(source="/weave/resources/fonts/SophiaNubian/SNR.ttf", fontWeight="normal", fontName="Sophia Nubian", fontFamily="Sophia Nubian", mimeType="application/x-font-truetype")]
+		private static const SophiaNubianRegularTTF:Class;
+		
+		[Embed(source="/weave/resources/fonts/SophiaNubian/SNB.ttf", fontWeight="bold", fontName="Sophia Nubian", fontFamily="Sophia Nubian", mimeType="application/x-font-truetype")]
+		private static const SophiaNubianBoldTTF:Class;
+		
+		{
+			Font.registerFont(SophiaNubianRegularTTF);
+			Font.registerFont(SophiaNubianBoldTTF);
+		}
 	}
 }

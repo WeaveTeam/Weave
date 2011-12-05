@@ -25,63 +25,86 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*"
 			label="Import SQL tables to Weave"
-			width="640" height="300"
+			finishEnabled="{tableSelector.activeTable &amp;&amp; keyColumnComboBox.selectedItem}"
 			>
 	<mx:VBox width="100%" height="100%">
 		<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 		<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="true" tableOverwriteCheckVisible="false"/>
-		<mx:HBox>
-			<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_KEY_COLUMN_NAME_LABEL}"/>
-			<ui:CustomComboBox id="keyColumnComboBox" editable="true" dataProvider="{tableSelector.columns}" toolTip="{StringDefinition.DEFAULT_KEY_COLUMN_NAME_DROPDOWNBOX_TOOLTIP}"/>
-		</mx:HBox>
-		<mx:CheckBox  id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-		<mx:VBox>
-			<mx:HBox enabled="{secondaryKeyColumnCheckBox.selected}">
-				<mx:TextArea text="Name of secondary key column" width="{indent}" borderThickness="0" selectable="false" editable="false" wordWrap="true"/>
-				<ui:CustomComboBox id="sqlSecondaryKeyColumnCombo" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider"
-								   dataProvider="{tableSelector.columns}" creationComplete="keyColumnComboboxesCreated(event)"/>				
+		<mx:VBox visible="{Boolean(tableSelector.activeTable)}">
+			<mx:HBox>
+				<mx:Label textAlign="right" width="{tableSelector.indent}" text="{Strings.table_display_name}"/>
+				<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{Strings.tip_table_display_name}"/>
+				<mx:CheckBox label="Overwrite" id="tableNameOverwriteCheck" selected="false"/>
 			</mx:HBox>
+			<ui:Indent indent="{tableSelector.indent}" label="{Strings.key_column_name}">
+				<ui:CustomComboBox id="keyColumnComboBox" prompt="Select a column..." dataProvider="{tableSelector.columns}" toolTip="{Strings.tip_key_column_dropdown}"/>
+			</ui:Indent>
+			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
+				<mx:Label text="What do these keys correspond to?"/>
+				<ui:Indent>
+					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{tableSelector.activeTable}"/>
+				</ui:Indent>
+				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
+				<ui:Indent height="{secondaryKeyColumnCheckBox.selected ? NaN : 0}">
+					<mx:HBox>
+						<mx:Label text="Secondary key column"/>
+						<ui:CustomComboBox id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
+					</mx:HBox>
+				</ui:Indent>
+				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
+				<ui:Indent visible="{generateFilterColumns.selected}">
+					<ui:TextBox label="Columns to use as filters" id="filterColumnsInput" text="{WeaveAPI.CSVParser.createCSVFromArrays([tableSelector.columns])}"/>
+				</ui:Indent>
+			</mx:VBox>
 		</mx:VBox>
-	</mx:VBox>
-	<mx:VBox width="100%" height="100%">
-		<mx:HBox>
-			<mx:Label width="{indent}" text="{StringDefinition.DEFAULT_TABLE_DISPLAY_NAME_LABEL}"/>
-			<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{StringDefinition.DEFAULT_SQL_TABLE_DISPLAY_NAME_TEXTINPUT_TOOLTIP}"/>
-			<mx:CheckBox label="Overwrite" id="tableNameOverwriteCheck" selected="false"/>
-		</mx:HBox>
-		<admin:GeometryCollectionDialog id="geometrySelector" keyType="{tableSelector.activeTable}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.ComboBox;
 			import mx.events.CollectionEvent;
 			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
+			import weave.api.WeaveAPI;
+			import weave.data.CSVParser;
 			import weave.services.AdminInterface;
+			import weave.services.DelayedAsyncInvocation;
 			
-			private static const indent:int = 145;
-						
-			private function keyColumnComboboxesCreated(event:FlexEvent):void
+			override protected function childrenCreated():void
 			{
-				// This function was created so the combobox text property will remain an empty string unless the user chooses a column
-				// collectionChange is dispatched whenever the dataProvider changes		
-				event.currentTarget.addEventListener(CollectionEvent.COLLECTION_CHANGE, function(e:CollectionEvent):void{
-					event.currentTarget.selectedIndex = -1;
-				});
+				super.childrenCreated();
 			}
 			
 			override public function finish():void
 			{
-				AdminInterface.instance.addConfigDataTableFromDatabase(
+				var filterColumns:Array = null;
+				if (generateFilterColumns.selected && filterColumnsInput.text)
+					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
+				var query:DelayedAsyncInvocation = AdminInterface.instance.addConfigDataTableFromDatabase(
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
-						keyColumnComboBox.text,
-						secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.text : null,
+						keyColumnComboBox.selectedLabel,
+						secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.selectedLabel : null,
 						tableNameInput.text,
 						tableNameOverwriteCheck.selected,
 						geometrySelector.selectedGeometryCollection,
-						geometrySelector.selectedKeyType
+						geometrySelector.selectedKeyType,
+						filterColumns
 					);
+				
+				controlBarEnabled = false;
+				query.addAsyncResponder(handleResult, handleFault);
+				function handleResult(event:ResultEvent, token:Object = null):void
+				{
+					controlBarEnabled = true;
+				}
+				function handleFault(event:FaultEvent, token:Object = null):void
+				{
+					controlBarEnabled = true;
+				}
 			}
 		]]>
 	</mx:Script>

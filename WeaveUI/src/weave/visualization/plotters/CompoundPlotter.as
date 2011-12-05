@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
 	import weave.api.unlinkSessionState;
 	import weave.core.LinkableHashMap;
@@ -54,7 +55,7 @@ package weave.visualization.plotters
 		/**
 		 * This is an ordered list of plotters to combine.
 		 */
-		public const plotters:LinkableHashMap = registerNonSpatialProperty(new LinkableHashMap(IPlotter));
+		public const plotters:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));
 		
 		private function handlePlottersListChange():void
 		{
@@ -70,7 +71,7 @@ package weave.visualization.plotters
 				//TODO: allow multiple key sets to be linked (using a union of key sets)
 				
 				linkSessionState(keySet.keyFilter, newPlotter.keySet.keyFilter);
-				newPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks);
+				newPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // this is not a parent-child relationship, so alwaysTriggerLast=false
 			}
 			// temporary solution -- just use the first plotter as the key source
 			var _plotters:Array = plotters.getObjects(IPlotter);

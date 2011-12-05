@@ -22,6 +22,10 @@ package weave.ui
 	
 	import mx.controls.TextInput;
 	import mx.core.mx_internal;
+	import mx.utils.ObjectUtil;
+	
+	import weave.compiler.StandardLib;
+
 	use namespace mx_internal;
 
 	/**
@@ -35,21 +39,53 @@ package weave.ui
 		public function TextInputWithPrompt()
 		{
 			super();
-			showPrompt();
 		}
 		
 		public function asTextInput():TextInput { return this; }
 		
-		protected static const PROMPT_TEXT_ALPHA:Number = 0.5; // alpha of text when prompt is shown
-		protected static const DEFAULT_TEXT_ALPHA:Number = 1.0; // alpha of text when prompt is not shown
-		
-		private var _promptIsShown:Boolean = false; // to know if the prompt is shown or not
-		private var _prompt:String = ''; // for storing the prompt text
-
 		/**
 		 * If this is set to true, all the text will be selected when focus is given to the TextInput.
 		 */
 		[Bindable] public var autoSelect:Boolean = true;
+		
+		protected static const PROMPT_TEXT_ALPHA:Number = 0.5; // alpha of text when prompt is shown
+		protected static const DEFAULT_TEXT_ALPHA:Number = 1.0; // alpha of text when prompt is not shown
+		private var _color:Number = NaN; // stores the color that was set via setStyle
+		override public function setStyle(styleProp:String, newValue:*):void
+		{
+			if (styleProp == 'color')
+			{
+				_color = newValue;
+				updateTextColor();
+			}
+			else
+			{
+				super.setStyle(styleProp, newValue);
+			}
+		}
+		
+		/**
+		 * This function sets the textField text color and works around a bug where setting textField.alpha does nothing.
+		 */		
+		private function updateTextColor():void
+		{
+			if (!textField)
+				return;
+			var alpha:Number = _promptIsShown ? PROMPT_TEXT_ALPHA : DEFAULT_TEXT_ALPHA;
+			if (isNaN(_color))
+				_color = getStyle('color');
+			super.setStyle('color', StandardLib.interpolateColor(alpha, getStyle('backgroundColor'), _color));
+		}
+		
+		private var _toolTipSet:Boolean = false;
+		private var _promptIsShown:Boolean = true; // to know if the prompt is shown or not
+		private var _prompt:String = ''; // for storing the prompt text
+		
+		override public function set toolTip(value:String):void
+		{
+			_toolTipSet = true;
+			super.toolTip = value;
+		}
 		
 		/**
 		 * This is the prompt that is shown when no text has been entered.
@@ -63,9 +99,18 @@ package weave.ui
 		{
 			_prompt = value;
 			if (_promptIsShown)
-				super.text = _prompt; // bypass local setter
+			{
+				super.text = _prompt;
+			}
+			if (!_toolTipSet)
+				super.toolTip = value;
 		}
 		
+		// this metadata is apparently required for BindingUtils.bindSetter to work
+		[Bindable("textChanged")]
+		[CollapseWhiteSpace]
+		[Inspectable(category="General", defaultValue="")]
+		[NonCommittingChangeEvent("change")]
 		/**
 		 * This function makes sure the prompt text gets replaced with an empty String.
 		 */
@@ -81,10 +126,12 @@ package weave.ui
 		 */
 		override public function set text(value:String):void
 		{
-			if (value)
+			if (value || _hasFocus)
 			{
-				hidePrompt();
-				super.text = value; // bypass local setter
+				if (_promptIsShown)
+					hidePrompt(value);
+				else
+					super.text = value; // bypass local setter
 			}
 			else
 			{
@@ -93,18 +140,6 @@ package weave.ui
 		}
 		
 		/**
-		 * This function initializes the alpha of the text when the TextField gets created.
-		 */
-		override mx_internal function createTextField(childIndex:int):void
-		{
-			super.createTextField(childIndex);
-			if (_promptIsShown)
-				textField.alpha = PROMPT_TEXT_ALPHA;
-			else
-				textField.alpha = DEFAULT_TEXT_ALPHA;
-		}
-
-		/**
 		 * This function shows the prompt.
 		 */
 		private function showPrompt():void
@@ -112,23 +147,31 @@ package weave.ui
 			if (!_promptIsShown && !_hasFocus)
 			{
 				_promptIsShown = true;
+				
 				super.text = _prompt; // bypass local setter
-				if (textField)
-					textField.alpha = PROMPT_TEXT_ALPHA;
+
+				updateTextColor();
 			}
 		}
 		
 		/**
 		 * This function hides the prompt.
+		 * @param text The new text to set in place of the prompt if the prompt is currently shown.
 		 */
-		private function hidePrompt():void
+		private function hidePrompt(newText:String = ''):void
 		{
 			if (_promptIsShown)
 			{
 				_promptIsShown = false;
-				super.text = ''; // bypass local setter
-				if (textField)
-					textField.alpha = DEFAULT_TEXT_ALPHA;
+				
+				super.text = newText;
+				
+				updateTextColor();
+				
+				// Validate now to make sure the inner UITextField text is updated as well.
+				// This fixes a bug where the prompt text would remain if a character is typed
+				// immediately after clicking in the text input.
+				validateNow();
 			}
 		}
 		
@@ -139,13 +182,16 @@ package weave.ui
 		 */
 		override protected function focusInHandler(event:FocusEvent):void
 		{
-			_hasFocus = true;
-			hidePrompt();
-			
-			if (autoSelect)
+			if (!_hasFocus)
 			{
-				selectionBeginIndex = 0;
-				selectionEndIndex = text.length;
+				_hasFocus = true;
+				hidePrompt();
+
+				if (autoSelect)
+				{
+					selectionBeginIndex = 0;
+					selectionEndIndex = text.length;
+				}
 			}
 			
 			super.focusInHandler(event);
@@ -156,11 +202,23 @@ package weave.ui
 		 */
 		override protected function focusOutHandler(event:FocusEvent):void
 		{
-			_hasFocus = false;
-			if (!text)
-				showPrompt();
-
+			if (_hasFocus)
+			{
+				_hasFocus = false;
+				if (!text)
+					showPrompt();
+			}
+			
 			super.focusOutHandler(event);
+		}
+		
+		/**
+		 * This function initializes the alpha of the text when the TextField gets created.
+		 */
+		override mx_internal function createTextField(childIndex:int):void
+		{
+			super.createTextField(childIndex);
+			updateTextColor();
 		}
 	}
 }

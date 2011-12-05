@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				title="Attribute menu"
+				width="300" height="200"
+				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
+	
+	<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(targetLayoutCombo.selectedItem)}">
+		<mx:Canvas label="Combo Box">
+			<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
+							width="100%" height="100%"
+							labelFunction="choiceComboLabelFunction"
+							valueCommit="handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
+							/>
+		</mx:Canvas>
+		<mx:Canvas label="List">
+			<mx:List id="choiceList" width="100%" height="100%"
+					 labelFunction="choiceComboLabelFunction"
+					 change="handleAttrSelected(choiceList, choiceList.selectedIndex);"
+					 />
+		</mx:Canvas>
+		<mx:Canvas label="Slider">
+			<mx:VSlider id="choiceSlider" liveDragging="true" tickInterval="1"
+						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
+						change="handleAttrSelected(choiceSlider, choiceSlider.maximum - choiceSlider.value);"
+						/>
+		</mx:Canvas>
+	</mx:ViewStack>
+	
+	<ControlPanel>
+		<mx:VBox width="100%" label="Settings">
+			<mx:HBox>
+				<mx:VBox>
+					<Indent label="Visualization tool:" indent="120">
+						<CustomComboBox prompt="Select a tool..." id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
+										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
+					</Indent>
+					<Indent label="Attribute to modify:" indent="120" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
+						<CustomComboBox prompt="Select an attribute..." id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
+										valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
+					</Indent>
+				</mx:VBox>
+				<mx:HBox>
+					<mx:Spacer width="100%" />
+					<mx:Label text="Layout:" />
+					<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
+								dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
+				</mx:HBox>
+			</mx:HBox>
+			<ColumnListComponent id="choicesComponent" label="Attributes to appear in the drop-down" />
+		</mx:VBox>
+		<editors:WindowSettingsEditor target="{this}"/>
+	</ControlPanel>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.ComboBox;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			
+			import weave.Weave;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableString;
+			import weave.core.StageUtils;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.ExtendedDynamicColumn;
+			import weave.utils.ColumnUtils;
+			import weave.utils.ProbeTextUtils;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			public const targetTool:LinkableString 		= newLinkableChild(this, LinkableString);
+			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
+			public const choices:LinkableHashMap 		= registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public const layoutMode:LinkableString 		= registerLinkableChild(this, new LinkableString(layouts[0]));
+			
+			private static const layouts:Array = [ "ComboBox", "List", "VSlider" ];
+			private static const layoutLabels:Array = [ "Combo Box", "List", "Slider" ];
+
+			private function targetLayoutLabelFunction(inputString:String):String
+			{
+				return layoutLabels[layouts.indexOf(inputString)];
+			}
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				// have a default dynamic title
+				panelTitle.value = "Attribute menu for {targetAttribute.value}"
+				
+				// have some default choices ready when the tool is created
+				copySessionState(ProbeTextUtils.probedColumns, choices);
+				
+				pinned.value = true;
+			}
+			
+			// called after children have been created
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				// Since we're adding these callbacks after the children have been created,
+				// we don't have to worry about ui components being null inside the callbacks.
+				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
+				targetTool.addImmediateCallback(this, handleTargetToolChange, null, true);
+				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, null, true);
+				choices.addImmediateCallback(this, handleChoicesChange, null, true);
+				
+				choicesComponent.hashMap = choices;
+				
+				linkBindableProperty(layoutMode, targetLayoutCombo, 'selectedItem');
+				
+				callLater(showControlPanelIfNothingSelected);
+			}
+			private function showControlPanelIfNothingSelected():void
+			{
+				// when the tool is created and nothing is selected, show the control panel
+				if (!targetTool.value && !targetAttribute.value && !StageUtils.mouseButtonDown)
+					toggleControlPanel();
+			}
+			
+			// this returns the tool object corresponding to the selected item in the toolCombo
+			public function getTargetTool():SimpleVisTool
+			{
+				return Weave.root.getObject(targetTool.value) as SimpleVisTool;
+			}
+			
+			// called whenever a global object gets added/removed/reordered
+			private function handleGlobalListChange():void
+			{
+				// update the list of tools
+				targetToolCombo.dataProvider = Weave.root.getNames(SimpleVisTool);
+				// after we set the data provider, we have to make sure the correct item is selected
+				handleTargetToolChange();
+			}
+			
+			// called when the target tool changes
+			private function handleTargetToolChange():void
+			{
+				// make sure the correct item is selected
+				targetToolCombo.selectedItem = targetTool.value;
+				
+				var tool:SimpleVisTool = getTargetTool();
+				// update the list of available attributes
+				if (tool)
+				{
+					var attrNames:Array = tool.getSelectableAttributeNames();
+					targetAttributeCombo.dataProvider = attrNames;
+				}
+				else
+				{
+					targetAttributeCombo.dataProvider = [];
+				}
+				
+				// after we set the data provider, we have to make sure the correct item is selected
+				handleTargetAttributeChange();
+			}
+			
+			// called when the target attr changes
+			private function handleTargetAttributeChange():void
+			{
+				var tool:SimpleVisTool = getTargetTool();
+				// only enable the choiceCombo if the target attribute exists in the target tool
+				if (tool)
+				{
+					var attrNames:Array = tool.getSelectableAttributeNames();
+					var index:int = attrNames.indexOf(targetAttribute.value);
+					if (index >= 0)
+					{
+						// found the attribute name in the list, now check if it's a compatible object
+						var attrObjs:Array = tool.getSelectableAttributes();
+						var obj:Object = attrObjs[index];
+						var compatible:Boolean = obj is DynamicColumn || obj is ILinkableHashMap;
+						layoutViewStack.enabled = compatible;
+					}
+					else
+					{
+						layoutViewStack.enabled = false;
+					}
+				}
+				else
+				{
+					layoutViewStack.enabled = false;
+				}
+				
+				// make sure the correct item is selected
+				targetAttributeCombo.selectedItem = targetAttribute.value;
+				// clear the choice
+				choiceCombo.selectedIndex = -1;
+				choiceList.selectedIndex = -1;
+			}
+			
+			// called when the admin alters the choices through the control panel
+			private function handleChoicesChange():void
+			{
+				// update the list of column objects available through the main window combo box
+				choiceCombo.dataProvider = choices.getObjects();
+				choiceList.dataProvider = choices.getObjects();
+				
+				var names:Array = choices.getObjects();
+				for( var i:uint = 0; i < names.length; i++ )
+					names[i] = ColumnUtils.getTitle(names[i]);
+				// special case for slider -- reverse order
+				choiceSlider.labels = names.reverse();
+				choiceSlider.maximum = names.length-1;
+			}
+			
+			// used to label the combo box items
+			private function choiceComboLabelFunction(attrCol:IAttributeColumn):String
+			{
+				return ColumnUtils.getTitle(attrCol);
+			}
+			
+			// called when combo box selection changes, makes sure it has focus before setting target LinkableString
+			private function handleComboChange(combo:ComboBox, target:LinkableString):void
+			{
+				if (hasFocus(combo))
+					target.value = combo.selectedItem as String;
+			}
+			
+			// tests if a component has focus
+			private function hasFocus(component:UIComponent):Boolean
+			{
+				var focus:DisplayObject = component.getFocus();
+				return focus && component.contains(focus);
+			}
+			
+			// called when the user clicks on the combo in the main AttributeMenuTool window
+			private function handleAttrSelected(component:UIComponent, selectedIndex:int):void
+			{
+				var tool:SimpleVisTool = getTargetTool();
+				// do nothing if there is no tool or the component doesn't have focus
+				if (!tool)
+					return;
+				
+				var attrNames:Array = tool.getSelectableAttributeNames();
+				var attrObjs:Array = tool.getSelectableAttributes();
+				// find the index of the tool attribute selected in the control panel
+				var index:int = attrNames.indexOf(targetAttribute.value);
+				if (index < 0)
+				{
+					// we didn't find the "SelectableAttributeName"
+					reportError(StringUtil.substitute('"{0}" does not have attribute "{1}"', targetTool.value, targetAttribute.value));
+					return;
+				}
+				
+				// using the index, get the corresponding "SelectableAttribute" from the tool
+				var dynamicColumn:DynamicColumn = attrObjs[index] as DynamicColumn;
+				var hashMap:ILinkableHashMap = attrObjs[index] as ILinkableHashMap;
+				
+				if (hashMap)
+				{
+					ColumnUtils.forceFirstColumnDynamic(hashMap);
+					dynamicColumn = hashMap.getObjects(IAttributeColumn)[0];
+				}
+				
+				// use the same hack used by the AttributeSelectorPanel to find a nested dynamic column.
+				dynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(dynamicColumn);
+				
+				if (dynamicColumn)
+				{
+					// get the column object the user clicked on and set the tool attribute
+					var availableChoices:Array = choices.getObjects(IAttributeColumn);
+					var selectedAttr:IAttributeColumn = availableChoices[selectedIndex] as IAttributeColumn;
+					if (selectedAttr)
+						dynamicColumn.requestLocalObjectCopy(selectedAttr);
+				}
+				else
+				{
+					reportError('This option is not supported for the attribute "' + targetAttribute.value + '"');
+				}
+			}
+			
+			private function selectActiveAttribute():void
+			{
+				
+			}
+			
+		]]>
+	</mx:Script>
+</DraggablePanel>

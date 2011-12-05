@@ -29,6 +29,7 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
 
@@ -289,7 +290,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 			return result;
 		}
@@ -298,13 +299,30 @@ package weave.core
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
 		 */		
 		private const _callbackFunctionCache:Object = {};
+		
+		/**
+		 * @private
+		 */
 		private function getCachedCallbackFunction(callback:String):Function
 		{
 			if (!_callbackFunctionCache[callback])
 			{
 				_callbackFunctionCache[callback] = function():void
 				{
-					ExternalInterface.call(callback);
+					var prev:Boolean = ExternalInterface.marshallExceptions;
+					try
+					{
+						ExternalInterface.marshallExceptions = true;
+						ExternalInterface.call(callback);
+					}
+					catch (e:Error)
+					{
+						reportError(e);
+					}
+					finally
+					{
+						ExternalInterface.marshallExceptions = prev;
+					}
 				}
 			}
 			return _callbackFunctionCache[callback];

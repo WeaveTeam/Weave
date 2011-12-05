@@ -29,9 +29,7 @@ package weave.data.AttributeColumns
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.services.IURLRequestUtils;
-	import weave.services.URLRequestUtils;
+	import weave.api.reportError;
 
 	public class ImageColumn extends DynamicColumn
 	{
@@ -47,30 +45,31 @@ package weave.data.AttributeColumns
 		 * This is the image cache.
 		 */
 		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+		
+		/**
+		 * This function returns BitmapData objects as its default dataType.
+		 * @inheritDoc
+		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (dataType != null)
+			if (dataType != null && dataType != BitmapData)
 				return super.getValueFromKey(key, dataType);
-			var _imageURL:String = super.getValueFromKey(key, String) as String;
-			if(_imageURL == null)
-				return _missingImage;
-			if( _urlToImageMap[_imageURL] == undefined )
+			
+			var url:String = super.getValueFromKey(key, String) as String;
+			if (url && _urlToImageMap[url] === undefined) // only request image if not already requested
 			{
-				_urlToImageMap[_imageURL] = _missingImage;
-				WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+				_urlToImageMap[url] = null; // set this here so we don't make multiple requests
+				WeaveAPI.URLRequestUtils.getContent(new URLRequest(url), handleImageDownload, handleFault, url);
 			}
 			
-			if( (_urlToImageMap[_imageURL] ) != null ){
-				return _urlToImageMap[_imageURL];
-			}
-			return null;
+			return _urlToImageMap[url] as BitmapData;
 		}
 		
 		private function handleImageDownload(event:ResultEvent, token:Object = null):void
 		{
 			var bitmap:Bitmap = event.result as Bitmap;
 			_urlToImageMap[token] = bitmap.bitmapData;
-			getCallbackCollection(this).triggerCallbacks();
+			triggerCallbacks();
 		}
 				
 		/**
@@ -78,10 +77,9 @@ package weave.data.AttributeColumns
 		 */
 		private function handleFault(event:FaultEvent, token:Object=null):void
 		{
-			//trace("Error downloading image:", ObjectUtil.toString(event.message), token);
 			_urlToImageMap[token] = _missingImage;
-			getCallbackCollection(this).triggerCallbacks();
+			triggerCallbacks();
+			reportError(event);
 		}		
-		
 	}
 }

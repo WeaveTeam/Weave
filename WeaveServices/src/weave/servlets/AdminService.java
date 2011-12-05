@@ -20,16 +20,15 @@
 package weave.servlets;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -49,6 +48,9 @@ import java.util.Vector;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import weave.beans.AdminServiceResponse;
+import weave.beans.UploadFileFilter;
+import weave.beans.UploadedFile;
 import weave.config.DatabaseConfig;
 import weave.config.DublinCoreElement;
 import weave.config.DublinCoreUtils;
@@ -65,16 +67,13 @@ import weave.config.SQLConfigXML;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
 import weave.geometrystream.SQLGeometryStreamDestination;
-import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
-import weave.beans.AdminServiceResponse;
-import weave.beans.UploadFileFilter;
-import weave.beans.UploadedFile;
 
 public class AdminService extends GenericServlet
 {
@@ -124,24 +123,28 @@ public class AdminService extends GenericServlet
 
 	synchronized public AdminServiceResponse checkSQLConfigExists()
 	{
-		File configFile = new File(configManager.getConfigFileName());
 		try
 		{
-			configManager.detectConfigChanges();
-			ISQLConfig config = configManager.getConfig();
-			List<String> connectionNames = config.getConnectionNames();
-			DatabaseConfigInfo dbInfo = config.getDatabaseConfigInfo();
-			if (dbInfo != null && ListUtils.findString(dbInfo.connection, connectionNames) >= 0)
+			if (databaseConfigExists())
 				return new AdminServiceResponse(true, "Configuration file exists.");
 		}
 		catch (RemoteException se)
 		{
 			se.printStackTrace();
+			
+			File configFile = new File(configManager.getConfigFileName());
 			if (configFile.exists())
 				return new AdminServiceResponse(false, String.format("%s is invalid. Please edit the file and fix the problem"
 						+ " or delete it and create a new one through the admin console.\n\n%s", configFile.getName(), se.getMessage()));
 		}
 		return new AdminServiceResponse(false, "The configuration storage location must be specified.");
+	}
+
+	synchronized private boolean databaseConfigExists() throws RemoteException
+	{
+		configManager.detectConfigChanges();
+		ISQLConfig config = configManager.getConfig();
+		return config.isConnectedToDatabase();
 	}
 
 	synchronized public boolean authenticate(String connectionName, String password) throws RemoteException
@@ -231,9 +234,14 @@ public class AdminService extends GenericServlet
 	 */
 	synchronized public String[] getWeaveFileNames(String configConnectionName, String password) throws RemoteException
 	{
-		checkPasswordAndGetConfig(configConnectionName, password);
+		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
+		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
 
-		File docrootFolder = new File(docrootPath);
+		String path = docrootPath;
+		if(info.folderName.length() > 0)
+			path = path + info.folderName + "/";
+		
+		File docrootFolder = new File(path);
 		FilenameFilter xmlFilter = new FilenameFilter()
 		{
 			public boolean accept(File dir, String fileName)
@@ -246,13 +254,14 @@ public class AdminService extends GenericServlet
 
 		try
 		{
+			docrootFolder.mkdirs();
 			files = docrootFolder.listFiles(xmlFilter);
 			for (File file : files)
 			{
 				if (file.isFile())
 				{
 					// System.out.println(file.getName());
-					listOfFiles.add(file.getName().toString());
+					listOfFiles.add(((info.folderName.length() > 0) ? info.folderName + "/" : "") + file.getName().toString());
 				}
 			}
 		}
@@ -278,13 +287,17 @@ public class AdminService extends GenericServlet
 			if (!xmlFile.toLowerCase().endsWith(".xml"))
 				xmlFile += ".xml";
 			
-			File file = new File(docrootPath + xmlFile);
+			String path = docrootPath;
+			if(info.folderName.length() > 0)
+				path = path + info.folderName + "/";
+			
+			File file = new File(path + xmlFile);
 			
 			if (file.exists())
 			{
 				if (!overwriteFile)
 					return String.format("File already exists and was not changed: \"%s\"", xmlFile);
-				if (!info.is_superuser)
+				if (!info.is_superuser && info.folderName.length() == 0)
 					return String.format("User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.", connectionName);
 			}
 			
@@ -312,10 +325,16 @@ public class AdminService extends GenericServlet
 	synchronized public String removeWeaveFile(String configConnectionName, String password, String fileName) throws RemoteException, IllegalArgumentException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
-		if (!config.getConnectionInfo(configConnectionName).is_superuser)
+		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
+		
+		if (!config.getConnectionInfo(configConnectionName).is_superuser && info.folderName.length() == 0)
 			return String.format("User \"%s\" does not have permission to remove configuration files.", configConnectionName);
 
-		File f = new File(docrootPath + fileName);
+		String path = docrootPath;
+		if(info.folderName.length() > 0)
+			path = path + info.folderName + "/";
+		
+		File f = new File(path + fileName);
 		try
 		{
 			// Make sure the file or directory exists and isn't write protected
@@ -346,33 +365,51 @@ public class AdminService extends GenericServlet
 	// /////////////////////////////////////////////////
 	// functions for managing SQL connection entries
 	// /////////////////////////////////////////////////
-
+	
 	synchronized public String[] getConnectionNames(String connectionName, String password) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (config.getConnectionInfo(connectionName).is_superuser)
-			return ListUtils.toStringArray(getSortedUniqueValues(config.getConnectionNames(), false));
-		
-		// non-superusers can't get connection info for other users
-		return new String[]{connectionName};
+		try
+		{
+			// only check password and superuser privileges if dbInfo is valid
+			if (databaseConfigExists())
+			{
+				ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+				// non-superusers can't get connection info for other users
+				if (!config.getConnectionInfo(connectionName).is_superuser)
+					return new String[]{connectionName};
+			}
+			// otherwise, return all connection names
+			List<String> connectionNames = configManager.getConfig().getConnectionNames();
+			return ListUtils.toStringArray(getSortedUniqueValues(connectionNames, false));
+		}
+		catch (RemoteException se)
+		{
+			return new String[]{};
+		}
 	}
 	
 	synchronized public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
-		if (config.getConnectionInfo(loginConnectionName).is_superuser)
+		ISQLConfig config;
+		if (databaseConfigExists())
 		{
-			ConnectionInfo info = config.getConnectionInfo(connectionNameToGet);
-			info.pass = ""; // don't send password
-			return info;
+			config = checkPasswordAndGetConfig(loginConnectionName, loginPassword);
+			// non-superusers can't get connection info
+			if (!config.getConnectionInfo(loginConnectionName).is_superuser)
+				return null;
 		}
-		// non-superusers can't get connection info
-		return null;
+		else
+		{
+			config = configManager.getConfig();
+		}
+		ConnectionInfo info = config.getConnectionInfo(connectionNameToGet);
+		info.pass = ""; // don't send password
+		return info;
 	}
 
-	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
+	synchronized public String saveConnectionInfo(String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip, String port, String database, String sqlUser, String password, String folderName, boolean grantSuperuser, boolean configOverwrite) throws RemoteException
 	{
-		if (newConnectionName.equals("") || currentConnectionName.equals(""))
+		if (newConnectionName.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
 		
 		ConnectionInfo newConnectionInfo = new ConnectionInfo();
@@ -383,6 +420,7 @@ public class AdminService extends GenericServlet
 		newConnectionInfo.database = database;
 		newConnectionInfo.user = sqlUser;
 		newConnectionInfo.pass = password;
+		newConnectionInfo.folderName = folderName;
 		newConnectionInfo.is_superuser = true;
 		
 		// if the config file doesn't exist, create it
@@ -401,8 +439,7 @@ public class AdminService extends GenericServlet
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		// if there are existing connections and DatabaseConfigInfo exists, check the password.
-		// otherwise, allow anything.
+		// if there are existing connections and DatabaseConfigInfo exists, check the password. otherwise, allow anything.
 		if (config.getConnectionNames().size() > 0 && config.getDatabaseConfigInfo() != null)
 		{
 			config = checkPasswordAndGetConfig(currentConnectionName, currentPassword);
@@ -419,6 +456,7 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = newConnectionInfo.getConnection();
+			SQLUtils.testConnection(conn);
 		}
 		catch (Exception e)
 		{
@@ -467,7 +505,7 @@ public class AdminService extends GenericServlet
 		{
 			e.printStackTrace();
 			throw new RemoteException(
-					String.format("Unable to create connection entry named \"%s\": %s", newConnectionInfo.name, e.getMessage())
+					String.format("Unable to create connection entry named \"%s\": %s", newConnectionInfo.name, e.getMessage()),e
 				);
 		}
 
@@ -512,8 +550,18 @@ public class AdminService extends GenericServlet
 
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo(String connectionName, String password) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return config.getDatabaseConfigInfo();
+		try
+		{
+			if (databaseConfigExists())
+				return checkPasswordAndGetConfig(connectionName, password).getDatabaseConfigInfo();
+		}
+		catch (RemoteException e)
+		{
+			if (e.detail instanceof FileNotFoundException)
+				return null;
+			throw e;
+		}
+		return null;
 	}
 
 	synchronized public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
@@ -583,33 +631,32 @@ public class AdminService extends GenericServlet
 	}
 	
 	/**
-	 * Returns metadata about columns with invalid queries.
+	 * Returns the results of testing attribute column sql queries.
 	 */
-	synchronized public AttributeColumnInfo[] getInvalidQueryInfo(String connectionName, String password) throws RemoteException
+	synchronized public AttributeColumnInfo[] testAllQueries(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		List<AttributeColumnInfo> infolist = config.getAttributeColumnInfo(new HashMap<String, String>());
-		List<AttributeColumnInfo> invalidQueryinfoList = new LinkedList<AttributeColumnInfo>();
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put(Metadata.DATATABLE.toString(), dataTableName);
+		List<AttributeColumnInfo> infolist = config.getAttributeColumnInfo(params);
 		for (int i = 0; i < infolist.size(); i ++)
 		{
 			AttributeColumnInfo attributeColumnInfo = infolist.get(i);
 			try
 			{
-				
 				String query = attributeColumnInfo.sqlQuery;
-				SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
-//				System.out.println(query);
+				System.out.println(query);
+				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query);
+				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
-			
-			catch(Exception e)
+			catch (Exception e)
 			{
 				e.printStackTrace();
-				invalidQueryinfoList.add(attributeColumnInfo);
+				attributeColumnInfo.metadata.put(AttributeColumnInfo.SQLRESULT, e.getMessage());
 			}
-			
 		}
 		
-		return invalidQueryinfoList.toArray(new AttributeColumnInfo[invalidQueryinfoList.size()]);
+		return infolist.toArray(new AttributeColumnInfo[0]);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -817,7 +864,7 @@ public class AdminService extends GenericServlet
 	{
 		checkPasswordAndGetConfig(configConnectionName, password);
 		List<String> tablesList = getTablesList(configConnectionName, schemaName);
-		;
+		
 		return ListUtils.toStringArray(getSortedUniqueValues(tablesList, false));
 	}
 
@@ -1059,7 +1106,7 @@ public class AdminService extends GenericServlet
 	 * @param fileName The name of the file.
 	 * @param content The file content.
 	 */
-	public void uploadFile(String fileName, byte[] content) throws RemoteException
+	public void uploadFile(String fileName, InputStream content) throws RemoteException
 	{
 		// make sure the upload folder exists
 		(new File(uploadPath)).mkdirs();
@@ -1067,7 +1114,7 @@ public class AdminService extends GenericServlet
 		String filePath = uploadPath + fileName;
 		try
 		{
-			FileUtils.copy(new ByteArrayInputStream(content), new FileOutputStream(filePath));
+			FileUtils.copy(content, new FileOutputStream(filePath));
 		}
 		catch (Exception e)
 		{
@@ -1143,7 +1190,7 @@ public class AdminService extends GenericServlet
 		return false;
 	}
 	
-	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues) throws RemoteException
+	synchronized public String importCSV(String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn, String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName, boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues, String[] filterColumnNames) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
@@ -1393,8 +1440,8 @@ public class AdminService extends GenericServlet
 			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
 			
 			return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
-					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, Arrays.asList(originalColumnNames), Arrays
-							.asList(columnNames), sqlSchema, sqlTable, ignoreKeyColumnQueries);
+					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames,
+					columnNames, sqlSchema, sqlTable, ignoreKeyColumnQueries, filterColumnNames);
 		}
 		catch (RemoteException e) // required since RemoteException extends IOException
 		{
@@ -1422,47 +1469,44 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType) throws RemoteException
+	synchronized public String addConfigDataTableFromDatabase(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite, String geometryCollectionName, String keyType, String[] filterColumnNames) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		//tableName = tableName.toLowerCase();
 
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		List<String> columnNames = getColumnsList(connectionName, schemaName, tableName);
+		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
 		return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName, geometryCollectionName,
-				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false);
+				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false, filterColumnNames);
 	}
 
-	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondaryKeyColumnName, List<String> configColumnNames, List<String> sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries) throws RemoteException
+	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String[] filterColumnNames) throws RemoteException
 	{
-		// use lower case sql table names (fix for mysql linux problems)
-		//sqlTable = sqlTable.toLowerCase();
-
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 		String dbms = info.dbms;
 		if (sqlColumnNames == null)
-			sqlColumnNames = new Vector<String>();
+			sqlColumnNames = new String[0];
 
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
-		int i = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames); 
-		int j = ListUtils.findIgnoreCase(secondaryKeyColumnName, sqlColumnNames);
+		int iKey = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames); 
+		int iSecondaryKey = ListUtils.findIgnoreCase(secondarySqlKeyColumn, sqlColumnNames);
 
-		String originalKeyColumName; // save the original column name
-		if (i >= 0)
+		String sqlKeyColumn; // save the original column name
+		if (iKey >= 0)
 		{
-			originalKeyColumName = keyColumnName; // before quoting, save the column name
-			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(i));
+			sqlKeyColumn = keyColumnName; // before quoting, save the column name
+			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iKey]);
 		}
 		else
 		{
-			originalKeyColumName = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
+			sqlKeyColumn = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
 		}
 		
-		if (j >= 0)
-			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames.get(j));
+		if (iSecondaryKey >= 0)
+			secondarySqlKeyColumn = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iSecondaryKey]);
 		// Write SQL statements into sqlconfig.
 
 		if (!configOverwrite)
@@ -1478,63 +1522,71 @@ public class AdminService extends GenericServlet
 
 		// connect to database, generate and test each query before modifying
 		// config file
+		List<String> titles = new LinkedList<String>();
 		List<String> queries = new Vector<String>();
 		List<String> dataTypes = new Vector<String>();
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		String query = null;
 		Connection conn = null;
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, connectionName);
-//			System.out.println("ignoreKeyColumnQueries: " + ignoreKeyColumnQueries);
-			for (i = 0; i < sqlColumnNames.size(); i++)
+			SQLResult filteredValues = null;
+			if (filterColumnNames != null && filterColumnNames.length > 0)
 			{
-				// test each query
-				String columnName = sqlColumnNames.get(i);
+				// get a list of unique combinations of filter values
+				String columnList = "";
+				for (int i = 0; i < filterColumnNames.length; i++)
+				{
+					if (i > 0)
+						columnList += ",";
+					columnList += SQLUtils.quoteSymbol(conn, filterColumnNames[i]);
+				}
+				query = String.format(
+					"select distinct %s from %s order by %s",
+					columnList,
+					SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable),
+					columnList
+				);
+				filteredValues = SQLUtils.getRowSetFromQuery(conn, query);
+//				System.out.println(query);
+//				System.out.println(filteredValues);
+			}
+			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
+			{
+				String sqlColumn = sqlColumnNames[iCol];
 //				System.out.println("columnName: " + columnName + "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " + originalKeyColumName);
-				if (ignoreKeyColumnQueries && originalKeyColumName.equals(columnName))
+				if (ignoreKeyColumnQueries && sqlKeyColumn.equals(sqlColumn))
 					continue;
-				columnName = SQLUtils.quoteSymbol(dbms, columnName);
+				sqlColumn = SQLUtils.quoteSymbol(dbms, sqlColumn);
 				
 				// hack
-				if (secondaryKeyColumnName != null && secondaryKeyColumnName.length() > 0)
-					columnName += "," + secondaryKeyColumnName;
+				if (secondarySqlKeyColumn != null && secondarySqlKeyColumn.length() > 0)
+					sqlColumn += "," + secondarySqlKeyColumn;
 				
 				// generate column query
-				query = String.format("SELECT %s,%s FROM %s", keyColumnName, columnName, SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable));
+				query = String.format("SELECT %s,%s FROM %s", keyColumnName, sqlColumn, SQLUtils.quoteSchemaTable(dbms, sqlSchema, sqlTable));
 
-				String testQuery = query;
-				if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
-					testQuery += " LIMIT 1";
-				
-//				System.out.println("QUERY:\t" + testQuery);
-				stmt = conn.prepareStatement(testQuery);
-				rs = stmt.executeQuery();
-				
-				DataType dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
-				queries.add(query);
-				dataTypes.add(dataType.toString());
-				
-				SQLUtils.cleanup(rs);
-				SQLUtils.cleanup(stmt);
+				if (filteredValues != null)
+				{
+					// generate one query per unique filter value combination
+					for (int iRow = 0 ; iRow < filteredValues.rows.length ; iRow++ )
+					{
+						String filteredQuery = buildFilteredQuery(conn, query, filteredValues, iRow);
+						titles.add(buildFilteredColumnTitle(configColumnNames[iCol], filteredValues, iRow));
+						queries.add(filteredQuery);
+						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery));
+					}
+				}
+				else
+				{
+					titles.add(configColumnNames[iCol]);
+					queries.add(query);
+					dataTypes.add(testQueryAndGetDataType(conn, query));
+				}
 			}
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to execute generated query:\n\n" + query, e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(stmt);
-			SQLUtils.cleanup(conn);
-		}
-		// done generating queries
+			// done generating queries
 
-		// generate config DataTable entry
-		try
-		{
+			// generate config DataTable entry
 			createConfigEntryBackup(config, ISQLConfig.ENTRYTYPE_DATATABLE, configDataTableName);
 
 			config.removeDataTable(configDataTableName);
@@ -1544,12 +1596,10 @@ public class AdminService extends GenericServlet
 			metadata.put(Metadata.KEYTYPE.toString(), keyType);
 			metadata.put(Metadata.GEOMETRYCOLLECTION.toString(), geometryCollectionName);
 			
-			int numberSqlColumns = sqlColumnNames.size();
-			if (ignoreKeyColumnQueries)
-				--numberSqlColumns;
-			for (i = 0; i < numberSqlColumns; i++)
+			int numberSqlColumns = titles.size();
+			for (int i = 0; i < numberSqlColumns; i++)
 			{
-				metadata.put(Metadata.NAME.toString(), configColumnNames.get(i));
+				metadata.put(Metadata.NAME.toString(), titles.get(i));
 				metadata.put(Metadata.DATATYPE.toString(), dataTypes.get(i));
 				AttributeColumnInfo attrInfo = new AttributeColumnInfo(connectionName, queries.get(i), metadata);
 				config.addAttributeColumn(attrInfo);
@@ -1557,15 +1607,89 @@ public class AdminService extends GenericServlet
 
 			backupAndSaveConfig(config);
 		}
+		catch (SQLException e)
+		{
+			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
+		}
 		catch (RemoteException e)
 		{
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
 		}
 		
-		if (sqlColumnNames.size() == 0)
+		if (sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
 		
-		return String.format("DataTable \"%s\" was added to the configuration with %s columns.\n", configDataTableName, sqlColumnNames.size());
+		return String.format("DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n", configDataTableName, titles.size());
+	}
+	
+	private String testQueryAndGetDataType(Connection conn, String query) throws RemoteException
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		DataType dataType = null;
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+				query += " LIMIT 1";
+	
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+	
+			dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException("Unable to execute generated query:\n" + query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+		
+		return dataType.toString();
+	}
+	
+	private String buildFilteredColumnTitle(String columnName, SQLResult filteredValues, int filteredValueRow)
+	{
+		String columnTitle = columnName + " (";
+		for (int j = 0 ; j < filteredValues.rows[filteredValueRow].length ; j++ )
+		{
+			if (j > 0)
+				columnTitle += " ";
+			boolean isNull = filteredValues.rows[filteredValueRow][j] == null;
+			String value;
+			if (isNull)
+				value = "NULL";
+			else
+				value = filteredValues.rows[filteredValueRow][j].toString();
+			columnTitle += isNull ? "NULL" : value;
+		}
+		columnTitle += ")";
+		return columnTitle;
+	}
+	
+	private String buildFilteredQuery(Connection conn, String unfilteredQuery, SQLResult filteredValues, int filteredValueRow) throws IllegalArgumentException, SQLException
+	{
+		String query = unfilteredQuery + " where ";
+		for (int j = 0 ; j < filteredValues.rows[filteredValueRow].length ; j++ )
+		{
+			if (j > 0)
+				query += " and ";
+			boolean isNull = filteredValues.rows[filteredValueRow][j] == null;
+			String value;
+			if (isNull)
+				value = "NULL";
+			else
+				value = filteredValues.rows[filteredValueRow][j].toString();
+			query += String.format(
+				"%s=%s",
+				SQLUtils.quoteSymbol(conn, filteredValues.columnNames[j]),
+				isNull ? "NULL" : SQLUtils.quoteString(conn, value)
+			);
+		}
+		return query;
 	}
 
 	/**
@@ -1573,7 +1697,7 @@ public class AdminService extends GenericServlet
 	 * the config file.
 	 */
 
-	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, List<String> keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
+	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
@@ -1607,7 +1731,7 @@ public class AdminService extends GenericServlet
 			{
 				// convert shape data to streaming sql format
 				String shpfile = uploadPath + file + ".shp";
-				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, keyColumns);
+				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, Arrays.asList(keyColumns));
 			}
 			converter.flushAndCommitAll();
 		}
@@ -1627,27 +1751,27 @@ public class AdminService extends GenericServlet
 
 		// get key column SQL code
 		String keyColumnsString;
-		if (keyColumns.size() == 1)
+		if (keyColumns.length == 1)
 		{
-			keyColumnsString = keyColumns.get(0);
+			keyColumnsString = keyColumns[0];
 		}
 		else
 		{
 			keyColumnsString = "CONCAT(";
-			for (int i = 0; i < keyColumns.size(); i++)
+			for (int i = 0; i < keyColumns.length; i++)
 			{
 				if (i > 0)
 					keyColumnsString += ",";
-				keyColumnsString += "CAST(" + keyColumns.get(i) + " AS CHAR)";
+				keyColumnsString += "CAST(" + keyColumns[i] + " AS CHAR)";
 			}
 			keyColumnsString += ")";
 		}
 
 		// add SQL statements to sqlconfig
-		List<String> columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName);
+		String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
 				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
-				dbfTableName, false);
+				dbfTableName, false, null);
 
 		return resultAddSQL
 				+ "\n\n"

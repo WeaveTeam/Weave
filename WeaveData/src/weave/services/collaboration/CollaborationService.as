@@ -56,6 +56,7 @@ package weave.services.collaboration
 	import weave.api.getSessionState;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.setSessionState;
 	import weave.core.ErrorManager;
 	import weave.core.SessionStateLog;
@@ -145,7 +146,7 @@ package weave.services.collaboration
 		{
 			if (!connectedToRoom)
 			{
-				WeaveAPI.ErrorManager.reportError(new Error("disconnect(): Not connected"));
+				reportError("disconnect(): Not connected");
 				return;
 			}
 			
@@ -325,9 +326,9 @@ package weave.services.collaboration
 				}
 				catch( e:Error )
 				{
-					WeaveAPI.ErrorManager.reportError(new Error("Unable to decode message: " + event.data.body));
+					reportError("Unable to decode message: " + event.data.body);
 				}
-				//WeaveAPI.ErrorManager.reportError( new Error( ObjectUtil.toString( o )) );
+				//reportError( ObjectUtil.toString( o ) );
 				
 				//var room:String = event.data.from.node;
 				var userAlias:String = event.data.from.resource;
@@ -365,7 +366,7 @@ package weave.services.collaboration
 							if (foundID)
 								stateLog.undoHistory.splice(0, i + 1);
 							else
-								WeaveAPI.ErrorManager.reportError(new Error("collab failed"));
+								reportError("collab failed");
 						}
 						
 						// received diff from someone else -- rewind local changes and replay them.
@@ -405,7 +406,7 @@ package weave.services.collaboration
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
-					WeaveAPI.ErrorManager.reportError(new Error("Unable to determine message type: ", ObjectUtil.toString(o)));
+					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
 				}
 			}
 			

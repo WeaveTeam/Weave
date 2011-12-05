@@ -51,8 +51,9 @@ package weave.api.core
 		 * @param callback The function to call when callbacks are triggered.
 		 * @param parameters An array of parameters that will be used as parameters to the callback function.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
+		 * @param alwaysTriggerLast If this is set to true, the callback will run after all callbacks that were added with alwaysTriggerLast=false have completed.  Use this to establish the desired child-to-parent triggering order.
 		 */
-		function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void;
+		function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void;
 		
 		/**
 		 * This function will add a callback that will be delayed except during a scheduled time each frame.  Grouped callbacks use a
@@ -73,9 +74,9 @@ package weave.api.core
 		function removeCallback(callback:Function):void;
 		
 		/**
-		 * This flag is true between the time that callbacks are triggered and the time immediate callbacks finish being called.
-		 * It is necessary in some situations to check this flag to determine if cached data should be used.
+		 * This counter gets incremented at the time that callbacks are triggered and before they are actually called.
+		 * It is necessary in some situations to check this counter to determine if cached data should be used.
 		 */
-		function get callbacksWereTriggered():Boolean;
+		function get triggerCounter():uint;
 	}
 }

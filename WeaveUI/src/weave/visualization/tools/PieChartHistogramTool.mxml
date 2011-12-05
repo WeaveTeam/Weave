@@ -46,7 +46,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(PieChartHistogramPlotter) as PieChartHistogramPlotter;
+				_plotter = initializePlotters(PieChartHistogramPlotter, false);
 				
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableFixedAspectRatio.value = true;
@@ -57,13 +57,12 @@
 				invalidateAxes();
 				
 				initColumnDefaults(_plotter.unfilteredData);
-				toolTitle.addImmediateCallback(this, updateTitle);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,null,true);
 				
-				visualization.marginTop.value = 65;
-				visualization.marginBottom.value = 65;
-				visualization.marginLeft.value = 85;
-				visualization.marginRight.value = 85;
+				visualization.marginTop.value = "65";
+				visualization.marginBottom.value = "65";
+				visualization.marginLeft.value = "85";
+				visualization.marginRight.value = "85";
 			}
 			
 			override protected function childrenCreated():void
@@ -99,12 +98,13 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
 			}
 			
@@ -116,15 +116,15 @@
 			<userControls:ControlsSubsetBox>
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			</userControls:ControlsSubsetBox>
-			<ui:DynamicColumnComponent visTool="{this}" label="data" initialize="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn"/>
 			<userControls:ControlsSubsetBox>
 				<mx:Label text="Label angle" fontWeight="bold"/>
 				<mx:HSlider id="labelAngleSlider"
 							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 							dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
-							initialize="linkBindableProperty(_plotter.labelAngleRatio, labelAngleSlider, 'value')"/>
+							creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
 			</userControls:ControlsSubsetBox>
 		</mx:VBox>
 		

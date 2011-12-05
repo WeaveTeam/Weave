@@ -19,37 +19,46 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<ControlPanel
-	xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-	horizontalScrollPolicy="off" verticalScrollPolicy="off"
-	backgroundColor="#EFF4BC" 
-	title="Probe ToolTip Editor" layout="absolute"
-	>
-	<HelpPanel>
-		<mx:VBox label="Header Columns">
-			<mx:Label text="Example tooltip:"/>
-			<mx:HBox styleName="exampleStyle">
-				<mx:Image source="@Embed(source='/weave/resources/images/tooltipheader.png')"/> 
-			</mx:HBox>
-			<mx:Label text="The attributes highlighted in green are header columns"/>
-		</mx:VBox>
-		<mx:VBox label="Probed Columns">
-			<mx:Label text="Example tooltip:"/>
-			<mx:HBox styleName="exampleStyle">
-				<mx:Image source="@Embed(source='/weave/resources/images/tooltipProbed.png')"/>
-			</mx:HBox>
-			<mx:Label text="The attributes highlighted in green are the probed columns"/>
-		</mx:VBox>
-	</HelpPanel>
-	
+<ControlPanel xmlns="weave.ui.*"
+			  xmlns:mx="http://www.adobe.com/2006/mxml"
+			  backgroundColor="#EFF4BC" horizontalScrollPolicy="off" layout="absolute"
+			  title="Probe ToolTip Editor" verticalScrollPolicy="off">
 	<mx:VBox label="Header Columns">
-		<mx:TextArea text="The values from these columns will be listed in a single line, separated by commas." editable="false" width="100%" backgroundAlpha="0" wordWrap="true" borderThickness="0"/>	
-		<ColumnListComponent label="Header Columns" id="headerList" preinitialize="headerList.hashMap = ProbeTextUtils.probeHeaderColumns;" width="100%" height="100%" />		
+		<mx:HBox width="100%" verticalAlign="middle">
+			<HelpComponent label="Header Columns">
+				<mx:Label text="Example tooltip:"/>
+				<mx:HBox styleName="exampleStyle">
+					<mx:Image source="@Embed(source='/weave/resources/images/tooltipheader.png')"/> 
+				</mx:HBox>
+				<mx:Label text="The attributes highlighted in green are header columns"/>
+			</HelpComponent>
+			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
+						 text="The values from these columns will be listed in a single line, separated by commas."
+						 wordWrap="true"/>
+		</mx:HBox>
+		<ColumnListComponent id="headerList" width="100%" height="100%" label="Header Columns"
+							 hashMap="{ProbeTextUtils.probeHeaderColumns}"/>		
+		<mx:CheckBox label="Enable probe ToolTips"
+					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 	</mx:VBox>
 	
 	<mx:VBox label="Probed Columns">
-		<mx:TextArea text="The values from these columns will be displayed under the header line along with the column names." editable="false" width="100%" backgroundAlpha="0" wordWrap="true" borderThickness="0"/>
-		<ColumnListComponent label="Probed columns" id="columnList" preinitialize="columnList.hashMap = ProbeTextUtils.probedColumns;" width="100%" height="100%" />
+		<mx:HBox width="100%" verticalAlign="middle">
+			<HelpComponent label="Probed Columns">
+				<mx:Label text="Example tooltip:"/>
+				<mx:HBox styleName="exampleStyle">
+					<mx:Image source="@Embed(source='/weave/resources/images/tooltipProbed.png')"/>
+				</mx:HBox>
+				<mx:Label text="The attributes highlighted in green are the probed columns"/>
+			</HelpComponent>
+			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
+						 text="The values from these columns will be displayed under the header line along with the column names."
+						 wordWrap="true"/>
+		</mx:HBox>
+		<ColumnListComponent id="columnList" width="100%" height="100%" label="Probed columns"
+							 hashMap="{ProbeTextUtils.probedColumns}"/>
+		<mx:CheckBox label="Enable probe ToolTips"
+					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 	</mx:VBox>
 	<mx:Style>
 		.exampleStyle {
@@ -66,6 +75,7 @@
 			import mx.managers.ToolTipManager;
 			
 			import weave.Weave;
+			import weave.api.linkBindableProperty;
 			import weave.core.SessionManager;
 			import weave.utils.ProbeTextUtils;
 			

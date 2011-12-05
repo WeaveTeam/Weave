@@ -44,11 +44,12 @@ package weave.api.data
 	public class AttributeColumnMetadata
 	{
 		public static const TITLE:String = "title";
-		public static const DATA_SOURCE:String = "dataSource";
+		public static const NUMBER:String = "number";
+		public static const STRING:String = "string";
 		public static const KEY_TYPE:String = "keyType";
 		public static const DATA_TYPE:String = "dataType";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
-		public static const PROJECTION_SRS:String = 'projectionSRS';
+		public static const PROJECTION:String = 'projection';
 	}
 }

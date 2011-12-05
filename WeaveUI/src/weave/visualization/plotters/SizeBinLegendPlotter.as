@@ -23,13 +23,15 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 	import weave.utils.TickMarkUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -49,22 +51,13 @@ package weave.visualization.plotters
 			maxScreenRadius.value = 10;
 			defaultScreenRadius.value = 5;
 			
-			registerNonSpatialProperties(
-				lineStyle,
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor,
-				Weave.properties.axisFontFamily,
-				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontUnderline,
-				Weave.properties.axisFontBold
-			);
-			registerSpatialProperties(radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat);
 		}
 		
-		public const radiusColumn:DynamicColumn = new DynamicColumn();
-		public const minScreenRadius:LinkableNumber = new LinkableNumber();
-		public const maxScreenRadius:LinkableNumber = new LinkableNumber();
-		public const defaultScreenRadius:LinkableNumber = new LinkableNumber();
+		public const radiusColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const minScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const maxScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const defaultScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
 		// this is used to draw text on bitmaps
 		private const bitmapText:BitmapText = new BitmapText();
@@ -72,7 +65,7 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the outline of the shape.
 		 */
-		public const lineStyle:SolidLineStyle = new SolidLineStyle();
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -156,14 +149,9 @@ package weave.visualization.plotters
 				destination.draw(tempShape);
 				
 				// set up BitmapText
-				bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				bitmapText.textFormat.color = Weave.properties.axisFontColor.value;
-				bitmapText.textFormat.font = Weave.properties.axisFontFamily.value;
-				bitmapText.textFormat.bold = Weave.properties.axisFontBold.value;
-				bitmapText.textFormat.italic = Weave.properties.axisFontItalic.value;
-				bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+				LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 				bitmapText.text = value.toString();
-				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				bitmapText.x = xMin + margin + maxScreenRadius.value * 2 + margin;
 				bitmapText.y = tempPoint.y;
 				bitmapText.draw(destination);

@@ -39,6 +39,7 @@ import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
 import weave.reports.WeaveReport;
 import weave.servlets.GenericServlet;
+import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
@@ -170,8 +171,8 @@ public class DataService extends GenericServlet
 			boolean hasSecondaryKey = true;
 			
 			// use config min,max or param min,max to filter the data
-			String infoMinStr = info.metadata.get(Metadata.MIN.toString());
-			String infoMaxStr = info.metadata.get(Metadata.MAX.toString());
+			String infoMinStr = info.getMetadata(Metadata.MIN.toString());
+			String infoMaxStr = info.getMetadata(Metadata.MAX.toString());
 			double minValue = Double.NEGATIVE_INFINITY;
 			double maxValue = Double.POSITIVE_INFINITY;
 			// first try parsing config min,max values
@@ -282,9 +283,10 @@ public class DataService extends GenericServlet
 		String dataTableName = params.get(Metadata.DATATABLE.toString());
 		String attributeColumnName = params.get(Metadata.NAME.toString());
 
-		// remove min,max params -- do not use them to query the config
+		// remove min,max,sqlParams -- do not use them to query the config
 		String paramMinStr = params.remove(Metadata.MIN.toString());
 		String paramMaxStr = params.remove(Metadata.MAX.toString());
+		String sqlParams = params.remove(AttributeColumnInfo.SQLPARAMS);
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
@@ -315,32 +317,48 @@ public class DataService extends GenericServlet
 		boolean hasSecondaryKey = true;
 		
 		// use config min,max or param min,max to filter the data
-		String infoMinStr = info.metadata.get(Metadata.MIN.toString());
-		String infoMaxStr = info.metadata.get(Metadata.MAX.toString());
 		double minValue = Double.NEGATIVE_INFINITY;
 		double maxValue = Double.POSITIVE_INFINITY;
 		// first try parsing config min,max values
-		try { minValue = Double.parseDouble(infoMinStr); } catch (Exception e) { }
-		try { maxValue = Double.parseDouble(infoMaxStr); } catch (Exception e) { }
+		try {
+			minValue = Double.parseDouble(info.getMetadata(Metadata.MIN.toString()));
+		} catch (Exception e) { }
+		try {
+			maxValue = Double.parseDouble(info.getMetadata(Metadata.MAX.toString()));
+		} catch (Exception e) { }
 		// override config min,max with param values if given
 		try {
 			minValue = Double.parseDouble(paramMinStr);
-			infoMinStr = paramMinStr; // this happens only if parseDouble() succeeds
+			// if paramMinStr parses successfully, overwrite returned min metadata
+			info.metadata.put(Metadata.MIN.toString(), paramMinStr); // this happens only if parseDouble() succeeds
 		} catch (Exception e) { }
 		try {
 			maxValue = Double.parseDouble(paramMaxStr);
-			infoMaxStr = paramMaxStr; // this happens only if parseDouble() succeeds
+			// if paramMaxStr parses successfully, overwrite returned max metadata
+			info.metadata.put(Metadata.MAX.toString(), paramMaxStr); // this happens only if parseDouble() succeeds
 		} catch (Exception e) { }
 		
 		try
 		{
 			timer.start();
-			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+			SQLResult result;
+			if (sqlParams != null && sqlParams.length() > 0)
+			{
+				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];
+				result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery, args);
+			}
+			else
+			{
+				result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+			}
 			timer.lap("get row set");
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
 			if (dataType.length() == 0)
+			{
 				dataType = DataType.fromSQLType(result.columnTypes[1]).toString();
+				info.metadata.put(Metadata.DATATYPE.toString(), dataType); // fill in missing metadata for the client
+			}
 			if (dataType.equalsIgnoreCase(DataType.NUMBER.toString())) // special case: "number" => Double
 				numericData = new ArrayList<Double>();
 			else // for every other dataType, use String
@@ -402,12 +420,7 @@ public class DataService extends GenericServlet
 		}
 
 		AttributeColumnDataWithKeys result = new AttributeColumnDataWithKeys(
-				attributeColumnName,
-				info.getMetadata(Metadata.KEYTYPE.toString()),
-				dataType,
-				infoMinStr,
-				infoMaxStr,
-				info.getMetadata(Metadata.YEAR.toString()),
+				info.metadata,
 				keys.toArray(new String[0]),
 				numericData != null ? numericData.toArray(new Double[0]) : stringData.toArray(new String[0]),
 				hasSecondaryKey ? secKeys.toArray(new String[0]) : null

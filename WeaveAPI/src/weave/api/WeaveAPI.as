@@ -153,7 +153,10 @@ package weave.api
 					ExternalInterface.addCallback(methodName, generateExternalInterfaceCallback(methodName, theInterface));
 				}
 			}
+			var prev:Boolean = ExternalInterface.marshallExceptions;
+			ExternalInterface.marshallExceptions = false;
 			ExternalInterface.call('function(){ var weave = document.getElementById("'+ExternalInterface.objectID+'"); if (window && window.weaveReady) window.weaveReady(weave); else if (weaveReady) weaveReady(weave); }');
+			ExternalInterface.marshallExceptions = prev;
 		}
 		
 		/**

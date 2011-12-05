@@ -74,7 +74,7 @@ package weave.data.AttributeColumns
 			_internalColumn = newColumn;
 			
 			if (_internalColumn != null)
-				_internalColumn.addImmediateCallback(this, triggerCallbacks);
+				_internalColumn.addImmediateCallback(this, triggerCallbacks, null, false, true); // parent-child relationship
 		}
 		
 		/**

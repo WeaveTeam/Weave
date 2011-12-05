@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml"
+			xmlns="weave.editors.*"
+			xmlns:ui="weave.ui.*"
+			backgroundColor="#EFF4BC"
+			title="Preferences"
+			targets="{[Weave.properties]}"
+			>
+	<WeavePropertiesAppearanceEditor label="Appearance"/>
+	<WeavePropertiesMenuEditor label="Menus"/>
+	<WeavePropertiesInteractivityEditor label="Interactivity"/>
+	<WeavePropertiesProbingEditor label="Probing"/>
+	<WeavePropertiesSelectionEditor label="Selection"/>
+	<mx:VBox label="Advanced" width="100%" height="100%">
+		<ui:Indent label="Streaming geometry bounding box request mode">
+			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
+			<ui:HelpComponent content='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
+		</ui:Indent>
+	</mx:VBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Application;
+			import mx.managers.PopUpManager;
+			
+			import weave.Weave;
+			import weave.api.linkBindableProperty;
+			import weave.data.AttributeColumns.StreamedGeometryColumn;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				geometryMetadataRequestMode.dataProvider = StreamedGeometryColumn.metadataRequestModeEnum;
+				linkBindableProperty(StreamedGeometryColumn.metadataRequestMode, geometryMetadataRequestMode, 'selectedItem');
+			}
+			
+			private static var _instance:ControlPanel;
+			
+			/**
+			 * Opens a static instance of the User Preferences Panel and adds it to the stage as a PopUp
+			 */
+			public static function openGlobalEditor():void
+			{
+				if (!_instance)
+					_instance = new WeavePropertiesEditor();
+				
+				if (!_instance.parent)
+					PopUpManager.addPopUp(_instance, Application.application as Application);
+				
+				_instance.restorePanel();
+			}
+		]]>
+	</mx:Script>
+</ui:ControlPanel>

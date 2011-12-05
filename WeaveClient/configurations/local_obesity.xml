@@ -250,19 +250,19 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       <hierarchy>
         <attribute keyType="US State FIPS Code" csvColumn="US State FIPS Code" name="US State FIPS Code" title="US State FIPS Code"/>
         <attribute keyType="US State FIPS Code" csvColumn="State" name="State" title="State"/>
-        <attribute keyType="US State FIPS Code" year="1995" csvColumn="Percent Obese 1995" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="1996" csvColumn="Percent Obese 1996" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="1997" csvColumn="Percent Obese 1997" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="1998" csvColumn="Percent Obese 1998" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="1999" csvColumn="Percent Obese 1999" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2000" csvColumn="Percent Obese 2000" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2001" csvColumn="Percent Obese 2001" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2002" csvColumn="Percent Obese 2002" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2003" csvColumn="Percent Obese 2003" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2004" csvColumn="Percent Obese 2004" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2005" csvColumn="Percent Obese 2005" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2006" csvColumn="Percent Obese 2006" max="40" title="Percent Obese" min="0"/>
-        <attribute keyType="US State FIPS Code" year="2007" csvColumn="Percent Obese 2007" max="40" title="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="1995" csvColumn="Percent Obese 1995" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="1996" csvColumn="Percent Obese 1996" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="1997" csvColumn="Percent Obese 1997" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="1998" csvColumn="Percent Obese 1998" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="1999" csvColumn="Percent Obese 1999" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2000" csvColumn="Percent Obese 2000" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2001" csvColumn="Percent Obese 2001" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2002" csvColumn="Percent Obese 2002" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2003" csvColumn="Percent Obese 2003" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2004" csvColumn="Percent Obese 2004" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2005" csvColumn="Percent Obese 2005" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2006" csvColumn="Percent Obese 2006" max="40" name="Percent Obese" min="0"/>
+        <attribute keyType="US State FIPS Code" year="2007" csvColumn="Percent Obese 2007" max="40" name="Percent Obese" min="0"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString/>

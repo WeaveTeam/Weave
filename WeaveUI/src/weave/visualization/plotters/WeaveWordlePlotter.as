@@ -25,6 +25,7 @@ package weave.visualization.plotters
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -45,9 +46,9 @@ package weave.visualization.plotters
 			init();
 		}	
 		
-		public const dynamColumn:DynamicColumn = new DynamicColumn();
-		public const lineStyle:SolidLineStyle = new SolidLineStyle();
-		public const fillStyle:SolidFillStyle = new SolidFillStyle();
+		public const wordColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		
 		private function init():void
 		{
@@ -56,9 +57,7 @@ package weave.visualization.plotters
 			fillStyle.color.defaultValue.setSessionState(0x808080);
 			
 			// set up session state
-			registerSpatialProperties(dynamColumn);
-			registerNonSpatialProperties(lineStyle, fillStyle);
-			setKeySource(dynamColumn);
+			setKeySource(wordColumn);
 		}
 		override public function dispose():void
 		{
@@ -68,7 +67,7 @@ package weave.visualization.plotters
 				
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			var words:Array = dynamColumn.keys;
+			var words:Array = wordColumn.keys;
 			var i:int;
 			var bounds:Bounds2D = getReusableBounds();
 			for( i = 0; i < words.length; i++ ){
@@ -121,8 +120,8 @@ package weave.visualization.plotters
 			var i:int;
 			var temp:Number;
 			
-			lowest = WeaveAPI.StatisticsCache.getMin( dynamColumn );
-			highest = WeaveAPI.StatisticsCache.getMax( dynamColumn );
+			lowest = WeaveAPI.StatisticsCache.getMin( wordColumn );
+			highest = WeaveAPI.StatisticsCache.getMax( wordColumn );
 			
 			if( highest == lowest )
 				highest = highest + 1;
@@ -149,7 +148,7 @@ package weave.visualization.plotters
 				
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
 				
-				normalized = dynamColumn.getValueFromKey( recordKey );
+				normalized = wordColumn.getValueFromKey( recordKey );
 				
 				tempPoint.x = randPoints[recordKey][0] * screenBounds.getWidth() + screenBounds.getXMin();
 				tempPoint.y = randPoints[recordKey][1] * screenBounds.getHeight() + screenBounds.getYMin();
@@ -161,7 +160,7 @@ package weave.visualization.plotters
 				bitMapper.x = tempPoint.x;
 				bitMapper.y = tempPoint.y;
 				bitMapper.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
-				bitMapper.verticalAlign = BitmapText.VERTICAL_ALIGN_CENTER;
+				bitMapper.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				bitMapper.getUnrotatedBounds( tempBounds );
 				//findOpeningLeft will check to make sure there is no overlapping, and adjust as necessary.
 				findOpeningLeft();
@@ -390,7 +389,7 @@ package weave.visualization.plotters
 			
 			for( i = 0; i < recordKeys.length; i++ )
 				for( j = 0; j < ( recordKeys.length - 1 ); j++ ){
-					if( dynamColumn.getValueFromKey( recordKeys[j+1] ) > dynamColumn.getValueFromKey( recordKeys[j] ) ){
+					if( wordColumn.getValueFromKey( recordKeys[j+1] ) > wordColumn.getValueFromKey( recordKeys[j] ) ){
 						temp = recordKeys[j];
 						recordKeys[j] = recordKeys[j+1];
 						recordKeys[j+1] = temp;

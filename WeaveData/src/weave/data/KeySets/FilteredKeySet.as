@@ -24,6 +24,7 @@ package weave.data.KeySets
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IFilteredKeySet;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -51,7 +52,7 @@ package weave.data.KeySets
 		
 		private var _baseKeySet:IKeySet = null; // stores the base IKeySet
 		// this stores the IKeyFilter
-		private const _dynamicKeyFilter:DynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter, invalidateFilteredKeys);
+		private const _dynamicKeyFilter:DynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter);
 		private var _filteredKeys:Array; // stores the filtered list of keys
 		private var _filteredKeysMap:Dictionary; // this maps a key to a value of true if the key is included in this key set
 		
@@ -59,7 +60,7 @@ package weave.data.KeySets
 		 * When this is set to true, the inverse of the filter will be used to filter the keys.
 		 * This means any keys appearing in the filter will be excluded from this key set.
 		 */
-		private const inverseFilter:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidateFilteredKeys);
+		private const inverseFilter:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		/**
 		 * This function sets the base IKeySet that is being filtered.
@@ -72,20 +73,14 @@ package weave.data.KeySets
 			
 			// unlink from the old key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet as ILinkableObject).removeCallback(handleBaseKeySetChange);
+				getCallbackCollection(_baseKeySet as ILinkableObject).removeCallback(triggerCallbacks);
 			
 			_baseKeySet = newBaseKeySet; // save pointer to new base key set
 
 			// link to new key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet as ILinkableObject).addImmediateCallback(this, handleBaseKeySetChange);
+				getCallbackCollection(_baseKeySet as ILinkableObject).addImmediateCallback(this, triggerCallbacks);
 			
-			handleBaseKeySetChange();
-		}
-		
-		private function handleBaseKeySetChange():void
-		{
-			invalidateFilteredKeys();
 			triggerCallbacks();
 		}
 		
@@ -100,9 +95,9 @@ package weave.data.KeySets
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (_dirty)
+			if (_prevTriggerCounter != triggerCounter)
 				validateFilteredKeys();
-			return _filteredKeysMap[key] != undefined;
+			return _filteredKeysMap[key] !== undefined;
 		}
 
 		/**
@@ -110,17 +105,9 @@ package weave.data.KeySets
 		 */
 		public function get keys():Array
 		{
-			if (_dirty)
+			if (_prevTriggerCounter != triggerCounter)
 				validateFilteredKeys();
 			return _filteredKeys;
-		}
-
-		/**
-		 * @private
-		 */
-		private function invalidateFilteredKeys():void
-		{
-			_dirty = true;
 		}
 
 		/**
@@ -130,25 +117,26 @@ package weave.data.KeySets
 		{
 			// TODO: key type conversion here?
 			
-			var inverse:int = inverseFilter.value ? 1 : 0;
+			var inverse:Boolean = inverseFilter.value;
 			var key:IQualifiedKey;
+			var keyFilter:IKeyFilter = _dynamicKeyFilter.getInternalKeyFilter();
 			if (_baseKeySet == null)
 			{
 				// no keys when base key set is undefined
 				_filteredKeys = [];
 			}
-			else if (_dynamicKeyFilter.internalObject != null)
+			else if (keyFilter != null)
 			{
 				// copy the keys that appear in both the base key set and the filter
-				_filteredKeys = new Array();
+				_filteredKeys = [];
 				if (_baseKeySet != null)
 				{
 					var baseKeys:Array = _baseKeySet.keys;
 					for (var i:int = 0; i < baseKeys.length; i++)
 					{
 						key = baseKeys[i] as IQualifiedKey;
-						var contains:int = _dynamicKeyFilter.containsKey(key) ? 1 : 0;
-						if (contains ^ inverse) // XOR
+						var contains:Boolean = keyFilter.containsKey(key);
+						if (contains != inverse)
 							_filteredKeys.push(key);
 					}
 				}
@@ -163,8 +151,8 @@ package weave.data.KeySets
 			for each (key in _filteredKeys)
 				_filteredKeysMap[key] = true;
 			
-			_dirty = false; // _filteredKeys are now valid.
+			_prevTriggerCounter = triggerCounter; // _filteredKeys are now valid.
 		}
-		private var _dirty:Boolean = true; // flag to remember if the _filteredKeys are valid
+		private var _prevTriggerCounter:uint; // used to remember if the _filteredKeys are valid
 	}
 }

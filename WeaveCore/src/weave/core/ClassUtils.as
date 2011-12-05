@@ -25,6 +25,8 @@ package weave.core
 	import flash.utils.describeType;
 	
 	import mx.controls.SWFLoader;
+	import mx.core.ClassFactory;
+	import mx.core.mx_internal;
 
 	/**
 	 * ClassUtils
@@ -80,7 +82,7 @@ package weave.core
 			try {
 				if (!cacheClassInfo(classQName))
 					return false;
-				return classImplementsMap[classQName][implementsQName] != undefined;
+				return classImplementsMap[classQName][implementsQName] !== undefined;
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
@@ -96,7 +98,7 @@ package weave.core
 			try {
 				if (!cacheClassInfo(classQName))
 						return false;
-				return classExtendsMap[classQName][extendsQName] != undefined;
+				return classExtendsMap[classQName][extendsQName] !== undefined;
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
@@ -111,15 +113,45 @@ package weave.core
 		}
 		
 		/**
+		 * This function gets a list of all the interfaces implemented by a class.
+		 * @param classQName A qualified class name.
+		 * @return A list of qualified class names of interfaces that the given class implements.
+		 */
+		public static function getClassImplementsList(classQName:String):Array
+		{
+			cacheClassInfo(classQName);
+			var result:Array = [];
+			for (var name:String in classImplementsMap[classQName])
+				result.push(name);
+			return result;
+		}
+		
+		/**
+		 * This function gets a list of all the superclasses that a class extends.
+		 * @param classQName A qualified class name.
+		 * @return A list of qualified class names of interfaces that the given class extends.
+		 */
+		public static function getClassExtendsList(classQName:String):Array
+		{
+			cacheClassInfo(classQName);
+			var result:Array = [];
+			for (var name:String in classExtendsMap[classQName])
+				result.push(name);
+			return result;
+		}
+		
+		/**
 		 * This maps a qualified class name to an object.
 		 * For each interface the class implements, the object maps the qualified class name of the interface to a value of true.
 		 */
 		private static const classImplementsMap:Object = new Object();
+
 		/**
 		 * This maps a qualified class name to an object.
 		 * For each interface the class extends, the object maps the qualified class name of the interface to a value of true.
 		 */
 		private static const classExtendsMap:Object = new Object();
+		
 		/**
 		 * This function will populate the classImplementsMap and classExtendsMap for the given qualified class name.
 		 * @param classQName A qualified class name.
@@ -147,5 +179,40 @@ package weave.core
 			
 			return true; // successfully cached
 		}
+		
+		/**
+		 * Returns a new instance of a class.
+		 * 
+		 * @param classQName The qualified name of the class.
+		 * @param params Parameters to pass to the constructor of the class.
+		 * @return A new instance of the class.
+		 */		
+		public static function getNewInstance(classQName:String, params:Array = null):Object
+		{
+			var classDef:Class = getClassDefinition(classQName);
+			if (!params)
+				return new classDef();
+			switch (params.length)
+			{
+				case 0: return new classDef();
+				case 1: return new classDef(params[0]);
+				case 2: return new classDef(params[0], params[1]);
+				case 3: return new classDef(params[0], params[1], params[2]);
+				case 4: return new classDef(params[0], params[1], params[2], params[3]);
+				case 5: return new classDef(params[0], params[1], params[2], params[3], params[4]);
+				case 6: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5]);
+				case 7: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
+				case 8: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
+				case 9: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]);
+				case 10: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9]);
+				default: throw new Error("Too many constructor parameters (maximum 10)");
+			}
+		}
+		/*
+		private function typeEquals(o:*, cls:Class):Boolean
+		{
+			return o == null ? false : Object(o).constructor == cls;
+		}
+		*/
 	}
 }

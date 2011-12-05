@@ -131,9 +131,6 @@ package weave.utils
 			return value;
 		}
 		
-		private static var key:IQualifiedKey;
-		private static var cubekeys:Array;
-		
 		/**
 		 * This function gets a value from a data column, using a filter column and a key column to filter the data
 		 * @param keyColumn An IAttributeColumn to get keys from
@@ -147,22 +144,21 @@ package weave.utils
 		 */		
 		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:String, dataType:* = null):Object
 		{
-			var val:Object;
-			
-			key = getKey();
-			cubekeys = getAssociatedKeys(keyColumn, key);
+			var key:IQualifiedKey = getKey();
+			var cubekeys:Array = getAssociatedKeys(keyColumn, key);
 			
 			for each (var cubekey:IQualifiedKey in cubekeys)
 			{
 				if (filter.getValueFromKey(cubekey, String) == filterValue)
 				{
-					val = getValueFromKey(data, cubekey, dataType);
+					var val:Object = getValueFromKey(data, cubekey, dataType);
 					return val;
 				}
-			}			
+			}
 			return cast(NaN, dataType);
 		}
 		
+		private static var _reverseKeyLookupTriggerCounter:Dictionary = new Dictionary(true);
 		private static var _reverseKeyLookupCache:Dictionary = new Dictionary(true);
 		
 		/**
@@ -174,8 +170,10 @@ package weave.utils
 		public static function getAssociatedKeys(column:IAttributeColumn, keyValue:IQualifiedKey):Array
 		{
 			var lookup:Dictionary = _reverseKeyLookupCache[column] as Dictionary;
-			if (lookup == null || column.callbacksWereTriggered) // if cache is invalid, validate it now
+			if (lookup == null || column.triggerCounter != _reverseKeyLookupTriggerCounter[column]) // if cache is invalid, validate it now
 			{
+				_reverseKeyLookupTriggerCounter[column] = column.triggerCounter;
+				
 				// make sure when the column changes, the cache gets invalidated.
 				if (_reverseKeyLookupCache[column] === undefined)
 					column.addImmediateCallback(null, clearReverseLookupCache, [column]);

@@ -32,9 +32,11 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
+	import weave.compiler.ProxyObject;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -64,11 +66,6 @@ package weave.data.AttributeColumns
 		
 
 		public function EquationColumn()
-		{
-			init();
-		}
-		
-		private function init():void
 		{
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			equation.value = 'undefined';
@@ -118,7 +115,7 @@ package weave.data.AttributeColumns
 				{
 					try
 					{
-						var func:Function = compiler.compileToFunction(value, variableGetter, true);
+						var func:Function = compiler.compileToFunction(value, symbolTableProxy, true);
 						value = func.apply(this, arguments);
 					}
 					catch (e:Error)
@@ -126,7 +123,7 @@ package weave.data.AttributeColumns
 						if (_lastError != e.message)
 						{
 							_lastError = e.message;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 					}
 				}
@@ -242,7 +239,7 @@ package weave.data.AttributeColumns
 				else
 				{
 					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, variableGetter, true, false);
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, symbolTableProxy, true, false, ['key', 'dataType']);
 					_equationIsConstant = false;
 				}
 			}
@@ -308,11 +305,20 @@ package weave.data.AttributeColumns
 			}
 		}
 		
+		private const symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, variableGetter, null);
+		
 		private function variableGetter(name:String):*
 		{
 			if (name == 'get')
 				return variables.getObject as Function;
 			return variables.getObject(name) || undefined;
+		}
+		
+		private function hasVariable(name:String):Boolean
+		{
+			if (name == 'get')
+				return true;
+			return variables.getObject(name) != null;
 		}
 		
 		/**
@@ -327,8 +333,9 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
+		 * @see weave.api.data.IAttributeColumn
 		 */
-		override public function getValueFromKey(key:IQualifiedKey, dataTypeParam:Class = null):*
+		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
 				return undefined;
@@ -361,7 +368,7 @@ package weave.data.AttributeColumns
 						if (_lastError != e.message)
 						{
 							_lastError = e.message;
-							WeaveAPI.ErrorManager.reportError(e);
+							reportError(e);
 						}
 						//value = e;
 					}
@@ -374,10 +381,10 @@ package weave.data.AttributeColumns
 			}
 			
 			// if dataType not specified, use default type specified by this.dataType.value
-			if (dataTypeParam == null)
-				dataTypeParam = _defaultDataType;
+			if (dataType == null)
+				dataType = _defaultDataType;
 			
-			if (dataTypeParam == IQualifiedKey)
+			if (dataType == IQualifiedKey)
 			{
 				if (!(value is IQualifiedKey))
 				{
@@ -386,9 +393,9 @@ package weave.data.AttributeColumns
 					value = WeaveAPI.QKeyManager.getQKey(getMetadata(AttributeColumnMetadata.DATA_TYPE), value);
 				}
 			}
-			else if (dataTypeParam != null)
+			else if (dataType != null)
 			{
-				value = EquationColumnLib.cast(value, dataTypeParam);
+				value = EquationColumnLib.cast(value, dataType);
 			}
 			
 			return value;

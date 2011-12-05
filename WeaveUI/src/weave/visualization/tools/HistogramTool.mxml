@@ -67,25 +67,21 @@
 				super.constructor();
 				
 				// lock dynamic objects into place
-				plotter = initDefaultPlotter(HistogramPlotter) as HistogramPlotter;
+				plotter = initializePlotters(HistogramPlotter, true);
 				visualization.enableProbeLine(false, true);
-
-				xAxisEnabled = true;
-				yAxisEnabled = true;
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				
-				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange);
-				visualization.enableXAxisProbing = true;
+				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
 
-				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
@@ -94,13 +90,17 @@
 				var fc:FilteredColumn = plotter.internalBinnedColumn.internalColumn as FilteredColumn;
 				initColumnDefaults(fc.internalDynamicColumn);
 				
-				toolTitle.addGroupedCallback(this, updateTitle);
 				plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
 			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Bins"];
+				return ["bin data"];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -124,9 +124,10 @@
 				}
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Histogram of " + ColumnUtils.getTitle(plotter.dynamicColorColumn);
 			}
 
@@ -164,9 +165,9 @@
 			
 			private function updateAxisLabels():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 				
-				visualization.setXAxisColumn(plotter.dynamicColorColumn);
+				visualization.bottomMarginColumn = plotter.dynamicColorColumn;
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
@@ -181,8 +182,8 @@
 					xAxisLayer.axisPlotter.setLabelFunction(null);
 				}
 				
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName("Number of Records", -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisLayer.axisPlotter.setSideAxisName("Number of Records", -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
@@ -191,16 +192,15 @@
 		<mx:VBox label="Visualization Controls">
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
-						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="bin data"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="Draw partial histogram bars for selection and probe"
-						 initialize="linkBindableProperty(plotter.drawPartialBins, drawPartialCheckBox, 'selected');"/>
+						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
-			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

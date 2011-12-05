@@ -72,5 +72,13 @@ package weave.api.data
 		 * Get the vertices.
 		 */
 		function getVertices():Array;
+		
+		/**
+		 * Set the vertices.
+		 * 
+		 * @param An array of objects with x and y properties. 
+		 */		
+		function setVertices(o:Array):void;
+		
 	}
 }

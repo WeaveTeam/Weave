@@ -19,11 +19,13 @@
 
 package weave.services
 {
+	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.mx_internal;
@@ -107,7 +109,7 @@ package weave.services
 					// set url variables from parameters
 					for (var name:String in methodParameters)
 					{
-						if(methodParameters[name] is Array)
+						if (methodParameters[name] is Array)
 							request.data[name] = WeaveAPI.CSVParser.createCSVFromArrays([methodParameters[name]]);
 						else
 							request.data[name] = methodParameters[name];
@@ -121,10 +123,24 @@ package weave.services
 				var obj:Object = new Object();
 				obj.methodName = methodName;
 				obj.methodParameters = methodParameters;
+				obj.streamParameterIndex = -1; // index of stream parameter
+				
+				var streamContent:ByteArray;
+				var params:Array = methodParameters as Array;
+				var index:int = params ? params.length - 1 : -1;
+				if (params && params.length > 0 && params[index] is ByteArray)
+				{
+					obj.streamParameterIndex = index; // tell the server about the stream parameter index
+					streamContent = params[index];
+					params[index] = null; // keep the placeholder where the server will insert the stream parameter
+				}
 				
 				// serialize into compressed AMF3
 				var byteArray:ByteArray = new ByteArray(); 
 				byteArray.writeObject(obj);
+				// if stream content exists, append after the AMF3-serialized object
+				if (streamContent)
+					byteArray.writeBytes(streamContent);
 				byteArray.compress();
 				
 				request.data = byteArray;
@@ -133,10 +149,31 @@ package weave.services
 			var token:AsyncToken = new AsyncToken();
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
+			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
 			return token;
 		}
 		
+		/**
+		 * Cancel a URLLoader request from a given AsyncToken.
+		 * This function should be used with care because multiple requests for the same URL
+		 * may all be cancelled by one client.
+		 *  
+		 * @param asyncToken The corresponding AsyncToken.
+		 */		
+		public function cancelLoaderFromToken(asyncToken:AsyncToken):void
+		{
+			var loader:URLLoader = _asyncTokenToLoader[asyncToken];
+			
+			if (loader)
+				loader.close();
+		}
+		
+		/**
+		 * This is a mapping of AsyncToken objects to URLLoader objects. 
+		 * This mapping is necessary so a client with an AsyncToken can cancel the loader. 
+		 */		
+		private const _asyncTokenToLoader:Dictionary = new Dictionary();
+				
 		private function resultHandler(event:ResultEvent, token:Object = null):void
 		{
 			(token as AsyncToken).mx_internal::applyResult(event);

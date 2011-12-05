@@ -47,7 +47,6 @@ package weave.core
 		}
 
 		/**
-		 * valueEquals
 		 * This function is used in setSessionState() to determine if the value has changed or not.
 		 * Classes that extend this class may override this function.
 		 */
@@ -66,7 +65,6 @@ package weave.core
 		}
 		
 		/**
-		 * isUndefined
 		 * @return true if the session state is considered undefined.
 		 */
 		public function isUndefined():Boolean
@@ -93,7 +91,6 @@ package weave.core
 		}
 
 		/**
-		 * _sessionStateWasSet
 		 * This is true if the session state has been set at least once.
 		 */
 		protected var _sessionStateWasSet:Boolean = false;
@@ -112,14 +109,19 @@ package weave.core
 			if (_sessionStateType != null)
 				value = value as _sessionStateType;
 			
-			// If the value is non-primitive, save a copy because we don't want
-			// two LinkableVariables to share the same object as their session state.
-			if (typeof(value) == 'object')
-				value = ObjectUtil.copy(value);
-			
 			// stop if verifier says it's not an accepted value
 			if (_verifier != null && !_verifier(value))
 				return;
+			
+			// If the value is non-primitive, save a copy because we don't want
+			// two LinkableVariables to share the same object as their session state.
+			if (value !== null)
+			{
+				if (value is XML)
+					value = (value as XML).copy();
+				else if (typeof(value) == 'object')
+					value = ObjectUtil.copy(value);
+			}
 			
 			// stop if the value did not change
 			if (_sessionStateWasSet && sessionStateEquals(value))
@@ -127,13 +129,24 @@ package weave.core
 			
 			_sessionStateWasSet = true;
 
+//			if (_sessionState is XML)
+//				(_sessionState as XML).setNotification(null); // stop the old XML from triggering callbacks
+//			if (value is XML)
+//				(value as XML).setNotification(handleChange); // this will trigger callbacks when the new xml is modified.
 			_sessionState = value;
 
 			triggerCallbacks();
 		}
 
+//		/**
+//		 * This function gets called if the session state is an XML object and it changes.
+//		 */		
+//		private function handleChange(..._):void
+//		{
+//			triggerCallbacks();
+//		}
+		
 		/**
-		 * lock
 		 * Call this function when you do not want to allow any more changes to the value of this sessioned property.
 		 */
 		public function lock():void
@@ -142,15 +155,14 @@ package weave.core
 		}
 		
 		/**
-		 * locked
 		 * This is set to true when lock() is called.
 		 * Subsequent calls to setSessionState() will have no effect.
 		 */
-		protected var _locked:Boolean = false;
 		public function get locked():Boolean
 		{
 			return _locked;
 		}
+		protected var _locked:Boolean = false;
 
 		override public function dispose():void
 		{

@@ -28,9 +28,13 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.BinClassifierCollection;
+	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
+	import weave.data.CSVParser;
 	
 	/**
 	 * A binned column maps a record key to a bin key.
@@ -78,7 +82,7 @@ package weave.data.AttributeColumns
 		 * Derived values don't need to appear in the session state.
 		 * These bins are provided for convenience only and should not be modified.
 		 */
-		public function get derivedBins():BinClassifierCollection
+		public function getDerivedBins():BinClassifierCollection
 		{
 			if (_dirty)
 				validateBins();
@@ -139,8 +143,9 @@ package weave.data.AttributeColumns
 				for (i = 0; i < keys.length; i++)
 				{
 					var key:IQualifiedKey = keys[i];
-					// assuming bin classifiers are NumberClassifiers
-					var value:Number = column.getValueFromKey(key, Number);
+					// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
+					var dataType:Class = def is CategoryBinningDefinition ? String : Number;
+					var value:* = column.getValueFromKey(key, dataType);
 					var binIndex:Number = _derivedBins.getBinIndexFromDataValue(value);
 					if (isNaN(binIndex))
 						continue;
@@ -239,6 +244,7 @@ package weave.data.AttributeColumns
 			// default: return IBinClassifier
 			return _derivedBins.getObject(_binNames[binIndex]);
 		}
+		
 		
 		/**
 		 * From a bin index, this function returns the name of the bin.

@@ -21,24 +21,23 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.CapsStyle;
 	import flash.display.Graphics;
-	import flash.display.JointStyle;
+	import flash.display.LineScaleMode;
 	import flash.geom.Point;
 	import flash.text.TextFormatAlign;
 	
 	import mx.formatters.NumberFormatter;
 	import mx.utils.NameUtil;
 	
-	import weave.Weave;
-	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
-	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.KeySets.KeySet;
@@ -47,43 +46,27 @@ package weave.visualization.plotters
 	import weave.primitives.LinkableNumberFormatter;
 	import weave.primitives.LooseAxisDescription;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 	
 	public class SimpleAxisPlotter extends AbstractPlotter
 	{
 		public function SimpleAxisPlotter()
 		{
-			init();
-		}
-		
-		private function init():void
-		{
 			//TODO: this list of properties should be contained in a separate object so we don't have to list them all here
-			linkSessionState(Weave.properties.axisFontFamily, axisFontFamily);
-			linkSessionState(Weave.properties.axisFontColor, axisFontColor);
-			linkSessionState(Weave.properties.axisFontSize, axisFontSize);
-			linkSessionState(Weave.properties.axisFontBold, axisFontBold);
-			linkSessionState(Weave.properties.axisFontItalic, axisFontItalic);
-			linkSessionState(Weave.properties.axisFontUnderline, axisFontUnderline);
 			spatialCallbacks.addImmediateCallback(this, updateLabels);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat);
 			
 			setKeySource(_keySet);
 		}
 		
-		//TODO: put this huge list of properties into a separate object instead
-		public const axisFontFamily:LinkableString = registerNonSpatialProperty(new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY, WeaveProperties.verifyFontFamily));
-		public const axisFontBold:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
-		public const axisFontItalic:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		public const axisFontUnderline:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		public const axisFontSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(10, isFinite));
-		public const axisFontColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0x000000, isFinite));
-		public const axisLabelDistance:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(-10, isFinite));
-		public const axisLabelRelativeAngle:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(-45, isFinite));
-		public const axisGridLineThickness:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1, isFinite));
-		public const axisGridLineColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0xDDDDDD));
-		public const axisGridLineAlpha:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1, isFinite));
-		public const axesThickness:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(10, isFinite));
-		public const axesColor:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(0xB0B0B0, isFinite));
-		public const axesAlpha:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(1, isFinite));
+		public const axisLabelDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10, isFinite));
+		public const axisLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-45, isFinite));
+		public const axisGridLineThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
+		public const axisGridLineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xDDDDDD));
+		public const axisGridLineAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
+		public const axesThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite));
+		public const axesColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xB0B0B0, isFinite));
+		public const axesAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
 		
 		// the axis line beginning and end data coordinates
 		public const axisLineDataBounds:LinkableBounds2D = newSpatialProperty(LinkableBounds2D);
@@ -96,21 +79,22 @@ package weave.visualization.plotters
 		// the value corresponding to the end of the axis line.  If not specified, axisLineMaxValue will be used.
 		public const tickMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
-		public const overrideAxisName:LinkableString = newNonSpatialProperty(LinkableString);
+		public const overrideAxisName:LinkableString = newLinkableChild(this, LinkableString);
 		// show or hide the axis name
-		public const showAxisName:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(true));
+		public const showAxisName:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		// number of requested tick marks
 		public const tickCountRequested:LinkableNumber = registerSpatialProperty(new LinkableNumber(10));
 		// This option forces the axis to generate the exact number of requested tick marks between tick min and max values (inclusive)
 		public const forceTickCount:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
-		// formatter to use when generating tick mark labels
-		public const labelNumberFormatter:LinkableNumberFormatter = newNonSpatialProperty(LinkableNumberFormatter);
-		public const labelTextAlignment:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
-		public const labelHorizontalAlign:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
-		public const labelVerticalAlign:LinkableString = registerNonSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_CENTER));
-		public const labelDistanceIsVertical:LinkableBoolean = registerNonSpatialProperty(new LinkableBoolean(false));
-		public const labelWordWrapSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(80));
+		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const labelNumberFormatter:LinkableNumberFormatter = newLinkableChild(this, LinkableNumberFormatter); // formatter to use when generating tick mark labels
+		public const labelTextAlignment:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
+		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
+		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
+		public const labelDistanceIsVertical:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const labelWordWrapSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
+		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));
 		
 		private const _keySet:KeySet = newSpatialProperty(KeySet); // stores tick mark keys
 		private const _axisDescription:LooseAxisDescription = new LooseAxisDescription(); // calculates tick marks
@@ -148,7 +132,7 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < _axisDescription.numberOfTicks; i++)
 			{
 				// only include tick marks that are between min,max values
-				var tickValue:Number = _axisDescription.tickMin + i * _axisDescription.tickDelta;
+				var tickValue:Number = StandardLib.roundSignificant(_axisDescription.tickMin + i * _axisDescription.tickDelta);
 				if (axisLineMinValue.value <= tickValue && tickValue <= axisLineMaxValue.value)
 					newKeys.push(WeaveAPI.QKeyManager.getQKey(null, String(i)));
 			}
@@ -189,7 +173,7 @@ package weave.visualization.plotters
 			else
 			{
 				var tickIndex:int = parseInt(recordKey.localName);
-				tickValue = _axisDescription.tickMin + tickIndex * _axisDescription.tickDelta;
+				tickValue = StandardLib.roundSignificant(_axisDescription.tickMin + tickIndex * _axisDescription.tickDelta);
 				outputPoint.x = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.xMin.value, axisLineDataBounds.xMax.value);
 				outputPoint.y = StandardLib.scale(tickValue, _axisLineMinValue, _axisLineMaxValue, axisLineDataBounds.yMin.value, axisLineDataBounds.yMax.value);
 			}
@@ -271,14 +255,14 @@ package weave.visualization.plotters
 				
 				// draw tick mark line and grid lines
 				graphics.clear();
-				graphics.lineStyle(axisGridLineThickness.value, axisGridLineColor.value, axisGridLineAlpha.value, false, "normal", CapsStyle.NONE);
+				graphics.lineStyle(axisGridLineThickness.value, axisGridLineColor.value, axisGridLineAlpha.value, false, LineScaleMode.NORMAL, CapsStyle.NONE);
 				
-				if ( key == MIN_LABEL_KEY || key == MAX_LABEL_KEY )
+				if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY)
 				{
 					graphics.moveTo(xTick - xTickOffset*2, yTick - yTickOffset*2);
 					graphics.lineTo(xTick + xTickOffset*2, yTick + yTickOffset*2);
 				}
-				else if( axisAngle != 0 ) 
+				else if (axisAngle != 0)
 				{
 					graphics.moveTo(xTick-axesThickness.value, yTick);
 					graphics.lineTo(xTick, yTick);
@@ -286,9 +270,9 @@ package weave.visualization.plotters
 					graphics.lineTo(screenBounds.getXMax(), yTick);
 					
 				}
-				else if( axisAngle == 0 )
+				else if (axisAngle == 0)
 				{
-					var offset:Number = 1 ;
+					var offset:Number = 1;
 					graphics.moveTo(xTick, yTick + offset);
 					graphics.lineTo(xTick, yTick+axesThickness.value + offset);
 					graphics.moveTo(xTick, yTick);
@@ -298,31 +282,13 @@ package weave.visualization.plotters
 				destination.draw(tempShape);
 				
 				// draw tick mark label
-				_bitmapText.text = null;
-				// attempt to use label function
-				var labelFunctionResult:String = _labelFunction == null ? null : _labelFunction(tickValue);
-				if (_labelFunction != null && labelFunctionResult != null)
+				if (showLabels.value)
 				{
-					_bitmapText.text = labelFunctionResult;
+					_bitmapText.text = getLabel(tickValue);
+					_bitmapText.x = xTick + xLabelOffset;
+					_bitmapText.y = yTick + yLabelOffset;
+					_bitmapText.draw(destination);					
 				}
-				else if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY )
-				{
-					if (tickValue == int(tickValue))
-						_numberFormatter.precision = -1;
-					else
-						_numberFormatter.precision = 2;
-					
-					_bitmapText.text = _numberFormatter.format(tickValue);
-				}
-				else
-				{
-					_bitmapText.text = labelNumberFormatter.format(tickValue);
-				}
-				
-
-				_bitmapText.x = xTick + xLabelOffset;
-				_bitmapText.y = yTick + yLabelOffset;
-				_bitmapText.draw(destination);
 			}
 		}
 		
@@ -380,26 +346,43 @@ package weave.visualization.plotters
 		 */		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			setupAxisNameBitmapText(dataBounds,screenBounds);
-			
-			var axisAngle:Number = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());
-			var length:Number = (axisAngle == 0 ) ? _axisLineScreenBounds.getWidth() : _axisLineScreenBounds.getHeight();
-			// draw the axis line
-			var graphics:Graphics = tempShape.graphics;
-			graphics.clear();
-			graphics.lineStyle(1, axesColor.value, axesAlpha.value);
-			graphics.beginFill(axesColor.value, axesAlpha.value);
-			var offset:Number = 1 ;
-			if(axisAngle == 0 )
-				graphics.drawRect(_axisLineScreenBounds.xMin - axesThickness.value, _axisLineScreenBounds.yMax+offset, length+axesThickness.value, axesThickness.value );
-			else
-				graphics.drawRect(_axisLineScreenBounds.xMin - axesThickness.value, _axisLineScreenBounds.yMin, axesThickness.value, length) ;
-			graphics.endFill();
-			
-			
-			destination.draw(tempShape);
+			// draw the axis border
+			if (axesThickness.value != 0)
+			{
+				initPrivateAxisLineBoundsVariables(dataBounds, screenBounds);
+				var axisAngle:Number = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());
+				var thickness:Number = axesThickness.value;
+				var graphics:Graphics = tempShape.graphics;
+				graphics.clear();
+				graphics.lineStyle(0,0,0);
+				graphics.beginFill(axesColor.value, axesAlpha.value);
+				var xMin:Number = _axisLineScreenBounds.getXNumericMin();
+				var yMin:Number = _axisLineScreenBounds.getYNumericMin();
+				var yOffset:Number = 1;
+				if (_axisLineScreenBounds.getXCoverage() == 0) // draw vertical rectangle to the left of the axis
+				{
+					graphics.drawRect(
+						xMin - thickness,
+						yMin,
+						thickness,
+						_axisLineScreenBounds.getYCoverage() + yOffset
+					);
+				}
+				if (_axisLineScreenBounds.getYCoverage() == 0) // draw horizontal rectangle below axis
+				{
+					graphics.drawRect(
+						xMin - thickness,
+						yMin + yOffset,
+						_axisLineScreenBounds.getXCoverage() + thickness,
+						thickness
+					);
+				}
+				graphics.endFill();
+				destination.draw(tempShape);
+			}
 			if (showAxisName.value && axisName != null)
 			{
+				setupAxisNameBitmapText(dataBounds,screenBounds);
 //				getAxisNameScreenBounds(dataBounds,screenBounds,_tempBounds);
 //				destination.fillRect(new Rectangle(_tempBounds.xMin,_tempBounds.yMin,_tempBounds.width,_tempBounds.height),0x80FF0000);
 				_bitmapText.draw(destination);
@@ -412,12 +395,7 @@ package weave.visualization.plotters
 		
 		protected function setupBitmapText():void
 		{
-			_bitmapText.textFormat.font = axisFontFamily.value;
-			_bitmapText.textFormat.size = axisFontSize.value;
-			_bitmapText.textFormat.color = axisFontColor.value;
-			_bitmapText.textFormat.bold = axisFontBold.value;
-			_bitmapText.textFormat.italic = axisFontItalic.value;
-			_bitmapText.textFormat.underline = axisFontUnderline.value;
+			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
 			try {
 				_bitmapText.textFormat.align = labelTextAlignment.value;
 			} catch (e:Error) { }
@@ -494,6 +472,48 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		private const tempPoint2:Point = new Point();
 
+		public function getLabel(tickValue:Number):String
+		{
+			var minValue:Number = tickMinValue.value;
+			var maxValue:Number = tickMaxValue.value;
+			if (isNaN(minValue))
+				minValue = axisLineMinValue.value;
+			if (isNaN(maxValue))
+				maxValue = axisLineMaxValue.value;
+			
+			var result:String = null;
+			// attempt to use label function
+			var labelFunctionResult:String = _labelFunction == null ? null : _labelFunction(tickValue);
+			if (_labelFunction != null && labelFunctionResult != null)
+			{
+				result = labelFunctionResult;
+			}
+			else if (tickValue == minValue || tickValue == maxValue)
+			{
+				if (tickValue == int(tickValue))
+					_numberFormatter.precision = -1;
+				else
+					_numberFormatter.precision = 2;
+				
+				result = _numberFormatter.format(tickValue);
+			}
+			else
+			{
+				result = labelNumberFormatter.format(tickValue);
+			}
+			
+			try
+			{
+				if (labelFunction.value)
+					result = labelFunction.apply(null, [tickValue, result]);
+			}
+			catch (e:Error)
+			{
+				result = '';
+			}
+			
+			return result;
+		}
 		// TEMPORARY SOLUTION
 		public function setLabelFunction(func:Function):void
 		{

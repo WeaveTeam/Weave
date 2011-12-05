@@ -46,11 +46,14 @@ package weave.api.core
 	{
 		/**
 		 * This function is intended to be the global error reporting mechanism for Weave.
+		 * @param error An Error or a String describing the error.
+		 * @param faultMessage A message associated with the error, if any.  If specified, the error will be wrapped in a Fault object.
+		 * @param faultCessage Content associated with the error, if any.  If specified, the error will be wrapped in a Fault object.
 		 */
-		function reportError(error:Error):void;
+		function reportError(error:Object, faultMessage:String = null, faultContent:Object = null):void;
 		
 		/**
-		 * This is the list of all previous errors.
+		 * This is the list of all previously reported errors.
 		 */
 		function get errors():Array;
 	}

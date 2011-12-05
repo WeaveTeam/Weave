@@ -1,3 +1,4 @@
+
 /*
     Weave (Web-based Analysis and Visualization Environment)
     Copyright (C) 2008-2011 University of Massachusetts Lowell
@@ -23,24 +24,25 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.net.getClassByAlias;
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.utils.BitmapText;
 	import weave.utils.LegendUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -55,22 +57,10 @@ package weave.visualization.plotters
 	{
 		public function ColorBinLegendPlotter()
 		{
-			init();
-		}
-		private function init():void
-		{
 			dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
 			setKeySource(dynamicColorColumn);
-			
-			registerNonSpatialProperties(
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontColor,
-				Weave.properties.axisFontFamily,
-				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontUnderline,
-				Weave.properties.axisFontBold
-			);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
 		/**
@@ -80,10 +70,10 @@ package weave.visualization.plotters
 		public const dynamicColorColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(ColorColumn), createHashMaps);
 		
 		/**
-		 * This accessor function provides convenient access to the internal ColorColumn.
+		 * This accessor function provides convenient access to the internal ColorColumn, which may be null.
 		 * The public session state is defined by dynamicColorColumn.
 		 */
-		public function get internalColorColumn():ColorColumn
+		public function getInternalColorColumn():ColorColumn
 		{
 			return dynamicColorColumn.internalColumn as ColorColumn;
 		}
@@ -91,26 +81,52 @@ package weave.visualization.plotters
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
-		public const shapeSize:LinkableNumber = registerNonSpatialProperty(new LinkableNumber(20));
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
 		/**
 		 * This is the line style used to draw the outline of the shape.
 		 */
-		public const lineStyle:SolidLineStyle = newNonSpatialProperty(SolidLineStyle);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
+		/**
+		 * This is the maximum number of items to draw in a single row.
+		 * @default 1 
+		 */		
 		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createHashMaps);
-		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
-
+		
+		/**
+		 * This is an option to reverse the item order.
+		 * @default true
+		 */
+		public const ascendingOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true), createHashMaps);
+		
+		/**
+		 * This is the compiled function to apply to the item labels.
+		 */		
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['string']), createHashMaps);
+		
+		// TODO This should go somewhere else...
+		/**
+		 * This is the compiled function to apply to the title of the tool.
+		 * 
+		 * @default string  
+		 */		
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		
 		private const _binsOrdering:Array = [];
-		private var _binToBounds:Dictionary = new Dictionary();
-		private var _binToString:Dictionary = new Dictionary();
+		private var _binToBounds:Array = [];
+		private var _binToString:Array = [];
 		public var numBins:int = 0;
 		private function createHashMaps():void
 		{
 			_binsOrdering.length = 0;
-			_binToString = new Dictionary();
-			_binToBounds = new Dictionary();
+			_binToString = [];
+			_binToBounds = [];
 			
 			var keys:Array = keySet.keys;
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
+			if (!internalColorColumn)
+				return;
+			
 			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
 			if (binnedColumn == null)
 			{
@@ -118,7 +134,7 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			var bins:Array = binnedColumn.derivedBins.getObjects();
+			var bins:Array = binnedColumn.getDerivedBins().getObjects();
 			numBins = bins.length;
 			var maxCols:int = maxColumns.value;
 			if (maxCols <= 0)
@@ -131,7 +147,7 @@ package weave.visualization.plotters
 			for (var iBin:int = 0; iBin < numBins; ++iBin)
 			{
 				// get the adjusted position and transpose inside the row
-				var adjustedIBin:int = (reverseOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
+				var adjustedIBin:int = (ascendingOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
 				var row:int = adjustedIBin / maxCols;
 				var col:int = adjustedIBin % maxCols;
 				var b:IBounds2D = new Bounds2D();
@@ -140,7 +156,15 @@ package weave.visualization.plotters
 				LegendUtils.getBoundsFromItemID(getBackgroundDataBounds(), adjustedIBin, b, maxNumBins, maxCols, true);
 				
 				_binToBounds[iBin] = b;
-				_binToString[iBin] = binnedColumn.deriveStringFromNumber(iBin);
+				var binString:String = binnedColumn.deriveStringFromNumber(iBin);
+				try
+				{
+					_binToString[iBin] = itemLabelFunction.apply(null, [binString]);
+				}
+				catch (e:Error)
+				{
+					_binToString[iBin] = binString;
+				}
 			}
 		}
 		
@@ -155,6 +179,7 @@ package weave.visualization.plotters
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (internalColorColumn == null)
 				return; // draw nothing
 			if (internalColorColumn.internalColumn is BinnedColumn)
@@ -170,7 +195,8 @@ package weave.visualization.plotters
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (internalColorColumn == null)
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
+			if (!internalColorColumn)
 				return;
 			
 			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
@@ -193,10 +219,10 @@ package weave.visualization.plotters
 			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value, height - margin));
 			var iconGap:Number = actualShapeSize + margin * 2;
 			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
-			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(internalColorColumn.internalDynamicColumn);
-			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(internalColorColumn.internalDynamicColumn);
-			var internalColorRamp:ColorRamp = internalColorColumn.ramp;
-			var binCount:int = binnedColumn.derivedBins.getObjects().length;
+			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(getInternalColorColumn().internalDynamicColumn);
+			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(getInternalColorColumn().internalDynamicColumn);
+			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
+			var binCount:int = binnedColumn.getDerivedBins().getObjects().length;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
 				// if _drawBackground is set, we should draw the bins that have no records in them.
@@ -218,7 +244,7 @@ package weave.visualization.plotters
 				);
 
 				// draw circle
-				var iColorIndex:int = reverseOrder.value ? iBin : (binCount - 1 - iBin);
+				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
 				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
 				var xMin:Number = tempBounds.getXNumericMin(); 
 				var yMin:Number = tempBounds.getYNumericMin();
@@ -242,6 +268,10 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
+			var internalColorColumn:ColorColumn = getInternalColorColumn();
+			if (!internalColorColumn)
+				return [ getReusableBounds() ];
+			
 			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
 			if (binnedColumn)
 			{
@@ -256,7 +286,10 @@ package weave.visualization.plotters
 		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			return getReusableBounds(0, 0, 1, 1);
+			return getReusableBounds(0, 1, 1, 0);
 		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="ascendingOrder")] public function set reverseOrder(value:Boolean):void { ascendingOrder.value = value; }
 	}
 }

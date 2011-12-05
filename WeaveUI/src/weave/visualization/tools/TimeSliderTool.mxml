@@ -103,6 +103,7 @@
 			var attr:XML = path..attribute[0];
 			if (String(attr.@year) != '')
 			{
+				delete attr.@title;
 				attr.@year = newTime;
 				if (attr.@csvColumn)
 				{
@@ -111,6 +112,8 @@
 					{
 						var search:XML = attr.copy();
 						delete search.@csvColumn;
+						if (String(search.@name))
+							delete search.@title;
 						var hierarchy:AttributeHierarchy = ref.getDataSource().attributeHierarchy as AttributeHierarchy;
 						var list:XMLList = hierarchy.value.descendants('attribute');
 						for (var j:int = 0; j < list.length(); j++)
@@ -173,8 +176,8 @@
 			attrList = hierarchy.descendants("attribute");
 		}
 		
-		// filter attribute tags by title or name
-		var property:String = String(node.@title) == '' ? 'name' : 'title';
+		// filter attribute tags by name
+		var property:String = 'name';
 		attrList = attrList.(String(attribute(property)) == String(node["@" + property]) && attribute("year"));
 		// get the year value from each attribute tag
 		for (var i:int = 0; i < attrList.length(); i++)

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:HBox  xmlns:mx="http://www.adobe.com/2006/mxml" implements="weave.ui.CustomDataGrid.IFilterComponent"
+		 verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[	
+			import mx.events.FlexEvent;
+			
+			import weave.api.linkBindableProperty;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableString;
+			 
+			public var column:WeaveCustomDataGridColumn;
+			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void
+			{
+				this.column = column;
+			}
+			
+			protected function strToSrchInput_initializeHandler(event:FlexEvent):void
+			{				
+				linkBindableProperty(strToSearch, event.target, 'text', 500);
+			}
+			
+			public var regExp:RegExp;			
+			public const strToSearch:LinkableString = registerLinkableChild(this, new LinkableString("", verifyStrToSearch),handleChangeInSearchString);
+			
+			private function verifyStrToSearch(value:String):Boolean
+			{
+				return value != null;
+			}
+			
+			protected function handleChangeInSearchString():void
+			{
+				regExp = strToRegExp(strToSearch.value);
+			}
+					
+			
+			
+			public function get isActive():Boolean
+			{
+				return (strToSearch.value != null && strToSearch.value != "");
+			}
+			
+			public function filterFunction(obj:Object):Boolean
+			{
+				if (!regExp)
+					return true;
+				var str:String = column.itemToLabel(obj);
+				return regExp.test(str);
+			}
+			
+			public static function strToRegExp(strToSrch:String, flags:String = "i", asterisk:Boolean = true, questionMark:Boolean = true):RegExp
+			{
+				var resultStr:String;			
+				//excape metacharacters other than "*" and "?"
+				resultStr = strToSrch.replace(/[\^\$\\\.\+\(\)\[\]\{\}\|]/g, "\\$&");			
+				//replace strToSrch "?" with reg exp equivalent "."
+				resultStr = resultStr.replace(/[\?]/g, ".");			
+				//replace strToSrch "*" with reg exp equivalen ".*?"
+				resultStr = resultStr.replace(/[\*]/g, ".*?");			
+				return new RegExp(resultStr, flags);
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:TextInput id="strToSrchInput"  width="100%" height="100%" minWidth="0" initialize="strToSrchInput_initializeHandler(event)"
+				 />
+		
+</mx:HBox >

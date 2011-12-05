@@ -36,6 +36,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;
@@ -48,7 +49,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(PieChartPlotter) as PieChartPlotter;
+				_plotter = initializePlotters(PieChartPlotter, false);
 				
 				visualization.enableAutoZoomToExtent.value = true;
 				visualization.enableFixedAspectRatio.value = true;
@@ -65,18 +66,17 @@
 				{
 					if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(_plotter.data))
 					{
-						_plotter.label.copyLocalObject(headers[i]);
+						_plotter.label.requestLocalObjectCopy(headers[i]);
 						break;
 					}
 				}
 
-				toolTitle.addImmediateCallback(this, updateTitle);
 				_plotter.data.addImmediateCallback(this, updateProbeColumns, null, true);
 				
-				visualization.marginTop.value = 65;
-				visualization.marginBottom.value = 65;
-				visualization.marginLeft.value = 85;
-				visualization.marginRight.value = 85;
+				visualization.marginTop.value = "65";
+				visualization.marginBottom.value = "65";
+				visualization.marginLeft.value = "85";
+				visualization.marginRight.value = "85";
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -115,12 +115,13 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
 			}
 		]]>
@@ -130,17 +131,17 @@
 			<userControls:ControlsSubsetBox>
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			</userControls:ControlsSubsetBox>
-			<ui:DynamicColumnComponent visTool="{this}" label="Wedge size" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Wedge color" initialize="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label Column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Wedge size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Wedge color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
 			<userControls:ControlsSubsetBox>
 				<mx:Label text="Label angle" fontWeight="bold"/>
 				<mx:HSlider id="labelAngleSlider"
 						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 						dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
-						initialize="linkBindableProperty(_plotter.labelAngleRatio, labelAngleSlider, 'value')"/>
+						creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
 			</userControls:ControlsSubsetBox>
 		</mx:VBox>
 	</ui:ControlPanel>

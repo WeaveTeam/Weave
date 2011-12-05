@@ -49,7 +49,7 @@ package weave.api.ui
 	public interface IPlotterWithGeometries extends IPlotter
 	{
 		/**
-		 * This function provides a mapping from a record key to an Array of IGeometry objects
+		 * This function provides a mapping from a record key to an Array of ISimpleGeometry objects
 		 * in data coordinates.
 		 * 
 		 * @param recordKey An IQualifiedKey for which to get its geometries.
@@ -58,5 +58,12 @@ package weave.api.ui
 		 * @return An Array of IGeometry objects, in data coordinates.
 		 */
 		function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array;
+		
+		/**
+		 * This function will get an array ISimpleGeometry objects.
+		 * 
+		 * @return An array of ISimpleGeometry objects which can be used for spatial querying. 
+		 */		
+		function getBackgroundGeometries():Array;
 	}
 }

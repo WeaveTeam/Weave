@@ -21,6 +21,7 @@ package weave.data.BinClassifiers
 {
 	import weave.api.data.IBinClassifier;
 	import weave.core.LinkableHashMap;
+	import weave.core.weave_internal;
 	
 	/**
 	 * This object contains an ordered, named list of IBinClassifier objects.
@@ -44,14 +45,17 @@ package weave.data.BinClassifiers
 		 * This is a private copy of the last getObjects() result.
 		 */
 		private var _bins:Array = [];
+		
+		private var _lastTriggerCounter:uint = 0;
 
 		/**
 		 * This function will update the local arrays if necessary.
 		 */
 		private function validateLocalArrays():void
 		{
-			if (_names == null || this.callbacksWereTriggered)
+			if (_names == null || triggerCounter != _lastTriggerCounter)
 			{
+				_lastTriggerCounter = triggerCounter;
 				_names = getNames();
 				_bins = getObjects();
 			}
@@ -66,17 +70,6 @@ package weave.data.BinClassifiers
 			// invalidate local copies
 			_names = null;
 			_bins = null;
-		}
-		
-		/**
-		 * This function will copy the session state of a bin classifier
-		 * into a new object in this BinClassifierCollection under the given name.
-		 * @param newName A name for the new object to be created.
-		 * @param classifierToCopy A bin classifier to copy the session state from.
-		 */
-		public function copyBinClassifier(newName:String, classifierToCopy:IBinClassifier):void
-		{
-			copyObject(newName, classifierToCopy);
 		}
 
 		/**

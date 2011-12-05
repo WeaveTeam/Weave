@@ -60,18 +60,13 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ImageGlyphPlotter) as ImageGlyphPlotter;
-				xAxisEnabled = true;
-				yAxisEnabled = true;
+				_plotter = initializePlotters(ImageGlyphPlotter, true);
 
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeft.addImmediateCallback(this, updateAxisLabels);
-				visualization.marginBottom.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
 				// END TEMPORARY SOLUTION
-				
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.xColumn])
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.yColumn])
@@ -84,15 +79,14 @@
 				invalidateAxes();
 				
 				initColumnDefaults( _plotter.dataX, _plotter.dataY);
-				toolTitle.addImmediateCallback(this, updateTitle);
 				
 				_plotter.xColumn.addImmediateCallback(this,updateProbeColumns);
 				_plotter.yColumn.addImmediateCallback(this,updateProbeColumns);
 
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -121,19 +115,20 @@
 			
 			private function invalidateAxes():void
 			{
-				updateTitle();
+				handlePanelTitleChange();
 			}
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "Scatter Plot of " + ColumnUtils.getTitle(_plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(_plotter.yColumn);
 			}
 			
 			private function updateAxisLabels():void
 			{
-				visualization.setXAxisColumn(_plotter.xColumn);
-				visualization.setYAxisColumn(_plotter.yColumn);
+				visualization.bottomMarginColumn = _plotter.xColumn;
+				visualization.leftMarginColumn = _plotter.yColumn;
 				
 				if (_plotter == null)
 					title = "Scatter Plot";
@@ -142,12 +137,12 @@
 	*/			
 				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dataX), 
 																0,   
-				                                                0, visualization.marginBottom.value - 3, 
+				                                                0, visualization.marginBottomNumber.value - 3, 
 				                                                BitmapText.VERTICAL_ALIGN_BOTTOM);
 				                                                
 				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dataY), 
 																-90, 
-																-visualization.marginLeft.value, 0, 
+																-visualization.marginLeftNumber.value, 0, 
 																BitmapText.VERTICAL_ALIGN_TOP);
 			}
 
@@ -206,11 +201,11 @@
 						<userControls:ControlsSubsetBox>
 							<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 										 toolTip="Checking this box makes the x, y, color and size attributes visible in this tool's probe tooltip"
-										 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+										 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 						</userControls:ControlsSubsetBox>
-						<ui:DynamicColumnComponent visTool="{this}" label="x column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
-						<ui:DynamicColumnComponent visTool="{this}" label="y column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
-						<ui:DynamicColumnComponent visTool="{this}" label="image column" initialize="(event.target as DynamicColumnComponent).dynamicObject = _plotter.imageURL.internalDynamicColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="image column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.imageURL.internalDynamicColumn"/>
 						<mx:VBox borderStyle="inset"
 								 backgroundColor="0xFFFFFF" 
 								 backgroundAlpha="0.7"
@@ -246,9 +241,6 @@
 							</mx:HBox>
 						</mx:VBox>
 					</mx:VBox>
-					<mx:HBox width="100%">
-						<!--click="showControlPanel.value = !showControlPanel.value;" initialize="if (showControlPanel.getSessionState() == null) showControlPanel.value = true;"-->
-					</mx:HBox>
 				</mx:VBox>
 			</mx:Panel>
 	</ui:ControlPanel>

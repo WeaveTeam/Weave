@@ -1,1 +1,3 @@
 /build
+/.externalToolBuilders
+/eclipse_export.xml

@@ -27,7 +27,7 @@
 				creationComplete="handleCreationComplete()">
 	<mx:VBox height="100%">
 		<mx:HBox width="100%">
-			<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{StringDefinition.DEFAULT_IMPORT_SQL_DATA_BUTTON_TOOLTIP}"/>
+			<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
 			<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())"/>
 		</mx:HBox>
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search data tables" click="handleTableSelectionChange()"/>
@@ -40,10 +40,11 @@
 		<mx:Canvas id="tableView" label="Table View" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox>
-					<mx:Button label="Apply changes" click="overwrite()" />
-					<mx:Button id="deleteSelectionButton" label="Delete Selected Line(s)" click="deleteSelectedRows()" enabled="false" />
-					<mx:Button label="Delete entire DataTable" click="deleteDataTable()" />
-					<mx:Button label="Test Query" click = "testQueryButtonHandler()"/>
+					<mx:Button label="Apply changes" click="applyChanges()" />
+					<mx:Button id="deleteSelectionButton" label="Delete selected line(s)" click="deleteSelectedRows()" enabled="false" />
+					<mx:Button label="Delete entire data table" click="deleteDataTable()" />
+					<mx:Button id="testQueryButton" label="Test query" click="testQueryButtonHandler()" enabled="false"/>
+					<mx:Button id="testAllQueriesButton" label="Test all queries" click="testAllQueries()" enabled="false"/>
 				</mx:HBox>
 				<mx:DataGrid id="tableEditor"
 								sortableColumns="false"
@@ -59,7 +60,7 @@
 		<mx:Canvas id="textView" label="Text View" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox>
-					<mx:Button label="Apply changes" click="overwrite()" />
+					<mx:Button label="Apply changes" click="applyChanges()" />
 					<mx:Button label="Delete this DataTable entry" click="deleteDataTable()" />
 				</mx:HBox>
 				<mx:TextArea id="textEditor" wordWrap="false" editable="true" width="100%" height="100%" change="metaDataChangeHandler()" />
@@ -93,14 +94,17 @@
 		<![CDATA[
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
+			import flash.utils.setTimeout;
 			
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
+			import mx.collections.ListCollectionView;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.List;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.controls.listClasses.IListItemRenderer;
 			import mx.core.IFlexDisplayObject;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
@@ -111,8 +115,9 @@
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
 			
-			import weave.StringDefinition;
+			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
@@ -121,7 +126,6 @@
 			import weave.services.WeaveDataServlet;
 			import weave.services.beans.AttributeColumnDataWithKeys;
 			import weave.services.beans.AttributeColumnInfo;
-			import weave.ui.PopupDialog;
 			import weave.ui.admin.ColumnMetadataPopup;
 			import weave.ui.admin.DublinCoreEntryComponent;
 			import weave.ui.admin.WizardPanel;
@@ -159,10 +163,10 @@
 				if (tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView))
 					loadDublinCoreElements();
 				
-				if (getCurrentTableName() == null)
+				if (getSelectedTableName() == null)
 					return;
 				
-				var tableName:String = getCurrentTableName();
+				var tableName:String = getSelectedTableName();
 				AdminInterface.instance.getDataTableInfo(tableName).addAsyncResponder(handleDataTableInfo, null, tableName);
 			}
 			
@@ -176,10 +180,15 @@
 					// ask user to confirm
 					PopUpUtils.confirm(
 						this,
-						"Leave current DataTable",
-						'Are you sure you want to leave the current DataTable? Any unsaved changes will be lost.',
-						leave
+						"Discard changes",
+						'Discard unsaved changes?',
+						leave, cancel,
+						'Discard', 'Cancel'
 					);
+					function cancel():void
+					{
+						treeWithSearch.tree.selectedItem = null;
+					}
 					function leave():void
 					{
 						changeSelectedTreeItem();
@@ -194,7 +203,7 @@
 			{
 				var metadataArray:Array = new Array();
 				var result:Array = event.result as Array;
-				if( result != null )
+				if ( result != null )
 				{
 					for( var i:int = 0; i < result.length; i++ )
 					{
@@ -216,8 +225,7 @@
 			
 			/**
 			 * This function compares two DataGridColumn objects by comparing the dataField property.
-			 * If Strings are given as parameters, it compares them directly.
-			 * This compare function will put "name" in front of any other String.
+			 * Items will be sorted according to preferredMetadataOrder.
 			 * @param a The first value to compare, either a DataGridColumn or a String.
 			 * @param b The second value to compare, either a DataGridColumn or a String.
 			 * @return A value of -1, 0, or 1, which is used by Array.sort().
@@ -228,19 +236,22 @@
 					a = (a as DataGridColumn).dataField;
 				if (b is DataGridColumn)
 					b = (b as DataGridColumn).dataField;
+				
+				var order:Array = preferredMetadataOrder;
+				var ia:int = order.indexOf(a);
+				var ib:int = order.indexOf(b);
+				if (ia >= 0 && ib >= 0)
+					return ObjectUtil.numericCompare(ia, ib);
+				
+				if (ia >= 0)
+					return -1;
+				if (ib >= 0)
+					return 1;
 
-				// we want the 'name' column to appear first in the list.
-				if (a == "name")
-					return -1;
-				if (b == "name")
-					return 1;
-				// special case to make 'min' appear before 'max'
-				if (a == 'min' && b == 'max')
-					return -1;
-				if (a == 'max' && b == 'min')
-					return 1;
 				return ObjectUtil.stringCompare(a as String, b as String, true);
 			}
+			
+			private const preferredMetadataOrder:Array = "sqlResult,title,name,keyType,dataType,number,string,min,max,year,geometryCollection,dataTable,connection,sqlQuery".split(',');
 
 			private function getActiveDataTableName():String
 			{
@@ -271,7 +282,7 @@
 				return dataTableName;
 			}
 			
-			private function overwrite():void
+			private function applyChanges():void
 			{
 				var dataTableName:String = getActiveDataTableName();
 				if (dataTableName == null)
@@ -282,7 +293,8 @@
 						this,
 						"Confirm overwrite",
 						'Overwrite DataTable entry "'+dataTableName+'"?',
-						overwrite
+						overwrite, null,
+						'Overwrite', 'Cancel', 85
 					);
 				function overwrite():void
 				{
@@ -301,7 +313,8 @@
 						this,
 						"Confirm delete",
 						'Delete DataTable entry "'+dataTableName+'"?',
-						del
+						del, null,
+						'Delete', 'Cancel'
 					);
 				
 				function del():void
@@ -315,7 +328,7 @@
 			{
 				var metadata:Object = new Object();
 				var selectedItem:Array = tableEditor.selectedItems.concat();
-				if(selectedItem.length > 0)
+				if (selectedItem.length > 0)
 				{
 					metadata = ObjectUtil.copy(selectedItem[0]);
 					delete metadata["mx_internal_uid"];
@@ -375,11 +388,22 @@
 				for each (var item:Object in metadataArray)
 					delete item['mx_internal_uid'];
 				
+				var fieldNames:Array = setupDataGridColumns(metadataArray, tableEditor);
 				// generate CSV String
-				var fieldNames:Array = WeaveAPI.CSVParser.getRecordFieldNames(metadataArray, true);
-				fieldNames.sort(columnSort);
 				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(metadataArray, fieldNames, true)
 				textEditor.text = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+				
+				testAllQueriesButton.enabled = (metadataArray.length > 0);
+			}
+			
+			/**
+			 * This function will set up the columns in a data grid according to preferredMetadataOrder.
+			 * @return An array of sorted field names corresponding to the data grid columns.
+			 */
+			private function setupDataGridColumns(metadataArray:Array, dataGrid:DataGrid):Array
+			{
+				var fieldNames:Array = WeaveAPI.CSVParser.getRecordFieldNames(metadataArray, true);
+				fieldNames.sort(columnSort);
 				
 				// We want to re-order the columns in the DataGrid so the 'name' column appears first.
 				// The problem is, once we set the tableEditor.columns, they will never be generated automatically again.
@@ -387,7 +411,8 @@
 				var columns:Array = [];
 				for (var i:int = 0; i < fieldNames.length; i++)
 					columns.push(new DataGridColumn(fieldNames[i]));
-				tableEditor.columns = columns;
+				dataGrid.columns = columns;
+				return fieldNames;
 			}
 			
 			private function deleteSelectedRows():void
@@ -396,7 +421,10 @@
 				for (var i:int = 0; i < metadataArray.length; i++)
 				{
 					if (itemsToDelete.indexOf(metadataArray[i]) >= 0)
+					{
 						metadataArray.splice(i--, 1);
+						metaDataChanged = true;
+					}
 				}
 				// update tableEditor
 				tableEditor.dataProvider = metadataArray;
@@ -421,7 +449,7 @@
 			
 			private function tabIndexChangeHandler(event:Event):void
 			{
-				if( tabNavigator.selectedIndex == tabNavigator.getChildIndex(tableView) )
+				if ( tabNavigator.selectedIndex == tabNavigator.getChildIndex(tableView) )
 				{
 					// switch tab: TEXT VIEW -> TABLE VIEW
 					handleTableSelectionChange();
@@ -429,14 +457,14 @@
 					if (metaDataChanged)
 						loadData(textEditor.text);
 				}
-				else if( tabNavigator.selectedIndex == tabNavigator.getChildIndex(textView) )
+				else if ( tabNavigator.selectedIndex == tabNavigator.getChildIndex(textView) )
 				{
 					// switch tab: TABLE VIEW -> TEXT VIEW
 					// load changes from tableEditor
 					if (metaDataChanged)
 						loadData(metadataArray);
 				}
-				else if( tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView) )
+				else if ( tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView) )
 				{
 					// switch tab: (TABLE VIEW | TEXT VIEW -> Metadata tab)
 					// load changes from tableEditor
@@ -456,17 +484,20 @@
 			
 			private function metaDataChangeHandler(event:DataGridEvent=null):void
 			{
-				
-				if(event != null) 
+				if (event != null)
 				{
-					var row:Number = Number(event.rowIndex);
-					var tableName:String = getCurrentTableName();
-					var editedObject:Object = tableEditor.dataProvider.getItemAt(row);
+					var tableName:String = getSelectedTableName();
+					
+					var editedObject:Object = (tableEditor.dataProvider as ListCollectionView).getItemAt(event.rowIndex);
 					var editedField:String = event.dataField;
 					var oldValue:String = editedObject[editedField];
-					var newValue:String = tableEditor.itemEditorInstance[tableEditor.columns[event.columnIndex].editorDataField];
+					
+					var editorDataField:String = tableEditor.columns[event.columnIndex].editorDataField;
+					var newValue:String = StringUtil.trim(tableEditor.itemEditorInstance[editorDataField]);
+					
+					tableEditor.itemEditorInstance[editorDataField] = newValue;
 				}
-				if(oldValue != newValue || event==null)
+				if (oldValue != newValue || event == null)
 				{
 					metaDataChanged = true;
 				}
@@ -474,21 +505,20 @@
 			
 			private function handleTableSelectionChange():void
 			{
-				if( tableEditor.selectedItems.length > 0 )
-					deleteSelectionButton.enabled = true;
-				else
-					deleteSelectionButton.enabled = false;
+				var enable:Boolean = (tableEditor.selectedItems.length > 0);
+				deleteSelectionButton.enabled = enable;
+				testQueryButton.enabled = enable;
 			}
 
 			private function tableEditorKeyDownHandler(event:KeyboardEvent):void
 			{
-				if( ( event.keyCode == Keyboard.SHIFT ) ||
+				if ( ( event.keyCode == Keyboard.SHIFT ) ||
 					( event.keyCode == Keyboard.CONTROL ) )
 					tableEditor.editable = false;
 			}
 			private function tableEditorKeyUpHandler(event:KeyboardEvent):void
 			{
-				if( ( event.keyCode == Keyboard.SHIFT ) ||
+				if ( ( event.keyCode == Keyboard.SHIFT ) ||
 					( event.keyCode == Keyboard.CONTROL ) )
 					tableEditor.editable = true;
 			}
@@ -524,13 +554,14 @@
 			 */
 			private function deleteSelectedElements():void
 			{
-				var tableName:String = getCurrentTableName();
+				var tableName:String = getSelectedTableName();
 				var elements:Array = dcElementsEditor.selectedItems.concat();
 				PopUpUtils.confirm(
 					this,
 					"Confirm delete",
 					'Delete selected Dublin Core element' + (dcElementsEditor.selectedItems.length > 1 ? 's' : '') + ' from data table ' + tableName + '?',
-					del
+					del, null,
+					'Delete', 'Cancel'
 				);
 				function del():void
 				{
@@ -557,16 +588,16 @@
 			 */
 			private function elementsChangeHandler(event:Event):void
 			{
-				if (getCurrentTableName() == null)
+				if (getSelectedTableName() == null)
 					return;
 				
 				var label:String = elementsComboBox.selectedItem as String;
 				//reset to the prompt
 				elementsComboBox.selectedIndex = -1;
 				
-				var dataTableName:String = getCurrentTableName();
+				var dataTableName:String = getSelectedTableName();
 //				Alert.show("label = "+label+", data = "+data);
-				var popup:DublinCoreEntryComponent = PopupDialog.openDialog(this, DublinCoreEntryComponent) as DublinCoreEntryComponent;
+				var popup:DublinCoreEntryComponent = DublinCoreEntryComponent.openDialog(this);
 				popup.setElement(label);
 				popup.setDataset(dataTableName);
 				popup.setSuccessCallback(function():void{
@@ -576,7 +607,7 @@
 
 			private function loadDublinCoreElements():void
 			{
-				var tableName:String = getCurrentTableName();
+				var tableName:String = getSelectedTableName();
 				var query:DelayedAsyncInvocation = AdminInterface.instance.listDCElements(tableName);
 				query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
 					dcElementsEditor.dataProvider = e.result;
@@ -584,7 +615,7 @@
 				deleteSelectedElementsButton.enabled = false;
 			}
 			
-			private function getCurrentTableName():String
+			private function getSelectedTableName():String
 			{
 				if (treeWithSearch.tree.selectedItem == null)
 					return null;
@@ -595,20 +626,15 @@
 			private function dcElementsEditorEditHandler(event:DataGridEvent):void
 			{
 				var row:Number = Number(event.rowIndex);
-				var tableName:String = getCurrentTableName();
-				var element:String = dcElementsEditor.dataProvider.getItemAt(row)[ELEMENT];
-				var oldValue:String = dcElementsEditor.dataProvider.getItemAt(row)[FIELD];
+				var item:Object = dcElementsEditor.dataProvider.getItemAt(row);
+				var tableName:String = getSelectedTableName();
+				var element:String = item[ELEMENT];
+				var oldValue:String = item[FIELD];
 				var newValue:String = dcElementsEditor.itemEditorInstance[dcElementsEditor.columns[event.columnIndex].editorDataField];
 				
 				if (oldValue != newValue)
 				{
-					PopUpUtils.confirm(
-						this,
-						"Confirm Update",
-						'Update Dublin Core element?',
-						yes,
-						no
-					);
+					var self:DataTableManager = this;
 					function yes():void
 					{
 						var o:Object = {element:element, oldValue:oldValue, newValue:newValue};
@@ -622,13 +648,58 @@
 					}
 					function no():void
 					{
-						// This might need to be fixed
-						dcElementsEditor.dataProvider.getItemAt(row)[FIELD] = oldValue;
-						loadDublinCoreElements();
+						item[FIELD] = oldValue;
+						(dcElementsEditor.dataProvider as ICollectionView).refresh();
 					}
+					function confirm():void
+					{
+						PopUpUtils.confirm(
+							self,
+							"Confirm Update",
+							'Update Dublin Core element?',
+							yes, no,
+							'Update', 'Cancel'
+						);
+					}
+					// Use setTimeout because if we alert immediately for some reason the data grid
+					// will dispatch another item-edit-end event and call this function recursively.
+					setTimeout(confirm, 0);
 				}
 			}
 			
+			protected function testAllQueries():void
+			{
+				var weaveAdminService:WeaveAdminService = AdminInterface.instance.service;
+				var connectionName:String = AdminInterface.instance.activeConnectionName;
+				var password:String = AdminInterface.instance.activePassword;
+				var dataTableName:String = getActiveDataTableName();
+				
+				weaveAdminService.testAllQueries(connectionName, password, dataTableName).addAsyncResponder(handleTestAllQueries, null, dataTableName);
+			}								
+			
+			private function handleTestAllQueries(event:ResultEvent, token:Object = null):void
+			{
+				var result:Array = event.result as Array;//array of AttributeColumnInfo objects returned
+				var metadataArray:Array = new Array(); //array of metadata of the columns returned
+				var fieldLookup:Object = {};
+				var fields:Array = [];
+				for (var i:int = 0; i < result.length; i++)
+				{
+					var item:AttributeColumnInfo = new AttributeColumnInfo(result[i]);
+					item.metadata.connection = item.connection;
+					item.metadata.sqlQuery = item.sqlQuery;
+					metadataArray.push(item.metadata);
+					for (var field:String in item.metadata)
+						if (!fieldLookup[field])
+							fieldLookup[field] = 1 + fields.push(field);
+				}
+				fields.sort(columnSort);
+				
+				var metadataPopup:ColumnMetadataPopup = PopUpUtils.createDisplayObjectAsPopUp(this, ColumnMetadataPopup) as ColumnMetadataPopup;	  
+				metadataPopup.popUpDataGrid.dataProvider = metadataArray;
+				var fieldNames:Array = setupDataGridColumns(metadataArray, metadataPopup.popUpDataGrid);
+				metadataPopup.title = metadataArray.length + " queries were tested in data table "+token;
+			}
 		]]>
 	</mx:Script>
 </mx:HDividedBox>

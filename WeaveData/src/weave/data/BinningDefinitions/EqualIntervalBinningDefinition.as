@@ -27,6 +27,7 @@ package weave.data.BinningDefinitions
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
+	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
@@ -36,7 +37,7 @@ package weave.data.BinningDefinitions
 	 * @author abaumann
 	 * @author sanbalagan
 	 */
-	public class EqualIntervalBinningDefinition implements IBinningDefinition
+	public class EqualIntervalBinningDefinition extends AbstractBinningDefinition
 	{
 		public function EqualIntervalBinningDefinition()
 		{
@@ -47,7 +48,7 @@ package weave.data.BinningDefinitions
 		
 		public const dataInterval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
 		{
 			var name:String;
 			// clear any existing bin classifiers
@@ -95,8 +96,12 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.minInclusive.value = true;
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
-				name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.copyObject(name, tempNumberClassifier);
+				//first get name from overrideBinNames
+				name = getNameFromOverrideString(iBin);
+				//if it is empty string set it from generateBinLabel
+				if(!name)
+					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 		}
 		

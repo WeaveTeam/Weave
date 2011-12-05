@@ -50,6 +50,7 @@ package weave.primitives
 		
 		public function copyFrom(sourceBounds:IBounds2D):void
 		{
+			//TODO: do this manually instead of calling setSessionState
 			setSessionState(this, sourceBounds, false);
 		}
 		

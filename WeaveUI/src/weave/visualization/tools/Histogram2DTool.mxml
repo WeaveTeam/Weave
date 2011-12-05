@@ -68,27 +68,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 				
 				// lock dynamic objects into place
-				plotter = initDefaultPlotter(Histogram2DPlotter) as Histogram2DPlotter;
+				plotter = initializePlotters(Histogram2DPlotter, true);
 				visualization.enableProbeLine(false, true);
-				
-				xAxisEnabled = true;
-				yAxisEnabled = true;
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.enableProbeLine(true, true);
 				
-				visualization.marginBottom.value = 80;
-				visualization.marginTop.value    = 10;
-				visualization.marginLeft.value   = 80;
-				visualization.marginRight.value  = 10;
+				visualization.marginBottom.value = "80";
+				visualization.marginTop.value    = "10";
+				visualization.marginLeft.value   = "80";
+				visualization.marginRight.value  = "10";
 				
-				visualization.enableXAxisProbing = true;
-				visualization.enableYAxisProbing = true;
-				
-				visualization.marginLeft.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottom.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
@@ -100,11 +94,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				initColumnDefaults(plotter.xColumn, plotter.yColumn);
 				
-				toolTitle.addGroupedCallback(this, updateTitle);
 			}
 			
 			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
+				
 				cRampEditor.colorRamp = plotter.binColors;
 				handleBinColRadioButtonChange();
 				xColumnComponent.dynamicObject = plotter.xColumn;
@@ -170,17 +165,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			
-			private function updateTitle():void
+			override protected function handlePanelTitleChange():void
 			{
-				if (toolTitle.value == null)
+				super.handlePanelTitleChange();
+				if (!panelTitle.value)
 					title = "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
 			}
 			
 			private function updateAxisLabels():void
 			{
-				updateTitle();
-				visualization.setXAxisColumn(plotter.xColumn);
-				visualization.setYAxisColumn(plotter.yColumn);
+				handlePanelTitleChange();
+				visualization.bottomMarginColumn = plotter.xColumn;
+				visualization.leftMarginColumn = plotter.yColumn;
 				
 				var xBinCol:BinnedColumn = plotter.xBinnedColumn;
 				
@@ -197,8 +193,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				yAxisLayer.axisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber);
 				
 				
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.marginBottom.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.yColumn), -90, -visualization.marginLeft.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.yColumn), -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
@@ -207,7 +203,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox label="Visualization Controls">
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
-						 initialize="linkBindableProperty(includeToolAttributesInProbe,probeColumnsCheckBox,'selected')"/>
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="X Column"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="Y Column"/>
 		</mx:VBox>
@@ -222,7 +218,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<ui:ColorRampEditor id="cRampEditor"/>
-			<settings:GridLineSettings tool="{this}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

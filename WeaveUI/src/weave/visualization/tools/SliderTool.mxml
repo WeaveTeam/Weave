@@ -32,22 +32,20 @@
 
 <mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			
 			import weave.Weave;
-			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IDataSource;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.core.SessionManager;
 			import weave.core.StageUtils;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.HierarchyUtils;
+			import weave.utils.LinkableTextFormat;
 
 	//constructor
 	
@@ -60,10 +58,7 @@
 		StageUtils.callLater(this,initializeLabels, null, false);
 		StageUtils.callLater(this,addCallbacks, null, false);
 
-		Weave.properties.axisFontFamily.addGroupedCallback(this,updateLabelProperties);
-		Weave.properties.axisFontColor.addGroupedCallback(this,updateLabelProperties);
-		Weave.properties.axisFontSize.addGroupedCallback(this,updateLabelProperties);
-		Weave.properties.axisFontUnderline.addGroupedCallback(this, updateLabelProperties);
+		getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabelProperties, true);
 	}
 
 	//class data
@@ -121,6 +116,13 @@
 	public function addCallbacks():void { }
 
 	//class methods that are common to all SliderTools
+			
+	public function get sliderValue():String
+	{
+		if (dimensionSlider.value == -1)
+			return null;
+		return dimensionSlider.labels[dimensionSlider.value];
+	}
 	
 	private function initializeLabels():void
 	{
@@ -140,10 +142,9 @@
 	private function updateLabelProperties():void
 	{
 		if (!parent)
-			return callLater(updateLabelProperties); 
-		dimensionSlider.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
-		dimensionSlider.setStyle("color", Weave.properties.axisFontColor.value);
-		dimensionSlider.setStyle("fontSize", Weave.properties.axisFontSize.value);
+			return callLater(updateLabelProperties);
+		
+		LinkableTextFormat.defaultTextFormat.copyToStyle(dimensionSlider);
 		dimensionSlider.invalidateProperties();
 	}
 

@@ -30,6 +30,7 @@ package weave.data.BinningDefinitions
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.VectorUtils;
 	
@@ -40,7 +41,7 @@ package weave.data.BinningDefinitions
 	 * @author abaumann
 	 * @author skolman
 	 */
-	public class CustomSplitBinningDefinition implements IBinningDefinition
+	public class CustomSplitBinningDefinition extends AbstractBinningDefinition
 	{
 		public function CustomSplitBinningDefinition()
 		{
@@ -56,7 +57,7 @@ package weave.data.BinningDefinitions
 		 * @param column 
 		 * @param output
 		 */
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
 		{
 			// make sure callbacks only run once.
 			getCallbackCollection(output).delayCallbacks();
@@ -90,8 +91,12 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.minInclusive.value = true;
 				tempNumberClassifier.maxInclusive.value = (i == values.length - 2);
 				
-				name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
-				output.copyObject(name, tempNumberClassifier);
+				//first get name from overrideBinNames
+				name = getNameFromOverrideString(i);
+				//if it is empty string set it from generateBinLabel
+				if(!name)
+					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 			
 			// allow callbacks to run now.

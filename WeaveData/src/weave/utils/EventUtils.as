@@ -26,13 +26,9 @@ package weave.utils
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
-	import mx.core.UIComponent;
-	
-	import weave.api.core.ILinkableVariable;
-	import weave.api.getCallbackCollection;
 	
 	/**
-	 * 
+	 * Static functions related to event callbacks.
 	 * @author adufilie
 	 */
 	public class EventUtils
@@ -68,19 +64,24 @@ package weave.utils
 			delete callbackMap[callback];
 		}
 		
+		public static function addEventCallback(eventDispatcher:Object, event:String, callback:Function, params:Array = null):void
+		{
+			eventDispatcher.addEventListener(event, function(event:Event):void { callback.apply(null, params); } );
+		}
 		
 		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
 		{
-			eventDispatcher.addEventListener(event, generateDelayedCallback(callback, delay, []));
+			eventDispatcher.addEventListener(event, generateDelayedCallback(callback, [], delay));
 		}
 		
 		/**
 		 * This function generates a delayed version of a callback.
 		 * @param callback The callback function
 		 * @param callbackParams If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
+		 * @param delay The number of milliseconds to delay before running the callback.
 		 * @return A wrapper around the callback that remembers the parameters and delays calling the original callback.
 		 */
-		public static function generateDelayedCallback(callback:Function, delay:int, callbackParams:Array = null):Function
+		public static function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function
 		{
 			var _timer:Timer = new Timer(delay, 1);
 			var _delayedThisArg:Object;
@@ -103,36 +104,6 @@ package weave.utils
 			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
 			
 			return delayedCallback;
-		}
-		
-		/**
-		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
-		 * Prior to linking, the value of the ILinkableVariable will be copied over to the bindable property.
-		 * The delay specifies the time to wait before copying the bindable value to the linkable value.
-		 * @param linkableVariable An ILinkableVariable to link to a bindable property.
-		 * @param bindableParent An object with a bindable property.
-		 * @param bindablePropertyName The variable name of the bindable property.
-		 * @param delay The delay before copying the bindable value to the linkable value.
-		 */
-		public static function delayedLinkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:int = 500):void
-		{
-			var setBindableProperty:Function = function():void
-			{
-				var value:Object = linkableVariable.getSessionState();
-				if (bindableParent[bindablePropertyName] is Number && !(value is Number))
-				{
-					try {
-						linkableVariable.setSessionState(Number(value));
-						value = linkableVariable.getSessionState();
-					} catch (e:Error) { }
-				}
-				bindableParent[bindablePropertyName] = value;
-			};
-			// when the linkable variable changes, set the bindable property immediately
-			getCallbackCollection(linkableVariable).addImmediateCallback(null, setBindableProperty, null, true);
-			// when the bindable property changes, delay setting the linkable variable
-			var delayedSetLinkableVariable:Function = generateDelayedCallback(linkableVariable.setSessionState, delay);
-			var watcher:ChangeWatcher = BindingUtils.bindSetter(delayedSetLinkableVariable, bindableParent, bindablePropertyName);
 		}
 	}
 }

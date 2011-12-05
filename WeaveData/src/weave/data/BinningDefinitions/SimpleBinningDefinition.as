@@ -21,6 +21,7 @@ package weave.data.BinningDefinitions
 {
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IColumnWrapper;
@@ -28,8 +29,10 @@ package weave.data.BinningDefinitions
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
+	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * Divides a data range into a number of equally spaced bins.
@@ -37,7 +40,7 @@ package weave.data.BinningDefinitions
 	 * @author adufilie
 	 * @author abaumann
 	 */
-	public class SimpleBinningDefinition implements IBinningDefinition
+	public class SimpleBinningDefinition extends AbstractBinningDefinition
 	{
 		public function SimpleBinningDefinition()
 		{
@@ -55,7 +58,7 @@ package weave.data.BinningDefinitions
 		 * deriveExplicitBinningDefinition
 		 * From this simple definition, derive an explicit definition.
 		 */
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
 		{
 			var name:String;
 			// clear any existing bin classifiers
@@ -65,7 +68,7 @@ package weave.data.BinningDefinitions
 			while (nonWrapperColumn is IColumnWrapper)
 				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).internalColumn;
 			
-			var integerValuesOnly:Boolean = nonWrapperColumn is StringColumn;
+			var integerValuesOnly:Boolean = nonWrapperColumn && ColumnUtils.getDataType(nonWrapperColumn) != DataTypes.NUMBER;
 			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
 			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
 			
@@ -124,9 +127,14 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.max.value = binMax;
 				tempNumberClassifier.minInclusive.value = true;
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
+				
+				//first get name from overrideBinNames
+				name = getNameFromOverrideString(iBin);
+				//if it is empty string set it from generateBinLabel
+				if(!name)
+					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
 
-				name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
-				output.copyObject(name, tempNumberClassifier);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 		}
 		

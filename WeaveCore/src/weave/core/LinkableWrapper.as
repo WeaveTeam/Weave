@@ -26,6 +26,7 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	
 	/**
 	 * This is a wrapper for a dynamically created object that does not have to implement ILinkableObject.
@@ -75,7 +76,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				reportError(e);
 			}
 		}
 

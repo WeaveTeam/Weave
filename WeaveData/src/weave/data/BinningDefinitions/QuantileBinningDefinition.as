@@ -27,6 +27,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
+	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
@@ -36,7 +37,7 @@ package weave.data.BinningDefinitions
 	 * @author abaumann
 	 * @author sanbalagan
 	 */
-	public class QuantileBinningDefinition implements IBinningDefinition
+	public class QuantileBinningDefinition extends AbstractBinningDefinition
 	{
 		public function QuantileBinningDefinition()
 		{
@@ -50,7 +51,7 @@ package weave.data.BinningDefinitions
 		 * @param column 
 		 * @param output
 		 */
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
 		{
 			var name:String;
 			// clear any existing bin classifiers
@@ -85,8 +86,12 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.minInclusive.value = true;
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
-				name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
-				output.copyObject(name, tempNumberClassifier);
+				//first get name from overrideBinNames
+				name = getNameFromOverrideString(iBin);
+				//if it is empty string set it from generateBinLabel
+				if(!name)
+					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
+				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 		}
 		

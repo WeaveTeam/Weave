@@ -20,20 +20,25 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
+	import flash.utils.Dictionary;
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	
 	/**
@@ -48,9 +53,11 @@ package weave.visualization.plotters
 			super(CircleGlyphPlotter);
 			//circlePlotter.fillStyle.lock();
 			setKeySource(_keySet);
-			getCallbackCollection(this).addImmediateCallback(this, updateKeys);						
-			registerSpatialProperties(xColumn, yColumn, zoomToSubset);
-			registerNonSpatialProperties(colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy);
+			getCallbackCollection(this).addImmediateCallback(this, updateKeys);
+			for each (var spatialProperty:ILinkableObject in [xColumn, yColumn, zoomToSubset])
+				registerSpatialProperty(spatialProperty);
+			for each (var child:ILinkableObject in [colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy])
+				registerLinkableChild(this, child);
 		}
 		
 		private var _keySet:KeySet = newDisposableChild(this,KeySet);
@@ -65,9 +72,11 @@ package weave.visualization.plotters
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			// sort by size, then color
-			recordKeys.sort(sortKeys, Array.DESCENDING);
-			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
+			if (sortKeys == null)
+				sortKeys = ColumnUtils.generateSortFunction([radiusColumn, colorColumn, xColumn, yColumn], [true, false, false, false]);
+			recordKeys.sort(sortKeys);
+			
+			super.drawPlot(recordKeys, dataBounds, screenBounds, destination);
 		}
 		
 		/**
@@ -75,32 +84,13 @@ package weave.visualization.plotters
 		 * @param key1 First record key (a)
 		 * @param key2 Second record key (b)
 		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
-		 * 
 		 */			
-		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			// compare size
-			var a:Number = radiusColumn.getValueFromKey(key1, Number);
-			var b:Number = radiusColumn.getValueFromKey(key2, Number);
-			// sort descending (high radius values and missing radius values drawn first)
-			if(isNaN(a)) return -1;
-			if(isNaN(b)) return 1;
-			if( a < b )
-				return -1;
-			else if( a > b )
-				return 1;
-			
-			// size equal.. compare color
-			a = colorColumn.getValueFromKey(key1, Number);
-			b = colorColumn.getValueFromKey(key2, Number);
-			// sort ascending (high values drawn last)
-			if( a < b ) return 1; 
-			else if( a > b ) return -1 ;
-			else return 0 ;
-		}
+		private var sortKeys:Function = null;
+		
 		// the private plotter being simplified
+		public function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
+		
 		public function get defaultScreenRadius():LinkableNumber {return circlePlotter.defaultScreenRadius;}
-		private function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
 		public function get enabledSizeBy():LinkableBoolean {return circlePlotter.enabledSizeBy; }
 		public function get minScreenRadius():LinkableNumber { return circlePlotter.minScreenRadius; }
 		public function get maxScreenRadius():LinkableNumber { return circlePlotter.maxScreenRadius; }
@@ -111,18 +101,24 @@ package weave.visualization.plotters
 		public function get radiusColumn():DynamicColumn { return circlePlotter.screenRadius; }
 		public function get zoomToSubset():LinkableBoolean { return circlePlotter.zoomToSubset; }
 		
-		private function getAllKeys(outputKeySet:KeySet, inputKeySets:Array):void
+		private function getAllKeys(...inputKeySets):Array
 		{
-			outputKeySet.delayCallbacks();
-			if (inputKeySets.length > 0)
-				outputKeySet.replaceKeys((inputKeySets[0] as IKeySet).keys);
-			else
-				outputKeySet.clearKeys();
-			for (var i:int = 1; i < inputKeySets.length; i++)
+			var lookup:Dictionary = new Dictionary(true);
+			var result:Array = [];
+			for (var i:int = 0; i < inputKeySets.length; i++)
 			{
-				outputKeySet.addKeys((inputKeySets[i] as IKeySet).keys);
+				var keys:Array = (inputKeySets[i] as IKeySet).keys;
+				for (var j:int = 0; j < keys.length; j++)
+				{
+					var key:IQualifiedKey = keys[j] as IQualifiedKey;
+					if (lookup[key] === undefined)
+					{
+						lookup[key] = true;
+						result.push(key);
+					}
+				}
 			}
-			outputKeySet.resumeCallbacks();			
+			return result;
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
@@ -137,7 +133,7 @@ package weave.visualization.plotters
 				
 		private function updateKeys():void
 		{
-			getAllKeys(_keySet,[xColumn,yColumn,radiusColumn,colorColumn]);
+			_keySet.replaceKeys(getAllKeys(xColumn, yColumn, radiusColumn, colorColumn));
 		}
 	}
 }

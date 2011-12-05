@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.core.ClassUtils;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
@@ -95,25 +96,27 @@ package weave.data.DataSources
 			var nodes:XMLList;
 			var nameMap:Object;
 			var newName:String;
-			var convertValue:Function;
-			
+			var valueConverter:Function;
+
 			nodes = root.descendants(tagName);
 			for each (node in nodes)
 			{
 				for (oldName in nameMapping)
 				{
+					newName = nameMapping[oldName] as String;
+					valueConverter = nameMapping[oldName] as Function;
+					
 					value = node.attribute(oldName);
-					if (value != '')
+					if (value) // if there's an old value
 					{
-						convertValue = nameMapping[oldName] as Function;
-						if (convertValue != null)
+						if (valueConverter != null) // if there's a converter
 						{
-							node['@' + oldName] = convertValue(value);
+							node['@' + oldName] = valueConverter(value); // convert the old value
 						}
-						else
+						else if (!String(node.attribute(newName))) // if there's no value under the newName
 						{
+							// rename the attribute from oldName to newName
 							delete node['@' + oldName];
-							newName = nameMapping[oldName];
 							node['@' + newName] = value;
 						}
 					}
@@ -152,6 +155,9 @@ package weave.data.DataSources
 		 */
 		protected function initialize():void
 		{
+			// just in case the XML was modified, detect those changes now.
+			_attributeHierarchy.detectChanges();
+
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
 
@@ -167,11 +173,6 @@ package weave.data.DataSources
 				// if its contents were cleared with that intention.
 				_requestedHierarchySubtreeStringMap = new Object();
 				initializeHierarchySubtree(null);
-			}
-			else
-			{
-				// just in case the XML was modified, detect those changes now.
-				_attributeHierarchy.detectChanges();
 			}
 			
 			handleAllPendingColumnRequests();
@@ -360,8 +361,7 @@ package weave.data.DataSources
 		 */
 		protected function handleUnsupportedColumnReference(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
 		{
-			var error:Error = new Error(this + " Unsupported column reference type: " + getQualifiedClassName(columnReference));
-			WeaveAPI.ErrorManager.reportError(error);
+			reportError(this + " Unsupported column reference type: " + getQualifiedClassName(columnReference));
 			proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
 			return;
 		}
