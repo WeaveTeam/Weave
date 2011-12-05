@@ -456,8 +456,6 @@
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
 							</mx:HBox>
 						</mx:VBox>
-						<mx:VBox>
-						</mx:VBox>
 						<ui:TextBox inputWidth="64" label="Position" 
 									creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>							  
 						<ui:Indent label="Angle">
