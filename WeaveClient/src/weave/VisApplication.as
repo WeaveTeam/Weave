@@ -85,6 +85,7 @@ package weave
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStatePanel;
+	import weave.ui.ImageWindow;
 	import weave.ui.JRITextEditor;
 	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
@@ -1322,6 +1323,7 @@ package weave
 				}
 				
 				SessionedTextBox.createContextMenuItems(this);
+				ImageWindow.createContextMenuItems(this);
 				PenTool.createContextMenuItems(this);
 					
 				//HelpPanel.createContextMenuItems(this);

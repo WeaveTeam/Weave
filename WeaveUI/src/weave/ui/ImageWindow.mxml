@@ -23,11 +23,15 @@
 			private var _fileLoader:FileReference = null;
 			public const resize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
+			[Embed(source="/weave/resources/images/missing.png")]
+			private static var _missingImageClass:Class;
+			private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
+			
 			override protected function childrenCreated():void
 			{
 				linkBindableProperty(resize, resizeImageCheckBox, "selected");
-				windowImage.height = this.height + 425;
-				windowImage.width = this.width + 425;
+				windowImage.height = this.height;
+				windowImage.width = this.width;
 			}		
 			
 			private function browseImage():void
@@ -61,6 +65,7 @@
 			{
 				try
 				{
+					resizeImageCheckBox.validateNow();
 					if( resizeImageCheckBox.selected == true )
 					{
 					
@@ -70,8 +75,8 @@
 						matrix.d = this.height/windowImage.contentHeight;
 						
 						windowImage.transform.matrix = matrix; 
-						windowImage.height = this.height + 425;
-						windowImage.width = this.width + 425;
+						windowImage.height = this.height;
+						windowImage.width = this.width;
 						
 					}
 					else
@@ -99,8 +104,8 @@
 							matrix.d = this.height/windowImage.contentHeight;
 				
 							windowImage.transform.matrix = matrix; 
-							windowImage.height = this.height + 425;
-							windowImage.width = this.width + 425;
+							windowImage.height = this.height;
+							windowImage.width = this.width;
 						}
 						catch(e:Error)
 						{
@@ -108,6 +113,34 @@
 						}
 					}
 				}
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL.text), handleImageDownload, handleFault, imageURL.text);
+				
+			}
+			
+			private var encoder:JPEGEncoder = new JPEGEncoder(100);
+			
+			private function handleImageDownload(event:ResultEvent, token:Object = null):void
+			{
+				var bitmap:Bitmap = event.result as Bitmap;
+				windowImage.data = encoder.encode(bitmap.bitmapData);
+				resizeImageCheckBox.validateNow();
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			/**
+			 * This function is called when there is an error downloading an image.
+			 */
+			private function handleFault(event:FaultEvent, token:Object=null):void
+			{
+				trace("Error downloading image:", ObjectUtil.toString(event.message), token);
+				resize.value = false;
+				windowImage.height = _missingImage.height;
+				windowImage.width = _missingImage.width;
+				windowImage.data = encoder.encode(_missingImage);
+				getCallbackCollection(this).triggerCallbacks();
 			}
 			
 			/*************************************************
@@ -269,27 +302,6 @@
 					image.sendWindowToForeground();
 					image.toggleControlPanel();
 				}
-			}
-			
-			protected function button1_clickHandler(event:MouseEvent):void
-			{
-				WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL.text), handleImageDownload, handleFault, imageURL.text);
-				
-			}
-			
-			private function handleImageDownload(event:ResultEvent, token:Object = null):void
-			{
-				var bitmap:Bitmap = event.result as Bitmap;
-				windowImage.data = bitmap.bitmapData;
-				getCallbackCollection(this).triggerCallbacks();
-			}
-			/**
-			 * This function is called when there is an error downloading an image.
-			 */
-			private function handleFault(event:FaultEvent, token:Object=null):void
-			{
-				trace("Error downloading image:", ObjectUtil.toString(event.message), token);
-				getCallbackCollection(this).triggerCallbacks();
 			}
 			
 		]]>
